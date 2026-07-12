@@ -25,8 +25,10 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AuthResponse {
     /// IdentityToken property.
+    #[serde(rename = "IdentityToken")]
     pub identity_token: Option<String>,
     /// Status property.
+    #[serde(rename = "Status")]
     pub status: String,
 }
 

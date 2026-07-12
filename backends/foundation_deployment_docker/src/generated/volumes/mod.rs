@@ -17,10 +17,10 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::Volume;
+use super::shared::Topology;
+use super::shared::ClusterVolumeSpec;
 use super::shared::ObjectVersion;
 use super::shared::ClusterVolume;
-use super::shared::ClusterVolumeSpec;
-use super::shared::Topology;
 
 use super::shared::ApiResponse;
 
@@ -32,8 +32,10 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct VolumeListResponse {
     /// Volumes property.
+    #[serde(rename = "Volumes")]
     pub volumes: Option<Vec<Volume>>,
     /// Warnings property.
+    #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
 }
 

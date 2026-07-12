@@ -25,28 +25,40 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SystemVersion {
     /// ApiVersion property.
+    #[serde(rename = "ApiVersion")]
     pub api_version: Option<String>,
     /// Arch property.
+    #[serde(rename = "Arch")]
     pub arch: Option<String>,
     /// BuildTime property.
+    #[serde(rename = "BuildTime")]
     pub build_time: Option<String>,
     /// Components property.
+    #[serde(rename = "Components")]
     pub components: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// Experimental property.
+    #[serde(rename = "Experimental")]
     pub experimental: Option<bool>,
     /// GitCommit property.
+    #[serde(rename = "GitCommit")]
     pub git_commit: Option<String>,
     /// GoVersion property.
+    #[serde(rename = "GoVersion")]
     pub go_version: Option<String>,
     /// KernelVersion property.
+    #[serde(rename = "KernelVersion")]
     pub kernel_version: Option<String>,
     /// MinAPIVersion property.
+    #[serde(rename = "MinAPIVersion")]
     pub min_api_version: Option<String>,
     /// Os property.
+    #[serde(rename = "Os")]
     pub os: Option<String>,
     /// Platform property.
+    #[serde(rename = "Platform")]
     pub platform: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Version property.
+    #[serde(rename = "Version")]
     pub version: Option<String>,
 }
 

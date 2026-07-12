@@ -21,45 +21,67 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ContainerUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerUpdateResponse {
-    /// Warnings property.
-    pub warnings: Option<Vec<String>>,
-}
-
-/// `NodeSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// Availability property.
-    pub availability: Option<String>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    pub name: Option<String>,
-    /// Role property.
-    pub role: Option<String>,
-}
-
 /// `SecretSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretSpec {
     /// Data property.
+    #[serde(rename = "Data")]
     pub data: Option<String>,
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: Option<Driver>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// Templating property.
+    #[serde(rename = "Templating")]
     pub templating: Option<Driver>,
+}
+
+/// `ConfigSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConfigSpec {
+    /// Data property.
+    #[serde(rename = "Data")]
+    pub data: Option<String>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Templating property.
+    #[serde(rename = "Templating")]
+    pub templating: Option<Driver>,
+}
+
+/// `Driver` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Driver {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: String,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
+/// `ContainerUpdateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerUpdateResponse {
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
 }
 
 /// `ServiceUpdateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ServiceUpdateResponse {
     /// Warnings property.
+    #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
 }
 
@@ -67,43 +89,46 @@ pub struct ServiceUpdateResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SwarmSpec {
     /// CAConfig property.
+    #[serde(rename = "CAConfig")]
     pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
     pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
     pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// Orchestration property.
+    #[serde(rename = "Orchestration")]
     pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Raft property.
+    #[serde(rename = "Raft")]
     pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
     pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `Driver` type.
+/// `NodeSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Driver {
-    /// Name property.
-    pub name: String,
-    /// Options property.
-    pub options: Option<serde_json::Value>,
-}
-
-/// `ConfigSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigSpec {
-    /// Data property.
-    pub data: Option<String>,
+pub struct NodeSpec {
+    /// Availability property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
-    /// Templating property.
-    pub templating: Option<Driver>,
+    /// Role property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
 }
 
 // =============================================================================

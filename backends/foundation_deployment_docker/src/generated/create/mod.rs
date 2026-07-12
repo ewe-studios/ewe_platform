@@ -18,10 +18,10 @@ use foundation_macros::JsonHash;
 // Import shared types used by this module
 use super::shared::IDResponse;
 use super::shared::Volume;
-use super::shared::Topology;
 use super::shared::ClusterVolumeSpec;
-use super::shared::ObjectVersion;
 use super::shared::ClusterVolume;
+use super::shared::ObjectVersion;
+use super::shared::Topology;
 
 use super::shared::ApiResponse;
 
@@ -33,42 +33,53 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerCreateResponse {
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: String,
     /// Warnings property.
+    #[serde(rename = "Warnings")]
     pub warnings: Vec<String>,
-}
-
-/// `VolumeCreateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct VolumeCreateRequest {
-    /// ClusterVolumeSpec property.
-    pub cluster_volume_spec: Option<ClusterVolumeSpec>,
-    /// Driver property.
-    pub driver: Option<String>,
-    /// DriverOpts property.
-    pub driver_opts: Option<serde_json::Value>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    pub name: Option<String>,
-}
-
-/// `ServiceCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ServiceCreateResponse {
-    /// ID property.
-    pub id: Option<String>,
-    /// Warnings property.
-    pub warnings: Option<Vec<String>>,
 }
 
 /// `NetworkCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkCreateResponse {
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: String,
     /// Warning property.
+    #[serde(rename = "Warning")]
     pub warning: String,
+}
+
+/// `ServiceCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ServiceCreateResponse {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
+}
+
+/// `VolumeCreateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct VolumeCreateRequest {
+    /// ClusterVolumeSpec property.
+    #[serde(rename = "ClusterVolumeSpec")]
+    pub cluster_volume_spec: Option<ClusterVolumeSpec>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// DriverOpts property.
+    #[serde(rename = "DriverOpts")]
+    pub driver_opts: Option<serde_json::Value>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
 }
 
 // =============================================================================

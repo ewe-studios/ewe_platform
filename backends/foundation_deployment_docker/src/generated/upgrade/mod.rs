@@ -25,10 +25,13 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginPrivilege {
     /// Description property.
+    #[serde(rename = "Description")]
     pub description: Option<String>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// Value property.
+    #[serde(rename = "Value")]
     pub value: Option<Vec<String>>,
 }
 

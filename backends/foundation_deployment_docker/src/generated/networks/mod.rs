@@ -25,9 +25,19 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PeerInfo {
     /// IP property.
+    #[serde(rename = "IP")]
     pub ip: Option<String>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
+}
+
+/// `NetworkStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkStatus {
+    /// IPAM property.
+    #[serde(rename = "IPAM")]
+    pub ipam: Option<IPAMStatus>,
 }
 
 /// `NetworkInspect` type.
@@ -35,17 +45,25 @@ pub struct PeerInfo {
 pub struct NetworkInspect {
 }
 
-/// `NetworkStatus` type.
+/// `IPAM` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkStatus {
-    /// IPAM property.
-    pub ipam: Option<IPAMStatus>,
+pub struct IPAM {
+    /// Config property.
+    #[serde(rename = "Config")]
+    pub config: Option<Vec<IPAMConfig>>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
 }
 
 /// `IPAMStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IPAMStatus {
     /// Subnets property.
+    #[serde(rename = "Subnets")]
     pub subnets: Option<serde_json::Value>,
 }
 
@@ -53,36 +71,52 @@ pub struct IPAMStatus {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Network {
     /// Attachable property.
+    #[serde(rename = "Attachable")]
     pub attachable: Option<bool>,
     /// ConfigFrom property.
+    #[serde(rename = "ConfigFrom")]
     pub config_from: Option<ConfigReference>,
     /// ConfigOnly property.
+    #[serde(rename = "ConfigOnly")]
     pub config_only: Option<bool>,
     /// Created property.
+    #[serde(rename = "Created")]
     pub created: Option<String>,
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: Option<String>,
     /// EnableIPv4 property.
+    #[serde(rename = "EnableIPv4")]
     pub enable_i_pv4: Option<bool>,
     /// EnableIPv6 property.
+    #[serde(rename = "EnableIPv6")]
     pub enable_i_pv6: Option<bool>,
     /// IPAM property.
+    #[serde(rename = "IPAM")]
     pub ipam: Option<IPAM>,
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: Option<String>,
     /// Ingress property.
+    #[serde(rename = "Ingress")]
     pub ingress: Option<bool>,
     /// Internal property.
+    #[serde(rename = "Internal")]
     pub internal: Option<bool>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// Options property.
+    #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
     /// Peers property.
+    #[serde(rename = "Peers")]
     pub peers: Option<Vec<PeerInfo>>,
     /// Scope property.
+    #[serde(rename = "Scope")]
     pub scope: Option<String>,
 }
 
@@ -90,6 +124,7 @@ pub struct Network {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ConfigReference {
     /// Network property.
+    #[serde(rename = "Network")]
     pub network: Option<String>,
 }
 
@@ -97,24 +132,17 @@ pub struct ConfigReference {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IPAMConfig {
     /// AuxiliaryAddresses property.
+    #[serde(rename = "AuxiliaryAddresses")]
     pub auxiliary_addresses: Option<serde_json::Value>,
     /// Gateway property.
+    #[serde(rename = "Gateway")]
     pub gateway: Option<String>,
     /// IPRange property.
+    #[serde(rename = "IPRange")]
     pub ip_range: Option<String>,
     /// Subnet property.
+    #[serde(rename = "Subnet")]
     pub subnet: Option<String>,
-}
-
-/// `IPAM` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAM {
-    /// Config property.
-    pub config: Option<Vec<IPAMConfig>>,
-    /// Driver property.
-    pub driver: Option<String>,
-    /// Options property.
-    pub options: Option<serde_json::Value>,
 }
 
 // =============================================================================

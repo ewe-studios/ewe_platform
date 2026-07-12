@@ -24,120 +24,40 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SwarmInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmInfo {
-    /// Cluster property.
-    pub cluster: Option<ClusterInfo>,
-    /// ControlAvailable property.
-    pub control_available: Option<bool>,
-    /// Error property.
-    pub error: Option<String>,
-    /// LocalNodeState property.
-    pub local_node_state: Option<LocalNodeState>,
-    /// Managers property.
-    pub managers: Option<i64>,
-    /// NodeAddr property.
-    pub node_addr: Option<String>,
-    /// NodeID property.
-    pub node_id: Option<String>,
-    /// Nodes property.
-    pub nodes: Option<i64>,
-    /// RemoteManagers property.
-    pub remote_managers: Option<Vec<PeerNode>>,
-}
-
 /// `DeviceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeviceInfo {
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
     /// Source property.
+    #[serde(rename = "Source")]
     pub source: Option<String>,
 }
 
-/// `SwarmSpec` type.
+/// `PluginsInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    pub name: Option<String>,
-    /// Orchestration property.
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct PluginsInfo {
+    /// Authorization property.
+    #[serde(rename = "Authorization")]
+    pub authorization: Option<Vec<String>>,
+    /// Log property.
+    #[serde(rename = "Log")]
+    pub log: Option<Vec<String>>,
+    /// Network property.
+    #[serde(rename = "Network")]
+    pub network: Option<Vec<String>>,
+    /// Volume property.
+    #[serde(rename = "Volume")]
+    pub volume: Option<Vec<String>>,
 }
 
-/// `GenericResources` type.
+/// `Commit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ContainerdInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerdInfo {
-    /// Address property.
-    pub address: Option<String>,
-    /// Namespaces property.
-    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ClusterInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ClusterInfo {
-    /// CreatedAt property.
-    pub created_at: Option<String>,
-    /// DataPathPort property.
-    pub data_path_port: Option<i64>,
-    /// DefaultAddrPool property.
-    pub default_addr_pool: Option<Vec<String>>,
+pub struct Commit {
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
-    /// RootRotationInProgress property.
-    pub root_rotation_in_progress: Option<bool>,
-    /// Spec property.
-    pub spec: Option<SwarmSpec>,
-    /// SubnetSize property.
-    pub subnet_size: Option<i64>,
-    /// TLSInfo property.
-    pub tls_info: Option<TLSInfo>,
-    /// UpdatedAt property.
-    pub updated_at: Option<String>,
-    /// Version property.
-    pub version: Option<ObjectVersion>,
-}
-
-/// `TLSInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TLSInfo {
-    /// CertIssuerPublicKey property.
-    pub cert_issuer_public_key: Option<String>,
-    /// CertIssuerSubject property.
-    pub cert_issuer_subject: Option<String>,
-    /// TrustRoot property.
-    pub trust_root: Option<String>,
-}
-
-/// `RegistryServiceConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistryServiceConfig {
-    /// IndexConfigs property.
-    pub index_configs: Option<serde_json::Value>,
-    /// InsecureRegistryCIDRs property.
-    pub insecure_registry_cid_rs: Option<Vec<String>>,
-    /// Mirrors property.
-    pub mirrors: Option<Vec<String>>,
 }
 
 /// `LocalNodeState` type.
@@ -147,168 +67,309 @@ pub struct LocalNodeState {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `NRIInfo` type.
+/// `GenericResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NRIInfo {
-    /// Info property.
-    pub info: Option<Vec<Vec<String>>>,
+pub struct GenericResources {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `PluginsInfo` type.
+/// `SwarmSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginsInfo {
-    /// Authorization property.
-    pub authorization: Option<Vec<String>>,
-    /// Log property.
-    pub log: Option<Vec<String>>,
-    /// Network property.
-    pub network: Option<Vec<String>>,
-    /// Volume property.
-    pub volume: Option<Vec<String>>,
-}
-
-/// `Commit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Commit {
-    /// ID property.
-    pub id: Option<String>,
+pub struct SwarmSpec {
+    /// CAConfig property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Orchestration property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Raft property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `SystemInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SystemInfo {
     /// Architecture property.
+    #[serde(rename = "Architecture")]
     pub architecture: Option<String>,
     /// CDISpecDirs property.
+    #[serde(rename = "CDISpecDirs")]
     pub cdi_spec_dirs: Option<Vec<String>>,
     /// CPUSet property.
+    #[serde(rename = "CPUSet")]
     pub cpu_set: Option<bool>,
     /// CPUShares property.
+    #[serde(rename = "CPUShares")]
     pub cpu_shares: Option<bool>,
     /// CgroupDriver property.
+    #[serde(rename = "CgroupDriver")]
     pub cgroup_driver: Option<String>,
     /// CgroupVersion property.
+    #[serde(rename = "CgroupVersion")]
     pub cgroup_version: Option<String>,
     /// Containerd property.
+    #[serde(rename = "Containerd")]
     pub containerd: Option<ContainerdInfo>,
     /// ContainerdCommit property.
+    #[serde(rename = "ContainerdCommit")]
     pub containerd_commit: Option<Commit>,
     /// Containers property.
+    #[serde(rename = "Containers")]
     pub containers: Option<i64>,
     /// ContainersPaused property.
+    #[serde(rename = "ContainersPaused")]
     pub containers_paused: Option<i64>,
     /// ContainersRunning property.
+    #[serde(rename = "ContainersRunning")]
     pub containers_running: Option<i64>,
     /// ContainersStopped property.
+    #[serde(rename = "ContainersStopped")]
     pub containers_stopped: Option<i64>,
     /// CpuCfsPeriod property.
+    #[serde(rename = "CpuCfsPeriod")]
     pub cpu_cfs_period: Option<bool>,
     /// CpuCfsQuota property.
+    #[serde(rename = "CpuCfsQuota")]
     pub cpu_cfs_quota: Option<bool>,
     /// Debug property.
+    #[serde(rename = "Debug")]
     pub debug: Option<bool>,
     /// DefaultAddressPools property.
+    #[serde(rename = "DefaultAddressPools")]
     pub default_address_pools: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// DefaultRuntime property.
+    #[serde(rename = "DefaultRuntime")]
     pub default_runtime: Option<String>,
     /// DiscoveredDevices property.
+    #[serde(rename = "DiscoveredDevices")]
     pub discovered_devices: Option<Vec<DeviceInfo>>,
     /// DockerRootDir property.
+    #[serde(rename = "DockerRootDir")]
     pub docker_root_dir: Option<String>,
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: Option<String>,
     /// DriverStatus property.
+    #[serde(rename = "DriverStatus")]
     pub driver_status: Option<Vec<Vec<String>>>,
     /// ExperimentalBuild property.
+    #[serde(rename = "ExperimentalBuild")]
     pub experimental_build: Option<bool>,
     /// FirewallBackend property.
+    #[serde(rename = "FirewallBackend")]
     pub firewall_backend: Option<FirewallInfo>,
     /// GenericResources property.
+    #[serde(rename = "GenericResources")]
     pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// HttpProxy property.
+    #[serde(rename = "HttpProxy")]
     pub http_proxy: Option<String>,
     /// HttpsProxy property.
+    #[serde(rename = "HttpsProxy")]
     pub https_proxy: Option<String>,
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
     /// IPv4Forwarding property.
+    #[serde(rename = "IPv4Forwarding")]
     pub i_pv4_forwarding: Option<bool>,
     /// Images property.
+    #[serde(rename = "Images")]
     pub images: Option<i64>,
     /// IndexServerAddress property.
+    #[serde(rename = "IndexServerAddress")]
     pub index_server_address: Option<String>,
     /// InitBinary property.
+    #[serde(rename = "InitBinary")]
     pub init_binary: Option<String>,
     /// InitCommit property.
+    #[serde(rename = "InitCommit")]
     pub init_commit: Option<Commit>,
     /// Isolation property.
+    #[serde(rename = "Isolation")]
     pub isolation: Option<String>,
     /// KernelVersion property.
+    #[serde(rename = "KernelVersion")]
     pub kernel_version: Option<String>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<Vec<String>>,
     /// LiveRestoreEnabled property.
+    #[serde(rename = "LiveRestoreEnabled")]
     pub live_restore_enabled: Option<bool>,
     /// LoggingDriver property.
+    #[serde(rename = "LoggingDriver")]
     pub logging_driver: Option<String>,
     /// MemTotal property.
+    #[serde(rename = "MemTotal")]
     pub mem_total: Option<i64>,
     /// MemoryLimit property.
+    #[serde(rename = "MemoryLimit")]
     pub memory_limit: Option<bool>,
     /// NCPU property.
+    #[serde(rename = "NCPU")]
     pub ncpu: Option<i64>,
     /// NEventsListener property.
+    #[serde(rename = "NEventsListener")]
     pub n_events_listener: Option<i64>,
     /// NFd property.
+    #[serde(rename = "NFd")]
     pub n_fd: Option<i64>,
     /// NGoroutines property.
+    #[serde(rename = "NGoroutines")]
     pub n_goroutines: Option<i64>,
     /// NRI property.
+    #[serde(rename = "NRI")]
     pub nri: Option<NRIInfo>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// NoProxy property.
+    #[serde(rename = "NoProxy")]
     pub no_proxy: Option<String>,
     /// OSType property.
+    #[serde(rename = "OSType")]
     pub os_type: Option<String>,
     /// OSVersion property.
+    #[serde(rename = "OSVersion")]
     pub os_version: Option<String>,
     /// OomKillDisable property.
+    #[serde(rename = "OomKillDisable")]
     pub oom_kill_disable: Option<bool>,
     /// OperatingSystem property.
+    #[serde(rename = "OperatingSystem")]
     pub operating_system: Option<String>,
     /// PidsLimit property.
+    #[serde(rename = "PidsLimit")]
     pub pids_limit: Option<bool>,
     /// Plugins property.
+    #[serde(rename = "Plugins")]
     pub plugins: Option<PluginsInfo>,
     /// ProductLicense property.
+    #[serde(rename = "ProductLicense")]
     pub product_license: Option<String>,
     /// RegistryConfig property.
+    #[serde(rename = "RegistryConfig")]
     pub registry_config: Option<RegistryServiceConfig>,
     /// RuncCommit property.
+    #[serde(rename = "RuncCommit")]
     pub runc_commit: Option<Commit>,
     /// Runtimes property.
+    #[serde(rename = "Runtimes")]
     pub runtimes: Option<serde_json::Value>,
     /// SecurityOptions property.
+    #[serde(rename = "SecurityOptions")]
     pub security_options: Option<Vec<String>>,
     /// ServerVersion property.
+    #[serde(rename = "ServerVersion")]
     pub server_version: Option<String>,
     /// SwapLimit property.
+    #[serde(rename = "SwapLimit")]
     pub swap_limit: Option<bool>,
     /// Swarm property.
+    #[serde(rename = "Swarm")]
     pub swarm: Option<SwarmInfo>,
     /// SystemTime property.
+    #[serde(rename = "SystemTime")]
     pub system_time: Option<String>,
     /// Warnings property.
+    #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
+}
+
+/// `NRIInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NRIInfo {
+    /// Info property.
+    #[serde(rename = "Info")]
+    pub info: Option<Vec<Vec<String>>>,
+}
+
+/// `ClusterInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClusterInfo {
+    /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// DataPathPort property.
+    #[serde(rename = "DataPathPort")]
+    pub data_path_port: Option<i64>,
+    /// DefaultAddrPool property.
+    #[serde(rename = "DefaultAddrPool")]
+    pub default_addr_pool: Option<Vec<String>>,
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// RootRotationInProgress property.
+    #[serde(rename = "RootRotationInProgress")]
+    pub root_rotation_in_progress: Option<bool>,
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<SwarmSpec>,
+    /// SubnetSize property.
+    #[serde(rename = "SubnetSize")]
+    pub subnet_size: Option<i64>,
+    /// TLSInfo property.
+    #[serde(rename = "TLSInfo")]
+    pub tls_info: Option<TLSInfo>,
+    /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
+    pub updated_at: Option<String>,
+    /// Version property.
+    #[serde(rename = "Version")]
+    pub version: Option<ObjectVersion>,
+}
+
+/// `ContainerdInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerdInfo {
+    /// Address property.
+    #[serde(rename = "Address")]
+    pub address: Option<String>,
+    /// Namespaces property.
+    #[serde(rename = "Namespaces")]
+    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `TLSInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TLSInfo {
+    /// CertIssuerPublicKey property.
+    #[serde(rename = "CertIssuerPublicKey")]
+    pub cert_issuer_public_key: Option<String>,
+    /// CertIssuerSubject property.
+    #[serde(rename = "CertIssuerSubject")]
+    pub cert_issuer_subject: Option<String>,
+    /// TrustRoot property.
+    #[serde(rename = "TrustRoot")]
+    pub trust_root: Option<String>,
 }
 
 /// `FirewallInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FirewallInfo {
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: Option<String>,
     /// Info property.
+    #[serde(rename = "Info")]
     pub info: Option<Vec<Vec<String>>>,
 }
 
@@ -316,9 +377,57 @@ pub struct FirewallInfo {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PeerNode {
     /// Addr property.
+    #[serde(rename = "Addr")]
     pub addr: Option<String>,
     /// NodeID property.
+    #[serde(rename = "NodeID")]
     pub node_id: Option<String>,
+}
+
+/// `SwarmInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmInfo {
+    /// Cluster property.
+    #[serde(rename = "Cluster")]
+    pub cluster: Option<ClusterInfo>,
+    /// ControlAvailable property.
+    #[serde(rename = "ControlAvailable")]
+    pub control_available: Option<bool>,
+    /// Error property.
+    #[serde(rename = "Error")]
+    pub error: Option<String>,
+    /// LocalNodeState property.
+    #[serde(rename = "LocalNodeState")]
+    pub local_node_state: Option<LocalNodeState>,
+    /// Managers property.
+    #[serde(rename = "Managers")]
+    pub managers: Option<i64>,
+    /// NodeAddr property.
+    #[serde(rename = "NodeAddr")]
+    pub node_addr: Option<String>,
+    /// NodeID property.
+    #[serde(rename = "NodeID")]
+    pub node_id: Option<String>,
+    /// Nodes property.
+    #[serde(rename = "Nodes")]
+    pub nodes: Option<i64>,
+    /// RemoteManagers property.
+    #[serde(rename = "RemoteManagers")]
+    pub remote_managers: Option<Vec<PeerNode>>,
+}
+
+/// `RegistryServiceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistryServiceConfig {
+    /// IndexConfigs property.
+    #[serde(rename = "IndexConfigs")]
+    pub index_configs: Option<serde_json::Value>,
+    /// InsecureRegistryCIDRs property.
+    #[serde(rename = "InsecureRegistryCIDRs")]
+    pub insecure_registry_cid_rs: Option<Vec<String>>,
+    /// Mirrors property.
+    #[serde(rename = "Mirrors")]
+    pub mirrors: Option<Vec<String>>,
 }
 
 // =============================================================================

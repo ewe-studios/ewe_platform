@@ -17,3 +17,15 @@
 // Auto-generated API surface (types + async `*_request` fns). Feature-gated
 // per the generated `generated/mod.rs` (`#![cfg(feature = "docker")]`).
 pub mod generated;
+
+// Hand-written Docker glue. Gated on `docker` because it calls the generated
+// (feature-gated) `*_request` functions.
+#[cfg(feature = "docker")]
+pub mod client;
+#[cfg(feature = "docker")]
+pub mod error;
+
+#[cfg(feature = "docker")]
+pub use client::{DockerClient, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET};
+#[cfg(feature = "docker")]
+pub use error::DockerError;

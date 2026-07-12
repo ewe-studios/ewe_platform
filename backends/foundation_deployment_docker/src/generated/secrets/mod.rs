@@ -28,14 +28,19 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Secret {
     /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
     /// Spec property.
+    #[serde(rename = "Spec")]
     pub spec: Option<SecretSpec>,
     /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
     pub updated_at: Option<String>,
     /// Version property.
+    #[serde(rename = "Version")]
     pub version: Option<ObjectVersion>,
 }
 
@@ -43,8 +48,10 @@ pub struct Secret {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Driver {
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// Options property.
+    #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
 }
 
@@ -52,14 +59,19 @@ pub struct Driver {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretSpec {
     /// Data property.
+    #[serde(rename = "Data")]
     pub data: Option<String>,
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: Option<Driver>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: Option<String>,
     /// Templating property.
+    #[serde(rename = "Templating")]
     pub templating: Option<Driver>,
 }
 

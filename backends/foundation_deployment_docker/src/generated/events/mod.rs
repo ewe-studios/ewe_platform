@@ -25,8 +25,10 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EventActor {
     /// Attributes property.
+    #[serde(rename = "Attributes")]
     pub attributes: Option<serde_json::Value>,
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
 }
 
@@ -34,16 +36,20 @@ pub struct EventActor {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EventMessage {
     /// Action property.
+    #[serde(rename = "Action")]
     pub action: Option<String>,
     /// Actor property.
+    #[serde(rename = "Actor")]
     pub actor: Option<EventActor>,
     /// Type property.
+    #[serde(rename = "Type")]
     pub r#type: Option<String>,
     /// scope property.
     pub scope: Option<String>,
     /// time property.
     pub time: Option<i64>,
     /// timeNano property.
+    #[serde(rename = "timeNano")]
     pub time_nano: Option<i64>,
 }
 

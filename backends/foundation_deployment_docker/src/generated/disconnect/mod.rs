@@ -25,8 +25,10 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkDisconnectRequest {
     /// Container property.
+    #[serde(rename = "Container")]
     pub container: String,
     /// Force property.
+    #[serde(rename = "Force")]
     pub force: Option<bool>,
 }
 

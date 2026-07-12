@@ -25,8 +25,10 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerTopResponse {
     /// Processes property.
+    #[serde(rename = "Processes")]
     pub processes: Option<Vec<Vec<String>>>,
     /// Titles property.
+    #[serde(rename = "Titles")]
     pub titles: Option<Vec<String>>,
 }
 

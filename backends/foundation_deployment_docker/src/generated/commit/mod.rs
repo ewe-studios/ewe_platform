@@ -28,16 +28,22 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HealthConfig {
     /// Interval property.
+    #[serde(rename = "Interval")]
     pub interval: Option<i64>,
     /// Retries property.
+    #[serde(rename = "Retries")]
     pub retries: Option<i64>,
     /// StartInterval property.
+    #[serde(rename = "StartInterval")]
     pub start_interval: Option<i64>,
     /// StartPeriod property.
+    #[serde(rename = "StartPeriod")]
     pub start_period: Option<i64>,
     /// Test property.
+    #[serde(rename = "Test")]
     pub test: Option<Vec<String>>,
     /// Timeout property.
+    #[serde(rename = "Timeout")]
     pub timeout: Option<i64>,
 }
 
@@ -45,52 +51,76 @@ pub struct HealthConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerConfig {
     /// ArgsEscaped property.
+    #[serde(rename = "ArgsEscaped")]
     pub args_escaped: Option<bool>,
     /// AttachStderr property.
+    #[serde(rename = "AttachStderr")]
     pub attach_stderr: Option<bool>,
     /// AttachStdin property.
+    #[serde(rename = "AttachStdin")]
     pub attach_stdin: Option<bool>,
     /// AttachStdout property.
+    #[serde(rename = "AttachStdout")]
     pub attach_stdout: Option<bool>,
     /// Cmd property.
+    #[serde(rename = "Cmd")]
     pub cmd: Option<Vec<String>>,
     /// Domainname property.
+    #[serde(rename = "Domainname")]
     pub domainname: Option<String>,
     /// Entrypoint property.
+    #[serde(rename = "Entrypoint")]
     pub entrypoint: Option<Vec<String>>,
     /// Env property.
+    #[serde(rename = "Env")]
     pub env: Option<Vec<String>>,
     /// ExposedPorts property.
+    #[serde(rename = "ExposedPorts")]
     pub exposed_ports: Option<serde_json::Value>,
     /// Healthcheck property.
+    #[serde(rename = "Healthcheck")]
     pub healthcheck: Option<HealthConfig>,
     /// Hostname property.
+    #[serde(rename = "Hostname")]
     pub hostname: Option<String>,
     /// Image property.
+    #[serde(rename = "Image")]
     pub image: Option<String>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// NetworkDisabled property.
+    #[serde(rename = "NetworkDisabled")]
     pub network_disabled: Option<bool>,
     /// OnBuild property.
+    #[serde(rename = "OnBuild")]
     pub on_build: Option<Vec<String>>,
     /// OpenStdin property.
+    #[serde(rename = "OpenStdin")]
     pub open_stdin: Option<bool>,
     /// Shell property.
+    #[serde(rename = "Shell")]
     pub shell: Option<Vec<String>>,
     /// StdinOnce property.
+    #[serde(rename = "StdinOnce")]
     pub stdin_once: Option<bool>,
     /// StopSignal property.
+    #[serde(rename = "StopSignal")]
     pub stop_signal: Option<String>,
     /// StopTimeout property.
+    #[serde(rename = "StopTimeout")]
     pub stop_timeout: Option<i64>,
     /// Tty property.
+    #[serde(rename = "Tty")]
     pub tty: Option<bool>,
     /// User property.
+    #[serde(rename = "User")]
     pub user: Option<String>,
     /// Volumes property.
+    #[serde(rename = "Volumes")]
     pub volumes: Option<serde_json::Value>,
     /// WorkingDir property.
+    #[serde(rename = "WorkingDir")]
     pub working_dir: Option<String>,
 }
 

@@ -27,114 +27,9 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ImageConfig` type.
+/// `SignatureTimestampType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImageConfig {
-    /// ArgsEscaped property.
-    pub args_escaped: Option<bool>,
-    /// Cmd property.
-    pub cmd: Option<Vec<String>>,
-    /// Entrypoint property.
-    pub entrypoint: Option<Vec<String>>,
-    /// Env property.
-    pub env: Option<Vec<String>>,
-    /// ExposedPorts property.
-    pub exposed_ports: Option<serde_json::Value>,
-    /// Healthcheck property.
-    pub healthcheck: Option<HealthConfig>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// OnBuild property.
-    pub on_build: Option<Vec<String>>,
-    /// Shell property.
-    pub shell: Option<Vec<String>>,
-    /// StopSignal property.
-    pub stop_signal: Option<String>,
-    /// User property.
-    pub user: Option<String>,
-    /// Volumes property.
-    pub volumes: Option<serde_json::Value>,
-    /// WorkingDir property.
-    pub working_dir: Option<String>,
-}
-
-/// `ContainerInspectResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerInspectResponse {
-    /// AppArmorProfile property.
-    pub app_armor_profile: Option<String>,
-    /// Args property.
-    pub args: Option<Vec<String>>,
-    /// Config property.
-    pub config: Option<ContainerConfig>,
-    /// Created property.
-    pub created: Option<String>,
-    /// Driver property.
-    pub driver: Option<String>,
-    /// ExecIDs property.
-    pub exec_i_ds: Option<Vec<String>>,
-    /// GraphDriver property.
-    pub graph_driver: Option<DriverData>,
-    /// HostConfig property.
-    pub host_config: Option<HostConfig>,
-    /// HostnamePath property.
-    pub hostname_path: Option<String>,
-    /// HostsPath property.
-    pub hosts_path: Option<String>,
-    /// Id property.
-    pub id: Option<String>,
-    /// Image property.
-    pub image: Option<String>,
-    /// ImageManifestDescriptor property.
-    pub image_manifest_descriptor: Option<OCIDescriptor>,
-    /// LogPath property.
-    pub log_path: Option<String>,
-    /// MountLabel property.
-    pub mount_label: Option<String>,
-    /// Mounts property.
-    pub mounts: Option<Vec<MountPoint>>,
-    /// Name property.
-    pub name: Option<String>,
-    /// NetworkSettings property.
-    pub network_settings: Option<NetworkSettings>,
-    /// Path property.
-    pub path: Option<String>,
-    /// Platform property.
-    pub platform: Option<String>,
-    /// ProcessLabel property.
-    pub process_label: Option<String>,
-    /// ResolvConfPath property.
-    pub resolv_conf_path: Option<String>,
-    /// RestartCount property.
-    pub restart_count: Option<i64>,
-    /// SizeRootFs property.
-    pub size_root_fs: Option<i64>,
-    /// SizeRw property.
-    pub size_rw: Option<i64>,
-    /// State property.
-    pub state: Option<ContainerState>,
-    /// Storage property.
-    pub storage: Option<Storage>,
-}
-
-/// `DeviceRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceRequest {
-    /// Capabilities property.
-    pub capabilities: Option<Vec<Vec<String>>>,
-    /// Count property.
-    pub count: Option<i64>,
-    /// DeviceIDs property.
-    pub device_i_ds: Option<Vec<String>>,
-    /// Driver property.
-    pub driver: Option<String>,
-    /// Options property.
-    pub options: Option<serde_json::Value>,
-}
-
-/// `KnownSignerIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct KnownSignerIdentity {
+pub struct SignatureTimestampType {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -143,52 +38,76 @@ pub struct KnownSignerIdentity {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerConfig {
     /// ArgsEscaped property.
+    #[serde(rename = "ArgsEscaped")]
     pub args_escaped: Option<bool>,
     /// AttachStderr property.
+    #[serde(rename = "AttachStderr")]
     pub attach_stderr: Option<bool>,
     /// AttachStdin property.
+    #[serde(rename = "AttachStdin")]
     pub attach_stdin: Option<bool>,
     /// AttachStdout property.
+    #[serde(rename = "AttachStdout")]
     pub attach_stdout: Option<bool>,
     /// Cmd property.
+    #[serde(rename = "Cmd")]
     pub cmd: Option<Vec<String>>,
     /// Domainname property.
+    #[serde(rename = "Domainname")]
     pub domainname: Option<String>,
     /// Entrypoint property.
+    #[serde(rename = "Entrypoint")]
     pub entrypoint: Option<Vec<String>>,
     /// Env property.
+    #[serde(rename = "Env")]
     pub env: Option<Vec<String>>,
     /// ExposedPorts property.
+    #[serde(rename = "ExposedPorts")]
     pub exposed_ports: Option<serde_json::Value>,
     /// Healthcheck property.
+    #[serde(rename = "Healthcheck")]
     pub healthcheck: Option<HealthConfig>,
     /// Hostname property.
+    #[serde(rename = "Hostname")]
     pub hostname: Option<String>,
     /// Image property.
+    #[serde(rename = "Image")]
     pub image: Option<String>,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// NetworkDisabled property.
+    #[serde(rename = "NetworkDisabled")]
     pub network_disabled: Option<bool>,
     /// OnBuild property.
+    #[serde(rename = "OnBuild")]
     pub on_build: Option<Vec<String>>,
     /// OpenStdin property.
+    #[serde(rename = "OpenStdin")]
     pub open_stdin: Option<bool>,
     /// Shell property.
+    #[serde(rename = "Shell")]
     pub shell: Option<Vec<String>>,
     /// StdinOnce property.
+    #[serde(rename = "StdinOnce")]
     pub stdin_once: Option<bool>,
     /// StopSignal property.
+    #[serde(rename = "StopSignal")]
     pub stop_signal: Option<String>,
     /// StopTimeout property.
+    #[serde(rename = "StopTimeout")]
     pub stop_timeout: Option<i64>,
     /// Tty property.
+    #[serde(rename = "Tty")]
     pub tty: Option<bool>,
     /// User property.
+    #[serde(rename = "User")]
     pub user: Option<String>,
     /// Volumes property.
+    #[serde(rename = "Volumes")]
     pub volumes: Option<serde_json::Value>,
     /// WorkingDir property.
+    #[serde(rename = "WorkingDir")]
     pub working_dir: Option<String>,
 }
 
@@ -196,387 +115,382 @@ pub struct ContainerConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkSettings {
     /// Networks property.
+    #[serde(rename = "Networks")]
     pub networks: Option<serde_json::Value>,
     /// Ports property.
+    #[serde(rename = "Ports")]
     pub ports: Option<PortMap>,
     /// SandboxID property.
+    #[serde(rename = "SandboxID")]
     pub sandbox_id: Option<String>,
     /// SandboxKey property.
+    #[serde(rename = "SandboxKey")]
     pub sandbox_key: Option<String>,
-}
-
-/// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    pub interval: Option<i64>,
-    /// Retries property.
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    pub start_period: Option<i64>,
-    /// Test property.
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    pub timeout: Option<i64>,
-}
-
-/// `MountPoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MountPoint {
-    /// Destination property.
-    pub destination: Option<String>,
-    /// Driver property.
-    pub driver: Option<String>,
-    /// Mode property.
-    pub mode: Option<String>,
-    /// Name property.
-    pub name: Option<String>,
-    /// Propagation property.
-    pub propagation: Option<String>,
-    /// RW property.
-    pub rw: Option<bool>,
-    /// Source property.
-    pub source: Option<String>,
-    /// Type property.
-    pub r#type: Option<serde_json::Value>,
-}
-
-/// `SignerIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SignerIdentity {
-    /// BuildConfigDigest property.
-    pub build_config_digest: Option<String>,
-    /// BuildConfigURI property.
-    pub build_config_uri: Option<String>,
-    /// BuildSignerDigest property.
-    pub build_signer_digest: Option<String>,
-    /// BuildSignerURI property.
-    pub build_signer_uri: Option<String>,
-    /// BuildTrigger property.
-    pub build_trigger: Option<String>,
-    /// CertificateIssuer property.
-    pub certificate_issuer: Option<String>,
-    /// Issuer property.
-    pub issuer: Option<String>,
-    /// RunInvocationURI property.
-    pub run_invocation_uri: Option<String>,
-    /// RunnerEnvironment property.
-    pub runner_environment: Option<String>,
-    /// SourceRepositoryDigest property.
-    pub source_repository_digest: Option<String>,
-    /// SourceRepositoryIdentifier property.
-    pub source_repository_identifier: Option<String>,
-    /// SourceRepositoryOwnerIdentifier property.
-    pub source_repository_owner_identifier: Option<String>,
-    /// SourceRepositoryOwnerURI property.
-    pub source_repository_owner_uri: Option<String>,
-    /// SourceRepositoryRef property.
-    pub source_repository_ref: Option<String>,
-    /// SourceRepositoryURI property.
-    pub source_repository_uri: Option<String>,
-    /// SourceRepositoryVisibilityAtSigning property.
-    pub source_repository_visibility_at_signing: Option<String>,
-    /// SubjectAlternativeName property.
-    pub subject_alternative_name: Option<String>,
-}
-
-/// `SignatureTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SignatureTimestamp {
-    /// Timestamp property.
-    pub timestamp: Option<String>,
-    /// Type property.
-    pub r#type: Option<SignatureTimestampType>,
-    /// URI property.
-    pub uri: Option<String>,
-}
-
-/// `DistributionInspect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DistributionInspect {
-    /// Descriptor property.
-    pub descriptor: OCIDescriptor,
-    /// Platforms property.
-    pub platforms: Vec<OCIPlatform>,
-}
-
-/// `SignatureIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SignatureIdentity {
-    /// DockerReference property.
-    pub docker_reference: Option<String>,
-    /// Error property.
-    pub error: Option<String>,
-    /// KnownSigner property.
-    pub known_signer: Option<KnownSignerIdentity>,
-    /// Name property.
-    pub name: Option<String>,
-    /// SignatureType property.
-    pub signature_type: Option<SignatureType>,
-    /// Signer property.
-    pub signer: Option<SignerIdentity>,
-    /// Timestamps property.
-    pub timestamps: Option<Vec<SignatureTimestamp>>,
-    /// Warnings property.
-    pub warnings: Option<Vec<String>>,
-}
-
-/// `PullIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PullIdentity {
-    /// Repository property.
-    pub repository: Option<String>,
-}
-
-/// `RestartPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RestartPolicy {
-    /// MaximumRetryCount property.
-    pub maximum_retry_count: Option<i64>,
-    /// Name property.
-    pub name: Option<String>,
-}
-
-/// `RootFSStorageSnapshot` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RootFSStorageSnapshot {
-    /// Name property.
-    pub name: Option<String>,
-}
-
-/// `OCIDescriptor` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct OCIDescriptor {
-    /// annotations property.
-    pub annotations: Option<serde_json::Value>,
-    /// artifactType property.
-    pub artifact_type: Option<String>,
-    /// data property.
-    pub data: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// mediaType property.
-    pub media_type: Option<String>,
-    /// platform property.
-    pub platform: Option<OCIPlatform>,
-    /// size property.
-    pub size: Option<i64>,
-    /// urls property.
-    pub urls: Option<Vec<String>>,
-}
-
-/// `SignatureTimestampType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SignatureTimestampType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Health` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Health {
-    /// FailingStreak property.
-    pub failing_streak: Option<i64>,
-    /// Log property.
-    pub log: Option<Vec<HealthcheckResult>>,
-    /// Status property.
-    pub status: Option<String>,
-}
-
-/// `DeviceMapping` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceMapping {
-    /// CgroupPermissions property.
-    pub cgroup_permissions: Option<String>,
-    /// PathInContainer property.
-    pub path_in_container: Option<String>,
-    /// PathOnHost property.
-    pub path_on_host: Option<String>,
-}
-
-/// `HostConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HostConfig {
-    /// `Annotations` property.
-    pub annotations: Option<serde_json::Value>,
-    /// `AutoRemove` property.
-    pub auto_remove: Option<bool>,
-    /// `Binds` property.
-    pub binds: Option<Vec<String>>,
-    /// `CapAdd` property.
-    pub cap_add: Option<Vec<String>>,
-    /// `CapDrop` property.
-    pub cap_drop: Option<Vec<String>>,
-    /// `Cgroup` property.
-    pub cgroup: Option<String>,
-    /// `CgroupnsMode` property.
-    pub cgroupns_mode: Option<String>,
-    /// `ConsoleSize` property.
-    pub console_size: Option<Vec<i64>>,
-    /// `ContainerIDFile` property.
-    pub container_id_file: Option<String>,
-    /// `Dns` property.
-    pub dns: Option<Vec<String>>,
-    /// `DnsOptions` property.
-    pub dns_options: Option<Vec<String>>,
-    /// `DnsSearch` property.
-    pub dns_search: Option<Vec<String>>,
-    /// `ExtraHosts` property.
-    pub extra_hosts: Option<Vec<String>>,
-    /// `GroupAdd` property.
-    pub group_add: Option<Vec<String>>,
-    /// `IpcMode` property.
-    pub ipc_mode: Option<String>,
-    /// `Isolation` property.
-    pub isolation: Option<String>,
-    /// `Links` property.
-    pub links: Option<Vec<String>>,
-    /// `LogConfig` property.
-    pub log_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// `MaskedPaths` property.
-    pub masked_paths: Option<Vec<String>>,
-    /// `Mounts` property.
-    pub mounts: Option<Vec<Mount>>,
-    /// `NetworkMode` property.
-    pub network_mode: Option<String>,
-    /// `OomScoreAdj` property.
-    pub oom_score_adj: Option<i64>,
-    /// `PidMode` property.
-    pub pid_mode: Option<String>,
-    /// `PortBindings` property.
-    pub port_bindings: Option<PortMap>,
-    /// `Privileged` property.
-    pub privileged: Option<bool>,
-    /// `PublishAllPorts` property.
-    pub publish_all_ports: Option<bool>,
-    /// `ReadonlyPaths` property.
-    pub readonly_paths: Option<Vec<String>>,
-    /// `ReadonlyRootfs` property.
-    pub readonly_rootfs: Option<bool>,
-    /// `RestartPolicy` property.
-    pub restart_policy: Option<RestartPolicy>,
-    /// `Runtime` property.
-    pub runtime: Option<String>,
-    /// `SecurityOpt` property.
-    pub security_opt: Option<Vec<String>>,
-    /// `ShmSize` property.
-    pub shm_size: Option<i64>,
-    /// `StorageOpt` property.
-    pub storage_opt: Option<serde_json::Value>,
-    /// `Sysctls` property.
-    pub sysctls: Option<serde_json::Value>,
-    /// `Tmpfs` property.
-    pub tmpfs: Option<serde_json::Value>,
-    /// `UsernsMode` property.
-    pub userns_mode: Option<String>,
-    /// `UTSMode` property.
-    pub uts_mode: Option<String>,
-    /// `VolumeDriver` property.
-    pub volume_driver: Option<String>,
-    /// `VolumesFrom` property.
-    pub volumes_from: Option<Vec<String>>,
-}
-
-/// `ContainerState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerState {
-    /// Dead property.
-    pub dead: Option<bool>,
-    /// Error property.
-    pub error: Option<String>,
-    /// ExitCode property.
-    pub exit_code: Option<i64>,
-    /// FinishedAt property.
-    pub finished_at: Option<String>,
-    /// Health property.
-    pub health: Option<Health>,
-    /// OOMKilled property.
-    pub oom_killed: Option<bool>,
-    /// Paused property.
-    pub paused: Option<bool>,
-    /// Pid property.
-    pub pid: Option<i64>,
-    /// Restarting property.
-    pub restarting: Option<bool>,
-    /// Running property.
-    pub running: Option<bool>,
-    /// StartedAt property.
-    pub started_at: Option<String>,
-    /// Status property.
-    pub status: Option<String>,
-}
-
-/// `RootFSStorage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RootFSStorage {
-    /// Snapshot property.
-    pub snapshot: Option<RootFSStorageSnapshot>,
 }
 
 /// `ImageInspect` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImageInspect {
     /// Architecture property.
+    #[serde(rename = "Architecture")]
     pub architecture: Option<String>,
     /// Author property.
+    #[serde(rename = "Author")]
     pub author: Option<String>,
     /// Comment property.
+    #[serde(rename = "Comment")]
     pub comment: Option<String>,
     /// Config property.
+    #[serde(rename = "Config")]
     pub config: Option<ImageConfig>,
     /// Created property.
+    #[serde(rename = "Created")]
     pub created: Option<String>,
     /// Descriptor property.
+    #[serde(rename = "Descriptor")]
     pub descriptor: Option<OCIDescriptor>,
     /// GraphDriver property.
+    #[serde(rename = "GraphDriver")]
     pub graph_driver: Option<DriverData>,
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: Option<String>,
     /// Identity property.
+    #[serde(rename = "Identity")]
     pub identity: Option<Identity>,
     /// Manifests property.
+    #[serde(rename = "Manifests")]
     pub manifests: Option<Vec<ImageManifestSummary>>,
     /// Metadata property.
+    #[serde(rename = "Metadata")]
     pub metadata: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Os property.
+    #[serde(rename = "Os")]
     pub os: Option<String>,
     /// OsVersion property.
+    #[serde(rename = "OsVersion")]
     pub os_version: Option<String>,
     /// RepoDigests property.
+    #[serde(rename = "RepoDigests")]
     pub repo_digests: Option<Vec<String>>,
     /// RepoTags property.
+    #[serde(rename = "RepoTags")]
     pub repo_tags: Option<Vec<String>>,
     /// RootFS property.
+    #[serde(rename = "RootFS")]
     pub root_fs: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Size property.
+    #[serde(rename = "Size")]
     pub size: Option<i64>,
     /// Variant property.
+    #[serde(rename = "Variant")]
     pub variant: Option<String>,
 }
 
-/// `PortMap` type.
+/// `BuildIdentity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PortMap {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct BuildIdentity {
+    /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// Ref property.
+    #[serde(rename = "Ref")]
+    pub r#ref: Option<String>,
+}
+
+/// `DriverData` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DriverData {
+    /// Data property.
+    #[serde(rename = "Data")]
+    pub data: serde_json::Value,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: String,
+}
+
+/// `SignerIdentity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SignerIdentity {
+    /// BuildConfigDigest property.
+    #[serde(rename = "BuildConfigDigest")]
+    pub build_config_digest: Option<String>,
+    /// BuildConfigURI property.
+    #[serde(rename = "BuildConfigURI")]
+    pub build_config_uri: Option<String>,
+    /// BuildSignerDigest property.
+    #[serde(rename = "BuildSignerDigest")]
+    pub build_signer_digest: Option<String>,
+    /// BuildSignerURI property.
+    #[serde(rename = "BuildSignerURI")]
+    pub build_signer_uri: Option<String>,
+    /// BuildTrigger property.
+    #[serde(rename = "BuildTrigger")]
+    pub build_trigger: Option<String>,
+    /// CertificateIssuer property.
+    #[serde(rename = "CertificateIssuer")]
+    pub certificate_issuer: Option<String>,
+    /// Issuer property.
+    #[serde(rename = "Issuer")]
+    pub issuer: Option<String>,
+    /// RunInvocationURI property.
+    #[serde(rename = "RunInvocationURI")]
+    pub run_invocation_uri: Option<String>,
+    /// RunnerEnvironment property.
+    #[serde(rename = "RunnerEnvironment")]
+    pub runner_environment: Option<String>,
+    /// SourceRepositoryDigest property.
+    #[serde(rename = "SourceRepositoryDigest")]
+    pub source_repository_digest: Option<String>,
+    /// SourceRepositoryIdentifier property.
+    #[serde(rename = "SourceRepositoryIdentifier")]
+    pub source_repository_identifier: Option<String>,
+    /// SourceRepositoryOwnerIdentifier property.
+    #[serde(rename = "SourceRepositoryOwnerIdentifier")]
+    pub source_repository_owner_identifier: Option<String>,
+    /// SourceRepositoryOwnerURI property.
+    #[serde(rename = "SourceRepositoryOwnerURI")]
+    pub source_repository_owner_uri: Option<String>,
+    /// SourceRepositoryRef property.
+    #[serde(rename = "SourceRepositoryRef")]
+    pub source_repository_ref: Option<String>,
+    /// SourceRepositoryURI property.
+    #[serde(rename = "SourceRepositoryURI")]
+    pub source_repository_uri: Option<String>,
+    /// SourceRepositoryVisibilityAtSigning property.
+    #[serde(rename = "SourceRepositoryVisibilityAtSigning")]
+    pub source_repository_visibility_at_signing: Option<String>,
+    /// SubjectAlternativeName property.
+    #[serde(rename = "SubjectAlternativeName")]
+    pub subject_alternative_name: Option<String>,
+}
+
+/// `HostConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HostConfig {
+    /// `Annotations` property.
+    #[serde(rename = "Annotations")]
+    pub annotations: Option<serde_json::Value>,
+    /// `AutoRemove` property.
+    #[serde(rename = "AutoRemove")]
+    pub auto_remove: Option<bool>,
+    /// `Binds` property.
+    #[serde(rename = "Binds")]
+    pub binds: Option<Vec<String>>,
+    /// `CapAdd` property.
+    #[serde(rename = "CapAdd")]
+    pub cap_add: Option<Vec<String>>,
+    /// `CapDrop` property.
+    #[serde(rename = "CapDrop")]
+    pub cap_drop: Option<Vec<String>>,
+    /// `Cgroup` property.
+    #[serde(rename = "Cgroup")]
+    pub cgroup: Option<String>,
+    /// `CgroupnsMode` property.
+    #[serde(rename = "CgroupnsMode")]
+    pub cgroupns_mode: Option<String>,
+    /// `ConsoleSize` property.
+    #[serde(rename = "ConsoleSize")]
+    pub console_size: Option<Vec<i64>>,
+    /// `ContainerIDFile` property.
+    #[serde(rename = "ContainerIDFile")]
+    pub container_id_file: Option<String>,
+    /// `Dns` property.
+    #[serde(rename = "Dns")]
+    pub dns: Option<Vec<String>>,
+    /// `DnsOptions` property.
+    #[serde(rename = "DnsOptions")]
+    pub dns_options: Option<Vec<String>>,
+    /// `DnsSearch` property.
+    #[serde(rename = "DnsSearch")]
+    pub dns_search: Option<Vec<String>>,
+    /// `ExtraHosts` property.
+    #[serde(rename = "ExtraHosts")]
+    pub extra_hosts: Option<Vec<String>>,
+    /// `GroupAdd` property.
+    #[serde(rename = "GroupAdd")]
+    pub group_add: Option<Vec<String>>,
+    /// `IpcMode` property.
+    #[serde(rename = "IpcMode")]
+    pub ipc_mode: Option<String>,
+    /// `Isolation` property.
+    #[serde(rename = "Isolation")]
+    pub isolation: Option<String>,
+    /// `Links` property.
+    #[serde(rename = "Links")]
+    pub links: Option<Vec<String>>,
+    /// `LogConfig` property.
+    #[serde(rename = "LogConfig")]
+    pub log_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `MaskedPaths` property.
+    #[serde(rename = "MaskedPaths")]
+    pub masked_paths: Option<Vec<String>>,
+    /// `Mounts` property.
+    #[serde(rename = "Mounts")]
+    pub mounts: Option<Vec<Mount>>,
+    /// `NetworkMode` property.
+    #[serde(rename = "NetworkMode")]
+    pub network_mode: Option<String>,
+    /// `OomScoreAdj` property.
+    #[serde(rename = "OomScoreAdj")]
+    pub oom_score_adj: Option<i64>,
+    /// `PidMode` property.
+    #[serde(rename = "PidMode")]
+    pub pid_mode: Option<String>,
+    /// `PortBindings` property.
+    #[serde(rename = "PortBindings")]
+    pub port_bindings: Option<PortMap>,
+    /// `Privileged` property.
+    #[serde(rename = "Privileged")]
+    pub privileged: Option<bool>,
+    /// `PublishAllPorts` property.
+    #[serde(rename = "PublishAllPorts")]
+    pub publish_all_ports: Option<bool>,
+    /// `ReadonlyPaths` property.
+    #[serde(rename = "ReadonlyPaths")]
+    pub readonly_paths: Option<Vec<String>>,
+    /// `ReadonlyRootfs` property.
+    #[serde(rename = "ReadonlyRootfs")]
+    pub readonly_rootfs: Option<bool>,
+    /// `RestartPolicy` property.
+    #[serde(rename = "RestartPolicy")]
+    pub restart_policy: Option<RestartPolicy>,
+    /// `Runtime` property.
+    #[serde(rename = "Runtime")]
+    pub runtime: Option<String>,
+    /// `SecurityOpt` property.
+    #[serde(rename = "SecurityOpt")]
+    pub security_opt: Option<Vec<String>>,
+    /// `ShmSize` property.
+    #[serde(rename = "ShmSize")]
+    pub shm_size: Option<i64>,
+    /// `StorageOpt` property.
+    #[serde(rename = "StorageOpt")]
+    pub storage_opt: Option<serde_json::Value>,
+    /// `Sysctls` property.
+    #[serde(rename = "Sysctls")]
+    pub sysctls: Option<serde_json::Value>,
+    /// `Tmpfs` property.
+    #[serde(rename = "Tmpfs")]
+    pub tmpfs: Option<serde_json::Value>,
+    /// `UsernsMode` property.
+    #[serde(rename = "UsernsMode")]
+    pub userns_mode: Option<String>,
+    /// `UTSMode` property.
+    #[serde(rename = "UTSMode")]
+    pub uts_mode: Option<String>,
+    /// `VolumeDriver` property.
+    #[serde(rename = "VolumeDriver")]
+    pub volume_driver: Option<String>,
+    /// `VolumesFrom` property.
+    #[serde(rename = "VolumesFrom")]
+    pub volumes_from: Option<Vec<String>>,
+}
+
+/// `Mount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Mount {
+    /// BindOptions property.
+    #[serde(rename = "BindOptions")]
+    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Consistency property.
+    #[serde(rename = "Consistency")]
+    pub consistency: Option<String>,
+    /// ImageOptions property.
+    #[serde(rename = "ImageOptions")]
+    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// ReadOnly property.
+    #[serde(rename = "ReadOnly")]
+    pub read_only: Option<bool>,
+    /// Source property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+    /// Target property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+    /// TmpfsOptions property.
+    #[serde(rename = "TmpfsOptions")]
+    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Type property.
+    #[serde(rename = "Type")]
+    pub r#type: Option<serde_json::Value>,
+    /// VolumeOptions property.
+    #[serde(rename = "VolumeOptions")]
+    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `Storage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Storage {
     /// RootFS property.
+    #[serde(rename = "RootFS")]
     pub root_fs: Option<RootFSStorage>,
 }
 
-/// `ThrottleDevice` type.
+/// `DeviceMapping` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ThrottleDevice {
-    /// Path property.
-    pub path: Option<String>,
-    /// Rate property.
-    pub rate: Option<i64>,
+pub struct DeviceMapping {
+    /// CgroupPermissions property.
+    #[serde(rename = "CgroupPermissions")]
+    pub cgroup_permissions: Option<String>,
+    /// PathInContainer property.
+    #[serde(rename = "PathInContainer")]
+    pub path_in_container: Option<String>,
+    /// PathOnHost property.
+    #[serde(rename = "PathOnHost")]
+    pub path_on_host: Option<String>,
+}
+
+/// `ContainerState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerState {
+    /// Dead property.
+    #[serde(rename = "Dead")]
+    pub dead: Option<bool>,
+    /// Error property.
+    #[serde(rename = "Error")]
+    pub error: Option<String>,
+    /// ExitCode property.
+    #[serde(rename = "ExitCode")]
+    pub exit_code: Option<i64>,
+    /// FinishedAt property.
+    #[serde(rename = "FinishedAt")]
+    pub finished_at: Option<String>,
+    /// Health property.
+    #[serde(rename = "Health")]
+    pub health: Option<Health>,
+    /// OOMKilled property.
+    #[serde(rename = "OOMKilled")]
+    pub oom_killed: Option<bool>,
+    /// Paused property.
+    #[serde(rename = "Paused")]
+    pub paused: Option<bool>,
+    /// Pid property.
+    #[serde(rename = "Pid")]
+    pub pid: Option<i64>,
+    /// Restarting property.
+    #[serde(rename = "Restarting")]
+    pub restarting: Option<bool>,
+    /// Running property.
+    #[serde(rename = "Running")]
+    pub running: Option<bool>,
+    /// StartedAt property.
+    #[serde(rename = "StartedAt")]
+    pub started_at: Option<String>,
+    /// Status property.
+    #[serde(rename = "Status")]
+    pub status: Option<String>,
+}
+
+/// `RestartPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RestartPolicy {
+    /// MaximumRetryCount property.
+    #[serde(rename = "MaximumRetryCount")]
+    pub maximum_retry_count: Option<i64>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
 }
 
 /// `OCIPlatform` type.
@@ -587,44 +501,99 @@ pub struct OCIPlatform {
     /// os property.
     pub os: Option<String>,
     /// os.features property.
+    #[serde(rename = "os.features")]
     pub os_features: Option<Vec<String>>,
     /// os.version property.
+    #[serde(rename = "os.version")]
     pub os_version: Option<String>,
     /// variant property.
     pub variant: Option<String>,
 }
 
-/// `Identity` type.
+/// `OCIDescriptor` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Identity {
-    /// Build property.
-    pub build: Option<Vec<BuildIdentity>>,
-    /// Pull property.
-    pub pull: Option<Vec<PullIdentity>>,
-    /// Signature property.
-    pub signature: Option<Vec<SignatureIdentity>>,
+pub struct OCIDescriptor {
+    /// annotations property.
+    pub annotations: Option<serde_json::Value>,
+    /// artifactType property.
+    #[serde(rename = "artifactType")]
+    pub artifact_type: Option<String>,
+    /// data property.
+    pub data: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
+    /// mediaType property.
+    #[serde(rename = "mediaType")]
+    pub media_type: Option<String>,
+    /// platform property.
+    pub platform: Option<OCIPlatform>,
+    /// size property.
+    pub size: Option<i64>,
+    /// urls property.
+    pub urls: Option<Vec<String>>,
 }
 
-/// `BuildIdentity` type.
+/// `SignatureIdentity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildIdentity {
-    /// CreatedAt property.
-    pub created_at: Option<String>,
-    /// Ref property.
-    pub r#ref: Option<String>,
+pub struct SignatureIdentity {
+    /// DockerReference property.
+    #[serde(rename = "DockerReference")]
+    pub docker_reference: Option<String>,
+    /// Error property.
+    #[serde(rename = "Error")]
+    pub error: Option<String>,
+    /// KnownSigner property.
+    #[serde(rename = "KnownSigner")]
+    pub known_signer: Option<KnownSignerIdentity>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// SignatureType property.
+    #[serde(rename = "SignatureType")]
+    pub signature_type: Option<SignatureType>,
+    /// Signer property.
+    #[serde(rename = "Signer")]
+    pub signer: Option<SignerIdentity>,
+    /// Timestamps property.
+    #[serde(rename = "Timestamps")]
+    pub timestamps: Option<Vec<SignatureTimestamp>>,
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
 }
 
-/// `HealthcheckResult` type.
+/// `ImageManifestSummary` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthcheckResult {
-    /// End property.
-    pub end: Option<String>,
-    /// ExitCode property.
-    pub exit_code: Option<i64>,
-    /// Output property.
-    pub output: Option<String>,
-    /// Start property.
-    pub start: Option<String>,
+pub struct ImageManifestSummary {
+    /// AttestationData property.
+    #[serde(rename = "AttestationData")]
+    pub attestation_data: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Available property.
+    #[serde(rename = "Available")]
+    pub available: bool,
+    /// Descriptor property.
+    #[serde(rename = "Descriptor")]
+    pub descriptor: OCIDescriptor,
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: String,
+    /// ImageData property.
+    #[serde(rename = "ImageData")]
+    pub image_data: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Kind property.
+    #[serde(rename = "Kind")]
+    pub kind: String,
+    /// Size property.
+    #[serde(rename = "Size")]
+    pub size: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RootFSStorageSnapshot` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RootFSStorageSnapshot {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
 }
 
 /// `SignatureType` type.
@@ -634,120 +603,412 @@ pub struct SignatureType {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `HealthConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthConfig {
+    /// Interval property.
+    #[serde(rename = "Interval")]
+    pub interval: Option<i64>,
+    /// Retries property.
+    #[serde(rename = "Retries")]
+    pub retries: Option<i64>,
+    /// StartInterval property.
+    #[serde(rename = "StartInterval")]
+    pub start_interval: Option<i64>,
+    /// StartPeriod property.
+    #[serde(rename = "StartPeriod")]
+    pub start_period: Option<i64>,
+    /// Test property.
+    #[serde(rename = "Test")]
+    pub test: Option<Vec<String>>,
+    /// Timeout property.
+    #[serde(rename = "Timeout")]
+    pub timeout: Option<i64>,
+}
+
+/// `SignatureTimestamp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SignatureTimestamp {
+    /// Timestamp property.
+    #[serde(rename = "Timestamp")]
+    pub timestamp: Option<String>,
+    /// Type property.
+    #[serde(rename = "Type")]
+    pub r#type: Option<SignatureTimestampType>,
+    /// URI property.
+    #[serde(rename = "URI")]
+    pub uri: Option<String>,
+}
+
+/// `KnownSignerIdentity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KnownSignerIdentity {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ContainerInspectResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerInspectResponse {
+    /// AppArmorProfile property.
+    #[serde(rename = "AppArmorProfile")]
+    pub app_armor_profile: Option<String>,
+    /// Args property.
+    #[serde(rename = "Args")]
+    pub args: Option<Vec<String>>,
+    /// Config property.
+    #[serde(rename = "Config")]
+    pub config: Option<ContainerConfig>,
+    /// Created property.
+    #[serde(rename = "Created")]
+    pub created: Option<String>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// ExecIDs property.
+    #[serde(rename = "ExecIDs")]
+    pub exec_i_ds: Option<Vec<String>>,
+    /// GraphDriver property.
+    #[serde(rename = "GraphDriver")]
+    pub graph_driver: Option<DriverData>,
+    /// HostConfig property.
+    #[serde(rename = "HostConfig")]
+    pub host_config: Option<HostConfig>,
+    /// HostnamePath property.
+    #[serde(rename = "HostnamePath")]
+    pub hostname_path: Option<String>,
+    /// HostsPath property.
+    #[serde(rename = "HostsPath")]
+    pub hosts_path: Option<String>,
+    /// Id property.
+    #[serde(rename = "Id")]
+    pub id: Option<String>,
+    /// Image property.
+    #[serde(rename = "Image")]
+    pub image: Option<String>,
+    /// ImageManifestDescriptor property.
+    #[serde(rename = "ImageManifestDescriptor")]
+    pub image_manifest_descriptor: Option<OCIDescriptor>,
+    /// LogPath property.
+    #[serde(rename = "LogPath")]
+    pub log_path: Option<String>,
+    /// MountLabel property.
+    #[serde(rename = "MountLabel")]
+    pub mount_label: Option<String>,
+    /// Mounts property.
+    #[serde(rename = "Mounts")]
+    pub mounts: Option<Vec<MountPoint>>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// NetworkSettings property.
+    #[serde(rename = "NetworkSettings")]
+    pub network_settings: Option<NetworkSettings>,
+    /// Path property.
+    #[serde(rename = "Path")]
+    pub path: Option<String>,
+    /// Platform property.
+    #[serde(rename = "Platform")]
+    pub platform: Option<String>,
+    /// ProcessLabel property.
+    #[serde(rename = "ProcessLabel")]
+    pub process_label: Option<String>,
+    /// ResolvConfPath property.
+    #[serde(rename = "ResolvConfPath")]
+    pub resolv_conf_path: Option<String>,
+    /// RestartCount property.
+    #[serde(rename = "RestartCount")]
+    pub restart_count: Option<i64>,
+    /// SizeRootFs property.
+    #[serde(rename = "SizeRootFs")]
+    pub size_root_fs: Option<i64>,
+    /// SizeRw property.
+    #[serde(rename = "SizeRw")]
+    pub size_rw: Option<i64>,
+    /// State property.
+    #[serde(rename = "State")]
+    pub state: Option<ContainerState>,
+    /// Storage property.
+    #[serde(rename = "Storage")]
+    pub storage: Option<Storage>,
+}
+
+/// `Identity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Identity {
+    /// Build property.
+    #[serde(rename = "Build")]
+    pub build: Option<Vec<BuildIdentity>>,
+    /// Pull property.
+    #[serde(rename = "Pull")]
+    pub pull: Option<Vec<PullIdentity>>,
+    /// Signature property.
+    #[serde(rename = "Signature")]
+    pub signature: Option<Vec<SignatureIdentity>>,
+}
+
+/// `HealthcheckResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthcheckResult {
+    /// End property.
+    #[serde(rename = "End")]
+    pub end: Option<String>,
+    /// ExitCode property.
+    #[serde(rename = "ExitCode")]
+    pub exit_code: Option<i64>,
+    /// Output property.
+    #[serde(rename = "Output")]
+    pub output: Option<String>,
+    /// Start property.
+    #[serde(rename = "Start")]
+    pub start: Option<String>,
+}
+
 /// `Resources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Resources {
     /// BlkioDeviceReadBps property.
+    #[serde(rename = "BlkioDeviceReadBps")]
     pub blkio_device_read_bps: Option<Vec<ThrottleDevice>>,
     /// BlkioDeviceReadIOps property.
+    #[serde(rename = "BlkioDeviceReadIOps")]
     pub blkio_device_read_i_ops: Option<Vec<ThrottleDevice>>,
     /// BlkioDeviceWriteBps property.
+    #[serde(rename = "BlkioDeviceWriteBps")]
     pub blkio_device_write_bps: Option<Vec<ThrottleDevice>>,
     /// BlkioDeviceWriteIOps property.
+    #[serde(rename = "BlkioDeviceWriteIOps")]
     pub blkio_device_write_i_ops: Option<Vec<ThrottleDevice>>,
     /// BlkioWeight property.
+    #[serde(rename = "BlkioWeight")]
     pub blkio_weight: Option<i64>,
     /// BlkioWeightDevice property.
+    #[serde(rename = "BlkioWeightDevice")]
     pub blkio_weight_device: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// CgroupParent property.
+    #[serde(rename = "CgroupParent")]
     pub cgroup_parent: Option<String>,
     /// CpuCount property.
+    #[serde(rename = "CpuCount")]
     pub cpu_count: Option<i64>,
     /// CpuPercent property.
+    #[serde(rename = "CpuPercent")]
     pub cpu_percent: Option<i64>,
     /// CpuPeriod property.
+    #[serde(rename = "CpuPeriod")]
     pub cpu_period: Option<i64>,
     /// CpuQuota property.
+    #[serde(rename = "CpuQuota")]
     pub cpu_quota: Option<i64>,
     /// CpuRealtimePeriod property.
+    #[serde(rename = "CpuRealtimePeriod")]
     pub cpu_realtime_period: Option<i64>,
     /// CpuRealtimeRuntime property.
+    #[serde(rename = "CpuRealtimeRuntime")]
     pub cpu_realtime_runtime: Option<i64>,
     /// CpuShares property.
+    #[serde(rename = "CpuShares")]
     pub cpu_shares: Option<i64>,
     /// CpusetCpus property.
+    #[serde(rename = "CpusetCpus")]
     pub cpuset_cpus: Option<String>,
     /// CpusetMems property.
+    #[serde(rename = "CpusetMems")]
     pub cpuset_mems: Option<String>,
     /// DeviceCgroupRules property.
+    #[serde(rename = "DeviceCgroupRules")]
     pub device_cgroup_rules: Option<Vec<String>>,
     /// DeviceRequests property.
+    #[serde(rename = "DeviceRequests")]
     pub device_requests: Option<Vec<DeviceRequest>>,
     /// Devices property.
+    #[serde(rename = "Devices")]
     pub devices: Option<Vec<DeviceMapping>>,
     /// IOMaximumBandwidth property.
+    #[serde(rename = "IOMaximumBandwidth")]
     pub io_maximum_bandwidth: Option<i64>,
     /// IOMaximumIOps property.
+    #[serde(rename = "IOMaximumIOps")]
     pub io_maximum_i_ops: Option<i64>,
     /// Init property.
+    #[serde(rename = "Init")]
     pub init: Option<bool>,
     /// Memory property.
+    #[serde(rename = "Memory")]
     pub memory: Option<i64>,
     /// MemoryReservation property.
+    #[serde(rename = "MemoryReservation")]
     pub memory_reservation: Option<i64>,
     /// MemorySwap property.
+    #[serde(rename = "MemorySwap")]
     pub memory_swap: Option<i64>,
     /// MemorySwappiness property.
+    #[serde(rename = "MemorySwappiness")]
     pub memory_swappiness: Option<i64>,
     /// NanoCpus property.
+    #[serde(rename = "NanoCpus")]
     pub nano_cpus: Option<i64>,
     /// OomKillDisable property.
+    #[serde(rename = "OomKillDisable")]
     pub oom_kill_disable: Option<bool>,
     /// PidsLimit property.
+    #[serde(rename = "PidsLimit")]
     pub pids_limit: Option<i64>,
     /// Ulimits property.
+    #[serde(rename = "Ulimits")]
     pub ulimits: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
-/// `Mount` type.
+/// `MountPoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Mount {
-    /// BindOptions property.
-    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Consistency property.
-    pub consistency: Option<String>,
-    /// ImageOptions property.
-    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ReadOnly property.
-    pub read_only: Option<bool>,
-    /// Source property.
-    pub source: Option<String>,
-    /// Target property.
-    pub target: Option<String>,
-    /// TmpfsOptions property.
-    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Type property.
-    pub r#type: Option<serde_json::Value>,
-    /// VolumeOptions property.
-    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ImageManifestSummary` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImageManifestSummary {
-    /// AttestationData property.
-    pub attestation_data: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Available property.
-    pub available: bool,
-    /// Descriptor property.
-    pub descriptor: OCIDescriptor,
-    /// ID property.
-    pub id: String,
-    /// ImageData property.
-    pub image_data: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Kind property.
-    pub kind: String,
-    /// Size property.
-    pub size: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DriverData` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DriverData {
-    /// Data property.
-    pub data: serde_json::Value,
+pub struct MountPoint {
+    /// Destination property.
+    #[serde(rename = "Destination")]
+    pub destination: Option<String>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Mode property.
+    #[serde(rename = "Mode")]
+    pub mode: Option<String>,
     /// Name property.
-    pub name: String,
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Propagation property.
+    #[serde(rename = "Propagation")]
+    pub propagation: Option<String>,
+    /// RW property.
+    #[serde(rename = "RW")]
+    pub rw: Option<bool>,
+    /// Source property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+    /// Type property.
+    #[serde(rename = "Type")]
+    pub r#type: Option<serde_json::Value>,
+}
+
+/// `DeviceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceRequest {
+    /// Capabilities property.
+    #[serde(rename = "Capabilities")]
+    pub capabilities: Option<Vec<Vec<String>>>,
+    /// Count property.
+    #[serde(rename = "Count")]
+    pub count: Option<i64>,
+    /// DeviceIDs property.
+    #[serde(rename = "DeviceIDs")]
+    pub device_i_ds: Option<Vec<String>>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
+/// `RootFSStorage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RootFSStorage {
+    /// Snapshot property.
+    #[serde(rename = "Snapshot")]
+    pub snapshot: Option<RootFSStorageSnapshot>,
+}
+
+/// `ThrottleDevice` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ThrottleDevice {
+    /// Path property.
+    #[serde(rename = "Path")]
+    pub path: Option<String>,
+    /// Rate property.
+    #[serde(rename = "Rate")]
+    pub rate: Option<i64>,
+}
+
+/// `PullIdentity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PullIdentity {
+    /// Repository property.
+    #[serde(rename = "Repository")]
+    pub repository: Option<String>,
+}
+
+/// `Health` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Health {
+    /// FailingStreak property.
+    #[serde(rename = "FailingStreak")]
+    pub failing_streak: Option<i64>,
+    /// Log property.
+    #[serde(rename = "Log")]
+    pub log: Option<Vec<HealthcheckResult>>,
+    /// Status property.
+    #[serde(rename = "Status")]
+    pub status: Option<String>,
+}
+
+/// `DistributionInspect` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DistributionInspect {
+    /// Descriptor property.
+    #[serde(rename = "Descriptor")]
+    pub descriptor: OCIDescriptor,
+    /// Platforms property.
+    #[serde(rename = "Platforms")]
+    pub platforms: Vec<OCIPlatform>,
+}
+
+/// `ImageConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageConfig {
+    /// ArgsEscaped property.
+    #[serde(rename = "ArgsEscaped")]
+    pub args_escaped: Option<bool>,
+    /// Cmd property.
+    #[serde(rename = "Cmd")]
+    pub cmd: Option<Vec<String>>,
+    /// Entrypoint property.
+    #[serde(rename = "Entrypoint")]
+    pub entrypoint: Option<Vec<String>>,
+    /// Env property.
+    #[serde(rename = "Env")]
+    pub env: Option<Vec<String>>,
+    /// ExposedPorts property.
+    #[serde(rename = "ExposedPorts")]
+    pub exposed_ports: Option<serde_json::Value>,
+    /// Healthcheck property.
+    #[serde(rename = "Healthcheck")]
+    pub healthcheck: Option<HealthConfig>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// OnBuild property.
+    #[serde(rename = "OnBuild")]
+    pub on_build: Option<Vec<String>>,
+    /// Shell property.
+    #[serde(rename = "Shell")]
+    pub shell: Option<Vec<String>>,
+    /// StopSignal property.
+    #[serde(rename = "StopSignal")]
+    pub stop_signal: Option<String>,
+    /// User property.
+    #[serde(rename = "User")]
+    pub user: Option<String>,
+    /// Volumes property.
+    #[serde(rename = "Volumes")]
+    pub volumes: Option<serde_json::Value>,
+    /// WorkingDir property.
+    #[serde(rename = "WorkingDir")]
+    pub working_dir: Option<String>,
+}
+
+/// `PortMap` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PortMap {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

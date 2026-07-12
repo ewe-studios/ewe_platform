@@ -24,62 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NodeSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// Availability property.
-    pub availability: Option<String>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    pub name: Option<String>,
-    /// Role property.
-    pub role: Option<String>,
-}
-
-/// `NodeStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeStatus {
-    /// Addr property.
-    pub addr: Option<String>,
-    /// Message property.
-    pub message: Option<String>,
-    /// State property.
-    pub state: Option<NodeState>,
-}
-
-/// `TLSInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TLSInfo {
-    /// CertIssuerPublicKey property.
-    pub cert_issuer_public_key: Option<String>,
-    /// CertIssuerSubject property.
-    pub cert_issuer_subject: Option<String>,
-    /// TrustRoot property.
-    pub trust_root: Option<String>,
-}
-
-/// `Node` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Node {
-    /// CreatedAt property.
-    pub created_at: Option<String>,
-    /// Description property.
-    pub description: Option<NodeDescription>,
-    /// ID property.
-    pub id: Option<String>,
-    /// ManagerStatus property.
-    pub manager_status: Option<ManagerStatus>,
-    /// Spec property.
-    pub spec: Option<NodeSpec>,
-    /// Status property.
-    pub status: Option<NodeStatus>,
-    /// UpdatedAt property.
-    pub updated_at: Option<String>,
-    /// Version property.
-    pub version: Option<ObjectVersion>,
-}
-
 /// `GenericResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GenericResources {
@@ -87,61 +31,84 @@ pub struct GenericResources {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `EngineDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EngineDescription {
+    /// EngineVersion property.
+    #[serde(rename = "EngineVersion")]
+    pub engine_version: Option<String>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Plugins property.
+    #[serde(rename = "Plugins")]
+    pub plugins: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+}
+
 /// `Platform` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Platform {
     /// Architecture property.
+    #[serde(rename = "Architecture")]
     pub architecture: Option<String>,
     /// OS property.
+    #[serde(rename = "OS")]
     pub os: Option<String>,
+}
+
+/// `Reachability` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Reachability {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `NodeDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NodeDescription {
     /// Engine property.
+    #[serde(rename = "Engine")]
     pub engine: Option<EngineDescription>,
     /// Hostname property.
+    #[serde(rename = "Hostname")]
     pub hostname: Option<String>,
     /// Platform property.
+    #[serde(rename = "Platform")]
     pub platform: Option<Platform>,
     /// Resources property.
+    #[serde(rename = "Resources")]
     pub resources: Option<ResourceObject>,
     /// TLSInfo property.
+    #[serde(rename = "TLSInfo")]
     pub tls_info: Option<TLSInfo>,
 }
 
-/// `ManagerStatus` type.
+/// `TLSInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ManagerStatus {
+pub struct TLSInfo {
+    /// CertIssuerPublicKey property.
+    #[serde(rename = "CertIssuerPublicKey")]
+    pub cert_issuer_public_key: Option<String>,
+    /// CertIssuerSubject property.
+    #[serde(rename = "CertIssuerSubject")]
+    pub cert_issuer_subject: Option<String>,
+    /// TrustRoot property.
+    #[serde(rename = "TrustRoot")]
+    pub trust_root: Option<String>,
+}
+
+/// `NodeStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeStatus {
     /// Addr property.
+    #[serde(rename = "Addr")]
     pub addr: Option<String>,
-    /// Leader property.
-    pub leader: Option<bool>,
-    /// Reachability property.
-    pub reachability: Option<Reachability>,
-}
-
-/// `ResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceObject {
-    /// GenericResources property.
-    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// MemoryBytes property.
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    pub nano_cp_us: Option<i64>,
-}
-
-/// `EngineDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EngineDescription {
-    /// EngineVersion property.
-    pub engine_version: Option<String>,
-    /// Labels property.
-    pub labels: Option<serde_json::Value>,
-    /// Plugins property.
-    pub plugins: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// Message property.
+    #[serde(rename = "Message")]
+    pub message: Option<String>,
+    /// State property.
+    #[serde(rename = "State")]
+    pub state: Option<NodeState>,
 }
 
 /// `NodeState` type.
@@ -151,11 +118,78 @@ pub struct NodeState {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `Reachability` type.
+/// `ManagerStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Reachability {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ManagerStatus {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// Leader property.
+    #[serde(rename = "Leader")]
+    pub leader: Option<bool>,
+    /// Reachability property.
+    #[serde(rename = "Reachability")]
+    pub reachability: Option<Reachability>,
+}
+
+/// `NodeSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeSpec {
+    /// Availability property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Role property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
+}
+
+/// `ResourceObject` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceObject {
+    /// GenericResources property.
+    #[serde(rename = "GenericResources")]
+    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// MemoryBytes property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// NanoCPUs property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+}
+
+/// `Node` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Node {
+    /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// Description property.
+    #[serde(rename = "Description")]
+    pub description: Option<NodeDescription>,
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// ManagerStatus property.
+    #[serde(rename = "ManagerStatus")]
+    pub manager_status: Option<ManagerStatus>,
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<NodeSpec>,
+    /// Status property.
+    #[serde(rename = "Status")]
+    pub status: Option<NodeStatus>,
+    /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
+    pub updated_at: Option<String>,
+    /// Version property.
+    #[serde(rename = "Version")]
+    pub version: Option<ObjectVersion>,
 }
 
 // =============================================================================

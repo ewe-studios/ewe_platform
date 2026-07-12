@@ -1154,6 +1154,11 @@ impl UnifiedGenerator {
             out,
             "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
         )?;
+        // WHY: OpenAPI specs use mixed naming conventions (PascalCase, camelCase,
+        // snake_case). We convert all property names to snake_case for Rust fields,
+        // so we must emit per-field #[serde(rename)] when the original name differs
+        // from the snake_cased field name. A single rename_all can't handle mixed
+        // specs like Docker (ApiVersion + architecture in the same schema).
         writeln!(out, "pub struct {} {{", type_name)?;
 
         // Handle allOf - merge properties from all members
@@ -1181,6 +1186,12 @@ impl UnifiedGenerator {
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
+                // Emit per-field serde rename when the snake_cased field name
+                // differs from the original property name (handles PascalCase,
+                // camelCase, and mixed-casing specs like Docker).
+                if prop_name.as_str() != field_name.as_str() {
+                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                }
                 if is_required {
                     writeln!(out, "    pub {}: {},", field_name, rust_type)?;
                 } else {
@@ -1207,6 +1218,11 @@ impl UnifiedGenerator {
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
+                // Emit per-field serde rename when the snake_cased field name
+                // differs from the original property name.
+                if prop_name != &field_name {
+                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                }
                 if is_required {
                     writeln!(out, "    pub {}: {},", field_name, rust_type)?;
                 } else {

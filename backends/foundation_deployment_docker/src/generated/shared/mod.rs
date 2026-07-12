@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IDResponse {
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: String,
 }
 
@@ -25,16 +26,22 @@ pub struct IDResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Plugin {
     /// Config property.
+    #[serde(rename = "Config")]
     pub config: std::collections::HashMap<String, serde_json::Value>,
     /// Enabled property.
+    #[serde(rename = "Enabled")]
     pub enabled: bool,
     /// Id property.
+    #[serde(rename = "Id")]
     pub id: Option<String>,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// PluginReference property.
+    #[serde(rename = "PluginReference")]
     pub plugin_reference: Option<String>,
     /// Settings property.
+    #[serde(rename = "Settings")]
     pub settings: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -42,24 +49,34 @@ pub struct Plugin {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// ClusterVolume property.
+    #[serde(rename = "ClusterVolume")]
     pub cluster_volume: Option<ClusterVolume>,
     /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
     /// Driver property.
+    #[serde(rename = "Driver")]
     pub driver: String,
     /// Labels property.
+    #[serde(rename = "Labels")]
     pub labels: serde_json::Value,
     /// Mountpoint property.
+    #[serde(rename = "Mountpoint")]
     pub mountpoint: String,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// Options property.
+    #[serde(rename = "Options")]
     pub options: serde_json::Value,
     /// Scope property.
+    #[serde(rename = "Scope")]
     pub scope: String,
     /// Status property.
+    #[serde(rename = "Status")]
     pub status: Option<serde_json::Value>,
     /// UsageData property.
+    #[serde(rename = "UsageData")]
     pub usage_data: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
@@ -67,18 +84,25 @@ pub struct Volume {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterVolume {
     /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
     /// ID property.
+    #[serde(rename = "ID")]
     pub id: Option<String>,
     /// Info property.
+    #[serde(rename = "Info")]
     pub info: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// PublishStatus property.
+    #[serde(rename = "PublishStatus")]
     pub publish_status: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// Spec property.
+    #[serde(rename = "Spec")]
     pub spec: Option<ClusterVolumeSpec>,
     /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
     pub updated_at: Option<String>,
     /// Version property.
+    #[serde(rename = "Version")]
     pub version: Option<ObjectVersion>,
 }
 
@@ -86,8 +110,10 @@ pub struct ClusterVolume {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterVolumeSpec {
     /// AccessMode property.
+    #[serde(rename = "AccessMode")]
     pub access_mode: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// Group property.
+    #[serde(rename = "Group")]
     pub group: Option<String>,
 }
 
@@ -95,6 +121,7 @@ pub struct ClusterVolumeSpec {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObjectVersion {
     /// Index property.
+    #[serde(rename = "Index")]
     pub index: Option<i64>,
 }
 
@@ -102,12 +129,16 @@ pub struct ObjectVersion {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginDevice {
     /// Description property.
+    #[serde(rename = "Description")]
     pub description: String,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// Path property.
+    #[serde(rename = "Path")]
     pub path: String,
     /// Settable property.
+    #[serde(rename = "Settable")]
     pub settable: Vec<String>,
 }
 
@@ -115,12 +146,16 @@ pub struct PluginDevice {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginEnv {
     /// Description property.
+    #[serde(rename = "Description")]
     pub description: String,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// Settable property.
+    #[serde(rename = "Settable")]
     pub settable: Vec<String>,
     /// Value property.
+    #[serde(rename = "Value")]
     pub value: String,
 }
 
@@ -128,18 +163,25 @@ pub struct PluginEnv {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginMount {
     /// Description property.
+    #[serde(rename = "Description")]
     pub description: String,
     /// Destination property.
+    #[serde(rename = "Destination")]
     pub destination: String,
     /// Name property.
+    #[serde(rename = "Name")]
     pub name: String,
     /// Options property.
+    #[serde(rename = "Options")]
     pub options: Vec<String>,
     /// Settable property.
+    #[serde(rename = "Settable")]
     pub settable: Vec<String>,
     /// Source property.
+    #[serde(rename = "Source")]
     pub source: String,
     /// Type property.
+    #[serde(rename = "Type")]
     pub r#type: String,
 }
 
@@ -147,6 +189,7 @@ pub struct PluginMount {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Topology {
     /// Segments property.
+    #[serde(rename = "Segments")]
     pub segments: Option<serde_json::Value>,
 }
 

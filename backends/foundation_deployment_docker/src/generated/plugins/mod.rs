@@ -18,8 +18,8 @@ use foundation_macros::JsonHash;
 // Import shared types used by this module
 use super::shared::Plugin;
 use super::shared::PluginEnv;
-use super::shared::PluginMount;
 use super::shared::PluginDevice;
+use super::shared::PluginMount;
 
 use super::shared::ApiResponse;
 

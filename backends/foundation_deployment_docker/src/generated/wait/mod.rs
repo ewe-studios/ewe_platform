@@ -21,20 +21,23 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ContainerWaitResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerWaitResponse {
-    /// Error property.
-    pub error: Option<ContainerWaitExitError>,
-    /// StatusCode property.
-    pub status_code: i64,
-}
-
 /// `ContainerWaitExitError` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerWaitExitError {
     /// Message property.
+    #[serde(rename = "Message")]
     pub message: Option<String>,
+}
+
+/// `ContainerWaitResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerWaitResponse {
+    /// Error property.
+    #[serde(rename = "Error")]
+    pub error: Option<ContainerWaitExitError>,
+    /// StatusCode property.
+    #[serde(rename = "StatusCode")]
+    pub status_code: i64,
 }
 
 // =============================================================================

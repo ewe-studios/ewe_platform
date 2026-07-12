@@ -25,34 +25,49 @@ use super::shared::ApiResponse;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointSettings {
     /// Aliases property.
+    #[serde(rename = "Aliases")]
     pub aliases: Option<Vec<String>>,
     /// DNSNames property.
+    #[serde(rename = "DNSNames")]
     pub dns_names: Option<Vec<String>>,
     /// DriverOpts property.
+    #[serde(rename = "DriverOpts")]
     pub driver_opts: Option<serde_json::Value>,
     /// EndpointID property.
+    #[serde(rename = "EndpointID")]
     pub endpoint_id: Option<String>,
     /// Gateway property.
+    #[serde(rename = "Gateway")]
     pub gateway: Option<String>,
     /// GlobalIPv6Address property.
+    #[serde(rename = "GlobalIPv6Address")]
     pub global_i_pv6_address: Option<String>,
     /// GlobalIPv6PrefixLen property.
+    #[serde(rename = "GlobalIPv6PrefixLen")]
     pub global_i_pv6_prefix_len: Option<i64>,
     /// GwPriority property.
+    #[serde(rename = "GwPriority")]
     pub gw_priority: Option<i64>,
     /// IPAMConfig property.
+    #[serde(rename = "IPAMConfig")]
     pub ipam_config: Option<EndpointIPAMConfig>,
     /// IPAddress property.
+    #[serde(rename = "IPAddress")]
     pub ip_address: Option<String>,
     /// IPPrefixLen property.
+    #[serde(rename = "IPPrefixLen")]
     pub ip_prefix_len: Option<i64>,
     /// IPv6Gateway property.
+    #[serde(rename = "IPv6Gateway")]
     pub i_pv6_gateway: Option<String>,
     /// Links property.
+    #[serde(rename = "Links")]
     pub links: Option<Vec<String>>,
     /// MacAddress property.
+    #[serde(rename = "MacAddress")]
     pub mac_address: Option<String>,
     /// NetworkID property.
+    #[serde(rename = "NetworkID")]
     pub network_id: Option<String>,
 }
 
@@ -60,10 +75,13 @@ pub struct EndpointSettings {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointIPAMConfig {
     /// IPv4Address property.
+    #[serde(rename = "IPv4Address")]
     pub i_pv4_address: Option<String>,
     /// IPv6Address property.
+    #[serde(rename = "IPv6Address")]
     pub i_pv6_address: Option<String>,
     /// LinkLocalIPs property.
+    #[serde(rename = "LinkLocalIPs")]
     pub link_local_i_ps: Option<Vec<String>>,
 }
 
@@ -71,8 +89,10 @@ pub struct EndpointIPAMConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConnectRequest {
     /// Container property.
+    #[serde(rename = "Container")]
     pub container: String,
     /// EndpointConfig property.
+    #[serde(rename = "EndpointConfig")]
     pub endpoint_config: Option<EndpointSettings>,
 }
 
