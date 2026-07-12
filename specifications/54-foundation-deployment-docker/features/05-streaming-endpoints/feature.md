@@ -4,11 +4,11 @@ description: "Hand-write streaming endpoint functions using split_exchange() pat
 status: "in-progress"
 priority: "high"
 phase: 1
-depends_on: ["01-dynnetclient-codegen-alignment", "03-type-replication"]
+depends_on: ["01-dynnetclient-preparedrequest-surface", "04-type-replication"]
 estimated_effort: "small"
 created: 2026-07-12
 ---
-# Feature 04: Streaming endpoint handling
+# Feature 05: Streaming endpoint handling
 
 ## Why
 

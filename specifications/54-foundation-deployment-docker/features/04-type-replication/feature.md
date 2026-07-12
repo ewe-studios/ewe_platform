@@ -4,11 +4,11 @@ description: "Vendor Docker Engine API spec v1.53 from local moby checkout; run 
 status: "in-progress"
 priority: "high"
 phase: 1
-depends_on: ["01-dynnetclient-codegen-alignment", "02-unix-socket-transport"]
+depends_on: ["02-unix-socket-transport", "03-generator-async-fn-codegen"]
 estimated_effort: "large"
 created: 2026-07-12
 ---
-# Feature 03: Docker API type replication via `gen_api`
+# Feature 04: Docker API type replication via `gen_api`
 
 ## Why
 

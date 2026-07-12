@@ -67,21 +67,28 @@ Splits, sends, drains head, collects body chunks into `BytesMut`, returns
 ### Generated code
 
 The code generator (`foundation_openapi`) produces functions that accept
-`DynNetClient` (no `R` generic) and `&mut PreparedRequestBuilder` in closures:
+`DynNetClient` (no `R` generic) and `&mut PreparedRequestBuilder` in closures.
+
+> **Emit shape:** the resolved generated shape is **`async fn`** using
+> `HttpClient::send_async()` — see **[Decision 05 — Valtron TaskIterator → async
+> fn](05-valtron-task-iterator.md)** (owner-chosen 2026-07-12) and its
+> implementation in **[Feature 03 — generator async fn codegen](../features/03-generator-async-fn-codegen/feature.md)**.
+> The earlier `impl TaskIterator` + `collect_exchange()` sketch is superseded; the
+> primitives it named (`PreparedRequestBuilder::query`, `body_reader` combinators,
+> `DynNetClient`) still stand and are delivered by
+> **[Feature 01](../features/01-dynnetclient-preparedrequest-surface/feature.md)**.
 
 ```rust
-pub fn create_container_request<F>(
+pub async fn create_container_request<F>(
     client: DynNetClient,
     args: &CreateContainerArgs,
     builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<Ready = Result<ApiResponse<ContainerCreateResponse>, ApiError>, ...> + Send,
-    ApiError,
->
+) -> Result<ApiResponse<ContainerCreateResponse>, ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let mut builder = PreparedRequestBuilder::post(&endpoint_url)?
+    let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .header("Content-Type", "application/json")
         .query("name", args.name.as_deref());
 
@@ -92,9 +99,9 @@ where
         f(&mut builder);
     }
 
-    // Non-streaming: collect_exchange handles split → send → collect
-    let result = body_reader::collect_exchange(&client, builder);
-    // ... wrap in TaskIterator ...
+    let response = client.send_async(builder.build()).await
+        .map_err(|e| ApiError::Transport(e.to_string()))?;
+    // ... status check + JSON parse → ApiResponse ...
 }
 ```
 
@@ -191,4 +198,5 @@ Most users will use `DockerClient::connect_with_defaults()` which auto-negotiate
 
 - **[07 — Unix socket transport](07-unix-socket-transport.md)** — Transport layer (→ Feature 02)
 - **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling (→ Feature 04)
-- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder surface](../features/01-dynnetclient-preparedrequest-surface/feature.md)** — HTTP primitives (client/builder/body_reader)
+- **[Feature 03 — generator async fn codegen](../features/03-generator-async-fn-codegen/feature.md)** — Generated-code emit shape (async fn)

@@ -189,4 +189,4 @@ Ok(SingleReadyTask::new(result.map(|response| {
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
 - **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — async fn pattern
-- **[Feature 04 — Streaming endpoint handling](../features/04-streaming-endpoints/feature.md)** — Implementation plan
+- **[Feature 05 — Streaming endpoint handling](../features/05-streaming-endpoints/feature.md)** — Implementation plan

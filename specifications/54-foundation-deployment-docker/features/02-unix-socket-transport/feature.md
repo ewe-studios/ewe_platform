@@ -4,7 +4,7 @@ description: "Add Connection::connect_unix() factory, ClientConfig.unix_socket f
 status: "in-progress"
 priority: "high"
 phase: 0
-depends_on: ["01-dynnetclient-codegen-alignment"]
+depends_on: ["01-dynnetclient-preparedrequest-surface"]
 estimated_effort: "small"
 created: 2026-07-12
 ---

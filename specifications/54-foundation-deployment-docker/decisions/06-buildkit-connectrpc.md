@@ -291,4 +291,4 @@ BuildKit is P2 because:
 - **[02 — Docker Engine API Spec Source](02-docker-openapi-spec.md)** — Same local checkout
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP transport
 - **[07 — Unix socket transport](07-unix-socket-transport.md)** — Unix socket support
-- **[Feature 05 — BuildKit via foundation_connectrpc](../features/05-buildkit-connectrpc/feature.md)** — Implementation plan
+- **[Feature 06 — BuildKit via foundation_connectrpc](../features/06-buildkit-connectrpc/feature.md)** — Implementation plan

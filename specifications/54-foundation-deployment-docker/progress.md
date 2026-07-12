@@ -6,12 +6,20 @@
 
 | # | Feature | Status | Depends on | Effort |
 |---|---------|--------|------------|--------|
-| 00 | SendSafeBody Sync | 🔴 Planned | — | Small |
-| 01 | DynNetClient + PreparedRequestBuilder alignment | 🔴 Planned | 00 | Medium |
+| 00 | SendSafeBody Sync | ✅ Complete | — | Small |
+| 01 | DynNetClient + PreparedRequestBuilder surface (netio/core primitives) | 🟡 In progress | 00 | Medium |
 | 02 | Unix socket transport | 🔴 Planned | 01 | Small |
-| 03 | Type replication via gen_api | 🔴 Planned | 01, 02 | Large |
-| 04 | Streaming endpoint handling | 🔴 Planned | 01, 03 | Small |
-| 05 | BuildKit via connectrpc (P2) | 🔴 Planned | 02, 03 | Large |
+| 03 | Generator async fn codegen + regenerate deployment crates | 🔴 Planned | 01 | Large |
+| 04 | Docker type replication via gen_api | 🔴 Planned | 02, 03 | Large |
+| 05 | Streaming endpoint handling | 🔴 Planned | 01, 04 | Small |
+| 06 | BuildKit via connectrpc (P2) | 🔴 Planned | 02, 04 | Large |
+
+> **2026-07-12 restructure:** Feature 01 split into **01** (foundation HTTP
+> primitives — `foundation_core`/`foundation_netio`/`foundation_connectrpc`) and a
+> new **03** (generator emit + regeneration), implementing
+> [Decision 05](decisions/05-valtron-task-iterator.md). The generator update
+> **must land before Docker generation (Feature 04)**. Former 03/04/05 renumbered
+> to 04/05/06. Generated code shape is **`async fn`** (owner-chosen).
 
 ## Decision docs
 
@@ -29,23 +37,24 @@
 
 ## Implementation order
 
-### Phase 0: Foundation (Feature 00, 01, 02)
-- [ ] Feature 00: Make `SendSafeBody: Sync` (~3 files, + Sync on one type alias)
-- [ ] Feature 01: Update code generator + all deployment crates for DynNetClient
+### Phase 0: Foundation (Feature 00, 01, 02, 03)
+- [x] Feature 00: Make `SendSafeBody: Sync` (~3 files, + Sync on one type alias)
+- [ ] Feature 01: netio/core HTTP primitives (Uri query, PreparedRequestBuilder, `build()`→DynNetClient, body_reader combinators)
 - [ ] Feature 02: Unix socket transport in foundation_netio (~30 lines)
+- [ ] Feature 03: Generator emits `async fn`; regenerate + migrate cloudflare/stripe/supabase/neon/planetscale/prisma/flyio
 
-### Phase 1: Core Docker API (Feature 03, 04)
-- [ ] Feature 03: Vendor spec, run gen_api, generate types + async fn
-- [ ] Feature 03: Hand-write `DockerClient` (Unix socket, auth, version negotiation)
-- [ ] Feature 03: Hand-write `Deployable` for `DockerContainer`
-- [ ] Feature 04: Hand-write streaming endpoints (logs, events, stats, pull, build)
-- [ ] Feature 04: Implement `LogFrameDecoder` (~50 lines)
+### Phase 1: Core Docker API (Feature 04, 05)
+- [ ] Feature 04: Vendor spec, run gen_api, generate types + async fn
+- [ ] Feature 04: Hand-write `DockerClient` (Unix socket, auth, version negotiation)
+- [ ] Feature 04: Hand-write `Deployable` for `DockerContainer`
+- [ ] Feature 05: Hand-write streaming endpoints (logs, events, stats, pull, build)
+- [ ] Feature 05: Implement `LogFrameDecoder` (~50 lines)
 
-### Phase 2: Network + Volume (Feature 03 continued)
+### Phase 2: Network + Volume (Feature 04 continued)
 - [ ] Refine generated network/volume types
 - [ ] Hand-write `Deployable` for `DockerNetwork`, `DockerVolume`
 
-### Phase 3: BuildKit (Feature 05)
+### Phase 3: BuildKit (Feature 06)
 - [ ] Vend 17 proto files from local moby checkout
 - [ ] Proto codegen via `foundation_connectrpc_codegen`
 - [ ] Implement `BuildKitClient` over Unix socket

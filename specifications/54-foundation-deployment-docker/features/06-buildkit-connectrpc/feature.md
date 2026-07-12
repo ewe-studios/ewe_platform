@@ -4,11 +4,11 @@ description: "Vend 17 BuildKit proto files from local moby checkout; generate Ru
 status: "in-progress"
 priority: "low"
 phase: 2
-depends_on: ["02-unix-socket-transport", "03-type-replication"]
+depends_on: ["02-unix-socket-transport", "04-type-replication"]
 estimated_effort: "large"
 created: 2026-07-12
 ---
-# Feature 05: BuildKit via foundation_connectrpc
+# Feature 06: BuildKit via foundation_connectrpc
 
 ## Why
 

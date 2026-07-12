@@ -200,4 +200,4 @@ docker_all = ["docker_containers", "docker_images", "docker_networks", "docker_v
 
 ## Related
 
-- **[Feature 03 — Type replication via gen_api](../features/03-type-replication/feature.md)** — Implementation plan
+- **[Feature 04 — Type replication via gen_api](../features/04-type-replication/feature.md)** — Implementation plan

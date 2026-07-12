@@ -166,4 +166,5 @@ impl Deployable for DockerContainer {
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
 - **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling
-- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 03 — generator async fn codegen](../features/03-generator-async-fn-codegen/feature.md)** — Implementation of this decision (generator emit + regeneration)
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder surface](../features/01-dynnetclient-preparedrequest-surface/feature.md)** — The HTTP primitives this builds on
