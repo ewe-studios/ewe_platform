@@ -3247,7 +3247,7 @@ pub trait BodyExtractor {
     ///
     /// # Errors
     /// Returns `SendableBoxedError` if extraction fails due to I/O errors, size limits, or protocol violations.
-    fn extract<T: Read + Send + 'static>(
+    fn extract<T: Read + Send + Sync + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -3563,14 +3563,14 @@ pub struct HttpRequestReader<F: BodyExtractor, T: std::io::Read> {
 }
 
 #[derive(Clone)]
-pub struct HttpSendRequestReader<F: BodyExtractor, T: std::io::Read + Send + 'static>(
+pub struct HttpSendRequestReader<F: BodyExtractor, T: std::io::Read + Send + Sync + 'static>(
     HttpRequestReader<F, T>,
 );
 
 impl<F, T> From<HttpRequestReader<F, T>> for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     fn from(value: HttpRequestReader<F, T>) -> Self {
         Self(value)
@@ -3580,7 +3580,7 @@ where
 impl<F, T> DerefMut for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
@@ -3590,7 +3590,7 @@ where
 impl<F, T> Deref for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Target = HttpRequestReader<F, T>;
 
@@ -3602,7 +3602,7 @@ where
 impl<F, T> Iterator for HttpSendRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -3708,7 +3708,7 @@ static NO_BODY_METHODS: &[SimpleMethod] = &[SimpleMethod::HEAD, SimpleMethod::CO
 impl<F, T> Iterator for HttpRequestReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
@@ -4013,14 +4013,14 @@ pub struct HttpResponseReader<F: BodyExtractor, T: std::io::Read + 'static> {
 }
 
 #[derive(Clone)]
-pub struct HttpSendResponseReader<F: BodyExtractor, T: std::io::Read + Send + 'static>(
+pub struct HttpSendResponseReader<F: BodyExtractor, T: std::io::Read + Send + Sync + 'static>(
     HttpResponseReader<F, T>,
 );
 
 impl<F, T> From<HttpResponseReader<F, T>> for HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     fn from(value: HttpResponseReader<F, T>) -> Self {
         Self(value)
@@ -4030,7 +4030,7 @@ where
 impl<F, T> HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     /// [`branch`] will create a new `HttpSendResponseReader`
     /// with state reset which will allow you to continue reading a response from the reader.
@@ -4043,7 +4043,7 @@ where
 impl<F, T> Iterator for HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
@@ -4055,7 +4055,7 @@ where
 impl<F, T> DerefMut for HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
@@ -4065,7 +4065,7 @@ where
 impl<F, T> Deref for HttpSendResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Target = HttpResponseReader<F, T>;
 
@@ -4182,7 +4182,7 @@ where
 impl<F, T> Iterator for HttpResponseReader<F, T>
 where
     F: BodyExtractor,
-    T: std::io::Read + Send + 'static,
+    T: std::io::Read + Send + Sync + 'static,
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
@@ -5399,25 +5399,25 @@ impl ChunkState {
     }
 }
 
-pub struct SimpleLineFeedIterator<T: std::io::Read + Send>(
+pub struct SimpleLineFeedIterator<T: std::io::Read + Send + Sync>(
     SimpleHeaders,
     SharedByteBufferStream<T>,
 );
 
-impl<T: std::io::Read + Send> Clone for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send + Sync> Clone for SimpleLineFeedIterator<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone())
     }
 }
 
-impl<T: std::io::Read + Send> SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send + Sync> SimpleLineFeedIterator<T> {
     #[must_use]
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         Self(headers, stream)
     }
 }
 
-impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
+impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -5438,12 +5438,12 @@ impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
 ///
 /// WHY: SSE bodies need to be parsed as events, not just raw bytes or lines.
 /// WHAT: Wraps an `SseParser` to yield `ParseResult` items from an SSE stream.
-pub struct SimpleSseIterator<T: std::io::Read + Send>(
+pub struct SimpleSseIterator<T: std::io::Read + Send + Sync>(
     SimpleHeaders,
     crate::event_source::shared::SseParser<T>,
 );
 
-impl<T: std::io::Read + Send> Clone for SimpleSseIterator<T> {
+impl<T: std::io::Read + Send + Sync> Clone for SimpleSseIterator<T> {
     fn clone(&self) -> Self {
         // SseParser cannot be cloned, so we create a new one with the same stream
         // This is a limitation - SSE streams cannot be truly cloned
@@ -5451,11 +5451,8 @@ impl<T: std::io::Read + Send> Clone for SimpleSseIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send> SimpleSseIterator<T> {
+impl<T: std::io::Read + Send + Sync> SimpleSseIterator<T> {
     /// Create a new SSE iterator from headers and a stream.
-    ///
-    /// WHY: SSE streams are created after HTTP headers are parsed.
-    /// WHAT: Wraps the stream in an `SseParser` for event parsing.
     #[must_use]
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         let parser = crate::event_source::shared::SseParser::new(stream);
@@ -5463,7 +5460,7 @@ impl<T: std::io::Read + Send> SimpleSseIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
+impl<T: std::io::Read + Send + Sync> Iterator for SimpleSseIterator<T> {
     type Item = Result<crate::event_source::ParseResult, SendableBoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -5484,14 +5481,14 @@ impl<T: std::io::Read + Send> Iterator for SimpleSseIterator<T> {
     }
 }
 
-pub struct SimpleHttpChunkIterator<T: std::io::Read + Send>(
+pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
     Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
 );
 
-impl<T: std::io::Read + Send> Clone for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
@@ -5502,7 +5499,7 @@ impl<T: std::io::Read + Send> Clone for SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send> SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
     #[must_use]
     pub fn new(
         transfer_encoding: Vec<String>,
@@ -5518,7 +5515,7 @@ impl<T: std::io::Read + Send> SimpleHttpChunkIterator<T> {
     }
 }
 
-impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
+impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -5675,7 +5672,7 @@ impl SimpleHttpBody {
 }
 
 impl BodyExtractor for SimpleHttpBody {
-    fn extract<T: std::io::Read + Send + 'static>(
+    fn extract<T: std::io::Read + Send + Sync + 'static>(
         &self,
         body: Body,
         stream: SharedByteBufferStream<T>,
@@ -5786,7 +5783,7 @@ impl BodyExtractor for SimpleHttpBody {
     }
 }
 
-impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
+impl<T: std::io::Read + Send + Sync + 'static> HttpRequestReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
@@ -5824,7 +5821,7 @@ impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     }
 }
 
-impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
+impl<T: std::io::Read + Send + Sync + 'static> HttpResponseReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
@@ -5886,7 +5883,7 @@ impl<T: std::io::Read + 'static> HTTPStreams<T> {
 
 // Methods
 
-impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
+impl<T: std::io::Read + Send + Sync + 'static> HTTPStreams<T> {
     /// `next_request` returns a new [`HttpRequestReader`] to read the next read http request from the
     /// underlying stream allowing you to stream each request as a consecutive unit containing all
     /// its data parts.
@@ -5942,7 +5939,7 @@ pub mod http_streams {
             HttpSendResponseReader, Read, SimpleHttpBody,
         };
 
-        pub fn request_reader<T: Read + Send + 'static>(
+        pub fn request_reader<T: Read + Send + Sync + 'static>(
             reader: T,
         ) -> HttpSendRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
@@ -5950,7 +5947,7 @@ pub mod http_streams {
                 .into()
         }
 
-        pub fn response_reader<T: Read + Send + 'static>(
+        pub fn response_reader<T: Read + Send + Sync + 'static>(
             reader: T,
         ) -> HttpSendResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
@@ -5962,7 +5959,7 @@ pub mod http_streams {
         /// # Errors
         ///
         /// Returns an error if the operation fails.
-        pub fn http_streams<T: Read + Send + 'static>(reader: T) -> HTTPStreams<T> {
+        pub fn http_streams<T: Read + Send + Sync + 'static>(reader: T) -> HTTPStreams<T> {
             let source = ioutils::SharedByteBufferStream::rwrite(reader);
             HTTPStreams::new(source)
         }

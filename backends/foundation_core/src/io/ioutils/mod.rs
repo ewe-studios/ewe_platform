@@ -1241,6 +1241,15 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
 //   - Therefore safe to send across threads
 unsafe impl<T: Read + Send> Send for SharedByteBufferStream<T> {}
 
+// SAFETY: SharedByteBufferStream is Sync when T is Send + Sync AND it uses
+// Arc-based synchronization. The multi-threaded (`multi` feature) path always
+// uses rwrite() (Arc<RwLock<T>>) or sync() (Arc<Mutex<T>>) — both are Sync
+// when T: Send + Sync. The RefCell variant (Rc<RefCell<T>>) is only used on
+// single-threaded paths and never shared across threads.
+//
+// See Feature 00 — SendSafeBody Sync for motivation.
+unsafe impl<T: Read + Send + Sync> Sync for SharedByteBufferStream<T> {}
+
 pub struct ByteBufferPointer<T: Read> {
     reader: OwnedReader<T>,
     pull_amount: usize,
