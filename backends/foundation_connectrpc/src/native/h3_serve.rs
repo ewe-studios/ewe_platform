@@ -157,6 +157,7 @@ pub async fn dispatch_h3(
                 codec_name,
                 compression,
                 ctx,
+                entry.options.limits.read_max_bytes,
             )
             .await;
             send_h3_response(&mut req, response).await

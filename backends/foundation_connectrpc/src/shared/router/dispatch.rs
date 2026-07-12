@@ -130,9 +130,7 @@ async fn dispatch_request(
 
     // 5b. P7: enforce the Connect protocol-version marker when the procedure
     // requires it (opt-in per procedure).
-    if entry.options.require_connect_protocol_header
-        && protocol.kind() == ProtocolKind::Connect
-    {
+    if entry.options.require_connect_protocol_header && protocol.kind() == ProtocolKind::Connect {
         if let Err(e) = require_connect_version(&request) {
             let mut response = blank_response(&request);
             write_error(&mut response, &request, &e);
@@ -155,7 +153,16 @@ async fn dispatch_request(
     // would poison `Send`, as `SimpleIncomingRequest` is not `Sync`).
     match &entry.handler {
         HandlerKind::Unary(handler) => {
-            run_unary(handler.clone(), protocol, request, codec_name, compression, ctx).await
+            run_unary(
+                handler.clone(),
+                protocol,
+                request,
+                codec_name,
+                compression,
+                ctx,
+                entry.options.limits.read_max_bytes,
+            )
+            .await
         }
         HandlerKind::ServerStream(handler)
         | HandlerKind::ClientStream(handler)
@@ -184,17 +191,23 @@ pub(crate) async fn run_unary(
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
+    read_max_bytes: usize,
 ) -> SimpleOutgoingResponse {
     let mut response = blank_response(&request);
 
-    // Pipe body chunks through a pipe: pipe_body fills the sender, the
-    // receiver drains into Bytes for decode_unary_request.
     let (tx, mut rx) = Pipe::<Bytes>::new();
     if let Err(e) = pipe_body(&tx, &mut request) {
         tracing::warn!(error = %e, "body pipe error; proceeding with partial body");
     }
     drop(tx);
-    let body = drain_to_bytes(&mut rx);
+    let body = match drain_to_bytes(&mut rx, read_max_bytes) {
+        Ok(b) => b,
+        Err(e) => {
+            tracing::warn!(error = %e, "request body exceeded read_max_bytes; returning 413");
+            response.status = Status::PayloadTooLarge;
+            return response;
+        }
+    };
     let decoded = protocol.decode_unary_request(&request, body, compression);
     let outcome: ConnectResult<UnaryOutcome> = match decoded {
         Ok(msg) => match handler.handle(ctx, &codec_name, msg).await {
@@ -264,7 +277,7 @@ async fn run_streaming(
     }
     drop(body_tx);
     let feeder = async move {
-        let mut rx = body_rx;
+        let rx = body_rx;
         while let Ok(chunk) = rx.try_recv() {
             if req_tx.send(chunk).await.is_err() {
                 break;
@@ -404,7 +417,9 @@ pub(crate) fn require_connect_version(request: &SimpleIncomingRequest) -> Connec
     } else {
         request
             .headers
-            .get(&SimpleHeader::from(constants::HEADER_PROTOCOL_VERSION.to_string()))
+            .get(&SimpleHeader::from(
+                constants::HEADER_PROTOCOL_VERSION.to_string(),
+            ))
             .and_then(|v| v.first())
             .is_some_and(|v| v == constants::PROTOCOL_VERSION)
     };
@@ -433,12 +448,15 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
 /// # Errors
 /// Stream error from the body iterator, or pipe-full from `try_send`.
 fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> io::Result<()> {
-    let Some(body) = request.body.take() else { return Ok(()) };
+    let Some(body) = request.body.take() else {
+        return Ok(());
+    };
     let mut iter = SendSafeBodyBytesIterator::new(body);
     loop {
         match iter.next() {
             Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                tx.try_send(bytes).map_err(|e| io::Error::other(e.to_string()))?;
+                tx.try_send(bytes)
+                    .map_err(|e| io::Error::other(e.to_string()))?;
             }
             Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                 return Err(io::Error::other(e.to_string()));
@@ -449,13 +467,25 @@ fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> io:
     }
 }
 
-/// Drain a closed pipe receiver into a single `Bytes`.
-fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>) -> Bytes {
+/// Drain a closed pipe receiver into `Bytes`, enforcing `max_bytes`.
+/// `0` means unlimited. Returns `Err(PayloadTooLarge)` if the body exceeds
+/// the cap. Unary serde codecs require the complete message — the cap is
+/// the sole defence against OOM on a single large request.
+fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>, max_bytes: usize) -> io::Result<Bytes> {
     let mut buf = bytes::BytesMut::new();
     while let Ok(chunk) = rx.try_recv() {
         buf.extend_from_slice(&chunk);
+        if max_bytes > 0 && buf.len() > max_bytes {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "request body of {} bytes exceeds read_max_bytes of {max_bytes}",
+                    buf.len()
+                ),
+            ));
+        }
     }
-    buf.freeze()
+    Ok(buf.freeze())
 }
 
 /// A blank response carrying the request's HTTP version and no headers/body.
@@ -469,7 +499,10 @@ pub(crate) fn blank_response(request: &SimpleIncomingRequest) -> SimpleOutgoingR
     }
 }
 
-pub(crate) fn status_only(request: &SimpleIncomingRequest, status: Status) -> SimpleOutgoingResponse {
+pub(crate) fn status_only(
+    request: &SimpleIncomingRequest,
+    status: Status,
+) -> SimpleOutgoingResponse {
     let mut response = blank_response(request);
     response.status = status;
     response
@@ -512,7 +545,9 @@ pub(crate) fn unsupported_media_type(
     response
 }
 
-pub(crate) fn http_version_not_supported(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
+pub(crate) fn http_version_not_supported(
+    request: &SimpleIncomingRequest,
+) -> SimpleOutgoingResponse {
     status_only(request, Status::HttpVersionNotSupported)
 }
 
@@ -591,7 +626,9 @@ async fn send_whole_response(
     let body = response.body.take();
 
     fn next_chunk(it: &mut Option<SendSafeBodyBytesIterator>) -> io::Result<Option<Bytes>> {
-        let Some(ref mut iter) = it else { return Ok(None) };
+        let Some(ref mut iter) = it else {
+            return Ok(None);
+        };
         loop {
             match iter.next() {
                 Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
@@ -608,16 +645,23 @@ async fn send_whole_response(
     let mut chunk = next_chunk(&mut iter)?;
     let end_stream = chunk.is_none() && !has_trailers;
 
-    tx.send(H2Frame::Headers { status, headers, end_stream })
-        .await
-        .map_err(stream_gone)?;
+    tx.send(H2Frame::Headers {
+        status,
+        headers,
+        end_stream,
+    })
+    .await
+    .map_err(stream_gone)?;
 
     while let Some(cur) = chunk.take() {
         let next = next_chunk(&mut iter)?;
         let data_end = next.is_none() && !has_trailers;
-        tx.send(H2Frame::Data { payload: cur, end_stream: data_end })
-            .await
-            .map_err(stream_gone)?;
+        tx.send(H2Frame::Data {
+            payload: cur,
+            end_stream: data_end,
+        })
+        .await
+        .map_err(stream_gone)?;
         chunk = next;
     }
 
@@ -741,8 +785,16 @@ async fn dispatch_h2_stream(
             let mut request = request;
             request.body = Some(SendSafeBody::Bytes(collected));
 
-            let response =
-                run_unary(handler.clone(), protocol, request, codec_name, compression, ctx).await;
+            let response = run_unary(
+                handler.clone(),
+                protocol,
+                request,
+                codec_name,
+                compression,
+                ctx,
+                entry.options.limits.read_max_bytes,
+            )
+            .await;
             send_whole_response(&tx, response).await
         }
         HandlerKind::ServerStream(handler)
