@@ -227,8 +227,8 @@ let client: Client<SolveRequest, SolveResponse> = Client::new(
 )?;
 ```
 
-## Related decisions
+## Related
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client
 - **[06 — BuildKit via foundation_connectrpc](06-buildkit-connectrpc.md)** — BuildKit RPC
-- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full alignment
+- **[Feature 02 — Unix socket transport](../features/02-unix-socket-transport/feature.md)** — Implementation plan (~30 lines)

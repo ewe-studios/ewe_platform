@@ -197,3 +197,7 @@ docker_all = ["docker_containers", "docker_images", "docker_networks", "docker_v
 | **P1** | networks, volumes, system | Minor type fixes, query param builders |
 | **P2** | BuildKit (separate via connectrpc) | Proto codegen, gRPC client |
 | **P3** | swarm, services, plugins, secrets | Not needed for testbed |
+
+## Related
+
+- **[Feature 03 — Type replication via gen_api](../features/03-type-replication/feature.md)** — Implementation plan

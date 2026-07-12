@@ -286,9 +286,9 @@ BuildKit is P2 because:
 4. The bidi-streaming `Solve` call exercises the most complex connectrpc codepath —
    we own connectrpc, so building on it finds the gaps and we fix them
 
-## Related decisions
+## Related
 
 - **[02 — Docker Engine API Spec Source](02-docker-openapi-spec.md)** — Same local checkout
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP transport
-- **[07 — Unix socket transport](07-unix-socket-transport.md)** — Unix socket support for DynNetClient
-- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[07 — Unix socket transport](07-unix-socket-transport.md)** — Unix socket support
+- **[Feature 05 — BuildKit via foundation_connectrpc](../features/05-buildkit-connectrpc/feature.md)** — Implementation plan

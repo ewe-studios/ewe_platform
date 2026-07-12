@@ -185,8 +185,8 @@ Ok(SingleReadyTask::new(result.map(|response| {
 - `SharedByteBufferStream` wrappers — the body observer IS the stream
 - Custom transport layer — `DynNetClient` handles the transport, the body observer handles the bytes
 
-## Related decisions
+## Related
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
-- **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — TaskIterator pattern
-- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — async fn pattern
+- **[Feature 04 — Streaming endpoint handling](../features/04-streaming-endpoints/feature.md)** — Implementation plan

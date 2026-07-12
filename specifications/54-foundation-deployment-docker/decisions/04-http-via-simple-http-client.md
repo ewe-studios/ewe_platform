@@ -187,9 +187,8 @@ impl DockerClient {
 
 Most users will use `DockerClient::connect_with_defaults()` which auto-negotiates.
 
-## Related decisions
+## Related
 
-- **[07 — Unix socket transport](07-unix-socket-transport.md)** — Transport layer
-- **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — TaskIterator pattern
-- **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling
+- **[07 — Unix socket transport](07-unix-socket-transport.md)** — Transport layer (→ Feature 02)
+- **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling (→ Feature 04)
 - **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design
