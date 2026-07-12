@@ -284,6 +284,51 @@ impl IdentityKeypair {
         Ok(Self { secret, public })
     }
 
+    /// WHY: A node persists its identity so restarts rejoin as the same identity even
+    /// after the seed is gone (decision 11).
+    ///
+    /// WHAT: Reconstruct an identity keypair from a persisted 32-byte secret.
+    ///
+    /// HOW: Curve25519-clamps the bytes, rebuilds the x25519 keypair, and wipes the input.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn from_secret_bytes(mut bytes: [u8; 32]) -> Self {
+        clamp_x25519(&mut bytes);
+        let secret = StaticSecret::from(bytes);
+        let public = PublicKey::from(&secret);
+        bytes.iter_mut().for_each(|b| *b = 0);
+        Self { secret, public }
+    }
+
+    /// The 32-byte static secret, for persistence. Handle as sensitive material.
+    #[must_use]
+    pub fn to_secret_bytes(&self) -> [u8; 32] {
+        self.secret.to_bytes()
+    }
+
+    /// WHY: Optional app-layer mTLS pins mutual auth to the WG identity keys without an
+    /// external CA (decision 10).
+    ///
+    /// WHAT: Derive a symmetric PSK shared with `peer`, bound to `context`.
+    ///
+    /// HOW: x25519 ECDH between our secret and the peer's public key, then
+    /// `HKDF-BLAKE2s` with an mTLS domain salt. Both peers derive the same value; no third
+    /// party can (it requires one of the two identity secrets).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn derive_shared_psk(&self, peer: &PublicKey, context: &[u8]) -> [u8; 32] {
+        let shared = self.secret.diffie_hellman(peer);
+        let hk = SimpleHkdf::<Blake2s256>::new(Some(b"foundation_wireguard/mtls/v1"), shared.as_bytes());
+        let mut psk = [0u8; 32];
+        hk.expand(context, &mut psk)
+            .expect("32 bytes within HKDF-BLAKE2s limits");
+        psk
+    }
+
     /// This identity's static secret (for constructing a `Tunn`).
     #[must_use]
     pub fn secret(&self) -> &StaticSecret {

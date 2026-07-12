@@ -1,7 +1,37 @@
 # Feature 08 — Identity Handoff & Optional mTLS
 
+**Status:** ✅ Complete (implemented + tested 2026-07-13)
 **Depends on:** 04
 **Decisions:** [10](../../decisions/10-identity-handoff-and-mtls.md), [11](../../decisions/11-ephemeral-seed-lifecycle.md), [03](../../decisions/03-seed-derived-keys.md)
+
+## Implementation notes (2026-07-13)
+
+The mesh (F04) already establishes **per-peer identity-keyed** WG tunnels from the moment
+of join — the shared bootstrap key is used *only* for the TLS-PSK join channel, never for
+a WG tunnel, so there is no bootstrap WG tunnel to retire. The handoff is therefore
+"join via bootstrap PSK → immediately run WG on random identity keys". This feature adds
+the remaining pieces:
+
+- `shared/keys::IdentityKeypair` — `to_secret_bytes`/`from_secret_bytes` (persistence: a
+  node keeps its identity across restarts) and `derive_shared_psk(peer, context)` (x25519
+  ECDH + HKDF-BLAKE2s).
+- `native/node` — seed **revocation** + TTL: an `AdmissionPolicy` (revoked flag + optional
+  `seed_expires_at`) consulted by the bootstrap handler; `WgHandle::revoke_seed()` and
+  `WgConfig::seed_expires_at`. Existing tunnels are unaffected (identity-keyed).
+- `native/mtls` — optional identity-pinned mutual TLS: `connect`/`accept` wrap any
+  `Read + Write` in a BoringSSL TLS-PSK session keyed by the ECDH-derived PSK, so a
+  successful handshake authenticates the peer *as* its WG identity key (no external CA).
+  Off by default (WG Noise already gives mutual auth).
+
+Tests (`--profile uat`): identity persistence round-trip; ECDH-PSK symmetry + identity/
+context binding; mTLS handshake carrying app bytes + impostor rejection; and a live mesh
+proving **peers use per-peer identity keys, not the bootstrap key**, plus **revoked seed →
+fresh join refused** (success criterion 4). All green, zero warnings.
+
+Deferred (noted in spec TODO): identity persistence *via the nativeapis VFS* (local/R2/
+sqlite mounts) — the byte-level persistence primitives are in place; the VFS mount wrapper
+is future work. Also `approved`-mode admission (member-signed approval) beyond the current
+open/revoke policy.
 
 ## WHY
 

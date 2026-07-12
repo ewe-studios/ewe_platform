@@ -58,6 +58,9 @@ pub struct WgConfig {
     pub bootstrap_listen: SocketAddr,
     /// Advertised capabilities.
     pub caps: Capabilities,
+    /// Optional seed TTL (unix seconds); after it, this node refuses new joins with this
+    /// seed (decision 11).
+    pub seed_expires_at: Option<u64>,
 }
 
 impl WgConfig {
@@ -75,6 +78,7 @@ impl WgConfig {
             udp_listen: "127.0.0.1:0".parse().expect("addr"),
             bootstrap_listen: "127.0.0.1:0".parse().expect("addr"),
             caps: Capabilities::default(),
+            seed_expires_at: None,
         }
     }
 
@@ -92,6 +96,7 @@ impl WgConfig {
             udp_listen: "127.0.0.1:0".parse().expect("addr"),
             bootstrap_listen: "127.0.0.1:0".parse().expect("addr"),
             caps: Capabilities::default(),
+            seed_expires_at: None,
         }
     }
 }
@@ -118,6 +123,36 @@ struct MeshShared {
     my_id: PeerId,
     bootstrap_addr: SocketAddr,
     udp_addr: SocketAddr,
+}
+
+/// The admission policy this node applies at `Join` time (decision 11). Because the mesh
+/// is masterless, admission is a per-member policy, not a central gate.
+struct AdmissionPolicy {
+    /// Set to immediately revoke the seed: subsequent joins are refused.
+    revoked: AtomicBool,
+    /// Optional seed TTL (unix seconds).
+    expires_at: Option<u64>,
+}
+
+impl AdmissionPolicy {
+    fn decide(&self) -> Admission {
+        if self.revoked.load(Ordering::Relaxed) {
+            return Admission::Reject;
+        }
+        if let Some(expiry) = self.expires_at {
+            if now_unix() > expiry {
+                return Admission::Reject;
+            }
+        }
+        Admission::Admit
+    }
+}
+
+fn now_unix() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
 }
 
 /// A configured (but not yet running) mesh node.
@@ -197,10 +232,15 @@ impl WgNode {
         }
 
         let swim = Arc::new(Mutex::new(swim));
+        let policy = Arc::new(AdmissionPolicy {
+            revoked: AtomicBool::new(false),
+            expires_at: self.config.seed_expires_at,
+        });
 
         // Keep our own bootstrap door open (masterless — anyone can join through us).
         let handler: Arc<dyn BootstrapHandler> = Arc::new(MeshBootstrapHandler {
             swim: Arc::clone(&swim),
+            policy: Arc::clone(&policy),
         });
         let server = BootstrapServer::bind(self.config.bootstrap_listen, boot.tls_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
@@ -246,6 +286,7 @@ impl WgNode {
         Ok(WgHandle {
             netstack,
             shared,
+            policy,
             stop,
             threads: vec![bootstrap_thread, runtime_thread],
         })
@@ -256,6 +297,7 @@ impl WgNode {
 pub struct WgHandle {
     netstack: NetStack,
     shared: Arc<MeshShared>,
+    policy: Arc<AdmissionPolicy>,
     stop: Arc<AtomicBool>,
     threads: Vec<JoinHandle<()>>,
 }
@@ -361,6 +403,17 @@ impl WgHandle {
             thread::sleep(Duration::from_millis(10));
         }
         false
+    }
+
+    /// WHY: After the mesh has formed on identity keys, the ephemeral seed can be revoked
+    /// so a later leak of the old seed cannot join through this node (decision 11).
+    ///
+    /// WHAT: Immediately refuse all future bootstrap joins presenting this seed.
+    ///
+    /// HOW: Flips the shared admission policy to reject; existing tunnels are unaffected
+    /// (they run on identity keys, not the seed).
+    pub fn revoke_seed(&self) {
+        self.policy.revoked.store(true, Ordering::Relaxed);
     }
 
     /// Stop the node's threads and tear down the mesh runtime.
@@ -505,13 +558,20 @@ fn id_by_ip(swim: &Swim, ip: IpAddr) -> Option<PeerId> {
 
 struct MeshBootstrapHandler {
     swim: Arc<Mutex<Swim>>,
+    policy: Arc<AdmissionPolicy>,
 }
 
 impl BootstrapHandler for MeshBootstrapHandler {
     fn on_join(&self, record: PeerRecord) -> (Admission, Vec<PeerRecord>) {
-        let mut swim = self.swim.lock().expect("swim lock");
-        swim.merge(std::slice::from_ref(&record));
-        (Admission::Admit, swim.snapshot())
+        match self.policy.decide() {
+            Admission::Admit => {
+                let mut swim = self.swim.lock().expect("swim lock");
+                swim.merge(std::slice::from_ref(&record));
+                (Admission::Admit, swim.snapshot())
+            }
+            // Revoked/expired seed → refuse, hand back nothing.
+            other => (other, Vec::new()),
+        }
     }
 
     fn membership(&self) -> Vec<PeerRecord> {

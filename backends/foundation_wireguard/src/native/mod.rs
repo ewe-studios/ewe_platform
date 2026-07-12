@@ -2,6 +2,7 @@
 
 pub mod bootstrap;
 pub mod driver;
+pub mod mtls;
 pub mod node;
 
 pub use bootstrap::{
