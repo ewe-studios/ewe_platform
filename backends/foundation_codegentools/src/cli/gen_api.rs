@@ -21,6 +21,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 /// Key = provider name, Value = crate root (relative to workspace or absolute).
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
+    ("docker", "backends/foundation_deployment_docker"),
     ("stripe", "backends/foundation_deployment_stripe"),
     ("supabase", "backends/foundation_deployment_supabase"),
     ("neon", "backends/foundation_deployment_neon"),
