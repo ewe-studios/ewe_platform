@@ -162,23 +162,44 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     tracing::debug!("Set read timeout to {:?} (method={:?})",
                         read_timeout, data.method);
 
-                    // Determine effective proxy configuration
-                    let env_proxy = if config.proxy_from_env {
-                        crate::shared::client::ProxyConfig::from_env(
-                            descriptor.request_uri.scheme(),
-                        )
+                    // Unix socket transport (Docker daemon, BuildKitd) bypasses
+                    // DNS and proxy — dial the configured socket directly.
+                    #[cfg(unix)]
+                    let unix_socket = config.unix_socket.clone();
+                    #[cfg(not(unix))]
+                    let unix_socket: Option<std::path::PathBuf> = None;
+
+                    let connection_result = if let Some(socket_path) = unix_socket {
+                        #[cfg(unix)]
+                        {
+                            pool.create_connection_unix(&descriptor.request_uri, &socket_path)
+                        }
+                        #[cfg(not(unix))]
+                        {
+                            let _ = socket_path;
+                            unreachable!("unix_socket is always None on non-unix targets")
+                        }
                     } else {
-                        None
+                        // Determine effective proxy configuration
+                        let env_proxy = if config.proxy_from_env {
+                            crate::shared::client::ProxyConfig::from_env(
+                                descriptor.request_uri.scheme(),
+                            )
+                        } else {
+                            None
+                        };
+
+                        let proxy_config = env_proxy.as_ref().or({ config.proxy.as_ref() });
+
+                        pool.create_connection_with_proxy(
+                            &descriptor.request_uri,
+                            proxy_config,
+                            None,
+                        )
                     };
 
-                    let proxy_config = env_proxy.as_ref().or({
-                        config.proxy.as_ref()
-                    });
-
-                    // 1. Create connection (with proxy support)
-                    let Ok(mut connection) =
-                        pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None)
-                    else {
+                    // 1. Create connection (unix socket or TCP/proxy)
+                    let Ok(mut connection) = connection_result else {
                         tracing::error!("Failed to connect with proxy");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(

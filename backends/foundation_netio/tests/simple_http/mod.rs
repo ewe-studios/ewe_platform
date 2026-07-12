@@ -44,6 +44,7 @@ mod pushable_body_tests;
 mod request_tests;
 mod response_reader_tests;
 mod simple_http_client_tests;
+mod unix_socket_tests;
 mod timeout_tests;
 mod tls_task_tests;
 mod tls_tests;

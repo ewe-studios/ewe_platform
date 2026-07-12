@@ -60,6 +60,11 @@ pub struct ClientConfig {
     pub expect_continue_enabled: bool,
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
+    /// Connect via a Unix domain socket instead of TCP (Docker daemon,
+    /// BuildKitd). When set, connection routing bypasses DNS/proxy and dials
+    /// this socket path. `None` (default) uses the normal TCP/TLS path.
+    #[cfg(unix)]
+    pub unix_socket: Option<std::path::PathBuf>,
 }
 
 impl ClientConfig {
@@ -228,6 +233,8 @@ impl Default for ClientConfig {
             expect_continue_enabled: true,
             headers_to_pass_on_redirect: None,
             headers_to_add: None,
+            #[cfg(unix)]
+            unix_socket: None,
         }
     }
 }

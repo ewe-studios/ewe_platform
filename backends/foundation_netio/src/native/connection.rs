@@ -398,6 +398,26 @@ impl Connection {
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
     }
+
+    /// Connect to a Unix domain socket.
+    ///
+    /// WHY: The Docker daemon and BuildKitd listen on Unix sockets
+    /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — the primary,
+    /// unprivileged, TLS-free local transport.
+    ///
+    /// WHAT: Opens a `UnixStream` to `path` and wraps it as `Connection::Unix`.
+    ///
+    /// HOW: Delegates to `std::os::unix::net::UnixStream::connect`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the socket path does not exist or the connection fails.
+    #[cfg(unix)]
+    pub fn connect_unix(
+        path: impl AsRef<std::path::Path>,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self::Unix(unix_net::UnixStream::connect(path)?))
+    }
 }
 
 impl ReadTimeoutOperations for Connection {

@@ -99,22 +99,42 @@ where
                 // request
                 let request = self.1.request.take()?;
 
-                // Determine effective proxy configuration
-                // First check if proxy_from_env is set and try environment
-                let env_proxy = if self.1.config.proxy_from_env {
-                    crate::shared::client::ProxyConfig::from_env(request.url.scheme())
+                // Unix socket transport (Docker daemon, BuildKitd) bypasses DNS
+                // and proxy entirely — dial the configured socket directly.
+                #[cfg(unix)]
+                let unix_socket = self.1.config.unix_socket.clone();
+                #[cfg(not(unix))]
+                let unix_socket: Option<std::path::PathBuf> = None;
+
+                let stream = if let Some(socket_path) = unix_socket {
+                    #[cfg(unix)]
+                    {
+                        self.1
+                            .pool
+                            .create_connection_unix(&request.url, &socket_path)
+                    }
+                    #[cfg(not(unix))]
+                    {
+                        let _ = socket_path;
+                        unreachable!("unix_socket is always None on non-unix targets")
+                    }
                 } else {
-                    None
-                };
+                    // Determine effective proxy configuration.
+                    // First check if proxy_from_env is set and try environment.
+                    let env_proxy = if self.1.config.proxy_from_env {
+                        crate::shared::client::ProxyConfig::from_env(request.url.scheme())
+                    } else {
+                        None
+                    };
 
-                // Use env proxy if found, otherwise use configured proxy
-                let proxy_config = env_proxy.as_ref().or(self.1.config.proxy.as_ref());
+                    // Use env proxy if found, otherwise use configured proxy.
+                    let proxy_config = env_proxy.as_ref().or(self.1.config.proxy.as_ref());
 
-                // Try to get connection from pool or create new one (with proxy support)
-                let stream =
+                    // Try to get connection from pool or create new one (with proxy support).
                     self.1
                         .pool
-                        .create_connection_with_proxy(&request.url, proxy_config, None);
+                        .create_connection_with_proxy(&request.url, proxy_config, None)
+                };
 
                 match stream {
                     Ok(mut connection) => {

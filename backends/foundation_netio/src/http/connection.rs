@@ -1016,6 +1016,46 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
     /// // Will bypass proxy for localhost and *.internal.com
     /// ```
+    /// Establish an HTTP connection over a Unix domain socket.
+    ///
+    /// WHY: The Docker daemon and BuildKitd serve HTTP over a Unix socket
+    /// (`/var/run/docker.sock`) — no DNS, no proxy, no TLS. When
+    /// `ClientConfig::unix_socket` is set, the request task routes here instead
+    /// of the TCP/proxy path.
+    ///
+    /// WHAT: Dials `socket_path`, wraps the stream as an `HttpClientConnection`,
+    /// carrying the URL's host (for the `Host` header). Port is reported as `0`
+    /// since Unix sockets have none.
+    ///
+    /// HOW: [`Connection::connect_unix`] → [`RawStream::from_connection`] →
+    /// [`SharedByteBufferStream`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError::ConnectionFailed`] if the socket cannot be
+    /// dialed or wrapped.
+    #[cfg(unix)]
+    pub fn create_connection_unix(
+        &self,
+        url: &Uri,
+        socket_path: &std::path::Path,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        let host = url
+            .host_str()
+            .unwrap_or_else(|| "localhost".to_string());
+        let connection = Connection::connect_unix(socket_path)
+            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
+        let stream = SharedByteBufferStream::rwrite(
+            RawStream::from_connection(connection)
+                .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+        );
+        Ok(HttpClientConnection {
+            stream,
+            host,
+            port: 0,
+        })
+    }
+
     pub fn create_connection_with_proxy(
         &self,
         url: &Uri,

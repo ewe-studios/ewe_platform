@@ -250,6 +250,27 @@ impl HttpClientBuilder {
         self
     }
 
+    // -- unix socket (native unix-only) -----------------------------------
+
+    /// Route requests over a Unix domain socket instead of TCP.
+    ///
+    /// WHY: The Docker daemon and BuildKitd expose HTTP over a Unix socket
+    /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — no DNS, no
+    /// TLS, authenticated by file permissions.
+    ///
+    /// WHAT: Records the socket path; connection routing dials it directly and
+    /// skips DNS/proxy resolution. The request URL's host/path are still used
+    /// for the HTTP request line and `Host` header.
+    ///
+    /// HOW: Sets `ClientConfig::unix_socket`, consumed by the native connection
+    /// pool.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn unix_socket(mut self, path: impl Into<std::path::PathBuf>) -> Self {
+        self.config.unix_socket = Some(path.into());
+        self
+    }
+
     // -- build ------------------------------------------------------------
 
     /// Build a [`DynNetClient`] (`Arc<dyn NetClient>` — HTTP + WebSocket).
