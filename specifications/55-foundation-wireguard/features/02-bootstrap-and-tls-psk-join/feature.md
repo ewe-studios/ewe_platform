@@ -1,8 +1,39 @@
 # Feature 02 — Bootstrap & TLS-PSK Join
 
+**Status:** ✅ Complete (implemented + tested 2026-07-13)
 **Depends on:** 01
 **Unblocks:** 04, 10
 **Decisions:** [04](../../decisions/04-bootstrap-token-envelope.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [03](../../decisions/03-seed-derived-keys.md)
+
+## Implementation notes (2026-07-13)
+
+- `shared/bootstrap` — `WgBootstrap::parse` (one parser, two forms: `wg1_` token OR bare
+  seed hex/base64url) + `BootstrapToken` with the TLV `wg1_` wire format (tag / varint-len
+  / value fields + trailing **CRC32C**, implemented inline). `BootstrapFlags`, `TokenSecret`
+  (seed or seedless bootstrap-pubkey), expiry.
+- `shared/bootstrap/rpc` — `BootstrapRequest`/`BootstrapResponse`/`Admission` +
+  version-prefixed bincode codec (transport-agnostic, reused by the wasm `wss` client in F07).
+- `native/bootstrap` — `BootstrapServer`/`BootstrapClient`/`BootstrapConnection` over a real
+  TCP + **TLS-PSK** channel via **boring** (BoringSSL); `Join`/`PullMembership`/`Announce`
+  over a length-prefixed frame protocol on the TLS stream. A `BootstrapHandler` supplies
+  admission + membership.
+
+Tests (`--profile uat`): token round-trip/corruption/truncation/endpoint-required/expiry,
+token-vs-bare-seed dispatch, and **two nodes over real TCP+TLS-PSK**: admitted join +
+membership transfer + observed Announce, wrong-seed handshake failure, revoked→reject.
+All green, zero warnings.
+
+Deviations / notes:
+- **boring pinned to 4.x** (not the latest 5.x): the workspace already links BoringSSL via
+  `jwt-simple`'s `boring ^4.1.0`, and `boring-sys` `links = "boringssl"` allows only one
+  version workspace-wide.
+- BoringSSL ships no GCM PSK suites, so the TLS-PSK channel uses **TLS 1.2 `PSK-AES256-CBC-SHA`/
+  `PSK-AES128-CBC-SHA`** (PSK identity hint = network id). This is a private control channel;
+  confidentiality/auth come from the seed PSK.
+- The Join RPC uses our own compact length-prefixed bincode framing over the TLS stream rather
+  than the full `foundation_connectrpc` server stack. **Deferred:** re-expressing it as a
+  `foundation_connectrpc` service/transport (decision 06 alignment) when F04 assembles the
+  runtime — the message types + admission semantics are already in place.
 
 ## WHY
 

@@ -209,7 +209,9 @@ impl Sim {
         self.clock += dt;
         let now = self.base + self.clock;
 
-        let ids: Vec<PeerId> = self.index.keys().copied().collect();
+        // Deterministic tick order (HashMap iteration order is randomized per process).
+        let mut ids: Vec<PeerId> = self.index.keys().copied().collect();
+        ids.sort();
         for id in ids {
             if self.dead_nodes.contains(&id) {
                 continue;

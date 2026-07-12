@@ -37,9 +37,13 @@ serde = { workspace = true }
 # Compact, versioned wire codec for SWIM gossip messages (feature 03).
 bincode = { version = "2", features = ["serde"] }
 
-# Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on.
+# Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
+# BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+# boring is pinned to 4.x to match the workspace's existing jwt-simple constraint
+# (boring-sys links to BoringSSL, so only one version may exist workspace-wide).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd"] }
+boring = "4"
 
 [dev-dependencies]
 tracing-test.workspace = true

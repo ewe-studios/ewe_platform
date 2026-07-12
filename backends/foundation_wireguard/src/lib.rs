@@ -20,6 +20,7 @@ pub mod shared;
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
+pub use shared::bootstrap::{BootstrapFlags, BootstrapToken, TokenSecret, WgBootstrap};
 pub use shared::error::{WgError, WgResult};
 pub use shared::keys::{
     BootstrapKeys, IdentityKeypair, NetworkId, PeerPublicKey, SeedBits, WgSeed,

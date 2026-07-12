@@ -23,6 +23,11 @@ pub enum WgError {
     #[from(ignore)]
     InvalidKey(#[error(not(source))] String),
 
+    /// A bootstrap token was malformed, truncated, or failed its CRC check.
+    #[display("invalid bootstrap token: {_0}")]
+    #[from(ignore)]
+    InvalidToken(#[error(not(source))] String),
+
     /// Base64 decoding failed.
     #[display("base64 decode error: {_0}")]
     Base64(base64::DecodeError),
