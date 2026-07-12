@@ -40,9 +40,10 @@ Last updated: 2026-07-12 (F35 server half, F49 Phase C, F50 Part C tail, io_urin
 | # | Feature | Status |
 |---|---------|--------|
 | 34 | HTTP/3 module (framing + QPACK over QUIC traits) | **complete** — `foundation_netio::http3` (varint/frame/qpack); wire behaviour proved e2e in netio `tests/http3/connection_tests.rs`. |
-| 35 | HTTP/3 ConnectRPC transport | **Implemented 2026-07-12.** Client transport + capability matrix. **Server half:** `H3Serve` trait, `ConnectRpcServeH3`, `dispatch_h3`, `ServerApp::Http3`/`Any`. **Streaming:** `run_streaming_h3`. **Conformance:** `connect_unary_echo_over_h3`. **QuicListener:** `foundation_netio::native::quic_listener` — `QuicListener` + `QuicBind` on `ConfigListenAddr`. **Deferred:** Alt-Svc advertisement, `ConnectionContext` population (enhancements, not blocking). |
-| 52 | Browser test harness | **Reconciled 2026-07-12.** `deno`/`browser`/`bindgen` commands shipped. `test` auto-detect not shipped (explicit commands suffice). wasm-bindgen version constant exists, no runtime check. `bindgen-web` not formally deprecated. Doc updated. |
+| 35 | HTTP/3 ConnectRPC transport | **Implemented 2026-07-12.** Client transport + capability matrix. **Server half:** `H3Serve`, `ConnectRpcServeH3`, `dispatch_h3`, `ServerApp::Http3`/`Any`. **Streaming:** `run_streaming_h3`. **Conformance:** `connect_unary_echo_over_h3`. **QuicListener:** `quic_listener` module. |
+| 52 | Browser test harness | **Reconciled 2026-07-12.** All shipped, divergences documented. |
+| 53 | Alt-Svc + ConnectionContext (F35 tail) | **Implemented 2026-07-12.** `ServerConfig::alt_svc_h3_port` + `ConnectionHandler` injects `Alt-Svc` header on every H1 response. `QuinnConnection::connection_context()` populates peer address + ALPN from QUIC handshake. `H3Serve::serve_h3` takes `Arc<ConnectionContext>`. |
 
 ## Truly-remaining work
 
-*(Nothing blocking — F35 complete. Alt-Svc + ConnectionContext are independent enhancements.)*
+*(Nothing blocking — spec 41 is complete. F51 Stage 6 tail is slid — cosmetic `R: DnsResolver + Clone` bounds, no functional impact.)*
