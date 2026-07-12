@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/3 ConnectRPC transport + conformance (D01 phase 3)"
 description: "Transport impl + ConnectionHandler third branch; gRPC/Connect over h3"
-status: "implemented (server half: dispatch_h3 + H3Serve + ServerApp::Http3; streaming deferred)"
+status: "implemented (server half: dispatch_h3 + H3Serve + ServerApp::Http3 + AsyncSendSafeBody streaming; streaming RPC modes deferred)"
 priority: "medium"
 phase: 3
 depends_on: ["34-http3-module", "22-router-dispatch"]
