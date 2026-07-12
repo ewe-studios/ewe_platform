@@ -217,14 +217,11 @@ compat — it serializes the `Query` to a string on the fly.
 internal field is `Query`, so this method needs updating:
 
 ```rust
-pub fn query(&self) -> Option<&str> {
-    // Return None if empty; callers expect Option<&str>
+pub fn query(&self) -> Option<String> {
     if self.query.is_empty() {
         None
     } else {
-        // Cached string representation? Or allocate on demand.
-        // The Display impl for Query produces the query string.
-        None  // TODO: design decision — see below
+        Some(self.query.to_string())
     }
 }
 ```
