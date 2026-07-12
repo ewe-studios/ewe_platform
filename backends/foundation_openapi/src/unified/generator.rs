@@ -225,6 +225,26 @@ fn collect_referenced_type_names(
             }
         }
     }
+
+    // Top-level array items: when the schema is *itself* an array
+    // (`{type: array, items: {...}}`), follow the element schema. Without this,
+    // a `$ref` to a standalone array schema (e.g. an Access "exclude" list whose
+    // items `$ref` `access_rule`) collects the array wrapper but never its
+    // element type, so the element type is referenced in generated field
+    // positions (`Vec<AccessRule>`) yet never emitted — an `E0425` at compile.
+    if let Some(items) = &schema.items {
+        if let Some(ref_path) = &items.ref_path {
+            let ref_name = ref_path
+                .trim_start_matches("#/components/schemas/")
+                .trim_start_matches("#/schemas/");
+            let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+            if seen_types.insert(safe_name) {
+                types_to_process.push(ref_name.to_string());
+            }
+        } else {
+            collect_referenced_type_names(items, seen_types, types_to_process);
+        }
+    }
 }
 
 /// Build a map of which types reference which other types (dependency graph).
@@ -809,9 +829,12 @@ impl UnifiedGenerator {
         // Common imports — only what's actually used in the generated code
         writeln!(
             out,
-            "use foundation_core::valtron::{{TaskIterator, TaskIteratorExt}};"
+            "use foundation_netio::{{DynNetClient, PreparedRequestBuilder}};"
         )?;
-        writeln!(out, "use foundation_netio::http::{{ClientRequestBuilder, SimpleHttpClient}};")?;
+        writeln!(
+            out,
+            "use foundation_netio::shared::client::http_client::HttpClient;"
+        )?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out)?;
@@ -1057,36 +1080,33 @@ impl UnifiedGenerator {
                 to_pascal_case(&sanitize_identifier(&ep.operation_id))
             );
 
-            // Check if this endpoint has params
-            let has_params = !ep.path_params.is_empty()
-                || !ep.query_params.is_empty()
-                || ep.request_type.is_some();
+            // Always emit the Args struct — the generated `*_request` function
+            // unconditionally takes `args: &{Op}Args`, so a param-less endpoint
+            // still needs the (empty) struct to exist, otherwise its function
+            // references an undefined type (`E0425`).
+            writeln!(out, "/// Arguments for [`{}_request`].", ep.operation_id)?;
+            writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
+            writeln!(out, "pub struct {} {{", args_name)?;
 
-            if has_params {
-                writeln!(out, "/// Arguments for [`{}_builder`].", ep.operation_id)?;
-                writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
-                writeln!(out, "pub struct {} {{", args_name)?;
-
-                for param in &ep.path_params {
-                    let param_name =
-                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                    writeln!(out, "    /// Path parameter: `{}`.", param)?;
-                    writeln!(out, "    pub {}: String,", param_name)?;
-                }
-                for param in &ep.query_params {
-                    let param_name =
-                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                    writeln!(out, "    /// Query parameter: `{}`.", param)?;
-                    writeln!(out, "    pub {}: Option<String>,", param_name)?;
-                }
-                if let Some(rt) = &ep.request_type {
-                    writeln!(out, "    /// Request body.")?;
-                    writeln!(out, "    pub body: {},", rt)?;
-                }
-
-                writeln!(out, "}}")?;
-                writeln!(out)?;
+            for param in &ep.path_params {
+                let param_name =
+                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                writeln!(out, "    /// Path parameter: `{}`.", param)?;
+                writeln!(out, "    pub {}: String,", param_name)?;
             }
+            for param in &ep.query_params {
+                let param_name =
+                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                writeln!(out, "    /// Query parameter: `{}`.", param)?;
+                writeln!(out, "    pub {}: Option<String>,", param_name)?;
+            }
+            if let Some(rt) = &ep.request_type {
+                writeln!(out, "    /// Request body.")?;
+                writeln!(out, "    pub body: {},", rt)?;
+            }
+
+            writeln!(out, "}}")?;
+            writeln!(out)?;
         }
 
         // Generate client functions per endpoint
@@ -1298,14 +1318,14 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        // Single merged function: builds request, applies optional modifications, returns task
+        // Single merged async fn: builds request, applies optional modifications, sends.
         writeln!(out, "/// {} {}.", ep.method, ep.path)?;
         writeln!(out, "///")?;
         writeln!(
             out,
-            "/// Takes client and args, builds the request, optionally applies modifications,"
+            "/// Takes a `DynNetClient` and args, builds the request, optionally applies"
         )?;
-        writeln!(out, "/// and returns a `TaskIterator` for execution.")?;
+        writeln!(out, "/// modifications, then sends it via `send_async().await`.")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
@@ -1321,21 +1341,26 @@ impl UnifiedGenerator {
         writeln!(out, "/// ```ignore")?;
         writeln!(
             out,
-            "/// let task = {}_request(&client, &args, Some(|b| {{",
+            "/// let response = {}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{",
             fn_prefix
         )?;
-        writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\")")?;
-        writeln!(out, "/// }}))?;")?;
+        writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\");")?;
+        writeln!(out, "/// }})).await?;")?;
         writeln!(out, "/// ```")?;
-        writeln!(out, "#[inline]")?;
-        writeln!(out, "pub fn {}_request<R, F>(", fn_prefix)?;
-        writeln!(out, "    client: &SimpleHttpClient<R>,")?;
-        writeln!(out, "    args: &{},", args_name)?;
+        // `args` is only read when the endpoint has path params, query params,
+        // or a request body. Name it `_args` otherwise so the (always-emitted)
+        // parameter doesn't trip `unused_variables`.
+        let args_uses = !ep.path_params.is_empty()
+            || !ep.query_params.is_empty()
+            || ep.request_type.is_some();
+        let args_binding = if args_uses { "args" } else { "_args" };
+        writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
+        writeln!(out, "    client: DynNetClient,")?;
+        writeln!(out, "    {}: &{},", args_binding, args_name)?;
         writeln!(out, "    builder_mod: Option<F>,")?;
-        writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>", return_type)?;
+        writeln!(out, ") -> Result<ApiResponse<{}>, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
-        writeln!(out, "    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,")?;
-        writeln!(out, "    F: FnOnce(&mut ClientRequestBuilder<R>),")?;
+        writeln!(out, "    F: FnOnce(&mut PreparedRequestBuilder),")?;
         writeln!(out, "{{")?;
 
         // Build URL with path params, then append query params if any
@@ -1353,29 +1378,11 @@ impl UnifiedGenerator {
         writeln!(out, "    );")?;
         writeln!(out)?;
 
-        // Append query params from args if any
-        if !ep.query_params.is_empty() {
-            writeln!(out, "    let endpoint_url = {{")?;
-            writeln!(out, "        let mut url = endpoint_url;")?;
-            writeln!(out, "        let mut first = true;")?;
-            for qp in &ep.query_params {
-                let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
-                writeln!(out, "        if let Some(ref v) = args.{safe_qp} {{")?;
-                writeln!(out, "            if first {{ url.push('?'); first = false; }} else {{ url.push('&'); }}")?;
-                writeln!(out, "            url.push_str(\"{qp}=\");")?;
-                writeln!(out, "            url.push_str(&urlencoding::encode(v));")?;
-                writeln!(out, "        }}")?;
-            }
-            writeln!(out, "        url")?;
-            writeln!(out, "    }};")?;
-            writeln!(out)?;
-        }
-
-        // Build request
+        // Build request via the cross-platform PreparedRequestBuilder.
         let method_lower = ep.method.to_lowercase();
         writeln!(
             out,
-            "    let mut builder = client.{}(&endpoint_url)",
+            "    let mut builder = PreparedRequestBuilder::{}(&endpoint_url)",
             method_lower
         )?;
         writeln!(
@@ -1384,55 +1391,47 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        // Add body if present
+        // Structured query params from args (None values are skipped).
+        for qp in &ep.query_params {
+            let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
+            writeln!(
+                out,
+                "    builder = builder.query(\"{qp}\", args.{safe_qp}.as_deref());"
+            )?;
+        }
+        if !ep.query_params.is_empty() {
+            writeln!(out)?;
+        }
+
+        // Add body if present.
         if ep.request_type.is_some() {
             writeln!(out, "    builder = builder.body_json(&args.body)")?;
             writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;")?;
             writeln!(out)?;
         }
 
-        // Apply user modifications
+        // Apply user modifications.
         writeln!(out, "    if let Some(f) = builder_mod {{")?;
         writeln!(out, "        f(&mut builder);")?;
         writeln!(out, "    }}")?;
         writeln!(out)?;
 
-        // Build and return task
-        writeln!(out, "    Ok(")?;
-        writeln!(out, "        builder")?;
-        writeln!(out, "            .build_send_request()")?;
-        writeln!(out, "            .map_err(|e: foundation_netio::shared::http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
-        writeln!(out, "            .map_ready(|intro| match intro {{")?;
+        // Send asynchronously and parse the response.
+        writeln!(out, "    let response = client.send_async(builder.build()).await")?;
+        writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
+        writeln!(out)?;
+        writeln!(out, "    let status: usize = response.get_status().into();")?;
+        writeln!(out, "    let headers = response.get_headers_ref().clone();")?;
+        writeln!(out, "    if status < 200 || status >= 300 {{")?;
+        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body: None }});")?;
+        writeln!(out, "    }}")?;
         if return_type == "()" {
-            writeln!(out, "                super::shared::RequestIntro::Success {{ stream: _, intro, headers, .. }} => {{")?;
+            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
         } else {
-            writeln!(out, "                super::shared::RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
+            writeln!(out, "    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
+            writeln!(out, "    let parsed: {} = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
+            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: parsed }})")?;
         }
-        writeln!(
-            out,
-            "                    let status: usize = intro.0.into();"
-        )?;
-        writeln!(
-            out,
-            "                    if status < 200 || status >= 300 {{"
-        )?;
-        writeln!(out, "                        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers: headers.clone(), body: None }});")?;
-        writeln!(out, "                    }}")?;
-        if return_type == "()" {
-            writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: () }})")?;
-        } else {
-            writeln!(out, "                    let body = foundation_netio::shared::client::body_reader::collect_string(stream);")?;
-            writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
-            writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: parsed }})")?;
-        }
-        writeln!(out, "                }}")?;
-        writeln!(out, "                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),")?;
-        writeln!(out, "            }})")?;
-        writeln!(
-            out,
-            "            .map_pending(|_| super::shared::ApiPending::Sending)"
-        )?;
-        writeln!(out, "    )")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 
@@ -1513,7 +1512,7 @@ impl UnifiedGenerator {
             out,
             "// Re-export common API types from foundation_deployment"
         )?;
-        writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
+        writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -1530,7 +1529,46 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        for type_name in &analysis.shared_resources {
+        // Transitively expand the shared resource list so that any type referenced
+        // by a shared struct's fields (nested objects, array element types, etc.)
+        // is *also* emitted here. Without this a shared struct can reference a type
+        // that lives only in some group module — an `E0425 cannot find type` in the
+        // shared module itself. The convergence mirrors the per-group collection.
+        let shared_types_to_emit: Vec<String> = {
+            let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+            let mut to_process: Vec<String> = analysis.shared_resources.clone();
+            for t in &analysis.shared_resources {
+                seen.insert(t.clone());
+            }
+            let mut traversed: std::collections::HashSet<String> = std::collections::HashSet::new();
+            while let Some(type_name) = to_process.pop() {
+                let key = type_name.to_lowercase();
+                if traversed.contains(&key) {
+                    continue;
+                }
+                traversed.insert(key);
+                if let Some(schema) = Self::resolve_schema_key(&type_name, &analysis.schemas) {
+                    let mut discovered: Vec<String> = Vec::new();
+                    collect_referenced_type_names(schema, &mut seen, &mut discovered);
+                    to_process.extend(discovered);
+                }
+            }
+            // Preserve the original shared_resources ordering first, then append the
+            // transitively discovered types (which are stored PascalCase in `seen`).
+            let mut ordered: Vec<String> = analysis.shared_resources.clone();
+            let original: std::collections::HashSet<String> =
+                analysis.shared_resources.iter().cloned().collect();
+            let mut extras: Vec<String> = seen
+                .into_iter()
+                .filter(|t| !original.contains(t))
+                .collect();
+            extras.sort();
+            ordered.extend(extras);
+            ordered
+        };
+
+        let mut emitted_shared: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for type_name in &shared_types_to_emit {
             // Skip types that aren't valid identifiers (generics like Vec<...>, paths with ::, etc.)
             if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
                 continue;
@@ -1559,6 +1597,20 @@ impl UnifiedGenerator {
 
             // Rename types that conflict with std types
             let safe_name = rename_std_type_conflict(type_name);
+
+            // Deduplicate — a type may be reached both directly and transitively.
+            if !emitted_shared.insert(safe_name.clone()) {
+                continue;
+            }
+
+            // Array schemas inline to `Vec<Item>` at field positions, so they
+            // must not be emitted as standalone structs (the element type is
+            // emitted instead, having been collected transitively).
+            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
+                if schema.schema_type.as_deref() == Some("array") {
+                    continue;
+                }
+            }
 
             // Try to resolve the schema for this shared type.
             // Schemas are keyed by original spec names (usually snake_case);

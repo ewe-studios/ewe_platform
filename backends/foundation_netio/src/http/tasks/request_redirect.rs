@@ -189,7 +189,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             None
                         };
 
-                        let proxy_config = env_proxy.as_ref().or({ config.proxy.as_ref() });
+                        let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
 
                         pool.create_connection_with_proxy(
                             &descriptor.request_uri,

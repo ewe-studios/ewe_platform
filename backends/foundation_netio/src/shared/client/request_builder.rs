@@ -135,6 +135,47 @@ impl PreparedRequestBuilder {
         self
     }
 
+    // -- mutating (`&mut self`) variants ----------------------------------
+    //
+    // The fluent verb methods consume `self`, which is ergonomic for chaining
+    // but unusable from a `FnOnce(&mut PreparedRequestBuilder)` closure (the
+    // `builder_mod` hook the code generator emits). These `set_*` variants
+    // mutate in place so such closures can add headers / bodies.
+
+    /// Append a header, mutating in place (for `&mut` closures).
+    pub fn set_header(&mut self, key: impl Into<SimpleHeader>, value: impl Into<String>) {
+        self.headers
+            .entry(key.into())
+            .or_default()
+            .push(value.into());
+    }
+
+    /// Set a `Bearer` token header, mutating in place.
+    pub fn set_bearer_token(&mut self, token: &str) {
+        self.set_header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"));
+    }
+
+    /// Serialize `value` as a JSON body, mutating in place. Auto-sets
+    /// `Content-Type: application/json` and `Content-Length`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if `value` cannot be serialized to JSON.
+    pub fn set_body_json<T: Serialize>(&mut self, value: &T) -> Result<(), HttpClientError> {
+        let json_string =
+            serde_json::to_string(value).map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
+        self.headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec!["application/json".to_string()],
+        );
+        self.headers.insert(
+            SimpleHeader::CONTENT_LENGTH,
+            vec![json_string.len().to_string()],
+        );
+        self.body = Some(SendSafeBody::Text(json_string));
+        Ok(())
+    }
+
     // -- body -------------------------------------------------------------
 
     /// Set a plain-text body. Auto-sets `Content-Type: text/plain` and

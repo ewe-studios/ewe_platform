@@ -1,12 +1,12 @@
-//! CloudflareClient — wraps the auto-generated valtron TaskIterator functions
+//! CloudflareClient — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use crate::types::*;
 
 /// Central client for Cloudflare API operations.
 pub struct CloudflareClient {
-    http: SimpleHttpClient,
+    http: DynNetClient,
     token: String,
     zone_id: String,
     domain: String,
@@ -21,12 +21,17 @@ impl CloudflareClient {
         let zone_id = std::env::var("CLOUDFLARE_ZONE_ID")
             .map_err(|_| CloudflareError::Auth("CLOUDFLARE_ZONE_ID not set".into()))?;
         let domain = std::env::var("CLOUDFLARE_DOMAIN").unwrap_or_default();
-        Ok(Self { http: SimpleHttpClient::from_system(), token, zone_id, domain })
+        Ok(Self { http: HttpClientBuilder::new().build(), token, zone_id, domain })
     }
 
     /// Create with explicit credentials.
     pub fn new(token: String, zone_id: String) -> Self {
-        Self { http: SimpleHttpClient::from_system(), token, zone_id, domain: String::new() }
+        Self { http: HttpClientBuilder::new().build(), token, zone_id, domain: String::new() }
+    }
+
+    /// Create with an externally-provided client (for testing or custom config).
+    pub fn with_client(http: DynNetClient, token: String, zone_id: String) -> Self {
+        Self { http, token, zone_id, domain: String::new() }
     }
 
     /// Set the domain for bootstrap operations.
@@ -37,7 +42,8 @@ impl CloudflareClient {
     }
 
     #[must_use] pub fn zone_id(&self) -> &str { &self.zone_id }
-    #[must_use] pub fn http(&self) -> &SimpleHttpClient { &self.http }
+    /// The cross-platform HTTP client handle (cheap `Arc` clone).
+    #[must_use] pub fn http(&self) -> DynNetClient { self.http.clone() }
     #[must_use] pub fn token(&self) -> String { self.token.clone() }
     #[must_use] pub fn domain(&self) -> &str { &self.domain }
 }
