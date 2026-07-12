@@ -219,8 +219,10 @@ BuildKit is P2 because:
 
 1. The testbed use case primarily pulls existing images, not builds new ones
 2. The HTTP API surface (containers, images, networks, volumes) is the priority
-3. BuildKit adds significant proto dependency surface (~17 proto files)
-4. `foundation_connectrpc` needs streaming maturity for bidi Solve calls
+3. BuildKit adds significant proto dependency surface (~17 proto files) with
+   cross-referencing Go-style import paths
+4. The bidi-streaming `Solve` call exercises the most complex connectrpc codepath —
+   we own connectrpc, so building on it finds the gaps and we fix them
 
 ## Proto import strategy
 
