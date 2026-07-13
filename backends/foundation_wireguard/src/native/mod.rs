@@ -11,4 +11,4 @@ pub use bootstrap::{
     BootstrapClient, BootstrapConnection, BootstrapHandler, BootstrapServer,
 };
 pub use driver::{TunnelDriver, TunnelDriverTask};
-pub use node::{PeerInfo, WgConfig, WgHandle, WgNode};
+pub use node::{MeshTask, PeerInfo, WgConfig, WgHandle, WgNode};

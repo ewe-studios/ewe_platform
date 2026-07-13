@@ -21,6 +21,7 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
 use foundation_nativeapis::native::net::UdpSocket;
@@ -347,11 +348,10 @@ impl WgNode {
             recv_buf: vec![0u8; 8192],
         };
 
-        // Spawn the mesh runtime loop. thread::sleep(50ms) is the sans-I/O
-        // polling interval — without a reactor-registered fd, there is
-        // nothing to epoll/kqueue on. When the UDP socket is registered
-        // with the reactor, this thread becomes a valtron task that parks
-        // on `Depends(fd_readiness)` instead of blind sleep.
+        // Spawn the mesh runtime. The mesh is a TaskIterator (MeshTask) —
+        // if a valtron pool is initialized, callers can use valtron::execute().
+        // For join(), we drive tick() from a thread: the pool lifecycle is
+        // the caller's responsibility (same pattern as proxy/bootstrap).
         let mesh_stop = Arc::clone(&stop);
         let mesh_thread = thread::spawn(move || {
             let mut task = mesh_task;
@@ -604,6 +604,63 @@ impl WgMeshTask {
         }
 
         *self.shared.members.lock().expect("members lock") = snapshot;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MeshTask — TaskIterator wrapper so the executor drives tick()
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// WHY: `WgMeshTask::tick()` is the sans-I/O method. This wrapper makes it
+/// a valtron [`TaskIterator`] — the executor calls `next_status()`, which
+/// calls `tick()` then parks via [`TaskStatus::Delayed`]. Callers with a
+/// pool initialized can use `valtron::execute(mesh_task)`. Callers without
+/// a pool can drive it from a thread manually.
+///
+/// WHAT: Same pattern as [`TunnelDriverTask`] in `driver.rs` — one field
+/// (the inner sans-I/O struct) plus a stop flag.
+///
+/// HOW: `next_status()` → `inner.tick()` → `Delayed(50ms)`. When `stop` is
+/// set, returns `None` (task completes). When the UDP socket fd is registered
+/// with the reactor, return `Depends(fd_readiness)` instead of `Delayed`.
+pub struct MeshTask {
+    inner: WgMeshTask,
+    stop: Arc<AtomicBool>,
+}
+
+impl MeshTask {
+    /// Wrap a mesh runtime as a valtron [`TaskIterator`], sharing the given
+    /// `stop` signal. Set it to `true` and the task returns `None` on the
+    /// next tick — one signal shuts down the mesh, relay server, and
+    /// bootstrap server together.
+    #[must_use]
+    pub fn new(inner: WgMeshTask, stop: Arc<AtomicBool>) -> Self {
+        Self { inner, stop }
+    }
+
+    /// Convenience: create a `MeshTask` with a fresh stop signal.
+    /// Returns `(task, stop)` — the caller owns the token.
+    #[must_use]
+    pub fn with_stop(inner: WgMeshTask) -> (Self, Arc<AtomicBool>) {
+        let stop = Arc::new(AtomicBool::new(false));
+        (Self::new(inner, Arc::clone(&stop)), stop)
+    }
+}
+
+
+impl TaskIterator for MeshTask {
+    type Ready = ();
+    type Pending = ();
+    type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.stop.load(Ordering::Relaxed) {
+            return None;
+        }
+        self.inner.tick();
+        Some(TaskStatus::Delayed(Duration::from_millis(
+            MESH_TASK_INTERVAL_MS,
+        )))
     }
 }
 
