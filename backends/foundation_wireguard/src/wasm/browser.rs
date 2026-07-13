@@ -4,17 +4,18 @@
 //! transport differs from native. The smoltcp Device wire is a JS callback
 //! channel that sends/receives through a relay WebSocket.
 //!
-//! WHAT: [`BrowserWgNode`] — wraps a `WgTunnel`, `NetStack`, and `JsDevice` into
-//! one browser-ready peer. `join` performs the connectrpc bootstrap over wss.
-//! [`WsRelayClient`] — frames WG packets for relay forwarding.
+//! WHAT: [`BrowserWgNode`] — wraps a `WgTunnel`, `NetStack` driven by
+//! [`JsDevice`], and a [`WsRelayClient`] into one browser-ready unit.
 //!
 //! HOW: The same `shared` types (keys, tunnel, bootstrap, membership) are used
 //! unchanged. Only the transport (`JsDevice` instead of native UDP) and join
-//! path (`wss` connectrpc instead of TLS-PSK) differ.
+//! path (`wss` connectrpc) differ from native.
+
+use std::net::IpAddr;
 
 use crate::shared::keys::IdentityKeypair;
 use crate::shared::membership::PeerId;
-use crate::shared::tunnel::WgTunnel;
+use crate::shared::tunnel::{WgOutcome, WgTunnel};
 
 use super::device::JsDevice;
 
@@ -22,26 +23,21 @@ use super::device::JsDevice;
 // WsRelayClient — browser-side relay transport
 // ---------------------------------------------------------------------------
 
-/// A WebSocket-based relay client for browser peers.
+/// A sans-I/O WebSocket relay client for browser peers.
 ///
-/// WHY: Browsers have no UDP — all WG packets must go through a native relay
-/// node. This client wraps the relay WebSocket and frames WG data.
+/// WHY: Browsers have no UDP — all WG packets go through a native relay node.
+/// This client frames WG data as [`RelayFrame`]s and provides queues that the
+/// JS bridge feeds/drains.
 ///
-/// WHAT: `send_packet(dst, wg_bytes)` frames a [`RelayFrame`] and queues it
-/// for the JS bridge to send over the WebSocket. `recv_packet()` returns
-/// inbound relayed packets.
-///
-/// HOW: In wasm, the actual WebSocket I/O happens in JS — this struct is the
-/// Rust-side queue that the JS bridge feeds/drains.
+/// WHAT: `send_packet(dst, wg_bytes)` queues a relay frame. `drain_outbound()`
+/// returns frames for the JS bridge to send. `on_frame(raw)` feeds inbound
+/// relay frames from the JS bridge.
 pub struct WsRelayClient {
-    /// Queued outbound relay frames.
     outbound: Vec<Vec<u8>>,
-    /// Queued inbound relay frames (WG ciphertext only, dst stripped).
     inbound: Vec<(PeerId, Vec<u8>)>,
 }
 
 impl WsRelayClient {
-    /// Create a new relay client with empty queues.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -50,26 +46,19 @@ impl WsRelayClient {
         }
     }
 
-    /// WHY: JS bridge calls this to queue an outbound WG packet for relaying.
-    ///
-    /// WHAT: Frame the packet as `{dst_peer_id, wg_bytes}` for the relay server
-    /// to forward (decision 07, trustless ciphertext only).
+    /// Queue a WG packet for relay forwarding to `dst`.
     pub fn send_packet(&mut self, dst: PeerId, wg_bytes: Vec<u8>) {
         use crate::shared::relay::RelayFrame;
         let frame = RelayFrame::new(dst, wg_bytes);
         self.outbound.push(frame.encode());
     }
 
-    /// WHY: JS bridge calls this to get frames to send over the WebSocket.
-    ///
-    /// WHAT: Drain all queued outbound relay frames.
+    /// Drain all queued outbound relay frames for the JS bridge.
     pub fn drain_outbound(&mut self) -> Vec<Vec<u8>> {
         self.outbound.drain(..).collect()
     }
 
-    /// WHY: JS bridge calls this when a relayed frame arrives over WebSocket.
-    ///
-    /// WHAT: Decode the [`RelayFrame`] and queue the (src, ciphertext) pair.
+    /// Feed an inbound relay frame from the JS bridge.
     pub fn on_frame(&mut self, raw: &[u8]) {
         use crate::shared::relay::RelayFrame;
         if let Some(frame) = RelayFrame::decode(raw) {
@@ -77,9 +66,7 @@ impl WsRelayClient {
         }
     }
 
-    /// WHY: The tunnel driver calls this to pick up inbound WG packets.
-    ///
-    /// WHAT: Drain all queued inbound relay frames.
+    /// Drain all queued inbound WG packets.
     pub fn drain_inbound(&mut self) -> Vec<(PeerId, Vec<u8>)> {
         self.inbound.drain(..).collect()
     }
@@ -98,68 +85,76 @@ impl Default for WsRelayClient {
 /// A browser-side WireGuard mesh node.
 ///
 /// WHY: The browser peer runs `boringtun::Tunn` + smoltcp `NetStack` in wasm —
-/// no kernel module, no privileges, no UDP socket. WG packets are relayed
-/// through a native relay node via WebSocket.
+/// no kernel module, no privileges, no UDP socket.
 ///
-/// WHAT: Wraps a `WgTunnel`, `NetStack`, `JsDevice`, and `WsRelayClient` into
-/// one browser-ready unit. After `join`, the node is ready to open overlay
-/// TCP connections through the mesh.
+/// WHAT: Wraps a `WgTunnel`, `JsDevice`, and `WsRelayClient`. After `tick()`,
+/// inbound WG packets are decapsulated → injected into the device; outbound
+/// IP packets from the device are encapsulated and relayed.
 pub struct BrowserWgNode {
-    /// The WG tunnel for this peer (seed-derived, or handoff identity).
+    /// The WG tunnel for this peer.
     tunnel: WgTunnel,
-    /// Browser-side smoltcp netstack.
-    netstack: Option<()>, // placeholder — will hold NetStack when dataplane is fully wired
-    /// JS-bridged smoltcp Device.
+    /// JS-bridged smoltcp device — doubles as the data plane.
     device: JsDevice,
     /// Relay client for sending/receiving WG packets.
     relay: WsRelayClient,
     /// This peer's identity (post-handoff).
     identity: Option<IdentityKeypair>,
-    /// The overlay IP assigned to this peer.
-    _overlay_ip: std::net::IpAddr,
+    /// This peer's overlay IP.
+    overlay_ip: IpAddr,
 }
 
 impl BrowserWgNode {
-    /// WHY: Create a browser peer ready for join.
-    ///
-    /// WHAT: Construct a new node with a fresh tunnel, JS device, and relay client.
-    ///
-    /// HOW: The tunnel is constructed with the seed-derived bootstrap keypair;
-    /// after the identity handoff (F08), it is replaced with the identity keypair.
+    /// Create a browser peer with the given tunnel and overlay IP.
     #[must_use]
-    pub fn new(
-        tunnel: WgTunnel,
-        mtu: usize,
-        overlay_ip: std::net::IpAddr,
-    ) -> Self {
+    pub fn new(tunnel: WgTunnel, mtu: usize, overlay_ip: IpAddr) -> Self {
         Self {
             tunnel,
-            netstack: None,
             device: JsDevice::new(mtu),
             relay: WsRelayClient::new(),
             identity: None,
-            _overlay_ip: overlay_ip,
+            overlay_ip,
         }
     }
 
-    /// WHY: Feed a decrypted inbound WG packet to the tunnel → smoltcp pipeline.
+    /// WHY: Drive one tick of the tunnel + device pipeline.
     ///
-    /// WHAT: Decapsulate the WG packet, inject the resulting IP packet into the
-    /// JS device for smoltcp to process.
-    pub fn inject_wg_packet(&mut self, src_addr: std::net::IpAddr, wg_bytes: &[u8]) {
-        use crate::shared::tunnel::WgOutcome;
-        let outcome = self.tunnel.decapsulate(
-            Some(src_addr),
-            wg_bytes,
-        );
-        match outcome {
-            WgOutcome::WriteToTunnel(pkt) => {
-                self.device.inject(pkt);
+    /// WHAT: Process inbound WG packets from the relay, inject decrypted IP
+    /// into the device, poll the device (via poll-based interface), and drain
+    /// outbound IP packets to be encrypted and relayed.
+    ///
+    /// HOW: Call this from a valtron task or JS requestAnimationFrame loop.
+    /// The JS bridge feeds relay frames in and drains them out around the tick.
+    pub fn tick(&mut self) {
+        // Process inbound relayed WG packets.
+        for (_src, wg_bytes) in self.relay.drain_inbound() {
+            // The relay only gives us ciphertext; the source identity isn't
+            // available from the wire. Use 0.0.0.0:0 as a sentinel.
+            let outcome = self.tunnel.decapsulate(
+                Some(IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0))),
+                &wg_bytes,
+            );
+            if let WgOutcome::WriteToTunnel(ip_pkt) = outcome {
+                self.device.inject(ip_pkt);
             }
-            WgOutcome::WriteToNetwork(_ct) => {
-                // Handled on next poll/drain.
+            // WriteToNetwork outcomes are drained via flush_network below.
+        }
+
+        // Drain WG-encrypted packets from the tunnel (one per call to flush_network).
+        while let Some(ct) = self.tunnel.flush_network() {
+            self.relay.send_packet(PeerId([0; 32]), ct);
+        }
+
+        // Tunnel timer upkeep (keepalive / handshake retransmit).
+        if let WgOutcome::WriteToNetwork(ct) = self.tunnel.update_timers() {
+            self.relay.send_packet(PeerId([0; 32]), ct);
+        }
+
+        // Drain outbound IP packets from the device.
+        for ip_pkt in self.device.drain_outbound() {
+            let outcome = self.tunnel.encapsulate(&ip_pkt);
+            if let WgOutcome::WriteToNetwork(ct) = outcome {
+                self.relay.send_packet(PeerId([0; 32]), ct);
             }
-            WgOutcome::Done | WgOutcome::Error(_) => {}
         }
     }
 
@@ -169,7 +164,7 @@ impl BrowserWgNode {
         &mut self.relay
     }
 
-    /// Mut access to the JS device for smoltcp hookup.
+    /// Mut access to the JS device.
     #[must_use]
     pub fn device_mut(&mut self) -> &mut JsDevice {
         &mut self.device
@@ -180,25 +175,53 @@ impl BrowserWgNode {
     pub fn identity(&self) -> Option<&IdentityKeypair> {
         self.identity.as_ref()
     }
+
+    /// Set the identity after handoff.
+    pub fn set_identity(&mut self, kp: IdentityKeypair) {
+        self.identity = Some(kp);
+    }
+
+    /// This peer's overlay IP.
+    #[must_use]
+    pub fn overlay_ip(&self) -> IpAddr {
+        self.overlay_ip
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::shared::keys::{IdentityKeypair, NetworkId, SeedBits, WgSeed};
+    use crate::shared::tunnel::WgTunnel;
+
+    fn make_tunnel() -> WgTunnel {
+        let seed = WgSeed::generate(SeedBits::Bits256).expect("seed");
+        let net = NetworkId::from_bytes([0xAB; 16]);
+        let boot = seed.derive_bootstrap(&net);
+        WgTunnel::new(boot.static_secret, boot.public, None, None, 1)
+    }
 
     #[test]
     fn relay_client_send_recv_round_trip() {
         let mut client = WsRelayClient::new();
         let dst = PeerId([0xAA; 32]);
-
         client.send_packet(dst, b"wg data".to_vec());
         let frames = client.drain_outbound();
         assert_eq!(frames.len(), 1);
-
-        // Simulate the relay forwarding back.
         client.on_frame(&frames[0]);
         let inbound = client.drain_inbound();
         assert_eq!(inbound.len(), 1);
         assert_eq!(inbound[0].1, b"wg data");
+    }
+
+    #[test]
+    fn browser_node_tick_does_not_panic() {
+        let tunnel = make_tunnel();
+        let mut node = BrowserWgNode::new(
+            tunnel,
+            1380,
+            IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1)),
+        );
+        node.tick();
     }
 }
