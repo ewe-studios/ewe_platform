@@ -72,14 +72,15 @@ pub struct ImageGetArgs {
 pub async fn image_get_all_request<F>(
     client: DynNetClient,
     args: &ImageGetAllArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/images/get",
+    let path = format!("/images/get",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -129,15 +130,16 @@ where
 pub async fn image_get_request<F>(
     client: DynNetClient,
     args: &ImageGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/images/{}/get",
+    let path = format!("/images/{}/get",
         args.name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

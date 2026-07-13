@@ -17,9 +17,9 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::Plugin;
-use super::shared::PluginEnv;
-use super::shared::PluginDevice;
 use super::shared::PluginMount;
+use super::shared::PluginDevice;
+use super::shared::PluginEnv;
 
 use super::shared::ApiResponse;
 
@@ -76,14 +76,15 @@ pub struct PluginDeleteArgs {
 pub async fn plugin_list_request<F>(
     client: DynNetClient,
     args: &PluginListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/plugins",
+    let path = format!("/plugins",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -132,15 +133,16 @@ where
 pub async fn plugin_delete_request<F>(
     client: DynNetClient,
     args: &PluginDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Plugin>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/plugins/{}",
+    let path = format!("/plugins/{}",
         args.name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

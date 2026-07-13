@@ -24,9 +24,44 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `GenericResources` type.
+/// `NodeStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
+pub struct NodeStatus {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// Message property.
+    #[serde(rename = "Message")]
+    pub message: Option<String>,
+    /// State property.
+    #[serde(rename = "State")]
+    pub state: Option<NodeState>,
+}
+
+/// `ManagerStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ManagerStatus {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// Leader property.
+    #[serde(rename = "Leader")]
+    pub leader: Option<bool>,
+    /// Reachability property.
+    #[serde(rename = "Reachability")]
+    pub reachability: Option<Reachability>,
+}
+
+/// `Reachability` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Reachability {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NodeState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeState {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -45,6 +80,13 @@ pub struct EngineDescription {
     pub plugins: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
+/// `GenericResources` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GenericResources {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `Platform` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Platform {
@@ -54,13 +96,6 @@ pub struct Platform {
     /// OS property.
     #[serde(rename = "OS")]
     pub os: Option<String>,
-}
-
-/// `Reachability` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Reachability {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `NodeDescription` type.
@@ -81,86 +116,6 @@ pub struct NodeDescription {
     /// TLSInfo property.
     #[serde(rename = "TLSInfo")]
     pub tls_info: Option<TLSInfo>,
-}
-
-/// `TLSInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TLSInfo {
-    /// CertIssuerPublicKey property.
-    #[serde(rename = "CertIssuerPublicKey")]
-    pub cert_issuer_public_key: Option<String>,
-    /// CertIssuerSubject property.
-    #[serde(rename = "CertIssuerSubject")]
-    pub cert_issuer_subject: Option<String>,
-    /// TrustRoot property.
-    #[serde(rename = "TrustRoot")]
-    pub trust_root: Option<String>,
-}
-
-/// `NodeStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeStatus {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// Message property.
-    #[serde(rename = "Message")]
-    pub message: Option<String>,
-    /// State property.
-    #[serde(rename = "State")]
-    pub state: Option<NodeState>,
-}
-
-/// `NodeState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ManagerStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ManagerStatus {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// Leader property.
-    #[serde(rename = "Leader")]
-    pub leader: Option<bool>,
-    /// Reachability property.
-    #[serde(rename = "Reachability")]
-    pub reachability: Option<Reachability>,
-}
-
-/// `NodeSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// Availability property.
-    #[serde(rename = "Availability")]
-    pub availability: Option<String>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Role property.
-    #[serde(rename = "Role")]
-    pub role: Option<String>,
-}
-
-/// `ResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceObject {
-    /// GenericResources property.
-    #[serde(rename = "GenericResources")]
-    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// MemoryBytes property.
-    #[serde(rename = "MemoryBytes")]
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    #[serde(rename = "NanoCPUs")]
-    pub nano_cp_us: Option<i64>,
 }
 
 /// `Node` type.
@@ -190,6 +145,51 @@ pub struct Node {
     /// Version property.
     #[serde(rename = "Version")]
     pub version: Option<ObjectVersion>,
+}
+
+/// `ResourceObject` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceObject {
+    /// GenericResources property.
+    #[serde(rename = "GenericResources")]
+    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// MemoryBytes property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// NanoCPUs property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+}
+
+/// `TLSInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TLSInfo {
+    /// CertIssuerPublicKey property.
+    #[serde(rename = "CertIssuerPublicKey")]
+    pub cert_issuer_public_key: Option<String>,
+    /// CertIssuerSubject property.
+    #[serde(rename = "CertIssuerSubject")]
+    pub cert_issuer_subject: Option<String>,
+    /// TrustRoot property.
+    #[serde(rename = "TrustRoot")]
+    pub trust_root: Option<String>,
+}
+
+/// `NodeSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeSpec {
+    /// Availability property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Role property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
 }
 
 // =============================================================================
@@ -248,14 +248,15 @@ pub struct NodeDeleteArgs {
 pub async fn node_list_request<F>(
     client: DynNetClient,
     args: &NodeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/nodes",
+    let path = format!("/nodes",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -304,15 +305,16 @@ where
 pub async fn node_inspect_request<F>(
     client: DynNetClient,
     args: &NodeInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Node>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/nodes/{}",
+    let path = format!("/nodes/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -359,15 +361,16 @@ where
 pub async fn node_delete_request<F>(
     client: DynNetClient,
     args: &NodeDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/nodes/{}",
+    let path = format!("/nodes/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

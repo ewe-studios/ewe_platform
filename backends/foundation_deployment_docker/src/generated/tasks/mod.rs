@@ -24,59 +24,27 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Platform` type.
+/// `TaskStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Platform {
-    /// Architecture property.
-    #[serde(rename = "Architecture")]
-    pub architecture: Option<String>,
-    /// OS property.
-    #[serde(rename = "OS")]
-    pub os: Option<String>,
-}
-
-/// `ContainerStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerStatus {
-    /// ContainerID property.
-    #[serde(rename = "ContainerID")]
-    pub container_id: Option<String>,
-    /// ExitCode property.
-    #[serde(rename = "ExitCode")]
-    pub exit_code: Option<i64>,
-    /// PID property.
-    #[serde(rename = "PID")]
-    pub pid: Option<i64>,
-}
-
-/// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    #[serde(rename = "Interval")]
-    pub interval: Option<i64>,
-    /// Retries property.
-    #[serde(rename = "Retries")]
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    #[serde(rename = "StartInterval")]
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    #[serde(rename = "StartPeriod")]
-    pub start_period: Option<i64>,
-    /// Test property.
-    #[serde(rename = "Test")]
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    #[serde(rename = "Timeout")]
-    pub timeout: Option<i64>,
-}
-
-/// `GenericResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct TaskStatus {
+    /// ContainerStatus property.
+    #[serde(rename = "ContainerStatus")]
+    pub container_status: Option<ContainerStatus>,
+    /// Err property.
+    #[serde(rename = "Err")]
+    pub err: Option<String>,
+    /// Message property.
+    #[serde(rename = "Message")]
+    pub message: Option<String>,
+    /// PortStatus property.
+    #[serde(rename = "PortStatus")]
+    pub port_status: Option<PortStatus>,
+    /// State property.
+    #[serde(rename = "State")]
+    pub state: Option<TaskState>,
+    /// Timestamp property.
+    #[serde(rename = "Timestamp")]
+    pub timestamp: Option<String>,
 }
 
 /// `Mount` type.
@@ -111,53 +79,24 @@ pub struct Mount {
     pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `TaskSpec` type.
+/// `EndpointPortConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TaskSpec {
-    /// ContainerSpec property.
-    #[serde(rename = "ContainerSpec")]
-    pub container_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ForceUpdate property.
-    #[serde(rename = "ForceUpdate")]
-    pub force_update: Option<i64>,
-    /// LogDriver property.
-    #[serde(rename = "LogDriver")]
-    pub log_driver: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// NetworkAttachmentSpec property.
-    #[serde(rename = "NetworkAttachmentSpec")]
-    pub network_attachment_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Networks property.
-    #[serde(rename = "Networks")]
-    pub networks: Option<Vec<NetworkAttachmentConfig>>,
-    /// Placement property.
-    #[serde(rename = "Placement")]
-    pub placement: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// PluginSpec property.
-    #[serde(rename = "PluginSpec")]
-    pub plugin_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Resources property.
-    #[serde(rename = "Resources")]
-    pub resources: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// RestartPolicy property.
-    #[serde(rename = "RestartPolicy")]
-    pub restart_policy: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Runtime property.
-    #[serde(rename = "Runtime")]
-    pub runtime: Option<String>,
-}
-
-/// `PluginPrivilege` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginPrivilege {
-    /// Description property.
-    #[serde(rename = "Description")]
-    pub description: Option<String>,
+pub struct EndpointPortConfig {
     /// Name property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
-    /// Value property.
-    #[serde(rename = "Value")]
-    pub value: Option<Vec<String>>,
+    /// Protocol property.
+    #[serde(rename = "Protocol")]
+    pub protocol: Option<String>,
+    /// PublishMode property.
+    #[serde(rename = "PublishMode")]
+    pub publish_mode: Option<String>,
+    /// PublishedPort property.
+    #[serde(rename = "PublishedPort")]
+    pub published_port: Option<i64>,
+    /// TargetPort property.
+    #[serde(rename = "TargetPort")]
+    pub target_port: Option<i64>,
 }
 
 /// `ResourceObject` type.
@@ -182,18 +121,27 @@ pub struct PortStatus {
     pub ports: Option<Vec<EndpointPortConfig>>,
 }
 
-/// `NetworkAttachmentConfig` type.
+/// `HealthConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAttachmentConfig {
-    /// Aliases property.
-    #[serde(rename = "Aliases")]
-    pub aliases: Option<Vec<String>>,
-    /// DriverOpts property.
-    #[serde(rename = "DriverOpts")]
-    pub driver_opts: Option<serde_json::Value>,
-    /// Target property.
-    #[serde(rename = "Target")]
-    pub target: Option<String>,
+pub struct HealthConfig {
+    /// Interval property.
+    #[serde(rename = "Interval")]
+    pub interval: Option<i64>,
+    /// Retries property.
+    #[serde(rename = "Retries")]
+    pub retries: Option<i64>,
+    /// StartInterval property.
+    #[serde(rename = "StartInterval")]
+    pub start_interval: Option<i64>,
+    /// StartPeriod property.
+    #[serde(rename = "StartPeriod")]
+    pub start_period: Option<i64>,
+    /// Test property.
+    #[serde(rename = "Test")]
+    pub test: Option<Vec<String>>,
+    /// Timeout property.
+    #[serde(rename = "Timeout")]
+    pub timeout: Option<i64>,
 }
 
 /// `Task` type.
@@ -250,6 +198,41 @@ pub struct TaskState {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `ContainerStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerStatus {
+    /// ContainerID property.
+    #[serde(rename = "ContainerID")]
+    pub container_id: Option<String>,
+    /// ExitCode property.
+    #[serde(rename = "ExitCode")]
+    pub exit_code: Option<i64>,
+    /// PID property.
+    #[serde(rename = "PID")]
+    pub pid: Option<i64>,
+}
+
+/// `GenericResources` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GenericResources {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PluginPrivilege` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PluginPrivilege {
+    /// Description property.
+    #[serde(rename = "Description")]
+    pub description: Option<String>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Value property.
+    #[serde(rename = "Value")]
+    pub value: Option<Vec<String>>,
+}
+
 /// `Limit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Limit {
@@ -264,47 +247,64 @@ pub struct Limit {
     pub pids: Option<i64>,
 }
 
-/// `TaskStatus` type.
+/// `TaskSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TaskStatus {
-    /// ContainerStatus property.
-    #[serde(rename = "ContainerStatus")]
-    pub container_status: Option<ContainerStatus>,
-    /// Err property.
-    #[serde(rename = "Err")]
-    pub err: Option<String>,
-    /// Message property.
-    #[serde(rename = "Message")]
-    pub message: Option<String>,
-    /// PortStatus property.
-    #[serde(rename = "PortStatus")]
-    pub port_status: Option<PortStatus>,
-    /// State property.
-    #[serde(rename = "State")]
-    pub state: Option<TaskState>,
-    /// Timestamp property.
-    #[serde(rename = "Timestamp")]
-    pub timestamp: Option<String>,
+pub struct TaskSpec {
+    /// ContainerSpec property.
+    #[serde(rename = "ContainerSpec")]
+    pub container_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// ForceUpdate property.
+    #[serde(rename = "ForceUpdate")]
+    pub force_update: Option<i64>,
+    /// LogDriver property.
+    #[serde(rename = "LogDriver")]
+    pub log_driver: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// NetworkAttachmentSpec property.
+    #[serde(rename = "NetworkAttachmentSpec")]
+    pub network_attachment_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Networks property.
+    #[serde(rename = "Networks")]
+    pub networks: Option<Vec<NetworkAttachmentConfig>>,
+    /// Placement property.
+    #[serde(rename = "Placement")]
+    pub placement: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// PluginSpec property.
+    #[serde(rename = "PluginSpec")]
+    pub plugin_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Resources property.
+    #[serde(rename = "Resources")]
+    pub resources: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// RestartPolicy property.
+    #[serde(rename = "RestartPolicy")]
+    pub restart_policy: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Runtime property.
+    #[serde(rename = "Runtime")]
+    pub runtime: Option<String>,
 }
 
-/// `EndpointPortConfig` type.
+/// `NetworkAttachmentConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EndpointPortConfig {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Protocol property.
-    #[serde(rename = "Protocol")]
-    pub protocol: Option<String>,
-    /// PublishMode property.
-    #[serde(rename = "PublishMode")]
-    pub publish_mode: Option<String>,
-    /// PublishedPort property.
-    #[serde(rename = "PublishedPort")]
-    pub published_port: Option<i64>,
-    /// TargetPort property.
-    #[serde(rename = "TargetPort")]
-    pub target_port: Option<i64>,
+pub struct NetworkAttachmentConfig {
+    /// Aliases property.
+    #[serde(rename = "Aliases")]
+    pub aliases: Option<Vec<String>>,
+    /// DriverOpts property.
+    #[serde(rename = "DriverOpts")]
+    pub driver_opts: Option<serde_json::Value>,
+    /// Target property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+}
+
+/// `Platform` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Platform {
+    /// Architecture property.
+    #[serde(rename = "Architecture")]
+    pub architecture: Option<String>,
+    /// OS property.
+    #[serde(rename = "OS")]
+    pub os: Option<String>,
 }
 
 // =============================================================================
@@ -354,14 +354,15 @@ pub struct TaskInspectArgs {
 pub async fn task_list_request<F>(
     client: DynNetClient,
     args: &TaskListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/tasks",
+    let path = format!("/tasks",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -410,15 +411,16 @@ where
 pub async fn task_inspect_request<F>(
     client: DynNetClient,
     args: &TaskInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Task>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/tasks/{}",
+    let path = format!("/tasks/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

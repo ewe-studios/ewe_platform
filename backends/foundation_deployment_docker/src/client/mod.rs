@@ -74,6 +74,9 @@ pub struct DockerClient {
     http: DynNetClient,
     socket_path: PathBuf,
     api_version: String,
+    /// Optional remote host:port for TCP connections (e.g. "192.168.1.10:2375").
+    /// When `None`, the base URL uses `localhost` (the Unix-socket default).
+    remote_host: Option<String>,
 }
 
 impl std::fmt::Debug for DockerClient {
@@ -81,6 +84,7 @@ impl std::fmt::Debug for DockerClient {
         f.debug_struct("DockerClient")
             .field("socket_path", &self.socket_path)
             .field("api_version", &self.api_version)
+            .field("remote_host", &self.remote_host)
             .finish_non_exhaustive()
     }
 }
@@ -101,12 +105,49 @@ impl DockerClient {
     #[must_use]
     pub fn connect_unix(socket_path: impl Into<PathBuf>) -> Self {
         let socket_path = socket_path.into();
-        let http = HttpClientBuilder::new().unix_socket(&socket_path).build();
+        // Docker's blocking endpoints (stop, wait, restart) may not send
+        // response headers for tens of seconds — 120 s covers the worst case.
+        let http = HttpClientBuilder::new()
+            .unix_socket(&socket_path)
+            .read_timeout(std::time::Duration::from_secs(120))
+            .build();
         Self {
             http,
             socket_path,
             api_version: DEFAULT_API_VERSION.to_string(),
+            remote_host: None,
         }
+    }
+
+    /// Connect via TCP to a remote Docker daemon (e.g. "192.168.1.10:2375").
+    ///
+    /// WHY: Docker daemons can be exposed over TCP (TLS or plaintext). This is the
+    /// remote / non-localhost path.
+    ///
+    /// WHAT: Uses `HttpClientBuilder` default (TCP) + sets `remote_host` so
+    /// [`Self::base_url`] generates the correct URL.
+    #[must_use]
+    pub fn connect_tcp(host: &str) -> Self {
+        let socket_path = PathBuf::from(format!("tcp://{host}"));
+        let http = HttpClientBuilder::new()
+            .read_timeout(std::time::Duration::from_secs(120))
+            .build();
+        Self {
+            http,
+            socket_path,
+            api_version: DEFAULT_API_VERSION.to_string(),
+            remote_host: Some(host.to_string()),
+        }
+    }
+
+    /// Set a custom remote host (e.g. for Docker contexts, SSH tunnels).
+    ///
+    /// WHY: Lets callers use `connect_unix` then override the URL for cases
+    /// where the socket path is correct but the Host header / URL must differ.
+    #[must_use]
+    pub fn with_remote_host(mut self, host: &str) -> Self {
+        self.remote_host = Some(host.to_string());
+        self
     }
 
     /// Connect using the default socket resolution.
@@ -150,6 +191,21 @@ impl DockerClient {
         &self.api_version
     }
 
+    /// The base URL for API calls: `http://{host}/v{version}`.
+    ///
+    /// WHY: Generated functions take a `base_url: &str` so callers can point at
+    /// remote Docker daemons over TCP, not just Unix-socket-local. Uses
+    /// `remote_host` when set (via [`Self::connect_tcp`] or
+    /// [`Self::with_remote_host`]), otherwise defaults to `localhost`.
+    ///
+    /// WHAT: `http://localhost/v1.53` for Unix-socket, `http://192.168.1.10:2375/v1.53`
+    /// for remote.
+    #[must_use]
+    pub fn base_url(&self) -> String {
+        let host = self.remote_host.as_deref().unwrap_or("localhost");
+        format!("http://{host}/v{}", self.api_version)
+    }
+
     /// The Unix socket path this client dials.
     #[must_use]
     pub fn socket_path(&self) -> &std::path::Path {
@@ -163,7 +219,7 @@ impl DockerClient {
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn version(&self) -> Result<SystemVersion, DockerError> {
         let response =
-            system_version_request(self.http(), &SystemVersionArgs::default(), None::<NoMod>)
+            system_version_request(self.http(), &SystemVersionArgs::default(), &self.base_url(), None::<NoMod>)
                 .await?;
         Ok(response.body)
     }
@@ -220,6 +276,7 @@ impl DockerClient {
         let response = container_create_request(
             self.http(),
             &args,
+            &self.base_url(),
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
                 let _ = b.set_body_json(&body);
@@ -239,7 +296,7 @@ impl DockerClient {
             id: id.to_string(),
             detach_keys: None,
         };
-        container_start_request(self.http(), &args, None::<NoMod>).await?;
+        container_start_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -257,7 +314,7 @@ impl DockerClient {
             id: id.to_string(),
             condition: condition.map(str::to_string),
         };
-        let response = container_wait_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_wait_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -276,7 +333,7 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        container_stop_request(self.http(), &args, None::<NoMod>).await?;
+        container_stop_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -292,7 +349,7 @@ impl DockerClient {
             force: Some(force.to_string()),
             link: None,
         };
-        container_delete_request(self.http(), &args, None::<NoMod>).await?;
+        container_delete_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -309,7 +366,7 @@ impl DockerClient {
             id: id.to_string(),
             size: None,
         };
-        let response = container_inspect_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_inspect_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -324,7 +381,7 @@ impl DockerClient {
         let args = ContainerPauseArgs {
             id: id.to_string(),
         };
-        container_pause_request(self.http(), &args, None::<NoMod>).await?;
+        container_pause_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -339,7 +396,7 @@ impl DockerClient {
         let args = ContainerUnpauseArgs {
             id: id.to_string(),
         };
-        container_unpause_request(self.http(), &args, None::<NoMod>).await?;
+        container_unpause_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 

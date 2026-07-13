@@ -18,9 +18,9 @@ use foundation_macros::JsonHash;
 // Import shared types used by this module
 use super::shared::IDResponse;
 use super::shared::Volume;
+use super::shared::ObjectVersion;
 use super::shared::ClusterVolumeSpec;
 use super::shared::ClusterVolume;
-use super::shared::ObjectVersion;
 use super::shared::Topology;
 
 use super::shared::ApiResponse;
@@ -38,28 +38,6 @@ pub struct ContainerCreateResponse {
     /// Warnings property.
     #[serde(rename = "Warnings")]
     pub warnings: Vec<String>,
-}
-
-/// `NetworkCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkCreateResponse {
-    /// Id property.
-    #[serde(rename = "Id")]
-    pub id: String,
-    /// Warning property.
-    #[serde(rename = "Warning")]
-    pub warning: String,
-}
-
-/// `ServiceCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ServiceCreateResponse {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-    /// Warnings property.
-    #[serde(rename = "Warnings")]
-    pub warnings: Option<Vec<String>>,
 }
 
 /// `VolumeCreateRequest` type.
@@ -80,6 +58,28 @@ pub struct VolumeCreateRequest {
     /// Name property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
+}
+
+/// `ServiceCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ServiceCreateResponse {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
+}
+
+/// `NetworkCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkCreateResponse {
+    /// Id property.
+    #[serde(rename = "Id")]
+    pub id: String,
+    /// Warning property.
+    #[serde(rename = "Warning")]
+    pub warning: String,
 }
 
 // =============================================================================
@@ -177,14 +177,15 @@ pub struct VolumeCreateArgs {
 pub async fn config_create_request<F>(
     client: DynNetClient,
     _args: &ConfigCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IDResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/configs/create",
+    let path = format!("/configs/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -231,14 +232,15 @@ where
 pub async fn container_create_request<F>(
     client: DynNetClient,
     args: &ContainerCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ContainerCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/containers/create",
+    let path = format!("/containers/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -288,14 +290,15 @@ where
 pub async fn image_create_request<F>(
     client: DynNetClient,
     args: &ImageCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/images/create",
+    let path = format!("/images/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -348,14 +351,15 @@ where
 pub async fn network_create_request<F>(
     client: DynNetClient,
     _args: &NetworkCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<NetworkCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/networks/create",
+    let path = format!("/networks/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -402,14 +406,15 @@ where
 pub async fn plugin_create_request<F>(
     client: DynNetClient,
     args: &PluginCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/plugins/create",
+    let path = format!("/plugins/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -456,14 +461,15 @@ where
 pub async fn secret_create_request<F>(
     client: DynNetClient,
     _args: &SecretCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IDResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/secrets/create",
+    let path = format!("/secrets/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -510,14 +516,15 @@ where
 pub async fn service_create_request<F>(
     client: DynNetClient,
     _args: &ServiceCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ServiceCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/services/create",
+    let path = format!("/services/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -564,14 +571,15 @@ where
 pub async fn volume_create_request<F>(
     client: DynNetClient,
     args: &VolumeCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Volume>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/volumes/create",
+    let path = format!("/volumes/create",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

@@ -24,6 +24,17 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `Driver` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Driver {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: String,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
 /// `ConfigSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ConfigSpec {
@@ -39,17 +50,6 @@ pub struct ConfigSpec {
     /// Templating property.
     #[serde(rename = "Templating")]
     pub templating: Option<Driver>,
-}
-
-/// `Driver` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Driver {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: String,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
 }
 
 /// `Config` type.
@@ -126,14 +126,15 @@ pub struct ConfigDeleteArgs {
 pub async fn config_list_request<F>(
     client: DynNetClient,
     args: &ConfigListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/configs",
+    let path = format!("/configs",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -182,15 +183,16 @@ where
 pub async fn config_inspect_request<F>(
     client: DynNetClient,
     args: &ConfigInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Config>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/configs/{}",
+    let path = format!("/configs/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -237,15 +239,16 @@ where
 pub async fn config_delete_request<F>(
     client: DynNetClient,
     args: &ConfigDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/configs/{}",
+    let path = format!("/configs/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

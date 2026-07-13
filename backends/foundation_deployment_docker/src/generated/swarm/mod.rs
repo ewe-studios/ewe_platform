@@ -24,12 +24,44 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Swarm` type.
+/// `SwarmSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Swarm {
-    /// `JoinTokens` property.
-    #[serde(rename = "JoinTokens")]
-    pub join_tokens: Option<JoinTokens>,
+pub struct SwarmSpec {
+    /// CAConfig property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Orchestration property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Raft property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `JoinTokens` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct JoinTokens {
+    /// Manager property.
+    #[serde(rename = "Manager")]
+    pub manager: Option<String>,
+    /// Worker property.
+    #[serde(rename = "Worker")]
+    pub worker: Option<String>,
 }
 
 /// `TLSInfo` type.
@@ -44,17 +76,6 @@ pub struct TLSInfo {
     /// TrustRoot property.
     #[serde(rename = "TrustRoot")]
     pub trust_root: Option<String>,
-}
-
-/// `JoinTokens` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct JoinTokens {
-    /// Manager property.
-    #[serde(rename = "Manager")]
-    pub manager: Option<String>,
-    /// Worker property.
-    #[serde(rename = "Worker")]
-    pub worker: Option<String>,
 }
 
 /// `ClusterInfo` type.
@@ -92,33 +113,12 @@ pub struct ClusterInfo {
     pub version: Option<ObjectVersion>,
 }
 
-/// `SwarmSpec` type.
+/// `Swarm` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    #[serde(rename = "CAConfig")]
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    #[serde(rename = "Dispatcher")]
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    #[serde(rename = "EncryptionConfig")]
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Orchestration property.
-    #[serde(rename = "Orchestration")]
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    #[serde(rename = "Raft")]
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    #[serde(rename = "TaskDefaults")]
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct Swarm {
+    /// `JoinTokens` property.
+    #[serde(rename = "JoinTokens")]
+    pub join_tokens: Option<JoinTokens>,
 }
 
 // =============================================================================
@@ -159,14 +159,15 @@ pub struct SwarmInspectArgs {
 pub async fn swarm_inspect_request<F>(
     client: DynNetClient,
     _args: &SwarmInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Swarm>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/swarm",
+    let path = format!("/swarm",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

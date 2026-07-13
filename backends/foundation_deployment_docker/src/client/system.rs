@@ -36,7 +36,7 @@ type NoMod = fn(&mut PreparedRequestBuilder);
 /// Returns [`DockerError`] on transport failure or non-2xx status.
 pub async fn system_info(client: &super::DockerClient) -> Result<SystemInfo, DockerError> {
     let response =
-        system_info_request(client.http(), &SystemInfoArgs::default(), None::<NoMod>).await?;
+        system_info_request(client.http(), &SystemInfoArgs::default(), &client.base_url(), None::<NoMod>).await?;
     Ok(response.body)
 }
 
@@ -54,8 +54,9 @@ pub async fn system_info(client: &super::DockerClient) -> Result<SystemInfo, Doc
 ///
 /// Returns [`DockerError`] on transport failure or non-2xx status.
 pub async fn system_ping(client: &super::DockerClient) -> Result<(), DockerError> {
-    let endpoint_url = "http://localhost/v1.53/_ping";
-    let builder = PreparedRequestBuilder::get(endpoint_url)
+    let base = client.base_url();
+    let endpoint_url = format!("{base}/_ping");
+    let builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
     let response = client
         .http()
@@ -93,8 +94,9 @@ pub async fn system_events(
     until: Option<&str>,
     filters: Option<&str>,
 ) -> Result<Vec<u8>, DockerError> {
-    let endpoint_url = "http://localhost/v1.53/events";
-    let mut builder = PreparedRequestBuilder::get(endpoint_url)
+    let base = client.base_url();
+    let endpoint_url = format!("{base}/events");
+    let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
     builder = builder.query("since", since);
     builder = builder.query("until", until);
@@ -137,8 +139,9 @@ pub async fn system_data_usage(
     client: &super::DockerClient,
     types: Option<&str>,
 ) -> Result<serde_json::Value, DockerError> {
-    let endpoint_url = "http://localhost/v1.53/system/df";
-    let mut builder = PreparedRequestBuilder::get(endpoint_url)
+    let base = client.base_url();
+    let endpoint_url = format!("{base}/system/df");
+    let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
     builder = builder.query("type", types);
     let response = client
@@ -186,6 +189,6 @@ pub async fn system_auth(
             serveraddress: None,
         },
     };
-    let response = system_auth_request(client.http(), &args, None::<NoMod>).await?;
+    let response = system_auth_request(client.http(), &args, &client.base_url(), None::<NoMod>).await?;
     Ok(response.body)
 }

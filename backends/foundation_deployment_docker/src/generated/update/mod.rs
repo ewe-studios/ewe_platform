@@ -41,21 +41,29 @@ pub struct SecretSpec {
     pub templating: Option<Driver>,
 }
 
-/// `ConfigSpec` type.
+/// `NodeSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigSpec {
-    /// Data property.
-    #[serde(rename = "Data")]
-    pub data: Option<String>,
+pub struct NodeSpec {
+    /// Availability property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
     /// Labels property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
-    /// Templating property.
-    #[serde(rename = "Templating")]
-    pub templating: Option<Driver>,
+    /// Role property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
+}
+
+/// `ContainerUpdateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerUpdateResponse {
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
 }
 
 /// `Driver` type.
@@ -67,22 +75,6 @@ pub struct Driver {
     /// Options property.
     #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
-}
-
-/// `ContainerUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerUpdateResponse {
-    /// Warnings property.
-    #[serde(rename = "Warnings")]
-    pub warnings: Option<Vec<String>>,
-}
-
-/// `ServiceUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ServiceUpdateResponse {
-    /// Warnings property.
-    #[serde(rename = "Warnings")]
-    pub warnings: Option<Vec<String>>,
 }
 
 /// `SwarmSpec` type.
@@ -114,21 +106,29 @@ pub struct SwarmSpec {
     pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `NodeSpec` type.
+/// `ServiceUpdateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// Availability property.
-    #[serde(rename = "Availability")]
-    pub availability: Option<String>,
+pub struct ServiceUpdateResponse {
+    /// Warnings property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
+}
+
+/// `ConfigSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConfigSpec {
+    /// Data property.
+    #[serde(rename = "Data")]
+    pub data: Option<String>,
     /// Labels property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
     /// Name property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
-    /// Role property.
-    #[serde(rename = "Role")]
-    pub role: Option<String>,
+    /// Templating property.
+    #[serde(rename = "Templating")]
+    pub templating: Option<Driver>,
 }
 
 // =============================================================================
@@ -232,15 +232,16 @@ pub struct SwarmUpdateArgs {
 pub async fn config_update_request<F>(
     client: DynNetClient,
     args: &ConfigUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/configs/{}/update",
+    let path = format!("/configs/{}/update",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -290,15 +291,16 @@ where
 pub async fn container_update_request<F>(
     client: DynNetClient,
     args: &ContainerUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ContainerUpdateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/containers/{}/update",
+    let path = format!("/containers/{}/update",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -345,15 +347,16 @@ where
 pub async fn node_update_request<F>(
     client: DynNetClient,
     args: &NodeUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/nodes/{}/update",
+    let path = format!("/nodes/{}/update",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -403,15 +406,16 @@ where
 pub async fn secret_update_request<F>(
     client: DynNetClient,
     args: &SecretUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/secrets/{}/update",
+    let path = format!("/secrets/{}/update",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -461,15 +465,16 @@ where
 pub async fn service_update_request<F>(
     client: DynNetClient,
     args: &ServiceUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ServiceUpdateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/services/{}/update",
+    let path = format!("/services/{}/update",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -520,14 +525,15 @@ where
 pub async fn swarm_update_request<F>(
     client: DynNetClient,
     args: &SwarmUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/swarm/update",
+    let path = format!("/swarm/update",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

@@ -10,12 +10,10 @@
 //! [`split_exchange`] to split head + body, and returns the three handles:
 //! `(ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation)`.
 //!
-//! HOW: The caller:
-//! 1. Sends the continuation to valtron: `valtron::send(task.map_ready(|_| ()))?;`
-//! 2. Drains the head observer for `(Status, SimpleHeaders)`.
-//! 3. Converts the body observer via `.into_next_stream()` for async consumption.
-//! 4. Feeds body chunks into [`LogFrameDecoder`] or [`JsonLineDecoder`] (see
-//!    [`super::decoder`]).
+//! HOW: Every function takes `base_url: &str` (e.g. `"http://localhost/v1.53"`),
+//! matching the generated `*_request` functions. Pass
+//! [`DockerClient::base_url()`](crate::client::DockerClient::base_url) for the
+//! configured host + version prefix.
 
 pub mod decoder;
 
@@ -24,13 +22,6 @@ use foundation_netio::shared::client::body_reader::{
 };
 use foundation_netio::{DynNetClient, PreparedRequestBuilder};
 
-/// API version used in endpoint URLs.
-const API_VERSION: &str = "1.53";
-
-// =============================================================================
-// Container logs (multiplexed binary stream)
-// =============================================================================
-
 /// Streaming request for container logs (`GET /containers/{id}/logs`).
 ///
 /// # Returns
@@ -38,18 +29,10 @@ const API_VERSION: &str = "1.53";
 /// A `(head, body, continuation)` tuple from [`split_exchange`]. The body
 /// observer yields raw `Bytes` chunks — feed them into [`LogFrameDecoder`] to
 /// extract typed `LogOutput` frames.
-///
-/// # Errors
-///
-/// Errors surface in the body observer as `Stream::Next(Err(Arc<Error>))` items
-/// — the function itself does not return an error.
-///
-/// # Panics
-///
-/// This function does not panic.
 #[must_use]
 pub fn container_logs(
     client: DynNetClient,
+    base_url: &str,
     container_id: &str,
     follow: bool,
     stdout: bool,
@@ -59,7 +42,7 @@ pub fn container_logs(
     timestamps: bool,
     tail: Option<&str>,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/containers/{container_id}/logs");
+    let url = format!("{base_url}/containers/{container_id}/logs");
 
     let mut builder = PreparedRequestBuilder::get(&url)
         .expect("valid logs URL")
@@ -79,10 +62,6 @@ pub fn container_logs(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// Container stats (JSON-line stream)
-// =============================================================================
-
 /// Streaming request for container stats (`GET /containers/{id}/stats`).
 ///
 /// Each body chunk is a JSON object (one per line when `stream=true`). Use
@@ -90,11 +69,12 @@ pub fn container_logs(
 #[must_use]
 pub fn container_stats(
     client: DynNetClient,
+    base_url: &str,
     container_id: &str,
     stream: bool,
     one_shot: bool,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/containers/{container_id}/stats");
+    let url = format!("{base_url}/containers/{container_id}/stats");
 
     let builder = PreparedRequestBuilder::get(&url)
         .expect("valid stats URL")
@@ -104,10 +84,6 @@ pub fn container_stats(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// Container attach (multiplexed binary I/O stream)
-// =============================================================================
-
 /// Streaming request for container attach (`POST /containers/{id}/attach`).
 ///
 /// Upgrades to a raw multiplexed stream (same 8-byte frame format as logs).
@@ -115,6 +91,7 @@ pub fn container_stats(
 #[must_use]
 pub fn container_attach(
     client: DynNetClient,
+    base_url: &str,
     container_id: &str,
     detach_keys: Option<&str>,
     logs: bool,
@@ -123,7 +100,7 @@ pub fn container_attach(
     stdout: bool,
     stderr: bool,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/containers/{container_id}/attach");
+    let url = format!("{base_url}/containers/{container_id}/attach");
 
     let mut builder = PreparedRequestBuilder::post(&url)
         .expect("valid attach URL")
@@ -140,24 +117,19 @@ pub fn container_attach(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// System events (JSON-line stream)
-// =============================================================================
-
 /// Streaming request for system events (`GET /events`).
 ///
 /// Each body chunk is a JSON event object. Use [`JsonLineDecoder`] to extract
 /// complete [`DockerEvent`] objects from the stream.
-///
-/// [`DockerEvent`] is the generated type from `generated::events`.
 #[must_use]
 pub fn system_events(
     client: DynNetClient,
+    base_url: &str,
     since: Option<&str>,
     until: Option<&str>,
     filters: Option<&str>,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/events");
+    let url = format!("{base_url}/events");
 
     let mut builder = PreparedRequestBuilder::get(&url).expect("valid events URL");
 
@@ -174,20 +146,14 @@ pub fn system_events(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// Image build (JSON-line progress stream)
-// =============================================================================
-
 /// Streaming request for image build (`POST /build`).
 ///
 /// Each body chunk is a JSON status object. Use [`JsonLineDecoder`] to extract
 /// progress objects from the stream.
-///
-/// The caller sets build configuration via query parameters (`dockerfile`,
-/// `t`, `remote`, `nocache`, etc.) — see the Docker Engine API docs.
 #[must_use]
 pub fn image_build(
     client: DynNetClient,
+    base_url: &str,
     dockerfile: Option<&str>,
     tags: Option<&[&str]>,
     nocache: bool,
@@ -195,7 +161,7 @@ pub fn image_build(
     remote: Option<&str>,
     platform: Option<&str>,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/build");
+    let url = format!("{base_url}/build");
 
     let mut builder = PreparedRequestBuilder::post(&url).expect("valid build URL");
 
@@ -203,9 +169,6 @@ pub fn image_build(
         builder = builder.query("dockerfile", Some(df));
     }
     if let Some(t) = tags {
-        // Docker accepts multiple `t` query params; join them as a query string
-        // Note: PreparedRequestBuilder::query overwrites, so we use the first tag
-        // here. For multi-tag builds, the caller should construct the URI directly.
         if !t.is_empty() {
             builder = builder.query("t", Some(t[0]));
         }
@@ -223,10 +186,6 @@ pub fn image_build(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// Image pull (JSON-line progress stream)
-// =============================================================================
-
 /// Streaming request for image pull (`POST /images/create`).
 ///
 /// Each body chunk is a JSON progress object. Use [`JsonLineDecoder`] to extract
@@ -234,11 +193,12 @@ pub fn image_build(
 #[must_use]
 pub fn image_pull(
     client: DynNetClient,
+    base_url: &str,
     image: &str,
     tag: Option<&str>,
     platform: Option<&str>,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/images/create");
+    let url = format!("{base_url}/images/create");
 
     let mut builder = PreparedRequestBuilder::post(&url)
         .expect("valid pull URL")
@@ -254,34 +214,25 @@ pub fn image_pull(
     split_exchange(client, builder)
 }
 
-// =============================================================================
-// Image push (JSON-line progress stream)
-// =============================================================================
-
 /// Streaming request for image push (`POST /images/{name}/push`).
 ///
 /// Each body chunk is a JSON progress object. Use [`JsonLineDecoder`] to extract
 /// progress messages from the stream.
-///
-/// `x_registry_auth` is the base64-encoded registry auth config — set as the
-/// `X-Registry-Auth` header via the builder_mod pattern.
 #[must_use]
 pub fn image_push(
     client: DynNetClient,
+    base_url: &str,
     name: &str,
     tag: Option<&str>,
     _x_registry_auth: Option<&str>,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("http://localhost/v{API_VERSION}/images/{name}/push");
+    let url = format!("{base_url}/images/{name}/push");
 
     let mut builder = PreparedRequestBuilder::post(&url).expect("valid push URL");
 
     if let Some(t) = tag {
         builder = builder.query("tag", Some(t));
     }
-    // _x_registry_auth is accepted but not wired here — callers needing registry
-    // auth should construct the request with `builder.header()` directly.
-
 
     split_exchange(client, builder)
 }

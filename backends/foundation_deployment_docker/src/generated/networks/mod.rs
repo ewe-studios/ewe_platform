@@ -21,6 +21,14 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ConfigReference` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConfigReference {
+    /// Network property.
+    #[serde(rename = "Network")]
+    pub network: Option<String>,
+}
+
 /// `PeerInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PeerInfo {
@@ -32,39 +40,26 @@ pub struct PeerInfo {
     pub name: Option<String>,
 }
 
-/// `NetworkStatus` type.
+/// `IPAMConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkStatus {
-    /// IPAM property.
-    #[serde(rename = "IPAM")]
-    pub ipam: Option<IPAMStatus>,
+pub struct IPAMConfig {
+    /// AuxiliaryAddresses property.
+    #[serde(rename = "AuxiliaryAddresses")]
+    pub auxiliary_addresses: Option<serde_json::Value>,
+    /// Gateway property.
+    #[serde(rename = "Gateway")]
+    pub gateway: Option<String>,
+    /// IPRange property.
+    #[serde(rename = "IPRange")]
+    pub ip_range: Option<String>,
+    /// Subnet property.
+    #[serde(rename = "Subnet")]
+    pub subnet: Option<String>,
 }
 
 /// `NetworkInspect` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInspect {
-}
-
-/// `IPAM` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAM {
-    /// Config property.
-    #[serde(rename = "Config")]
-    pub config: Option<Vec<IPAMConfig>>,
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<String>,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
-}
-
-/// `IPAMStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAMStatus {
-    /// Subnets property.
-    #[serde(rename = "Subnets")]
-    pub subnets: Option<serde_json::Value>,
 }
 
 /// `Network` type.
@@ -120,29 +115,34 @@ pub struct Network {
     pub scope: Option<String>,
 }
 
-/// `ConfigReference` type.
+/// `NetworkStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigReference {
-    /// Network property.
-    #[serde(rename = "Network")]
-    pub network: Option<String>,
+pub struct NetworkStatus {
+    /// IPAM property.
+    #[serde(rename = "IPAM")]
+    pub ipam: Option<IPAMStatus>,
 }
 
-/// `IPAMConfig` type.
+/// `IPAM` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAMConfig {
-    /// AuxiliaryAddresses property.
-    #[serde(rename = "AuxiliaryAddresses")]
-    pub auxiliary_addresses: Option<serde_json::Value>,
-    /// Gateway property.
-    #[serde(rename = "Gateway")]
-    pub gateway: Option<String>,
-    /// IPRange property.
-    #[serde(rename = "IPRange")]
-    pub ip_range: Option<String>,
-    /// Subnet property.
-    #[serde(rename = "Subnet")]
-    pub subnet: Option<String>,
+pub struct IPAM {
+    /// Config property.
+    #[serde(rename = "Config")]
+    pub config: Option<Vec<IPAMConfig>>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
+/// `IPAMStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IPAMStatus {
+    /// Subnets property.
+    #[serde(rename = "Subnets")]
+    pub subnets: Option<serde_json::Value>,
 }
 
 // =============================================================================
@@ -203,14 +203,15 @@ pub struct NetworkDeleteArgs {
 pub async fn network_list_request<F>(
     client: DynNetClient,
     args: &NetworkListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/networks",
+    let path = format!("/networks",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -259,15 +260,16 @@ where
 pub async fn network_inspect_request<F>(
     client: DynNetClient,
     args: &NetworkInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<NetworkInspect>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/networks/{}",
+    let path = format!("/networks/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -317,15 +319,16 @@ where
 pub async fn network_delete_request<F>(
     client: DynNetClient,
     args: &NetworkDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/networks/{}",
+    let path = format!("/networks/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

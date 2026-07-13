@@ -21,6 +21,20 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `EndpointIPAMConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndpointIPAMConfig {
+    /// IPv4Address property.
+    #[serde(rename = "IPv4Address")]
+    pub i_pv4_address: Option<String>,
+    /// IPv6Address property.
+    #[serde(rename = "IPv6Address")]
+    pub i_pv6_address: Option<String>,
+    /// LinkLocalIPs property.
+    #[serde(rename = "LinkLocalIPs")]
+    pub link_local_i_ps: Option<Vec<String>>,
+}
+
 /// `EndpointSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointSettings {
@@ -69,20 +83,6 @@ pub struct EndpointSettings {
     /// NetworkID property.
     #[serde(rename = "NetworkID")]
     pub network_id: Option<String>,
-}
-
-/// `EndpointIPAMConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EndpointIPAMConfig {
-    /// IPv4Address property.
-    #[serde(rename = "IPv4Address")]
-    pub i_pv4_address: Option<String>,
-    /// IPv6Address property.
-    #[serde(rename = "IPv6Address")]
-    pub i_pv6_address: Option<String>,
-    /// LinkLocalIPs property.
-    #[serde(rename = "LinkLocalIPs")]
-    pub link_local_i_ps: Option<Vec<String>>,
 }
 
 /// `NetworkConnectRequest` type.
@@ -138,15 +138,16 @@ pub struct NetworkConnectArgs {
 pub async fn network_connect_request<F>(
     client: DynNetClient,
     args: &NetworkConnectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/networks/{}/connect",
+    let path = format!("/networks/{}/connect",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

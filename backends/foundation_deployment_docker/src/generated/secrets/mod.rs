@@ -44,17 +44,6 @@ pub struct Secret {
     pub version: Option<ObjectVersion>,
 }
 
-/// `Driver` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Driver {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: String,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
-}
-
 /// `SecretSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretSpec {
@@ -73,6 +62,17 @@ pub struct SecretSpec {
     /// Templating property.
     #[serde(rename = "Templating")]
     pub templating: Option<Driver>,
+}
+
+/// `Driver` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Driver {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: String,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
 }
 
 // =============================================================================
@@ -129,14 +129,15 @@ pub struct SecretDeleteArgs {
 pub async fn secret_list_request<F>(
     client: DynNetClient,
     args: &SecretListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/secrets",
+    let path = format!("/secrets",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -185,15 +186,16 @@ where
 pub async fn secret_inspect_request<F>(
     client: DynNetClient,
     args: &SecretInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Secret>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/secrets/{}",
+    let path = format!("/secrets/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -240,15 +242,16 @@ where
 pub async fn secret_delete_request<F>(
     client: DynNetClient,
     args: &SecretDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/secrets/{}",
+    let path = format!("/secrets/{}",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

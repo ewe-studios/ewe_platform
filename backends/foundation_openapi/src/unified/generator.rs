@@ -1373,25 +1373,29 @@ impl UnifiedGenerator {
         writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
         writeln!(out, "    client: DynNetClient,")?;
         writeln!(out, "    {}: &{},", args_binding, args_name)?;
+        // WHY: The base URL (e.g. "http://localhost/v1.53") is configurable so
+        // callers can point at remote Docker daemons, not just Unix-socket-local.
+        // For providers whose spec declares an explicit baseUrl, the caller
+        // should pass that value; for Docker the caller derives it from
+        // DockerClient::base_url().
+        writeln!(out, "    base_url: &str,")?;
         writeln!(out, "    builder_mod: Option<F>,")?;
         writeln!(out, ") -> Result<ApiResponse<{}>, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
         writeln!(out, "    F: FnOnce(&mut PreparedRequestBuilder),")?;
         writeln!(out, "{{")?;
 
-        // Build URL with path params, then append query params if any
+        // Build URL: base_url is the caller-supplied scheme+host+version prefix
+        // (e.g. "http://localhost/v1.53"); we format the path separately then
+        // join — avoids nested format!() indentation issues.
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        let (escaped_base, _) = escape_url_for_format(
-            ep.base_url.as_deref().unwrap_or("https://api.example.com"),
-            &[],
-        );
-        writeln!(out, "    let endpoint_url = format!(")?;
-        writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
+        writeln!(out, "    let path = format!(\"{}\",", escaped_path)?;
         for param_name in &params_in_url_order {
             let safe_param = escape_rust_keyword(param_name);
             writeln!(out, "        args.{safe_param},")?;
         }
         writeln!(out, "    );")?;
+        writeln!(out, "    let endpoint_url = format!(\"{{}}{{}}\", base_url, path);")?;
         writeln!(out)?;
 
         // Build request via the cross-platform PreparedRequestBuilder.

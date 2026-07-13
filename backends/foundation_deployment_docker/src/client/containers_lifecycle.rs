@@ -54,7 +54,7 @@ impl DockerClient {
             signal: signal.map(str::to_string),
             t: t.map(|v| v.to_string()),
         };
-        container_restart_request(self.http(), &args, None::<NoMod>).await?;
+        container_restart_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -77,7 +77,7 @@ impl DockerClient {
             id: id.to_string(),
             signal: signal.map(str::to_string),
         };
-        container_kill_request(self.http(), &args, None::<NoMod>).await?;
+        container_kill_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -93,7 +93,7 @@ impl DockerClient {
             id: id.to_string(),
             name: Some(name.to_string()),
         };
-        container_rename_request(self.http(), &args, None::<NoMod>).await?;
+        container_rename_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -115,7 +115,7 @@ impl DockerClient {
             h: h.map(|v| v.to_string()),
             w: w.map(|v| v.to_string()),
         };
-        container_resize_request(self.http(), &args, None::<NoMod>).await?;
+        container_resize_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 
@@ -135,7 +135,7 @@ impl DockerClient {
             id: id.to_string(),
             ps_args: ps_args.map(str::to_string),
         };
-        let response = container_top_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_top_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -153,7 +153,7 @@ impl DockerClient {
         let args = ContainerChangesArgs {
             id: id.to_string(),
         };
-        let response = container_changes_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_changes_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -182,7 +182,7 @@ impl DockerClient {
         timestamps: bool,
         tail: Option<&str>,
     ) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("http://localhost/v1.53/containers/{id}/logs");
+        let endpoint_url = format!("{}/containers/{id}/logs", self.base_url());
 
         let mut builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
@@ -224,7 +224,7 @@ impl DockerClient {
             stream: Some(stream.to_string()),
             one_shot: Some(one_shot.to_string()),
         };
-        let response = container_stats_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_stats_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -242,7 +242,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn container_export(&self, id: &str) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("http://localhost/v1.53/containers/{id}/export");
+        let endpoint_url = format!("{}/containers/{id}/export", self.base_url());
 
         let builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
@@ -272,7 +272,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn container_archive(&self, id: &str, path: &str) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("http://localhost/v1.53/containers/{id}/archive");
+        let endpoint_url = format!("{}/containers/{id}/archive", self.base_url());
 
         let mut builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
@@ -313,7 +313,7 @@ impl DockerClient {
         stdout: bool,
         stderr: bool,
     ) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("http://localhost/v1.53/containers/{id}/attach");
+        let endpoint_url = format!("{}/containers/{id}/attach", self.base_url());
 
         let mut builder = PreparedRequestBuilder::post(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
@@ -356,7 +356,7 @@ impl DockerClient {
             size: Some(size.to_string()),
             filters: filters.map(str::to_string),
         };
-        let response = container_list_request(self.http(), &args, None::<NoMod>).await?;
+        let response = container_list_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -378,7 +378,7 @@ impl DockerClient {
         let args = ContainerPruneArgs {
             filters: filters.map(str::to_string),
         };
-        container_prune_request(self.http(), &args, None::<NoMod>).await?;
+        container_prune_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
         Ok(())
     }
 }

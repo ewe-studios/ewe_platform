@@ -21,6 +21,96 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ContainerCPUUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerCPUUsage {
+    /// percpu_usage property.
+    pub percpu_usage: Option<Vec<i64>>,
+    /// total_usage property.
+    pub total_usage: Option<i64>,
+    /// usage_in_kernelmode property.
+    pub usage_in_kernelmode: Option<i64>,
+    /// usage_in_usermode property.
+    pub usage_in_usermode: Option<i64>,
+}
+
+/// `ContainerBlkioStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerBlkioStats {
+    /// io_merged_recursive property.
+    pub io_merged_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_queue_recursive property.
+    pub io_queue_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_service_bytes_recursive property.
+    pub io_service_bytes_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_service_time_recursive property.
+    pub io_service_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_serviced_recursive property.
+    pub io_serviced_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_time_recursive property.
+    pub io_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// io_wait_time_recursive property.
+    pub io_wait_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+    /// sectors_recursive property.
+    pub sectors_recursive: Option<Vec<ContainerBlkioStatEntry>>,
+}
+
+/// `ContainerMemoryStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerMemoryStats {
+    /// commitbytes property.
+    pub commitbytes: Option<i64>,
+    /// commitpeakbytes property.
+    pub commitpeakbytes: Option<i64>,
+    /// failcnt property.
+    pub failcnt: Option<i64>,
+    /// limit property.
+    pub limit: Option<i64>,
+    /// max_usage property.
+    pub max_usage: Option<i64>,
+    /// privateworkingset property.
+    pub privateworkingset: Option<i64>,
+    /// stats property.
+    pub stats: Option<serde_json::Value>,
+    /// usage property.
+    pub usage: Option<i64>,
+}
+
+/// `ContainerCPUStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerCPUStats {
+    /// cpu_usage property.
+    pub cpu_usage: Option<ContainerCPUUsage>,
+    /// online_cpus property.
+    pub online_cpus: Option<i64>,
+    /// system_cpu_usage property.
+    pub system_cpu_usage: Option<i64>,
+    /// throttling_data property.
+    pub throttling_data: Option<ContainerThrottlingData>,
+}
+
+/// `ContainerPidsStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerPidsStats {
+    /// current property.
+    pub current: Option<i64>,
+    /// limit property.
+    pub limit: Option<i64>,
+}
+
+/// `ContainerStorageStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerStorageStats {
+    /// read_count_normalized property.
+    pub read_count_normalized: Option<i64>,
+    /// read_size_bytes property.
+    pub read_size_bytes: Option<i64>,
+    /// write_count_normalized property.
+    pub write_count_normalized: Option<i64>,
+    /// write_size_bytes property.
+    pub write_size_bytes: Option<i64>,
+}
+
 /// `ContainerBlkioStatEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerBlkioStatEntry {
@@ -32,15 +122,6 @@ pub struct ContainerBlkioStatEntry {
     pub op: Option<String>,
     /// value property.
     pub value: Option<i64>,
-}
-
-/// `ContainerPidsStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerPidsStats {
-    /// current property.
-    pub current: Option<i64>,
-    /// limit property.
-    pub limit: Option<i64>,
 }
 
 /// `ContainerStatsResponse` type.
@@ -72,87 +153,6 @@ pub struct ContainerStatsResponse {
     pub read: Option<String>,
     /// storage_stats property.
     pub storage_stats: Option<ContainerStorageStats>,
-}
-
-/// `ContainerMemoryStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerMemoryStats {
-    /// commitbytes property.
-    pub commitbytes: Option<i64>,
-    /// commitpeakbytes property.
-    pub commitpeakbytes: Option<i64>,
-    /// failcnt property.
-    pub failcnt: Option<i64>,
-    /// limit property.
-    pub limit: Option<i64>,
-    /// max_usage property.
-    pub max_usage: Option<i64>,
-    /// privateworkingset property.
-    pub privateworkingset: Option<i64>,
-    /// stats property.
-    pub stats: Option<serde_json::Value>,
-    /// usage property.
-    pub usage: Option<i64>,
-}
-
-/// `ContainerBlkioStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerBlkioStats {
-    /// io_merged_recursive property.
-    pub io_merged_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_queue_recursive property.
-    pub io_queue_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_service_bytes_recursive property.
-    pub io_service_bytes_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_service_time_recursive property.
-    pub io_service_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_serviced_recursive property.
-    pub io_serviced_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_time_recursive property.
-    pub io_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_wait_time_recursive property.
-    pub io_wait_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// sectors_recursive property.
-    pub sectors_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-}
-
-/// `ContainerStorageStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerStorageStats {
-    /// read_count_normalized property.
-    pub read_count_normalized: Option<i64>,
-    /// read_size_bytes property.
-    pub read_size_bytes: Option<i64>,
-    /// write_count_normalized property.
-    pub write_count_normalized: Option<i64>,
-    /// write_size_bytes property.
-    pub write_size_bytes: Option<i64>,
-}
-
-/// `ContainerCPUUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerCPUUsage {
-    /// percpu_usage property.
-    pub percpu_usage: Option<Vec<i64>>,
-    /// total_usage property.
-    pub total_usage: Option<i64>,
-    /// usage_in_kernelmode property.
-    pub usage_in_kernelmode: Option<i64>,
-    /// usage_in_usermode property.
-    pub usage_in_usermode: Option<i64>,
-}
-
-/// `ContainerCPUStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerCPUStats {
-    /// cpu_usage property.
-    pub cpu_usage: Option<ContainerCPUUsage>,
-    /// online_cpus property.
-    pub online_cpus: Option<i64>,
-    /// system_cpu_usage property.
-    pub system_cpu_usage: Option<i64>,
-    /// throttling_data property.
-    pub throttling_data: Option<ContainerThrottlingData>,
 }
 
 /// `ContainerThrottlingData` type.
@@ -210,15 +210,16 @@ pub struct ContainerStatsArgs {
 pub async fn container_stats_request<F>(
     client: DynNetClient,
     args: &ContainerStatsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ContainerStatsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/containers/{}/stats",
+    let path = format!("/containers/{}/stats",
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

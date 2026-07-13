@@ -17,10 +17,10 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::Volume;
-use super::shared::Topology;
-use super::shared::ClusterVolumeSpec;
 use super::shared::ObjectVersion;
 use super::shared::ClusterVolume;
+use super::shared::Topology;
+use super::shared::ClusterVolumeSpec;
 
 use super::shared::ApiResponse;
 
@@ -104,14 +104,15 @@ pub struct VolumeDeleteArgs {
 pub async fn volume_list_request<F>(
     client: DynNetClient,
     args: &VolumeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<VolumeListResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/volumes",
+    let path = format!("/volumes",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -160,15 +161,16 @@ where
 pub async fn volume_inspect_request<F>(
     client: DynNetClient,
     args: &VolumeInspectArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Volume>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/volumes/{}",
+    let path = format!("/volumes/{}",
         args.name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -215,15 +217,16 @@ where
 pub async fn volume_update_request<F>(
     client: DynNetClient,
     args: &VolumeUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/volumes/{}",
+    let path = format!("/volumes/{}",
         args.name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -270,15 +273,16 @@ where
 pub async fn volume_delete_request<F>(
     client: DynNetClient,
     args: &VolumeDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/volumes/{}",
+    let path = format!("/volumes/{}",
         args.name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

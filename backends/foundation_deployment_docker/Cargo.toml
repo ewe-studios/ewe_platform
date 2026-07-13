@@ -48,8 +48,8 @@ workspace = true
 workspace = true
 
 [features]
-default = []
 buildkit = ["foundation_connectrpc"]
+default = []
 docker = [
     "docker_ping",
     "docker_archive",

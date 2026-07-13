@@ -50,7 +50,7 @@ impl DockerClient {
             manifests: None,
         };
         let response =
-            image_list_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_list_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -66,7 +66,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_inspect_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_inspect_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -81,7 +81,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_history_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_history_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -103,7 +103,7 @@ impl DockerClient {
             repo: repo.map(str::to_string),
             tag: tag.map(str::to_string),
         };
-        image_tag_request(self.http(), &args, None::<super::NoMod>).await?;
+        image_tag_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -127,7 +127,7 @@ impl DockerClient {
             platforms: None,
         };
         let response =
-            image_delete_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_delete_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -150,7 +150,7 @@ impl DockerClient {
             filters: filters.map(str::to_string),
         };
         let response =
-            image_search_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_search_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -174,6 +174,7 @@ impl DockerClient {
         image_load_request(
             self.http(),
             &args,
+            &self.base_url(),
             Some(move |b: &mut PreparedRequestBuilder| {
                 let _ = b.set_body_json(&body);
             }),
@@ -208,7 +209,7 @@ impl DockerClient {
             body: ContainerConfig::default(),
         };
         let response =
-            image_commit_request(self.http(), &args, None::<super::NoMod>).await?;
+            image_commit_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -221,7 +222,7 @@ impl DockerClient {
         let args = ImagePruneArgs {
             filters: filters.map(str::to_string),
         };
-        image_prune_request(self.http(), &args, None::<super::NoMod>).await?;
+        image_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -287,7 +288,7 @@ impl DockerClient {
             outputs: outputs.map(str::to_string),
             version: None,
         };
-        image_build_request(self.http(), &args, None::<super::NoMod>).await?;
+        image_build_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(Vec::new())
     }
 
@@ -314,6 +315,7 @@ impl DockerClient {
         image_push_request(
             self.http(),
             &args,
+            &self.base_url(),
             Some(move |b: &mut PreparedRequestBuilder| {
                 if let Some(ref auth) = auth {
                     b.set_header(SimpleHeader::custom("X-Registry-Auth"), auth.clone());
@@ -349,7 +351,7 @@ impl DockerClient {
             changes: None,
             platform: platform.map(str::to_string),
         };
-        image_create_request(self.http(), &args, None::<super::NoMod>).await?;
+        image_create_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(Vec::new())
     }
 }

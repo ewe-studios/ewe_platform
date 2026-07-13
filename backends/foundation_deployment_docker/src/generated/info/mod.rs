@@ -24,56 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DeviceInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceInfo {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-    /// Source property.
-    #[serde(rename = "Source")]
-    pub source: Option<String>,
-}
-
-/// `PluginsInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginsInfo {
-    /// Authorization property.
-    #[serde(rename = "Authorization")]
-    pub authorization: Option<Vec<String>>,
-    /// Log property.
-    #[serde(rename = "Log")]
-    pub log: Option<Vec<String>>,
-    /// Network property.
-    #[serde(rename = "Network")]
-    pub network: Option<Vec<String>>,
-    /// Volume property.
-    #[serde(rename = "Volume")]
-    pub volume: Option<Vec<String>>,
-}
-
-/// `Commit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Commit {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-}
-
-/// `LocalNodeState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LocalNodeState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `GenericResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `SwarmSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SwarmSpec {
@@ -101,6 +51,38 @@ pub struct SwarmSpec {
     /// TaskDefaults property.
     #[serde(rename = "TaskDefaults")]
     pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SwarmInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmInfo {
+    /// Cluster property.
+    #[serde(rename = "Cluster")]
+    pub cluster: Option<ClusterInfo>,
+    /// ControlAvailable property.
+    #[serde(rename = "ControlAvailable")]
+    pub control_available: Option<bool>,
+    /// Error property.
+    #[serde(rename = "Error")]
+    pub error: Option<String>,
+    /// LocalNodeState property.
+    #[serde(rename = "LocalNodeState")]
+    pub local_node_state: Option<LocalNodeState>,
+    /// Managers property.
+    #[serde(rename = "Managers")]
+    pub managers: Option<i64>,
+    /// NodeAddr property.
+    #[serde(rename = "NodeAddr")]
+    pub node_addr: Option<String>,
+    /// NodeID property.
+    #[serde(rename = "NodeID")]
+    pub node_id: Option<String>,
+    /// Nodes property.
+    #[serde(rename = "Nodes")]
+    pub nodes: Option<i64>,
+    /// RemoteManagers property.
+    #[serde(rename = "RemoteManagers")]
+    pub remote_managers: Option<Vec<PeerNode>>,
 }
 
 /// `SystemInfo` type.
@@ -294,14 +276,6 @@ pub struct SystemInfo {
     pub warnings: Option<Vec<String>>,
 }
 
-/// `NRIInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NRIInfo {
-    /// Info property.
-    #[serde(rename = "Info")]
-    pub info: Option<Vec<Vec<String>>>,
-}
-
 /// `ClusterInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterInfo {
@@ -337,15 +311,33 @@ pub struct ClusterInfo {
     pub version: Option<ObjectVersion>,
 }
 
-/// `ContainerdInfo` type.
+/// `LocalNodeState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerdInfo {
-    /// Address property.
-    #[serde(rename = "Address")]
-    pub address: Option<String>,
-    /// Namespaces property.
-    #[serde(rename = "Namespaces")]
-    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct LocalNodeState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `PeerNode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PeerNode {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// NodeID property.
+    #[serde(rename = "NodeID")]
+    pub node_id: Option<String>,
+}
+
+/// `FirewallInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FirewallInfo {
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Info property.
+    #[serde(rename = "Info")]
+    pub info: Option<Vec<Vec<String>>>,
 }
 
 /// `TLSInfo` type.
@@ -362,58 +354,58 @@ pub struct TLSInfo {
     pub trust_root: Option<String>,
 }
 
-/// `FirewallInfo` type.
+/// `ContainerdInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallInfo {
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<String>,
-    /// Info property.
-    #[serde(rename = "Info")]
-    pub info: Option<Vec<Vec<String>>>,
+pub struct ContainerdInfo {
+    /// Address property.
+    #[serde(rename = "Address")]
+    pub address: Option<String>,
+    /// Namespaces property.
+    #[serde(rename = "Namespaces")]
+    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `PeerNode` type.
+/// `GenericResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PeerNode {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// NodeID property.
-    #[serde(rename = "NodeID")]
-    pub node_id: Option<String>,
+pub struct GenericResources {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SwarmInfo` type.
+/// `DeviceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmInfo {
-    /// Cluster property.
-    #[serde(rename = "Cluster")]
-    pub cluster: Option<ClusterInfo>,
-    /// ControlAvailable property.
-    #[serde(rename = "ControlAvailable")]
-    pub control_available: Option<bool>,
-    /// Error property.
-    #[serde(rename = "Error")]
-    pub error: Option<String>,
-    /// LocalNodeState property.
-    #[serde(rename = "LocalNodeState")]
-    pub local_node_state: Option<LocalNodeState>,
-    /// Managers property.
-    #[serde(rename = "Managers")]
-    pub managers: Option<i64>,
-    /// NodeAddr property.
-    #[serde(rename = "NodeAddr")]
-    pub node_addr: Option<String>,
-    /// NodeID property.
-    #[serde(rename = "NodeID")]
-    pub node_id: Option<String>,
-    /// Nodes property.
-    #[serde(rename = "Nodes")]
-    pub nodes: Option<i64>,
-    /// RemoteManagers property.
-    #[serde(rename = "RemoteManagers")]
-    pub remote_managers: Option<Vec<PeerNode>>,
+pub struct DeviceInfo {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// Source property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+}
+
+/// `PluginsInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PluginsInfo {
+    /// Authorization property.
+    #[serde(rename = "Authorization")]
+    pub authorization: Option<Vec<String>>,
+    /// Log property.
+    #[serde(rename = "Log")]
+    pub log: Option<Vec<String>>,
+    /// Network property.
+    #[serde(rename = "Network")]
+    pub network: Option<Vec<String>>,
+    /// Volume property.
+    #[serde(rename = "Volume")]
+    pub volume: Option<Vec<String>>,
+}
+
+/// `Commit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Commit {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
 }
 
 /// `RegistryServiceConfig` type.
@@ -428,6 +420,14 @@ pub struct RegistryServiceConfig {
     /// Mirrors property.
     #[serde(rename = "Mirrors")]
     pub mirrors: Option<Vec<String>>,
+}
+
+/// `NRIInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NRIInfo {
+    /// Info property.
+    #[serde(rename = "Info")]
+    pub info: Option<Vec<Vec<String>>>,
 }
 
 // =============================================================================
@@ -468,14 +468,15 @@ pub struct SystemInfoArgs {
 pub async fn system_info_request<F>(
     client: DynNetClient,
     _args: &SystemInfoArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SystemInfo>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "http://localhost/v1.53/info",
+    let path = format!("/info",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
