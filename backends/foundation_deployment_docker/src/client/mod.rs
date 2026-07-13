@@ -23,7 +23,7 @@ use crate::generated::create::{container_create_request, ContainerCreateArgs, Co
 use crate::generated::info::SystemInfo;
 use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
 use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
-use crate::generated::shared::IDResponse;
+use crate::generated::shared::{ApiError, IDResponse};
 use crate::generated::start::{container_start_request, ContainerStartArgs};
 use crate::generated::stop::{container_stop_request, ContainerStopArgs};
 use crate::generated::unpause::{container_unpause_request, ContainerUnpauseArgs};
@@ -322,7 +322,12 @@ impl DockerClient {
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure or non-2xx/304 status.
+    ///
+    /// # Note
+    ///
+    /// Docker returns `304 Not Modified` when the container is already stopped
+    /// (or never started). This is not an error — the desired state is reached.
     pub async fn stop_container(
         &self,
         id: &str,
@@ -333,8 +338,12 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        container_stop_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
-        Ok(())
+        match container_stop_request(self.http(), &args, &self.base_url(), None::<NoMod>).await {
+            Ok(_) => Ok(()),
+            // Docker returns 304 when the container is already exited — not an error.
+            Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
     }
 
     /// Remove a container (`DELETE /containers/{id}`).

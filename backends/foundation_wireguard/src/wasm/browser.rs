@@ -123,7 +123,7 @@ impl BrowserWgNode {
     /// WHAT: Derive bootstrap keys from `seed`, create a `WgTunnel`, set up
     /// the `JsDevice`, and set the overlay IP.
     pub fn join(seed: &WgSeed, network_id: &NetworkId, mtu: usize) -> Self {
-        use crate::shared::keys::{BootstrapKeys, WgSeed};
+        
         let boot = seed.derive_bootstrap(network_id);
         let overlay_ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1));
         Self::new(

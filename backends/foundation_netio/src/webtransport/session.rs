@@ -1,134 +1,68 @@
 //! WebTransport session: accept/connect, streams, datagrams, close (spec-55, F06).
-//!
-//! WHY: The session is the unit of WebTransport — one Extended CONNECT handshake
-//! establishes a session, then bidi/uni streams and datagrams flow independently.
-//!
-//! WHAT: [`WtSession`] — open/accept bidirectional and unidirectional streams,
-//! send/receive datagrams, close. [`WtAcceptor`] — server-side accept loop.
-//! [`WtConnector`] — client-side connect.
-//!
-//! HOW: All I/O is progress-returning (`Stream`). The caller's valtron task drives
-//! the session by calling methods in a loop and mapping `Pending`/`Wait` to task
-//! readiness. Streams are a passthrough to the underlying QUIC connection — the
-//! only WebTransport-specific work is the Extended CONNECT handshake and capsule
-//! processing on the session control stream.
 
 use std::collections::VecDeque;
 
 use bytes::Bytes;
 use foundation_core::valtron::Stream;
 
+use crate::quic::{
+    QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
+};
+
 use super::proto::{self, CapsuleType, WtProtocolError};
 
-// ---------------------------------------------------------------------------
-// WtStreamError
-// ---------------------------------------------------------------------------
-
-/// Errors surfaced by WebTransport session methods.
+// ── WtStreamError ──
 #[derive(Debug)]
 pub enum WtStreamError {
-    /// The session was closed or rejected.
     Closed(WtProtocolError),
-    /// An underlying transport error.
     Transport(String),
-    /// Datagrams are not supported by the QUIC backend.
     DatagramsNotSupported,
 }
-
 impl std::fmt::Display for WtStreamError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Closed(e) => write!(f, "session closed: {e}"),
-            Self::Transport(msg) => write!(f, "transport error: {msg}"),
+            Self::Transport(m) => write!(f, "transport error: {m}"),
             Self::DatagramsNotSupported => write!(f, "datagrams not supported"),
         }
     }
 }
+impl std::error::Error for WtStreamError {}
 
-impl std::error::Error for WtStreamError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Closed(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// WtSession — one WebTransport session
-// ---------------------------------------------------------------------------
-
-/// State of a WebTransport session.
+// ── WtSessionState ──
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum WtSessionState {
-    /// Extended CONNECT is in progress (or not yet started).
-    Connecting,
-    /// Session is open; streams and datagrams can be used.
-    Open,
-    /// The peer sent DRAIN — stop creating new streams, drain existing ones.
-    Draining,
-    /// Session is closed (clean shutdown or error).
-    Closed,
-}
+pub enum WtSessionState { Connecting, Open, Draining, Closed }
 
-/// A WebTransport session over an established HTTP/3 connection.
-///
-/// WHY: After the Extended CONNECT handshake, the session provides multiplexed
-/// bidi/uni streams + optional unreliable datagrams over the QUIC connection.
-///
-/// WHAT: Methods for opening and accepting streams, sending and receiving
-/// datagrams, and closing the session.
-///
-/// HOW: Streams are direct pass-through to the QUIC connection — a WebTransport
-/// stream IS a QUIC stream with type prefix `0x54`. Datagrams are QUIC datagrams.
-/// The session control stream (the CONNECT stream) carries capsule frames for
-/// session lifecycle events.
-pub struct WtSession {
-    /// Current session state.
+// ── WtSession<C: QuicConnection> ──
+/// Generic WebTransport session over a real QUIC connection. The `C` type
+/// parameter is the concrete QUIC backend.
+pub struct WtSession<C: QuicConnection> {
+    pub conn: C,
     pub state: WtSessionState,
-    /// Whether the underlying QUIC backend supports datagrams (RFC 9221).
     datagrams_enabled: bool,
-    /// Whether this session was opened by us (client) or accepted (server).
-    _is_client: bool,
-    /// Buffered inbound datagrams.
     recv_datagrams: VecDeque<Bytes>,
-    /// Whether the session has been closed by the peer (capsule received).
     peer_close: Option<(u32, String)>,
-    /// Outbound datagrams queued for flush.
     send_datagrams: VecDeque<Bytes>,
 }
 
-impl WtSession {
-    /// WHY: Server accept or client connect returns a fresh session.
-    ///
-    /// WHAT: Create a new session in `Connecting` state.
-    #[must_use]
-    pub fn new(is_client: bool, datagrams_enabled: bool) -> Self {
+impl<C: QuicConnection> WtSession<C> {
+    pub fn new(conn: C, datagrams_enabled: bool) -> Self {
         Self {
+            conn,
             state: WtSessionState::Connecting,
             datagrams_enabled,
-            _is_client: is_client,
             recv_datagrams: VecDeque::new(),
             peer_close: None,
             send_datagrams: VecDeque::new(),
         }
     }
 
-    /// Transition the session to `Open` once Extended CONNECT succeeds.
-    pub fn on_connected(&mut self) {
-        self.state = WtSessionState::Open;
-    }
+    pub fn on_connected(&mut self) { self.state = WtSessionState::Open; }
 
-    /// Process a capsule frame received on the session control stream.
-    ///
-    /// Returns `true` if the session is now closed or draining.
-    #[must_use]
     pub fn on_capsule(&mut self, capsule: CapsuleType) -> bool {
         match capsule {
             CapsuleType::Datagram(data) => {
-                if self.datagrams_enabled {
-                    self.recv_datagrams.push_back(Bytes::from(data));
-                }
+                if self.datagrams_enabled { self.recv_datagrams.push_back(Bytes::from(data)); }
                 false
             }
             CapsuleType::CloseSession { code, reason } => {
@@ -136,189 +70,151 @@ impl WtSession {
                 self.state = WtSessionState::Closed;
                 true
             }
-            CapsuleType::Drain => {
-                self.state = WtSessionState::Draining;
-                true
-            }
+            CapsuleType::Drain => { self.state = WtSessionState::Draining; true }
             CapsuleType::Unknown(_, _) => false,
         }
     }
 
-    /// Whether the session is open (streams and datagrams can be used).
-    #[must_use]
-    pub fn is_open(&self) -> bool {
-        self.state == WtSessionState::Open
-    }
+    pub fn open_bidi(&mut self) -> Stream<Result<C::BidiStream, QuicStreamError>, ()> { self.conn.open_bidi() }
+    pub fn accept_bidi(&mut self) -> Stream<Result<C::BidiStream, QuicConnError>, ()> { self.conn.accept_bidi() }
+    pub fn open_uni(&mut self) -> Stream<Result<C::SendStream, QuicStreamError>, ()> { self.conn.open_send() }
+    pub fn accept_uni(&mut self) -> Stream<Result<C::RecvStream, QuicConnError>, ()> { self.conn.accept_recv() }
 
-    /// Whether the session is closed.
-    #[must_use]
-    pub fn is_closed(&self) -> bool {
-        self.state == WtSessionState::Closed
-    }
-
-    /// The close code and reason if the peer closed the session, or our own.
-    #[must_use]
+    pub fn datagrams_enabled(&self) -> bool { self.datagrams_enabled }
+    pub fn is_open(&self) -> bool { self.state == WtSessionState::Open }
+    pub fn is_closed(&self) -> bool { self.state == WtSessionState::Closed }
     pub fn close_info(&self) -> Option<(u32, &str)> {
-        self.peer_close
-            .as_ref()
-            .map(|(c, r)| (*c, r.as_str()))
+        self.peer_close.as_ref().map(|(c, r)| (*c, r.as_str()))
     }
 
-    /// Encode the close session capsule for sending to the peer.
-    #[must_use]
-    pub fn build_close_capsule(code: u32, reason: &str) -> Vec<u8> {
-        proto::encode_close_session(code, reason)
-    }
-
-    // ── Datagram API ──
-
-    /// Whether the QUIC backend supports datagrams.
-    #[must_use]
-    pub fn datagrams_enabled(&self) -> bool {
-        self.datagrams_enabled
-    }
-
-    /// Queue an outbound datagram. Returns an error if datagrams are not enabled
-    /// or the session is closed.
     pub fn queue_datagram(&mut self, data: Bytes) -> Result<(), WtStreamError> {
-        if !self.datagrams_enabled {
-            return Err(WtStreamError::DatagramsNotSupported);
-        }
+        if !self.datagrams_enabled { return Err(WtStreamError::DatagramsNotSupported); }
         if self.is_closed() {
-            return Err(WtStreamError::Closed(WtProtocolError::SessionClosed {
-                code: 0,
-                reason: String::new(),
-            }));
+            return Err(WtStreamError::Closed(WtProtocolError::SessionClosed { code: 0, reason: String::new() }));
         }
         self.send_datagrams.push_back(data);
         Ok(())
     }
 
-    /// Drain all pending outbound datagrams for the caller to feed to the QUIC layer.
-    pub fn drain_send_datagrams(&mut self) -> Vec<Bytes> {
-        self.send_datagrams.drain(..).collect()
+    pub fn flush_datagrams(&mut self) -> Stream<Result<(), QuicStreamError>, ()> {
+        while let Some(data) = self.send_datagrams.pop_front() {
+            match self.conn.send_datagram(&data) {
+                Stream::Next(Ok(())) => continue,
+                Stream::Next(Err(e)) => return Stream::Next(Err(e)),
+                _ => { self.send_datagrams.push_front(data); return Stream::Pending(()); }
+            }
+        }
+        Stream::Next(Ok(()))
     }
 
-    /// Try to receive a datagram. Returns `Stream::Next(Some(data))` if one is
-    /// available, `Stream::Pending(())` if none are queued, or
-    /// `Stream::Next(Err(...))` on session close.
+    pub fn pump_recv_datagrams(&mut self) {
+        loop {
+            match self.conn.recv_datagram() {
+                Stream::Next(Ok(Some(data))) => self.recv_datagrams.push_back(data),
+                _ => break,
+            }
+        }
+    }
+
     pub fn try_recv_datagram(&mut self) -> Stream<Result<Option<Bytes>, WtStreamError>, ()> {
+        self.pump_recv_datagrams();
         if let Some((code, reason)) = &self.peer_close {
-            return Stream::Next(Err(WtStreamError::Closed(WtProtocolError::SessionClosed {
-                code: *code,
-                reason: reason.clone(),
-            })));
+            return Stream::Next(Err(WtStreamError::Closed(WtProtocolError::SessionClosed { code: *code, reason: reason.clone() })));
         }
-        if let Some(data) = self.recv_datagrams.pop_front() {
-            Stream::Next(Ok(Some(data)))
-        } else {
-            Stream::Pending(())
-        }
+        if let Some(data) = self.recv_datagrams.pop_front() { Stream::Next(Ok(Some(data))) } else { Stream::Pending(()) }
+    }
+
+    pub fn build_close_capsule(code: u32, reason: &str) -> Vec<u8> { proto::encode_close_session(code, reason) }
+    pub fn close(&mut self, code: u64, reason: &[u8]) { self.conn.close(code, reason); self.state = WtSessionState::Closed; }
+}
+
+// ── WtAcceptor<C: QuicConnection> ──
+pub struct WtAcceptor<C: QuicConnection> {
+    accepted: VecDeque<WtSession<C>>,
+}
+
+impl<C: QuicConnection> WtAcceptor<C> {
+    pub fn new() -> Self { Self { accepted: VecDeque::new() } }
+    pub fn queue_session(&mut self, session: WtSession<C>) { self.accepted.push_back(session); }
+    pub fn try_accept(&mut self) -> Stream<WtSession<C>, ()> {
+        if let Some(s) = self.accepted.pop_front() { Stream::Next(s) } else { Stream::Pending(()) }
+    }
+    pub fn pending(&self) -> usize { self.accepted.len() }
+
+    /// Build 200 response headers for Extended CONNECT (QPACK-encoded by caller).
+    pub fn build_connect_response_headers() -> Vec<(Vec<u8>, Vec<u8>)> {
+        vec![
+            (b":status".to_vec(), b"200".to_vec()),
+            (b"sec-webtransport-http3-draft".to_vec(), b"draft-07".to_vec()),
+        ]
     }
 }
 
-// ---------------------------------------------------------------------------
-// WtAcceptor — server-side
-// ---------------------------------------------------------------------------
-
-/// Server-side WebTransport session acceptor.
-///
-/// WHY: A server wants to accept inbound WebTransport sessions from HTTP/3
-/// Extended CONNECT requests.
-///
-/// WHAT: Wraps an H3 connection. `accept()` returns a [`WtSession`] when an
-/// incoming WebTransport request arrives.
-///
-/// HOW: The caller drives the accept loop: read inbound bidirectional streams,
-/// check for the `:protocol = webtransport` pseudo-header, perform the Extended
-/// CONNECT handshake, and return a session.
-pub struct WtAcceptor {
-    /// Accepted sessions awaiting pickup by the application.
-    accepted: VecDeque<WtSession>,
+impl<C: QuicConnection> Default for WtAcceptor<C> {
+    fn default() -> Self { Self::new() }
 }
 
-impl WtAcceptor {
-    /// Create a new acceptor with no queued sessions.
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            accepted: VecDeque::new(),
-        }
-    }
-
-    /// WHY: The accept loop calls this after completing an Extended CONNECT
-    /// handshake to queue a ready session.
-    ///
-    /// WHAT: Push a successfully-established session into the accept queue.
-    pub fn queue_session(&mut self, session: WtSession) {
-        self.accepted.push_back(session);
-    }
-
-    /// Try to accept a session. Returns `Stream::Next(session)` if one is
-    /// available, `Stream::Pending(())` if none are queued yet.
-    pub fn try_accept(&mut self) -> Stream<WtSession, ()> {
-        if let Some(session) = self.accepted.pop_front() {
-            Stream::Next(session)
-        } else {
-            Stream::Pending(())
-        }
-    }
-
-    /// Build an Extended CONNECT accept response.
-    ///
-    /// After receiving a request with `:protocol = webtransport` on a bidi stream,
-    /// the server sends back `200 OK` on that same stream. The stream then becomes
-    /// the session control stream for capsule frames.
-    #[must_use]
-    pub fn build_connect_response() -> Vec<u8> {
-        // Minimal HTTP/3 200 response for Extended CONNECT.
-        // In a real implementation this would go through the h3 framing layer.
-        b"HTTP/3 200 OK\r\nsec-webtransport-http3-draft: draft-07\r\n\r\n".to_vec()
-    }
-
-    /// Number of queued sessions.
-    #[must_use]
-    pub fn pending(&self) -> usize {
-        self.accepted.len()
-    }
-}
-
-impl Default for WtAcceptor {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-// ---------------------------------------------------------------------------
-// WtConnector — client-side
-// ---------------------------------------------------------------------------
-
-/// Client-side WebTransport connector.
-///
-/// WHY: A client initiates a WebTransport session by sending an Extended CONNECT
-/// request on a new bidi stream.
-///
-/// WHAT: Builds the CONNECT request, processes the server response, and returns
-/// a [`WtSession`].
+// ── WtConnector ──
 pub struct WtConnector;
 
 impl WtConnector {
-    /// Build an Extended CONNECT request for WebTransport.
-    ///
-    /// The request is sent on a new bidi stream opened by the client. After the
-    /// server responds with 200, that stream becomes the session control stream.
-    #[must_use]
-    pub fn build_connect_request(authority: &str, path: &str) -> Vec<u8> {
-        let request = format!(
-            "CONNECT {path} HTTP/3\r\n\
-             :authority: {authority}\r\n\
-             :protocol: webtransport\r\n\
-             sec-webtransport-http3-draft: draft-07\r\n\
-             \r\n"
-        );
-        request.into_bytes()
+    /// Build request headers for Extended CONNECT (QPACK-encoded by caller).
+    pub fn build_connect_headers(authority: &str, path: &str) -> Vec<(Vec<u8>, Vec<u8>)> {
+        vec![
+            (b":method".to_vec(), b"CONNECT".to_vec()),
+            (b":protocol".to_vec(), b"webtransport".to_vec()),
+            (b":scheme".to_vec(), b"https".to_vec()),
+            (b":authority".to_vec(), authority.as_bytes().to_vec()),
+            (b":path".to_vec(), path.as_bytes().to_vec()),
+            (b"sec-webtransport-http3-draft".to_vec(), b"draft-07".to_vec()),
+        ]
     }
 }
 
-// ---------------------------------------------------------------------------
-// Tests
+// ── NoIoSession — sans-I/O, no QUIC connection ──
+pub struct NoIoSession {
+    pub state: WtSessionState,
+    datagrams_enabled: bool,
+    recv_datagrams: VecDeque<Bytes>,
+    peer_close: Option<(u32, String)>,
+    send_datagrams: VecDeque<Bytes>,
+}
+
+impl NoIoSession {
+    pub fn new(_is_client: bool, datagrams_enabled: bool) -> Self {
+        Self {
+            state: WtSessionState::Connecting,
+            datagrams_enabled,
+            recv_datagrams: VecDeque::new(),
+            peer_close: None,
+            send_datagrams: VecDeque::new(),
+        }
+    }
+    pub fn on_connected(&mut self) { self.state = WtSessionState::Open; }
+    pub fn on_capsule(&mut self, capsule: CapsuleType) -> bool {
+        match capsule {
+            CapsuleType::Datagram(data) => {
+                if self.datagrams_enabled { self.recv_datagrams.push_back(Bytes::from(data)); }
+                false
+            }
+            CapsuleType::CloseSession { code, reason } => { self.peer_close = Some((code, reason)); self.state = WtSessionState::Closed; true }
+            CapsuleType::Drain => { self.state = WtSessionState::Draining; true }
+            CapsuleType::Unknown(_, _) => false,
+        }
+    }
+    pub fn is_open(&self) -> bool { self.state == WtSessionState::Open }
+    pub fn is_closed(&self) -> bool { self.state == WtSessionState::Closed }
+    pub fn close_info(&self) -> Option<(u32, &str)> { self.peer_close.as_ref().map(|(c,r)| (*c, r.as_str())) }
+    pub fn datagrams_enabled(&self) -> bool { self.datagrams_enabled }
+    pub fn queue_datagram(&mut self, data: Bytes) -> Result<(), WtStreamError> {
+        if !self.datagrams_enabled { return Err(WtStreamError::DatagramsNotSupported); }
+        if self.is_closed() { return Err(WtStreamError::Closed(WtProtocolError::SessionClosed { code: 0, reason: String::new() })); }
+        self.send_datagrams.push_back(data);
+        Ok(())
+    }
+    pub fn drain_send_datagrams(&mut self) -> Vec<Bytes> { self.send_datagrams.drain(..).collect() }
+    pub fn try_recv_datagram(&mut self) -> Stream<Result<Option<Bytes>, WtStreamError>, ()> {
+        if let Some((c, r)) = &self.peer_close { return Stream::Next(Err(WtStreamError::Closed(WtProtocolError::SessionClosed { code: *c, reason: r.clone() }))); }
+        if let Some(d) = self.recv_datagrams.pop_front() { Stream::Next(Ok(Some(d))) } else { Stream::Pending(()) }
+    }
+}

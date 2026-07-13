@@ -50,6 +50,7 @@ workspace = true
 [features]
 buildkit = ["foundation_connectrpc"]
 default = []
+integration-tests = []
 docker = [
     "docker_ping",
     "docker_archive",

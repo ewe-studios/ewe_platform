@@ -5135,6 +5135,7 @@ dependencies = [
  "getrandom 0.2.16",
  "hex",
  "hkdf",
+ "js-sys",
  "serde",
  "serial_test",
  "smoltcp",
@@ -5144,6 +5145,8 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-test",
+ "wasm-bindgen",
+ "web-sys",
  "zeroize",
 ]
 
