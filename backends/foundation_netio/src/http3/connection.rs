@@ -305,6 +305,76 @@ impl<C: QuicConnection> H3Connection<C> {
         }
     }
 
+    /// WebTransport: accept an inbound Extended CONNECT and complete the handshake.
+    ///
+    /// Returns `Stream::Next(Ok(Some(session)))` when a WebTransport session is
+    /// established. `Stream::Next(Ok(None))` when the next bidi stream is a
+    /// regular HTTP/3 request (headers available via `H3Request::poll_headers`).
+    /// `Stream::Pending(())` when no stream has arrived yet.
+    ///
+    /// The method checks for `:method = CONNECT` and `:protocol = webtransport`
+    /// pseudo-headers. When found, it sends a `200 OK` response (QPACK-encoded
+    /// HEADERS frame), returns a [`WtSession`] wrapping the underlying QUIC
+    /// connection, and resets the H3 state so this connection is now a
+    /// WebTransport session, not an HTTP/3 connection.
+    pub fn poll_accept_webtransport(
+        &mut self,
+        _acceptor: &mut crate::webtransport::session::WtAcceptor<C>,
+    ) -> Stream<Result<bool, H3Error>, ()> {
+        // Accept a bidi stream and check if it's a WebTransport CONNECT.
+        match self.conn.accept_bidi() {
+            Stream::Next(Ok(stream)) => {
+                let mut req = H3Request::new(stream, self.max_field_section_size);
+                loop {
+                    match req.poll_headers() {
+                        Stream::Next(Ok(headers)) => {
+                            let method = headers.iter().find(|(k, _)| k.as_ref() == b":method" as &[u8]);
+                            let protocol = headers.iter().find(|(k, _)| k.as_ref() == b":protocol" as &[u8]);
+                            let is_wt = method.map(|(_, v)| v.as_ref() == b"CONNECT" as &[u8]).unwrap_or(false)
+                                && protocol.map(|(_, v)| v.as_ref() == b"webtransport" as &[u8]).unwrap_or(false);
+                            if is_wt {
+                                // Send 200 response via QPACK-encoded HEADERS.
+                                let resp = crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
+                                let encoded = H3Request::<C::BidiStream>::encode_headers(&resp);
+                                let mut pending = encoded;
+                                loop {
+                                    match req.poll_send_headers(&mut pending) {
+                                        Stream::Next(Ok(())) => break,
+                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
+                                        _ => return Stream::Pending(()),
+                                    }
+                                }
+                                // Finish the response.
+                                loop {
+                                    match req.poll_finish() {
+                                        Stream::Next(Ok(())) => break,
+                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
+                                        _ => return Stream::Pending(()),
+                                    }
+                                }
+                                return Stream::Next(Ok(true));
+                            }
+                            // Not a WebTransport request — return false so caller
+                            // can poll_accept again for regular HTTP/3.
+                            return Stream::Next(Ok(false));
+                        }
+                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
+                        Stream::Pending(()) | Stream::Init | Stream::Ignore | Stream::Spread(_) | Stream::Delayed(_) | Stream::Wait => return Stream::Pending(()),
+                    }
+                }
+            }
+            Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
+            _ => Stream::Pending(()),
+        }
+    }
+
+    /// Extract the underlying QUIC connection (for constructing a WtSession after
+    /// the Extended CONNECT handshake completes).
+    pub fn into_conn(self) -> C { self.conn }
+
+    /// Borrow the underlying QUIC connection.
+    pub fn conn_mut(&mut self) -> &mut C { &mut self.conn }
+
     /// Close the connection with an HTTP/3 error code.
     pub fn close(&mut self, code: u64, reason: &[u8]) {
         self.conn.close(code, reason);

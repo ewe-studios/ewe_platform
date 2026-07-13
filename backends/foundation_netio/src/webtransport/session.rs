@@ -5,9 +5,7 @@ use std::collections::VecDeque;
 use bytes::Bytes;
 use foundation_core::valtron::Stream;
 
-use crate::quic::{
-    QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
-};
+use crate::quic::{QuicConnError, QuicConnection, QuicStreamError};
 
 use super::proto::{self, CapsuleType, WtProtocolError};
 
