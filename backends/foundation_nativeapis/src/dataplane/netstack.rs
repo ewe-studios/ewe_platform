@@ -524,7 +524,10 @@ impl Drop for OverlayListener {
     }
 }
 
-/// An overlay TCP stream (a single connection).
+/// An overlay TCP stream (a single connection). Cheaply cloneable — clones
+/// share the same underlying smoltcp socket via `Arc<Mutex<Inner>>`, so they
+/// must be driven from the same thread.
+#[derive(Clone)]
 pub struct OverlayStream {
     inner: Arc<Mutex<Inner>>,
     handle: SocketHandle,

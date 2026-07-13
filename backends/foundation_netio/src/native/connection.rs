@@ -682,10 +682,7 @@ impl SplitReadStream for Connection {
                 "a completion socket cannot be split by cloning: its inbox is keyed \
                  by one Token. Use ReadWriteStream::split_read_write.",
             )),
-            Self::Overlay(_) => Err(std::io::Error::new(
-                std::io::ErrorKind::Unsupported,
-                "overlay connections use internal Arc sharing; no clone needed",
-            )),
+            Self::Overlay(o) => Ok(Connection::Overlay(o.clone_box())),
         }
     }
 }
@@ -892,10 +889,7 @@ impl Connection {
                 std::io::ErrorKind::Unsupported,
                 "a completion socket cannot be cloned: its inbox is keyed by one Token",
             )),
-            Self::Overlay(_) => Err(std::io::Error::new(
-                std::io::ErrorKind::Unsupported,
-                "overlay connections use internal Arc sharing; no clone needed",
-            )),
+            Self::Overlay(o) => Ok(Connection::Overlay(o.clone_box())),
         }
     }
 

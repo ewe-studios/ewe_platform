@@ -19,9 +19,9 @@ use foundation_netio::native::connection::OverlayReadWrite;
 
 /// Wraps a smoltcp `OverlayStream` as an `OverlayReadWrite` trait object so it
 /// can be boxed into `Connection::Overlay(Box<dyn OverlayReadWrite>)`.
-#[derive(Debug)]
-pub(crate) struct OverlayConnection {
-    pub(crate) stream: OverlayStream,
+#[derive(Debug, Clone)]
+pub struct OverlayConnection {
+    pub stream: OverlayStream,
 }
 
 impl io::Read for OverlayConnection {
@@ -42,9 +42,9 @@ impl io::Write for OverlayConnection {
 
 impl OverlayReadWrite for OverlayConnection {
     fn clone_box(&self) -> Box<dyn OverlayReadWrite> {
-        // Never called — Connection::split_connection and try_clone return
-        // Unsupported for Overlay connections (the Arc<Mutex<..>> is already
-        // shared internally, no clone needed).
-        unreachable!("overlay connections use internal Arc sharing")
+        // OverlayStream derives Clone — cheap Arc ref-count bump.
+        Box::new(Self {
+            stream: self.stream.clone(),
+        })
     }
 }
