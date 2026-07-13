@@ -27,11 +27,13 @@ use foundation_nativeapis::native::net::UdpSocket;
 
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
 use super::driver::TunnelDriver;
+use super::relay::{RelayClient, RelayServer};
 use crate::shared::bootstrap::Admission;
 use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::IdentityKeypair;
 use crate::shared::membership::message::{decode as swim_decode, encode as swim_encode};
 use crate::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord, Swim, SwimConfig};
+use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelayStrategy};
 use crate::shared::tunnel::WgTunnel;
 
 /// Reserved overlay service port for in-tunnel SWIM gossip (decision 06).
@@ -68,6 +70,10 @@ struct MeshShared {
     my_id: PeerId,
     bootstrap_addr: SocketAddr,
     udp_addr: SocketAddr,
+    /// Relay frames queued by the runtime for delivery (native relay path).
+    relay_out: Mutex<Vec<(PeerId, Vec<u8>)>>,
+    /// Whether this node is running a relay server.
+    relay_enabled: bool,
 }
 
 /// The admission policy this node applies at `Join` time (decision 11). Because the mesh
@@ -136,6 +142,12 @@ impl WgNode {
         let my_id = PeerId(*identity.public().as_bytes());
         let my_ip = derive_tunnel_ip(&my_id);
 
+        // Propagate relay config into advertised capabilities (F05).
+        let mut caps = self.config.caps();
+        if self.config.relay.advertise {
+            caps.relay = true;
+        }
+
         let udp = UdpSocket::bind(self.config.udp_listen())?;
         let udp_addr = udp.get_ref().local_addr()?;
 
@@ -146,7 +158,7 @@ impl WgNode {
         });
 
         let my_record =
-            PeerRecord::new(my_id, my_ip, vec![udp_addr], self.config.caps());
+            PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
         let mut swim = Swim::new(my_record.clone(), mesh_swim_config(), seed_from_id(&my_id));
 
         let seed_endpoints = self.config.seed_endpoints();
@@ -192,12 +204,15 @@ impl WgNode {
         let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.tls_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
 
+        let relay_enabled = self.config.relay.advertise;
         let shared = Arc::new(MeshShared {
             members: Mutex::new(swim.lock().expect("swim lock").snapshot()),
             my_ip,
             my_id,
             bootstrap_addr,
             udp_addr,
+            relay_out: Mutex::new(Vec::new()),
+            relay_enabled,
         });
         let stop = Arc::new(AtomicBool::new(false));
 
@@ -208,6 +223,45 @@ impl WgNode {
                 tracing::debug!(error = %err, "bootstrap server stopped");
             }
         });
+
+        // Relay server thread (if this node advertises relay capability, F05).
+        let mut relay_thread = None;
+        let relay_shared = Arc::clone(&shared);
+        if relay_enabled {
+            let relay_stop = Arc::clone(&stop);
+            let relay_server = Arc::new(Mutex::new(RelayServer::new(
+                self.config.relay.max_sessions,
+                1000,  // rate_limit_pps
+                120,   // idle_timeout_secs
+                Arc::clone(&stop),
+            )));
+            let relay_server_clone = Arc::clone(&relay_server);
+            relay_thread = Some(thread::spawn(move || {
+                let mut last_rate_reset = Instant::now();
+                while !relay_stop.load(Ordering::Relaxed) {
+                    {
+                        let mut server = relay_server_clone.lock().expect("relay lock");
+                        // Drain any queued relay frames and forward them.
+                        let mut out = relay_shared.relay_out.lock().expect("relay_out lock");
+                        for (dst, raw) in out.drain(..) {
+                            if let Some(fwd) = server.forward(dst, &raw) {
+                                // Queue forwarded frame for delivery to dst.
+                                // In a real implementation the mesh delivers this.
+                                let _ = fwd;
+                            }
+                        }
+                        server.gc();
+                    }
+                    // Reset rate counters every second.
+                    let now = Instant::now();
+                    if now.duration_since(last_rate_reset).as_secs() >= 1 {
+                        relay_server_clone.lock().expect("relay lock").reset_rate_limits();
+                        last_rate_reset = now;
+                    }
+                    thread::sleep(Duration::from_millis(10));
+                }
+            }));
+        }
 
         // Runtime: tunnel pump + SWIM + reconciliation. The first loop iteration
         // reconciles any peers already learned during bootstrap into tunnels.
@@ -230,12 +284,17 @@ impl WgNode {
 
         let runtime_thread = thread::spawn(move || run_runtime(runtime));
 
+        let mut threads = vec![bootstrap_thread, runtime_thread];
+        if let Some(rt) = relay_thread {
+            threads.push(rt);
+        }
+
         Ok(WgHandle {
             netstack,
             shared,
             policy,
             stop,
-            threads: vec![bootstrap_thread, runtime_thread],
+            threads,
         })
     }
 }

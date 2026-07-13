@@ -4,6 +4,7 @@ pub mod bootstrap;
 pub mod driver;
 pub mod mtls;
 pub mod node;
+pub mod relay;
 
 pub use bootstrap::{
     BootstrapClient, BootstrapConnection, BootstrapHandler, BootstrapServer,
