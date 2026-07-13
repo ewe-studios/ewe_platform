@@ -355,3 +355,71 @@ impl DockerClient {
         Ok(Vec::new())
     }
 }
+
+    /// Save (export) an image as a tar archive (`GET /images/{name}/get`).
+    ///
+    /// Bollard calls this `export_image`. Returns raw tar bytes.
+    /// Manual request builder — the generated function tries to JSON-parse
+    /// the tar stream, which fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn image_save(
+        &self,
+        name: &str,
+    ) -> Result<Vec<u8>, DockerError> {
+        use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+        use foundation_netio::shared::client::http_client::HttpClient;
+
+        let endpoint_url = format!("{}/images/{}/get", self.base_url(), name);
+        let builder = PreparedRequestBuilder::get(&endpoint_url)
+            .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+        let response = self.http().send_async(builder.build()).await
+            .map_err(|e| crate::generated::shared::ApiError::RequestSendFailed(e.to_string()))?;
+
+        let status: usize = response.get_status().into();
+        if status < 200 || status >= 300 {
+            return Err(DockerError::Api { status: status as u16, message: "(no body)".into() });
+        }
+        Ok(collect_bytes_from_send_safe(response.take_body()))
+    }
+
+    /// Inspect an image on a registry (`GET /distribution/{name}/json`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn distribution_inspect(
+        &self,
+        name: &str,
+    ) -> Result<crate::generated::json::DistributionInspect, DockerError> {
+        use crate::generated::json::{distribution_inspect_request, DistributionInspectArgs};
+
+        let args = DistributionInspectArgs {
+            name: name.to_string(),
+        };
+        let response = distribution_inspect_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        Ok(response.body)
+    }
+
+    /// Prune the build cache (`POST /build/prune`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn build_prune(
+        &self,
+        reserved_space: Option<u32>,
+        max_used_space: Option<u32>,
+    ) -> Result<serde_json::Value, DockerError> {
+        use crate::generated::prune::{build_prune_request, BuildPruneArgs};
+
+        let args = BuildPruneArgs {
+            reserved_space: reserved_space.map(|v| v.to_string()),
+            max_used_space: max_used_space.map(|v| v.to_string()),
+        };
+        let response = build_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        Ok(response.body)
+    }

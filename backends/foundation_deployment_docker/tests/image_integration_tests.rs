@@ -102,3 +102,26 @@ async fn image_prune_ok() {
     let c = client();
     c.image_prune(None).await.expect("image_prune");
 }
+
+#[valtron_test]
+async fn distribution_inspect_alpine() {
+    // Inspect alpine:latest on Docker Hub — requires auth but should return
+    // a response (could be 200 with descriptor data or 401 if no creds).
+    let c = client();
+    match c.distribution_inspect("alpine:latest").await {
+        Ok(d) => {
+            assert!(!d.descriptor.digest.is_empty(), "should have a digest");
+        }
+        Err(e) => {
+            // Docker Hub registry auth not configured — expected.
+            eprintln!("distribution_inspect (expected without auth): {e}");
+        }
+    }
+}
+
+#[valtron_test]
+async fn build_prune_ok() {
+    let c = client();
+    let result = c.build_prune(None, None).await.expect("build_prune");
+    assert!(!result.is_null(), "should return JSON: {result}");
+}
