@@ -169,6 +169,20 @@ pub trait QuicConnection: Send {
 
     /// Close the connection with an application error code. Fire and forget.
     fn close(&mut self, code: u64, reason: &[u8]);
+
+    // ── Datagram methods (RFC 9221, needed by WebTransport / F06) ──
+
+    /// Send `data` as a QUIC DATAGRAM frame (RFC 9221). Returns an error if
+    /// datagrams are not supported or the connection is lost.
+    fn send_datagram(&mut self, data: &[u8]) -> Stream<Result<(), QuicStreamError>, ()>;
+
+    /// Receive the next inbound QUIC DATAGRAM, or `Pending` when none are queued.
+    fn recv_datagram(&mut self) -> Stream<Result<Option<Bytes>, QuicConnError>, ()>;
+
+    /// Maximum datagram size the peer can receive, or `None` if datagrams
+    /// are not supported (RFC 9221 not negotiated).
+    #[must_use]
+    fn max_datagram_size(&self) -> Option<usize>;
 }
 
 /// The write half of a QUIC stream.

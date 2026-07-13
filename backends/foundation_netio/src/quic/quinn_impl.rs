@@ -184,6 +184,65 @@ impl QuicConnection for QuinnConnection {
             code: code.into_inner(),
         });
     }
+
+    fn send_datagram(&mut self, data: &[u8]) -> Stream<Result<(), QuicStreamError>, ()> {
+        let Ok(mut guard) = lock(&self.state) else {
+            return Stream::Next(Err(QuicStreamError::ConnClosed(
+                QuicConnError::Internal("state poisoned".into()),
+            )));
+        };
+        let max_size = guard.max_datagram_size;
+        if let Some(max) = max_size {
+            if data.len() > max {
+                return Stream::Next(Err(QuicStreamError::Other(
+                    format!("datagram too large: {} > max {}", data.len(), max).into(),
+                )));
+            }
+            let dgram = bytes::Bytes::copy_from_slice(data);
+            let result = guard.conn.datagrams().send(dgram, true);
+            drop(guard);
+            match result {
+                Ok(()) => Stream::Next(Ok(())),
+                Err(quinn_proto::SendDatagramError::Blocked(_)) => Stream::Pending(()),
+                Err(quinn_proto::SendDatagramError::UnsupportedByPeer) => Stream::Next(Err(
+                    QuicStreamError::Other("datagrams unsupported by peer".into()),
+                )),
+                Err(quinn_proto::SendDatagramError::TooLarge) => Stream::Next(Err(
+                    QuicStreamError::Other("datagram too large for path MTU".into()),
+                )),
+                Err(quinn_proto::SendDatagramError::Disabled) => Stream::Next(Err(
+                    QuicStreamError::Other("datagrams disabled at endpoint".into()),
+                )),
+            }
+        } else {
+            drop(guard);
+            Stream::Next(Err(QuicStreamError::Other(
+                "datagrams not negotiated".into(),
+            )))
+        }
+    }
+
+    fn recv_datagram(&mut self) -> Stream<Result<Option<Bytes>, QuicConnError>, ()> {
+        let Ok(mut guard) = lock(&self.state) else {
+            return Stream::Next(Err(QuicConnError::Internal("state poisoned".into())));
+        };
+        let closed = guard.closed.as_ref().map(|e| clone_conn_error(e));
+        if let Some(err) = closed {
+            return Stream::Next(Err(err));
+        }
+        if let Some(data) = guard.recv_datagrams.pop_front() {
+            Stream::Next(Ok(Some(data)))
+        } else {
+            Stream::Pending(())
+        }
+    }
+
+    fn max_datagram_size(&self) -> Option<usize> {
+        let Ok(guard) = lock(&self.state) else {
+            return None;
+        };
+        guard.max_datagram_size
+    }
 }
 
 /// The write half of a `quinn-proto` stream.

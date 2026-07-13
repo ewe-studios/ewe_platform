@@ -73,6 +73,8 @@ fn our_settings(max_field_section_size: u64) -> Frame {
         (setting::QPACK_MAX_TABLE_CAPACITY, 0),
         (setting::QPACK_BLOCKED_STREAMS, 0),
         (setting::MAX_FIELD_SECTION_SIZE, max_field_section_size),
+        (setting::ENABLE_CONNECT_PROTOCOL, 1),   // RFC 9220 Extended CONNECT
+        (setting::ENABLE_WEBTRANSPORT, 1),        // draft-ietf-webtrans-http3 (F06)
     ])
 }
 

@@ -21,6 +21,7 @@ use std::collections::VecDeque;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
+use bytes::Bytes;
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;
@@ -47,6 +48,12 @@ pub(crate) struct ConnState {
     /// Set once the connection has ended; every subsequent trait call reports it
     /// rather than pretending the connection is merely idle.
     pub(crate) closed: Option<QuicConnError>,
+    /// Inbound QUIC datagrams (RFC 9221) awaiting `recv_datagram`.
+    pub(crate) recv_datagrams: VecDeque<Bytes>,
+    /// Whether the peer supports QUIC datagrams (RFC 9221).
+    pub(crate) datagrams_supported: bool,
+    /// Maximum datagram size the peer can receive, if supported.
+    pub(crate) max_datagram_size: Option<usize>,
 }
 
 impl ConnState {

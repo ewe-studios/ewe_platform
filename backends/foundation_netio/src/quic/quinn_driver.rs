@@ -243,6 +243,9 @@ impl QuicDriver {
             inbound_bidi: VecDeque::new(),
             inbound_uni: VecDeque::new(),
             closed: None,
+            recv_datagrams: VecDeque::new(),
+            datagrams_supported: false,
+            max_datagram_size: None,
         }));
         self.conns.insert(handle, Arc::clone(&state));
         state
@@ -369,6 +372,8 @@ impl QuicDriver {
                 match event {
                     quinn_proto::Event::Connected => {
                         // For a server this is the accept point.
+                        guard.datagrams_supported = true;
+                        guard.max_datagram_size = guard.conn.datagrams().max_size();
                         if let Ok(mut queue) = self.accepted.lock() {
                             queue.push_back(QuinnConnection::new(Arc::clone(state)));
                         }
@@ -381,6 +386,12 @@ impl QuicDriver {
                             guard.push_inbound(dir, id.into());
                         }
                     }
+                    quinn_proto::Event::DatagramReceived => {
+                        // Drain all queued datagrams into ConnState's buffer.
+                        while let Some(data) = guard.conn.datagrams().recv() {
+                            guard.recv_datagrams.push_back(bytes::Bytes::from(data));
+                        }
+                    }
                     quinn_proto::Event::ConnectionLost { reason } => {
                         guard.closed = Some(conn_error_from(&reason));
                         closed_handles.push(*handle);
@@ -388,8 +399,8 @@ impl QuicDriver {
                             reason: reason.to_string(),
                         });
                     }
-                    // Readable/Writable/Finished/Stopped are observed by the stream
-                    // handles themselves on their next call; nothing to do here.
+                    // Readable/Writable/Finished/Stopped/DatagramsUnblocked are
+                    // observed by the stream/datagram handles on their next call.
                     _ => {}
                 }
             }
