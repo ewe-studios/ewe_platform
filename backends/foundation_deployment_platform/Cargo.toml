@@ -15,6 +15,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
 
 # Docker API
 bollard = "0.21"

@@ -16,6 +16,7 @@ pub mod group;
 pub mod image;
 pub mod network;
 pub mod wait_for;
+pub mod wireguard;
 
 pub use client::DockerClient;
 pub use config::{ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount, VolumeSource};
