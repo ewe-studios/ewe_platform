@@ -26,34 +26,6 @@ use super::membership::Capabilities;
 // Serde helpers
 // ---------------------------------------------------------------------------
 
-/// Serde module: deserialise `Duration` from TOML integer seconds.
-#[allow(dead_code)]
-mod duration_secs {
-    use serde::{Deserialize, Deserializer, Serializer};
-    use std::time::Duration;
-
-    pub fn serialize<S: Serializer>(d: &Duration, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_u64(d.as_secs())
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Duration, D::Error> {
-        let secs: u64 = Deserialize::deserialize(d)?;
-        Ok(Duration::from_secs(secs))
-    }
-}
-
-/// Serde module: deserialise an optional `SocketAddr` from a bare TOML string
-/// (e.g. `"0.0.0.0:51820"`) or a structured table `{ host, port }`.
-#[allow(dead_code)]
-mod socket_addr_opt {
-    use serde::Deserializer;
-    use std::net::SocketAddr;
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Option<SocketAddr>, D::Error> {
-        Ok(Some(super::deser_socket_addr(d)?))
-    }
-}
-
 /// Deserialise a `SocketAddr` from a bare string or a `{ host, port }` table.
 fn deser_socket_addr<'de, D: serde::Deserializer<'de>>(d: D) -> Result<SocketAddr, D::Error> {
     use serde::de;

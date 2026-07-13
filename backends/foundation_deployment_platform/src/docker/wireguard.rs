@@ -156,11 +156,13 @@ pub trait WireguardInjector {
     /// Inject the mesh bootstrap environment into this config.
     ///
     /// Sets `WG_SECRET` and `WG_NETWORK`. If `seed_endpoints` is non-empty,
-    /// also sets `WG_SEED_ENDPOINTS` as a comma-separated list.
+    /// also sets `WG_SEED_ENDPOINTS` as a comma-separated list. If
+    /// `relay_enabled`, sets `WG_RELAY=true`.
     fn inject_wireguard(
         self,
         secret: &WgNetworkSecret,
         seed_endpoints: &[SocketAddr],
+        relay_enabled: bool,
     ) -> Self;
 }
 
@@ -169,6 +171,7 @@ impl WireguardInjector for ContainerConfig {
         mut self,
         secret: &WgNetworkSecret,
         seed_endpoints: &[SocketAddr],
+        relay_enabled: bool,
     ) -> Self {
         self.env.push((
             ENV_WG_SECRET.to_string(),
@@ -185,6 +188,10 @@ impl WireguardInjector for ContainerConfig {
                 ENV_WG_SEED_ENDPOINTS.to_string(),
                 eps.join(","),
             ));
+        }
+
+        if relay_enabled {
+            self.env.push((ENV_WG_RELAY.to_string(), "true".to_string()));
         }
 
         self
@@ -248,7 +255,7 @@ mod tests {
         let ep: SocketAddr = "10.0.0.1:51820".parse().expect("addr");
 
         let config = ContainerConfig::new("test-image")
-            .inject_wireguard(&secret, &[ep]);
+            .inject_wireguard(&secret, &[ep], false);
 
         let has_secret = config.env.iter().any(|(k, _)| k == ENV_WG_SECRET);
         let has_network = config.env.iter().any(|(k, _)| k == ENV_WG_NETWORK);
@@ -263,7 +270,7 @@ mod tests {
     fn injector_no_endpoints_when_empty() {
         let secret = generate_network_secret();
         let config = ContainerConfig::new("test-image")
-            .inject_wireguard(&secret, &[]);
+            .inject_wireguard(&secret, &[], true);
 
         let has_endpoints = config.env.iter().any(|(k, _)| k == ENV_WG_SEED_ENDPOINTS);
         assert!(!has_endpoints, "WG_SEED_ENDPOINTS should not be set when empty");
@@ -273,7 +280,7 @@ mod tests {
     fn designate_relay_adds_ports_and_env() {
         let secret = generate_network_secret();
         let mut config = ContainerConfig::new("relay-node")
-            .inject_wireguard(&secret, &[]);
+            .inject_wireguard(&secret, &[], true);
 
         designate_relay(&mut config, 51821, 51820);
 

@@ -16,6 +16,11 @@
 /// platform-specific re-exports live here (see `feedback_shared_module_purpose`).
 pub mod shared;
 
+/// Completeness gate — emits `compile_error!` for every known spec-55 gap
+/// when `feature = "spec55-complete"` is enabled. Delete the corresponding
+/// `compile_error!` line as each gap is fixed.
+pub mod completeness;
+
 /// Native-only glue: UDP transport and the tunnel driver task.
 #[cfg(not(target_family = "wasm"))]
 pub mod native;

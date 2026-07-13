@@ -57,5 +57,18 @@ tracing-subscriber.workspace = true
 serial_test = "3.3"
 tempfile = "3"
 
+[features]
+# spec55-complete: compile-time completeness gate.
+# When enabled, emits `compile_error!` for every known spec-55 gap so they
+# cannot be ignored. Delete the corresponding error line as each gap is fixed.
+# Also gates the `completeness_tests` integration suite.
+spec55-complete = []
+
 [lints]
 workspace = true
+
+# Integration test: full wireguard mesh in userspace (spec-55 completeness).
+[[test]]
+name = "completeness_tests"
+path = "tests/completeness_tests.rs"
+required-features = ["spec55-complete"]

@@ -106,6 +106,8 @@ impl Parse for WireguardInput {
 struct RelayBlock {
     advertise: Option<LitBool>,
     max_sessions: Option<LitInt>,
+    rate_limit_pps: Option<LitInt>,
+    idle_timeout_secs: Option<LitInt>,
 }
 
 impl Parse for RelayBlock {
@@ -115,6 +117,8 @@ impl Parse for RelayBlock {
 
         let mut advertise = None;
         let mut max_sessions = None;
+        let mut rate_limit_pps = None;
+        let mut idle_timeout_secs = None;
 
         while !content.is_empty() {
             let key: Ident = content.parse()?;
@@ -122,6 +126,8 @@ impl Parse for RelayBlock {
             match key.to_string().as_str() {
                 "advertise" => advertise = Some(content.parse()?),
                 "max_sessions" => max_sessions = Some(content.parse()?),
+                "rate_limit_pps" => rate_limit_pps = Some(content.parse()?),
+                "idle_timeout_secs" => idle_timeout_secs = Some(content.parse()?),
                 other => {
                     return Err(syn::Error::new(
                         key.span(),
@@ -137,6 +143,8 @@ impl Parse for RelayBlock {
         Ok(Self {
             advertise,
             max_sessions,
+            rate_limit_pps,
+            idle_timeout_secs,
         })
     }
 }
@@ -237,9 +245,19 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
                 Some(n) => quote! { .relay_max_sessions(#n as u32) },
                 None => quote! {},
             };
+            let rate = match &relay.rate_limit_pps {
+                Some(n) => quote! { .relay_rate_limit_pps(#n as u32) },
+                None => quote! {},
+            };
+            let idle = match &relay.idle_timeout_secs {
+                Some(n) => quote! { .relay_idle_timeout_secs(#n as u64) },
+                None => quote! {},
+            };
             quote! {
                 #advertise
                 #sessions
+                #rate
+                #idle
             }
         }
         None => quote! {},
