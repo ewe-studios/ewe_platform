@@ -12,5 +12,7 @@
 //! worker records, source policy, …) lives under [`super::generated`].
 
 pub use super::generated::moby::buildkit::v1::{
-    InfoRequest, InfoResponse, SolveRequest, SolveResponse, StatusRequest, StatusResponse,
+    DiskUsageRequest, DiskUsageResponse, InfoRequest, InfoResponse, ListWorkersRequest,
+    ListWorkersResponse, PruneRequest, SolveRequest, SolveResponse, StatusRequest, StatusResponse,
+    UsageRecord,
 };

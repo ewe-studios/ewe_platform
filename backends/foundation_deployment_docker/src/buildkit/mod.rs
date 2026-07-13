@@ -37,7 +37,9 @@ use std::path::Path;
 use std::sync::Arc;
 
 use crate::buildkit::types::{
-    InfoRequest, InfoResponse, SolveRequest, SolveResponse, StatusRequest, StatusResponse,
+    DiskUsageRequest, DiskUsageResponse, InfoRequest, InfoResponse, ListWorkersRequest,
+    ListWorkersResponse, PruneRequest, SolveRequest, SolveResponse, StatusRequest, StatusResponse,
+    UsageRecord,
 };
 
 /// BuildKit daemon client over a Unix socket.
@@ -51,6 +53,12 @@ pub struct BuildKitClient {
     pub status: Client<StatusRequest, StatusResponse>,
     /// Unary server info.
     pub info: Client<InfoRequest, InfoResponse>,
+    /// Unary build-cache disk usage.
+    pub disk_usage: Client<DiskUsageRequest, DiskUsageResponse>,
+    /// Server-streaming build-cache prune.
+    pub prune: Client<PruneRequest, UsageRecord>,
+    /// Unary worker listing.
+    pub list_workers: Client<ListWorkersRequest, ListWorkersResponse>,
 }
 
 impl BuildKitClient {
@@ -84,13 +92,34 @@ impl BuildKitClient {
         )?;
 
         let solve = Client::<SolveRequest, SolveResponse>::new(
-            transport,
+            Arc::clone(&transport),
             &format!("{base_url}/Solve"),
             ProcedureCodecs::defaults(),
             opts(),
         )?;
 
-        Ok(Self { solve, status, info })
+        let disk_usage = Client::<DiskUsageRequest, DiskUsageResponse>::new(
+            Arc::clone(&transport),
+            &format!("{base_url}/DiskUsage"),
+            ProcedureCodecs::defaults(),
+            opts(),
+        )?;
+
+        let prune = Client::<PruneRequest, UsageRecord>::new(
+            Arc::clone(&transport),
+            &format!("{base_url}/Prune"),
+            ProcedureCodecs::defaults(),
+            opts(),
+        )?;
+
+        let list_workers = Client::<ListWorkersRequest, ListWorkersResponse>::new(
+            transport,
+            &format!("{base_url}/ListWorkers"),
+            ProcedureCodecs::defaults(),
+            opts(),
+        )?;
+
+        Ok(Self { solve, status, info, disk_usage, prune, list_workers })
     }
 
     /// Get buildkitd info (unary): version, worker records, and capabilities.
@@ -139,6 +168,65 @@ impl BuildKitClient {
         let ctx = Ctx::background();
         let request = StatusRequest { Ref: build_ref.into(), ..Default::default() };
         let stream = self.status.server_stream(ctx, Request::new(request)).await?;
+        Ok(stream)
+    }
+
+    /// Report build-cache disk usage (unary `DiskUsage`).
+    ///
+    /// `filters` are BuildKit cache filters (e.g. `type==regular`); empty for
+    /// everything. Matches bollard's buildkit `DiskUsage`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
+    pub async fn disk_usage(
+        &self,
+        filters: Vec<String>,
+    ) -> Result<DiskUsageResponse, Box<dyn std::error::Error + Send + Sync>> {
+        let ctx = Ctx::background();
+        let request = DiskUsageRequest { filter: filters, ..Default::default() };
+        let response = self.disk_usage.unary(ctx, Request::new(request)).await?;
+        Ok(response.msg)
+    }
+
+    /// List buildkitd workers (unary `ListWorkers`).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
+    pub async fn list_workers(
+        &self,
+        filters: Vec<String>,
+    ) -> Result<ListWorkersResponse, Box<dyn std::error::Error + Send + Sync>> {
+        let ctx = Ctx::background();
+        let request = ListWorkersRequest { filter: filters, ..Default::default() };
+        let response = self.list_workers.unary(ctx, Request::new(request)).await?;
+        Ok(response.msg)
+    }
+
+    /// Prune the build cache (server-streaming `Prune`).
+    ///
+    /// Returns a [`ServerStream`] of [`UsageRecord`]s — one per reclaimed cache
+    /// entry. Call `.receive().await` until it yields `None`. `all` prunes
+    /// internal/unshared cache too; `keep_bytes` caps how much is freed.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
+    pub async fn prune(
+        &self,
+        all: bool,
+        keep_bytes: i64,
+        filters: Vec<String>,
+    ) -> Result<ServerStream<UsageRecord>, Box<dyn std::error::Error + Send + Sync>> {
+        let ctx = Ctx::background();
+        let request = PruneRequest {
+            all,
+            reservedSpace: keep_bytes,
+            filter: filters,
+            ..Default::default()
+        };
+        let stream = self.prune.server_stream(ctx, Request::new(request)).await?;
         Ok(stream)
     }
 }
