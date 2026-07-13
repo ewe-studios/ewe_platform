@@ -136,8 +136,8 @@ async fn system_info_returns_data() {
     let client = DockerClient::connect_unix(&socket);
 
     let info = client.system_info().await.expect("system_info should succeed");
-    assert_eq!(info.id.as_deref(), Some("abc"));
-    assert_eq!(info.containers, Some(0));
+    assert_eq!(info.get("ID").and_then(|v| v.as_str()), Some("abc"));
+    assert_eq!(info.get("Containers").and_then(|v| v.as_i64()), Some(0));
 
     stop.store(true, Ordering::Relaxed);
     let _ = std::fs::remove_file(&socket);

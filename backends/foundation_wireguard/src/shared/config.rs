@@ -163,9 +163,32 @@ impl Default for NodeConfig {
     }
 }
 
+/// Data plane mode — which TCP/IP stack backs the overlay.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "mode", rename_all = "lowercase")]
+pub enum DataPlaneMode {
+    /// smoltcp userspace netstack (default — no privileges, cross-platform).
+    #[serde(alias = "smoltcp")]
+    Netstack,
+    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
+    #[serde(alias = "tun")]
+    #[cfg(not(target_family = "wasm"))]
+    Tun { name: String, mtu: u32 },
+}
+
+impl Default for DataPlaneMode {
+    fn default() -> Self {
+        Self::Netstack
+    }
+}
+
 /// Data plane settings (smoltcp netstack, kernel TUN).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataPlaneConfig {
+    /// Which data plane to use. Default: smoltcp netstack.
+    #[serde(default)]
+    pub mode: DataPlaneMode,
+
     /// Overlay MTU (inner L3, after WG overhead). Default 1380.
     #[serde(default = "default_mtu")]
     pub mtu: u16,
@@ -181,6 +204,7 @@ const fn default_keepalive() -> u16 { 25 }
 impl Default for DataPlaneConfig {
     fn default() -> Self {
         Self {
+            mode: DataPlaneMode::default(),
             mtu: default_mtu(),
             keepalive_secs: default_keepalive(),
         }
@@ -483,6 +507,7 @@ pub struct WgConfigBuilder {
     relay_max_sessions: u32,
     relay_rate_limit_pps: u32,
     relay_idle_timeout_secs: u64,
+    dataplane_mode: Option<DataPlaneMode>,
 }
 
 impl WgConfigBuilder {
@@ -598,6 +623,23 @@ impl WgConfigBuilder {
         self
     }
 
+    /// Use the smoltcp userspace netstack (default — no privileges, cross-platform).
+    #[must_use]
+    pub fn dataplane_smoltcp(mut self) -> Self {
+        self.dataplane_mode = Some(DataPlaneMode::Netstack);
+        self
+    }
+
+    /// Use a kernel TUN device. Requires CAP_NET_ADMIN or TUN ownership.
+    #[must_use]
+    pub fn dataplane_tun(mut self, name: &str, mtu: u32) -> Self {
+        self.dataplane_mode = Some(DataPlaneMode::Tun {
+            name: name.to_string(),
+            mtu,
+        });
+        self
+    }
+
     /// WHY: Validate and produce the final [`WgConfig`].
     ///
     /// WHAT: Checks that a seed was provided (no silent default — see
@@ -624,6 +666,7 @@ impl WgConfigBuilder {
         };
 
         let dataplane = DataPlaneConfig {
+            mode: self.dataplane_mode.unwrap_or_default(),
             mtu: self.mtu.unwrap_or_else(default_mtu),
             keepalive_secs: self.keepalive_secs.unwrap_or_else(default_keepalive),
         };

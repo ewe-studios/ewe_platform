@@ -50,7 +50,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-fe
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 # boring is pinned to 4.x to match the workspace's existing jwt-simple constraint
 # (boring-sys links to BoringSSL, so only one version may exist workspace-wide).
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 boring = "4"
 
 # Browser WebAssembly APIs (F07 — browser peer).

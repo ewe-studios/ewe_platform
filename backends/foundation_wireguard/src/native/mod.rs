@@ -1,6 +1,7 @@
 //! Native-only glue: UDP transport, the valtron tunnel driver, and the TLS-PSK bootstrap.
 
 pub mod bootstrap;
+pub mod dataplane;
 pub mod driver;
 pub mod mtls;
 pub mod node;

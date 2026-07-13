@@ -444,7 +444,10 @@ impl DockerClient {
     /// Get system information (`GET /info`).
     ///
     /// Delegates to [`system::system_info`].
-    pub async fn system_info(&self) -> Result<SystemInfo, DockerError> {
+    ///
+    /// Returns `serde_json::Value` because Docker's `LocalNodeState` is a raw
+    /// string (`"inactive"`) that the generated `SystemInfo` struct can't parse.
+    pub async fn system_info(&self) -> Result<serde_json::Value, DockerError> {
         system::system_info(self).await
     }
 

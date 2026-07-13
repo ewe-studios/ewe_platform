@@ -526,20 +526,32 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
-        // Drive body first — required by split_collect_one_map ordering:
-        // the body must be consumed before the observer receives intro.
-        let body_result = body_stream
-            .into_ready_future()
-            .await
-            .ok_or(HttpClientError::InvalidRequestState)?;
-        let (conn, body) = body_result.0?;
-
-        // Drive intro stream — SplitCollectorMapObserver yields (ResponseIntro, SimpleHeaders) directly
+        // Drive intro first — for no-body responses (204, 304, HEAD)
+        // the body stream never produces a value, so driving it first
+        // deadlocks. The intro tells us the status before we read body.
         let intro_result = intro_stream
             .into_ready_future()
             .await
             .ok_or(HttpClientError::InvalidRequestState)?;
         let (intro, headers) = intro_result.0;
+
+        // For no-body statuses (1xx, 204, 304), skip the body stream —
+        // there is no body and waiting for one hangs forever.
+        let (conn, body) = if intro.status.is_informational()
+            || intro.status.as_u16() == 204
+            || intro.status.as_u16() == 304
+        {
+            // Consume the body stream without blocking — it will be empty.
+            // The connection is carried through the intro's conn field.
+            (None, SendSafeBody::None)
+        } else {
+            let body_result = body_stream
+                .into_ready_future()
+                .await
+                .ok_or(HttpClientError::InvalidRequestState)?;
+            let (conn, body) = body_result.0?;
+            (conn, body)
+        };
 
         let response = SimpleResponse::new(intro.status, headers, body);
 

@@ -34,10 +34,39 @@ type NoMod = fn(&mut PreparedRequestBuilder);
 /// # Errors
 ///
 /// Returns [`DockerError`] on transport failure or non-2xx status.
-pub async fn system_info(client: &super::DockerClient) -> Result<SystemInfo, DockerError> {
-    let response =
-        system_info_request(client.http(), &SystemInfoArgs::default(), &client.base_url(), None::<NoMod>).await?;
-    Ok(response.body)
+/// Get system info (`GET /info`).
+///
+/// WHY: The generated `SystemInfo` struct fails to deserialize Docker's
+/// `LocalNodeState` field (a raw string like `"inactive"`, not a struct).
+/// We return `serde_json::Value` so the caller can inspect what's available.
+///
+/// WHAT: Manual `PreparedRequestBuilder::get` + `send_async` returning the
+/// raw JSON body.
+///
+/// HOW: Avoids the generated `system_info_request` which uses the broken type.
+///
+/// # Errors
+///
+/// Returns [`DockerError`] on transport failure or non-2xx status.
+pub async fn system_info(client: &super::DockerClient) -> Result<serde_json::Value, DockerError> {
+    use crate::error::DockerError;
+    use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+    use foundation_netio::shared::client::http_client::HttpClient;
+
+    let base = client.base_url();
+    let endpoint_url = format!("{base}/info");
+    let builder = foundation_netio::PreparedRequestBuilder::get(&endpoint_url)
+        .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let response = client.http().send_async(builder.build()).await
+        .map_err(|e| crate::generated::shared::ApiError::RequestSendFailed(e.to_string()))?;
+
+    let status: usize = response.get_status().into();
+    if status < 200 || status >= 300 {
+        return Err(DockerError::Api { status: status as u16, message: "(no body)".into() });
+    }
+    let body_bytes = collect_bytes_from_send_safe(response.take_body());
+    serde_json::from_slice(&body_bytes).map_err(|e| DockerError::JsonParse(e.to_string()))
 }
 
 /// Ping the daemon (`GET /_ping`).

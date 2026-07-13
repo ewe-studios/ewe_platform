@@ -23,11 +23,12 @@ use std::time::{Duration, Instant};
 use boringtun::x25519::{PublicKey, StaticSecret};
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
-use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
+use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::net::UdpSocket;
 use foundation_netio::native::connection::Connection;
 
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
+use super::dataplane::MeshDataPlane;
 use super::overlay_connection::OverlayConnection;
 use super::driver::TunnelDriver;
 use super::relay::{HolePuncher, RelayClient, RelayServer};
@@ -165,14 +166,16 @@ impl WgNode {
             caps.relay = true;
         }
 
+        // ── Data plane: from config (smoltcp or kernel TUN) ────────────
+        let dp = MeshDataPlane::from_config(
+            &self.config.dataplane.mode,
+            my_ip,
+            OVERLAY_PREFIX,
+        )?;
+        let netstack_opt = dp.netstack().cloned();
+
         let udp = UdpSocket::bind(self.config.udp_listen())?;
         let udp_addr = udp.get_ref().local_addr()?;
-
-        let netstack = NetStack::new(NetStackConfig {
-            address: my_ip,
-            prefix_len: OVERLAY_PREFIX,
-            mtu: 1380,
-        });
 
         let my_record =
             PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
@@ -332,6 +335,11 @@ impl WgNode {
         // valtron::initialize_pool). The executor drives next_status(),
         // parks on reactor for Delayed/Depends, and handles fd wakeups.
         // Zero manual polling, zero thread::sleep.
+        let netstack = netstack_opt
+            .ok_or_else(|| WgError::Config(
+                "TUN mode requires a NetStack clone for the runtime. \
+                 Use DataPlaneMode::Netstack for now (TUN coming in F11).".into()
+            ))?;
         let driver = TunnelDriver::new(udp, netstack.clone());
         let gossip = netstack
             .clone()
@@ -369,7 +377,8 @@ impl WgNode {
         }
 
         Ok(WgHandle {
-            netstack,
+            netstack: netstack.clone(),
+
             shared,
             policy,
             stop,
