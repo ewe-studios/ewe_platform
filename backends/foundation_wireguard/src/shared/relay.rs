@@ -13,11 +13,9 @@
 
 use std::collections::VecDeque;
 use std::net::SocketAddr;
-use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use super::error::WgResult;
 use super::membership::{PeerId, PeerRecord};
 
 /// Wire version for relay frames. Must be bumped if the format changes.

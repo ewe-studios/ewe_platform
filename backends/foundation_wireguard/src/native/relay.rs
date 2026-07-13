@@ -13,11 +13,10 @@
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 use std::time::Instant;
 
-use crate::shared::error::WgResult;
 use crate::shared::membership::PeerId;
 use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelaySession};
 
@@ -27,13 +26,11 @@ use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelaySes
 
 /// An active relay session — one peer attached to this relay.
 struct RelaySessionEntry {
-    /// The authenticated peer id.
-    peer_id: PeerId,
     /// When this session was last active.
     last_active: Instant,
     /// Total bytes forwarded for this session.
     byte_count: AtomicU64,
-    /// Packet count for rate limiting.
+    /// Packet count for rate limiting (reset every second).
     packet_count: AtomicU64,
 }
 
@@ -56,8 +53,6 @@ pub struct RelayServer {
     idle_timeout_secs: u64,
     /// Maximum concurrent sessions.
     max_sessions: u32,
-    /// Shared stop signal (same one used by the mesh runtime).
-    stop: Arc<AtomicBool>,
 }
 
 /// A frame received and ready to be forwarded to the destination peer.
@@ -79,14 +74,12 @@ impl RelayServer {
         max_sessions: u32,
         rate_limit_pps: u32,
         idle_timeout_secs: u64,
-        stop: Arc<AtomicBool>,
     ) -> Self {
         Self {
             sessions: HashMap::new(),
             rate_limit_pps,
             idle_timeout_secs,
             max_sessions,
-            stop,
         }
     }
 
@@ -111,7 +104,6 @@ impl RelayServer {
         self.sessions.insert(
             peer_id,
             RelaySessionEntry {
-                peer_id,
                 last_active: Instant::now(),
                 byte_count: AtomicU64::new(0),
                 packet_count: AtomicU64::new(0),
@@ -478,8 +470,7 @@ mod tests {
 
     #[test]
     fn server_attach_and_forward() {
-        let stop = Arc::new(AtomicBool::new(false));
-        let mut server = RelayServer::new(16, 1000, 60, stop);
+        let mut server = RelayServer::new(16, 1000, 60);
 
         let src = test_peer(1);
         let dst = test_peer(2);
@@ -497,8 +488,7 @@ mod tests {
 
     #[test]
     fn server_rejects_unattached_sender() {
-        let stop = Arc::new(AtomicBool::new(false));
-        let mut server = RelayServer::new(16, 1000, 60, stop);
+        let mut server = RelayServer::new(16, 1000, 60);
 
         server.attach(test_peer(2)); // only dst attached
         let frame = RelayFrame::new(test_peer(2), b"data".to_vec());
@@ -508,8 +498,7 @@ mod tests {
 
     #[test]
     fn server_gc_removes_stale_sessions() {
-        let stop = Arc::new(AtomicBool::new(false));
-        let mut server = RelayServer::new(16, 1000, 0, stop); // 0s timeout
+        let mut server = RelayServer::new(16, 1000, 0); // 0s timeout
         server.attach(test_peer(1));
         assert_eq!(server.session_count(), 1);
         server.gc();

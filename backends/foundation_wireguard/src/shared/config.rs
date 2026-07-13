@@ -239,15 +239,27 @@ pub struct RelayConfig {
     /// Maximum concurrent relay sessions. Default: 4096.
     #[serde(default = "default_max_relay_sessions")]
     pub max_sessions: u32,
+
+    /// Per-session rate limit (packets per second). Default: 1000.
+    #[serde(default = "default_rate_limit_pps")]
+    pub rate_limit_pps: u32,
+
+    /// Session idle timeout in seconds. Default: 120.
+    #[serde(default = "default_idle_timeout_secs")]
+    pub idle_timeout_secs: u64,
 }
 
 const fn default_max_relay_sessions() -> u32 { 4096 }
+const fn default_rate_limit_pps() -> u32 { 1000 }
+const fn default_idle_timeout_secs() -> u64 { 120 }
 
 impl Default for RelayConfig {
     fn default() -> Self {
         Self {
             advertise: false,
             max_sessions: default_max_relay_sessions(),
+            rate_limit_pps: default_rate_limit_pps(),
+            idle_timeout_secs: default_idle_timeout_secs(),
         }
     }
 }
@@ -489,6 +501,8 @@ pub struct WgConfigBuilder {
     mtls: bool,
     relay_advertise: bool,
     relay_max_sessions: u32,
+    relay_rate_limit_pps: u32,
+    relay_idle_timeout_secs: u64,
 }
 
 impl WgConfigBuilder {
@@ -590,6 +604,20 @@ impl WgConfigBuilder {
         self
     }
 
+    /// Set the per-session relay rate limit (packets per second).
+    #[must_use]
+    pub fn relay_rate_limit_pps(mut self, pps: u32) -> Self {
+        self.relay_rate_limit_pps = pps;
+        self
+    }
+
+    /// Set the relay session idle timeout in seconds.
+    #[must_use]
+    pub fn relay_idle_timeout_secs(mut self, secs: u64) -> Self {
+        self.relay_idle_timeout_secs = secs;
+        self
+    }
+
     /// WHY: Validate and produce the final [`WgConfig`].
     ///
     /// WHAT: Checks that a seed was provided (no silent default — see
@@ -625,6 +653,8 @@ impl WgConfigBuilder {
         let relay = RelayConfig {
             advertise: self.relay_advertise,
             max_sessions: self.relay_max_sessions,
+            rate_limit_pps: self.relay_rate_limit_pps,
+            idle_timeout_secs: self.relay_idle_timeout_secs,
         };
 
         Ok(WgConfig {

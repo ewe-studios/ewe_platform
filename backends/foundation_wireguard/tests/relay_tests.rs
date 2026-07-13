@@ -7,8 +7,6 @@
 #![cfg(not(target_family = "wasm"))]
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord};
@@ -80,8 +78,8 @@ fn frame_rejects_wrong_version() {
 #[traced_test]
 #[test]
 fn server_attach_and_forward() {
-    let stop = Arc::new(AtomicBool::new(false));
-    let mut server = RelayServer::new(16, 1000, 60, stop);
+
+    let mut server = RelayServer::new(16, 1000, 60);
     let src = test_peer(10);
     let dst = test_peer(20);
 
@@ -99,8 +97,8 @@ fn server_attach_and_forward() {
 #[traced_test]
 #[test]
 fn server_rejects_unattached_sender() {
-    let stop = Arc::new(AtomicBool::new(false));
-    let mut server = RelayServer::new(16, 1000, 60, stop);
+
+    let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(20)); // only dst
     let frame = RelayFrame::new(test_peer(20), vec![1, 2, 3]);
     assert!(server.forward(test_peer(99), &frame.encode()).is_none());
@@ -109,8 +107,8 @@ fn server_rejects_unattached_sender() {
 #[traced_test]
 #[test]
 fn server_rejects_unknown_dst() {
-    let stop = Arc::new(AtomicBool::new(false));
-    let mut server = RelayServer::new(16, 1000, 60, stop);
+
+    let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(10)); // only src
     let frame = RelayFrame::new(test_peer(99), vec![1, 2]); // dst not attached
     assert!(server.forward(test_peer(10), &frame.encode()).is_none());
@@ -119,8 +117,8 @@ fn server_rejects_unknown_dst() {
 #[traced_test]
 #[test]
 fn server_gc_removes_stale() {
-    let stop = Arc::new(AtomicBool::new(false));
-    let mut server = RelayServer::new(16, 1000, 0, stop); // 0s timeout
+
+    let mut server = RelayServer::new(16, 1000, 0); // 0s timeout
     server.attach(test_peer(1));
     server.attach(test_peer(2));
     assert_eq!(server.session_count(), 2);
@@ -131,8 +129,8 @@ fn server_gc_removes_stale() {
 #[traced_test]
 #[test]
 fn server_detach_removes_peer() {
-    let stop = Arc::new(AtomicBool::new(false));
-    let mut server = RelayServer::new(16, 1000, 60, stop);
+
+    let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(1));
     server.detach(&test_peer(1));
     assert!(!server.is_attached(&test_peer(1)));

@@ -33,7 +33,7 @@ use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::IdentityKeypair;
 use crate::shared::membership::message::{decode as swim_decode, encode as swim_encode};
 use crate::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord, Swim, SwimConfig};
-use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelayStrategy};
+use crate::shared::relay::{RelaySelector, RelayStrategy};
 use crate::shared::tunnel::WgTunnel;
 
 /// Reserved overlay service port for in-tunnel SWIM gossip (decision 06).
@@ -226,30 +226,42 @@ impl WgNode {
 
         // Relay server thread (if this node advertises relay capability, F05).
         let mut relay_thread = None;
-        let relay_shared = Arc::clone(&shared);
+        let relay_client = Arc::new(Mutex::new(RelayClient::new(
+            RelaySelector::new(RelayStrategy::LowestLoad),
+        )));
         if relay_enabled {
             let relay_stop = Arc::clone(&stop);
+            let relay_shared = Arc::clone(&shared);
+            // Bind an ephemeral UDP socket for relay forwarding. WireGuard
+            // Noise identifies the source by the inner key, not the UDP port.
+            let relay_udp = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0,0,0,0)), 0)).expect("relay udp");
             let relay_server = Arc::new(Mutex::new(RelayServer::new(
                 self.config.relay.max_sessions,
-                1000,  // rate_limit_pps
-                120,   // idle_timeout_secs
-                Arc::clone(&stop),
+                self.config.relay.rate_limit_pps,
+                self.config.relay.idle_timeout_secs,
             )));
             let relay_server_clone = Arc::clone(&relay_server);
             relay_thread = Some(thread::spawn(move || {
                 let mut last_rate_reset = Instant::now();
                 while !relay_stop.load(Ordering::Relaxed) {
+                    // Drain relay_out frames and forward each to the destination
+                    // peer's real UDP endpoint (looked up from membership).
                     {
-                        let mut server = relay_server_clone.lock().expect("relay lock");
-                        // Drain any queued relay frames and forward them.
                         let mut out = relay_shared.relay_out.lock().expect("relay_out lock");
-                        for (dst, raw) in out.drain(..) {
-                            if let Some(fwd) = server.forward(dst, &raw) {
-                                // Queue forwarded frame for delivery to dst.
-                                // In a real implementation the mesh delivers this.
-                                let _ = fwd;
+                        for (src_peer, raw) in out.drain(..) {
+                            let mut server = relay_server_clone.lock().expect("relay lock");
+                            if let Some(fwd) = server.forward(src_peer, &raw) {
+                                let members = relay_shared.members.lock().expect("members lock");
+                                if let Some(peer) = members.iter().find(|r| r.id == fwd.dst) {
+                                    if let Some(ep) = peer.endpoints.first() {
+                                        let _ = relay_udp.get_ref().send_to(&fwd.ciphertext, *ep);
+                                    }
+                                }
                             }
                         }
+                    }
+                    {
+                        let mut server = relay_server_clone.lock().expect("relay lock");
                         server.gc();
                     }
                     // Reset rate counters every second.
@@ -263,8 +275,7 @@ impl WgNode {
             }));
         }
 
-        // Runtime: tunnel pump + SWIM + reconciliation. The first loop iteration
-        // reconciles any peers already learned during bootstrap into tunnels.
+        // Runtime: tunnel pump + SWIM + reconciliation + relay client.
         let driver = TunnelDriver::new(udp, netstack.clone());
         let gossip = netstack
             .clone()
@@ -274,6 +285,7 @@ impl WgNode {
             driver,
             swim: Arc::clone(&swim),
             gossip,
+            relay_client: Arc::clone(&relay_client),
             my_id,
             my_secret: identity.secret().clone(),
             wg_psk: boot.psk,
@@ -340,6 +352,12 @@ impl WgHandle {
     #[must_use]
     pub fn identity(&self) -> PeerId {
         self.shared.my_id
+    }
+
+    /// Whether this node is running a relay server (F05).
+    #[must_use]
+    pub fn is_relay(&self) -> bool {
+        self.shared.relay_enabled
     }
 
     /// Open an overlay TCP listener on this node's overlay IP.
@@ -445,6 +463,7 @@ struct Runtime {
     driver: TunnelDriver,
     swim: Arc<Mutex<Swim>>,
     gossip: OverlayUdp,
+    relay_client: Arc<Mutex<RelayClient>>,
     my_id: PeerId,
     my_secret: StaticSecret,
     wg_psk: [u8; 32],
@@ -481,6 +500,14 @@ fn run_runtime(mut runtime: Runtime) {
             let (out, _events) = swim.tick(now);
             send_swim(&runtime.gossip, &swim, out);
 
+            // Feed the current membership to the relay client so it can
+            // refresh its relay candidates and drive the connectivity ladder.
+            let snapshot = swim.snapshot();
+            {
+                let mut client = runtime.relay_client.lock().expect("relay client lock");
+                client.on_membership_update(&snapshot);
+            }
+
             reconcile(
                 &mut runtime.driver,
                 &swim,
@@ -490,7 +517,7 @@ fn run_runtime(mut runtime: Runtime) {
                 &runtime.next_index,
             );
 
-            *runtime.shared.members.lock().expect("members lock") = swim.snapshot();
+            *runtime.shared.members.lock().expect("members lock") = snapshot;
         }
 
         thread::sleep(RUNTIME_TICK);
