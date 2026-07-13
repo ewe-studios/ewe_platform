@@ -106,6 +106,13 @@ pub fn accept_connection(
     mode: ServerIo,
 ) -> io::Result<Connection> {
     if mode == ServerIo::Std {
+        // The server's connection handler is built on `WouldBlock`: the idle
+        // keep-alive read parks on it, and protocol detection peeks up to 24 bytes
+        // without waiting for the buffer to fill — a request shorter than 24 bytes
+        // (`GET /echo\r\nHost: t\r\n\r\n`) would otherwise block the peek forever
+        // while the peer waits for a response. Linux `accept(2)` does not inherit
+        // `O_NONBLOCK`, so set it here — matching `connect_completion`'s Std leg.
+        tcp.set_nonblocking(true)?;
         return Ok(Connection::Tcp(tcp));
     }
 

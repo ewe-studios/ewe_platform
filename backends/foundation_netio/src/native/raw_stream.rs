@@ -223,6 +223,46 @@ impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
     }
 }
 
+// --- Readiness wakeups for non-blocking transports (F11 overlay parking)
+
+impl RawStream {
+    /// Register a wake callback fired when the underlying connection becomes
+    /// readable. Returns `true` if the transport supports readiness wakeups (the
+    /// WireGuard overlay), `false` otherwise — TLS-over-TCP and plain TCP block on
+    /// read and never park. A reader task uses this to decide between
+    /// `TaskStatus::Depends` (park) and failing on a `WouldBlock`.
+    #[must_use]
+    pub fn register_read_waker(
+        &self,
+        waker: crate::native::connection::ConnWaker,
+    ) -> bool {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().register_read_waker(waker),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => false,
+        }
+    }
+
+    /// Whether the underlying connection supports readiness wakeups (overlay).
+    /// See [`Self::register_read_waker`].
+    #[must_use]
+    pub fn supports_read_waker(&self) -> bool {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().supports_read_waker(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => false,
+        }
+    }
+}
+
 // Type alias for TLS config with priority resolution: rustls > openssl > native-tls.
 #[cfg(feature = "ssl-rustls")]
 type TlsClientConfig = rustls::ClientConfig;

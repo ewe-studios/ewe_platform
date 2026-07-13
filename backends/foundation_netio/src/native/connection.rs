@@ -333,9 +333,42 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
 ///
 /// Cloneable via [`clone_box`](Self::clone_box) — the underlying smoltcp socket
 /// is an `Arc<Mutex<..>>`, so cloning is a cheap ref-count increment.
+/// Callback fired when a non-blocking connection becomes readable or writable.
+///
+/// Registered via [`Connection::register_read_waker`] /
+/// [`Connection::register_write_waker`]; the transport's own driver (e.g. the
+/// WireGuard `TunnelDriver`) invokes it when the underlying socket's readiness
+/// changes. Structurally identical to `foundation_nativeapis::dataplane::WakeFn`,
+/// so a wireguard `OverlayReadWrite` impl can pass it straight through to
+/// `OverlayStream::set_read_waker`.
+pub type ConnWaker = std::sync::Arc<dyn Fn() + Send + Sync>;
+
 pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     /// Duplicate the underlying stream handle (cheap `Arc` clone).
     fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
+
+    /// The local overlay endpoint (`my_ip:port`), captured at connect/accept time.
+    ///
+    /// WHY: `Connection::stream_addr` (used by `RawStream::from_connection`) needs a
+    /// concrete local address; smoltcp has no `getsockname(2)`, so the address is
+    /// carried on the stream rather than queried from a kernel socket.
+    fn local_addr(&self) -> std::net::SocketAddr;
+
+    /// The remote overlay endpoint (`peer_ip:port`), captured at connect/accept time.
+    fn peer_addr(&self) -> std::net::SocketAddr;
+
+    /// Register a one-shot callback fired when the stream becomes readable.
+    ///
+    /// WHY: overlay reads are non-blocking (`WouldBlock` when empty); a parked
+    /// reader task returns `TaskStatus::Depends` and needs the driver to unpark it
+    /// when data arrives. The `TunnelDriver` fires this waker on the next poll where
+    /// the smoltcp socket `can_recv()`.
+    fn set_read_waker(&self, waker: ConnWaker);
+
+    /// Register a one-shot callback fired when the stream becomes writable
+    /// (send buffer has spare capacity). Symmetric to [`Self::set_read_waker`] for
+    /// write backpressure.
+    fn set_write_waker(&self, waker: ConnWaker);
 }
 
 /// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
@@ -344,6 +377,28 @@ pub trait Acceptor: Send + Sync + 'static {
     fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
     fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
+}
+
+/// Opens a `Connection` for a given host:port (spec-55, F11).
+///
+/// WHY: `HttpConnectionPool` hardcodes DNS + `TcpStream::connect()`. This trait
+/// lets different transports plug in — kernel TCP, WireGuard overlay, Unix
+/// sockets — without changing the HTTP stack.
+///
+/// WHAT: `connect(host, port, timeout)` returns an established `Connection`.
+/// Seat it here in `native::connection` (not in `http`) so it is available
+/// without the `multi` feature — it only needs `Connection` and `io::Result`,
+/// both of which live in modules reachable without `multi`.
+///
+/// Implementors: `OverlayConnector` in `foundation_wireguard`.
+pub trait Connector: Send + Sync + 'static {
+    /// Open a connection to `host:port` with an optional timeout.
+    fn connect(
+        &self,
+        host: &str,
+        port: u16,
+        timeout: Option<Duration>,
+    ) -> std::io::Result<Connection>;
 }
 
 /// Blanket impl — `TcpListener::accept(&self)` maps to `Acceptor`.
@@ -828,7 +883,8 @@ impl Connection {
             // Captured at accept time — no getpeername(2) needed.
             #[cfg(unix)]
             Self::Completion(s) => Ok(s.peer_addr()),
-            Self::Overlay(_) => Ok(None),
+            // Carried on the overlay stream (no getpeername(2) for smoltcp).
+            Self::Overlay(o) => Ok(Some(SocketAddr::from(o.peer_addr()))),
         }
     }
 
@@ -850,7 +906,8 @@ impl Connection {
             // Delegates to the trait impl (getsockname on the fd).
             #[cfg(unix)]
             Self::Completion(s) => s.local_addr(),
-            Self::Overlay(_) => Ok(None),
+            // Carried on the overlay stream (no getsockname(2) for smoltcp).
+            Self::Overlay(o) => Ok(Some(SocketAddr::from(o.local_addr()))),
         }
     }
 
@@ -893,6 +950,45 @@ impl Connection {
             #[cfg(unix)]
             Self::Completion(s) => s.shutdown(how),
             Self::Overlay(_) => Ok(()), // smoltcp socket — close on drop
+        }
+    }
+
+    /// Register a wake callback fired when this connection becomes readable.
+    ///
+    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// overlay), `false` for blocking transports (TCP/TLS/Unix) whose reads block
+    /// until data or timeout and never surface `WouldBlock` for parking. A reader
+    /// task uses the result to decide between parking (`Depends`) and treating a
+    /// `WouldBlock` as a real timeout error.
+    #[must_use]
+    pub fn register_read_waker(&self, waker: ConnWaker) -> bool {
+        match self {
+            Self::Overlay(o) => {
+                o.set_read_waker(waker);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Whether this connection supports readiness wakeups (a non-blocking overlay).
+    /// Lets a reader decide up front whether to park on `WouldBlock` or fall back to
+    /// the blocking-transport delay/timeout path, without registering a waker.
+    #[must_use]
+    pub fn supports_read_waker(&self) -> bool {
+        matches!(self, Self::Overlay(_))
+    }
+
+    /// Register a wake callback fired when this connection becomes writable.
+    /// Same transport support rules as [`Self::register_read_waker`].
+    #[must_use]
+    pub fn register_write_waker(&self, waker: ConnWaker) -> bool {
+        match self {
+            Self::Overlay(o) => {
+                o.set_write_waker(waker);
+                true
+            }
+            _ => false,
         }
     }
 

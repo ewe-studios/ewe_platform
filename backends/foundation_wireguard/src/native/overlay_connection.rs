@@ -15,7 +15,7 @@
 use std::io;
 
 use foundation_nativeapis::dataplane::netstack::OverlayStream;
-use foundation_netio::native::connection::OverlayReadWrite;
+use foundation_netio::native::connection::{ConnWaker, OverlayReadWrite};
 
 /// Wraps a smoltcp `OverlayStream` as an `OverlayReadWrite` trait object so it
 /// can be boxed into `Connection::Overlay(Box<dyn OverlayReadWrite>)`.
@@ -46,5 +46,21 @@ impl OverlayReadWrite for OverlayConnection {
         Box::new(Self {
             stream: self.stream.clone(),
         })
+    }
+
+    fn local_addr(&self) -> std::net::SocketAddr {
+        self.stream.local_addr()
+    }
+
+    fn peer_addr(&self) -> std::net::SocketAddr {
+        self.stream.peer_addr()
+    }
+
+    fn set_read_waker(&self, waker: ConnWaker) {
+        self.stream.set_read_waker(waker);
+    }
+
+    fn set_write_waker(&self, waker: ConnWaker) {
+        self.stream.set_write_waker(waker);
     }
 }

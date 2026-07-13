@@ -350,6 +350,15 @@ impl core::fmt::Display for HttpClientError {
 pub enum HttpReaderError {
     RequestBuildError(SimpleRequestError),
 
+    /// The underlying transport had no data ready yet — a non-blocking
+    /// `io::ErrorKind::WouldBlock`, NOT a failure. The reader keeps its state so the
+    /// next `next()` resumes; the driving task should park (`TaskStatus::Depends`)
+    /// on the connection's read/write waker and retry when unparked. Emitted only by
+    /// non-blocking transports (the WireGuard overlay); blocking `TcpStream` reads
+    /// never surface it. See F11 "Non-blocking transport integration".
+    #[from(ignore)]
+    WouldBlock,
+
     #[from(ignore)]
     InvalidLine(String),
 
@@ -414,6 +423,27 @@ pub enum HttpReaderError {
     ChunkSizeTooLarge(usize),
     #[from(ignore)]
     ReadTimeout(Duration),
+}
+
+impl HttpReaderError {
+    /// Whether this is the non-blocking "no data ready yet" signal — the driving
+    /// task should park and retry rather than fail. See [`HttpReaderError::WouldBlock`].
+    #[must_use]
+    pub fn is_would_block(&self) -> bool {
+        matches!(self, HttpReaderError::WouldBlock)
+    }
+
+    /// Map a raw read `io::Error` to a reader error, turning a non-blocking
+    /// `WouldBlock` into [`HttpReaderError::WouldBlock`] (park & retry) and any other
+    /// error into [`HttpReaderError::LineReadFailed`].
+    #[must_use]
+    pub fn from_read_io(err: std::io::Error) -> Self {
+        if err.kind() == std::io::ErrorKind::WouldBlock {
+            HttpReaderError::WouldBlock
+        } else {
+            HttpReaderError::LineReadFailed(Box::new(err))
+        }
+    }
 }
 
 impl std::error::Error for HttpReaderError {}

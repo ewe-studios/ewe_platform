@@ -3332,7 +3332,9 @@ where
             let line_read_result = self
                 .reader
                 .do_once_mut(|binding| binding.read_line(&mut line))
-                .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+                // Surface a non-blocking `WouldBlock` distinctly so the caller can
+                // park and retry instead of failing the whole read (F11).
+                .map_err(HttpReaderError::from_read_io);
 
             line_read_result?;
 
@@ -4202,7 +4204,7 @@ where
                 let line_read_result = self
                     .reader
                     .do_once_mut(|binding| binding.read_line(&mut line))
-                    .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
+                    .map_err(HttpReaderError::from_read_io);
 
                 tracing::trace!(
                     "Response start line: {:?} -> {:?}",
@@ -4210,6 +4212,13 @@ where
                     &line_read_result
                 );
                 match line_read_result {
+                    // No data yet: read_line peeked without consuming, so the
+                    // stream is untouched. Keep `Intro` state and let the driving
+                    // task park (`Depends`) and retry when the socket is readable.
+                    Err(HttpReaderError::WouldBlock) => {
+                        tracing::trace!("Intro read would block; parking for retry");
+                        return Some(Err(HttpReaderError::WouldBlock));
+                    }
                     Err(e) => {
                         tracing::trace!("Http read error: {:?}", &e);
                         self.state = HttpReadState::Finished;
@@ -4321,6 +4330,14 @@ where
                     Ok(header) => {
                         tracing::trace!("Response headers: {:?}", &header,);
                         header
+                    }
+                    // No data yet on a non-blocking transport: keep `Headers` state
+                    // and park. Safe to retry when the whole header block arrives in
+                    // one read (the common case); a header block split across packets
+                    // may consume some lines first — see F11 hardening notes.
+                    Err(ref err) if err.is_would_block() => {
+                        tracing::trace!("Header read would block; parking for retry");
+                        return Some(Err(HttpReaderError::WouldBlock));
                     }
                     Err(err) => {
                         tracing::error!("Failed to read headers: {:?}", &err);

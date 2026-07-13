@@ -15,8 +15,12 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+
 use derive_more::From;
 
+use crate::native::connection::ConnWaker;
 use crate::netcap::RawStream;
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::shared::client::ResponseIntro;
@@ -24,9 +28,9 @@ use crate::http::HttpClientConnection;
 use crate::shared::http::IncomingResponseParts;
 use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
-    SimpleHttpBody, Status,
+    SimpleHttpBody,
 };
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -97,6 +101,14 @@ type WithIntroData = Box<
 
 pub enum GetRequestIntroState {
     Init(Option<HttpClientConnection>),
+    /// The intro reader was created but the status line hasn't arrived yet
+    /// (non-blocking transport returned `WouldBlock`). The reader is resumable, so
+    /// it is parked here and re-driven when the read waker fires. See F11
+    /// "Non-blocking transport integration".
+    IntroReading(Box<(HttpResponseReader<SimpleHttpBody, RawStream>, HttpClientConnection)>),
+    /// A 1xx interim response was read; drain the rest of it (headers/body) before
+    /// branching the reader and re-reading the next response's intro. Parking-aware.
+    DrainingInterim(Box<(HttpResponseReader<SimpleHttpBody, RawStream>, HttpClientConnection)>),
     WithIntro(WithIntroData),
 }
 
@@ -119,6 +131,39 @@ impl GetRequestIntroTask {
         self.1 = Some(body);
         self
     }
+
+    /// Park the task on a read-readiness signal after a non-blocking `WouldBlock`.
+    ///
+    /// WHY: the reader kept its (resumable) state; we must re-run it once the socket
+    /// is readable. Stores `resume` as the next state, registers a `BoolSignal`-backed
+    /// waker on the connection, and returns `TaskStatus::Depends(signal)` — the
+    /// `TunnelDriver` flips the signal and the executor unparks us. If the transport
+    /// does not support readiness wakeups (a blocking `TcpStream` whose read timed
+    /// out), the `WouldBlock` is a genuine failure, so we fail instead of parking
+    /// forever.
+    fn park_on_would_block(
+        &mut self,
+        conn: &HttpClientConnection,
+        resume: GetRequestIntroState,
+    ) -> TaskStatus<RequestIntro, (), BoxedSendExecutionAction> {
+        self.0 = Some(resume);
+
+        let signal = BoolSignal::new(false);
+        let flag = signal.clone_inner();
+        let waker: ConnWaker = Arc::new(move || flag.store(true, Ordering::SeqCst));
+
+        if conn.register_read_waker(waker) {
+            tracing::trace!("[INTRO] read would block; parking on connection read waker");
+            TaskStatus::Depends(Arc::new(signal))
+        } else {
+            tracing::error!(
+                "[INTRO] read would block on a blocking transport; treating as failure"
+            );
+            TaskStatus::Ready(RequestIntro::Failed(HttpClientError::ReaderError(
+                HttpReaderError::WouldBlock,
+            )))
+        }
+    }
 }
 
 impl TaskIterator for GetRequestIntroTask {
@@ -133,23 +178,42 @@ impl TaskIterator for GetRequestIntroTask {
                     tracing::trace!("[INTRO] Getting next status for request intro");
 
                     let body_config = self.1.take().unwrap_or_default();
-                    let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                    let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
                         body_config,
                     );
 
-                    let intro = match reader.next()? {
-                        Ok(inner) => {
-                            tracing::info!("Get intro from stream - got: {:?}", inner);
-                            inner
-                        }
-                        Err(err) => {
-                            tracing::error!("Get intro from stream - error: {:?}", err);
-                            return Some(TaskStatus::Ready(err.into()));
-                        }
-                    };
+                    // Defer the first read to `IntroReading` so a non-blocking
+                    // `WouldBlock` there can park and resume on the *same* reader
+                    // (F11 non-blocking parking).
+                    self.0 = Some(GetRequestIntroState::IntroReading(Box::new((reader, stream))));
+                    Some(TaskStatus::Pending(()))
+                }
+                None => None,
+            },
+            GetRequestIntroState::IntroReading(inner) => {
+                let (mut reader, stream) = *inner;
 
-                    let IncomingResponseParts::Intro(mut status, mut proto, mut text) = intro
+                let intro = match reader.next()? {
+                    Ok(inner) => {
+                        tracing::info!("Get intro from stream - got: {:?}", inner);
+                        inner
+                    }
+                    // No status line yet on a non-blocking transport: the reader kept
+                    // its state (nothing consumed), so park and retry when readable.
+                    Err(HttpReaderError::WouldBlock) => {
+                        let waker_conn = stream.clone();
+                        let resume =
+                            GetRequestIntroState::IntroReading(Box::new((reader, stream)));
+                        return Some(self.park_on_would_block(&waker_conn, resume));
+                    }
+                    Err(err) => {
+                        tracing::error!("Get intro from stream - error: {:?}", err);
+                        return Some(TaskStatus::Ready(err.into()));
+                    }
+                };
+
+                    let IncomingResponseParts::Intro(status, proto, text) = intro
                     else {
                         tracing::info!("Failed to read intro from stream");
                         return Some(TaskStatus::Ready(RequestIntro::Failed(
@@ -158,92 +222,27 @@ impl TaskIterator for GetRequestIntroTask {
                     };
 
                     tracing::info!(
-                        "[PROCESSING CHECK] Received intro for request: {:?}",
+                        "[INTRO] Received intro for request: {:?}",
                         (&status, &proto, &text)
                     );
 
-                    // if we see Processing then, lets pull the body then re-run the pull step
-                    if status == Status::Processing {
+                    // Skip 1xx interim responses (100 Continue, 102 Processing, 103
+                    // Early Hints). RFC 9110 §15.2: a client must parse and discard any
+                    // 1xx received before the final response. 101 Switching Protocols is
+                    // terminal (a protocol upgrade) and is NOT skipped. The interim is
+                    // drained in the parking-aware `DrainingInterim` state, after which
+                    // we branch the reader and re-read the next intro — so a not-yet-
+                    // arrived interim body or final status simply parks.
+                    let code = status.clone().into_usize();
+                    if (100..200).contains(&code) && code != 101 {
                         tracing::info!(
-                            "[PROCESSING CHECK] Entering state of Status::Processing: {:?}",
+                            "[INTRO] skipping 1xx interim response {:?}; draining then re-reading",
                             (&status, &proto, &text)
                         );
-
-                        // loop and collect the next until you see another intro
-                        // and if its not a Status::Processing, then stop.
-                        for next_state in &mut reader {
-                            tracing::trace!(
-                                "[PROCESSING CHECK] Got next state of request: {:?}",
-                                &next_state
-                            );
-
-                            let next_item = match next_state {
-                                Ok(item) => item,
-                                Err(err) => {
-                                    tracing::error!(
-                                        "[PROCESSING CHECK] Failed to read next body from 102 status due to: {:?}",
-                                        err
-                                    );
-                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                        HttpReaderError::ReadFailed.into(),
-                                    )));
-                                }
-                            };
-
-                            if let IncomingResponseParts::StreamedBody(stream) = next_item {
-                                tracing::info!(
-                                    "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
-                                    &stream,
-                                );
-
-                                if let Err(err) = drain_stream_iterator_from_send_safe(stream) {
-                                    tracing::error!(
-                                        "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
-                                        err
-                                    );
-                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                        HttpReaderError::ReadFailed.into(),
-                                    )));
-                                }
-                            } else {
-                                tracing::trace!(
-                                    "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
-                                );
-                            }
-                        }
-
-                        tracing::trace!("[PROCESSING CHECK] branching reader");
-
-                        reader = reader.branch_reader();
-
-                        tracing::trace!("[PROCESSING CHECK] read new intro from branched reader");
-                        match reader.next()? {
-                            Ok(IncomingResponseParts::Intro(
-                                next_status,
-                                next_proto,
-                                next_text,
-                            )) => {
-                                tracing::info!(
-                                    "Get intro from stream - got: {:?}",
-                                    (&next_status, &next_proto, &next_text),
-                                );
-                                // if we've reached max or not Status::Processing then stop
-                                status = next_status;
-                                proto = next_proto;
-                                text = next_text;
-                            }
-                            Ok(_) => {
-                                return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                    HttpClientError::ReadError,
-                                )));
-                            }
-                            Err(err) => {
-                                tracing::error!("Get intro from stream - error: {:?}", err);
-                                return Some(TaskStatus::Ready(err.into()));
-                            }
-                        }
-
-                        tracing::trace!("[PROCESSING CHECK] Finished Status::Processing");
+                        self.0 = Some(GetRequestIntroState::DrainingInterim(Box::new((
+                            reader, stream,
+                        ))));
+                        return Some(TaskStatus::Pending(()));
                     }
 
                     let _ = self
@@ -255,13 +254,64 @@ impl TaskIterator for GetRequestIntroTask {
                         )))));
 
                     Some(TaskStatus::Pending(()))
+            }
+            GetRequestIntroState::DrainingInterim(inner) => {
+                let (mut reader, stream) = *inner;
+
+                // Consume the remainder of the interim (1xx) response — its headers
+                // and any body — until the reader signals the response is complete
+                // (`None`). A `WouldBlock` here parks and resumes this same drain.
+                loop {
+                    match reader.next() {
+                        Some(Ok(IncomingResponseParts::StreamedBody(body))) => {
+                            if let Err(err) = drain_stream_iterator_from_send_safe(body) {
+                                tracing::error!(
+                                    "[INTRO] failed to drain interim (1xx) body: {:?}",
+                                    err
+                                );
+                                return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                    HttpReaderError::ReadFailed.into(),
+                                )));
+                            }
+                        }
+                        Some(Ok(_)) => {
+                            // Interim headers / skipped parts — keep draining.
+                        }
+                        Some(Err(HttpReaderError::WouldBlock)) => {
+                            let waker_conn = stream.clone();
+                            let resume = GetRequestIntroState::DrainingInterim(Box::new((
+                                reader, stream,
+                            )));
+                            return Some(self.park_on_would_block(&waker_conn, resume));
+                        }
+                        Some(Err(err)) => {
+                            tracing::error!("[INTRO] failed to drain interim (1xx): {:?}", err);
+                            return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                HttpReaderError::ReadFailed.into(),
+                            )));
+                        }
+                        None => break,
+                    }
                 }
-                None => None,
-            },
+
+                // Reset the reader to read the next response's status line, then
+                // re-enter the parking-aware intro path.
+                let branched = reader.branch_reader();
+                self.0 = Some(GetRequestIntroState::IntroReading(Box::new((branched, stream))));
+                Some(TaskStatus::Pending(()))
+            }
             GetRequestIntroState::WithIntro(inner) => match *inner {
                 Some((mut reader, intro, conn)) => {
                     let header_response = match reader.next()? {
                         Ok(inner) => inner,
+                        // Headers block not fully buffered yet: park and resume.
+                        Err(HttpReaderError::WouldBlock) => {
+                            let waker_conn = conn.clone();
+                            let resume = GetRequestIntroState::WithIntro(Box::new(Some((
+                                reader, intro, conn,
+                            ))));
+                            return Some(self.park_on_would_block(&waker_conn, resume));
+                        }
                         Err(err) => {
                             return Some(TaskStatus::Ready(RequestIntro::Failed(err.into())))
                         }

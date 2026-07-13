@@ -28,10 +28,9 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::valtron_test;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
-use serial_test::serial;
 
 use foundation_http::{
     native::server::{HttpServer, ServerConfig},
@@ -157,17 +156,13 @@ fn assert_served(proto: &str) {
 
 // -- Valid input: the two versions this handler speaks.
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn serves_http_11() {
-    let _pool = initialize_pool(41, Some(4));
     assert_served("HTTP/1.1");
 }
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn serves_http_10() {
-    let _pool = initialize_pool(41, Some(4));
     assert_served("HTTP/1.0");
 }
 
@@ -176,25 +171,19 @@ fn serves_http_10() {
 /// A version the workspace *does* implement, but not on this connection: an
 /// HTTP/2 request line on a socket that never sent the h2c preface must not be
 /// quietly downgraded into the HTTP/1.1 router.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn rejects_http_20_request_line() {
-    let _pool = initialize_pool(41, Some(4));
     assert_rejected("HTTP/2.0");
 }
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn rejects_http_30_request_line() {
-    let _pool = initialize_pool(41, Some(4));
     assert_rejected("HTTP/3.0");
 }
 
 /// The `Proto::Custom(..)` path — a wholly foreign protocol token.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn rejects_foreign_protocol_token() {
-    let _pool = initialize_pool(41, Some(4));
     assert_rejected("SPDY/3.1");
 }
 
@@ -202,28 +191,22 @@ fn rejects_foreign_protocol_token() {
 
 /// A plausible-looking but unsupported 1.x minor. `Proto` has no HTTP/1.2, so
 /// it lands in `Custom` and must be refused rather than treated as 1.1.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn rejects_unknown_minor_version() {
-    let _pool = initialize_pool(41, Some(4));
     assert_rejected("HTTP/1.2");
 }
 
 /// Garbage in the version slot is refused, not routed.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn rejects_garbage_version_token() {
-    let _pool = initialize_pool(41, Some(4));
     assert_rejected("NOT-A-PROTOCOL");
 }
 
 /// A two-token request line (`GET /echo`) omits the version entirely. The
 /// reader defaults it to HTTP/1.1 (HTTP/0.9-style simple request), so the gate
 /// must let it through — the default is chosen by us, not named by the peer.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn serves_request_line_without_version() {
-    let _pool = initialize_pool(41, Some(4));
     HANDLER_CALLED.store(false, Ordering::SeqCst);
     let (addr, shutdown) = start_server();
 
@@ -241,10 +224,8 @@ fn serves_request_line_without_version() {
 
 /// Case-insensitivity is a property of `Proto::from_str`; a lowercase token is
 /// still HTTP/1.1 and must be served, not refused.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn serves_lowercase_http_11_token() {
-    let _pool = initialize_pool(41, Some(4));
     assert_served("http/1.1");
 }
 
@@ -273,20 +254,16 @@ fn closes_after_request(request: &str) -> bool {
     closed
 }
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn http_11_keeps_the_connection_alive_by_default() {
-    let _pool = initialize_pool(41, Some(4));
     assert!(
         !closes_after_request("GET /echo HTTP/1.1\r\nHost: t\r\n\r\n"),
         "HTTP/1.1 defaults to persistent"
     );
 }
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn http_11_closes_when_asked() {
-    let _pool = initialize_pool(41, Some(4));
     assert!(
         closes_after_request("GET /echo HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n"),
         "`Connection: close` closes an HTTP/1.1 connection"
@@ -295,20 +272,16 @@ fn http_11_closes_when_asked() {
 
 /// The inverted case. Before the version was consulted, this held the socket
 /// open until the idle timeout.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn http_10_closes_by_default() {
-    let _pool = initialize_pool(41, Some(4));
     assert!(
         closes_after_request("GET /echo HTTP/1.0\r\nHost: t\r\n\r\n"),
         "HTTP/1.0 defaults to closing; it is not persistent"
     );
 }
 
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn http_10_stays_open_when_it_opts_in() {
-    let _pool = initialize_pool(41, Some(4));
     assert!(
         !closes_after_request("GET /echo HTTP/1.0\r\nHost: t\r\nConnection: keep-alive\r\n\r\n"),
         "HTTP/1.0 opts into persistence with `Connection: keep-alive`"
@@ -317,10 +290,8 @@ fn http_10_stays_open_when_it_opts_in() {
 
 /// `Connection: close` beats the 1.0 opt-in, and a multi-token header value is
 /// parsed per-token rather than compared whole.
-#[test]
-#[serial(version_guard)]
+#[valtron_test(seed = 41, threads = 4)]
 fn close_wins_over_keep_alive_and_tokens_are_split() {
-    let _pool = initialize_pool(41, Some(4));
     assert!(
         closes_after_request(
             "GET /echo HTTP/1.0\r\nHost: t\r\nConnection: keep-alive, close\r\n\r\n"

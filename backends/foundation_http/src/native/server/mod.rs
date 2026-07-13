@@ -9,9 +9,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_iogate::ServerIo;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_netio::shared::http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
@@ -128,6 +128,21 @@ impl KeepAliveConfig {
         tc.expect_continue = config;
         self.timeout_calculator = TimeoutCalculator::with_config(tc);
         self
+    }
+
+    /// Disable keep-alive — connections are closed after every response.
+    /// Useful for tests and overlay connections where pooling is not relevant.
+    #[must_use]
+    pub fn disabled() -> Self {
+        Self {
+            timeout_calculator: TimeoutCalculator::with_config(TimeoutConfig {
+                min_read_timeout: Duration::from_secs(1),
+                max_read_timeout: Duration::from_secs(1),
+                ..TimeoutConfig::default()
+            }),
+            escalation_threshold: 0,
+            max_delay_cycles: 0,
+        }
     }
 }
 
@@ -401,19 +416,31 @@ impl HttpServer {
     /// Create a new `HttpServer` with custom config (HTTP/1.1 only).
     #[must_use]
     pub fn with_config(app: HttpApp<Arc<dyn Serve>>, addr: &str, config: ServerConfig) -> Self {
-        Self { app: ServerApp::Http1(Arc::new(app)), bind_addr: addr.to_string(), config }
+        Self {
+            app: ServerApp::Http1(Arc::new(app)),
+            bind_addr: addr.to_string(),
+            config,
+        }
     }
 
     /// Create from a [`ServerApp`] with default config.
     #[must_use]
     pub fn from_app(app: ServerApp, addr: &str) -> Self {
-        Self { app, bind_addr: addr.to_string(), config: ServerConfig::default() }
+        Self {
+            app,
+            bind_addr: addr.to_string(),
+            config: ServerConfig::default(),
+        }
     }
 
     /// Create from a [`ServerApp`] with custom config.
     #[must_use]
     pub fn from_app_with_config(app: ServerApp, addr: &str, config: ServerConfig) -> Self {
-        Self { app, bind_addr: addr.to_string(), config }
+        Self {
+            app,
+            bind_addr: addr.to_string(),
+            config,
+        }
     }
 
     /// Start serving plain HTTP. Blocks until the shutdown signal is triggered.
@@ -455,8 +482,7 @@ impl HttpServer {
                 _ => return Err("expected TCP connection".to_string()),
             };
             let c = build_connection(tcp, addr, io_mode)?;
-            RawStream::from_connection(c)
-                .map_err(|e| format!("Failed to create RawStream: {e}"))
+            RawStream::from_connection(c).map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
@@ -465,6 +491,10 @@ impl HttpServer {
     /// The acceptor delivers connections as `Connection` enum values (e.g.
     /// `Connection::Tcp`, `Connection::Overlay`). Use this with WireGuard
     /// overlay acceptors (`OverlayAcceptor` in `foundation_wireguard`).
+    ///
+    /// # Panics
+    ///
+    /// If there is an error to get the acceptor connection.
     #[tracing::instrument(skip(self, acceptor, shutdown))]
     pub fn serve_with_acceptor<A: foundation_netio::native::connection::Acceptor + ?Sized>(
         self,
@@ -483,8 +513,7 @@ impl HttpServer {
         self.init_io();
         self.serve_loop(acceptor, shutdown, move |conn, _addr| {
             // Connection came pre-built from the acceptor — just wrap it.
-            RawStream::from_connection(conn)
-                .map_err(|e| format!("Failed to create RawStream: {e}"))
+            RawStream::from_connection(conn).map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
@@ -554,7 +583,11 @@ impl HttpServer {
         feature = "ssl-native-tls",
     ))]
     #[tracing::instrument(skip(self, listener, shutdown))]
-    pub fn serve_tls_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<OnSignal>) {
+    pub fn serve_tls_with_listener(
+        self,
+        listener: &std::net::TcpListener,
+        shutdown: &Arc<OnSignal>,
+    ) {
         let acceptor = match &self.config.tls_acceptor {
             Some(a) => a.clone(),
             None => {
@@ -620,7 +653,10 @@ impl HttpServer {
         self,
         acceptor: &(impl foundation_netio::native::connection::Acceptor + ?Sized),
         shutdown: &Arc<OnSignal>,
-        wrap_stream: impl Fn(foundation_netio::netcap::Connection, std::net::SocketAddr) -> Result<RawStream, String>
+        wrap_stream: impl Fn(
+                foundation_netio::netcap::Connection,
+                std::net::SocketAddr,
+            ) -> Result<RawStream, String>
             + Send
             + Sync
             + 'static,
@@ -728,7 +764,10 @@ impl HttpServer {
         // at their idle checkpoint; wait up to the grace window for in-flight
         // connections (including streaming) to finish. Past the deadline we stop
         // waiting and return — leftover tasks will end at their next checkpoint.
-        tracing::info!(grace_ms = shutdown_grace.as_millis(), "Draining in-flight connections");
+        tracing::info!(
+            grace_ms = shutdown_grace.as_millis(),
+            "Draining in-flight connections"
+        );
         if active.wait_timeout(shutdown_grace) {
             tracing::info!("All in-flight connections drained cleanly");
         } else {

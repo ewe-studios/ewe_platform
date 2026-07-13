@@ -43,6 +43,10 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
 smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
+# The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
+# makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
+# compiled in — `Connector` lives in `foundation_netio::http`, which is itself gated
+# behind `multi`.
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus

@@ -1040,6 +1040,18 @@ impl<T: Read> SharedByteBufferStream<T> {
     {
         self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
     }
+
+    /// Run `f` against the innermost reader `T` by shared reference.
+    ///
+    /// WHY: callers above `foundation_core` (e.g. `foundation_netio`) sometimes need
+    /// to reach the concrete transport — for instance to register a readiness waker
+    /// on a non-blocking overlay socket — without the buffered wrappers in the way.
+    /// Same access path as [`Self::is_unix`], generalised over the return type.
+    ///
+    /// The closure runs under the stream's lock; keep it short and non-reentrant.
+    pub fn with_inner_ref<V>(&self, f: impl Fn(&T) -> V) -> V {
+        self.0.do_ref(|bbp| bbp.with_inner(|raw| f(raw)))
+    }
 }
 
 // Implement cloning for the [`SharedByteBufferStream`].

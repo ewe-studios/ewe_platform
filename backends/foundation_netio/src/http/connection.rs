@@ -2,7 +2,7 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::http::connector::Connector;
+use crate::native::connection::Connector;
 use crate::http::pool::ConnectionPool;
 use crate::shared::client::SystemDnsResolver;
 use std::io::Read;
@@ -301,6 +301,22 @@ impl HttpClientConnection {
     #[must_use]
     pub fn clone_stream(&self) -> SharedByteBufferStream<RawStream> {
         self.stream.clone()
+    }
+
+    /// Register a wake callback fired when this connection becomes readable.
+    ///
+    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// overlay), `false` for blocking transports. A reader task that hits
+    /// `WouldBlock` uses the result to choose between parking
+    /// (`TaskStatus::Depends`) and failing. Registers on the same underlying
+    /// `RawStream` the reader reads from (clones share it via `Arc`).
+    #[must_use]
+    pub fn register_read_waker(
+        &self,
+        waker: crate::native::connection::ConnWaker,
+    ) -> bool {
+        self.stream
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()))
     }
 
     /// Takes ownership of the underlying stream, consuming the connection.
@@ -633,7 +649,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // No pooled connection available. Use the optional connector if set
         // (WireGuard overlay, Unix socket), otherwise DNS+TcpStream.
+        tracing::debug!(
+            host = %host, port,
+            has_connector = self.connector.is_some(),
+            "create_http_connection: fresh connection path"
+        );
         if let Some(ref connector) = self.connector {
+            tracing::debug!(host = %host, port, "create_http_connection: dialing via custom Connector");
             let conn = connector
                 .connect(&host, port, timeout)
                 .map_err(|e| HttpClientError::ConnectionFailed(format!("{host}:{port}: {e}")))?;

@@ -93,7 +93,8 @@ impl TaskIterator for ProtocolDetectHandler {
         }
 
         let mut buf = [0u8; H2C_PREFACE_PEEK_LEN];
-        let peeked = match self.stream.peek(&mut buf) {
+        let raw_peek = self.stream.peek(&mut buf);
+        let peeked = match raw_peek {
             // `peek` reports how much is buffered, which may exceed what it
             // copied into `buf` when the peer sent more than the preface in one
             // segment. Only the bytes actually written to `buf` are readable.

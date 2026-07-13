@@ -2280,7 +2280,7 @@ mod tests {
             Ok(Data::Bytes(b"chunk2".to_vec())),
         ];
         // Cast to BoxedError iterator via Box<dyn Iterator + Send>
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2304,7 +2304,7 @@ mod tests {
             Ok(ChunkedData::Data(b"data2".to_vec(), None)),
             Ok(ChunkedData::DataEnded),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2328,7 +2328,7 @@ mod tests {
             Ok(LineFeed::Line("line2".to_string())),
             Ok(LineFeed::END),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2385,7 +2385,7 @@ mod tests {
             Ok(Data::Bytes(b"chunk1".to_vec())),
             Ok(Data::Bytes(b"chunk2".to_vec())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2405,7 +2405,7 @@ mod tests {
             Ok(ChunkedData::Data(b"data2".to_vec(), None)),
             Ok(ChunkedData::DataEnded),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2424,7 +2424,7 @@ mod tests {
             Ok(LineFeed::Line("line1".to_string())),
             Ok(LineFeed::Line("line2".to_string())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> = Box::new(
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> = Box::new(
             stream_data
                 .into_iter()
                 .map(|r| r.map_err(|e| e as BoxedError)),
@@ -2607,7 +2607,7 @@ mod tests {
             Ok(Data::Bytes(b"abc".to_vec())),
             Ok(Data::Bytes(b"def".to_vec())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::Stream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2621,7 +2621,7 @@ mod tests {
             Ok(Data::Bytes(b"ab".to_vec())),
             Err(make_sendable_error("stream failed")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::Stream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2644,7 +2644,7 @@ mod tests {
             Ok(ChunkedData::Data(b"bar".to_vec(), None)),
             Ok(ChunkedData::DataEnded),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::ChunkedStream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2666,7 +2666,7 @@ mod tests {
             Ok(LineFeed::Line("alpha".to_string())),
             Ok(LineFeed::Line("beta".to_string())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let body = SendSafeBody::LineFeedStream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2707,7 +2707,7 @@ mod tests {
                 Some("1".to_string()),
             )),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2736,7 +2736,7 @@ mod tests {
                 None,
             )),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2787,7 +2787,7 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let body = SendSafeBody::SseStream(Some(send_iter));
         let result = try_collect_string(body);
@@ -2823,10 +2823,10 @@ mod tests {
         // Simulate a LimitedBatchStreamReader that returns fewer bytes than expected
         let data: Vec<Result<Data, SendableBoxedError>> =
             vec![Ok(Data::Bytes(b"partial".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let enforcing = ContentLengthEnforcingIterator::new(inner, 100);
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(enforcing);
         let body = SendSafeBody::Stream(Some(send_iter));
         let result = try_collect_bytes(body);
@@ -2856,7 +2856,8 @@ mod tests {
     ) -> SendSafeBody {
         let send_iter: Box<
             dyn Iterator<Item = Result<crate::event_source::ParseResult, SendableBoxedError>>
-                + Send,
+                + Send
+                + Sync,
         > = Box::new(data.into_iter());
         SendSafeBody::SseStream(Some(send_iter))
     }
@@ -2949,7 +2950,7 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let stream: Box<
             dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
@@ -2975,7 +2976,7 @@ mod tests {
             },
             None,
         ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let stream: Box<
             dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
@@ -3036,7 +3037,7 @@ mod tests {
             Ok(Data::Retry),
             Ok(Data::Bytes(b"b".to_vec())),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
 
@@ -3062,7 +3063,7 @@ mod tests {
             Ok(Data::Bytes(b"ok".to_vec())),
             Err(make_sendable_error("boom")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
 
@@ -3090,7 +3091,7 @@ mod tests {
             Ok(ChunkedData::Trailers(vec![])),
             Ok(ChunkedData::DataEnded),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
 
@@ -3109,7 +3110,7 @@ mod tests {
             Ok(ChunkedData::Data(b"ok".to_vec(), None)),
             Err(make_sendable_error("fail")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
 
@@ -3131,7 +3132,7 @@ mod tests {
             Ok(LineFeed::SKIP),
             Ok(LineFeed::END),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter =
             SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
@@ -3151,7 +3152,7 @@ mod tests {
             Ok(LineFeed::Line("a".into())),
             Err(make_sendable_error("fail")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
             Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
         let mut iter =
             SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
@@ -3182,7 +3183,7 @@ mod tests {
             Ok(ParseResult::new(Event::Comment("ignore".to_string()), None)),
             Ok(ParseResult::new(Event::Reconnect, None)),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
 
@@ -3209,7 +3210,7 @@ mod tests {
             )),
             Err(make_sendable_error("fail")),
         ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send> =
+        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
             Box::new(data.into_iter());
         let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
 

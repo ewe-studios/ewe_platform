@@ -494,13 +494,64 @@ impl WgHandle {
     /// Returns [`std::io::Error`] if the smoltcp TCP connect fails (peer
     /// unreachable, tunnel not yet established, etc.).
     pub fn overlay_connect(&self, peer_ip: IpAddr, port: u16) -> std::io::Result<Connection> {
-        let stream = self
-            .netstack
-            .clone()
-            .tcp_connect(std::net::SocketAddr::new(peer_ip, port))?;
-        Ok(Connection::Overlay(Box::new(
-            OverlayConnection { stream },
-        )))
+        self.overlay_connect_timeout(peer_ip, port, Duration::from_secs(8))
+    }
+
+    /// Open an overlay TCP connection and block until the handshake completes.
+    ///
+    /// WHY: `tcp_connect` returns immediately with a socket in `SYN-SENT`; a caller
+    /// that writes right away (e.g. an HTTP client through the `Connector` seam) races
+    /// the handshake and sees `ConnectionError`. The `Connector` contract is to hand
+    /// back an *established*, writable connection, so we drive the handshake here.
+    ///
+    /// WHAT: Retries `tcp_connect` and polls [`OverlayStream::may_send`] until the
+    /// connection is established (writable) or `timeout` elapses. The background
+    /// [`TunnelDriver`] task pumps packets while we poll.
+    ///
+    /// HOW: Mirrors the retry+drive loop proven in the mesh tests — re-issue
+    /// `tcp_connect` if a handshake stalls (a fresh SYN once the tunnel/neighbor is
+    /// ready), draining up to ~4s per attempt under one overall deadline.
+    ///
+    /// # Errors
+    /// [`std::io::Error`] (`TimedOut`) if the connection is not established before
+    /// `timeout`, or the last `tcp_connect` error if every attempt failed.
+    pub fn overlay_connect_timeout(
+        &self,
+        peer_ip: IpAddr,
+        port: u16,
+        timeout: Duration,
+    ) -> std::io::Result<Connection> {
+        let deadline = Instant::now() + timeout;
+        let mut last_err = std::io::Error::new(
+            std::io::ErrorKind::TimedOut,
+            "overlay connect: handshake did not complete before timeout",
+        );
+        while Instant::now() < deadline {
+            match self
+                .netstack
+                .clone()
+                .tcp_connect(std::net::SocketAddr::new(peer_ip, port))
+            {
+                Ok(stream) => {
+                    // Drive the handshake until the socket is writable (established)
+                    // or the deadline passes, bounded so a stalled SYN re-connects.
+                    for _ in 0..400 {
+                        if stream.may_send() {
+                            return Ok(Connection::Overlay(Box::new(OverlayConnection {
+                                stream,
+                            })));
+                        }
+                        if Instant::now() >= deadline {
+                            break;
+                        }
+                        std::thread::sleep(Duration::from_millis(10));
+                    }
+                }
+                Err(e) => last_err = e,
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        Err(last_err)
     }
 
     /// WHY: Tests and callers often need to wait until a peer is reachable.

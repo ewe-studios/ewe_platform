@@ -165,17 +165,77 @@ let conn = a.overlay_connect(b.overlay_ip(), 8080)?;
 // conn is Connection::Overlay(...) — H1Transport can use this via HttpClient
 ```
 
+## Non-blocking transport integration (the `WouldBlock` → park model)
+
+**Decision (2026-07-13):** the overlay is the **first non-blocking client transport**.
+Every prior `Connection` on the client read path was a blocking `TcpStream`
+(`SO_RCVTIMEO`) that never returns `WouldBlock` mid-read — it blocks until data or
+timeout. `OverlayStream` (smoltcp) is non-blocking: `read` returns
+`io::ErrorKind::WouldBlock` the instant no data is buffered. The netio client
+reader treated any read error — including `WouldBlock` — as a **fatal**
+`LineReadFailed` and drove the task to `Ready(Failed)`. So an overlay HTTP request
+failed the moment it tried to read the response before the first byte arrived.
+
+Two integration models were weighed:
+
+- **Blocking adapter** — spin+sleep inside `OverlayConnection::read` until data or a
+  read-timeout, presenting blocking semantics. Small and contained (~30 lines), but
+  blocks a valtron worker per read (the `TunnelDriver` runs on its own OS thread, so
+  packets still flow, but a pool worker is tied up).
+- **Non-blocking parking (CHOSEN)** — the reader treats `WouldBlock` as *not ready*
+  (not a failure) and the task **parks** on a valtron `TaskStatus::Depends(signal)`,
+  unparked by the overlay's read/write waker fired by the `TunnelDriver` when the
+  smoltcp socket becomes readable/writable. This is the same `Depends` model
+  Completion/io_uring mode uses, and it generalises to *any* future non-blocking
+  client transport. No worker blocks.
+
+### Retry-safety (why parking is sound)
+
+`SharedByteBufferStream::read_line` peeks via `next_until` and only commits with
+`skip()` **after** a full line — on `WouldBlock` **no bytes are consumed**, so a
+retry resumes exactly where it left off. The header block is made atomic the same
+way: `peek_until(b"\r\n\r\n")` confirms the whole head is buffered *before*
+`parse_headers` consumes any line, so a partial multi-packet head parks without
+losing consumed lines.
+
+### Mechanism
+
+1. **`HttpReaderError::WouldBlock`** — new variant. `HttpResponseReader::next` maps a
+   `WouldBlock` io error to it and returns `Some(Err(WouldBlock))` **without**
+   advancing `state` to `Finished` (Intro stays Intro; Headers stays Headers, guarded
+   by `peek_until` so parsing is atomic).
+2. **Waker plumbing** — `OverlayReadWrite` gains `set_read_waker`/`set_write_waker`;
+   `Connection::register_read_waker(&self, WakeFn) -> bool` (Overlay delegates, other
+   transports return `false`); `RawStream::register_read_waker` exposes it to tasks.
+3. **Task parking** — `request_intro`, `request_redirect`, and the body reader catch
+   `HttpReaderError::WouldBlock`: build a `BoolSignal`, register a `WakeFn` that flips
+   it via `set_read_waker`, re-store their state, and return
+   `TaskStatus::Depends(BoolSignal)`. One extra read is retried after registration to
+   close the register-vs-arrival race (avoids a lost wakeup).
+4. **Server side** — `HttpServer`'s serve loop applies the same `WouldBlock` → retry
+   treatment reading the request off an overlay `Connection`.
+
+### Address bridging (fixed 2026-07-13)
+
+`RawStream::from_connection` calls `Connection::stream_addr` which needs a concrete
+local+peer address; smoltcp has no `getsockname(2)`, so `OverlayStream` carries
+`local`/`peer` captured at connect/accept time, surfaced through
+`OverlayReadWrite::{local_addr,peer_addr}` → `Connection::Overlay`. Without it both
+sides failed with `FailedToAcquireAddrs`.
+
 ## Task list
 
 1. **Acceptor trait** — in `foundation_netio::native::connection`, blank impl for `TcpListener`. **DONE**
 2. **Connection::Overlay** variant + all match arms. **DONE**
 3. **OverlayReadWrite impl** in wireguard — `OverlayConnection` wrapping `OverlayStream`. **DONE**
-4. **WgHandle::overlay_connect()** — opens overlay TCP, returns `Connection::Overlay(...)`. **DONE**
-5. **HttpServer::serve_with_acceptor()** — generic over `Acceptor`, backward-compat with `serve_with_listener`. **TODO**
-6. **OverlayAcceptor** in wireguard — wraps `OverlayListener`, implements `Acceptor`. **TODO**
+4. **WgHandle::overlay_connect()** — opens overlay TCP, drives handshake to established, returns `Connection::Overlay(...)`. **DONE**
+5. **HttpServer::serve_with_acceptor()** — generic over `Acceptor`, backward-compat with `serve_with_listener`. **DONE**
+6. **OverlayAcceptor** in wireguard — wraps `OverlayListener`, implements `Acceptor`. **DONE**
 7. **TunnelDriver<TunDataPlane>** — kernel TUN path in `WgNode::join()`. **TODO**
 8. **Example** — two-node mesh + HTTP over overlay via `overlay_connect`. **DONE**
-9. **Tests** — `Connection::Overlay` round-trip; WouldBlock retry; Acceptor accept; overlay acceptor.
+9. **Address bridging** — `OverlayReadWrite::{local_addr,peer_addr}` → `Connection::Overlay`. **DONE**
+10. **Non-blocking parking** — `HttpReaderError::WouldBlock` + waker plumbing + task/server parking. **IN PROGRESS**
+11. **Tests** — `overlay_connector_http_round_trip` end-to-end (`foundation_http/tests/overlay_integration_tests.rs`); WouldBlock park/retry; Acceptor accept.
 
 ## Test plan
 

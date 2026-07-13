@@ -17,7 +17,7 @@ use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream};
-use foundation_netio::native::connection::{Acceptor, Connection, OverlayReadWrite};
+use foundation_netio::native::connection::{Acceptor, ConnWaker, Connection, OverlayReadWrite};
 
 /// Wraps an `OverlayListener` behind a `Mutex` so it can implement `Acceptor`
 /// (which takes `&self`).
@@ -92,6 +92,22 @@ impl OverlayReadWrite for OverlayConn {
         Box::new(OverlayConn {
             stream: self.stream.clone(),
         })
+    }
+
+    fn local_addr(&self) -> SocketAddr {
+        self.stream.local_addr()
+    }
+
+    fn peer_addr(&self) -> SocketAddr {
+        self.stream.peer_addr()
+    }
+
+    fn set_read_waker(&self, waker: ConnWaker) {
+        self.stream.set_read_waker(waker);
+    }
+
+    fn set_write_waker(&self, waker: ConnWaker) {
+        self.stream.set_write_waker(waker);
     }
 }
 

@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
@@ -138,6 +138,10 @@ impl ConnectionHandler {
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
+        // The reader's explicit non-blocking signal — "no data yet", retry (F11).
+        if e.is_would_block() {
+            return true;
+        }
         if matches!(e, HttpReaderError::ReadFailed) {
             return true;
         }
@@ -266,7 +270,13 @@ impl ConnectionHandler {
             );
             return None;
         }
-        if self.total_delay_cycles >= self.max_delay_cycles {
+        // The delay-cycle close is for blocking transports that spin-retry on
+        // `WouldBlock`. Non-blocking transports (the WireGuard overlay) never
+        // accumulate delay cycles — they park on the read waker below — so the gate
+        // must not apply to them, or the first request (which naturally arrives a
+        // poll or two after accept) would close the connection before it lands.
+        let supports_waker = self.conn.with_inner_ref(RawStream::supports_read_waker);
+        if !supports_waker && self.total_delay_cycles >= self.max_delay_cycles {
             tracing::trace!(
                 client_ip = %self.client_ip,
                 max_delay_cycles = self.max_delay_cycles,
@@ -319,6 +329,11 @@ impl ConnectionHandler {
             }
             Some(Err(e)) => {
                 if Self::is_transient_error(&e) {
+                    // Non-blocking transport: park on the read waker instead of
+                    // spin-delaying, so the driver unparks us when the request lands.
+                    if let Some(status) = self.park_on_read_waker() {
+                        return Some(status);
+                    }
                     tracing::trace!(
                         client_ip = %self.client_ip,
                         err = ?e,
@@ -343,6 +358,11 @@ impl ConnectionHandler {
                 }
             }
             None => {
+                // Non-blocking transport: park on the read waker instead of
+                // spin-delaying, so the driver unparks us when the request lands.
+                if let Some(status) = self.park_on_read_waker() {
+                    return Some(status);
+                }
                 tracing::trace!(
                     client_ip = %self.client_ip,
                     "Idle: no data available (WouldBlock)"
@@ -351,6 +371,33 @@ impl ConnectionHandler {
                 self.track_idle();
                 Some(self.maybe_delay_idle())
             }
+        }
+    }
+
+    /// Park on the connection's read waker after a `WouldBlock` reading the next
+    /// request, for non-blocking transports (the WireGuard overlay).
+    ///
+    /// Returns `Some(Depends(signal))` — re-entering `Idle` when unparked — if the
+    /// transport supports readiness wakeups, or `None` for a blocking transport
+    /// (whose caller falls back to the delay/timeout path). The `TunnelDriver`
+    /// flips the `BoolSignal` when the socket becomes readable.
+    fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        let signal = BoolSignal::new(false);
+        let flag = signal.clone_inner();
+        let waker: foundation_netio::native::connection::ConnWaker =
+            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+        let registered = self
+            .conn
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
+        if registered {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "Idle: request not ready; parking on connection read waker"
+            );
+            self.state = Some(HandlerState::Idle);
+            Some(TaskStatus::Depends(Arc::new(signal)))
+        } else {
+            None
         }
     }
 
