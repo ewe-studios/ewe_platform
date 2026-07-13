@@ -50,14 +50,18 @@ impl std::fmt::Debug for PeerLink {
 }
 
 /// Couples a set of WireGuard tunnels with one overlay data plane and one UDP socket.
-pub struct TunnelDriver {
+///
+/// Generic over `D: DataPlane` — smoltcp `NetStack` (default) or kernel `TunDataPlane`.
+/// Monomorphized at compile time: `TunnelDriver<NetStack>` has zero overhead vs the
+/// non-generic version.
+pub struct TunnelDriver<D: DataPlane = NetStack> {
     socket: UdpSocket,
-    dataplane: NetStack,
+    dataplane: D,
     peers: Vec<PeerLink>,
     recv_buf: Vec<u8>,
 }
 
-impl std::fmt::Debug for TunnelDriver {
+impl<D: DataPlane> std::fmt::Debug for TunnelDriver<D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("TunnelDriver")
             .field("peers", &self.peers)
@@ -65,18 +69,9 @@ impl std::fmt::Debug for TunnelDriver {
     }
 }
 
-impl TunnelDriver {
-    /// WHY: The mesh orchestrator builds a driver per WireGuard interface.
-    ///
-    /// WHAT: Create a driver over a bound UDP socket and an overlay data plane, with no
-    /// peers yet.
-    ///
-    /// HOW: Stores both; peers are added with [`Self::add_peer`].
-    ///
-    /// # Panics
-    /// Never panics.
+impl<D: DataPlane> TunnelDriver<D> {
     #[must_use]
-    pub fn new(socket: UdpSocket, dataplane: NetStack) -> Self {
+    pub fn new(socket: UdpSocket, dataplane: D) -> Self {
         Self {
             socket,
             dataplane,
@@ -100,9 +95,12 @@ impl TunnelDriver {
         });
     }
 
-    /// The overlay data plane (to open overlay sockets from application code).
-    #[must_use]
-    pub fn dataplane(&self) -> NetStack {
+    /// Clone the data plane (available when D: Clone). For `NetStack` this
+    /// is a cheap `Arc` bump; for `TunDataPlane` it is unavailable.
+    pub fn dataplane_cloned(&self) -> D
+    where
+        D: Clone,
+    {
         self.dataplane.clone()
     }
 
@@ -240,10 +238,10 @@ impl TunnelDriver {
 }
 
 /// Decapsulate one datagram into the overlay, replying to handshake network writes.
-fn handle_inbound(
+fn handle_inbound<D: DataPlane>(
     peer: &mut PeerLink,
     socket: &UdpSocket,
-    dataplane: &mut NetStack,
+    dataplane: &mut D,
     datagram: &[u8],
     src: SocketAddr,
 ) {
