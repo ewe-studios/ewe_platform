@@ -62,6 +62,11 @@ pub mod quic;
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
 pub mod http3;
 
+/// WebTransport (draft-ietf-webtrans-http3) over sans-I/O QUIC + HTTP/3 (spec-55, F06).
+/// Sessions, bidi/uni streams, and unreliable datagrams — no tokio.
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+pub mod webtransport;
+
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;
 

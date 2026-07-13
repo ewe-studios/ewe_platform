@@ -20,6 +20,10 @@ pub mod shared;
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
+/// Browser/WASM build (spec-55, F07). Always compiled — types and state machines
+/// work on any target; actual I/O is gated on `target_family = "wasm"`.
+pub mod wasm;
+
 // Macro re-export (foundation_macros → foundation_wireguard, same pattern as proxy).
 pub use foundation_macros::wireguard;
 pub use foundation_macros::wireguard_main;

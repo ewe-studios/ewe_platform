@@ -68,6 +68,8 @@ pub mod setting {
     pub const QPACK_BLOCKED_STREAMS: u64 = 0x07;
     /// `ENABLE_CONNECT_PROTOCOL` (RFC 9220).
     pub const ENABLE_CONNECT_PROTOCOL: u64 = 0x08;
+    /// `SETTINGS_ENABLE_WEBTRANSPORT` (draft-ietf-webtrans-http3, F06).
+    pub const ENABLE_WEBTRANSPORT: u64 = 0x2b603742;
 }
 
 /// One HTTP/3 frame.

@@ -40,6 +40,8 @@ bincode = { version = "2", features = ["serde"] }
 toml = { workspace = true }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+# smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
+smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).

@@ -47,6 +47,8 @@ pub mod stream_type {
     pub const QPACK_ENCODER: u64 = 0x02;
     /// The QPACK decoder stream. Unused: our dynamic table is disabled.
     pub const QPACK_DECODER: u64 = 0x03;
+    /// WebTransport bidirectional stream (draft-ietf-webtrans-http3 §4.1, F06).
+    pub const WEBTRANSPORT: u64 = 0x54;
 }
 
 /// HTTP/3 error codes (RFC 9114 §8.1).
