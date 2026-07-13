@@ -123,3 +123,58 @@ async fn real_docker_stop_remove_alone() {
         Err(e) => eprintln!("Remove error: {e:?}"),
     }
 }
+
+#[valtron_test]
+#[ignore = "needs running Docker daemon"]
+async fn real_docker_lifecycle_traced() {
+    let client = DockerClient::connect_unix("/var/run/docker.sock");
+
+    eprintln!("=== CREATE ===");
+    let id = client
+        .create_container(&serde_json::json!({
+            "Image": "alpine:latest",
+            "Cmd": ["sleep", "5"],
+        }), Some("ewe-race-test"))
+        .await.expect("create");
+    eprintln!("created: {}", id.id);
+
+    eprintln!("=== START ===");
+    client.start_container(&id.id).await.expect("start");
+    eprintln!("started");
+
+    // Wait for container to exit naturally
+    std::thread::sleep(std::time::Duration::from_secs(7));
+    eprintln!("waited 7s");
+
+    eprintln!("=== STOP ===");
+    client.stop_container(&id.id, Some(5)).await.expect("stop");
+    eprintln!("stopped");
+
+    eprintln!("=== REMOVE ===");
+    client.remove_container(&id.id, true).await.expect("remove");
+    eprintln!("removed — ALL OK");
+}
+
+#[valtron_test]
+#[ignore = "needs running Docker daemon"]
+async fn real_docker_lifecycle_fixed() {
+    let client = DockerClient::connect_unix("/var/run/docker.sock");
+
+    let id = client
+        .create_container(&serde_json::json!({
+            "Image": "alpine:latest",
+            "Cmd": ["sleep", "60"],
+        }), Some("ewe-fix-test"))
+        .await.expect("create");
+    eprintln!("created: {}", id.id);
+
+    client.start_container(&id.id).await.expect("start");
+    eprintln!("started");
+
+    // Stop immediately while container is still running
+    client.stop_container(&id.id, Some(5)).await.expect("stop");
+    eprintln!("stopped OK");
+
+    client.remove_container(&id.id, true).await.expect("remove");
+    eprintln!("removed OK — ALL DONE");
+}

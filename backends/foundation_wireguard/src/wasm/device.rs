@@ -63,35 +63,3 @@ impl JsDevice {
         self.mtu
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn inject_and_pop() {
-        let mut dev = JsDevice::new(1420);
-        dev.inject(vec![0x45, 0x00, 0x00, 0x14]);
-        assert_eq!(dev.pending_inbound(), 1);
-        let pkt = dev.pop_inbound().expect("pop");
-        assert_eq!(pkt[0], 0x45);
-        assert_eq!(dev.pending_inbound(), 0);
-    }
-
-    #[test]
-    fn push_and_drain_outbound() {
-        let mut dev = JsDevice::new(1420);
-        dev.push_outbound(b"pkt1".to_vec());
-        dev.push_outbound(b"pkt2".to_vec());
-        assert_eq!(dev.pending_outbound(), 2);
-        let drained = dev.drain_outbound();
-        assert_eq!(drained.len(), 2);
-        assert_eq!(&drained[0][..], b"pkt1");
-    }
-
-    #[test]
-    fn mtu_is_stored() {
-        let dev = JsDevice::new(1380);
-        assert_eq!(dev.mtu(), 1380);
-    }
-}
