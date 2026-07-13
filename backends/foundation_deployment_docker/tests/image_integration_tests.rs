@@ -72,7 +72,7 @@ async fn image_tag_then_delete() {
         .await
         .expect("image_tag");
     // Delete the tagged image
-    c.image_delete(format!("ewe-it-img-test:latest-{}", std::process::id()), None, None)
+    c.image_delete("ewe-it-img-test:latest", None, None)
         .await
         .expect("image_delete");
 }
@@ -86,7 +86,7 @@ async fn image_delete_untagged() {
         .expect("image_tag");
     // Delete and assert we get back an array of deleted layers
     let deleted = c
-        .image_delete(format!("ewe-it-img-del:test-{}", std::process::id()), None, None)
+        .image_delete("ewe-it-img-del:test", None, None)
         .await
         .expect("image_delete");
     assert!(
