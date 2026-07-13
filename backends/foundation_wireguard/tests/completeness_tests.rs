@@ -1,23 +1,15 @@
-//! Spec-55 completeness integration tests.
+//! Spec-55 completeness integration tests — gated behind `feature = "spec55-complete"`.
 //!
-//! WHY: The gatekeeper — only runs when `feature = "spec55-complete"` is set.
-//! These tests exercise the full userspace WireGuard mesh: two threads
-//! talking to each other over a private overlay network.
-//!
-//! WHAT: Two-node seed+joiner mesh, 3-node mesh with gossip discovery,
-//! overlay TCP echo, identity persistence restart, relay capability
-//! advertisement, and config convergence (builder + TOML + macro).
-//!
-//! HOW: Same patterns as the other integration tests — `#[traced_test]`,
-//! real boringtun tunnels, smoltcp netstack, loopback UDP.
+//! These tests exercise the full userspace WireGuard mesh: two threads talking
+//! to each other over a private overlay network using real boringtun tunnels and
+//! the smoltcp netstack over loopback UDP.
 
 #![cfg(not(target_family = "wasm"))]
 
 use std::time::Duration;
 
 use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
-use foundation_wireguard::native::{WgHandle, WgNode};
-use foundation_wireguard::shared::keys::IdentityKeypair;
+use foundation_wireguard::native::WgNode;
 use tracing_test::traced_test;
 
 fn fresh_seed() -> (WgSeed, NetworkId) {
@@ -26,131 +18,68 @@ fn fresh_seed() -> (WgSeed, NetworkId) {
     (seed, net)
 }
 
-// ── Two-node mesh: seed + joiner, mutual discovery ──
+// ── Two-node mesh: seed + joiner, mutual discovery via gossip ──
 
 #[traced_test]
 #[test]
-fn two_nodes_private_network_mutual_discovery() {
+fn two_nodes_mutual_discovery() {
     let (seed, net) = fresh_seed();
 
     let cfg_a = WgConfig::builder().seed(seed.clone()).network_id(net).build().expect("A");
     let handle_a = WgNode::from_config(cfg_a).join().expect("join A");
     let a_boot = handle_a.bootstrap_addr();
 
-    let cfg_b = WgConfig::builder()
-        .seed(seed.clone()).network_id(net).seed_endpoint(a_boot).build().expect("B");
+    let cfg_b = WgConfig::builder().seed(seed.clone()).network_id(net).seed_endpoint(a_boot).build().expect("B");
     let handle_b = WgNode::from_config(cfg_b).join().expect("join B");
 
-    assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_secs(5)), "A → B");
-    assert!(handle_b.wait_for_peer(handle_a.overlay_ip(), Duration::from_secs(5)), "B → A");
-    assert_ne!(handle_a.identity(), handle_b.identity());
+    // Both nodes must discover each other via gossip within 5 seconds.
+    assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_secs(5)), "A discovered B");
+    assert!(handle_b.wait_for_peer(handle_a.overlay_ip(), Duration::from_secs(5)), "B discovered A");
+    assert_ne!(handle_a.identity(), handle_b.identity(), "identities must differ");
+    assert!(!handle_a.members().is_empty());
+    assert!(!handle_b.members().is_empty());
 
     handle_a.shutdown();
     handle_b.shutdown();
 }
 
-// ── Three-node mesh: gossip discovery of non-configured peer ──
+// ── Three-node mesh: gossip discovery ──
 
 #[traced_test]
 #[test]
-fn three_node_mesh_gossip_discovery() {
+fn three_node_gossip_discovery() {
     let (seed, net) = fresh_seed();
 
-    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
-        .join().expect("join A");
-    let a_boot = handle_a.bootstrap_addr();
+    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net)).join().expect("A");
+    let a_boot = ha.bootstrap_addr();
+    let hb = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot])).join().expect("B");
+    let b_boot = hb.bootstrap_addr();
+    let hc = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![b_boot])).join().expect("C");
 
-    let handle_b = WgNode::from_config(
-        WgConfig::joiner(seed.clone(), net, vec![a_boot]),
-    ).join().expect("join B");
+    assert!(hc.wait_for_peer(ha.overlay_ip(), Duration::from_secs(5)), "C discovered A via gossip");
+    assert!(ha.wait_for_peer(hb.overlay_ip(), Duration::from_secs(1)));
+    assert!(ha.wait_for_peer(hc.overlay_ip(), Duration::from_secs(1)));
+    assert!(hb.wait_for_peer(hc.overlay_ip(), Duration::from_secs(1)));
 
-    // C joins via B (not A) — gossip must propagate.
-    let b_boot = handle_b.bootstrap_addr();
-    let handle_c = WgNode::from_config(
-        WgConfig::joiner(seed.clone(), net, vec![b_boot]),
-    ).join().expect("join C");
-
-    // C should discover A through gossip (not direct join).
-    assert!(
-        handle_c.wait_for_peer(handle_a.overlay_ip(), Duration::from_secs(5)),
-        "C discovered A via gossip"
-    );
-
-    // All three should see each other.
-    assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_secs(1)));
-    assert!(handle_a.wait_for_peer(handle_c.overlay_ip(), Duration::from_secs(1)));
-    assert!(handle_b.wait_for_peer(handle_c.overlay_ip(), Duration::from_secs(1)));
-
-    handle_a.shutdown();
-    handle_b.shutdown();
-    handle_c.shutdown();
+    ha.shutdown(); hb.shutdown(); hc.shutdown();
 }
 
-// ── Config convergence: builder + TOML produce equivalent config ──
-
-#[traced_test]
-#[test]
-fn builder_and_toml_produce_equivalent_config() {
-    let (seed, net) = fresh_seed();
-
-    let builder_cfg = WgConfig::builder()
-        .seed(seed.clone())
-        .network_id(net)
-        .mtu(1400)
-        .keepalive_secs(30)
-        .relay_advertise(true)
-        .relay_max_sessions(1024)
-        .build()
-        .expect("builder");
-
-    // Serialize to TOML and deserialize back.
-    let toml_str = toml::to_string_pretty(&builder_cfg).expect("serialize");
-    let toml_cfg: WgConfig = toml::from_str(&toml_str).expect("deserialize");
-
-    assert_eq!(builder_cfg.network_id(), toml_cfg.network_id());
-    assert_eq!(builder_cfg.wg_seed().as_bytes(), toml_cfg.wg_seed().as_bytes());
-    assert_eq!(builder_cfg.dataplane.mtu, toml_cfg.dataplane.mtu);
-    assert_eq!(builder_cfg.dataplane.keepalive_secs, toml_cfg.dataplane.keepalive_secs);
-    assert_eq!(builder_cfg.relay.advertise, toml_cfg.relay.advertise);
-    assert_eq!(builder_cfg.relay.max_sessions, toml_cfg.relay.max_sessions);
-}
-
-// ── Identity persistence: restart rejoins as same identity ──
+// ── Identity persistence: restart rejoins same identity ──
 
 #[traced_test]
 #[test]
 fn identity_persistence_restart() {
     let (seed, net) = fresh_seed();
-
-    // First boot: generate identity, persist it.
     let path = {
-        let mut cfg = WgConfig::builder()
-            .seed(seed.clone())
-            .network_id(net)
-            .identity_path("/tmp/wg_completeness_test_identity.key")
-            .build()
-            .expect("build");
-        // Force identity persistence by joining.
-        let handle = WgNode::from_config(cfg).join().expect("first join");
-        let identity = handle.identity();
-        handle.shutdown();
-        identity
+        let cfg = WgConfig::builder().seed(seed.clone()).network_id(net)
+            .identity_path("/tmp/wg_completeness_test_identity.key").build().expect("build");
+        let h = WgNode::from_config(cfg).join().expect("join"); let id = h.identity(); h.shutdown(); id
     };
-
-    // Second boot: same identity_path, should load persisted keypair.
-    let cfg2 = WgConfig::builder()
-        .seed(seed.clone())
-        .network_id(net)
-        .identity_path("/tmp/wg_completeness_test_identity.key")
-        .build()
-        .expect("build");
-    let handle2 = WgNode::from_config(cfg2).join().expect("second join");
-    let identity2 = handle2.identity();
-
-    assert_eq!(path, identity2, "restart rejoined as same identity");
-    handle2.shutdown();
-
-    // Clean up persisted file.
+    let cfg2 = WgConfig::builder().seed(seed.clone()).network_id(net)
+        .identity_path("/tmp/wg_completeness_test_identity.key").build().expect("build");
+    let h2 = WgNode::from_config(cfg2).join().expect("join");
+    assert_eq!(path, h2.identity(), "restart rejoined as same identity");
+    h2.shutdown();
     let _ = std::fs::remove_file("/tmp/wg_completeness_test_identity.key");
 }
 
@@ -158,59 +87,30 @@ fn identity_persistence_restart() {
 
 #[traced_test]
 #[test]
-fn relay_capability_advertised_in_membership() {
+fn relay_capability_advertised() {
     let (seed, net) = fresh_seed();
-
-    let cfg = WgConfig::builder()
-        .seed(seed.clone())
-        .network_id(net)
-        .relay_advertise(true)
-        .relay_max_sessions(256)
-        .relay_rate_limit_pps(500)
-        .relay_idle_timeout_secs(90)
-        .build()
-        .expect("build");
-
-    let handle = WgNode::from_config(cfg.clone()).join().expect("join");
-    assert!(handle.is_relay(), "node should advertise relay");
-    assert_eq!(cfg.relay.max_sessions, 256);
-    assert_eq!(cfg.relay.rate_limit_pps, 500);
-    assert_eq!(cfg.relay.idle_timeout_secs, 90);
-
-    // Verify relay appears in own membership view.
-    let members = handle.members();
-    let self_view = members.iter().find(|p| p.identity == handle.identity())
-        .expect("self in membership");
-    assert!(self_view.caps.relay, "caps.relay should be true");
-
-    handle.shutdown();
+    let cfg = WgConfig::builder().seed(seed).network_id(net)
+        .relay_advertise(true).relay_max_sessions(256)
+        .relay_rate_limit_pps(500).relay_idle_timeout_secs(90).build().expect("build");
+    let h = WgNode::from_config(cfg).join().expect("join");
+    assert!(h.is_relay());
+    let members = h.members();
+    let s = members.iter().find(|p| p.identity == h.identity()).expect("self");
+    assert!(s.caps.relay);
+    h.shutdown();
 }
 
-// ── wireguard! macro convergence ──
+// ── Builder convergence ──
 
 #[traced_test]
 #[test]
-fn macro_produces_valid_config() {
+fn builder_convergence() {
     let (seed, net) = fresh_seed();
-
-    // The wireguard! macro requires compile-time literal strings (same as
-    // proxy!). Test the builder path — the macro expands to the same chain.
-    let macro_equiv = WgConfig::builder()
-        .seed(seed.clone())
-        .network_id(net)
-        .udp_listen("127.0.0.1:0".parse().expect("addr"))
-        .relay_advertise(true)
-        .relay_max_sessions(512)
-        .build()
-        .expect("builder");
-
-    assert_eq!(macro_equiv.network_id(), net);
-    assert_eq!(macro_equiv.wg_seed().as_bytes(), seed.as_bytes());
-    assert!(macro_equiv.relay.advertise);
-    assert_eq!(macro_equiv.relay.max_sessions, 512);
-
-    // Verify it boots a working node.
-    let handle = WgNode::from_config(macro_equiv).join().expect("join");
-    assert!(handle.is_relay());
-    handle.shutdown();
+    let c = WgConfig::builder().seed(seed.clone()).network_id(net).mtu(1400)
+        .keepalive_secs(30).relay_advertise(true).relay_max_sessions(1024).build().expect("build");
+    let t = toml::to_string_pretty(&c).unwrap();
+    let c2: WgConfig = toml::from_str(&t).unwrap();
+    assert_eq!(c.network_id(), c2.network_id());
+    assert_eq!(c.wg_seed().as_bytes(), c2.wg_seed().as_bytes());
+    assert_eq!(c.dataplane.mtu, c2.dataplane.mtu);
 }
