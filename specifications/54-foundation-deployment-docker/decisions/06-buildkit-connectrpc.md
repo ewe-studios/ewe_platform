@@ -286,6 +286,74 @@ BuildKit is P2 because:
 4. The bidi-streaming `Solve` call exercises the most complex connectrpc codepath —
    we own connectrpc, so building on it finds the gaps and we fix them
 
+## 2026-07-14 update — implementation reality (supersedes sketches above)
+
+Several sketch details above were wrong or incomplete once implemented. The
+authoritative facts:
+
+### Message codegen — `buffa-build`, not prost, not `foundation_connectrpc_codegen::build::Config`
+
+`ProcedureCodecs::defaults()` bounds on `buffa::Message + Serialize +
+DeserializeOwned`. `foundation_connectrpc_codegen::build::Config` generates
+message types via **prost** (`prost::Message`) — the wrong trait. The correct
+tool is **`buffa-build`** (crates.io `buffa-build`/`buffa-types`/`protoc-gen-buffa`
+v0.8.1 — `buffa` is the same runtime our `ProtoCodec` uses):
+
+```rust
+// build.rs, gated #[cfg(feature = "buildkit")] (build scripts get feature cfgs)
+buffa_build::Config::new()
+    .files(&[control, worker, ops, policy, status])   // vendored .proto paths
+    .includes(&["specs/buildkit"])                     // include root
+    .generate_json(true)                               // adds serde for Connect-JSON
+    .compile()?;                                       // shells to protoc (v34.1)
+```
+
+`buffa-types` must enable `features = ["json"]` (WKT serde). Emits one file per
+proto package into `OUT_DIR`; `src/buildkit/generated.rs` hand-wires the package
+module tree (`pb`, `google::rpc`, `moby::buildkit::v1{,::types,::sourcepolicy}`)
+— the generated code uses relative `super::super::super::pb::…` paths, so the
+nesting is load-bearing. Generated fields are **proto-cased** (`StatusRequest.Ref`,
+`SolveRequest.Frontend`, `InfoResponse.buildkitVersion`) with a hidden
+`__buffa_unknown_fields` (construct with `..Default::default()`).
+
+### RPC shapes (from `control.proto`, not the earlier guess)
+
+`Solve` is **unary** (`rpc Solve(SolveRequest) returns (SolveResponse)`), *not*
+bidi. `Status` is server-stream, `Session` is the bidi. Implemented on
+`foundation_connectrpc` `Client<Req,Res>` + `H1Transport` over the Unix socket:
+`info`/`solve`/`disk_usage`/`list_workers` (unary), `status`/`prune`
+(server-stream). All with `ProcedureCodecs::defaults()`.
+
+### The remaining hard part — the `Session` sidecar (build-context callback)
+
+A Dockerfile build needs the client to serve gRPC *back* to buildkitd: the
+`dockerfile.v0` frontend reads the Dockerfile + context via **FileSync**
+(`moby.filesync.v1.FileSync/DiffCopy`, fsutil packet protocol), plus optional
+**Auth** / **Secrets** / **SSH** services. buildkitd multiplexes these calls over
+the single `Control/Session` bidi stream (each `BytesMessage` carries a chunk of
+a tunnelled h2 connection); `SolveRequest.Session` ties a solve to that stream.
+
+**Concrete plan (design fixed, execution pending):**
+1. Vendor + `buffa-build` the session protos: `session/filesync/filesync.proto`,
+   `session/auth/auth.proto`, `session/secrets/secrets.proto`,
+   `session/sshforward/ssh.proto`, and the fsutil `types/*.proto` (from
+   `github.com/tonistiigi/fsutil`).
+2. **Bridge**: implement `foundation_netio::native::connection::OverlayReadWrite`
+   over the `Control/Session` bidi stream (`read` = next `BytesMessage.data`,
+   `write` = send `BytesMessage{data}`), wrap in `Connection::Overlay`, and feed
+   it via a single-shot `Acceptor` to `HttpServer::serve_with_acceptor` — so our
+   own HTTP/2 server serves the session services over the tunnel. (The `Overlay`
+   variant is the non-fd byte-stream path; it needs no `AsRawFd`, unlike
+   `Completion`.)
+3. Implement the FileSync `DiffCopy` handler to stream a local build-context dir
+   as fsutil packets; stub Auth/Secrets/SSH to "none".
+4. Drive `Solve` with the session id + `frontend=dockerfile.v0`; observe progress
+   via `Status`.
+5. Integration test needs a reachable buildkitd Control endpoint — dockerd embeds
+   buildkit behind the `/session` + `/grpc` hijack (no `/run/buildkit/buildkitd.sock`
+   by default), so the testbed must either run standalone `buildkitd` or reach the
+   embedded one via the Docker hijack.
+
 ## Related
 
 - **[02 — Docker Engine API Spec Source](02-docker-openapi-spec.md)** — Same local checkout
