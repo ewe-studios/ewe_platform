@@ -2,6 +2,7 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
+use crate::http::connector::Connector;
 use crate::http::pool::ConnectionPool;
 use crate::shared::client::SystemDnsResolver;
 use std::io::Read;
@@ -508,6 +509,9 @@ pub struct HttpConnectionPool<R: DnsResolver> {
     pool: Arc<ConnectionPool>,
     resolver: Arc<R>,
     tls_connector: Option<Arc<SSLConnector>>,
+    /// Optional transport connector — when set, bypasses DNS+TcpStream in
+    /// `create_http_connection` for the fresh-connection path (F11).
+    pub connector: Option<Arc<dyn Connector>>,
 }
 
 impl<R: DnsResolver> std::fmt::Debug for HttpConnectionPool<R> {
@@ -518,7 +522,7 @@ impl<R: DnsResolver> std::fmt::Debug for HttpConnectionPool<R> {
                 "tls_connector",
                 &self.tls_connector.as_ref().map(|_| "SSLConnector(...)"),
             )
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -528,6 +532,7 @@ impl<R: DnsResolver + Default> Default for HttpConnectionPool<R> {
             pool: Arc::new(ConnectionPool::default()),
             resolver: Arc::new(R::default()),
             tls_connector: None,
+            connector: None,
         }
     }
 }
@@ -539,6 +544,7 @@ impl HttpConnectionPool<SystemDnsResolver> {
             pool: Arc::new(ConnectionPool::default()),
             resolver: Arc::new(SystemDnsResolver::new()),
             tls_connector: None,
+            connector: None,
         }
     }
 }
@@ -551,6 +557,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             pool: Arc::new(pool),
             resolver: Arc::new(resolver),
             tls_connector: None,
+            connector: None,
         }
     }
 
@@ -558,6 +565,14 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     #[must_use]
     pub fn with_tls_connector(mut self, connector: SSLConnector) -> Self {
         self.tls_connector = Some(Arc::new(connector));
+        self
+    }
+
+    /// Use a custom transport connector (WireGuard overlay, Unix socket).
+    /// When set, `create_http_connection` uses this for fresh connections.
+    #[must_use]
+    pub fn with_connector(mut self, c: Arc<dyn Connector>) -> Self {
+        self.connector = Some(c);
         self
     }
 
@@ -574,6 +589,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             pool,
             resolver,
             tls_connector: None,
+            connector: None,
         }
     }
 
@@ -615,7 +631,27 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             return Ok(HttpClientConnection { stream, host, port });
         }
 
-        // No pooled connection available, create a fresh one.
+        // No pooled connection available. Use the optional connector if set
+        // (WireGuard overlay, Unix socket), otherwise DNS+TcpStream.
+        if let Some(ref connector) = self.connector {
+            let conn = connector
+                .connect(&host, port, timeout)
+                .map_err(|e| HttpClientError::ConnectionFailed(format!("{host}:{port}: {e}")))?;
+            if url.scheme().is_https() || url.scheme().is_wss() {
+                return HttpClientConnection::upgrade_to_tls_with_config(
+                    conn,
+                    &host,
+                    port,
+                    self.tls_connector.as_deref(),
+                );
+            }
+            let stream = SharedByteBufferStream::rwrite(
+                RawStream::from_connection(conn)
+                    .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+            );
+            return Ok(HttpClientConnection { stream, host, port });
+        }
+
         HttpClientConnection::connect_with_tls_config(
             url,
             &*self.resolver,
@@ -634,9 +670,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         // get a dead connection. Checks the actual transport type via
         // SharedByteBufferStream::is_unix → RawStream::is_unix → Connection::is_unix.
         if conn.stream.is_unix() {
-            tracing::trace!(
-                "return_to_pool: dropping Unix-socket connection (not poolable)"
-            );
+            tracing::trace!("return_to_pool: dropping Unix-socket connection (not poolable)");
             return;
         }
         tracing::trace!("Returning http client connection to the pool");
@@ -1050,9 +1084,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         url: &Uri,
         socket_path: &std::path::Path,
     ) -> Result<HttpClientConnection, HttpClientError> {
-        let host = url
-            .host_str()
-            .unwrap_or_else(|| "localhost".to_string());
+        let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
         let connection = Connection::connect_unix(socket_path)
             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
         let stream = SharedByteBufferStream::rwrite(

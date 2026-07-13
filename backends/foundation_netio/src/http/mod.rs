@@ -3,6 +3,7 @@
 mod api;
 mod client;
 mod connection;
+mod connector;
 mod http_client_impl;
 mod pool;
 mod proxy;
@@ -13,6 +14,7 @@ mod tls_task;
 pub use api::*;
 pub use client::*;
 pub use connection::*;
+pub use connector::{Connector};
 pub use http_client_impl::*;
 pub use pool::*;
 pub use proxy::*;
