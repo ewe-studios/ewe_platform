@@ -532,7 +532,7 @@ impl Drop for WgHandle {
 /// layer), this can be wrapped in a `TaskIterator` that returns
 /// `TaskStatus::Depends(fd_readiness)` — zero blind polling. Until then,
 /// `thread::sleep(50ms)` is the sans-I/O fallback.
-struct WgMeshTask {
+pub(crate) struct WgMeshTask {
     driver: TunnelDriver,
     swim: Arc<Mutex<Swim>>,
     gossip: OverlayUdp,
