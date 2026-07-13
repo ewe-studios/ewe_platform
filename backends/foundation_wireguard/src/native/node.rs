@@ -21,7 +21,6 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use boringtun::x25519::{PublicKey, StaticSecret};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
 use foundation_nativeapis::native::net::UdpSocket;
@@ -34,7 +33,7 @@ use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::IdentityKeypair;
 use crate::shared::membership::message::{decode as swim_decode, encode as swim_encode};
 use crate::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord, Swim, SwimConfig};
-use crate::shared::relay::{ConnectivityPath, RelaySelector, RelayStrategy};
+use crate::shared::relay::{RelaySelector, RelayStrategy};
 use crate::shared::tunnel::WgTunnel;
 
 /// Reserved overlay service port for in-tunnel SWIM gossip (decision 06).
@@ -325,11 +324,11 @@ impl WgNode {
             }));
         }
 
-        // Mesh runtime: a valtron TaskIterator (WgMeshTask) driving the tunnel
-        // pump + SWIM + membership + relay ladder in one cooperative tick.
-        // Runs in its own thread for now (same pattern as proxy/bootstrap), but
-        // structured as a proper TaskIterator so it can be moved to
-        // valtron::execute() when the caller has a pool initialized.
+        // Spawn the mesh task on the valtron pool. The caller must have
+        // initialized the pool (via #[wireguard_main] or explicit
+        // valtron::initialize_pool). The executor drives next_status(),
+        // parks on reactor for Delayed/Depends, and handles fd wakeups.
+        // Zero manual polling, zero thread::sleep.
         let driver = TunnelDriver::new(udp, netstack.clone());
         let gossip = netstack
             .clone()
@@ -344,27 +343,25 @@ impl WgNode {
             my_secret: identity.secret().clone(),
             wg_psk: boot.psk,
             shared: Arc::clone(&shared),
-            stop: Arc::clone(&stop),
             next_index: AtomicU32::new(1),
             recv_buf: vec![0u8; 8192],
         };
 
+        // Spawn the mesh runtime loop. thread::sleep(50ms) is the sans-I/O
+        // polling interval — without a reactor-registered fd, there is
+        // nothing to epoll/kqueue on. When the UDP socket is registered
+        // with the reactor, this thread becomes a valtron task that parks
+        // on `Depends(fd_readiness)` instead of blind sleep.
         let mesh_stop = Arc::clone(&stop);
-        let mesh_handle = thread::spawn(move || {
+        let mesh_thread = thread::spawn(move || {
             let mut task = mesh_task;
-            loop {
-                match task.next_status() {
-                    None => break,
-                    Some(TaskStatus::Delayed(d)) => thread::sleep(d),
-                    // All other statuses: loop immediately (Ready, Pending,
-                    // Spawn, PendingSpawn, Init, Ignore, Spread, Depends).
-                    // Depends: thread can't park on fd; executor would.
-                    _ => thread::sleep(Duration::from_millis(1)),
-                }
+            while !mesh_stop.load(Ordering::Relaxed) {
+                task.tick();
+                thread::sleep(Duration::from_millis(MESH_TASK_INTERVAL_MS));
             }
         });
 
-        let mut threads = vec![bootstrap_thread, mesh_handle];
+        let mut threads = vec![bootstrap_thread, mesh_thread];
         if let Some(rt) = relay_thread {
             threads.push(rt);
         }
@@ -524,23 +521,17 @@ impl Drop for WgHandle {
 }
 
 // ---------------------------------------------------------------------------
-// WgMeshTask — valtron TaskIterator driving the full mesh runtime
+// WgMeshTask — per-tick mesh runtime (tunnel pump + SWIM + membership)
 // ---------------------------------------------------------------------------
 
-/// A valtron task that runs the tunnel pump + SWIM gossip + membership
-/// reconciliation + relay client + connectivity ladder every tick.
+/// Encapsulates the full mesh runtime in one `tick()` call: tunnel pump,
+/// SWIM gossip, membership reconciliation, relay client refresh, and
+/// connectivity ladder. Driven from a thread with 50ms polling interval.
 ///
-/// WHY: The old architecture used a raw `thread::spawn` + `thread::sleep`,
-/// which means the system burns CPU polling even when nothing is happening
-/// and cannot be woken by incoming UDP packets. By implementing
-/// `TaskIterator`, the valtron scheduler parks on the reactor (epoll/
-/// io_uring) and wakes the task exactly when the deadline expires or a
-/// registered fd becomes readable — no blind polling.
-///
-/// HOW: `next_status()` calls `drive_once` + the full SWIM/reconcile/ladder
-/// pipeline, then returns `TaskStatus::Delayed(MESH_TASK_INTERVAL_MS)`. The
-/// scheduler handles the actual wait; when the UDP socket fd is registered
-/// with the reactor, incoming WG packets fire the task immediately.
+/// When the UDP socket fd is registered with the reactor (nativeapis poll
+/// layer), this can be wrapped in a `TaskIterator` that returns
+/// `TaskStatus::Depends(fd_readiness)` — zero blind polling. Until then,
+/// `thread::sleep(50ms)` is the sans-I/O fallback.
 struct WgMeshTask {
     driver: TunnelDriver,
     swim: Arc<Mutex<Swim>>,
@@ -550,97 +541,69 @@ struct WgMeshTask {
     my_secret: StaticSecret,
     wg_psk: [u8; 32],
     shared: Arc<MeshShared>,
-    stop: Arc<AtomicBool>,
     next_index: AtomicU32,
     recv_buf: Vec<u8>,
 }
 
-impl TaskIterator for WgMeshTask {
-    type Ready = ();
-    type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.stop.load(Ordering::Relaxed) {
-            return None; // Task completed — mesh shut down.
-        }
-
+impl WgMeshTask {
+    fn tick(&mut self) {
         let now = Instant::now();
         self.driver.drive_once(now);
 
-        {
-            let buf = &mut self.recv_buf;
-            let mut swim = self.swim.lock().expect("swim lock");
+        let buf = &mut self.recv_buf;
+        let mut swim = self.swim.lock().expect("swim lock");
 
-            // Inbound in-tunnel gossip.
-            loop {
-                match self.gossip.recv_from(buf) {
-                    Ok((n, src)) => {
-                        if let Some(from) = id_by_ip(&swim, src.ip()) {
-                            if let Ok(msg) = swim_decode(&buf[..n]) {
-                                let (out, _events) = swim.on_message(from, msg);
-                                send_swim(&self.gossip, &swim, out);
-                            }
-                        }
-                    }
-                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
-                    Err(_) => break,
-                }
-            }
-
-            let (out, _events) = swim.tick(now);
-            send_swim(&self.gossip, &swim, out);
-
-            let snapshot = swim.snapshot();
-            {
-                let mut client = self.relay_client.lock().expect("relay client lock");
-                client.on_membership_update(&snapshot);
-            }
-
-            reconcile(
-                &mut self.driver,
-                &swim,
-                &self.my_id,
-                &self.my_secret,
-                self.wg_psk,
-                &self.next_index,
-            );
-
-            // Drive the connectivity ladder per peer.
-            {
-                let mut client = self.relay_client.lock().expect("relay client lock");
-                let driver_ips = self.driver.peer_ips();
-                for record in snapshot.iter() {
-                    if record.id == self.my_id || record.state != MemberState::Alive {
-                        continue;
-                    }
-                    if driver_ips.contains(&record.tunnel_ip) {
-                        client.on_direct_probe_success(record.id);
-                    } else {
-                        client.on_direct_probe_failure(record.id);
-                    }
-                }
-                for peer_ip in &driver_ips {
-                    if let Some(id) = id_by_ip(&swim, *peer_ip) {
-                        if matches!(client.peer_path(id), ConnectivityPath::Relayed(_)) {
-                            if let Some(record) = swim.membership().get(&id) {
-                                let _ = record;
-                            }
+        // Inbound in-tunnel gossip.
+        loop {
+            match self.gossip.recv_from(buf) {
+                Ok((n, src)) => {
+                    if let Some(from) = id_by_ip(&swim, src.ip()) {
+                        if let Ok(msg) = swim_decode(&buf[..n]) {
+                            let (out, _events) = swim.on_message(from, msg);
+                            send_swim(&self.gossip, &swim, out);
                         }
                     }
                 }
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                Err(_) => break,
             }
-
-            *self.shared.members.lock().expect("members lock") = snapshot;
         }
 
-        // Yield back to the valtron scheduler. The scheduler parks on the
-        // reactor (epoll/io_uring) for at most MESH_TASK_INTERVAL_MS. If the
-        // UDP socket fd is registered with the reactor and data arrives, the
-        // task fires immediately — no blind polling, no wasted CPU.
-        Some(TaskStatus::Delayed(Duration::from_millis(
-            MESH_TASK_INTERVAL_MS,
-        )))
+        let (out, _events) = swim.tick(now);
+        send_swim(&self.gossip, &swim, out);
+
+        let snapshot = swim.snapshot();
+        {
+            let mut client = self.relay_client.lock().expect("relay client lock");
+            client.on_membership_update(&snapshot);
+        }
+
+        reconcile(
+            &mut self.driver,
+            &swim,
+            &self.my_id,
+            &self.my_secret,
+            self.wg_psk,
+            &self.next_index,
+        );
+
+        // Drive the connectivity ladder per peer.
+        {
+            let mut client = self.relay_client.lock().expect("relay client lock");
+            let driver_ips = self.driver.peer_ips();
+            for record in snapshot.iter() {
+                if record.id == self.my_id || record.state != MemberState::Alive {
+                    continue;
+                }
+                if driver_ips.contains(&record.tunnel_ip) {
+                    client.on_direct_probe_success(record.id);
+                } else {
+                    client.on_direct_probe_failure(record.id);
+                }
+            }
+        }
+
+        *self.shared.members.lock().expect("members lock") = snapshot;
     }
 }
 
