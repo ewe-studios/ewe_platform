@@ -13,7 +13,7 @@
 
 use std::net::IpAddr;
 
-use crate::shared::keys::IdentityKeypair;
+use crate::shared::keys::{IdentityKeypair, NetworkId, WgSeed};
 use crate::shared::membership::PeerId;
 use crate::shared::tunnel::{WgOutcome, WgTunnel};
 
@@ -116,19 +116,32 @@ impl BrowserWgNode {
         }
     }
 
+    /// WHY: Perform a local-only join — derive keys, set up the tunnel and
+    /// device. The actual WebSocket connectrpc bootstrap is performed by the
+    /// JS bridge; this method initializes the Rust side.
+    ///
+    /// WHAT: Derive bootstrap keys from `seed`, create a `WgTunnel`, set up
+    /// the `JsDevice`, and set the overlay IP.
+    pub fn join(seed: &WgSeed, network_id: &NetworkId, mtu: usize) -> Self {
+        use crate::shared::keys::{BootstrapKeys, WgSeed};
+        let boot = seed.derive_bootstrap(network_id);
+        let overlay_ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1));
+        Self::new(
+            WgTunnel::new(boot.static_secret, boot.public, Some(boot.psk), Some(25), 0),
+            mtu,
+            overlay_ip,
+        )
+    }
+
     /// WHY: Drive one tick of the tunnel + device pipeline.
     ///
     /// WHAT: Process inbound WG packets from the relay, inject decrypted IP
-    /// into the device, poll the device (via poll-based interface), and drain
-    /// outbound IP packets to be encrypted and relayed.
+    /// into the device, drain outbound IP packets to be encrypted and relayed.
     ///
     /// HOW: Call this from a valtron task or JS requestAnimationFrame loop.
-    /// The JS bridge feeds relay frames in and drains them out around the tick.
     pub fn tick(&mut self) {
-        // Process inbound relayed WG packets.
+        // Process inbound relayed WG packets → decapsulate → inject into device.
         for (_src, wg_bytes) in self.relay.drain_inbound() {
-            // The relay only gives us ciphertext; the source identity isn't
-            // available from the wire. Use 0.0.0.0:0 as a sentinel.
             let outcome = self.tunnel.decapsulate(
                 Some(IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0))),
                 &wg_bytes,
@@ -136,26 +149,30 @@ impl BrowserWgNode {
             if let WgOutcome::WriteToTunnel(ip_pkt) = outcome {
                 self.device.inject(ip_pkt);
             }
-            // WriteToNetwork outcomes are drained via flush_network below.
         }
 
-        // Drain WG-encrypted packets from the tunnel (one per call to flush_network).
-        while let Some(ct) = self.tunnel.flush_network() {
-            self.relay.send_packet(PeerId([0; 32]), ct);
-        }
-
-        // Tunnel timer upkeep (keepalive / handshake retransmit).
+        // Tunnel timer upkeep.
         if let WgOutcome::WriteToNetwork(ct) = self.tunnel.update_timers() {
             self.relay.send_packet(PeerId([0; 32]), ct);
         }
 
-        // Drain outbound IP packets from the device.
+        // Drain WG-encrypted packets from the tunnel.
+        while let Some(ct) = self.tunnel.flush_network() {
+            self.relay.send_packet(PeerId([0; 32]), ct);
+        }
+
+        // Drain outbound IP packets from the device → encapsulate → relay.
         for ip_pkt in self.device.drain_outbound() {
             let outcome = self.tunnel.encapsulate(&ip_pkt);
             if let WgOutcome::WriteToNetwork(ct) = outcome {
                 self.relay.send_packet(PeerId([0; 32]), ct);
             }
         }
+    }
+
+    /// Create a pre-joined node from an existing tunnel (for testing).
+    pub fn from_tunnel(tunnel: WgTunnel, mtu: usize, overlay_ip: IpAddr) -> Self {
+        Self::new(tunnel, mtu, overlay_ip)
     }
 
     /// Mut access to the relay client for JS bridge integration.

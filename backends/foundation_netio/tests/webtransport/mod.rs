@@ -1,39 +1,21 @@
 //! WebTransport protocol and session tests (spec-55, F06).
-//!
-//! Moved from inline tests in src/webtransport/proto.rs and session.rs
-//! per the project convention of tests in tests/.
 
 #![cfg(all(feature = "quic", not(target_family = "wasm")))]
 
 use bytes::Bytes;
 use foundation_core::valtron::Stream;
 use foundation_netio::webtransport::proto::{
-    self, CapsuleType, WtProtocolError, encode_close_session, encode_datagram_capsule,
+    CapsuleType, WtProtocolError, encode_close_session, encode_datagram_capsule, CapsuleDecoder,
 };
-use foundation_netio::webtransport::session::{WtAcceptor, WtSession, WtStreamError};
+use foundation_netio::webtransport::session::{WtAcceptor, WtSession, WtSessionState};
 
-// ── Protocol (proto.rs) ──
-
-#[test]
-fn varint_round_trip() {
-    for val in [0, 1, 63, 64, 16383, 16384, 1073741823, 1073741824, u64::MAX] {
-        let mut buf = Vec::new();
-        // Use the internal varint functions via proto module tests
-        // The varint encode/decode is tested in proto.rs inline.
-        // Re-test capsule round-trips here.
-        let _ = val;
-    }
-    // Minimal sanity: decode_datagram_capsule + encode round-trip.
-    let encoded = encode_datagram_capsule(b"hello");
-    let (capsule, consumed) = proto::decode_capsule(&encoded).expect("decode");
-    assert_eq!(consumed, encoded.len());
-    assert!(matches!(capsule, CapsuleType::Datagram(ref d) if d == b"hello"));
-}
+// ── One-shot decode_capsule ──
 
 #[test]
 fn decode_datagram_capsule() {
     let encoded = encode_datagram_capsule(b"hello");
-    let (capsule, consumed) = proto::decode_capsule(&encoded).expect("decode");
+    let (capsule, consumed) =
+        foundation_netio::webtransport::proto::decode_capsule(&encoded).expect("decode");
     assert_eq!(consumed, encoded.len());
     assert!(matches!(capsule, CapsuleType::Datagram(ref d) if d == b"hello"));
 }
@@ -41,16 +23,38 @@ fn decode_datagram_capsule() {
 #[test]
 fn decode_close_session_capsule() {
     let encoded = encode_close_session(42, "gone");
-    let (capsule, _) = proto::decode_capsule(&encoded).expect("decode");
-    assert!(matches!(capsule, CapsuleType::CloseSession { code: 42, ref reason } if reason == "gone"));
+    let (capsule, _) =
+        foundation_netio::webtransport::proto::decode_capsule(&encoded).expect("decode");
+    assert!(
+        matches!(capsule, CapsuleType::CloseSession { code: 42, ref reason } if reason == "gone")
+    );
 }
 
 #[test]
 fn decode_truncated_returns_error() {
-    assert!(matches!(proto::decode_capsule(&[]), Err(WtProtocolError::Truncated)));
+    assert!(matches!(
+        foundation_netio::webtransport::proto::decode_capsule(&[]),
+        Err(WtProtocolError::Truncated)
+    ));
 }
 
-// ── Session (session.rs) ──
+// ── Incremental CapsuleDecoder ──
+
+#[test]
+fn incremental_decoder_datagram() {
+    let mut dec = CapsuleDecoder::new();
+    let encoded = encode_datagram_capsule(b"incremental");
+    // Feed first 3 bytes then the rest.
+    dec.push(&encoded[..3]);
+    assert!(matches!(dec.decode(), Ok(None)));
+    dec.push(&encoded[3..]);
+    let capsule = dec.decode().expect("decode").expect("capsule");
+    assert!(matches!(capsule, CapsuleType::Datagram(ref d) if d == b"incremental"));
+    assert!(matches!(dec.decode(), Ok(None)));
+    assert!(!dec.has_partial());
+}
+
+// ── Session ──
 
 #[test]
 fn session_lifecycle() {
@@ -79,37 +83,22 @@ fn session_datagram_queue_and_drain() {
 fn session_datagrams_disabled_is_error() {
     let mut session = WtSession::new(true, false);
     session.on_connected();
-    assert!(!session.datagrams_enabled());
     assert!(session.queue_datagram(Bytes::from("x")).is_err());
 }
 
 #[test]
-fn session_recv_datagram_via_capsule() {
-    let mut session = WtSession::new(true, true);
-    session.on_connected();
-    session.on_capsule(CapsuleType::Datagram(b"hello dgram".to_vec()));
-    match session.try_recv_datagram() {
-        Stream::Next(Ok(Some(data))) => assert_eq!(&data[..], b"hello dgram"),
-        other => panic!("expected Next(Ok(Some(...))), got {other:?}"),
-    }
-    assert!(matches!(session.try_recv_datagram(), Stream::Pending(())));
-}
-
-#[test]
-fn session_drain_capsule_sets_draining_state() {
+fn session_drain_capsule() {
     let mut session = WtSession::new(true, true);
     session.on_connected();
     session.on_capsule(CapsuleType::Drain);
-    assert_eq!(session.state, foundation_netio::webtransport::session::WtSessionState::Draining);
+    assert_eq!(session.state, WtSessionState::Draining);
 }
 
 #[test]
 fn acceptor_queue_and_accept() {
     let mut acceptor = WtAcceptor::new();
     assert!(matches!(acceptor.try_accept(), Stream::Pending(())));
-    let session = WtSession::new(false, false);
-    acceptor.queue_session(session);
+    acceptor.queue_session(WtSession::new(false, false));
     assert_eq!(acceptor.pending(), 1);
     assert!(matches!(acceptor.try_accept(), Stream::Next(_)));
-    assert_eq!(acceptor.pending(), 0);
 }

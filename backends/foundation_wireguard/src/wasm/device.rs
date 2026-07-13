@@ -1,18 +1,20 @@
-//! In-memory FIFO device for bridging smoltcp to the JS relay transport (F07).
+//! JS-bridged smoltcp Device for browser peers (spec-55, F07).
 //!
 //! WHY: In wasm, the "link layer" is a relay WebSocket — not a kernel socket.
-//! This device queues IP packets between a smoltcp poll cycle and JS I/O.
+//! This device implements `smoltcp::phy::Device` so it can drive a
+//! `smoltcp::Interface` buffer-to-buffer, bridging JS I/O to the netstack.
 //!
-//! WHAT: [`JsDevice`] — two independent FIFO queues: rx (inbound from relay)
-//! and tx (outbound to relay). The JS bridge calls [`inject`](Self::inject) when
-//! relayed WG packets arrive, and [`drain_outbound`](Self::drain_outbound) to
-//! get packets to send through the relay.
+//! WHAT: [`JsDevice`] — a FIFO-backed `smoltcp::phy::Device`. The JS bridge
+//! calls `inject` when relayed WG packets arrive; `drain_outbound` delivers
+//! packets to the JS relay transport.
 //!
-//! HOW: Single-threaded (wasm has one thread), so no locking needed. The
-//! smoltcp `phy::Device` impl lives in `foundation_nativeapis::NetStack`, which
-//! this device feeds — this struct is the I/O side, not the trait side.
+//! HOW: Single-threaded (wasm has one thread), no locking. Follows the exact
+//! same smoltcp Device pattern as `TunnDevice` in foundation_nativeapis.
 
 use std::collections::VecDeque;
+
+use smoltcp::phy::{Device, DeviceCapabilities, Medium};
+use smoltcp::time::Instant;
 
 pub struct JsDevice {
     mtu: usize,
@@ -31,35 +33,63 @@ impl JsDevice {
         self.rx.push_back(packet);
     }
 
-    /// Pop one inbound IP packet for the netstack driver.
-    pub fn pop_inbound(&mut self) -> Option<Vec<u8>> {
-        self.rx.pop_front()
-    }
-
-    /// Queue an outbound IP packet from smoltcp → relay.
-    pub fn push_outbound(&mut self, pkt: Vec<u8>) {
-        self.tx.push_back(pkt);
-    }
-
-    /// Drain all outbound packets for the JS bridge to relay.
+    /// Drain all outbound IP packets for the JS bridge to relay.
     pub fn drain_outbound(&mut self) -> Vec<Vec<u8>> {
         self.tx.drain(..).collect()
     }
 
-    /// Number of pending inbound packets.
     #[must_use]
-    pub fn pending_inbound(&self) -> usize {
-        self.rx.len()
+    pub fn mtu(&self) -> usize { self.mtu }
+}
+
+// ── smoltcp phy::Device impl (matches TunnDevice pattern in nativeapis) ──
+
+pub struct RxToken { buffer: Vec<u8> }
+
+impl smoltcp::phy::RxToken for RxToken {
+    fn consume<R, F>(self, f: F) -> R
+    where
+        F: FnOnce(&[u8]) -> R,
+    {
+        f(&self.buffer)
+    }
+}
+
+pub struct TxToken<'a> {
+    tx: &'a mut VecDeque<Vec<u8>>,
+}
+
+impl smoltcp::phy::TxToken for TxToken<'_> {
+    fn consume<R, F>(self, len: usize, f: F) -> R
+    where
+        F: FnOnce(&mut [u8]) -> R,
+    {
+        let mut buffer = vec![0u8; len];
+        let result = f(&mut buffer);
+        self.tx.push_back(buffer);
+        result
+    }
+}
+
+impl Device for JsDevice {
+    type RxToken<'a> = RxToken;
+    type TxToken<'a> = TxToken<'a>;
+
+    fn receive(&mut self, _now: Instant) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
+        let buffer = self.rx.pop_front()?;
+        let rx = RxToken { buffer };
+        let tx = TxToken { tx: &mut self.tx };
+        Some((rx, tx))
     }
 
-    /// Number of pending outbound packets.
-    #[must_use]
-    pub fn pending_outbound(&self) -> usize {
-        self.tx.len()
+    fn transmit(&mut self, _now: Instant) -> Option<Self::TxToken<'_>> {
+        Some(TxToken { tx: &mut self.tx })
     }
 
-    #[must_use]
-    pub fn mtu(&self) -> usize {
-        self.mtu
+    fn capabilities(&self) -> DeviceCapabilities {
+        let mut caps = DeviceCapabilities::default();
+        caps.medium = Medium::Ip;
+        caps.max_transmission_unit = self.mtu;
+        caps
     }
 }

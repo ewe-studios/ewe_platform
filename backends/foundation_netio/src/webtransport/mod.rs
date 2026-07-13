@@ -16,5 +16,5 @@
 pub mod proto;
 pub mod session;
 
-pub use proto::{CapsuleType, WtProtocolError};
+pub use proto::{CapsuleDecoder, CapsuleType, WtProtocolError};
 pub use session::{WtAcceptor, WtConnector, WtSession, WtStreamError};

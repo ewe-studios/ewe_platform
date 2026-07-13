@@ -176,6 +176,12 @@ name = "wasm"
 path = "tests/wasm/mod.rs"
 required-features = ["wasm-fetch"]
 
+# WebTransport protocol + session tests (spec-55, F06).
+[[test]]
+name = "webtransport"
+path = "tests/webtransport/mod.rs"
+required-features = ["quic"]
+
 [package.metadata.docs.rs]
 # enable one of these as default implementation
 features = ["ssl-rustls"]

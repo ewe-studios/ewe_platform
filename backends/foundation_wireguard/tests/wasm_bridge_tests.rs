@@ -1,8 +1,4 @@
-//! Browser-peer bridge tests: JsDevice FIFO, WsRelayClient frames, BrowserWgNode tick (F07).
-//!
-//! These test the sans-I/O Rust side of the wasm module. Actual wasm32 I/O
-//! (web_sys WebSocket/RtcPeerConnection) is tested via the wasm testbed
-//! (see foundation_netio/tests/wasm/ for the pattern).
+//! Browser-peer bridge tests: JsDevice smoltcp Device impl, WsRelayClient, BrowserWgNode tick (F07).
 
 #![cfg(not(target_family = "wasm"))]
 
@@ -13,38 +9,38 @@ use foundation_wireguard::shared::membership::PeerId;
 use foundation_wireguard::shared::tunnel::WgTunnel;
 use foundation_wireguard::wasm::browser::{BrowserWgNode, WsRelayClient};
 use foundation_wireguard::wasm::device::JsDevice;
+use smoltcp::phy::{Device as _, RxToken as _, TxToken as _};
+use smoltcp::time::Instant;
 use tracing_test::traced_test;
 
-// ── JsDevice (FIFO bridge) ──
+// ── JsDevice smoltcp Device ──
 
 #[traced_test]
 #[test]
-fn js_device_inject_and_pop() {
+fn js_device_inject_and_receive() {
     let mut dev = JsDevice::new(1420);
     dev.inject(vec![0x45, 0x00, 0x00, 0x14]);
-    assert_eq!(dev.pending_inbound(), 1);
-    let pkt = dev.pop_inbound().expect("pop");
-    assert_eq!(pkt[0], 0x45);
-    assert_eq!(dev.pending_inbound(), 0);
+    let (rx, _tx) = dev.receive(Instant::from_millis(0)).expect("receive");
+    rx.consume(|buf| assert_eq!(buf[0], 0x45));
 }
 
 #[traced_test]
 #[test]
-fn js_device_push_and_drain_outbound() {
+fn js_device_transmit_then_drain() {
     let mut dev = JsDevice::new(1420);
-    dev.push_outbound(b"pkt1".to_vec());
-    dev.push_outbound(b"pkt2".to_vec());
-    assert_eq!(dev.pending_outbound(), 2);
-    let drained = dev.drain_outbound();
-    assert_eq!(drained.len(), 2);
-    assert_eq!(&drained[0][..], b"pkt1");
+    let tx = dev.transmit(Instant::from_millis(0)).expect("transmit");
+    tx.consume(5, |buf| buf.copy_from_slice(b"hello"));
+    let out = dev.drain_outbound();
+    assert_eq!(&out[0][..5], b"hello");
 }
 
 #[traced_test]
 #[test]
-fn js_device_mtu_is_stored() {
+fn js_device_capabilities() {
     let dev = JsDevice::new(1380);
-    assert_eq!(dev.mtu(), 1380);
+    let c = dev.capabilities();
+    assert_eq!(c.medium, smoltcp::phy::Medium::Ip);
+    assert_eq!(c.max_transmission_unit, 1380);
 }
 
 // ── WsRelayClient ──
