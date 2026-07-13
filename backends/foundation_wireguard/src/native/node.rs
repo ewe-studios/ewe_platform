@@ -42,10 +42,11 @@ const GOSSIP_PORT: u16 = 51999;
 const WG_KEEPALIVE: u16 = 25;
 /// Overlay subnet prefix — a `/8` so every derived `10.x.y.z` address is on-link.
 const OVERLAY_PREFIX: u8 = 8;
-/// Runtime loop pacing — maximum sleep between ticks when idle.
-/// `drive_once` returns a sooner deadline; we sleep only until that deadline
-/// (or this cap, whichever is earlier).
-const RUNTIME_TICK_MAX_MS: u64 = 2;
+/// Runtime polling interval. The sans-I/O driver has no event notification
+/// (no epoll/kqueue in this thread), so we must poll periodically. 50ms
+/// gives 20 ticks/sec — fast enough for gossip propagation, slow enough
+/// to not waste CPU. The previous 2ms burned CPU for no benefit.
+const RUNTIME_POLL_MS: u64 = 50;
 
 // WgConfig is defined in shared::config (spec-55, feature 09).
 pub use crate::shared::config::WgConfig;
@@ -455,34 +456,6 @@ impl WgHandle {
             .collect()
     }
 
-    /// WHY: Tests need to block until the overlay tunnel is ready for TCP.
-    /// `wait_for_peer` confirms membership, but the WG tunnel handshake +
-    /// smoltcp TCP setup take a few more runtime ticks. This method probes
-    /// a connect until it succeeds or times out.
-    ///
-    /// WHAT: Retries `tcp_connect(peer_ip, port)` in a loop, sleeping
-    /// between attempts, until the connection succeeds and `may_send()`
-    /// returns true (the smoltcp TCP handshake has completed).
-    ///
-    /// # Panics
-    /// Never panics.
-    pub fn wait_for_tunnel(&self, peer_ip: IpAddr, port: u16, timeout: Duration) -> bool {
-        let deadline = Instant::now() + timeout;
-        while Instant::now() < deadline {
-            if let Ok(stream) = self.tcp_connect(peer_ip, port) {
-                // Drive the overlay TCP handshake.
-                for _ in 0..400 {
-                    if stream.may_send() {
-                        return true;
-                    }
-                    thread::sleep(Duration::from_millis(10));
-                }
-            }
-            thread::sleep(Duration::from_millis(50));
-        }
-        false
-    }
-
     /// WHY: Tests and callers often need to wait until a peer is reachable.
     ///
     /// WHAT: Block until a member with `tunnel_ip` is `Alive`, or `timeout` elapses.
@@ -551,8 +524,7 @@ fn run_runtime(mut runtime: Runtime) {
     let mut buf = [0u8; 8192];
     while !runtime.stop.load(Ordering::Relaxed) {
         let now = Instant::now();
-        // The driver tells us when it next wants attention.
-        let next_wake = runtime.driver.drive_once(now);
+        runtime.driver.drive_once(now);
 
         {
             let mut swim = runtime.swim.lock().expect("swim lock");
@@ -634,14 +606,10 @@ fn run_runtime(mut runtime: Runtime) {
             *runtime.shared.members.lock().expect("members lock") = snapshot;
         }
 
-        // Use the driver's deadline: sleep until the next wake, capped at
-        // RUNTIME_TICK_MAX_MS so we still poll for new data timely. This
-        // makes the runtime responsive (no more 2ms sleep when work is pending).
-        let sleep_ms = next_wake
-            .and_then(|d| d.checked_duration_since(Instant::now()))
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(RUNTIME_TICK_MAX_MS);
-        thread::sleep(Duration::from_millis(sleep_ms.min(RUNTIME_TICK_MAX_MS)));
+        // Sans-I/O driver means no event notification — we poll periodically.
+        // 50ms gives 20 ticks/s: responsive enough for handshake/gossip without
+        // burning CPU (the old 2ms sleep consumed 500 wakeups/s for no benefit).
+        thread::sleep(Duration::from_millis(RUNTIME_POLL_MS));
     }
 }
 
