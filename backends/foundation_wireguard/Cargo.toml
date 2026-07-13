@@ -38,6 +38,8 @@ serde = { workspace = true }
 bincode = { version = "2", features = ["serde"] }
 # wireguard.toml config loading (feature 09).
 toml = { workspace = true }
+# Proc macros: wireguard! + #[wireguard_main] (feature 09).
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).
@@ -51,6 +53,7 @@ boring = "4"
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"
+tempfile = "3"
 
 [lints]
 workspace = true

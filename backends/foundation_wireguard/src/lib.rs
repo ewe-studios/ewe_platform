@@ -20,7 +20,15 @@ pub mod shared;
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
+// Macro re-export (foundation_macros → foundation_wireguard, same pattern as proxy).
+pub use foundation_macros::wireguard;
+pub use foundation_macros::wireguard_main;
+
 pub use shared::bootstrap::{BootstrapFlags, BootstrapToken, TokenSecret, WgBootstrap};
+pub use shared::config::{
+    DataPlaneConfig, NetworkConfig, NodeConfig, RelayConfig, SecurityConfig, WgConfig,
+    WgConfigBuilder,
+};
 pub use shared::error::{WgError, WgResult};
 pub use shared::keys::{
     BootstrapKeys, IdentityKeypair, NetworkId, PeerPublicKey, SeedBits, WgSeed,

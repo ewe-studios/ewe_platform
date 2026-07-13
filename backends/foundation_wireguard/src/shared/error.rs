@@ -48,4 +48,9 @@ pub enum WgError {
     /// A transport / I/O error.
     #[display("io error: {_0}")]
     Io(std::io::Error),
+
+    /// Configuration parsing or validation error.
+    #[display("config error: {_0}")]
+    #[from(ignore)]
+    Config(#[error(not(source))] String),
 }

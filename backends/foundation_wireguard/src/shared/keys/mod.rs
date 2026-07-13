@@ -16,6 +16,7 @@ use base64::Engine as _;
 use blake2::Blake2s256;
 use boringtun::x25519::{PublicKey, StaticSecret};
 use hkdf::SimpleHkdf;
+use serde::{Deserialize, Serialize};
 use zeroize::Zeroizing;
 
 use crate::shared::error::{WgError, WgResult};
@@ -75,6 +76,36 @@ impl NetworkId {
     #[must_use]
     pub fn to_hex(&self) -> String {
         hex::encode(self.0)
+    }
+
+    /// WHY: Network ids arrive as hex in configs and env vars.
+    ///
+    /// WHAT: Parse a 32-char lowercase hex string into a [`NetworkId`].
+    ///
+    /// HOW: Decodes 16 bytes from hex; rejects wrong-length input.
+    ///
+    /// # Errors
+    /// [`WgError::Hex`] on malformed hex; [`WgError::InvalidKey`] on wrong length.
+    #[must_use]
+    pub fn from_hex(s: &str) -> WgResult<Self> {
+        let bytes = hex::decode(s.trim())?;
+        let arr: [u8; 16] = bytes
+            .try_into()
+            .map_err(|_| WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into()))?;
+        Ok(Self(arr))
+    }
+}
+
+impl Serialize for NetworkId {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(&self.to_hex())
+    }
+}
+
+impl<'de> Deserialize<'de> for NetworkId {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        let hex_str = String::deserialize(d)?;
+        NetworkId::from_hex(&hex_str).map_err(serde::de::Error::custom)
     }
 }
 
@@ -256,6 +287,31 @@ impl std::fmt::Debug for WgSeed {
         // Never print seed bytes.
         write!(f, "WgSeed({} bytes, redacted)", self.bytes.len())
     }
+}
+
+impl Serialize for WgSeed {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(&self.to_base64url())
+    }
+}
+
+impl<'de> Deserialize<'de> for WgSeed {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        let s = String::deserialize(d)?;
+        WgSeed::from_base64url(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+/// Serde helper: serialize a [`WgSeed`] as base64url (used by config).
+#[doc(hidden)]
+pub fn ser_wg_seed<S: serde::Serializer>(seed: &WgSeed, s: S) -> Result<S::Ok, S::Error> {
+    seed.serialize(s)
+}
+
+/// Serde helper: deserialize a [`WgSeed`] from base64url (used by config).
+#[doc(hidden)]
+pub fn deser_wg_seed<'de, D: serde::Deserializer<'de>>(d: D) -> Result<WgSeed, D::Error> {
+    WgSeed::deserialize(d)
 }
 
 /// A random per-peer identity keypair (post-join; decision 10). **Not** seed-derived.

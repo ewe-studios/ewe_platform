@@ -25,6 +25,7 @@ mod wasm_test;
 mod bindgen_test;
 mod wasm_ui_server_entry;
 mod wasmbin_codec;
+mod wireguard;
 
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
@@ -706,6 +707,45 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
+}
+
+/// `wireguard!` — compile-time WireGuard mesh configuration (spec-55, feature 09).
+///
+/// Desugars a custom block syntax into a `WgConfig` builder chain.
+/// Unknown keys and missing required fields are compile errors.
+///
+/// ```ignore
+/// use foundation_wireguard::wireguard;
+///
+/// let config = wireguard! {
+///     seed: "base64url-seed...",
+///     network_id: "deadbeef...",
+///     udp_listen: "0.0.0.0:51820",
+///     relay: { advertise: true },
+///     security: { mtls: false },
+/// };
+/// let node = foundation_wireguard::native::WgNode::from_config(config);
+/// ```
+#[proc_macro]
+pub fn wireguard(input: TokenStream) -> TokenStream {
+    wireguard::wireguard_impl(input)
+}
+
+/// `#[wireguard_main]` — entry point that initialises the valtron pool, joins the mesh,
+/// and hands a [`WgHandle`] to the annotated function (spec-55, feature 09).
+///
+/// ```ignore
+/// use foundation_wireguard::wireguard_main;
+///
+/// #[wireguard_main(config = "wireguard.toml")]
+/// fn main(handle: &foundation_wireguard::native::WgHandle) {
+///     let stream = handle.tcp_connect(peer_ip, 8080).unwrap();
+///     // ...
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wireguard::wireguard_main_impl(attr, item)
 }
 
 /// `proxy!` — compile-time proxy configuration (Decision 19).

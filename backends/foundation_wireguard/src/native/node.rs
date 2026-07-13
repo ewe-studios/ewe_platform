@@ -29,7 +29,7 @@ use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
 use super::driver::TunnelDriver;
 use crate::shared::bootstrap::Admission;
 use crate::shared::error::{WgError, WgResult};
-use crate::shared::keys::{IdentityKeypair, NetworkId, WgSeed};
+use crate::shared::keys::IdentityKeypair;
 use crate::shared::membership::message::{decode as swim_decode, encode as swim_encode};
 use crate::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord, Swim, SwimConfig};
 use crate::shared::tunnel::WgTunnel;
@@ -43,63 +43,8 @@ const OVERLAY_PREFIX: u8 = 8;
 /// Runtime loop pacing.
 const RUNTIME_TICK: Duration = Duration::from_millis(2);
 
-/// Configuration for one mesh node.
-#[derive(Debug, Clone)]
-pub struct WgConfig {
-    /// The bootstrap seed.
-    pub seed: WgSeed,
-    /// The network id (supplied or seed-derived).
-    pub network_id: NetworkId,
-    /// Seed bootstrap endpoints to dial. Empty ⇒ this node is the initial seed.
-    pub seed_endpoints: Vec<SocketAddr>,
-    /// Address for the outer WireGuard UDP socket (use port 0 for ephemeral).
-    pub udp_listen: SocketAddr,
-    /// Address for this node's TLS-PSK bootstrap listener (use port 0 for ephemeral).
-    pub bootstrap_listen: SocketAddr,
-    /// Advertised capabilities.
-    pub caps: Capabilities,
-    /// Optional seed TTL (unix seconds); after it, this node refuses new joins with this
-    /// seed (decision 11).
-    pub seed_expires_at: Option<u64>,
-}
-
-impl WgConfig {
-    /// WHY: The first node stands up the network with nothing to join.
-    ///
-    /// WHAT: A seed config on loopback ephemeral ports.
-    ///
-    /// HOW: No `seed_endpoints`; both listeners bind `127.0.0.1:0`.
-    #[must_use]
-    pub fn seed(seed: WgSeed, network_id: NetworkId) -> Self {
-        Self {
-            seed,
-            network_id,
-            seed_endpoints: Vec::new(),
-            udp_listen: "127.0.0.1:0".parse().expect("addr"),
-            bootstrap_listen: "127.0.0.1:0".parse().expect("addr"),
-            caps: Capabilities::default(),
-            seed_expires_at: None,
-        }
-    }
-
-    /// WHY: Later nodes join an existing member.
-    ///
-    /// WHAT: A joiner config dialing `seed_endpoints`.
-    ///
-    /// HOW: Ephemeral loopback listeners; `seed_endpoints` supplies the join target(s).
-    #[must_use]
-    pub fn joiner(seed: WgSeed, network_id: NetworkId, seed_endpoints: Vec<SocketAddr>) -> Self {
-        Self {
-            seed,
-            network_id,
-            seed_endpoints,
-            udp_listen: "127.0.0.1:0".parse().expect("addr"),
-            bootstrap_listen: "127.0.0.1:0".parse().expect("addr"),
-            caps: Capabilities::default(),
-            seed_expires_at: None,
-        }
-    }
-}
+// WgConfig is defined in shared::config (spec-55, feature 09).
+pub use crate::shared::config::WgConfig;
 
 /// A public view of a mesh member.
 #[derive(Debug, Clone)]
@@ -185,12 +130,13 @@ impl WgNode {
     /// # Panics
     /// Never panics.
     pub fn join(self) -> WgResult<WgHandle> {
-        let boot = self.config.seed.derive_bootstrap(&self.config.network_id);
+        let network_id = self.config.network_id();
+        let boot = self.config.wg_seed().derive_bootstrap(&network_id);
         let identity = IdentityKeypair::generate()?;
         let my_id = PeerId(*identity.public().as_bytes());
         let my_ip = derive_tunnel_ip(&my_id);
 
-        let udp = UdpSocket::bind(self.config.udp_listen)?;
+        let udp = UdpSocket::bind(self.config.udp_listen())?;
         let udp_addr = udp.get_ref().local_addr()?;
 
         let netstack = NetStack::new(NetStackConfig {
@@ -200,14 +146,15 @@ impl WgNode {
         });
 
         let my_record =
-            PeerRecord::new(my_id, my_ip, vec![udp_addr], self.config.caps);
+            PeerRecord::new(my_id, my_ip, vec![udp_addr], self.config.caps());
         let mut swim = Swim::new(my_record.clone(), mesh_swim_config(), seed_from_id(&my_id));
 
+        let seed_endpoints = self.config.seed_endpoints();
         // Bootstrap join (joiners only): pull membership + announce self.
-        if !self.config.seed_endpoints.is_empty() {
-            let client = BootstrapClient::new(boot.tls_psk, self.config.network_id)?;
+        if !seed_endpoints.is_empty() {
+            let client = BootstrapClient::new(boot.tls_psk, network_id)?;
             let mut joined = false;
-            for endpoint in &self.config.seed_endpoints {
+            for endpoint in seed_endpoints {
                 let Ok(mut conn) = client.connect(*endpoint) else {
                     continue;
                 };
@@ -234,7 +181,7 @@ impl WgNode {
         let swim = Arc::new(Mutex::new(swim));
         let policy = Arc::new(AdmissionPolicy {
             revoked: AtomicBool::new(false),
-            expires_at: self.config.seed_expires_at,
+            expires_at: self.config.seed_expires_at(),
         });
 
         // Keep our own bootstrap door open (masterless — anyone can join through us).
@@ -242,7 +189,7 @@ impl WgNode {
             swim: Arc::clone(&swim),
             policy: Arc::clone(&policy),
         });
-        let server = BootstrapServer::bind(self.config.bootstrap_listen, boot.tls_psk, handler)?;
+        let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.tls_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
 
         let shared = Arc::new(MeshShared {
