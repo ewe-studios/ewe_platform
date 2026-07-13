@@ -523,7 +523,12 @@ where
                         headers,
                     } = &mut inner
                     {
-                        let is_redirect = (Status::MovedPermanently..=Status::PermanentRedirect)
+                        // WHY: Status::NotModified (304) sits between 303 and 307 in
+                    // the enum ordering but is NOT a redirect — it means "use your
+                    // cached copy". Treating it as redirect causes an infinite loop
+                    // (no Location header to follow).
+                    let is_redirect = intro.0 != Status::NotModified
+                        && (Status::MovedPermanently..=Status::PermanentRedirect)
                             .contains(&intro.0);
                         tracing::debug!(
                             "SendRequestTask::CheckRedirect: intro={:?}, is_redirect={:?}, location= {:?}, headers = {:?}",

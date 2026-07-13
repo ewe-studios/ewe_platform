@@ -3334,7 +3334,11 @@ pub fn split_exchange(
         |item: &HttpExchange| match item {
             HttpExchange::BodyChunk(bytes) => (true, Some(Ok(bytes.clone()))),
             HttpExchange::Failed(err) => (true, Some(Err(Arc::clone(err)))),
-            HttpExchange::Head { .. } => (false, None),
+            // Head arrives when the response has no body (204, 304, etc.) —
+            // the head observer already consumed the first Head; this one
+            // signals end-of-stream. Close with empty bytes so the body
+            // observer produces a value and doesn't block send_async forever.
+            HttpExchange::Head { .. } => (true, Some(Ok(Bytes::new()))),
         },
         DEFAULT_PUSHABLE_DEPTH,
     );

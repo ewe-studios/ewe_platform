@@ -58,6 +58,9 @@ async fn container_full_lifecycle() {
 
 #[valtron_test]
 async fn container_stop_handles_304() {
+    // Docker returns 304 when the container is already exited.
+    // Fixed: send_request was misclassifying 304 as redirect causing
+    // infinite redirect loops with no Location header.
     let c = client();
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["true"]}),
@@ -66,12 +69,7 @@ async fn container_stop_handles_304() {
     c.start_container(&id.id).await.expect("start");
     std::thread::sleep(std::time::Duration::from_secs(2));
     c.stop_container(&id.id, Some(5)).await.expect("stop");
-
-    // Fresh client for remove — works around netio dial-after-close race.
-    // The original client's connection was closed by Docker's 304 response;
-    // a fresh connect_unix() gets a clean socket.
-    let c2 = client();
-    c2.remove_container(&id.id, true).await.expect("remove");
+    c.remove_container(&id.id, true).await.expect("remove");
 }
 
 #[valtron_test]
@@ -192,41 +190,4 @@ async fn container_logs_chunked_body_round_trip() {
 
     c.remove_container(&id.id, true).await.expect("remove");
     tracing::info!("DONE");
-}
-
-
-#[valtron_test]
-async fn trace_304_remove() {
-    let c = client();
-    let id = c.create_container(
-        &serde_json::json!({"Image":"alpine:latest","Cmd":["true"]}),
-        Some("ewe-test-trace"),
-    ).await.expect("create");
-    eprintln!("TRACE: created {}", id.id);
-
-    c.start_container(&id.id).await.expect("start");
-    eprintln!("TRACE: started");
-    std::thread::sleep(std::time::Duration::from_secs(2));
-    eprintln!("TRACE: waited 2s");
-
-    // Raw HTTP stop
-    let http = c.http();
-    let url = format!("{}/containers/{}/stop", c.base_url(), id.id);
-    let builder = foundation_netio::PreparedRequestBuilder::post(&url).unwrap()
-        .query("t", Some("5"));
-    eprintln!("TRACE: stop url={url}");
-    let resp = http.send_async(builder.build()).await.expect("stop send");
-    eprintln!("TRACE: stop status={} body_len={}", resp.get_status(), 
-        foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(resp.take_body()).len());
-
-    // Fresh remove
-    let c2 = client();
-    let rm_url = format!("{}/containers/{}", c2.base_url(), id.id);
-    eprintln!("TRACE: remove url={rm_url}");
-    let rm_builder = foundation_netio::PreparedRequestBuilder::delete(&rm_url).unwrap()
-        .query("force", Some("true"));
-    eprintln!("TRACE: sending remove...");
-    let rm_resp = c2.http().send_async(rm_builder.build()).await.expect("remove send");
-    eprintln!("TRACE: remove status={}", rm_resp.get_status());
-    eprintln!("TRACE: DONE");
 }

@@ -4340,6 +4340,7 @@ dependencies = [
  "foundation_http",
  "foundation_macros",
  "foundation_netio",
+ "foundation_wireguard",
  "futures",
  "futures-lite",
  "serde",

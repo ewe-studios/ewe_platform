@@ -435,7 +435,12 @@ impl Connection {
     pub fn connect_unix(
         path: impl AsRef<std::path::Path>,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Self::Unix(unix_net::UnixStream::connect(path)?))
+        let stream = unix_net::UnixStream::connect(path)?;
+        // Docker closes the connection after every response — a blocking read
+        // on a dead socket hangs forever. A short read timeout converts the
+        // dead-socket read into a WouldBlock error our buffer layer handles.
+        let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+        Ok(Self::Unix(stream))
     }
 
     /// Whether this connection is a Unix-domain socket (never reusable after
