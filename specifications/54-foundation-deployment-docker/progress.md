@@ -10,9 +10,41 @@
 | 01 | DynNetClient + PreparedRequestBuilder surface (netio/core primitives) | ✅ Complete | 00 | Medium |
 | 02 | Unix socket transport | ✅ Complete | 01 | Small |
 | 03 | Generator async fn codegen + regenerate deployment crates | ✅ Complete¹ | 01 | Large |
-| 04 | Docker type replication via gen_api | 🔴 Planned | 02, 03 | Large |
-| 05 | Streaming endpoint handling | 🔴 Planned | 01, 04 | Small |
-| 06 | BuildKit via connectrpc (P2) | 🔴 Planned | 02, 04 | Large |
+| 04 | Docker type replication via gen_api | ✅ Complete | 02, 03 | Large |
+| 05 | Streaming endpoint handling | ✅ Complete | 01, 04 | Small |
+| 06 | BuildKit via connectrpc (P2) | 🟡 In progress | 02, 04 | Large |
+
+> **2026-07-14 validation + HTTP parity closed:** The earlier "bollard parity
+> complete" state **did not compile** with `--features docker,buildkit` (a
+> premature `}` in `client/images.rs` orphaned three methods; `build_prune` had
+> drifted from the regenerated `BuildPruneArgs`). Repaired. Added the 4 remaining
+> bollard-0.21 HTTP methods that had generated fns but no ergonomic wrapper:
+> `update_container`, `upload_to_container`, `get_container_archive_info`,
+> `export_images`. **Full HTTP surface now validated: 99 tests pass** against real
+> Docker 29.5.1 (`--profile uat -- --test-threads=1`). Coverage vs bollard 0.21 +
+> Docker Engine API v1.53 (107 operationIds): the `generated/` layer has 105 raw
+> `*_request` fns (full API incl. P3 domains); the ergonomic `client/` wrapper
+> covers **all P0–P1** (containers/images/networks/volumes/system/exec) + extras.
+> Intentional wrapper gaps: `attach_container_websocket` (niche WS) and the
+> P3-deferred domains (swarm/service/node/task/secret/config/plugin — generated
+> fns exist, wrappers deferred per requirements).
+
+> **2026-07-14 BuildKit (Feature 06) — real proto types landed, Session sidecar
+> remaining:** Vendored the Control-service proto graph (control/worker/ops/policy
+> + google/rpc/status) under `specs/buildkit/`; `build.rs` runs `buffa-build`
+> (protoc + buffa-codegen) under the `buildkit` feature to emit real
+> `buffa::Message` types (the same `buffa` runtime our `foundation_connectrpc`
+> ProtoCodec uses). `BuildKitClient` now uses `ProcedureCodecs::defaults()`
+> (proto + json) with typed `info()` (unary), `solve()` (unary — corrected from
+> the scaffold's wrong "bidi"), and `status()` (server-stream) over
+> `foundation_connectrpc` `Client<Req,Res>` + `H1Transport` on the Unix socket.
+> Generated types round-trip on both proto and JSON wires (5 tests).
+> **Remaining for end-to-end local Dockerfile builds:** the `Session` bidi
+> sidecar — buildkitd dials *back* into a client-run gRPC server (FileSync/Auth/
+> Secrets/SSH) over the Session stream to pull the build context. That needs
+> (a) bridging a connectrpc bidi stream into a served `Connection` so our
+> `HttpServer` can serve H2/gRPC over it, and (b) the fsutil/filesync proto +
+> `DiffCopy`. Large; tracked as the open part of Feature 06.
 
 > **2026-07-12 restructure:** Feature 01 split into **01** (foundation HTTP
 > primitives — `foundation_core`/`foundation_netio`/`foundation_connectrpc`) and a
@@ -44,23 +76,22 @@
 - [x] Feature 03: Generator emits `async fn` + complete type collection; cloudflare regenerated/migrated/green (172→0 errors, 12 tests). ¹Part H regeneration of stripe/supabase/neon/planetscale/prisma/flyio **deferred** (owner-approved) — those are empty skeletal stubs (no deps/lib/features, 0 dependents); scaffolding them is out of scope. CLI extended so they *can* be regenerated once built out.
 
 ### Phase 1: Core Docker API (Feature 04, 05)
-- [ ] Feature 04: Vendor spec, run gen_api, generate types + async fn
-- [ ] Feature 04: Hand-write `DockerClient` (Unix socket, auth, version negotiation)
-- [ ] Feature 04: Hand-write `Deployable` for `DockerContainer`
-- [ ] Feature 05: Hand-write streaming endpoints (logs, events, stats, pull, build)
-- [ ] Feature 05: Implement `LogFrameDecoder` (~50 lines)
+- [x] Feature 04: Vendor spec, run gen_api, generate types + async fn
+- [x] Feature 04: Hand-write `DockerClient` (Unix socket, configurable base_url, version negotiation)
+- [x] Feature 04: Ergonomic client wrappers across containers/images/networks/volumes/system/exec (bollard-0.21 HTTP parity for P0–P1 + extras)
+- [x] Feature 05: Streaming endpoints (logs, events, stats, pull, push, build) + `LogFrameDecoder` + `JsonLineDecoder`
 
 ### Phase 2: Network + Volume (Feature 04 continued)
-- [ ] Refine generated network/volume types
-- [ ] Hand-write `Deployable` for `DockerNetwork`, `DockerVolume`
+- [x] Generated + wrapped network/volume types (create/inspect/list/delete/prune/connect/disconnect/update)
 
-### Phase 3: BuildKit (Feature 06)
-- [ ] Vend 17 proto files from local moby checkout
-- [ ] Proto codegen via `foundation_connectrpc_codegen`
-- [ ] Implement `BuildKitClient` over Unix socket
-- [ ] `Solve` (bidi), `Status` (server-stream), `Info` (unary)
-- [ ] Inline Dockerfile support
-- [ ] `DiskUsage`, `Prune`, `FileSend`, `AuthProvider/Credentials`
+### Phase 3: BuildKit (Feature 06) — 🟡 in progress
+- [x] Vendor Control-service proto graph (control/worker/ops/policy + google/rpc/status) under `specs/buildkit/`
+- [x] Proto codegen via `buffa-build` (protoc + buffa-codegen) in `build.rs` → real `buffa::Message` types
+- [x] `BuildKitClient` over the Unix socket on `foundation_connectrpc` `Client<Req,Res>` + `H1Transport`
+- [x] `Info` (unary), `Solve` (unary), `Status` (server-stream) with `ProcedureCodecs::defaults()` (proto + json); round-trip tests
+- [ ] `Session` bidi sidecar: bridge a connectrpc bidi stream into a served `Connection`; serve FileSync/Auth/Secrets/SSH; fsutil/filesync proto + `DiffCopy`
+- [ ] Inline + local-context Dockerfile build end-to-end (depends on Session)
+- [ ] Remaining Control RPCs: `DiskUsage`, `Prune`, `ListWorkers`, build-history (wrappers over generated types)
 
 ## Related specs
 
