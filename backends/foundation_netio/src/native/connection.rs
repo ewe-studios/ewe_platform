@@ -326,6 +326,20 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
     }
 }
 
+/// WireGuard overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
+///
+/// Same pattern as [`CompletionReadWrite`]: a boxed trait object so
+/// `foundation_netio` does not need to depend on `foundation_nativeapis`
+/// (which depends on `foundation_db` which depends on us — a cycle).
+/// The impl lives in `foundation_wireguard` where `OverlayStream` is available.
+///
+/// Cloneable via [`clone_box`](Self::clone_box) — the underlying smoltcp socket
+/// is an `Arc<Mutex<..>>`, so cloning is a cheap ref-count increment.
+pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
+    /// Duplicate the underlying stream handle (cheap `Arc` clone).
+    fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
+}
+
 /// An honest asymmetric split into a read half and a write half.
 ///
 /// WHY: `SplitReadStream::split_connection` is a `try_clone` in disguise — it
@@ -375,6 +389,11 @@ pub enum Connection {
     /// composition root (`foundation_http`) constructs the implementation.
     #[cfg(unix)]
     Completion(Box<dyn CompletionReadWrite>),
+
+    /// WireGuard overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
+    /// The trait object avoids a `netio → nativeapis → db → netio` cycle.
+    /// The impl lives in `foundation_wireguard`.
+    Overlay(Box<dyn OverlayReadWrite>),
 }
 
 impl Connection {
@@ -424,6 +443,12 @@ impl Connection {
     #[must_use]
     pub fn is_unix(&self) -> bool {
         matches!(self, Self::Unix(_))
+    }
+
+    /// Whether this connection is a WireGuard overlay stream (smoltcp userspace TCP).
+    #[must_use]
+    pub fn is_overlay(&self) -> bool {
+        matches!(self, Self::Overlay(_))
     }
 }
 
@@ -488,6 +513,11 @@ impl ReadTimeoutOperations for Connection {
                 );
                 Ok(())
             }
+            Self::Overlay(_) => {
+                // Overlay reads go through smoltcp — no kernel socket to
+                // set SO_RCVTIMEO on. Timeouts are applied at the HTTP layer.
+                Ok(())
+            }
         }
     }
 
@@ -506,6 +536,7 @@ impl ReadTimeoutOperations for Connection {
             Self::Tls(tls) => tls.read_timeout(),
             #[cfg(unix)]
             Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
         }
     }
 }
@@ -533,6 +564,7 @@ impl Connection {
             Self::Tls(tls) => tls.read_timeout(),
             #[cfg(unix)]
             Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
         }
     }
 
@@ -558,6 +590,7 @@ impl Connection {
             Self::Tls(tls) => tls.write_timeout(),
             #[cfg(unix)]
             Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
         }
     }
 
@@ -587,6 +620,7 @@ impl Connection {
                 // on completion sockets should use socket options directly.
                 Ok(())
             }
+            Self::Overlay(_) => Ok(()),
         }
     }
 
@@ -616,6 +650,7 @@ impl Connection {
                 // documented no-op.
                 Ok(())
             }
+            Self::Overlay(_) => Ok(()),
         }
     }
 }
@@ -646,6 +681,10 @@ impl SplitReadStream for Connection {
                 std::io::ErrorKind::Unsupported,
                 "a completion socket cannot be split by cloning: its inbox is keyed \
                  by one Token. Use ReadWriteStream::split_read_write.",
+            )),
+            Self::Overlay(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "overlay connections use internal Arc sharing; no clone needed",
             )),
         }
     }
@@ -685,6 +724,7 @@ impl PeekableReadStream for Connection {
             // `NotSupported` on the completion path.
             #[cfg(unix)]
             Self::Completion(_) => Err(PeekError::NotSupported),
+            Self::Overlay(_) => Err(PeekError::NotSupported),
         }
     }
 }
@@ -703,6 +743,7 @@ impl std::io::Read for Connection {
             Self::Tls(tls) => tls.read(buf),
             #[cfg(unix)]
             Self::Completion(s) => s.read(buf), // inbox pop on completion; read(2) elsewhere
+            Self::Overlay(s) => s.read(buf),
         }
     }
 }
@@ -721,6 +762,7 @@ impl std::io::Write for Connection {
             Self::Tls(tls) => tls.write(buf),
             #[cfg(unix)]
             Self::Completion(s) => s.write(buf), // write(2) — SEND is future work (F49)
+            Self::Overlay(s) => s.write(buf),
         }
     }
 
@@ -737,6 +779,7 @@ impl std::io::Write for Connection {
             Self::Tls(tls) => tls.flush(),
             #[cfg(unix)]
             Self::Completion(s) => s.flush(),
+            Self::Overlay(_) => Ok(()), // smoltcp flushes on each send
         }
     }
 }
@@ -760,6 +803,7 @@ impl Connection {
             // Captured at accept time — no getpeername(2) needed.
             #[cfg(unix)]
             Self::Completion(s) => Ok(s.peer_addr()),
+            Self::Overlay(_) => Ok(None),
         }
     }
 
@@ -781,6 +825,7 @@ impl Connection {
             // Delegates to the trait impl (getsockname on the fd).
             #[cfg(unix)]
             Self::Completion(s) => s.local_addr(),
+            Self::Overlay(_) => Ok(None),
         }
     }
 
@@ -822,6 +867,7 @@ impl Connection {
             }
             #[cfg(unix)]
             Self::Completion(s) => s.shutdown(how),
+            Self::Overlay(_) => Ok(()), // smoltcp socket — close on drop
         }
     }
 
@@ -845,6 +891,10 @@ impl Connection {
             Self::Completion(_) => Err(std::io::Error::new(
                 std::io::ErrorKind::Unsupported,
                 "a completion socket cannot be cloned: its inbox is keyed by one Token",
+            )),
+            Self::Overlay(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "overlay connections use internal Arc sharing; no clone needed",
             )),
         }
     }
@@ -924,6 +974,7 @@ impl std::os::unix::io::AsRawFd for Connection {
             Self::Tls(stream) => stream.as_raw_fd(),
             #[cfg(unix)]
             Self::Completion(s) => s.as_raw_fd(),
+            Self::Overlay(_) => -1, // smoltcp — no kernel fd
         }
     }
 }

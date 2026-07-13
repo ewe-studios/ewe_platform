@@ -5090,6 +5090,14 @@ impl ChunkState {
             &chunk_string
         );
 
+        // LastChunk detection MUST come first — after the chunk size is read,
+        // Docker (and other servers) may close the socket. Any attempt to eat
+        // CRLF/newlines will spin on WouldBlock from a dead Unix socket.
+        // We still eat_space/eat_crlf/eat_newlines for non-zero chunks.
+        if chunk_size == 0 {
+            return Ok(Self::LastChunk);
+        }
+
         Self::eat_space(pointer.clone())?;
         Self::eat_crlf(pointer.clone())?;
         // Note: eat_escaped_crlf removed - was consuming legitimate JSON content
@@ -5132,10 +5140,6 @@ impl ChunkState {
             // eat all the space
             Self::eat_crlf_pointer(acc)?;
             Self::eat_newlines_pointer(acc)?;
-
-            if chunk_size == 0 {
-                return Ok(Self::LastChunk);
-            }
 
             if extensions.is_empty() {
                 return Ok(Self::Chunk(chunk_size, chunk_string, None));

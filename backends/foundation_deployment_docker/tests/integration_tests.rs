@@ -8,6 +8,7 @@
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
+use tracing_test::traced_test;
 
 /// One fresh client per test — no shared state, no pool interference.
 fn client() -> DockerClient { DockerClient::connect_unix("/var/run/docker.sock") }
@@ -94,20 +95,7 @@ async fn container_rename_works() {
     c.remove_container(&id.id, true).await.expect("remove");
 }
 
-#[valtron_test]
-async fn container_logs_returns_output() {
-    let c = client();
-    let id = c.create_container(
-        &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","30"]}),
-        Some("ewe-it-logs"),
-    ).await.expect("create");
-    c.start_container(&id.id).await.expect("start");
-    // container_logs uses chunked transfer encoding — netio bug.
-    // Use a known-working simple endpoint instead: inspect the running container.
-    let _ = c.inspect_container(&id.id).await.expect("inspect while running");
-    c.stop_container(&id.id, Some(5)).await.expect("stop");
-    c.remove_container(&id.id, true).await.expect("remove");
-}
+
 
 #[valtron_test]
 async fn container_top_shows_processes() {
@@ -160,4 +148,43 @@ async fn cleanup_leftovers() {
             }
         }
     }
+}
+
+#[valtron_test]
+#[traced_test]
+async fn container_logs_chunked_body_round_trip() {
+    let c = client();
+    let id = c.create_container(
+        &serde_json::json!({"Image":"alpine:latest","Cmd":["echo","hello-chunked-test"]}),
+        Some("ewe-it-chunked"),
+    ).await.expect("create");
+    tracing::info!(id = %id.id, "created");
+
+    c.start_container(&id.id).await.expect("start");
+    tracing::info!("started");
+    std::thread::sleep(std::time::Duration::from_secs(2));
+
+    // Use the raw send_async path + collect_bytes_from_send_safe
+    let http = c.http();
+    let url = format!("{}/containers/{}/logs", c.base_url(), id.id);
+    let builder = foundation_netio::PreparedRequestBuilder::get(&url)
+        .unwrap()
+        .query("stdout", Some("1"))
+        .query("stderr", Some("0"))
+        .query("follow", Some("0"));
+    tracing::info!(%url, "sending");
+
+    let resp = http.send_async(builder.build()).await.expect("send_async");
+    tracing::info!(status = %resp.get_status(), "response");
+
+    let body = resp.take_body();
+    let bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
+    let text = String::from_utf8_lossy(&bytes[..bytes.len().min(128)]);
+    tracing::info!(len = bytes.len(), text = %text, "collected");
+
+    assert!(std::str::from_utf8(&bytes).unwrap_or("").contains("hello-chunked-test"),
+        "should contain our echo output");
+
+    c.remove_container(&id.id, true).await.expect("remove");
+    tracing::info!("DONE");
 }

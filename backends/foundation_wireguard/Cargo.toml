@@ -42,6 +42,8 @@ toml = { workspace = true }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
 smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
+# HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).
@@ -70,8 +72,6 @@ web-sys = { version = "0.3", features = [
 js-sys = "0.3"
 # For wasm32, the netstack (smoltcp) is all we need — no poll/fd reactor.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
-# WebTransport session types (NoIoSession) for the browser bridge (F06/F07).
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
 getrandom = { version = "0.2", features = ["js"] }
 

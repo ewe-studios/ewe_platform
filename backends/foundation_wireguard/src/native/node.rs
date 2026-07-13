@@ -25,8 +25,10 @@ use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
 use foundation_nativeapis::native::net::UdpSocket;
+use foundation_netio::native::connection::Connection;
 
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
+use super::overlay_connection::OverlayConnection;
 use super::driver::TunnelDriver;
 use super::relay::{HolePuncher, RelayClient, RelayServer};
 use crate::shared::bootstrap::Admission;
@@ -471,6 +473,25 @@ impl WgHandle {
                 caps: r.caps,
             })
             .collect()
+    }
+
+    /// Open an overlay `Connection` to a peer over the WireGuard mesh (F11).
+    ///
+    /// The returned `Connection::Overlay(...)` plugs into every netio HTTP
+    /// consumer — `HttpServer`, `NativeHttpClient`, ConnectRPC, gRPC — with
+    /// zero transport changes.
+    ///
+    /// # Errors
+    /// Returns [`std::io::Error`] if the smoltcp TCP connect fails (peer
+    /// unreachable, tunnel not yet established, etc.).
+    pub fn overlay_connect(&self, peer_ip: IpAddr, port: u16) -> std::io::Result<Connection> {
+        let stream = self
+            .netstack
+            .clone()
+            .tcp_connect(std::net::SocketAddr::new(peer_ip, port))?;
+        Ok(Connection::Overlay(Box::new(
+            OverlayConnection { stream },
+        )))
     }
 
     /// WHY: Tests and callers often need to wait until a peer is reachable.

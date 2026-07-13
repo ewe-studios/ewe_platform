@@ -4,6 +4,7 @@ pub mod bootstrap;
 pub mod driver;
 pub mod mtls;
 pub mod node;
+pub mod overlay_connection;
 pub mod relay;
 pub mod webrtc;
 
