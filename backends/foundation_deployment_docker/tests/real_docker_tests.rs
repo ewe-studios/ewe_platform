@@ -90,3 +90,36 @@ async fn real_docker_pause_unpause() {
     client.stop_container(&id.id, Some(5)).await.expect("stop container");
     client.remove_container(&id.id, true).await.expect("remove container");
 }
+
+#[valtron_test]
+#[ignore = "needs running Docker daemon"]
+async fn real_docker_stop_remove_alone() {
+    let client = DockerClient::connect_unix("/var/run/docker.sock");
+
+    // Create a container that exits quickly
+    let id = client
+        .create_container(&serde_json::json!({
+            "Image": "alpine:latest",
+            "Cmd": ["echo", "hello"],
+        }), Some("ewe-race-test"))
+        .await.expect("create");
+    eprintln!("Created: {}", id.id);
+
+    client.start_container(&id.id).await.expect("start");
+    eprintln!("Started");
+
+    // Wait for it to exit naturally
+    std::thread::sleep(std::time::Duration::from_secs(3));
+
+    // Stop (should be instant — already exited)
+    match client.stop_container(&id.id, Some(5)).await {
+        Ok(()) => eprintln!("Stop OK"),
+        Err(e) => eprintln!("Stop error: {e:?}"),
+    }
+
+    // Remove — fresh request
+    match client.remove_container(&id.id, true).await {
+        Ok(()) => eprintln!("Remove OK"),
+        Err(e) => eprintln!("Remove error: {e:?}"),
+    }
+}

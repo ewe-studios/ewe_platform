@@ -946,6 +946,14 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
 
 /// `SharedPointerReader` defines a shared buffer reader pointer that allows reading through
 /// a underlying buffered stream.
+
+/// Marker trait for transport types that can report whether they are
+/// Unix-domain sockets (and thus non-poolable after a single HTTP exchange).
+pub trait IsUnixTransport {
+    /// Whether the underlying transport is a Unix-domain socket.
+    fn is_unix(&self) -> bool;
+}
+
 pub struct SharedByteBufferStream<T: Read>(OwnedReader<ByteBufferPointer<T>>);
 
 impl<T: Read> core::fmt::Debug for SharedByteBufferStream<T> {
@@ -1019,6 +1027,18 @@ impl<T: Read> SharedByteBufferStream<T> {
             }
             Ok(inner.remaining())
         })
+    }
+
+    /// Whether the underlying transport is a Unix-domain socket.
+    ///
+    /// Delegates through `ByteBufferPointer::with_inner` →
+    /// `RawStream::is_unix()` → `Connection::is_unix()`.
+    #[must_use]
+    pub fn is_unix(&self) -> bool
+    where
+        T: IsUnixTransport,
+    {
+        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
     }
 }
 
@@ -1280,6 +1300,14 @@ impl<T: Read> ByteBufferPointer<T> {
     pub fn reader(reader: T) -> Self {
         let wrapped_reader = OwnedReader::rwrite(Arc::new(RwLock::new(reader)));
         Self::new(DEFAULT_READ_SIZE, wrapped_reader)
+    }
+
+    /// Access the inner reader for transport-level queries like `is_unix()`.
+    pub fn with_inner<F, V>(&self, f: F) -> V
+    where
+        F: Fn(&T) -> V,
+    {
+        self.reader.do_ref(|inner| f(inner))
     }
 }
 

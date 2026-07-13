@@ -140,20 +140,11 @@ impl ConnectionPool {
     /// If the per-host buffer exceeds `max_per_host`, the oldest entry is
     /// dropped to maintain the limit.
     ///
-    /// **Unix sockets** (port 0) are never pooled — the daemon (e.g. Docker)
-    /// always sends `Connection: close`, so the stream is at EOF by the time
-    /// it reaches the pool and would fail on the next checkout with a timeout
-    /// or read error.
+    /// Unix-socket filtering is handled upstream by
+    /// `HttpConnectionPool::return_to_pool` — it checks `stream.is_unix()`
+    /// and never calls here for non-poolable connections.
     #[tracing::instrument(skip(self))]
     pub fn checkin(&self, host: &str, port: u16, stream: SharedByteBufferStream<RawStream>) {
-        // Unix sockets (port == 0 sentinel, see create_connection_unix) are
-        // never alive for reuse — the server closes them after each response.
-        if port == 0 {
-            tracing::trace!(
-                "checkin: dropping unix-socket stream for {host} (port 0 — not pooled)",
-            );
-            return;
-        }
         tracing::trace!(
             "Returning http client connection to the pool for host={:?}, port={:?}",
             &host,

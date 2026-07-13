@@ -195,6 +195,34 @@ impl RawStream {
     }
 }
 
+// --- Unix socket detection
+
+impl RawStream {
+    /// Whether the underlying transport is a Unix-domain socket.
+    ///
+    /// WHY: Unix sockets are closed by the server after every HTTP response
+    /// (Docker, BuildKitd). The connection pool must never cache them.
+    /// TLS variants are always over TCP — they return `false`.
+    #[must_use]
+    pub fn is_unix(&self) -> bool {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().is_unix(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => false,
+        }
+    }
+}
+
+impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
+    fn is_unix(&self) -> bool {
+        RawStream::is_unix(self)
+    }
+}
+
 // Type alias for TLS config with priority resolution: rustls > openssl > native-tls.
 #[cfg(feature = "ssl-rustls")]
 type TlsClientConfig = rustls::ClientConfig;

@@ -418,6 +418,13 @@ impl Connection {
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Unix(unix_net::UnixStream::connect(path)?))
     }
+
+    /// Whether this connection is a Unix-domain socket (never reusable after
+    /// a single HTTP exchange — Docker/BuildKitd close after each response).
+    #[must_use]
+    pub fn is_unix(&self) -> bool {
+        matches!(self, Self::Unix(_))
+    }
 }
 
 impl ReadTimeoutOperations for Connection {

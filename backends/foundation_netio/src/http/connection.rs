@@ -629,6 +629,16 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// This is a best-effort helper that calls into the pool's `put`/`release`
     /// style API. Adjust the call if your pool uses a different method name.
     pub fn return_to_pool(&self, conn: HttpClientConnection) {
+        // WHY: Unix sockets are closed by the server after every response
+        // (Docker, BuildKitd). Never pool them — the next checkout would
+        // get a dead connection. Checks the actual transport type via
+        // SharedByteBufferStream::is_unix → RawStream::is_unix → Connection::is_unix.
+        if conn.stream.is_unix() {
+            tracing::trace!(
+                "return_to_pool: dropping Unix-socket connection (not poolable)"
+            );
+            return;
+        }
         tracing::trace!("Returning http client connection to the pool");
         // Destructure to move fields out without partially borrowing `conn`.
         let HttpClientConnection { host, port, stream } = conn;
