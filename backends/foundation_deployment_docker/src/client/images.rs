@@ -354,7 +354,6 @@ impl DockerClient {
         image_create_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
         Ok(Vec::new())
     }
-}
 
     /// Save (export) an image as a tar archive (`GET /images/{name}/get`).
     ///
@@ -370,7 +369,6 @@ impl DockerClient {
         name: &str,
     ) -> Result<Vec<u8>, DockerError> {
         use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
-        use foundation_netio::shared::client::http_client::HttpClient;
 
         let endpoint_url = format!("{}/images/{}/get", self.base_url(), name);
         let builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -413,13 +411,54 @@ impl DockerClient {
         &self,
         reserved_space: Option<u32>,
         max_used_space: Option<u32>,
-    ) -> Result<serde_json::Value, DockerError> {
+        all: Option<bool>,
+        filters: Option<&str>,
+    ) -> Result<(), DockerError> {
         use crate::generated::prune::{build_prune_request, BuildPruneArgs};
 
         let args = BuildPruneArgs {
             reserved_space: reserved_space.map(|v| v.to_string()),
             max_used_space: max_used_space.map(|v| v.to_string()),
+            min_free_space: None,
+            all: all.map(|v| v.to_string()),
+            filters: filters.map(str::to_string),
         };
-        let response = build_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
-        Ok(response.body)
+        build_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        Ok(())
     }
+
+    /// Export multiple images as a single tar archive (`GET /images/get`).
+    ///
+    /// WHY: Matches bollard's `export_images` — the multi-image companion to
+    /// [`Self::image_save`] (`export_image`). The generated `image_get_all`
+    /// function tries to JSON-parse the tar stream, so we build the request
+    /// directly and collect raw bytes.
+    ///
+    /// WHAT: `names` is the set of image references to export (repeated
+    /// `names=` query params joined by the caller as a comma-free repetition
+    /// is not supported by the query helper, so pass a single comma-separated
+    /// value as Docker accepts repeated `names`). Returns the raw tar bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn export_images(&self, names: &[&str]) -> Result<Vec<u8>, DockerError> {
+        use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+
+        let endpoint_url = format!("{}/images/get", self.base_url());
+        let mut builder = PreparedRequestBuilder::get(&endpoint_url)
+            .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+        for name in names {
+            builder = builder.query("names", Some(*name));
+        }
+
+        let response = self.http().send_async(builder.build()).await
+            .map_err(|e| crate::generated::shared::ApiError::RequestSendFailed(e.to_string()))?;
+
+        let status: usize = response.get_status().into();
+        if status < 200 || status >= 300 {
+            return Err(DockerError::Api { status: status as u16, message: "(no body)".into() });
+        }
+        Ok(collect_bytes_from_send_safe(response.take_body()))
+    }
+}

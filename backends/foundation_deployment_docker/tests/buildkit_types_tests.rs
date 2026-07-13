@@ -19,7 +19,7 @@ use foundation_deployment_docker::buildkit::types::{
 fn info_request_default_is_empty() {
     let req = InfoRequest::default();
     let json = serde_json::to_string(&req).expect("serialize");
-    let back: InfoRequest = serde_json::from_str(&json).expect("deserialize");
+    let _back: InfoRequest = serde_json::from_str(&json).expect("deserialize");
     assert_eq!(json, "{}");
 }
 

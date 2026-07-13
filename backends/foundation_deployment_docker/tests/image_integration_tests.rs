@@ -110,7 +110,8 @@ async fn distribution_inspect_alpine() {
     let c = client();
     match c.distribution_inspect("alpine:latest").await {
         Ok(d) => {
-            assert!(!d.descriptor.digest.is_empty(), "should have a digest");
+            let digest = d.descriptor.digest.unwrap_or_default();
+            assert!(!digest.is_empty(), "should have a digest");
         }
         Err(e) => {
             // Docker Hub registry auth not configured — expected.
@@ -122,6 +123,5 @@ async fn distribution_inspect_alpine() {
 #[valtron_test]
 async fn build_prune_ok() {
     let c = client();
-    let result = c.build_prune(None, None).await.expect("build_prune");
-    assert!(!result.is_null(), "should return JSON: {result}");
+    c.build_prune(None, None, None, None).await.expect("build_prune");
 }

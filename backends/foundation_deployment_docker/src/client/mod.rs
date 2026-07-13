@@ -20,7 +20,6 @@ use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
 use crate::generated::containers::{container_delete_request, ContainerDeleteArgs};
 use crate::generated::create::{container_create_request, ContainerCreateArgs, ContainerCreateResponse};
-use crate::generated::info::SystemInfo;
 use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
 use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
 use crate::generated::shared::{ApiError, IDResponse};

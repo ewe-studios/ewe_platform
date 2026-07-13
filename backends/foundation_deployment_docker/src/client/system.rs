@@ -18,7 +18,6 @@ use crate::error::DockerError;
 use crate::generated::auth::{
     system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs,
 };
-use crate::generated::info::{system_info_request, SystemInfo, SystemInfoArgs};
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
 type NoMod = fn(&mut PreparedRequestBuilder);
@@ -51,7 +50,6 @@ type NoMod = fn(&mut PreparedRequestBuilder);
 pub async fn system_info(client: &super::DockerClient) -> Result<serde_json::Value, DockerError> {
     use crate::error::DockerError;
     use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
-    use foundation_netio::shared::client::http_client::HttpClient;
 
     let base = client.base_url();
     let endpoint_url = format!("{base}/info");
