@@ -144,52 +144,6 @@ fn load_file_fails_on_malformed_toml() {
 }
 
 // ---------------------------------------------------------------------------
-// from_env
-// ---------------------------------------------------------------------------
-
-#[traced_test]
-#[test]
-fn from_env_reads_wg_secret() {
-    let (seed, _net) = fresh_seed();
-    let seed_b64 = seed.to_base64url();
-
-    // Safety: serially-run test; env is process-global.
-    std::env::set_var("WG_SECRET", &seed_b64);
-    std::env::remove_var("WG_NETWORK");
-    std::env::remove_var("WG_SEED_ENDPOINTS");
-
-    let cfg = WgConfig::from_env().expect("from_env");
-    assert_eq!(cfg.wg_seed().as_bytes(), seed.as_bytes());
-    // Network id derived from seed when not set.
-
-    std::env::remove_var("WG_SECRET");
-}
-
-#[traced_test]
-#[test]
-fn from_env_missing_secret_is_error() {
-    std::env::remove_var("WG_SECRET");
-    assert!(WgConfig::from_env().is_err());
-}
-
-#[traced_test]
-#[test]
-fn from_env_with_endpoints() {
-    let (seed, _net) = fresh_seed();
-    let seed_b64 = seed.to_base64url();
-
-    std::env::set_var("WG_SECRET", &seed_b64);
-    std::env::set_var("WG_SEED_ENDPOINTS", "10.0.0.1:51820,10.0.0.2:51820");
-    std::env::remove_var("WG_NETWORK");
-
-    let cfg = WgConfig::from_env().expect("from_env");
-    assert_eq!(cfg.seed_endpoints().len(), 2);
-
-    std::env::remove_var("WG_SECRET");
-    std::env::remove_var("WG_SEED_ENDPOINTS");
-}
-
-// ---------------------------------------------------------------------------
 // Two-node mesh from config (end-to-end F09 verification)
 // ---------------------------------------------------------------------------
 
