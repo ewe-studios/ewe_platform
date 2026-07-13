@@ -91,6 +91,11 @@ spec55-complete = []
 [lints]
 workspace = true
 
+# Two-node WireGuard mesh example (spec-55).
+[[example]]
+name = "two_node_mesh"
+path = "examples/two_node_mesh.rs"
+
 # Integration test: full wireguard mesh in userspace (spec-55 completeness).
 [[test]]
 name = "completeness_tests"
