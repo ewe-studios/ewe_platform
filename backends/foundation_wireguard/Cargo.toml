@@ -57,14 +57,23 @@ wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = [
     "BinaryType",
     "MessageEvent",
+    "ReadableStream",
     "RtcDataChannel",
     "RtcPeerConnection",
     "RtcSessionDescriptionInit",
     "WebSocket",
+    "WebTransport",
+    "WebTransportDatagramDuplexStream",
+    "WebTransportHash",
+    "WebTransportOptions",
 ] }
 js-sys = "0.3"
 # For wasm32, the netstack (smoltcp) is all we need — no poll/fd reactor.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
+# WebTransport session types (NoIoSession) for the browser bridge (F06/F07).
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
+# wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
+getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 tracing-test.workspace = true

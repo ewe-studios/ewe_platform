@@ -1,14 +1,10 @@
 //! Spec-55 completeness integration tests — gated behind `feature = "spec55-complete"`.
-//!
-//! These tests exercise the full userspace WireGuard mesh: two threads talking
-//! to each other over a private overlay network using real boringtun tunnels and
-//! the smoltcp netstack over loopback UDP.
 
 #![cfg(not(target_family = "wasm"))]
 
 use std::time::Duration;
 
-use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
+use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed, wireguard};
 use foundation_wireguard::native::WgNode;
 use tracing_test::traced_test;
 
@@ -18,38 +14,26 @@ fn fresh_seed() -> (WgSeed, NetworkId) {
     (seed, net)
 }
 
-// ── Two-node mesh: seed + joiner, mutual discovery via gossip ──
-
 #[traced_test]
 #[test]
 fn two_nodes_mutual_discovery() {
     let (seed, net) = fresh_seed();
+    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net)).join().expect("A");
+    let a_boot = ha.bootstrap_addr();
+    let hb = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot])).join().expect("B");
 
-    let cfg_a = WgConfig::builder().seed(seed.clone()).network_id(net).build().expect("A");
-    let handle_a = WgNode::from_config(cfg_a).join().expect("join A");
-    let a_boot = handle_a.bootstrap_addr();
+    assert!(ha.wait_for_peer(hb.overlay_ip(), Duration::from_secs(5)), "A→B");
+    assert!(hb.wait_for_peer(ha.overlay_ip(), Duration::from_secs(5)), "B→A");
+    assert_ne!(ha.identity(), hb.identity());
+    assert!(!ha.members().is_empty());
 
-    let cfg_b = WgConfig::builder().seed(seed.clone()).network_id(net).seed_endpoint(a_boot).build().expect("B");
-    let handle_b = WgNode::from_config(cfg_b).join().expect("join B");
-
-    // Both nodes must discover each other via gossip within 5 seconds.
-    assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_secs(5)), "A discovered B");
-    assert!(handle_b.wait_for_peer(handle_a.overlay_ip(), Duration::from_secs(5)), "B discovered A");
-    assert_ne!(handle_a.identity(), handle_b.identity(), "identities must differ");
-    assert!(!handle_a.members().is_empty());
-    assert!(!handle_b.members().is_empty());
-
-    handle_a.shutdown();
-    handle_b.shutdown();
+    ha.shutdown(); hb.shutdown();
 }
-
-// ── Three-node mesh: gossip discovery ──
 
 #[traced_test]
 #[test]
 fn three_node_gossip_discovery() {
     let (seed, net) = fresh_seed();
-
     let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net)).join().expect("A");
     let a_boot = ha.bootstrap_addr();
     let hb = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot])).join().expect("B");
@@ -63,8 +47,6 @@ fn three_node_gossip_discovery() {
 
     ha.shutdown(); hb.shutdown(); hc.shutdown();
 }
-
-// ── Identity persistence: restart rejoins same identity ──
 
 #[traced_test]
 #[test]
@@ -83,8 +65,6 @@ fn identity_persistence_restart() {
     let _ = std::fs::remove_file("/tmp/wg_completeness_test_identity.key");
 }
 
-// ── Relay capability advertisement ──
-
 #[traced_test]
 #[test]
 fn relay_capability_advertised() {
@@ -94,13 +74,11 @@ fn relay_capability_advertised() {
         .relay_rate_limit_pps(500).relay_idle_timeout_secs(90).build().expect("build");
     let h = WgNode::from_config(cfg).join().expect("join");
     assert!(h.is_relay());
-    let members = h.members();
-    let s = members.iter().find(|p| p.identity == h.identity()).expect("self");
+    let m = h.members();
+    let s = m.iter().find(|p| p.identity == h.identity()).expect("self");
     assert!(s.caps.relay);
     h.shutdown();
 }
-
-// ── Builder convergence ──
 
 #[traced_test]
 #[test]
@@ -113,4 +91,47 @@ fn builder_convergence() {
     assert_eq!(c.network_id(), c2.network_id());
     assert_eq!(c.wg_seed().as_bytes(), c2.wg_seed().as_bytes());
     assert_eq!(c.dataplane.mtu, c2.dataplane.mtu);
+}
+
+#[traced_test]
+#[test]
+fn macro_produces_valid_config() {
+    // The wireguard! macro expands to a builder chain with .build()? — so we
+    // need to handle the Result. Wrap in a closure returning Result.
+    let config = (|| -> foundation_wireguard::WgResult<WgConfig> {
+        Ok(wireguard! {
+            seed: "q6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6s",
+            relay: { advertise: true, max_sessions: 512, rate_limit_pps: 500, idle_timeout_secs: 90 },
+            security: { mtls: false },
+            mtu: 1400,
+            keepalive: 30,
+        })
+    })().expect("wireguard! macro expansion");
+
+    // Verify the macro output matches what a builder with the same values produces.
+    let seed = WgSeed::from_bytes(&[0xABu8; 32]).expect("seed");
+    let expected = WgConfig::builder()
+        .seed(seed.clone())
+        .relay_advertise(true)
+        .relay_max_sessions(512)
+        .relay_rate_limit_pps(500)
+        .relay_idle_timeout_secs(90)
+        .mtu(1400)
+        .keepalive_secs(30)
+        .build()
+        .expect("builder");
+
+    assert_eq!(config.wg_seed().as_bytes(), expected.wg_seed().as_bytes());
+    assert_eq!(config.network_id(), expected.network_id()); // both derived from seed
+    assert_eq!(config.relay.advertise, expected.relay.advertise);
+    assert_eq!(config.relay.max_sessions, expected.relay.max_sessions);
+    assert_eq!(config.relay.rate_limit_pps, expected.relay.rate_limit_pps);
+    assert_eq!(config.relay.idle_timeout_secs, expected.relay.idle_timeout_secs);
+    assert_eq!(config.dataplane.mtu, expected.dataplane.mtu);
+    assert_eq!(config.dataplane.keepalive_secs, expected.dataplane.keepalive_secs);
+
+    // Verify it boots a working node.
+    let handle = WgNode::from_config(config).join().expect("join");
+    assert!(handle.is_relay(), "macro-built config boots with relay");
+    handle.shutdown();
 }

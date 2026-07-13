@@ -19,3 +19,6 @@ pub mod device;
 
 /// WebRTC offerer (browser side).
 pub mod webrtc;
+
+/// WebTransport browser bridge (wasm only).
+pub mod webtransport;

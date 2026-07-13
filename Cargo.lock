@@ -5132,6 +5132,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_nativeapis",
+ "foundation_netio",
  "getrandom 0.2.16",
  "hex",
  "hkdf",
