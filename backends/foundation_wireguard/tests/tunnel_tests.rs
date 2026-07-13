@@ -82,11 +82,11 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
     );
 
     // Overlay: B listens, A connects — over the encrypted tunnel.
-    let mut net_b = driver_b.dataplane();
+    let mut net_b = driver_b.dataplane_cloned();
     let mut listener: OverlayListener = net_b
         .tcp_listen(SocketAddr::new(ip_b, 700))
         .expect("overlay listen");
-    let mut net_a = driver_a.dataplane();
+    let mut net_a = driver_a.dataplane_cloned();
     let client: OverlayStream = net_a
         .tcp_connect(SocketAddr::new(ip_b, 700))
         .expect("overlay connect");

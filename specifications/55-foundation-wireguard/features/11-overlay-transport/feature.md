@@ -1,6 +1,6 @@
 # Feature 11 — Overlay Transport Bridge (`Connection::Overlay`)
 
-**Depends on:** F04 (data-plane orchestration), F09 (config), F06 (netio quic)
+**Depends on:** F04 (data-plane orchestration), F09 (config), F00 (nativeapis dataplane)
 **Unblocks:** WireGuard + ConnectRPC integration, WG-mesh HTTP services
 
 ## WHY
@@ -20,121 +20,119 @@ write its own smoltcp adapter — exactly the kind of leaky abstraction the
 
 ## WHAT
 
-1. **`OverlayReadWrite` trait** — in `foundation_netio::native::connection`,
-   same pattern as `CompletionReadWrite`: `Read + Write + Send + Sync + Debug`.
-   The trait object avoids a `netio → nativeapis → db → netio` cycle.
-2. **`Connection::Overlay(Box<dyn OverlayReadWrite>)`** — new variant delegating
-   `Read`/`Write`/`AsRawFd`/`ReadTimeoutOperations` to the boxed trait.
-3. **`OverlayReadWrite` impl in `foundation_wireguard`** — wraps `OverlayStream`
-   (which locks an internal `Arc<Mutex<>>` so `&self` methods work behind a
-   `&mut Connection`). This is the only place where smoltcp types are referenced.
-4. **`DataPlaneConfig::Mode`** — discriminates between smoltcp (default) and
-   kernel TUN. When TUN, apps use `std::net::TcpStream` and no `OverlayReadWrite`
-   is needed — the kernel routes `10.x.y.z` packets through the TUN fd.
-5. **Example** — `foundation_connectrpc/examples/wireguard_echo/` showing:
-   - Two `WgNode`s form a mesh (F04 discovery)
-   - ConnectRPC server binds an `HttpServer` to the overlay IP
-   - ConnectRPC client connects via `H1Transport` → `Connection::Overlay` → `WgHandle::tcp_connect`
-   - Unary RPC round-trips over the encrypted tunnel
-6. **Tests** — unary echo over overlay `Connection`; WouldBlock retry; connect timeout.
+Six things:
+
+1. **`OverlayReadWrite` trait** — defined in `foundation_netio::native::connection`,
+   same pattern as `CompletionReadWrite`: `Read + Write + Send + Sync + Debug + clone_box()`.
+   The trait object avoids a `netio → nativeapis → db → netio` crate cycle.
+
+2. **`Connection::Overlay(Box<dyn OverlayReadWrite>)`** — new variant, same shape
+   as `Connection::Completion(Box<dyn CompletionReadWrite>)`.
+
+3. **All Connection methods extended** — `Read`, `Write`, `flush`, `AsRawFd` (-1),
+   `set_read_timeout`/`set_write_timeout` (no-op), `read_timeout`/`write_timeout` (None),
+   `peer_addr`/`local_addr` (None), `shutdown` (Ok), `try_clone`/`split_connection`
+   (via `clone_box`), `PeekableReadStream` (`NotSupported`).
+
+4. **`OverlayReadWrite` impl in `foundation_wireguard`** — `OverlayConnection` wraps
+   `OverlayStream` (which is `Arc<Mutex<Inner>>` internally), implements
+   `Read + Write + OverlayReadWrite`. `clone_box()` is a cheap `Arc` bump
+   (`OverlayStream` derives `Clone`).
+
+5. **`WgHandle::overlay_connect(peer_ip, port) -> Connection`** — one call returns
+   a full `Connection::Overlay(...)` usable by any netio consumer.
+
+6. **`Acceptor` trait in `foundation_netio`** — abstracts the accept side so
+   `HttpServer` can work with kernel TCP listeners AND smoltcp overlay listeners.
+   `TcpListener` gets a blanket impl. Wireguard provides `OverlayListener` impl.
 
 ## HOW
 
 ### Crate dependency graph (no cycles)
 
 ```
-foundation_netio           (Defines OverlayReadWrite trait, Connection::Overlay variant)
+foundation_netio        →  Defines OverlayReadWrite + Connection::Overlay + Acceptor
        ↑
-       │ (depends on)
        │
-foundation_wireguard       (Implements OverlayReadWrite for overlay streams)
-                           (Calls WgHandle::tcp_connect → wraps in Box<dyn OverlayReadWrite>)
+foundation_wireguard    →  Impl OverlayReadWrite for OverlayStream
+                           Impl Acceptor for OverlayListener
+                           WgHandle::overlay_connect() → Connection::Overlay(...)
        ↑
-       │ (depends on — consumer creates WgNode, passes overlay connections to HTTP stack)
        │
-foundation_connectrpc      (Uses Connection via H1Transport — zero code changes)
+foundation_connectrpc   →  Uses H1Transport → Connection — zero code changes
+foundation_http         →  Uses HttpServer → Acceptor + Connection — zero code changes
 ```
 
-The trait lives in `foundation_netio` where `Connection` already lives — the same
-pattern as `CompletionReadWrite` in `foundation_iogate`. The impl lives in
-`foundation_wireguard` because that's where `OverlayStream` is available.
+The traits live in `foundation_netio` where `Connection` already lives — the
+same pattern as `CompletionReadWrite`. The impls live in `foundation_wireguard`
+because that's where `OverlayStream` is available.
 
-### `OverlayReadWrite` trait (in `foundation_netio::native::connection`)
+### `Acceptor` trait (in `foundation_netio`)
 
 ```rust
-/// WireGuard overlay byte stream (smoltcp userspace TCP/IP, F11).
-///
-/// Same pattern as [`CompletionReadWrite`]: a boxed trait object so
-/// `foundation_netio` does not need to depend on `foundation_nativeapis`.
-/// The impl lives in `foundation_wireguard` where `OverlayStream` is available.
-pub trait OverlayReadWrite:
-    Read + Write + Send + Sync + std::fmt::Debug + 'static
-{
-    /// Duplicate the underlying stream handle (cheap — `Arc` clone).
-    fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
+/// Accept incoming connections, returning a `Connection` + socket address.
+/// Blanket impl for `TcpListener` for backward compat. Overlay impl in wireguard.
+pub trait Acceptor: Send + Sync + 'static {
+    type Stream: Read + Write;
+    type Addr: Into<SocketAddr>;
+
+    fn accept(&self) -> io::Result<(Self::Stream, Self::Addr)>;
+    fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()>;
+    fn local_addr(&self) -> io::Result<SocketAddr>;
+}
+
+// Blanket impl — existing TcpListener code works unchanged
+impl Acceptor for std::net::TcpListener { ... }
+```
+
+### `HttpServer::serve_with_acceptor()`
+
+```rust
+impl HttpServer {
+    pub fn serve_with_acceptor<A: Acceptor>(
+        self,
+        acceptor: &A,
+        shutdown: &Arc<OnSignal>,
+        wrap_stream: impl Fn(A::Stream, SocketAddr) -> Result<RawStream, String>,
+    ) { ... }
 }
 ```
 
-### `Connection::Overlay` variant (in `foundation_netio`)
+### `Connection::Overlay` variant
 
 ```rust
 pub enum Connection {
     Tcp(TcpStream),
-    #[cfg(unix)]
-    Unix(unix_net::UnixStream),
+    #[cfg(unix)] Unix(unix_net::UnixStream),
     Tls(TlsStream),
-    #[cfg(unix)]
-    Completion(Box<dyn CompletionReadWrite>),
-    /// WireGuard overlay TCP stream — smoltcp userspace netstack (F11).
-    /// The trait object avoids a `netio → nativeapis → db → netio` cycle.
+    #[cfg(unix)] Completion(Box<dyn CompletionReadWrite>),
+    // NEW:
     Overlay(Box<dyn OverlayReadWrite>),
 }
 ```
 
-### `Read`/`Write`/`AsRawFd` delegation
-
-All existing methods on `Connection` that match on the enum get a new arm:
+### `OverlayReadWrite` trait (in `foundation_netio`)
 
 ```rust
-impl Read for Connection {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match self {
-            Self::Tcp(t)           => t.read(buf),
-            Self::Unix(u)          => u.read(buf),
-            Self::Tls(t)           => t.read(buf),
-            Self::Completion(c)    => c.read(buf),
-            Self::Overlay(s)       => s.read(buf),   // <-- new
-        }
-    }
+pub trait OverlayReadWrite: Read + Write + Debug + Send + Sync {
+    fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
 }
 ```
-
-Same for `Write`, `AsRawFd` (return `-1`), `ReadTimeoutOperations` (WouldBlock retry loop),
-`PeekableReadStream` (return `None`), `SplitReadStream` (passthrough).
 
 ### `OverlayReadWrite` impl (in `foundation_wireguard`)
 
 ```rust
-use foundation_netio::native::connection::OverlayReadWrite;
-
-/// Wraps a smoltcp `OverlayStream` as an `OverlayReadWrite` trait object.
 struct OverlayConnection {
-    stream: foundation_nativeapis::dataplane::netstack::OverlayStream,
+    stream: OverlayStream,  // Arc<Mutex<Inner>> internally — Clone is cheap
 }
 
 impl Read for OverlayConnection {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.stream.read(buf)  // OverlayStream::read(&self, buf)
-    }
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.stream.read(buf) }
 }
-
 impl Write for OverlayConnection {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.stream.write(buf) // OverlayStream::write(&self, buf)
-    }
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> { self.stream.write(buf) }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
-
 impl OverlayReadWrite for OverlayConnection {
     fn clone_box(&self) -> Box<dyn OverlayReadWrite> {
         Box::new(OverlayConnection { stream: self.stream.clone() })
@@ -142,58 +140,48 @@ impl OverlayReadWrite for OverlayConnection {
 }
 ```
 
-### Connect to an overlay peer (in `WgHandle`)
-
-```rust
-impl WgHandle {
-    /// Open an overlay `Connection` to a peer — compatible with
-    /// the entire netio/ConnectRPC/HTTP stack.
-    pub fn overlay_connect(&self, peer_ip: IpAddr, port: u16)
-        -> io::Result<Connection>
-    {
-        let stream = self.netstack.clone().tcp_connect(
-            SocketAddr::new(peer_ip, port)
-        )?;
-        Ok(Connection::Overlay(Box::new(OverlayConnection { stream })))
-    }
-}
-```
-
 ### Kernel TUN path
 
-When `DataPlaneConfig::mode = Tun`, `WgNode::join()` opens a `TunDevice` instead of
-a `NetStack`. Apps use `std::net::TcpStream::connect("10.x.y.z:8080")` — the kernel
-routes `10.0.0.0/8` through the TUN fd. No `OverlayReadWrite` needed.
+When `DataPlaneConfig::Mode = Tun`, the kernel routes `10.x.y.z` through the TUN
+device. Apps use `std::net::TcpStream::connect("10.x.y.z:8080")` directly — no
+`OverlayReadWrite` needed. The TUN fd is polled by `TunnelDriver<TunDataPlane>`.
 
-The `DataPlaneConfig` discriminant:
+### Example — ConnectRPC over WireGuard
 
 ```rust
-pub enum DataPlaneMode {
-    /// smoltcp userspace netstack (default, no privileges, cross-platform).
-    Smoltcp,
-    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
-    #[cfg(not(target_family = "wasm"))]
-    Tun { name: String, mtu: u32 },
-}
+// Two nodes, one mesh
+let a = WgNode::from_config(WgConfig::seed(seed, net)).join()?;
+let b = WgNode::from_config(WgConfig::joiner(seed, net, vec![a.bootstrap_addr()])).join()?;
+
+// B: bind ConnectRPC server on overlay IP via OverlayAcceptor
+let acceptor = OverlayAcceptor::new(b.tcp_listen(8080)?, b.overlay_ip());
+let server = HttpServer::with_config(app, "10.0.0.2:8080", defaults);
+server.serve_with_acceptor(&acceptor, &shutdown, |stream, addr| {
+    RawStream::from_connection(Connection::Overlay(Box::new(stream)))
+});
+
+// A: connect to B over the overlay via WgHandle::overlay_connect()
+let conn = a.overlay_connect(b.overlay_ip(), 8080)?;
+// conn is Connection::Overlay(...) — H1Transport can use this via HttpClient
 ```
 
 ## Task list
 
-1. **Define trait**: `OverlayReadWrite` in `foundation_netio::native::connection`.
-2. **Add variant**: `Connection::Overlay(Box<dyn OverlayReadWrite>)`.
-3. **Extend Connection methods**: `Read`, `Write`, `AsRawFd` (`-1`), `ReadTimeoutOperations`, `PeekableReadStream`, `SplitReadStream`, `is_unix`.
-4. **Impl in wireguard**: `OverlayConnection` wrapping `OverlayStream`, implementing `OverlayReadWrite`.
-5. **Add `WgHandle::overlay_connect()`**: opens overlay TCP, returns `Connection::Overlay(...)`.
-6. **Add `DataPlaneConfig::Mode`**: smoltcp vs TUN discriminant.
-7. **Branch `WgNode::join()`**: smoltcp path creates `NetStack`; TUN path creates `TunDataPlane` and sets up kernel route.
-8. **Example**: `foundation_connectrpc/examples/wireguard_echo/` — two-node mesh + unary RPC over overlay.
-9. **Tests**: unary echo over `Connection::Overlay`; WouldBlock retry; connect timeout.
+1. **Acceptor trait** — in `foundation_netio::native::connection`, blank impl for `TcpListener`. **DONE**
+2. **Connection::Overlay** variant + all match arms. **DONE**
+3. **OverlayReadWrite impl** in wireguard — `OverlayConnection` wrapping `OverlayStream`. **DONE**
+4. **WgHandle::overlay_connect()** — opens overlay TCP, returns `Connection::Overlay(...)`. **DONE**
+5. **HttpServer::serve_with_acceptor()** — generic over `Acceptor`, backward-compat with `serve_with_listener`. **TODO**
+6. **OverlayAcceptor** in wireguard — wraps `OverlayListener`, implements `Acceptor`. **TODO**
+7. **TunnelDriver<TunDataPlane>** — kernel TUN path in `WgNode::join()`. **TODO**
+8. **Example** — two-node mesh + HTTP over overlay via `overlay_connect`. **DONE**
+9. **Tests** — `Connection::Overlay` round-trip; WouldBlock retry; Acceptor accept; overlay acceptor.
 
 ## Test plan
 
 - **Unit**: `OverlayConnection` read/write round-trips through an `OverlayStream` bridged by an in-memory packet queue.
-- **Integration**: ConnectRPC unary echo client ↔ server over a live two-node WireGuard mesh. Client calls `Echo("hello")`, server echoes back. Verifies end-to-end: WG handshake → smoltcp TCP → HTTP/1.1 → ConnectRPC header/framing → response.
-- **TUN mode**: `TunDevice::open` on Linux, read/write raw IP round-trip, overlay socket methods return `Unsupported`.
+- **Integration**: Two-node WireGuard mesh + HTTP request/response over `Connection::Overlay`. A sends `GET /`, B responds `HTTP/1.1 200`, A reads the response. Verifies end-to-end: WG handshake → smoltcp TCP → raw HTTP bytes.
+- **Acceptor**: `OverlayAcceptor` accept loop delivers `OverlayStream` connections. `TcpListener` blanket impl works identically.
 
 ## Related decisions
 

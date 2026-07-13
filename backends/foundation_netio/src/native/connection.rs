@@ -123,9 +123,7 @@ impl Endpoint<()> {
         timeout: Duration,
     ) -> std::result::Result<Self, EndpointError> {
         match Uri::parse(&target.into()) {
-            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::WithTimeout(
-                uri, timeout,
-            ))),
+            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::WithTimeout(uri, timeout))),
             Err(err) => Err(EndpointError::ParseUrlFailed(err)),
         }
     }
@@ -338,6 +336,30 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
 pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     /// Duplicate the underlying stream handle (cheap `Arc` clone).
     fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
+}
+
+/// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
+/// behind `&mut self`. OverlayAcceptor (in wireguard) wraps smoltcp.
+pub trait Acceptor: Send + Sync + 'static {
+    fn accept_connection(&mut self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
+    fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
+    fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
+}
+
+impl Acceptor for std::net::TcpListener {
+    fn accept_connection(&mut self) -> std::io::Result<(Connection, std::net::SocketAddr)> {
+        let (tcp, addr): (std::net::TcpStream, std::net::SocketAddr) =
+            std::net::TcpListener::accept(self)?;
+        Ok((Connection::Tcp(tcp), addr))
+    }
+
+    fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        std::net::TcpListener::set_nonblocking(self, nonblocking)
+    }
+
+    fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        std::net::TcpListener::local_addr(self)
+    }
 }
 
 /// An honest asymmetric split into a read half and a write half.

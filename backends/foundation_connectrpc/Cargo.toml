@@ -30,6 +30,7 @@ zstd = { version = "0.13", optional = true }
 brotli = { version = "8", optional = true }
 
 [dev-dependencies]
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
