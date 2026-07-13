@@ -241,6 +241,33 @@ fn from_env_with_network_and_endpoints() {
 }
 
 // ---------------------------------------------------------------------------
+// Identity persistence (F09)
+// ---------------------------------------------------------------------------
+
+#[traced_test]
+#[test]
+fn identity_persistence_round_trip() {
+    use foundation_wireguard::shared::keys::IdentityKeypair;
+    use std::io::Write;
+
+    let kp = IdentityKeypair::generate().expect("generate");
+    let bytes = kp.to_secret_bytes();
+
+    let mut tmp = tempfile::NamedTempFile::new().expect("tempfile");
+    tmp.write_all(&bytes).expect("write");
+    tmp.flush().expect("flush");
+
+    // Simulate load_identity_from_file logic
+    let loaded_bytes = std::fs::read(tmp.path()).expect("read");
+    assert_eq!(loaded_bytes.len(), 32);
+    let mut arr = [0u8; 32];
+    arr.copy_from_slice(&loaded_bytes);
+    let kp2 = IdentityKeypair::from_secret_bytes(arr);
+
+    assert_eq!(kp.public().as_bytes(), kp2.public().as_bytes());
+}
+
+// ---------------------------------------------------------------------------
 // Two-node mesh from config (end-to-end F09 verification)
 // ---------------------------------------------------------------------------
 

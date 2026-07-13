@@ -60,6 +60,56 @@ impl WgNetworkSecret {
     pub fn network_id_hex(&self) -> String {
         self.network_id.to_hex()
     }
+
+    /// Persist this secret to a file (seed as base64url, network as hex).
+    ///
+    /// The file format is one line per key: `KEY=VALUE`, same as the env vars
+    /// injected into containers, so the file doubles as an env-file.
+    ///
+    /// # Errors
+    /// Returns an error if the file cannot be written.
+    pub fn save_to_file(&self, path: &str) -> std::io::Result<()> {
+        let content = format!(
+            "{}=\"{}\"\n{}=\"{}\"\n",
+            ENV_WG_SECRET,
+            self.seed_base64url(),
+            ENV_WG_NETWORK,
+            self.network_id_hex(),
+        );
+        if let Some(parent) = std::path::Path::new(path).parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        std::fs::write(path, content)
+    }
+
+    /// Load a previously persisted secret from a file.
+    ///
+    /// # Errors
+    /// Returns `None` if the file doesn't exist, can't be read, or is malformed.
+    #[must_use]
+    pub fn load_from_file(path: &str) -> Option<Self> {
+        let content = std::fs::read_to_string(path).ok()?;
+        let mut seed_str = None;
+        let mut net_str = None;
+        for line in content.lines() {
+            if let Some((key, val)) = line.split_once('=') {
+                let val = val.trim().trim_matches('"');
+                match key.trim() {
+                    ENV_WG_SECRET => seed_str = Some(val.to_string()),
+                    ENV_WG_NETWORK => net_str = Some(val.to_string()),
+                    _ => {}
+                }
+            }
+        }
+        let seed_str = seed_str?;
+        let seed = foundation_wireguard::WgSeed::from_base64url(&seed_str).ok()?;
+        let network_id = if let Some(hex) = net_str {
+            foundation_wireguard::NetworkId::from_hex(&hex).ok()?
+        } else {
+            seed.derive_network_id()
+        };
+        Some(Self { seed, network_id })
+    }
 }
 
 // ---------------------------------------------------------------------------

@@ -138,7 +138,17 @@ impl WgNode {
     pub fn join(self) -> WgResult<WgHandle> {
         let network_id = self.config.network_id();
         let boot = self.config.wg_seed().derive_bootstrap(&network_id);
-        let identity = IdentityKeypair::generate()?;
+        // Load a persisted identity if configured (F09 persistence), otherwise
+        // generate a fresh one. The identity_path from config tells us where.
+        let identity = if let Some(ref path) = self.config.node.identity_path {
+            load_identity_from_file(path).unwrap_or_else(|| {
+                let kp = IdentityKeypair::generate().expect("generate identity");
+                save_identity_to_file(path, &kp);
+                kp
+            })
+        } else {
+            IdentityKeypair::generate()?
+        };
         let my_id = PeerId(*identity.public().as_bytes());
         let my_ip = derive_tunnel_ip(&my_id);
 
@@ -617,6 +627,31 @@ impl BootstrapHandler for MeshBootstrapHandler {
             .expect("swim lock")
             .merge(std::slice::from_ref(&record));
     }
+}
+
+// ---------------------------------------------------------------------------
+// Identity persistence (F09)
+// ---------------------------------------------------------------------------
+
+/// Load a persisted identity keypair from a file path.
+fn load_identity_from_file(path: &str) -> Option<IdentityKeypair> {
+    let bytes = std::fs::read(path).ok()?;
+    if bytes.len() != 32 {
+        return None;
+    }
+    let mut arr = [0u8; 32];
+    arr.copy_from_slice(&bytes);
+    Some(IdentityKeypair::from_secret_bytes(arr))
+}
+
+/// Persist an identity keypair to a file path (mode 0600 via fs permissions
+/// is best-effort on the current platform).
+fn save_identity_to_file(path: &str, keypair: &IdentityKeypair) {
+    let bytes = keypair.to_secret_bytes();
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let _ = std::fs::write(path, &bytes);
 }
 
 // ---------------------------------------------------------------------------

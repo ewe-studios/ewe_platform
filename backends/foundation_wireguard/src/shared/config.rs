@@ -427,8 +427,9 @@ impl WgConfig {
     /// WHY: Build a config from environment variables — the self-assembly path for
     /// containers (F10).
     ///
-    /// WHAT: Reads `WG_SECRET`, `WG_NETWORK` (optional), and `WG_SEED_ENDPOINTS`
-    /// (optional) from the process environment.
+    /// WHAT: Reads `WG_SECRET`, `WG_NETWORK` (optional), `WG_SEED_ENDPOINTS`
+    /// (optional), and `WG_RELAY` (optional, "true"/"1" enables relay) from the
+    /// process environment.
     ///
     /// HOW: `std::env::var`. Missing `WG_SECRET` is a hard error (no silent default —
     /// `feedback_no_silent_defaults`).
@@ -462,6 +463,10 @@ impl WgConfig {
             Vec::new()
         };
 
+        let relay_advertise = std::env::var("WG_RELAY")
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(false);
+
         Ok(Self {
             network: NetworkConfig {
                 seed,
@@ -472,7 +477,10 @@ impl WgConfig {
             node: NodeConfig::default(),
             dataplane: DataPlaneConfig::default(),
             security: SecurityConfig::default(),
-            relay: RelayConfig::default(),
+            relay: RelayConfig {
+                advertise: relay_advertise,
+                ..RelayConfig::default()
+            },
         })
     }
 }
