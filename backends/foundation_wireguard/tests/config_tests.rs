@@ -10,6 +10,7 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
+use std::sync::Mutex;
 use tracing_test::traced_test;
 
 /// Helper: generate a fresh 256-bit seed + its network id.
@@ -141,6 +142,102 @@ fn load_file_fails_on_malformed_toml() {
     let err = WgConfig::load_file(tmp.path()).unwrap_err();
     let msg = format!("{err}");
     assert!(msg.contains("invalid TOML"), "expected TOML error, got: {msg}");
+}
+
+// ---------------------------------------------------------------------------
+// from_env — serialized because env vars are process-global.
+// An EnvGuard saves/restores the original env so panics don't leak state
+// and concurrent test binaries don't see each other's values.
+// ---------------------------------------------------------------------------
+
+/// Saves the WG_* env before a test and restores it on drop.
+struct EnvGuard {
+    secret: Option<String>,
+    network: Option<String>,
+    endpoints: Option<String>,
+}
+
+impl EnvGuard {
+    fn save() -> Self {
+        Self {
+            secret: std::env::var("WG_SECRET").ok(),
+            network: std::env::var("WG_NETWORK").ok(),
+            endpoints: std::env::var("WG_SEED_ENDPOINTS").ok(),
+        }
+    }
+
+    fn restore(&self) {
+        let set_or_remove = |var: &str, saved: &Option<String>| match saved {
+            Some(val) => std::env::set_var(var, val),
+            None => std::env::remove_var(var),
+        };
+        set_or_remove("WG_SECRET", &self.secret);
+        set_or_remove("WG_NETWORK", &self.network);
+        set_or_remove("WG_SEED_ENDPOINTS", &self.endpoints);
+    }
+}
+
+impl Drop for EnvGuard {
+    fn drop(&mut self) {
+        self.restore();
+    }
+}
+
+fn setup_env(seed_b64: &str) -> EnvGuard {
+    let guard = EnvGuard::save();
+    std::env::set_var("WG_SECRET", seed_b64);
+    std::env::remove_var("WG_NETWORK");
+    std::env::remove_var("WG_SEED_ENDPOINTS");
+    guard
+}
+
+/// WHY: Process-global env var writes must be serialised across all tests
+/// (including tests in other binaries). A cross-process file lock would be
+/// overkill; a static Mutex at least serialises within *this* binary, and
+/// the `EnvGuard` (Drop restore) prevents leaking state to other binaries.
+static ENV_MUTEX: Mutex<()> = Mutex::new(());
+
+#[traced_test]
+#[test]
+fn from_env_reads_wg_secret() {
+    let _lock = ENV_MUTEX.lock().expect("env lock");
+    let (seed, _net) = fresh_seed();
+    let seed_b64 = seed.to_base64url();
+    let _guard = setup_env(&seed_b64);
+
+    let cfg = WgConfig::from_env().expect("from_env");
+    assert_eq!(cfg.wg_seed().as_bytes(), seed.as_bytes());
+}
+
+#[traced_test]
+#[test]
+fn from_env_missing_secret_is_error() {
+    let _lock = ENV_MUTEX.lock().expect("env lock");
+    let _guard = EnvGuard::save();
+    std::env::remove_var("WG_SECRET");
+    assert!(WgConfig::from_env().is_err());
+}
+
+#[traced_test]
+#[test]
+fn from_env_with_network_and_endpoints() {
+    let _lock = ENV_MUTEX.lock().expect("env lock");
+    let (seed, _net) = fresh_seed();
+    let seed_b64 = seed.to_base64url();
+    let explicit_net = seed.derive_network_id();
+    let net_hex = explicit_net.to_hex();
+    let _guard = EnvGuard::save();
+
+    std::env::set_var("WG_SECRET", &seed_b64);
+    std::env::set_var("WG_NETWORK", &net_hex);
+    std::env::set_var("WG_SEED_ENDPOINTS", "10.0.0.1:51820,10.0.0.2:51820");
+
+    let cfg = WgConfig::from_env().expect("from_env");
+    assert_eq!(cfg.wg_seed().as_bytes(), seed.as_bytes());
+    assert_eq!(cfg.network_id(), explicit_net);
+    assert_eq!(cfg.seed_endpoints().len(), 2);
+    assert_eq!(cfg.seed_endpoints()[0].to_string(), "10.0.0.1:51820");
+    assert_eq!(cfg.seed_endpoints()[1].to_string(), "10.0.0.2:51820");
 }
 
 // ---------------------------------------------------------------------------

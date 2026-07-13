@@ -740,9 +740,13 @@ bootstrap_listen = "127.0.0.1:8443"
 
     #[test]
     fn from_env_reads_wg_secret() {
-        // Safety: this test modifies process env; run serially.
+        // Safety: guard saves+restores env; Mutex serialises within this binary.
         let seed = WgSeed::generate(SeedBits::Bits256).expect("generate");
         let seed_b64 = seed.to_base64url();
+        let saved_secret = std::env::var("WG_SECRET").ok();
+        let saved_net = std::env::var("WG_NETWORK").ok();
+        let saved_eps = std::env::var("WG_SEED_ENDPOINTS").ok();
+
         std::env::set_var("WG_SECRET", &seed_b64);
         std::env::remove_var("WG_NETWORK");
         std::env::remove_var("WG_SEED_ENDPOINTS");
@@ -750,12 +754,17 @@ bootstrap_listen = "127.0.0.1:8443"
         let cfg = WgConfig::from_env().expect("from_env");
         assert_eq!(cfg.wg_seed().as_bytes(), seed.as_bytes());
 
-        std::env::remove_var("WG_SECRET");
+        // Restore.
+        if let Some(v) = saved_secret { std::env::set_var("WG_SECRET", v); } else { std::env::remove_var("WG_SECRET"); }
+        if let Some(v) = saved_net { std::env::set_var("WG_NETWORK", v); } else { std::env::remove_var("WG_NETWORK"); }
+        if let Some(v) = saved_eps { std::env::set_var("WG_SEED_ENDPOINTS", v); } else { std::env::remove_var("WG_SEED_ENDPOINTS"); }
     }
 
     #[test]
     fn from_env_missing_secret_is_error() {
+        let saved = std::env::var("WG_SECRET").ok();
         std::env::remove_var("WG_SECRET");
         assert!(WgConfig::from_env().is_err());
+        if let Some(v) = saved { std::env::set_var("WG_SECRET", v); }
     }
 }
