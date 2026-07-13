@@ -341,13 +341,14 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
 /// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
 /// behind `&mut self`. OverlayAcceptor (in wireguard) wraps smoltcp.
 pub trait Acceptor: Send + Sync + 'static {
-    fn accept_connection(&mut self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
+    fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
     fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
 }
 
+/// Blanket impl — `TcpListener::accept(&self)` maps to `Acceptor`.
 impl Acceptor for std::net::TcpListener {
-    fn accept_connection(&mut self) -> std::io::Result<(Connection, std::net::SocketAddr)> {
+    fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)> {
         let (tcp, addr): (std::net::TcpStream, std::net::SocketAddr) =
             std::net::TcpListener::accept(self)?;
         Ok((Connection::Tcp(tcp), addr))

@@ -430,19 +430,8 @@ impl HttpServer {
                 return;
             }
         };
-
         tracing::info!("Listening on {}", self.bind_addr);
-        listener
-            .set_nonblocking(true)
-            .expect("Failed to set non-blocking");
-
-        self.init_io();
-        let io_mode = self.config.io_mode;
-        self.serve_loop(&listener, shutdown, move |tcp, addr| {
-            let conn = build_connection(tcp, addr, io_mode)?;
-            RawStream::from_connection(conn)
-                .map_err(|e| format!("Failed to create RawStream: {e}"))
-        });
+        self.serve_with_listener(&listener, shutdown);
     }
 
     /// Start serving from a pre-bound `TcpListener`. Useful for tests
@@ -460,8 +449,40 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(listener, shutdown, move |tcp, addr| {
-            let conn = build_connection(tcp, addr, io_mode)?;
+        self.serve_loop(listener, shutdown, move |conn, addr| {
+            let tcp = match conn {
+                foundation_netio::netcap::Connection::Tcp(t) => t,
+                _ => return Err("expected TCP connection".to_string()),
+            };
+            let c = build_connection(tcp, addr, io_mode)?;
+            RawStream::from_connection(c)
+                .map_err(|e| format!("Failed to create RawStream: {e}"))
+        });
+    }
+
+    /// Start serving from an [`Acceptor`] — any transport, not just TCP.
+    ///
+    /// The acceptor delivers connections as `Connection` enum values (e.g.
+    /// `Connection::Tcp`, `Connection::Overlay`). Use this with WireGuard
+    /// overlay acceptors (`OverlayAcceptor` in `foundation_wireguard`).
+    #[tracing::instrument(skip(self, acceptor, shutdown))]
+    pub fn serve_with_acceptor<A: foundation_netio::native::connection::Acceptor + ?Sized>(
+        self,
+        acceptor: &A,
+        shutdown: &Arc<OnSignal>,
+    ) {
+        let addr = acceptor
+            .local_addr()
+            .map(|a| a.to_string())
+            .unwrap_or_else(|_| self.bind_addr.clone());
+        tracing::info!("Listening on {} (generic acceptor)", addr);
+        acceptor
+            .set_nonblocking(true)
+            .expect("Failed to set non-blocking");
+
+        self.init_io();
+        self.serve_loop(acceptor, shutdown, move |conn, _addr| {
+            // Connection came pre-built from the acceptor — just wrap it.
             RawStream::from_connection(conn)
                 .map_err(|e| format!("Failed to create RawStream: {e}"))
         });
@@ -504,12 +525,14 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(&listener, &shutdown, move |tcp, addr| {
-            // rustls reads *through* this Connection, so a completion-backed
-            // Connection gives TLS the completion read path for free.
-            let conn = build_connection(tcp, addr, io_mode)?;
+        self.serve_loop(listener, &shutdown, move |conn, addr| {
+            let tcp = match conn {
+                foundation_netio::netcap::Connection::Tcp(t) => t,
+                _ => return Err("expected TCP connection for TLS".to_string()),
+            };
+            let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
-                .accept(conn)
+                .accept(c)
                 .map_err(|e| format!("TLS handshake failed: {e}"))?;
             RawStream::from_server_tls(tls_stream)
                 .map_err(|e| format!("Failed to create RawStream: {e}"))
@@ -545,12 +568,14 @@ impl HttpServer {
             .expect("Failed to set non-blocking");
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(listener, shutdown, move |tcp, addr| {
-            // rustls reads *through* this Connection, so a completion-backed
-            // Connection gives TLS the completion read path for free.
-            let conn = build_connection(tcp, addr, io_mode)?;
+        self.serve_loop(listener, shutdown, move |conn, addr| {
+            let tcp = match conn {
+                foundation_netio::netcap::Connection::Tcp(t) => t,
+                _ => return Err("expected TCP connection for TLS".to_string()),
+            };
+            let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
-                .accept(conn)
+                .accept(c)
                 .map_err(|e| format!("TLS handshake failed: {e}"))?;
             RawStream::from_server_tls(tls_stream)
                 .map_err(|e| format!("Failed to create RawStream: {e}"))
@@ -587,13 +612,15 @@ impl HttpServer {
     #[cfg(not(unix))]
     fn init_io(&self) {}
 
-    /// Generic accept loop — shared by `serve` and `serve_tls`.
-    #[tracing::instrument(skip(self, listener, shutdown, wrap_stream))]
+    /// Generic accept loop — shared by `serve`, `serve_tls`, and `serve_with_acceptor`.
+    /// The `wrap_stream` closure converts an accepted `Connection` into a `RawStream`
+    /// (with optional TLS wrapping).
+    #[tracing::instrument(skip(self, acceptor, shutdown, wrap_stream))]
     fn serve_loop(
         self,
-        listener: &std::net::TcpListener,
+        acceptor: &(impl foundation_netio::native::connection::Acceptor + ?Sized),
         shutdown: &Arc<OnSignal>,
-        wrap_stream: impl Fn(std::net::TcpStream, std::net::SocketAddr) -> Result<RawStream, String>
+        wrap_stream: impl Fn(foundation_netio::netcap::Connection, std::net::SocketAddr) -> Result<RawStream, String>
             + Send
             + Sync
             + 'static,
@@ -615,15 +642,9 @@ impl HttpServer {
                 break;
             }
 
-            match listener.accept() {
-                Ok((tcp, addr)) => {
+            match acceptor.accept_connection() {
+                Ok((conn, addr)) => {
                     tracing::trace!("Accepted connection from {addr}");
-
-                    // Set socket to non-blocking mode for valtron executor compatibility
-                    if let Err(e) = tcp.set_nonblocking(true) {
-                        tracing::error!("Failed to set non-blocking mode: {e}");
-                        continue;
-                    }
 
                     let client_ip = addr.ip().to_string();
                     let wrap_clone = wrap_stream.clone();
@@ -641,7 +662,7 @@ impl HttpServer {
 
                     // Perform connection setup (TLS handshake if any) in the
                     // accept loop before submitting to valtron.
-                    let raw_stream = match wrap_clone(tcp, addr) {
+                    let raw_stream = match wrap_clone(conn, addr) {
                         Ok(s) => s,
                         Err(e) => {
                             tracing::error!(%client_ip, "Connection setup failed: {e}");

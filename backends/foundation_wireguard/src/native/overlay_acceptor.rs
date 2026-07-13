@@ -5,21 +5,24 @@
 //! on a WireGuard overlay IP with zero transport changes — `accept_connection`
 //! returns `Connection::Overlay(...)` just like TCP returns `Connection::Tcp(...)`.
 //!
-//! WHAT: [`OverlayAcceptor`] wraps an [`OverlayListener`] + overlay IP.
+//! WHAT: [`OverlayAcceptor`] wraps an [`OverlayListener`] + overlay IP behind a
+//! `Mutex` for interior mutability (`Acceptor::accept_connection` takes `&self`).
 //!
-//! HOW: `OverlayListener::accept(&mut self)` returns `OverlayStream`. We wrap it
-//! in an `OverlayReadWrite` trait object and return `Connection::Overlay(Box<dyn O>)`.
+//! HOW: `OverlayListener::accept(&mut self)` returns `OverlayStream`. We lock the
+//! inner `Mutex<OverlayListener>` on each accept call and return the stream wrapped
+//! in `Connection::Overlay(Box<dyn OverlayReadWrite>)`.
 
 use std::io;
 use std::net::SocketAddr;
+use std::sync::{Arc, Mutex};
 
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream};
 use foundation_netio::native::connection::{Acceptor, Connection, OverlayReadWrite};
 
-/// Wraps an `OverlayListener` as an `Acceptor` so `HttpServer` can serve on a
-/// WireGuard overlay IP.
+/// Wraps an `OverlayListener` behind a `Mutex` so it can implement `Acceptor`
+/// (which takes `&self`).
 pub struct OverlayAcceptor {
-    listener: OverlayListener,
+    listener: Arc<Mutex<OverlayListener>>,
     local: SocketAddr,
 }
 
@@ -27,16 +30,29 @@ impl OverlayAcceptor {
     /// Create from an `OverlayListener` (obtained via `WgHandle::tcp_listen`).
     pub fn new(listener: OverlayListener, local_ip: std::net::IpAddr, port: u16) -> Self {
         Self {
-            listener,
+            listener: Arc::new(Mutex::new(listener)),
             local: SocketAddr::new(local_ip, port),
         }
     }
 }
 
+// Clone is needed because HttpServer's serve_loop takes `&impl Acceptor`.
+// Arc already provides Clone; Mutex does the interior mutability.
+impl Clone for OverlayAcceptor {
+    fn clone(&self) -> Self {
+        Self {
+            listener: Arc::clone(&self.listener),
+            local: self.local,
+        }
+    }
+}
+
 impl Acceptor for OverlayAcceptor {
-    fn accept_connection(&mut self) -> io::Result<(Connection, SocketAddr)> {
-        let stream = self.listener.accept()?;
+    fn accept_connection(&self) -> io::Result<(Connection, SocketAddr)> {
+        let mut guard = self.listener.lock().expect("OverlayAcceptor::accept_connection: Mutex poisoned");
+        let stream = guard.accept()?;
         let peer = stream.peer_addr();
+        drop(guard);
         let conn = Connection::Overlay(Box::new(OverlayConn { stream }));
         Ok((conn, peer))
     }
@@ -85,6 +101,6 @@ impl std::fmt::Debug for OverlayConn {
     }
 }
 
-// Safety: OverlayStream is Send+Sync (Arc<Mutex<>> internally).
+// Safety: OverlayStream is Send+Sync (Arc<Mutex<Inner>> internally).
 unsafe impl Send for OverlayConn {}
 unsafe impl Sync for OverlayConn {}

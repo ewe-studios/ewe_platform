@@ -181,7 +181,11 @@ async fn container_wait() {
 
 #[valtron_test]
 async fn container_changes() {
-let c = client();
+    // Clean up from prior aborted run
+    let _ = std::process::Command::new("docker")
+        .args(["rm", "-f", "ewe-it-ct-changes"])
+        .output();
+    let c = client();
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "30"]}),

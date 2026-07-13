@@ -144,10 +144,12 @@ async fn exec_resize() {
     c.start_container(&ctr.id).await.expect("start");
 
     let exec_id = c
-        .exec_create(&ctr.id, &["cat"])
+        .exec_create(&ctr.id, &["sleep", "5"])
         .await
         .expect("exec create");
 
+    // Start exec before resize — Docker returns 500 if exec hasn't been started
+    let _ = c.exec_start(&exec_id.id, true).await;
     c.exec_resize(&exec_id.id, 40, 120)
         .await
         .expect("exec resize");
