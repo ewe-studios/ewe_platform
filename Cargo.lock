@@ -4540,6 +4540,7 @@ dependencies = [
  "foundation_connectrpc",
  "foundation_connectrpc_codegen",
  "foundation_core",
+ "foundation_db",
  "foundation_deployment",
  "foundation_errstacks",
  "foundation_http",
