@@ -1,6 +1,6 @@
 # Feature 02 — Bootstrap & TLS-PSK Join
 
-**Status:** ✅ Complete (implemented + tested 2026-07-13)
+**Status:** ⚠️ Partial (2026-07-14 audit). Bootstrap token parser, TLS-PSK server/client, `BootstrapConnection` frame protocol all implemented and tested. **Must do:** (1) Replace `thread::sleep(5ms)` polling loop in `BootstrapServer::serve_until` with valtron reactor-based accept; (2) Re-express the bootstrap RPC as a `foundation_connectrpc` service/transport instead of custom length-prefixed bincode framing.
 **Depends on:** 01
 **Unblocks:** 04, 10
 **Decisions:** [04](../../decisions/04-bootstrap-token-envelope.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [03](../../decisions/03-seed-derived-keys.md)
@@ -31,9 +31,9 @@ Deviations / notes:
   `PSK-AES128-CBC-SHA`** (PSK identity hint = network id). This is a private control channel;
   confidentiality/auth come from the seed PSK.
 - The Join RPC uses our own compact length-prefixed bincode framing over the TLS stream rather
-  than the full `foundation_connectrpc` server stack. **Deferred:** re-expressing it as a
-  `foundation_connectrpc` service/transport (decision 06 alignment) when F04 assembles the
-  runtime — the message types + admission semantics are already in place.
+  than the full `foundation_connectrpc` server stack. **Must do:** re-expressing it as a
+  `foundation_connectrpc` service/transport (decision 06 alignment) —
+  the message types + admission semantics are already in place.
 
 ## WHY
 

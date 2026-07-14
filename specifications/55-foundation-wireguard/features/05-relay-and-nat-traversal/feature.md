@@ -3,6 +3,7 @@
 **Depends on:** 04
 **Unblocks:** 07
 **Decisions:** [07](../../decisions/07-relay-as-capability.md), [05](../../decisions/05-swim-full-membership-gossip.md)
+**Status:** ⚠️ Partial (2026-07-14 audit). RelayServer, RelayClient, RelaySelector, HolePuncher, and relay framing all implemented + tested. **Must do:** (1) Wire reflexive endpoint discovery from gossip observations (peers learn their public address from what others report); (2) Multi-relay simultaneous selection + failover; (3) Move relay server from `std::thread::spawn` + `thread::sleep` to a valtron `TaskIterator`; (4) End-to-end test: NAT-blocked pair reaches each other via relay with ciphertext-only forwarding at the relay.
 
 ## WHY
 

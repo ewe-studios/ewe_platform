@@ -1,6 +1,6 @@
 # Feature 01 — WireGuard Core & Keys
 
-**Status:** ✅ Complete (implemented + tested 2026-07-13)
+**Status:** ✅ Complete (implemented + tested 2026-07-14). `WgTunnel`, `WgSeed`, `BootstrapKeys`, `IdentityKeypair` all implemented and tested. `TunnelDriverTask` parks on reactor fd readiness (`SharedReadiness` + `TimedReadiness`) — wakes only when a UDP datagram arrives or a WG timer fires, zero constant-interval polling. **Must do:** multi-peer inbound routing by receiver index (currently routes by source UDP endpoint; single-peer fallback works for tests).
 **Depends on:** 00
 **Unblocks:** 02, 03, 04
 **Decisions:** [01](../../decisions/01-source-crates-and-pinning.md), [03](../../decisions/03-seed-derived-keys.md), [02](../../decisions/02-dual-dataplane.md)
@@ -30,8 +30,11 @@ parse round-trips, handshake-initiation shape, and **two nodes over loopback UDP
 a WireGuard handshake and pass TCP bytes both ways over the smoltcp overlay** (success
 criterion 1). All green, zero warnings.
 
-Deferred to F04: reactor-readiness parking for the driver task (currently polls on a
-250 ms WireGuard timer tick) and multi-peer inbound routing by receiver index.
+Reactor-readiness parking **done** (2026-07-14): the `TunnelDriverTask` registers the UDP fd
+with the shared reactor (`SharedReadiness` + composite `TimedReadiness`) and parks on
+`TaskStatus::Depends` — wakes only on inbound datagrams or WG timer deadlines, zero
+constant-interval polling. **Remaining must-do:** multi-peer inbound routing by receiver
+index (currently routes by source UDP endpoint; the single-peer fallback covers test setups).
 
 ## WHY
 

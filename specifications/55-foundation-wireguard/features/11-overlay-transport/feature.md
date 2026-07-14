@@ -2,6 +2,7 @@
 
 **Depends on:** F04 (data-plane orchestration), F09 (config), F00 (nativeapis dataplane)
 **Unblocks:** WireGuard + ConnectRPC integration, WG-mesh HTTP services
+**Status:** ✅ Complete (implemented + tested 2026-07-14 audit). `Acceptor` + `Connector` traits in `foundation_netio::native::connection`; `Connection::Overlay` variant with full Read/Write/peer_addr/local_addr/etc.; `OverlayReadWrite` trait + impl; `OverlayAcceptor` (wraps `OverlayListener` behind `Arc<Mutex<>>` for `&self` accept); `OverlayConnector` (implements `Connector` via `WgHandle::overlay_connect_timeout`); `HttpServer::serve_with_acceptor()` generic over `Acceptor`; non-blocking overlay read parking via `ConnWaker`/`set_read_waker`/`set_write_waker`; integration test: POST + GET echo over full mesh via `NativeHttpClient` with `OverlayConnector`.
 
 ## WHY
 

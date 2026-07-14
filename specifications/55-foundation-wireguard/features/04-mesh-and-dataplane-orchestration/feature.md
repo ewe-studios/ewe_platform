@@ -1,6 +1,6 @@
 # Feature 04 — Mesh & Data-Plane Orchestration
 
-**Status:** ✅ Complete (implemented + tested 2026-07-13)
+**Status:** ⚠️ Partial (2026-07-14 audit). `WgNode`, `WgHandle`, `MeshTask`, `TunnelDriver`, IPAM, membership↔tunnel reconciliation all implemented and tested. 3-node mesh discovery + overlay traffic test passes. **Must do:** (1) Replace `std::thread::spawn` + `thread::sleep(50ms)` mesh loop with valtron `TaskIterator` driving off reactor fd readiness, not a fixed sleep poll; (2) Wire the connectivity ladder (direct → hole-punch → relay fallback) end-to-end within the mesh tick; (3) Drive the bootstrap server via valtron, not a detached `std::thread`.
 **Depends on:** 00, 01, 02, 03
 **Unblocks:** 05, 07, 08, 09
 **Decisions:** [05](../../decisions/05-swim-full-membership-gossip.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [02](../../decisions/02-dual-dataplane.md)
@@ -19,7 +19,7 @@
 - **SWIM-in-tunnel**: an `OverlayUdp` bound to `my_ip:51999` carries gossip; `SwimOutbound`
   is routed by peer overlay IP through the data plane (so gossip is itself private).
 - **IPAM**: overlay IP derived `10.x.y.z/8` from the identity key (decision 12; collision
-  detection deferred). `WgHandle` exposes `tcp_connect`/`tcp_listen`/`udp_bind`/`members`/
+  detection — must-do). `WgHandle` exposes `tcp_connect`/`tcp_listen`/`udp_bind`/`members`/
   `wait_for_peer`/`shutdown`.
 
 Test (`--profile uat`, real threads + UDP + TLS-PSK, stable over repeated runs): a 3-node
@@ -27,7 +27,7 @@ mesh from one secret; **C discovers B by gossip** (not static) and reaches both 
 over the encrypted overlay (echo); **the seed A is killed and B/C survive**; a **4th node
 D joins from survivor B** and discovers C (success criteria 2 & 3). Zero warnings.
 
-Deferred: connectivity-ladder relay path (F05), full connectrpc framing (F02 note), and
+**Must do:** connectivity-ladder relay path (F05), full connectrpc framing (F02 note), and
 running the runtime as a valtron task rather than a std thread (the `TunnelDriverTask`
 exists; the mesh loop also drives SWIM, so it currently uses a dedicated thread).
 

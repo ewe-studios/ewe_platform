@@ -17,23 +17,25 @@
 //! `application/grpc+` content-type prefix. The capability floor enforces
 //! `h2_trailers` (Decision 11).
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
 use foundation_core::valtron::{PipeReceiver, PipeSender};
+use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
 use futures::StreamExt;
 
+use crate::shared::client::code_from_http_status;
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
 use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
-use crate::shared::error::{ConnectError, ConnectResult};
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
+    body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
     PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
@@ -434,11 +436,12 @@ impl ProtocolClient for GrpcClient {
             Arc::clone(&stream.send_body),
             EnvelopeWriter::new(None, 0, 0),
         ));
-        let reader: BoxedTask = Box::pin(read_frames(
+        let reader: BoxedTask = Box::pin(read_grpc_response(
+            stream.head,
             stream.recv_body,
+            stream.trailers,
             ends.response_tx,
-            None,
-            0,
+            ends.response_headers,
         ));
 
         Ok(ClientExchange {
@@ -447,6 +450,131 @@ impl ProtocolClient for GrpcClient {
             writer_task: writer,
         })
     }
+}
+
+/// Client-side gRPC response reader: response head → envelopes → status trailers.
+///
+/// gRPC delivers its outcome in trailing metadata, in one of two shapes:
+/// - **Trailers-Only**: a single HEADERS frame (END_STREAM) carrying
+///   `grpc-status` alongside the response headers — used for errors that occur
+///   before any message is sent.
+/// - **Normal**: response HEADERS, DATA envelopes, then trailing HEADERS with
+///   `grpc-status`.
+///
+/// Both MUST be surfaced as a terminal [`Frame::EndStream`] — closing the pipe
+/// on body EOF (the old behavior) silently converted every server error into a
+/// clean EOF, which for unary calls decoded as `Ok(Default::default())`.
+async fn read_grpc_response(
+    mut head: HeadStream,
+    body: BodyStream,
+    mut trailers: PipeReceiver<SimpleHeaders>,
+    tx: PipeSender<Frame>,
+    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+) -> ConnectResult<()> {
+    // 1. Response head. Publish the headers so `response_headers()` works.
+    let (status, resp_headers) = match head.next().await {
+        Some(Ok(v)) => v,
+        Some(Err(e)) => {
+            let err: ErrorTrace<ConnectError> = ConnectError::from(e).into();
+            let _ = tx
+                .send(Frame::EndStream { error: Some(err.clone()), trailers: SimpleHeaders::new() })
+                .await;
+            tx.close();
+            return Err(err);
+        }
+        None => {
+            let err: ErrorTrace<ConnectError> =
+                ConnectError::unavailable("transport closed without response head").into();
+            let _ = tx
+                .send(Frame::EndStream { error: Some(err.clone()), trailers: SimpleHeaders::new() })
+                .await;
+            tx.close();
+            return Err(err);
+        }
+    };
+    *response_headers.lock().unwrap_or_else(|e| e.into_inner()) = Some(resp_headers.clone());
+
+    if status != Status::OK {
+        let err: ErrorTrace<ConnectError> =
+            ConnectError::new(code_from_http_status(&status), format!("HTTP {status}")).into();
+        let _ = tx
+            .send(Frame::EndStream { error: Some(err), trailers: resp_headers })
+            .await;
+        tx.close();
+        return Ok(());
+    }
+
+    // 2. Trailers-Only: grpc-status riding the response headers.
+    if grpc_status_of(&resp_headers).is_some() {
+        let error = parse_grpc_error_trailer(&resp_headers);
+        let _ = tx
+            .send(Frame::EndStream { error, trailers: resp_headers })
+            .await;
+        tx.close();
+        return Ok(());
+    }
+
+    // 3. Message envelopes until body EOF.
+    read_frames(body, tx.clone(), None, 0).await?;
+
+    // 4. Trailing HEADERS carry the call's outcome.
+    let trls = trailers.receive().await.unwrap_or_default();
+    let error = parse_grpc_error_trailer(&trls);
+    let _ = tx.send(Frame::EndStream { error, trailers: trls }).await;
+    tx.close();
+    Ok(())
+}
+
+/// The raw `grpc-status` value, if present.
+fn grpc_status_of(headers: &SimpleHeaders) -> Option<u32> {
+    headers
+        .get(&SimpleHeader::from("grpc-status".to_string()))
+        .and_then(|v| v.first())
+        .and_then(|s| s.trim().parse().ok())
+}
+
+/// Parse `grpc-status`/`grpc-message` metadata into an error (`None` when the
+/// status is 0/absent). The message is percent-decoded per the gRPC spec.
+pub(crate) fn parse_grpc_error_trailer(
+    trailers: &SimpleHeaders,
+) -> Option<ErrorTrace<ConnectError>> {
+    let status = grpc_status_of(trailers)?;
+    if status == 0 {
+        return None;
+    }
+    let message = trailers
+        .get(&SimpleHeader::from("grpc-message".to_string()))
+        .and_then(|v| v.first())
+        .cloned()
+        .unwrap_or_default();
+    let decoded = percent_decode(&message);
+    // SAFETY: Code is #[repr(u32)] and its discriminants match gRPC status
+    // codes exactly (Decision 03). Out-of-range values are clamped to Unknown
+    // first, so the transmute stays within the enum's variants.
+    let status = if (1..=16).contains(&status) { status } else { 2 };
+    let code: Code = unsafe { std::mem::transmute(status) };
+    Some(ErrorTrace::new(ConnectError::new(code, decoded)))
+}
+
+/// Percent-decode a `grpc-message` value (spec: space and non-ASCII are
+/// %HH-escaped).
+fn percent_decode(message: &str) -> String {
+    let mut out = String::new();
+    let bytes = message.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(hex) = u8::from_str_radix(&String::from_utf8_lossy(&bytes[i + 1..i + 3]), 16)
+            {
+                out.push(hex as char);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i] as char);
+        i += 1;
+    }
+    out
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────

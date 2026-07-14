@@ -355,6 +355,52 @@ async fn build_with_status_stream() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[valtron_test]
+async fn build_with_oci_export() {
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::{Exporter, SolveRequest};
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    let dir = std::env::temp_dir().join(format!("ewe-bk-export-ctx-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir ctx");
+    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo exported-by-ewe\n")
+        .expect("write Dockerfile");
+    let tar_path = std::env::temp_dir().join(format!("ewe-bk-export-{}.tar", std::process::id()));
+    let _ = std::fs::remove_file(&tar_path);
+
+    // Register the FileSend sink — the oci exporter streams the image tar back
+    // through the session.
+    let session = SessionServer::builder(&dir)
+        .export_to_file(&tar_path)
+        .start(&addr)
+        .await
+        .expect("start session with export sink");
+
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+    req.Exporters.push(Exporter { Type: "oci".into(), ..Default::default() });
+
+    let resp = client.solve(req).await.expect("solve with oci exporter");
+    eprintln!("EXPORT OK — {resp:?}");
+
+    let meta = std::fs::metadata(&tar_path).expect("exported tar exists");
+    assert!(meta.len() > 1024, "exported oci tar should be non-trivial, got {} bytes", meta.len());
+    // An OCI layout tar starts with a plain ustar member header; check the
+    // magic at offset 257 ("ustar") to prove we got a real tar, not noise.
+    let bytes = std::fs::read(&tar_path).expect("read exported tar");
+    assert_eq!(&bytes[257..262], b"ustar", "exported file should be a tar archive");
+    eprintln!("EXPORT OK — oci tar {} bytes at {}", meta.len(), tar_path.display());
+
+    let _ = std::fs::remove_file(&tar_path);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 /// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
 ///
 /// SETUP: share the socket dir with the host and open its permissions, e.g.

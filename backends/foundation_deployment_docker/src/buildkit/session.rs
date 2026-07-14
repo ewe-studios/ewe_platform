@@ -38,11 +38,13 @@ use crate::buildkit::generated::fsutil::types::packet::PacketType;
 use crate::buildkit::generated::fsutil::types::{Packet, Stat};
 use crate::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
 use crate::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
+use crate::buildkit::generated::moby::filesync::v1::BytesMessage as FsBytesMessage;
+use crate::buildkit::services::filesend::{self, register_file_send, FileSend};
 use crate::buildkit::services::filesync::{self, register_file_sync, FileSync};
 use crate::buildkit::services::health::{self, register_health, Health};
 use crate::buildkit::types::BytesMessage;
 
-use foundation_connectrpc::{ConnectResult, Request, Response};
+use foundation_connectrpc::{ConnectError, ConnectResult, Request, Response};
 
 type BoxErr = Box<dyn std::error::Error + Send + Sync>;
 
@@ -273,6 +275,83 @@ impl Health for HealthService {
     // watch defaults to unimplemented — buildkit only calls Check.
 }
 
+// ── FileSend sink: receive exported artifacts from buildkitd ─────────────────
+
+/// A [`FileSend`] sink that writes exported build artifacts to a file.
+///
+/// buildkitd's `oci` / `docker` / `tar` exporters call
+/// `moby.filesync.v1.FileSend/DiffCopy` on the session and stream the archive
+/// as `BytesMessage` chunks; the receiver writes each chunk and acknowledges
+/// by ending its (empty) response stream once the input reaches EOF — the
+/// same shape as buildkit's own `writeTargetFile`.
+#[derive(Clone)]
+pub struct FileExportSink {
+    path: Arc<PathBuf>,
+}
+
+impl FileExportSink {
+    #[must_use]
+    pub fn new(path: impl Into<PathBuf>) -> Self {
+        Self { path: Arc::new(path.into()) }
+    }
+}
+
+impl FileSend for FileExportSink {
+    fn diff_copy(
+        &self,
+        _ctx: Ctx,
+        requests: impl futures::Stream<Item = ConnectResult<FsBytesMessage>> + Send + 'static,
+    ) -> impl core::future::Future<
+        Output = ConnectResult<
+            std::pin::Pin<Box<dyn futures::Stream<Item = ConnectResult<FsBytesMessage>> + Send>>,
+        >,
+    > + Send {
+        let path = self.path.clone();
+        async move {
+            use futures::StreamExt;
+
+            let file = std::fs::File::create(path.as_ref())
+                .map_err(|e| ConnectError::internal(format!("create export file: {e}")))?;
+
+            // Drive the input inside the response stream so writing is pull-based:
+            // each poll of our (never-yielding) output consumes input chunks. The
+            // stream ends — sending clean trailers — when the input reaches EOF.
+            let state = (Box::pin(requests), file);
+            let out = futures::stream::unfold(state, |(mut reqs, mut file)| async move {
+                use std::io::Write;
+                loop {
+                    match reqs.next().await {
+                        Some(Ok(msg)) => {
+                            if let Err(e) = file.write_all(&msg.data) {
+                                error!(err = %e, "filesend: export write failed");
+                                return Some((
+                                    Err(ConnectError::internal(format!("export write: {e}"))
+                                        .into()),
+                                    (reqs, file),
+                                ));
+                            }
+                        }
+                        Some(Err(e)) => {
+                            error!(err = %e, "filesend: request stream error");
+                            return None;
+                        }
+                        None => {
+                            if let Err(e) = file.flush() {
+                                error!(err = %e, "filesend: export flush failed");
+                            }
+                            return None;
+                        }
+                    }
+                }
+            });
+            let boxed: std::pin::Pin<
+                Box<dyn futures::Stream<Item = ConnectResult<FsBytesMessage>> + Send>,
+            > = Box::pin(out);
+            Ok(boxed)
+        }
+    }
+}
+
 // ── Session server: serve FileSync on loopback + pump to the Session bidi ───
 
 /// A running build-context session. Holds the session id (to pass in
@@ -288,67 +367,77 @@ pub struct SessionServer {
     _pump_send: Option<JoinHandle<()>>,
 }
 
-impl SessionServer {
-    /// Serve a FileSync session for `context_dir` and attach it to `control`'s
-    /// Session stream. Returns once the tunnel is wired; the caller then runs a
-    /// Solve with `SolveRequest.Session = self.id`.
-    ///
-    /// Creates a **new** `H2Transport` for the Session bidi — a separate TCP
-    /// connection from the Solve call. Prefer [`start_with`] when you have a
-    /// shared [`H2PooledTransport`] (via [`BuildKitClient::connect_tcp_pooled`]);
-    /// that way the Session bidi and Solve share one H2 connection, matching how
-    /// gRPC is designed.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the loopback server cannot bind, the Session stream
-    /// cannot be opened, or the loopback dial fails.
-    pub async fn start(
-        control_authority: &str,
-        context_dir: impl Into<PathBuf>,
-    ) -> Result<Self, BoxErr> {
-        let control_transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
-        Self::start_inner(control_transport, control_authority, context_dir).await
+/// Configures the sidecar services a [`SessionServer`] exposes to buildkitd.
+///
+/// The context directory (FileSync) and Health are always served; everything
+/// else is opt-in. Finish with [`start`](Self::start) (fresh `H2Transport`
+/// per the control authority) or [`start_with`](Self::start_with) (caller-
+/// supplied transport — e.g. to share `BuildKitClient`'s Unix-socket or
+/// pooled transport).
+pub struct SessionBuilder {
+    context_dir: PathBuf,
+    export_file: Option<PathBuf>,
+}
+
+impl SessionBuilder {
+    /// Receive exported build artifacts into `path`. Registers the
+    /// `FileSend/DiffCopy` sidecar service — required for the `oci`, `docker`
+    /// and `tar` exporters, which stream the archive back over the session.
+    #[must_use]
+    pub fn export_to_file(mut self, path: impl Into<PathBuf>) -> Self {
+        self.export_file = Some(path.into());
+        self
     }
 
-    /// Like [`start`], but uses a **caller-supplied** [`Transport`] for the
-    /// Session bidi — so it shares the same H2 connection as the caller's
-    /// control-plane RPCs (e.g. `Solve`).
-    ///
-    /// Obtain the transport from [`BuildKitClient::transport`] after building
-    /// the client with [`BuildKitClient::connect_tcp_pooled`].
+    /// Start the session against `control_authority` on a fresh
+    /// [`H2Transport`] (one TCP connection per call).
     ///
     /// # Errors
     ///
-    /// Returns an error if the loopback server cannot bind, the Session stream
-    /// cannot be opened, or the loopback dial fails.
+    /// Returns an error if the loopback server cannot bind, the Session
+    /// stream cannot be opened, or the loopback dial fails.
+    pub async fn start(self, control_authority: &str) -> Result<SessionServer, BoxErr> {
+        let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+        self.start_with(transport, control_authority).await
+    }
+
+    /// Start the session on a **caller-supplied** [`Transport`] — e.g.
+    /// [`BuildKitClient::transport`], so the Session bidi dials the same
+    /// Unix socket / pooled connection as the control-plane RPCs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the loopback server cannot bind, the Session
+    /// stream cannot be opened, or the loopback dial fails.
     pub async fn start_with(
-        transport: Arc<dyn Transport>,
-        control_authority: &str,
-        context_dir: impl Into<PathBuf>,
-    ) -> Result<Self, BoxErr> {
-        Self::start_inner(transport, control_authority, context_dir).await
-    }
-
-    /// Shared implementation — the only difference between [`start`] and
-    /// [`start_with`] is who supplies the transport.
-    async fn start_inner(
+        self,
         control_transport: Arc<dyn Transport>,
         control_authority: &str,
-        context_dir: impl Into<PathBuf>,
-    ) -> Result<Self, BoxErr> {
+    ) -> Result<SessionServer, BoxErr> {
         let id = new_session_id();
 
-        // 1. Session gRPC server (FileSync) on a loopback h2c socket.
+        // 1. Session gRPC server on a loopback h2c socket. Every registered
+        //    method is routed AND advertised via a repeated
+        //    `x-docker-expose-session-grpc-method` header — buildkitd only
+        //    calls methods the session declares.
+        let mut methods: Vec<&'static str> = Vec::new();
         let mut router = Router::new();
-        register_file_sync(&mut router, Arc::new(DirFileSync::new(context_dir)));
+        register_file_sync(&mut router, Arc::new(DirFileSync::new(self.context_dir)));
+        methods.push(filesync::procedure::DIFF_COPY);
+        methods.push(filesync::procedure::TAR_STREAM);
         register_health(&mut router, Arc::new(HealthService));
+        methods.push(health::procedure::CHECK);
+        methods.push(health::procedure::WATCH);
+        if let Some(path) = &self.export_file {
+            register_file_send(&mut router, Arc::new(FileExportSink::new(path)));
+            methods.push(filesend::procedure::DIFF_COPY);
+        }
+
         let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
         let mut app = HttpApp::new_h2_serve();
-        app.route_any_h2(filesync::procedure::DIFF_COPY, rpc.clone());
-        app.route_any_h2(filesync::procedure::TAR_STREAM, rpc.clone());
-        app.route_any_h2(health::procedure::CHECK, rpc.clone());
-        app.route_any_h2(health::procedure::WATCH, rpc);
+        for method in &methods {
+            app.route_any_h2(method, rpc.clone());
+        }
 
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let local_addr = listener.local_addr()?;
@@ -361,30 +450,21 @@ impl SessionServer {
         });
 
         // 2. Open Control/Session with the required session metadata headers.
+        let mut options = ClientOptions::new()
+            .with_grpc()
+            .with_header("x-docker-expose-session-uuid".to_string(), id.clone())
+            .with_header("x-docker-expose-session-name".to_string(), "ewe");
+        for method in &methods {
+            options = options.with_header(
+                "x-docker-expose-session-grpc-method".to_string(),
+                *method,
+            );
+        }
         let session_client = Client::<BytesMessage, BytesMessage>::new(
             control_transport,
             &format!("http://{control_authority}/moby.buildkit.v1.Control/Session"),
             ProcedureCodecs::defaults(),
-            ClientOptions::new()
-                .with_grpc()
-                .with_header("x-docker-expose-session-uuid".to_string(), id.clone())
-                .with_header("x-docker-expose-session-name".to_string(), "ewe")
-                .with_header(
-                    "x-docker-expose-session-grpc-method".to_string(),
-                    filesync::procedure::DIFF_COPY,
-                )
-                .with_header(
-                    "x-docker-expose-session-grpc-method".to_string(),
-                    filesync::procedure::TAR_STREAM,
-                )
-                .with_header(
-                    "x-docker-expose-session-grpc-method".to_string(),
-                    health::procedure::CHECK,
-                )
-                .with_header(
-                    "x-docker-expose-session-grpc-method".to_string(),
-                    health::procedure::WATCH,
-                ),
+            options,
         )?;
 
         let mut bidi = session_client
@@ -493,7 +573,7 @@ impl SessionServer {
             let _ = futures_lite::future::block_on(sender.close_request());
         });
 
-        Ok(Self {
+        Ok(SessionServer {
             id,
             shutdown,
             _server: Some(server_handle),
@@ -501,6 +581,45 @@ impl SessionServer {
             _pump_up: Some(read_thread),
             _pump_send: Some(send_thread),
         })
+    }
+}
+
+impl SessionServer {
+    /// Start configuring a session for `context_dir` — see [`SessionBuilder`]
+    /// for the optional sidecar services (artifact export, …).
+    pub fn builder(context_dir: impl Into<PathBuf>) -> SessionBuilder {
+        SessionBuilder { context_dir: context_dir.into(), export_file: None }
+    }
+
+    /// Serve a FileSync session for `context_dir` and attach it to the
+    /// Control/Session stream at `control_authority` on a fresh
+    /// [`H2Transport`]. Shorthand for `builder(context_dir).start(..)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the loopback server cannot bind, the Session
+    /// stream cannot be opened, or the loopback dial fails.
+    pub async fn start(
+        control_authority: &str,
+        context_dir: impl Into<PathBuf>,
+    ) -> Result<Self, BoxErr> {
+        Self::builder(context_dir).start(control_authority).await
+    }
+
+    /// Like [`start`](Self::start), but on a **caller-supplied**
+    /// [`Transport`] (e.g. [`BuildKitClient::transport`] for Unix-socket or
+    /// pooled connections). Shorthand for `builder(..).start_with(..)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the loopback server cannot bind, the Session
+    /// stream cannot be opened, or the loopback dial fails.
+    pub async fn start_with(
+        transport: Arc<dyn Transport>,
+        control_authority: &str,
+        context_dir: impl Into<PathBuf>,
+    ) -> Result<Self, BoxErr> {
+        Self::builder(context_dir).start_with(transport, control_authority).await
     }
 }
 

@@ -2,6 +2,7 @@
 
 **Depends on:** 02, 09
 **Decisions:** [11](../../decisions/11-ephemeral-seed-lifecycle.md), [04](../../decisions/04-bootstrap-token-envelope.md), [14](../../decisions/14-crate-layering.md)
+**Status:** ⚠️ Partial (2026-07-14 audit). Wireguard side complete: `WgConfig::from_env()` reads `WG_SECRET`/`WG_NETWORK`/`WG_SEED_ENDPOINTS`/`WG_RELAY`; `WgSeed::generate()`; `#[wireguard_main]` self-assembly. **Must do:** (1) Docker container example: generate network secret, inject via `ContainerConfig` env, N containers self-assemble into one mesh; (2) Docker testbed integration tests (spec 53/54) — launch container group, assert mesh formation + cross-container overlay reachability; (3) Wire `ContainerConfig` env injection for WG vars in `foundation_deployment_platform`.
 
 ## WHY
 

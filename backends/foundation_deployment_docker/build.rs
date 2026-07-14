@@ -89,6 +89,7 @@ fn generate_services(root: &str, files: &[String]) {
     let targets: &[(&str, &str, &str)] = &[
         ("control.proto", "Control", "control_service.rs"),
         ("filesync.proto", "FileSync", "filesync_service.rs"),
+        ("filesync.proto", "FileSend", "filesend_service.rs"),
         ("auth.proto", "Auth", "auth_service.rs"),
         ("secrets.proto", "Secrets", "secrets_service.rs"),
         ("ssh.proto", "SSH", "ssh_service.rs"),

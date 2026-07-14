@@ -3,6 +3,7 @@
 **Depends on:** none (parallel track; needs netio `quic`+`http3`)
 **Unblocks:** 07 (optimization path)
 **Decisions:** [09](../../decisions/09-webtransport-on-quinn-proto.md)
+**Status:** ⚠️ Partial (2026-07-14 audit). Proto layer (capsule decoder, varint), `NoIoSession`, `WtSession<C: QuicConnection>`, `WtAcceptor`, `WtConnector` all implemented. 11 sans-I/O tests pass. **Must do:** End-to-end QUIC integration test — instantiate `WtSession` with a real `quinn-proto` connection, establish a WT session via Extended CONNECT over http3, and round-trip streams + datagrams.
 
 ## WHY
 

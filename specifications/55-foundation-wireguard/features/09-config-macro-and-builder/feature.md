@@ -2,6 +2,7 @@
 
 **Depends on:** 04
 **Decisions:** [13](../../decisions/13-tri-config-and-macro.md) (proposed), [04](../../decisions/04-bootstrap-token-envelope.md), [12](../../decisions/12-ipam-addressing.md) (proposed)
+**Status:** ⚠️ Partial (2026-07-14 audit). `WgConfig` + sub-configs + serde + builder + `from_env()` + TOML loader + `wireguard!` proc macro + `#[wireguard_main]` attribute macro all implemented. All three config paths (builder, macro, TOML) tested for convergence. **Must do:** (1) `clap --config` CLI integration — a standalone binary that takes `--config wireguard.toml`; (2) Hot-reload for relay/security toggles (not identity/seed) without restart.
 
 ## WHY
 

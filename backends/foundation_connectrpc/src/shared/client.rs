@@ -867,10 +867,28 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let wrapped = chain.wrap_unary(inner);
         let reply = wrapped(ctx.clone(), call).await?;
 
-        // Check gRPC error trailers before decoding (gRPC errors return HTTP 200
-        // with grpc-status != 0 in trailers and an empty body).
-        if let Some(grpc_err) = parse_grpc_error_trailer(&reply.trailers) {
+        // Check gRPC error metadata before decoding. Errors ride grpc-status in
+        // the trailing HEADERS — or, for Trailers-Only responses (errors raised
+        // before any message), in the response headers themselves.
+        if let Some(grpc_err) = parse_grpc_error_trailer(&reply.trailers)
+            .or_else(|| parse_grpc_error_trailer(&reply.headers))
+        {
             return Err(grpc_err);
+        }
+
+        // gRPC unary success MUST carry exactly one message. An empty body with
+        // grpc-status 0 (or missing) would otherwise silently decode into
+        // `Default::default()` — turn it into the protocol error it is.
+        if reply.frame.is_empty()
+            && matches!(
+                self.config.protocol,
+                ProtocolSelection::Grpc | ProtocolSelection::GrpcWeb
+            )
+        {
+            return Err(ConnectError::internal(
+                "gRPC unary response carried no message and no grpc-status",
+            )
+            .into());
         }
 
         // Decode response: protocol-level unwrap first, then codec unmarshal.
@@ -1299,46 +1317,6 @@ fn build_request_descriptor(url: &str, headers: &SimpleHeaders, method: SimpleMe
 /// and maps transport errors into [`ConnectError`].
 /// If the trailers contain a non-zero `grpc-status`, build a `ConnectError`
 /// from it. Returns `None` for success trailers (grpc-status: 0, or absent).
-fn parse_grpc_error_trailer(trailers: &SimpleHeaders) -> Option<ErrorTrace<ConnectError>> {
-    let status: u32 = trailers
-        .get(&SimpleHeader::from("grpc-status".to_string()))
-        .and_then(|v| v.first())
-        .and_then(|s| s.trim().parse().ok())?;
-    if status == 0 {
-        return None;
-    }
-    let message = trailers
-        .get(&SimpleHeader::from("grpc-message".to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    // Percent-decode the grpc-message.
-    let decoded = {
-        let mut out = String::new();
-        let bytes = message.as_bytes();
-        let mut i = 0;
-        while i < bytes.len() {
-            if bytes[i] == b'%' && i + 2 < bytes.len() {
-                if let Ok(hex) =
-                    u8::from_str_radix(&String::from_utf8_lossy(&bytes[i + 1..i + 3]), 16)
-                {
-                    out.push(hex as char);
-                    i += 3;
-                    continue;
-                }
-            }
-            out.push(bytes[i] as char);
-            i += 1;
-        }
-        out
-    };
-    // SAFETY: Code is #[repr(u32)] and its discriminants match gRPC status codes
-    // exactly (Decision 03). Values outside the 1..=16 range are impossible from a
-    // well-formed server.
-    let code: Code = unsafe { std::mem::transmute(status) };
-    Some(ErrorTrace::new(ConnectError::new(code, decoded)))
-}
-
 async fn do_unary_round_trip(
     transport: &dyn Transport,
     desc: RequestDescriptor,

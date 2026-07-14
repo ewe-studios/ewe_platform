@@ -1,6 +1,6 @@
 # Feature 00 — `foundation_nativeapis` Data-Plane Primitives
 
-**Status:** ✅ Complete (implemented + tested 2026-07-13)
+**Status:** ⚠️ Partial (2026-07-14 audit). `NetStack` + `TunDataPlane` + `DataPlane` trait all implemented and tested. **Must do:** `MeshDataPlane::Tun` variant is `#[allow(dead_code)]` — never constructed in any code path. Wire the kernel TUN path into a test or usage site so it is proven alive.
 **Depends on:** none (foundation)
 **Unblocks:** 01, 04
 **Decisions:** [02](../../decisions/02-dual-dataplane.md), [14](../../decisions/14-crate-layering.md)

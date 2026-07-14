@@ -35,6 +35,13 @@ pub mod filesync {
     include!(concat!(env!("OUT_DIR"), "/filesync_service.rs"));
 }
 
+/// `moby.filesync.v1.FileSend` — streams exported build artifacts (tar/oci)
+/// from buildkitd back to the client.
+pub mod filesend {
+    use crate::buildkit::generated::moby::filesync::v1::*;
+    include!(concat!(env!("OUT_DIR"), "/filesend_service.rs"));
+}
+
 /// `moby.filesync.v1.Auth` — registry credential callbacks.
 pub mod auth {
     use crate::buildkit::generated::moby::filesync::v1::*;

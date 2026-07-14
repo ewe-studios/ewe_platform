@@ -1,6 +1,6 @@
 # Feature 08 — Identity Handoff & Optional mTLS
 
-**Status:** ✅ Complete (implemented + tested 2026-07-13)
+**Status:** ⚠️ Partial (2026-07-14 audit). `IdentityKeypair`, `AdmissionPolicy`, `mtls::connect`/`accept`, `WgHandle::revoke_seed` all implemented and tested. **Must do:** (1) Identity persistence via the nativeapis VFS (local/R2/sqlite mounts) — byte primitives exist on `IdentityKeypair` but no VFS mount wrapper; (2) Approved-mode admission (member-signed approval) beyond the current open/revoke binary policy.
 **Depends on:** 04
 **Decisions:** [10](../../decisions/10-identity-handoff-and-mtls.md), [11](../../decisions/11-ephemeral-seed-lifecycle.md), [03](../../decisions/03-seed-derived-keys.md)
 
@@ -28,9 +28,9 @@ context binding; mTLS handshake carrying app bytes + impostor rejection; and a l
 proving **peers use per-peer identity keys, not the bootstrap key**, plus **revoked seed →
 fresh join refused** (success criterion 4). All green, zero warnings.
 
-Deferred (noted in spec TODO): identity persistence *via the nativeapis VFS* (local/R2/
+**Must do:** identity persistence *via the nativeapis VFS* (local/R2/
 sqlite mounts) — the byte-level persistence primitives are in place; the VFS mount wrapper
-is future work. Also `approved`-mode admission (member-signed approval) beyond the current
+is pending. Also `approved`-mode admission (member-signed approval) beyond the current
 open/revoke policy.
 
 ## WHY
