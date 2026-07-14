@@ -684,8 +684,25 @@ pub struct ExecutorState {
 
 static DEQUEUE_CAPACITY: usize = 10;
 
+/// How often a worker re-polls when its only pending work is READINESS-parked
+/// tasks (pipe waits). Their producers live on other threads and cannot
+/// interrupt this worker's sleep, so the quantum bounds cross-worker handoff
+/// latency. Timed sleepers are unaffected (the worker sleeps exactly to the
+/// nearest deadline).
+const READINESS_POLL_QUANTUM: time::Duration = time::Duration::from_millis(1);
+
 /// Maximum consecutive `State::Depends(true)` violations before panic.
-const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 3;
+///
+/// "Parked on an already-ready signal" also occurs benignly: a pipe consumer
+/// drains, returns `Depends(queue readiness)`, and the producer refills the
+/// queue before the executor inspects the signal. Under sustained throughput
+/// (first seen streaming a multi-MB BuildKit tar export) that race can repeat
+/// back-to-back, so the streak alone is weak evidence of a bug. The counter
+/// resets on every genuine (not-ready) park, the executor degrades gracefully
+/// either way (re-queue at the back), and a real livelock — a task that
+/// returns `Depends` without ever consuming the signal — repeats indefinitely.
+/// The threshold therefore only needs to be finite, not small.
+const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 4096;
 
 impl ExecutorState {
     pub fn new(
@@ -1065,8 +1082,13 @@ impl ExecutorState {
             ProgressIndicator::CanProgress(state) => ProgressIndicator::CanProgress(state),
             ProgressIndicator::NoWork => {
                 if self.has_sleeping_tasks() {
-                    if let Some(max_sleep_dur) = self.sleepers.max_duration() {
-                        return ProgressIndicator::SpinWait(max_sleep_dur);
+                    // Sleep until the NEAREST deadline. Sleeping to the
+                    // furthest (`max_duration`, the previous behavior) made
+                    // every shorter timer fire late by the gap to the longest
+                    // sleeper — a 10ms-polling I/O pump next to a 1s sleeper
+                    // woke ~1s late, collapsing transport throughput.
+                    if let Some(min_sleep_dur) = self.sleepers.min_duration() {
+                        return ProgressIndicator::SpinWait(min_sleep_dur);
                     }
 
                     return ProgressIndicator::CanProgress(None);
@@ -1194,6 +1216,17 @@ impl ExecutorState {
             }
 
             return ProgressIndicator::CanProgress(None);
+        }
+
+        // Any state other than `Depends` is a healthy run and ends the task's
+        // "already-ready Depends" violation streak — the counter must measure
+        // CONSECUTIVE violations only (a task alternating progress and racy
+        // parks is fine; one that returns Depends-on-ready every single run is
+        // the livelock the tripwire exists for). The `Depends` arm manages the
+        // counter itself: increment on an already-ready signal, reset on a
+        // genuine park.
+        if !matches!(next_result.as_ref().unwrap(), State::Depends(_)) {
+            self.depends_true_violations.borrow_mut().remove(&top_entry);
         }
 
         match next_result.unwrap() {
@@ -1494,12 +1527,17 @@ impl ExecutorState {
                         );
                     }
 
-                    tracing::warn!(
-                        "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
-                        top_entry,
-                        violations,
-                        DEPENDS_TRUE_PANIC_THRESHOLD
-                    );
+                    // Rate-limit: under sustained pipe throughput every park can
+                    // legitimately hit this (see DEPENDS_TRUE_PANIC_THRESHOLD),
+                    // and one warn per violation floods the log at wire speed.
+                    if violations <= 3 || violations % 256 == 0 {
+                        tracing::warn!(
+                            "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
+                            top_entry,
+                            violations,
+                            DEPENDS_TRUE_PANIC_THRESHOLD
+                        );
+                    }
 
                     self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                     self.processing.borrow_mut().push_back(top_entry);
@@ -1507,6 +1545,11 @@ impl ExecutorState {
                 }
 
                 // 3. Signal is false -> register as Sleepable::Readiness(signal, entry)
+                // A genuine park also ends any "already-ready" violation streak —
+                // the counter tracks CONSECUTIVE violations, so a well-behaved
+                // park must clear it or the count accumulates over the task's
+                // whole lifetime and eventually panics a healthy hot task.
+                self.depends_true_violations.borrow_mut().remove(&top_entry);
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry));
@@ -2582,11 +2625,21 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             return;
                         }
 
-                        // Use sleeper-aware yielding: sleep until next sleeper wakes
-                        let yield_duration = self
-                            .state
-                            .time_until_next_wakeup()
-                            .unwrap_or(self.no_work_yield);
+                        // Use sleeper-aware yielding: sleep until next sleeper wakes.
+                        // Readiness-parked tasks (pipe waits) have NO deadline and
+                        // their cross-thread wake cannot interrupt a plain sleep, so
+                        // a worker hosting them must poll at a short quantum — a
+                        // blind `no_work_yield` (seconds) here turned every
+                        // cross-worker pipe handoff into a multi-second stall
+                        // (first seen collapsing BuildKit tar-export throughput).
+                        let yield_duration =
+                            self.state.time_until_next_wakeup().unwrap_or_else(|| {
+                                if self.state.number_of_sleepers() > 0 {
+                                    READINESS_POLL_QUANTUM
+                                } else {
+                                    self.no_work_yield
+                                }
+                            });
                         self.yielder.yield_for(yield_duration);
                     }
                     ProgressIndicator::SpinWait(duration) => {
