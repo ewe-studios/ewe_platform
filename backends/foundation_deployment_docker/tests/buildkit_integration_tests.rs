@@ -401,6 +401,68 @@ async fn build_with_oci_export() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[valtron_test]
+async fn build_inline_dockerfile_no_context_file() {
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    // No caller-managed files at all: the session materializes and serves the
+    // dockerfile itself, and cleans it up on drop. (Plain buildkitd has no
+    // request-attr path for an inline dockerfile — `dockerfile-inline` is a
+    // compose/moby-daemon frontend feature — so the session serves it as the
+    // `dockerfile` local, the same way buildx handles a stdin dockerfile.)
+    let session = SessionServer::builder_inline(
+        "FROM alpine:latest\nRUN echo built-from-inline-dockerfile\n",
+    )
+    .expect("materialize inline dockerfile")
+    .start(&addr)
+    .await
+    .expect("start session");
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    let resp = client.solve(req).await.expect("inline dockerfile solve");
+    eprintln!("INLINE BUILD OK — {resp:?}");
+}
+
+#[valtron_test]
+async fn build_with_registry_auth_provider() {
+    use foundation_deployment_docker::buildkit::session::{SessionServer, StaticRegistryAuth};
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    // Anonymous provider — public alpine pulls need no credentials, but with
+    // Auth/Credentials registered buildkitd ASKS us instead of 404ing.
+    let auth = Arc::new(StaticRegistryAuth::anonymous());
+    let session = SessionServer::builder_inline("FROM alpine:latest\nRUN echo authed\n")
+        .expect("inline dockerfile")
+        .registry_auth(Arc::clone(&auth))
+        .start(&addr)
+        .await
+        .expect("start session");
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    let resp = client.solve(req).await.expect("solve with auth provider");
+    // A warm buildkitd cache may skip the registry entirely, so the request
+    // count is informational, not asserted.
+    eprintln!(
+        "AUTH BUILD OK — {} credential request(s) served — {resp:?}",
+        auth.credential_requests()
+    );
+}
+
 /// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
 ///
 /// SETUP: share the socket dir with the host and open its permissions, e.g.

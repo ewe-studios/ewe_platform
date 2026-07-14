@@ -39,6 +39,8 @@ use crate::buildkit::generated::fsutil::types::{Packet, Stat};
 use crate::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
 use crate::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
 use crate::buildkit::generated::moby::filesync::v1::BytesMessage as FsBytesMessage;
+use crate::buildkit::generated::moby::filesync::v1::{CredentialsRequest, CredentialsResponse};
+use crate::buildkit::services::auth::{self, register_auth, Auth};
 use crate::buildkit::services::filesend::{self, register_file_send, FileSend};
 use crate::buildkit::services::filesync::{self, register_file_sync, FileSync};
 use crate::buildkit::services::health::{self, register_health, Health};
@@ -281,6 +283,74 @@ impl Health for HealthService {
     // watch defaults to unimplemented — buildkit only calls Check.
 }
 
+// ── Auth: registry credentials for buildkitd's pulls/pushes ─────────────────
+
+/// Registry credentials keyed by host (e.g. `registry-1.docker.io`), with
+/// anonymous fallback for unknown hosts.
+///
+/// Implements the session's `moby.filesync.v1.Auth/Credentials` callback —
+/// buildkitd asks the client for credentials before touching a registry. An
+/// empty `CredentialsResponse` means "anonymous", which is what public pulls
+/// need. `FetchToken`/`GetTokenAuthority`/`VerifyTokenAuthority` keep their
+/// generated `unimplemented` defaults: buildkitd's resolver falls back to
+/// `Credentials` + its own token flow when the client doesn't do OAuth
+/// token exchange itself (the docker-CLI behavior predating FetchToken).
+#[derive(Default)]
+pub struct StaticRegistryAuth {
+    creds: std::collections::HashMap<String, (String, String)>,
+    /// How many times buildkitd asked for credentials (any host).
+    hits: std::sync::atomic::AtomicU64,
+}
+
+impl StaticRegistryAuth {
+    /// Anonymous-only provider (public registries).
+    #[must_use]
+    pub fn anonymous() -> Self {
+        Self::default()
+    }
+
+    /// Add `username`/`secret` for `host` (e.g. `registry-1.docker.io`).
+    #[must_use]
+    pub fn with_credentials(
+        mut self,
+        host: impl Into<String>,
+        username: impl Into<String>,
+        secret: impl Into<String>,
+    ) -> Self {
+        self.creds.insert(host.into(), (username.into(), secret.into()));
+        self
+    }
+
+    /// How many `Credentials` calls buildkitd has made on this provider.
+    #[must_use]
+    pub fn credential_requests(&self) -> u64 {
+        self.hits.load(std::sync::atomic::Ordering::Relaxed)
+    }
+}
+
+impl Auth for StaticRegistryAuth {
+    fn credentials(
+        &self,
+        _ctx: Ctx,
+        request: Request<CredentialsRequest>,
+    ) -> impl core::future::Future<Output = ConnectResult<Response<CredentialsResponse>>> + Send
+    {
+        self.hits.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let response = match self.creds.get(&request.msg.Host) {
+            Some((username, secret)) => CredentialsResponse {
+                Username: username.clone(),
+                Secret: secret.clone(),
+                ..Default::default()
+            },
+            // Unknown host → anonymous.
+            None => CredentialsResponse::default(),
+        };
+        async move { Ok(Response::new(response)) }
+    }
+    // fetch_token / get_token_authority / verify_token_authority keep the
+    // generated `unimplemented` defaults — see the type docs.
+}
+
 // ── FileSend sink: receive exported artifacts from buildkitd ─────────────────
 
 /// A [`FileSend`] sink that writes exported build artifacts to a file.
@@ -371,6 +441,8 @@ pub struct SessionServer {
     _pump_down: Option<JoinHandle<()>>,
     _pump_up: Option<JoinHandle<()>>,
     _pump_send: Option<JoinHandle<()>>,
+    /// Temp dir owned by an inline-dockerfile session; removed on drop.
+    owned_tmp: Option<PathBuf>,
 }
 
 /// Configures the sidecar services a [`SessionServer`] exposes to buildkitd.
@@ -383,6 +455,9 @@ pub struct SessionServer {
 pub struct SessionBuilder {
     context_dir: PathBuf,
     export_file: Option<PathBuf>,
+    auth: Option<Arc<StaticRegistryAuth>>,
+    /// A session-owned temp dir (inline dockerfile) removed on session drop.
+    owned_tmp: Option<PathBuf>,
 }
 
 impl SessionBuilder {
@@ -392,6 +467,16 @@ impl SessionBuilder {
     #[must_use]
     pub fn export_to_file(mut self, path: impl Into<PathBuf>) -> Self {
         self.export_file = Some(path.into());
+        self
+    }
+
+    /// Serve registry credentials over the session (`Auth/Credentials`) —
+    /// buildkitd asks the client before pulling from / pushing to a registry.
+    /// Pass a shared handle if you want to inspect
+    /// [`StaticRegistryAuth::credential_requests`] afterwards.
+    #[must_use]
+    pub fn registry_auth(mut self, auth: Arc<StaticRegistryAuth>) -> Self {
+        self.auth = Some(auth);
         self
     }
 
@@ -437,6 +522,10 @@ impl SessionBuilder {
         if let Some(path) = &self.export_file {
             register_file_send(&mut router, Arc::new(FileExportSink::new(path)));
             methods.push(filesend::procedure::DIFF_COPY);
+        }
+        if let Some(provider) = &self.auth {
+            register_auth(&mut router, Arc::clone(provider));
+            methods.push(auth::procedure::CREDENTIALS);
         }
 
         let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
@@ -586,6 +675,7 @@ impl SessionBuilder {
             _pump_down: Some(write_thread),
             _pump_up: Some(read_thread),
             _pump_send: Some(send_thread),
+            owned_tmp: self.owned_tmp,
         })
     }
 }
@@ -594,7 +684,39 @@ impl SessionServer {
     /// Start configuring a session for `context_dir` — see [`SessionBuilder`]
     /// for the optional sidecar services (artifact export, …).
     pub fn builder(context_dir: impl Into<PathBuf>) -> SessionBuilder {
-        SessionBuilder { context_dir: context_dir.into(), export_file: None }
+        SessionBuilder {
+            context_dir: context_dir.into(),
+            export_file: None,
+            auth: None,
+            owned_tmp: None,
+        }
+    }
+
+    /// Configure a session that serves `dockerfile` **inline** — no file or
+    /// context directory needed from the caller. The content is materialized
+    /// as `Dockerfile` in a session-owned temp directory (buildkitd's
+    /// `dockerfile.v0` frontend always pulls the Dockerfile through the
+    /// session's FileSync `dockerfile` local; there is no request-attr path
+    /// for it in plain buildkitd), and the directory is removed when the
+    /// session drops.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the temp directory or Dockerfile cannot be created.
+    pub fn builder_inline(dockerfile: &str) -> std::io::Result<SessionBuilder> {
+        let dir = std::env::temp_dir().join(format!(
+            "ewe-bk-inline-{}-{}",
+            std::process::id(),
+            &new_session_id()[..8]
+        ));
+        std::fs::create_dir_all(&dir)?;
+        std::fs::write(dir.join("Dockerfile"), dockerfile)?;
+        Ok(SessionBuilder {
+            context_dir: dir.clone(),
+            export_file: None,
+            auth: None,
+            owned_tmp: Some(dir),
+        })
     }
 
     /// Serve a FileSync session for `context_dir` and attach it to the
@@ -632,6 +754,9 @@ impl SessionServer {
 impl Drop for SessionServer {
     fn drop(&mut self) {
         self.shutdown.turn_on();
+        if let Some(dir) = self.owned_tmp.take() {
+            let _ = std::fs::remove_dir_all(dir);
+        }
     }
 }
 
