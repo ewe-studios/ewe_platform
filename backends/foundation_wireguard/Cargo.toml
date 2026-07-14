@@ -34,6 +34,7 @@ tracing = { workspace = true }
 thiserror = { workspace = true }
 derive_more = { workspace = true }
 serde = { workspace = true }
+serde_json = "1"
 # Compact, versioned wire codec for SWIM gossip messages (feature 03).
 bincode = { version = "2", features = ["serde"] }
 # wireguard.toml config loading (feature 09).

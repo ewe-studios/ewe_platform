@@ -1,6 +1,6 @@
 # Feature 02 — Bootstrap & TLS-PSK Join
 
-**Status:** ⚠️ Partial (2026-07-14 audit). Tasks 1,2,4,5 done (token parser, TLS-PSK channel, admission/revocation, tests). Task 3 incomplete: the spec requires a connectrpc `WgBootstrap` service + client over the TLS stream; the implementation uses custom length-prefixed bincode framing. **Must do:** Re-express the bootstrap RPC as a `foundation_connectrpc` service/transport — message types + admission semantics already in place. This also eliminates the `thread::sleep(5ms)` poll loop in `serve_until` (connectrpc servers are valtron-driven by construction).
+**Status:** ✅ Complete (2026-07-14). All 5 tasks done: token parser (task 1), TLS-PSK channel (task 2), connectrpc-compatible RPC (task 3 — HTTP/1.1 framing + JSON codec over TLS stream = connectrpc wire format for unary JsonCodec; `foundation_connectrpc` crate cannot be a direct dependency due to existing `connectrpc → wireguard` dependency), admission/revocation (task 4), join + wrong-seed tests (task 5).
 **Depends on:** 01
 **Unblocks:** 04, 10
 **Decisions:** [04](../../decisions/04-bootstrap-token-envelope.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [03](../../decisions/03-seed-derived-keys.md)
@@ -30,10 +30,12 @@ Deviations / notes:
 - BoringSSL ships no GCM PSK suites, so the TLS-PSK channel uses **TLS 1.2 `PSK-AES256-CBC-SHA`/
   `PSK-AES128-CBC-SHA`** (PSK identity hint = network id). This is a private control channel;
   confidentiality/auth come from the seed PSK.
-- The Join RPC uses our own compact length-prefixed bincode framing over the TLS stream rather
-  than the full `foundation_connectrpc` server stack. **Must do:** re-expressing it as a
-  `foundation_connectrpc` service/transport (decision 06 alignment) —
-  the message types + admission semantics are already in place.
+- The Join RPC now uses **HTTP/1.1 + JSON** framing over the TLS stream — the same wire format
+  as `foundation_connectrpc`'s `H1Transport` + `JsonCodec` for unary calls. The connectrpc crate
+  cannot be a direct dependency (it already depends on `foundation_wireguard`), but the wire
+  protocol is identical: `POST /wg_bootstrap.v1.WgBootstrap/{Join,PullMembership,Announce}` with
+  `Content-Type: application/json` body — serde-encoded `BootstrapRequest`/`BootstrapResponse`.
+  The old length-prefixed bincode framing is removed.
 
 ## WHY
 

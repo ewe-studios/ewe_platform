@@ -18,10 +18,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 
-pub use rpc::{
-    decode_request, decode_response, encode_request, encode_response, Admission, BootstrapRequest,
-    BootstrapResponse,
-};
+pub use rpc::{Admission, BootstrapRequest, BootstrapResponse};
 
 use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::{NetworkId, WgSeed};

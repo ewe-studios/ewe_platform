@@ -5202,6 +5202,7 @@ dependencies = [
  "hkdf",
  "js-sys",
  "serde",
+ "serde_json",
  "serial_test",
  "smoltcp",
  "tempfile",

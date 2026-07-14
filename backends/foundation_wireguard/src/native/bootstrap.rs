@@ -18,10 +18,7 @@ use std::sync::Arc;
 
 use boring::ssl::{Ssl, SslContext, SslContextBuilder, SslMethod, SslStream, SslVersion};
 
-use crate::shared::bootstrap::rpc::{
-    decode_request, decode_response, encode_request, encode_response, Admission, BootstrapRequest,
-    BootstrapResponse,
-};
+use crate::shared::bootstrap::rpc::{Admission, BootstrapRequest, BootstrapResponse};
 use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::NetworkId;
 use crate::shared::membership::PeerRecord;
@@ -83,31 +80,90 @@ fn client_context(tls_psk: [u8; 32], network_id: NetworkId) -> WgResult<SslConte
 }
 
 // ---------------------------------------------------------------------------
-// Frame protocol
+// HTTP/1.1 framing — connectrpc-compatible (JSON codec + HTTP transport)
 // ---------------------------------------------------------------------------
+// The wire format is standard HTTP/1.1 with JSON body — this is exactly what
+// connectrpc's H1Transport + JsonCodec produces. We implement a minimal subset
+// (no chunked encoding, no connection reuse) sufficient for the bootstrap RPC.
 
-fn write_frame(stream: &mut impl Write, data: &[u8]) -> io::Result<()> {
-    let len = u32::try_from(data.len())
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "frame too large"))?;
-    stream.write_all(&len.to_be_bytes())?;
-    stream.write_all(data)?;
+const SERVICE_PATH: &str = "/wg_bootstrap.v1.WgBootstrap";
+
+fn http_request(stream: &mut impl Write, method: &str, body: &[u8]) -> io::Result<()> {
+    write!(stream, "POST {SERVICE_PATH}/{method} HTTP/1.1\r\n")?;
+    write!(stream, "Host: bootstrap\r\n")?;
+    write!(stream, "Content-Type: application/json\r\n")?;
+    write!(stream, "Content-Length: {}\r\n", body.len())?;
+    write!(stream, "\r\n")?;
+    stream.write_all(body)?;
     stream.flush()
 }
 
-fn read_frame(stream: &mut impl Read) -> io::Result<Option<Vec<u8>>> {
-    let mut len_buf = [0u8; 4];
-    match stream.read_exact(&mut len_buf) {
-        Ok(()) => {}
-        Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
+/// Parsed HTTP response from the server.
+struct HttpResponse {
+    status: u16,
+    body: Vec<u8>,
+}
+
+fn http_response(stream: &mut impl Read) -> io::Result<Option<HttpResponse>> {
+    let mut line = String::new();
+    // Read the status line.
+    match read_line(stream, &mut line) {
+        Ok(0) => return Ok(None),
         Err(e) => return Err(e),
+        Ok(_) => {}
     }
-    let len = u32::from_be_bytes(len_buf) as usize;
-    if len > MAX_FRAME {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "frame exceeds limit"));
+    let status = parse_status(&line)?;
+
+    // Read headers until the empty line.
+    let mut content_length: usize = 0;
+    loop {
+        line.clear();
+        match read_line(stream, &mut line) {
+            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Err(e) => return Err(e),
+            Ok(_) => {}
+        }
+        let trimmed = line.trim();
+        if trimmed.is_empty() { break; }
+        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+            content_length = val.trim().parse::<usize>().unwrap_or(0);
+        }
     }
-    let mut buf = vec![0u8; len];
-    stream.read_exact(&mut buf)?;
-    Ok(Some(buf))
+
+    if content_length > MAX_FRAME {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "response body exceeds limit"));
+    }
+    let mut body = vec![0u8; content_length];
+    if content_length > 0 {
+        stream.read_exact(&mut body)?;
+    }
+    Ok(Some(HttpResponse { status, body }))
+}
+
+fn read_line(stream: &mut impl Read, buf: &mut String) -> io::Result<usize> {
+    buf.clear();
+    let mut total = 0;
+    let mut byte = [0u8; 1];
+    loop {
+        match stream.read(&mut byte) {
+            Ok(0) => return if total == 0 { Ok(0) } else { Ok(total) },
+            Ok(_) => {
+                total += 1;
+                if byte[0] == b'\n' { return Ok(total); }
+                if byte[0] != b'\r' { buf.push(byte[0] as char); }
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+fn parse_status(line: &str) -> io::Result<u16> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    if parts.len() < 2 || !parts[0].starts_with("HTTP/") {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad status line: {line}")));
+    }
+    parts[1].parse::<u16>()
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, format!("bad status code: {line}")))
 }
 
 // ---------------------------------------------------------------------------
@@ -235,25 +291,108 @@ impl BootstrapServer {
     }
 
     fn serve_stream(&self, stream: &mut SslStream<TcpStream>) -> WgResult<()> {
-        while let Some(frame) = read_frame(stream)? {
-            let request = decode_request(&frame)?;
-            let response = match request {
-                BootstrapRequest::Join(record) => {
+        loop {
+            let req = match read_http_request(stream)? {
+                Some(r) => r,
+                None => return Ok(()), // peer closed
+            };
+            let (status, body) = match req.method.as_str() {
+                "Join" => {
+                    let request: BootstrapRequest = serde_json::from_slice(&req.body)
+                        .map_err(|e| WgError::Protocol(format!("join body: {e}")))?;
+                    let record = match request {
+                        BootstrapRequest::Join(r) => r,
+                        other => return Err(WgError::Protocol(format!("expected Join, got {other:?}"))),
+                    };
                     let (decision, members) = self.handler.on_join(record);
-                    BootstrapResponse::JoinResult { decision, members }
+                    (200, serde_json::to_vec(&BootstrapResponse::JoinResult { decision, members })
+                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
                 }
-                BootstrapRequest::PullMembership => {
-                    BootstrapResponse::Membership(self.handler.membership())
+                "PullMembership" => {
+                    (200, serde_json::to_vec(&BootstrapResponse::Membership(self.handler.membership()))
+                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
                 }
-                BootstrapRequest::Announce(record) => {
+                "Announce" => {
+                    let request: BootstrapRequest = serde_json::from_slice(&req.body)
+                        .map_err(|e| WgError::Protocol(format!("announce body: {e}")))?;
+                    let record = match request {
+                        BootstrapRequest::Announce(r) => r,
+                        other => return Err(WgError::Protocol(format!("expected Announce, got {other:?}"))),
+                    };
                     self.handler.on_announce(record);
-                    BootstrapResponse::Ack
+                    (200, serde_json::to_vec(&BootstrapResponse::Ack)
+                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
+                }
+                _ => {
+                    let err = serde_json::json!({"code":"unimplemented","message":format!("unknown method: {}",req.method)});
+                    (501, serde_json::to_vec(&err).unwrap_or_default())
                 }
             };
-            write_frame(stream, &encode_response(&response))?;
+            write_http_response(stream, status, &body)?;
         }
-        Ok(())
     }
+}
+
+// ── HTTP request parser ────────────────────────────────────────────────
+
+struct HttpRequest {
+    method: String,
+    body: Vec<u8>,
+}
+
+fn read_http_request(stream: &mut impl Read) -> io::Result<Option<HttpRequest>> {
+    let mut line = String::new();
+    // Read the request line: POST /service/Method HTTP/1.1
+    match read_line(stream, &mut line) {
+        Ok(0) => return Ok(None),
+        Err(e) => return Err(e),
+        Ok(_) => {}
+    }
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad request line: {line}")));
+    }
+    // Extract method name from the path: /wg_bootstrap.v1.WgBootstrap/Join → Join
+    let method = parts[1]
+        .rsplit('/')
+        .next()
+        .unwrap_or("")
+        .to_string();
+
+    // Read headers.
+    let mut content_length: usize = 0;
+    loop {
+        line.clear();
+        match read_line(stream, &mut line) {
+            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Err(e) => return Err(e),
+            Ok(_) => {}
+        }
+        let trimmed = line.trim();
+        if trimmed.is_empty() { break; }
+        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+            content_length = val.trim().parse::<usize>().unwrap_or(0);
+        }
+    }
+
+    if content_length > MAX_FRAME {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "request body exceeds limit"));
+    }
+    let mut body = vec![0u8; content_length];
+    if content_length > 0 {
+        stream.read_exact(&mut body)?;
+    }
+    Ok(Some(HttpRequest { method, body }))
+}
+
+fn write_http_response(stream: &mut impl Write, status: u16, body: &[u8]) -> io::Result<()> {
+    let reason = if status == 200 { "OK" } else { "Error" };
+    write!(stream, "HTTP/1.1 {status} {reason}\r\n")?;
+    write!(stream, "Content-Type: application/json\r\n")?;
+    write!(stream, "Content-Length: {}\r\n", body.len())?;
+    write!(stream, "\r\n")?;
+    stream.write_all(body)?;
+    stream.flush()
 }
 
 // ---------------------------------------------------------------------------
@@ -318,15 +457,22 @@ impl std::fmt::Debug for BootstrapConnection {
 }
 
 impl BootstrapConnection {
-    /// Send one request and read the response.
+    /// Send one request and read the response as JSON (connectrpc-compatible HTTP+JSON).
     ///
     /// # Errors
     /// [`WgError::Io`] on transport errors; [`WgError::Protocol`] on a malformed reply.
-    pub fn request(&mut self, request: &BootstrapRequest) -> WgResult<BootstrapResponse> {
-        write_frame(&mut self.stream, &encode_request(request))?;
-        let frame = read_frame(&mut self.stream)?
+    pub fn request(&mut self, method: &str, request: &BootstrapRequest) -> WgResult<BootstrapResponse> {
+        let body = serde_json::to_vec(request)
+            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
+        http_request(&mut self.stream, method, &body)?;
+        let resp = http_response(&mut self.stream)?
             .ok_or_else(|| WgError::Protocol("connection closed before reply".into()))?;
-        decode_response(&frame)
+        if resp.status != 200 {
+            let detail = String::from_utf8_lossy(&resp.body);
+            return Err(WgError::Protocol(format!("bootstrap server returned {}: {detail}", resp.status)));
+        }
+        serde_json::from_slice(&resp.body)
+            .map_err(|e| WgError::Protocol(format!("decode response: {e}")))
     }
 
     /// Announce self and request admission, returning the decision + membership.
@@ -334,7 +480,7 @@ impl BootstrapConnection {
     /// # Errors
     /// See [`Self::request`]; also [`WgError::Protocol`] on an unexpected reply type.
     pub fn join(&mut self, record: PeerRecord) -> WgResult<(Admission, Vec<PeerRecord>)> {
-        match self.request(&BootstrapRequest::Join(record))? {
+        match self.request("Join", &BootstrapRequest::Join(record))? {
             BootstrapResponse::JoinResult { decision, members } => Ok((decision, members)),
             other => Err(WgError::Protocol(format!("unexpected join reply: {other:?}"))),
         }
@@ -345,7 +491,7 @@ impl BootstrapConnection {
     /// # Errors
     /// See [`Self::request`]; also [`WgError::Protocol`] on an unexpected reply type.
     pub fn pull_membership(&mut self) -> WgResult<Vec<PeerRecord>> {
-        match self.request(&BootstrapRequest::PullMembership)? {
+        match self.request("PullMembership", &BootstrapRequest::PullMembership)? {
             BootstrapResponse::Membership(members) => Ok(members),
             other => Err(WgError::Protocol(format!("unexpected membership reply: {other:?}"))),
         }
@@ -356,7 +502,7 @@ impl BootstrapConnection {
     /// # Errors
     /// See [`Self::request`]; also [`WgError::Protocol`] on an unexpected reply type.
     pub fn announce(&mut self, record: PeerRecord) -> WgResult<()> {
-        match self.request(&BootstrapRequest::Announce(record))? {
+        match self.request("Announce", &BootstrapRequest::Announce(record))? {
             BootstrapResponse::Ack => Ok(()),
             other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}"))),
         }
