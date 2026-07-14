@@ -338,13 +338,18 @@ a tunnelled h2 connection); `SolveRequest.Session` ties a solve to that stream.
    `session/auth/auth.proto`, `session/secrets/secrets.proto`,
    `session/sshforward/ssh.proto`, and the fsutil `types/*.proto` (from
    `github.com/tonistiigi/fsutil`).
-2. **Bridge**: implement `foundation_netio::native::connection::OverlayReadWrite`
-   over the `Control/Session` bidi stream (`read` = next `BytesMessage.data`,
-   `write` = send `BytesMessage{data}`), wrap in `Connection::Overlay`, and feed
-   it via a single-shot `Acceptor` to `HttpServer::serve_with_acceptor` — so our
-   own HTTP/2 server serves the session services over the tunnel. (The `Overlay`
-   variant is the non-fd byte-stream path; it needs no `AsRawFd`, unlike
-   `Completion`.)
+2. **Bridge** (mechanism confirmed against the APIs): `Control/Session` is a
+   connectrpc bidi RPC (`BidiStream<BytesMessage, BytesMessage>`) whose
+   `send`/`receive` are **async**; `OverlayReadWrite` is **sync** `Read`/`Write`.
+   So: `BidiStream::split()` into `(BidiSender, BidiReceiver)`, run a valtron pump
+   task that drains `BidiReceiver` into a sync byte buffer (feeds `Read`) and
+   drains a sync outbound buffer into `BidiSender` (fed by `Write`), each side
+   framing/deframing `BytesMessage{data}`. Wrap that sync duplex as
+   `OverlayReadWrite` → `Connection::Overlay` (the non-fd byte-stream variant, no
+   `AsRawFd` — unlike `Completion`) → single-shot `Acceptor` →
+   `HttpServer::serve_with_acceptor`, so our own HTTP/2 server serves the session
+   gRPC over the tunnel. Note: gRPC to buildkitd needs HTTP/2 — the *client*
+   Control calls already use `H2Transport` (`connect_tcp`); H1 cannot carry gRPC.
 3. Implement the FileSync `DiffCopy` handler to stream a local build-context dir
    as fsutil packets; stub Auth/Secrets/SSH to "none".
 4. Drive `Solve` with the session id + `frontend=dockerfile.v0`; observe progress

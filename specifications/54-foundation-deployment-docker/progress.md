@@ -88,10 +88,14 @@
 - [x] Vendor Control-service proto graph (control/worker/ops/policy + google/rpc/status) under `specs/buildkit/`
 - [x] Proto codegen via `buffa-build` (protoc + buffa-codegen) in `build.rs` → real `buffa::Message` types
 - [x] `BuildKitClient` over the Unix socket on `foundation_connectrpc` `Client<Req,Res>` + `H1Transport`
-- [x] `Info` (unary), `Solve` (unary), `Status` (server-stream) with `ProcedureCodecs::defaults()` (proto + json); round-trip tests
-- [ ] `Session` bidi sidecar: bridge a connectrpc bidi stream into a served `Connection`; serve FileSync/Auth/Secrets/SSH; fsutil/filesync proto + `DiffCopy`
-- [ ] Inline + local-context Dockerfile build end-to-end (depends on Session)
-- [ ] Remaining Control RPCs: `DiskUsage`, `Prune`, `ListWorkers`, build-history (wrappers over generated types)
+- [x] `Info` (unary), `Solve` (unary), `Status` (server-stream), `DiskUsage`/`ListWorkers` (unary), `Prune` (server-stream) with `ProcedureCodecs::defaults()` (proto + json)
+- [x] gRPC needs HTTP/2 — added `connect_tcp` using `H2Transport` (H1 can't carry gRPC; h2c-over-Unix is a pending transport gap)
+- [x] **Validated end-to-end vs real buildkitd v0.31.1** — `Info`/`ListWorkers`/`DiskUsage` pass over gRPC/H2 (testbed: `moby/buildkit` container on TCP; `EWE_BUILDKITD_ADDR`)
+- [x] Session-service proto types generated (FileSync/Auth `moby.filesync.v1`, Secrets, SSH, `fsutil.types`)
+- [ ] `Session` bidi sidecar **server**: `BidiStream::split()` → async↔sync channel bridge → `Connection::Overlay` → `HttpServer::serve_with_acceptor`; serve FileSync/Auth/Secrets/SSH; register session metadata headers
+- [ ] fsutil `DiffCopy` handler (walk + stream a local build-context dir)
+- [ ] Local Dockerfile build end-to-end via `Solve` + session (depends on the two above)
+- [ ] Remaining Control RPCs: build-history wrappers (generated types exist)
 
 ## Related specs
 
