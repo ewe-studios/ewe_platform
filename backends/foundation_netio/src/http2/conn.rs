@@ -269,7 +269,7 @@ impl H2Conn {
             H2Frame::Reset { error_code } =>
                 format!("RST_STREAM({error_code:?})"),
         };
-        eprintln!("[h2-srv] SEND sid={} kind={tag}", stream_id);
+        tracing::trace!(stream = stream_id, frame = %tag, "h2 conn: send frame");
         match frame {
             H2Frame::Headers {
                 status,

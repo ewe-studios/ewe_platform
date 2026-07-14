@@ -125,7 +125,7 @@ impl TaskIterator for H2ConnectionHandler {
 
     fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if self.shutdown.probe() {
-            eprintln!("[h2-srv] shutdown signaled, closing");
+            tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;
         }
 
@@ -146,7 +146,7 @@ impl TaskIterator for H2ConnectionHandler {
                     // trips (see CONNECTION_WINDOW_EXTRA).
                     self.conn.send_window_update(0, CONNECTION_WINDOW_EXTRA);
                     self.conn.flush().ok();
-                    eprintln!("[h2-srv] handshake done, sent keepalive PING");
+                    tracing::debug!("h2 server: handshake done, keepalive PING + window raise sent");
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Handshake in progress — 1ms poll to minimise response latency.
@@ -193,12 +193,12 @@ impl TaskIterator for H2ConnectionHandler {
                 self.pump_responses();
                 // Log the first WouldBlock to confirm the server is alive and waiting.
                 if self.idle_since.is_none() {
-                    eprintln!("[h2-srv] WouldBlock — waiting for frames, 0 streams");
+                    tracing::trace!("h2 server: idle — waiting for frames");
                 }
                 return self.park();
             }
             Err(e) => {
-                eprintln!("[h2-srv] read_stream_frame error: {e}");
+                tracing::debug!(err = %e, "h2 server: frame read error — closing connection");
                 return None;
             }
         }

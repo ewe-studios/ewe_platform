@@ -83,7 +83,7 @@ pub use shared::transport::{
 pub use shared::transport::h1::H1Transport;
 pub use shared::transport::ws::WsTransport;
 #[cfg(not(target_family = "wasm"))]
-pub use native::transport::h2::{H2Transport, H2PooledTransport};
+pub use native::transport::h2::H2Transport;
 #[cfg(all(not(target_family = "wasm"), feature = "h3"))]
 pub use native::transport::h3::H3Transport;
 

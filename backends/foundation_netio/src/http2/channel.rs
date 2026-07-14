@@ -563,8 +563,13 @@ impl H2Channel {
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         loop {
             let (head, payload) = self.read_frame()?;
-            eprintln!("[h2-pump] recv_response frame sid={} kind={} flags={:#x} len={}",
-                head.stream_id, head.kind as u8, head.flag, payload.len());
+            tracing::trace!(
+                stream = head.stream_id,
+                kind = head.kind as u8,
+                flags = head.flag,
+                len = payload.len(),
+                "h2 channel: recv_response frame"
+            );
             match head.kind {
                 Kind::Headers => {
                     let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
@@ -626,8 +631,13 @@ impl H2Channel {
     pub fn recv_stream_event(&mut self) -> io::Result<Option<(u32, H2StreamEvent)>> {
         loop {
             let (head, payload) = self.read_frame()?;
-            eprintln!("[h2-pump] recv_stream_event frame sid={} kind={} flags={:#x} len={}",
-                head.stream_id, head.kind as u8, head.flag, payload.len());
+            tracing::trace!(
+                stream = head.stream_id,
+                kind = head.kind as u8,
+                flags = head.flag,
+                len = payload.len(),
+                "h2 channel: recv_stream_event frame"
+            );
             match head.kind {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
