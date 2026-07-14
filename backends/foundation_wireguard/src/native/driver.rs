@@ -143,6 +143,13 @@ impl<D: DataPlane> TunnelDriver<D> {
         self.socket.get_ref().local_addr()
     }
 
+    /// The raw file descriptor of the underlying UDP socket, for reactor
+    /// registration (`epoll`/`kqueue`).
+    #[must_use]
+    pub fn udp_fd(&self) -> std::os::unix::io::RawFd {
+        self.socket.as_raw_fd()
+    }
+
     /// WHY: The heart of the crate — one pump of the couple `Tunn`↔overlay↔UDP.
     ///
     /// WHAT: Service inbound UDP, drive the overlay, encrypt outbound packets, and advance
@@ -424,9 +431,9 @@ impl TaskIterator for TunnelDriverTask {
 /// Composite `EventReadiness`: ready when either the reactor fd is readable OR
 /// a wall-clock deadline has passed. Used by [`TunnelDriverTask`] to park until
 /// the next datagram arrives while still servicing WG timers on schedule.
-struct TimedReadiness {
-    fd: Arc<SharedReadiness>,
-    deadline: Instant,
+pub(crate) struct TimedReadiness {
+    pub(crate) fd: Arc<SharedReadiness>,
+    pub(crate) deadline: Instant,
 }
 
 impl std::fmt::Debug for TimedReadiness {

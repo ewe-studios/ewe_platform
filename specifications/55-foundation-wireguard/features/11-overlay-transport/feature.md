@@ -2,7 +2,7 @@
 
 **Depends on:** F04 (data-plane orchestration), F09 (config), F00 (nativeapis dataplane)
 **Unblocks:** WireGuard + ConnectRPC integration, WG-mesh HTTP services
-**Status:** ✅ Complete (implemented + tested 2026-07-14 audit). `Acceptor` + `Connector` traits in `foundation_netio::native::connection`; `Connection::Overlay` variant with full Read/Write/peer_addr/local_addr/etc.; `OverlayReadWrite` trait + impl; `OverlayAcceptor` (wraps `OverlayListener` behind `Arc<Mutex<>>` for `&self` accept); `OverlayConnector` (implements `Connector` via `WgHandle::overlay_connect_timeout`); `HttpServer::serve_with_acceptor()` generic over `Acceptor`; non-blocking overlay read parking via `ConnWaker`/`set_read_waker`/`set_write_waker`; integration test: POST + GET echo over full mesh via `NativeHttpClient` with `OverlayConnector`.
+**Status:** ⚠️ Partial (2026-07-14). Tasks 1-9,11 done: Acceptor/Connector traits, Connection::Overlay, OverlayReadWrite, OverlayConnector, HttpServer::serve_with_acceptor, OverlayAcceptor, **TunDataPlane path** (MeshDataPlane + GossipTransport + optional NetStack in WgHandle — 2026-07-14), example, address bridging, tests. Task 10 IN PROGRESS: non-blocking WouldBlock parking — ConnWaker plumbing exists, not wired through HTTP reader task.
 
 ## WHY
 
@@ -232,7 +232,7 @@ sides failed with `FailedToAcquireAddrs`.
 4. **WgHandle::overlay_connect()** — opens overlay TCP, drives handshake to established, returns `Connection::Overlay(...)`. **DONE**
 5. **HttpServer::serve_with_acceptor()** — generic over `Acceptor`, backward-compat with `serve_with_listener`. **DONE**
 6. **OverlayAcceptor** in wireguard — wraps `OverlayListener`, implements `Acceptor`. **DONE**
-7. **TunnelDriver<TunDataPlane>** — kernel TUN path in `WgNode::join()`. **TODO**
+7. **TunnelDriver<TunDataPlane>** — kernel TUN path in `WgNode::join()`. **DONE** (2026-07-14: `MeshDataPlane` enum + `GossipTransport` + optional `NetStack` in `WgHandle`)
 8. **Example** — two-node mesh + HTTP over overlay via `overlay_connect`. **DONE**
 9. **Address bridging** — `OverlayReadWrite::{local_addr,peer_addr}` → `Connection::Overlay`. **DONE**
 10. **Non-blocking parking** — `HttpReaderError::WouldBlock` + waker plumbing + task/server parking. **IN PROGRESS**

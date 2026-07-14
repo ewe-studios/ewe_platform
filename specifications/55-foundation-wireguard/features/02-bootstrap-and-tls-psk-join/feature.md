@@ -1,6 +1,6 @@
 # Feature 02 — Bootstrap & TLS-PSK Join
 
-**Status:** ⚠️ Partial (2026-07-14 audit). Bootstrap token parser, TLS-PSK server/client, `BootstrapConnection` frame protocol all implemented and tested. **Must do:** (1) Replace `thread::sleep(5ms)` polling loop in `BootstrapServer::serve_until` with valtron reactor-based accept; (2) Re-express the bootstrap RPC as a `foundation_connectrpc` service/transport instead of custom length-prefixed bincode framing.
+**Status:** ⚠️ Partial (2026-07-14 audit). Tasks 1,2,4,5 done (token parser, TLS-PSK channel, admission/revocation, tests). Task 3 incomplete: the spec requires a connectrpc `WgBootstrap` service + client over the TLS stream; the implementation uses custom length-prefixed bincode framing. **Must do:** Re-express the bootstrap RPC as a `foundation_connectrpc` service/transport — message types + admission semantics already in place. This also eliminates the `thread::sleep(5ms)` poll loop in `serve_until` (connectrpc servers are valtron-driven by construction).
 **Depends on:** 01
 **Unblocks:** 04, 10
 **Decisions:** [04](../../decisions/04-bootstrap-token-envelope.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [03](../../decisions/03-seed-derived-keys.md)

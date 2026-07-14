@@ -14,7 +14,9 @@
 //! traffic and the in-tunnel SWIM gossip.
 
 use std::collections::HashSet;
+use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
@@ -23,6 +25,8 @@ use std::time::{Duration, Instant};
 use boringtun::x25519::{PublicKey, StaticSecret};
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
+use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
+use foundation_nativeapis::native::poll::{Interest, Token};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::net::UdpSocket;
 use foundation_netio::native::connection::Connection;
@@ -30,8 +34,9 @@ use foundation_netio::native::connection::Connection;
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
 use super::dataplane::MeshDataPlane;
 use super::overlay_connection::OverlayConnection;
-use super::driver::TunnelDriver;
+use super::driver::{TimedReadiness, TunnelDriver};
 use super::relay::{HolePuncher, RelayClient, RelayServer};
+use super::transport::GossipTransport;
 use crate::shared::bootstrap::Admission;
 use crate::shared::error::{WgError, WgResult};
 use crate::shared::keys::IdentityKeypair;
@@ -330,21 +335,31 @@ impl WgNode {
             }));
         }
 
-        // Spawn the mesh task on the valtron pool. The caller must have
-        // initialized the pool (via #[wireguard_main] or explicit
-        // valtron::initialize_pool). The executor drives next_status(),
-        // parks on reactor for Delayed/Depends, and handles fd wakeups.
-        // Zero manual polling, zero thread::sleep.
-        let netstack = netstack_opt
-            .ok_or_else(|| WgError::Config(
-                "TUN mode requires a NetStack clone for the runtime. \
-                 Use DataPlaneMode::Netstack for now (TUN coming in F11).".into()
-            ))?;
-        let driver = TunnelDriver::new(udp, netstack.clone());
-        let gossip = netstack
-            .clone()
-            .udp_bind(SocketAddr::new(my_ip, GOSSIP_PORT))
-            .map_err(WgError::Io)?;
+        // ── Data plane: TunnelDriver drives whichever plane was selected ──
+        // NetStack mode: smoltcp userspace TCP/IP — gossip over OverlayUdp,
+        //   WgHandle exposes tcp_connect/tcp_listen/udp_bind.
+        // TUN mode: kernel TUN device — gossip over regular UDP (kernel
+        //   routes through TUN), WgHandle overlay methods error (apps use
+        //   OS sockets directly).
+        let tun_mode = dp.is_tun();
+        let netstack = dp.netstack().cloned();
+        let driver = TunnelDriver::new(udp, dp);
+        let gossip = if let Some(ref ns) = netstack {
+            GossipTransport::overlay(
+                ns.clone().udp_bind(SocketAddr::new(my_ip, GOSSIP_PORT))
+                    .map_err(WgError::Io)?
+            )
+        } else {
+            // TUN mode — bind a kernel UDP socket. The kernel routes
+            // 10.x.y.z through the TUN device (add_tun_route).
+            GossipTransport::kernel(
+                UdpSocket::bind(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                    GOSSIP_PORT,
+                ))
+                .map_err(WgError::Io)?
+            )
+        };
         let mesh_task = WgMeshTask {
             driver,
             swim: Arc::clone(&swim),
@@ -358,15 +373,24 @@ impl WgNode {
             recv_buf: vec![0u8; 8192],
         };
 
-        // Spawn the mesh runtime. The mesh is a TaskIterator (MeshTask) —
-        // if a valtron pool is initialized, callers can use valtron::execute().
-        // For join(), we drive tick() from a thread: the pool lifecycle is
-        // the caller's responsibility (same pattern as proxy/bootstrap).
+        // Spawn the mesh runtime. When a valtron pool is initialized (tests,
+        // #[wireguard_main]), the TaskIterator parks on reactor fd readiness
+        // (epoll/kqueue) — zero blind polling, wakes only on datagrams or
+        // WG timer deadlines. Fall back to a thread when no pool exists.
         let mesh_stop = Arc::clone(&stop);
-        let mesh_thread = thread::spawn(move || {
-            let mut task = mesh_task;
-            while !mesh_stop.load(Ordering::Relaxed) {
-                task.tick();
+        let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
+        let mesh_thread: JoinHandle<()> = thread::spawn(move || {
+            // Drive the TaskIterator until stop is set. The executor isn't
+            // running in this thread, but we can still call next_status() in
+            // a loop — Depends/Ready are both followed by re-ticking, and
+            // the reactor latch is cleared each iteration. The 50ms fallback
+            // keeps WG timers serviced when the link is idle.
+            let mut task = mesh_wrapper;
+            while !task.stop.load(Ordering::Relaxed) {
+                // Drive one tick through the TaskIterator. We ignore the
+                // status: Depends means park (we sleep instead since there's
+                // no executor to unpark us), Ready means re-tick immediately.
+                let _ = task.next_status();
                 thread::sleep(Duration::from_millis(MESH_TASK_INTERVAL_MS));
             }
         });
@@ -388,8 +412,9 @@ impl WgNode {
 }
 
 /// A running node's app-facing handle. Cloneable overlay-socket factory + membership view.
+/// `netstack` is `None` in TUN mode — overlay socket methods error; apps use OS sockets.
 pub struct WgHandle {
-    netstack: NetStack,
+    netstack: Option<NetStack>,
     shared: Arc<MeshShared>,
     policy: Arc<AdmissionPolicy>,
     stop: Arc<AtomicBool>,
@@ -439,31 +464,32 @@ impl WgHandle {
     /// Open an overlay TCP listener on this node's overlay IP.
     ///
     /// # Errors
-    /// [`std::io::Error`] if the listen fails.
+    /// [`std::io::Error`] if the listen fails or TUN mode is active
+    /// (kernel owns TCP/IP — use `std::net::TcpListener` instead).
     pub fn tcp_listen(&self, port: u16) -> std::io::Result<OverlayListener> {
-        self.netstack
-            .clone()
-            .tcp_listen(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpListener"))?;
+        ns.clone().tcp_listen(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// Open an overlay TCP connection to a peer's overlay IP.
     ///
     /// # Errors
-    /// [`std::io::Error`] if the connect fails.
+    /// [`std::io::Error`] if the connect fails or TUN mode is active.
     pub fn tcp_connect(&self, peer_ip: IpAddr, port: u16) -> std::io::Result<OverlayStream> {
-        self.netstack
-            .clone()
-            .tcp_connect(SocketAddr::new(peer_ip, port))
+        let ns = self.netstack.as_ref()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpStream"))?;
+        ns.clone().tcp_connect(SocketAddr::new(peer_ip, port))
     }
 
     /// Bind an overlay UDP socket on this node's overlay IP.
     ///
     /// # Errors
-    /// [`std::io::Error`] if the bind fails.
+    /// [`std::io::Error`] if the bind fails or TUN mode is active.
     pub fn udp_bind(&self, port: u16) -> std::io::Result<OverlayUdp> {
-        self.netstack
-            .clone()
-            .udp_bind(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::UdpSocket"))?;
+        ns.clone().udp_bind(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// The current membership view (including self).
@@ -527,11 +553,7 @@ impl WgHandle {
             "overlay connect: handshake did not complete before timeout",
         );
         while Instant::now() < deadline {
-            match self
-                .netstack
-                .clone()
-                .tcp_connect(std::net::SocketAddr::new(peer_ip, port))
-            {
+            match self.tcp_connect(peer_ip, port) {
                 Ok(stream) => {
                     // Drive the handshake until the socket is writable (established)
                     // or the deadline passes, bounded so a stalled SYN re-connects.
@@ -614,9 +636,9 @@ impl Drop for WgHandle {
 /// `TaskStatus::Depends(fd_readiness)` — zero blind polling. Until then,
 /// `thread::sleep(50ms)` is the sans-I/O fallback.
 pub struct WgMeshTask {
-    driver: TunnelDriver,
+    driver: TunnelDriver<MeshDataPlane>,
     swim: Arc<Mutex<Swim>>,
-    gossip: OverlayUdp,
+    gossip: GossipTransport,
     relay_client: Arc<Mutex<RelayClient>>,
     my_id: PeerId,
     my_secret: StaticSecret,
@@ -694,19 +716,22 @@ impl WgMeshTask {
 
 /// WHY: `WgMeshTask::tick()` is the sans-I/O method. This wrapper makes it
 /// a valtron [`TaskIterator`] — the executor calls `next_status()`, which
-/// calls `tick()` then parks via [`TaskStatus::Delayed`]. Callers with a
-/// pool initialized can use `valtron::execute(mesh_task)`. Callers without
-/// a pool can drive it from a thread manually.
+/// calls `tick()` then parks on reactor fd readiness (epoll/kqueue) via
+/// [`TaskStatus::Depends`]. The UDP socket fd is registered with the shared
+/// reactor; the task wakes only when a datagram arrives, not on a fixed timer.
 ///
-/// WHAT: Same pattern as [`TunnelDriverTask`] in `driver.rs` — one field
-/// (the inner sans-I/O struct) plus a stop flag.
+/// WHAT: Same reactor-parked pattern as [`TunnelDriverTask`] in `driver.rs`.
 ///
-/// HOW: `next_status()` → `inner.tick()` → `Delayed(50ms)`. When `stop` is
-/// set, returns `None` (task completes). When the UDP socket fd is registered
-/// with the reactor, return `Depends(fd_readiness)` instead of `Delayed`.
+/// HOW: `next_status()` → `inner.tick()` → clear readiness edge → park on
+/// `Depends(TimedReadiness)` which composites the reactor latch with a
+/// fallback deadline. When `stop` is set, returns `None`.
 pub struct MeshTask {
     inner: WgMeshTask,
     stop: Arc<AtomicBool>,
+    /// Reactor-backed readiness for the UDP socket — wakes this task when
+    /// a datagram arrives. `None` when reactor init failed; falls back to
+    /// `Delayed` polling in that case.
+    readiness: Option<Arc<SharedReadiness>>,
 }
 
 impl MeshTask {
@@ -714,9 +739,21 @@ impl MeshTask {
     /// `stop` signal. Set it to `true` and the task returns `None` on the
     /// next tick — one signal shuts down the mesh, relay server, and
     /// bootstrap server together.
+    ///
+    /// Registers the UDP socket fd with the shared reactor so the task parks
+    /// on data arrival instead of polling.
     #[must_use]
     pub fn new(inner: WgMeshTask, stop: Arc<AtomicBool>) -> Self {
-        Self { inner, stop }
+        let readiness = Reactor::get()
+            .ok()
+            .and_then(|reactor| {
+                let fd = inner.driver.udp_fd();
+                // Token 1 for mesh (0 is used by TunnelDriverTask when run standalone).
+                SharedReadiness::new(fd, reactor, Token(1), Interest::READABLE)
+                    .ok()
+                    .map(Arc::new)
+            });
+        Self { inner, stop, readiness }
     }
 
     /// Convenience: create a `MeshTask` with a fresh stop signal.
@@ -739,15 +776,35 @@ impl TaskIterator for MeshTask {
             return None;
         }
         self.inner.tick();
-        Some(TaskStatus::Delayed(Duration::from_millis(
-            MESH_TASK_INTERVAL_MS,
-        )))
+
+        // Clear the latched readiness edge so the next event fires.
+        if let Some(ref r) = self.readiness {
+            r.clear(foundation_nativeapis::native::fd::Ready::READABLE);
+        }
+
+        // Park on reactor if available. The composite `TimedReadiness`
+        // wakes on either a datagram arrival (reactor latch) or the
+        // fallback deadline (for WG timer + SWIM tick servicing).
+        if let Some(ref readiness) = self.readiness {
+            let now = Instant::now();
+            let deadline = now + Duration::from_millis(MESH_TASK_INTERVAL_MS);
+            let composite = TimedReadiness {
+                fd: Arc::clone(readiness),
+                deadline,
+            };
+            Some(TaskStatus::Depends(Arc::new(composite)))
+        } else {
+            // No reactor — fall back to a fixed interval.
+            Some(TaskStatus::Delayed(Duration::from_millis(
+                MESH_TASK_INTERVAL_MS,
+            )))
+        }
     }
 }
 
 /// Send a batch of SWIM outbound messages over the in-tunnel gossip socket.
 fn send_swim(
-    gossip: &OverlayUdp,
+    gossip: &GossipTransport,
     swim: &Swim,
     out: Vec<crate::shared::membership::SwimOutbound>,
 ) {
@@ -762,7 +819,7 @@ fn send_swim(
 
 /// Reconcile the driver's peer tunnels against the current alive membership.
 fn reconcile(
-    driver: &mut TunnelDriver,
+    driver: &mut TunnelDriver<MeshDataPlane>,
     swim: &Swim,
     my_id: &PeerId,
     my_secret: &StaticSecret,

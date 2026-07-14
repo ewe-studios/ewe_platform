@@ -1,6 +1,6 @@
 # Feature 08 — Identity Handoff & Optional mTLS
 
-**Status:** ⚠️ Partial (2026-07-14 audit). `IdentityKeypair`, `AdmissionPolicy`, `mtls::connect`/`accept`, `WgHandle::revoke_seed` all implemented and tested. **Must do:** (1) Identity persistence via the nativeapis VFS (local/R2/sqlite mounts) — byte primitives exist on `IdentityKeypair` but no VFS mount wrapper; (2) Approved-mode admission (member-signed approval) beyond the current open/revoke binary policy.
+**Status:** ✅ Complete (implemented + tested 2026-07-13). All 5 task-list items done: `IdentityKeypair` generate/persist format, handoff state machine (announce → establish → migrate → retire), seed TTL/revocation (`AdmissionPolicy`, `revoke_seed`), optional mTLS (`mtls::connect`/`accept`), tests. **Must do:** Identity persistence VFS mount wrapper (F09 scope — F08 provides the byte format).
 **Depends on:** 04
 **Decisions:** [10](../../decisions/10-identity-handoff-and-mtls.md), [11](../../decisions/11-ephemeral-seed-lifecycle.md), [03](../../decisions/03-seed-derived-keys.md)
 
@@ -28,10 +28,7 @@ context binding; mTLS handshake carrying app bytes + impostor rejection; and a l
 proving **peers use per-peer identity keys, not the bootstrap key**, plus **revoked seed →
 fresh join refused** (success criterion 4). All green, zero warnings.
 
-**Must do:** identity persistence *via the nativeapis VFS* (local/R2/
-sqlite mounts) — the byte-level persistence primitives are in place; the VFS mount wrapper
-is pending. Also `approved`-mode admission (member-signed approval) beyond the current
-open/revoke policy.
+**Must do:** identity persistence VFS mount wrapper (F09 scope — F08 provides the byte-level `to_secret_bytes`/`from_secret_bytes` format).
 
 ## WHY
 

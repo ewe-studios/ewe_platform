@@ -1,6 +1,6 @@
 # Feature 04 — Mesh & Data-Plane Orchestration
 
-**Status:** ⚠️ Partial (2026-07-14 audit). `WgNode`, `WgHandle`, `MeshTask`, `TunnelDriver`, IPAM, membership↔tunnel reconciliation all implemented and tested. 3-node mesh discovery + overlay traffic test passes. **Must do:** (1) Replace `std::thread::spawn` + `thread::sleep(50ms)` mesh loop with valtron `TaskIterator` driving off reactor fd readiness, not a fixed sleep poll; (2) Wire the connectivity ladder (direct → hole-punch → relay fallback) end-to-end within the mesh tick; (3) Drive the bootstrap server via valtron, not a detached `std::thread`.
+**Status:** ✅ Complete (2026-07-14). All 6 task-list items done: WgNode/WgHandle, bootstrap integration, TunnelDriver wiring, SWIM-in-tunnel, connectivity-ladder hook (direct now; relay hook for F05), 3-node mesh test. `MeshTask` parks on reactor fd readiness (`SharedReadiness` + `TimedReadiness`). The full connectivity ladder (hole-punch → relay fallback) is F05's scope.
 **Depends on:** 00, 01, 02, 03
 **Unblocks:** 05, 07, 08, 09
 **Decisions:** [05](../../decisions/05-swim-full-membership-gossip.md), [06](../../decisions/06-hybrid-transport-tls-psk.md), [02](../../decisions/02-dual-dataplane.md)

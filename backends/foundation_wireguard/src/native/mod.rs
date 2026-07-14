@@ -9,6 +9,7 @@ pub mod overlay_acceptor;
 pub mod overlay_connection;
 pub mod overlay_connector;
 pub mod relay;
+pub mod transport;
 pub mod webrtc;
 
 pub use bootstrap::{

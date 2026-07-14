@@ -1,6 +1,6 @@
 # Feature 01 — WireGuard Core & Keys
 
-**Status:** ✅ Complete (implemented + tested 2026-07-14). `WgTunnel`, `WgSeed`, `BootstrapKeys`, `IdentityKeypair` all implemented and tested. `TunnelDriverTask` parks on reactor fd readiness (`SharedReadiness` + `TimedReadiness`) — wakes only when a UDP datagram arrives or a WG timer fires, zero constant-interval polling. **Must do:** multi-peer inbound routing by receiver index (currently routes by source UDP endpoint; single-peer fallback works for tests).
+**Status:** ✅ Complete (implemented + tested 2026-07-14). All 5 task-list items done: `WgSeed`/HKDF-BLAKE2s keys, `WgTunnel` wrapper, `TunnelDriver` (reactor-parked via `SharedReadiness` — zero constant-interval polling), UDP glue, tests. **Must do:** multi-peer inbound routing by receiver index (single-peer fallback covers current tests; mesh-level demux belongs in F04).
 **Depends on:** 00
 **Unblocks:** 02, 03, 04
 **Decisions:** [01](../../decisions/01-source-crates-and-pinning.md), [03](../../decisions/03-seed-derived-keys.md), [02](../../decisions/02-dual-dataplane.md)
