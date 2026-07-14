@@ -93,6 +93,27 @@
 ### Phase 2: Network + Volume (Feature 04 continued)
 - [x] Generated + wrapped network/volume types (create/inspect/list/delete/prune/connect/disconnect/update)
 
+### Phase 2b: Deployable provider integration — ✅ complete (2026-07-15)
+- [x] **`Deployable` impl** (`src/deployable.rs`) — the crate's stated purpose
+  (requirements §Summary, decisions 03/05). `ContainerDeployment` implements
+  `foundation_deployment::Deployable`: `deploy` creates+starts a container and
+  persists its id via the namespaced state store; `destroy` reads it back and
+  stops+removes it. Docker's Unix socket doesn't fit `ProviderClient`'s
+  TCP+DNS `SimpleHttpClient`, so deploy/destroy build their own `DockerClient`
+  and use `ProviderClient` only for state persistence.
+- [x] **`DeployTask` adapter** — re-labels `FutureTask`'s pending/spawner to
+  the `Deployable` contract (`Pending = Deploying`, `Spawner =
+  BoxedSendExecutionAction`), forwarding `Depends` so the executor still parks
+  on I/O readiness. (Decision 05's `async_trait` sketch is outdated; the real
+  trait returns `impl TaskIterator`.)
+- [x] **`build.rs` docker-only fix** — `main()` now always exists (was fully
+  `#![cfg(buildkit)]`, so a `--features docker` build had no entry point).
+- [x] **`deployable_tests`** — deploy → inspect(running) → destroy →
+  inspect(gone) against a real dockerd (drives the returned `TaskIterator`s via
+  `drive_iterator`). Passes.
+- NOTE: no other `foundation_deployment` provider implements `Deployable` yet —
+  this is the first working impl in the workspace.
+
 ### Phase 3: BuildKit (Feature 06) — ✅ complete
 - [x] Vendor Control-service proto graph (control/worker/ops/policy + google/rpc/status) under `specs/buildkit/`
 - [x] Proto codegen via `buffa-build` (protoc + buffa-codegen) in `build.rs` → real `buffa::Message` types

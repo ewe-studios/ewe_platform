@@ -115,6 +115,18 @@ For streaming endpoints, the split observers convert to `Stream<Item = ...>` via
 
 ## Deployable integration
 
+> **Reconciled 2026-07-15 (as implemented).** The `Deployable` trait ended up
+> **not** using `async_trait` — `deploy`/`destroy` return `impl TaskIterator<
+> Ready = Result<Out, Err>, Pending = Deploying, Spawner =
+> BoxedSendExecutionAction>` directly (users drive it however they like). The
+> shipped impl (`src/deployable.rs`, `ContainerDeployment`) wraps its async
+> deploy/destroy work in a small `DeployTask` adapter over `from_future()` that
+> re-labels the pending/spawner types to that contract. Docker's Unix socket
+> doesn't fit `ProviderClient`'s TCP+DNS `SimpleHttpClient`, so deploy/destroy
+> build their own `DockerClient` and use `ProviderClient` only for state
+> persistence. The sketch below (pre-implementation, `async_trait`-shaped) is
+> kept for context.
+
 Docker implements `Deployable` using async functions. Valtron executes the async
 fn as a `TaskIterator` internally via `from_future()`:
 
