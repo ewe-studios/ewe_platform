@@ -238,68 +238,64 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
 
         out.push_str("    /// Generated default returns `unimplemented`.\n");
 
+        // Native `async fn` in a trait yields a **non-`Send`** `impl Future`, but
+        // `Router::{unary,server_stream,…}` bound the handler future as `Send`.
+        // So (mirroring the code-first `#[service]` macro) each method is emitted
+        // as `fn … -> impl Future<Output = …> + Send { async move { … } }`, and
+        // streaming outputs are boxed to `Pin<Box<dyn Stream + Send>>` since a
+        // nested `impl Trait` inside the `Output` binding is illegal (E0562).
         match ty {
             MethodKind::Unary => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
+                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
+                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
                 ));
-                out.push_str("    {\n");
+                out.push_str("    {\n        async move {\n");
                 out.push_str(&format!(
-                    "        Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
-                out.push_str("    }\n\n");
+                out.push_str("        }\n    }\n\n");
             }
             MethodKind::ServerStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
+                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>\n"
+                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
                 ));
-                // Return pinned hidden type with stream::Empty
-                out.push_str("    {\n");
+                out.push_str("    {\n        async move {\n");
                 out.push_str(&format!(
-                    "        let r: foundation_connectrpc::ConnectResult<futures::stream::Empty<foundation_connectrpc::ConnectResult<{res}>>> = \n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
-                ));
-                out.push_str("        r\n");
-                out.push_str("    }\n\n");
+                out.push_str("        }\n    }\n\n");
             }
             MethodKind::ClientStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>>)\n"
+                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
+                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
                 ));
-                out.push_str("    {\n");
+                out.push_str("    {\n        async move {\n");
                 out.push_str(&format!(
-                    "        Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
-                out.push_str("    }\n\n");
+                out.push_str("        }\n    }\n\n");
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>>)\n"
+                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>\n"
+                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
                 ));
-                // Return pinned hidden type with stream::Empty
-                out.push_str("    {\n");
+                out.push_str("    {\n        async move {\n");
                 out.push_str(&format!(
-                    "        let r: foundation_connectrpc::ConnectResult<futures::stream::Empty<foundation_connectrpc::ConnectResult<{res}>>> = \n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
-                ));
-                out.push_str("        r\n");
-                out.push_str("    }\n\n");
+                out.push_str("        }\n    }\n\n");
             }
         }
     }
@@ -688,10 +684,12 @@ mod tests {
 
         // Service trait
         assert!(code.contains("pub trait GreetService: Send + Sync + 'static"));
-        assert!(code.contains("async fn greet("));
-        assert!(code.contains("async fn greet_group("));
-        assert!(code.contains("async fn greet_individuals("));
-        assert!(code.contains("async fn converse("));
+        // Trait methods are emitted as RPITIT `-> impl Future<…> + Send` (not
+        // `async fn`) so the Router's `Send` handler bound is satisfied; streaming
+        // outputs are boxed to `Pin<Box<dyn Stream + Send>>`.
+        assert!(code.contains("fn greet(&self, ctx: foundation_connectrpc::Ctx"));
+        assert!(code.contains("-> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>> + Send"));
+        assert!(code.contains("::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<ConverseResponse>> + Send>>"));
 
         // Unimplemented handler (R2)
         assert!(code.contains("pub struct UnimplementedGreetServiceHandler;"));
