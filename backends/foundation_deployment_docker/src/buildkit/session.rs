@@ -254,7 +254,7 @@ impl FileSync for DirFileSync {
 /// Always returns `SERVING` — satisfies buildkit's `monitorHealth` so the
 /// session connection stays alive past the HTTP/2 handshake. Without this,
 /// buildkit tears down the session ~20ms after connecting.
-struct HealthService;
+pub struct HealthService;
 
 impl Health for HealthService {
     fn check(
@@ -375,6 +375,14 @@ impl SessionServer {
                 .with_header(
                     "x-docker-expose-session-grpc-method".to_string(),
                     filesync::procedure::TAR_STREAM,
+                )
+                .with_header(
+                    "x-docker-expose-session-grpc-method".to_string(),
+                    health::procedure::CHECK,
+                )
+                .with_header(
+                    "x-docker-expose-session-grpc-method".to_string(),
+                    health::procedure::WATCH,
                 ),
         )?;
 

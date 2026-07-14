@@ -144,10 +144,14 @@ impl TaskIterator for H2ConnectionHandler {
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 self.pump_responses();
+                // Log the first WouldBlock to confirm the server is alive and waiting.
+                if self.idle_since.is_none() {
+                    eprintln!("[h2-srv] WouldBlock — waiting for frames, 0 streams");
+                }
                 return self.park();
             }
             Err(e) => {
-                tracing::debug!(err = %e, "h2 read_stream_frame error");
+                eprintln!("[h2-srv] read_stream_frame error: {e}");
                 return None;
             }
         }

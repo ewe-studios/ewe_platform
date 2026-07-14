@@ -165,8 +165,10 @@ impl SettingsStore {
         ])
     }
 
-    /// Build a SETTINGS frame for the **server** connection preface — identical
-    /// to [`Self::to_frame`] but omitting `SETTINGS_ENABLE_PUSH`.
+    /// Build a SETTINGS frame for the **server** connection preface — omits
+    /// `SETTINGS_ENABLE_PUSH` (client→server only) and all default-valued
+    /// settings. Sending default values wastes bytes and, with some peers
+    /// (grpc-go), triggers unexpected protocol-level behaviour.
     ///
     /// `SETTINGS_ENABLE_PUSH` is a client→server control (RFC 7540 §6.5.2): it is
     /// how a client tells the server whether it will accept server push. A server
@@ -175,28 +177,40 @@ impl SettingsStore {
     /// tear the connection down. Real servers (nginx, grpc-go, …) never send it.
     #[must_use]
     pub fn to_frame_server(&self) -> SettingsFrame {
-        SettingsFrame::new(vec![
-            Setting {
+        let mut settings = Vec::new();
+        // Only include settings that differ from RFC 7540 defaults.
+        if self.header_table_size != DEFAULT_HEADER_TABLE_SIZE {
+            settings.push(Setting {
                 id: SettingId::HeaderTableSize,
                 value: self.header_table_size,
-            },
-            Setting {
+            });
+        }
+        // EnablePush is deliberately NEVER sent by a server.
+        if self.max_concurrent_streams != DEFAULT_MAX_CONCURRENT_STREAMS {
+            settings.push(Setting {
                 id: SettingId::MaxConcurrentStreams,
                 value: self.max_concurrent_streams,
-            },
-            Setting {
+            });
+        }
+        if self.initial_window_size != DEFAULT_INITIAL_WINDOW_SIZE {
+            settings.push(Setting {
                 id: SettingId::InitialWindowSize,
                 value: self.initial_window_size,
-            },
-            Setting {
+            });
+        }
+        if self.max_frame_size != DEFAULT_MAX_FRAME_SIZE {
+            settings.push(Setting {
                 id: SettingId::MaxFrameSize,
                 value: self.max_frame_size,
-            },
-            Setting {
+            });
+        }
+        if self.max_header_list_size != DEFAULT_MAX_HEADER_LIST_SIZE {
+            settings.push(Setting {
                 id: SettingId::MaxHeaderListSize,
                 value: self.max_header_list_size,
-            },
-        ])
+            });
+        }
+        SettingsFrame::new(settings)
     }
 
     /// Build a SETTINGS frame containing only values that differ from defaults.

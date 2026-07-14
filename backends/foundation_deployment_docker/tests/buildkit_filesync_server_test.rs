@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
+    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request, Transport,
 };
 use foundation_core::valtron::valtron_test;
 
@@ -89,4 +89,51 @@ async fn filesync_diffcopy_serves_context_dir() {
     assert!(stats >= 1, "should have received >=1 stat packet, got {stats}");
     assert!(got_dockerfile, "should have received Dockerfile data");
     assert_eq!(data, b"FROM alpine\n", "Dockerfile content mismatch");
+}
+
+#[valtron_test]
+async fn health_check_returns_serving() {
+    use foundation_connectrpc::{ConnectRpcServeH2, Router};
+    use foundation_deployment_docker::buildkit::services::health::{self, register_health, Health};
+    use foundation_deployment_docker::buildkit::session::HealthService;
+    use foundation_deployment_docker::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
+    use foundation_deployment_docker::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
+    use foundation_core::synca::OnSignal;
+    use foundation_http::native::serve::H2Serve;
+    use foundation_http::native::server::HttpServer;
+    use foundation_http::shared::app::{HttpApp, ServerApp};
+
+    // Serve Health service on loopback h2.
+    let mut router = Router::new();
+    register_health(&mut router, Arc::new(HealthService));
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
+    let mut app = HttpApp::new_h2_serve();
+    app.route_any_h2(health::procedure::CHECK, rpc.clone());
+    app.route_any_h2(health::procedure::WATCH, rpc);
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let addr = listener.local_addr().unwrap();
+    let shutdown = Arc::new(OnSignal::new());
+    let sd = shutdown.clone();
+    let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
+    std::thread::spawn(move || server.serve_with_listener(&listener, &sd));
+
+    // Call Health/Check.
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let client = Client::<HealthCheckRequest, HealthCheckResponse>::new(
+        transport,
+        &format!("http://{addr}/grpc.health.v1.Health/Check"),
+        ProcedureCodecs::defaults(),
+        ClientOptions::new().with_grpc(),
+    ).unwrap();
+
+    let resp = client
+        .unary(Ctx::background(), Request::new(HealthCheckRequest::default()))
+        .await
+        .expect("Health/Check should succeed");
+
+    let status = resp.msg.status.to_i32();
+    eprintln!("Health/Check response: status={status} (SERVING={})", ServingStatus::SERVING as i32);
+    assert_eq!(status, ServingStatus::SERVING as i32, "should return SERVING");
+
+    shutdown.turn_on();
 }

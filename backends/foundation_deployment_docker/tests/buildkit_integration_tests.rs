@@ -17,8 +17,12 @@
 
 #![cfg(all(unix, feature = "buildkit", feature = "integration-tests"))]
 
+use std::sync::Arc;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::buildkit::BuildKitClient;
+use foundation_deployment_docker::buildkit::types::BytesMessage;
+use foundation_deployment_docker::buildkit::services::{filesync, health};
 
 /// Resolve the buildkitd address, or `None` to skip (no daemon available).
 fn buildkitd_addr() -> Option<String> {
@@ -81,6 +85,87 @@ async fn solve_probe_reports_what_buildkit_needs() {
         Ok(_) => eprintln!("SOLVE OK (unexpected without a context)"),
         Err(e) => eprintln!("SOLVE ERR (expected — tells us what's needed): {e}"),
     }
+}
+
+#[valtron_test(tracing = "debug")]
+async fn session_bidi_raw_no_pump() {
+    use foundation_connectrpc::{
+        Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
+    };
+
+    let Some(addr) = buildkitd_addr() else { return };
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+
+    let session_client = Client::<BytesMessage, BytesMessage>::new(
+        transport,
+        &format!("http://{addr}/moby.buildkit.v1.Control/Session"),
+        ProcedureCodecs::defaults(),
+        ClientOptions::new()
+            .with_grpc()
+            .with_header("x-docker-expose-session-uuid".to_string(), "raw-test-no-pump")
+            .with_header("x-docker-expose-session-name".to_string(), "ewe-raw")
+            .with_header("x-docker-expose-session-grpc-method".to_string(), filesync::procedure::DIFF_COPY)
+            .with_header("x-docker-expose-session-grpc-method".to_string(), health::procedure::CHECK),
+    ).unwrap();
+
+    eprintln!("[raw] opening Session bidi (no pump)...");
+    // Use stream::empty() — sends one empty message then closes request direction.
+    // Buildkitd might interpret this differently than pending().
+    let mut bidi = session_client
+        .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+        .await
+        .expect("open bidi");
+    eprintln!("[raw] Session bidi opened, reading first message...");
+
+    let (mut sender, mut receiver) = bidi.split();
+
+    // Read the first BytesMessage from buildkitd
+    match receiver.receive().await {
+        Ok(Some(msg)) => {
+            let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+            eprintln!("[raw] bk→us  {} bytes: {hex}", msg.data.len());
+        }
+        Ok(None) => eprintln!("[raw] bk→us stream ended immediately (Ok None)"),
+        Err(e) => eprintln!("[raw] bk→us receive error: {e}"),
+    }
+
+    // Try to read more
+    for i in 0..5 {
+        match receiver.receive().await {
+            Ok(Some(msg)) => {
+                let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+                eprintln!("[raw] bk→us #{i} {} bytes: {hex}", msg.data.len());
+            }
+            Ok(None) => { eprintln!("[raw] bk→us #{i} stream ended (Ok None)"); break; }
+            Err(e) => { eprintln!("[raw] bk→us #{i} receive error: {e}"); break; }
+        }
+    }
+    eprintln!("[raw] done");
+
+    drop(sender);
+    drop(receiver);
+}
+
+#[valtron_test]
+async fn session_stays_alive_without_solve() {
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    let dir = std::env::temp_dir().join(format!("ewe-bk-ctx-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir ctx");
+    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\n").expect("write Dockerfile");
+
+    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+    eprintln!("[test] session={} started, waiting 2s...", session.id);
+
+    // Keep the session alive for 2 seconds — enough time for buildkitd's
+    // monitorHealth to fire its first check at ~5s (or to close at ~20ms).
+    std::thread::sleep(std::time::Duration::from_millis(2000));
+    eprintln!("[test] session alive after 2s — SUCCESS");
+
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[valtron_test]

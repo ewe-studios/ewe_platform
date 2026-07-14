@@ -232,6 +232,15 @@ impl H2Conn {
     /// Encode an [`H2Frame`] for a stream into the connection's write buffer.
     /// Call [`flush`](Self::flush) to send it over the socket.
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
+        let tag = match frame {
+            H2Frame::Headers { status, end_stream, .. } =>
+                format!("HEADERS(status={status} end={end_stream})"),
+            H2Frame::Data { end_stream, .. } =>
+                format!("DATA(end={end_stream})"),
+            H2Frame::Reset { error_code } =>
+                format!("RST_STREAM({error_code:?})"),
+        };
+        eprintln!("[h2-srv] SEND sid={} kind={tag}", stream_id);
         match frame {
             H2Frame::Headers {
                 status,

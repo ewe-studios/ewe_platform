@@ -36,3 +36,8 @@ pub use stream_future::*;
 pub use streams::*;
 pub use task::*;
 pub use types::*;
+
+// Re-export foundation_compact::trace so #[valtron_test] can reference
+// foundation_core::valtron::trace::try_init_tracing_with() without every
+// crate adding foundation_compact as a direct dependency.
+pub use foundation_compact::trace;
