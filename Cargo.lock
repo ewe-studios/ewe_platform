@@ -4541,6 +4541,7 @@ dependencies = [
  "foundation_core",
  "foundation_deployment",
  "foundation_errstacks",
+ "foundation_http",
  "foundation_macros",
  "foundation_netio",
  "futures",

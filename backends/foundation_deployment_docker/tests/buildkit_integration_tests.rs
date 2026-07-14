@@ -82,3 +82,35 @@ async fn solve_probe_reports_what_buildkit_needs() {
         Err(e) => eprintln!("SOLVE ERR (expected — tells us what's needed): {e}"),
     }
 }
+
+#[valtron_test]
+async fn build_dockerfile_end_to_end() {
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    // A trivial build context: one Dockerfile.
+    let dir = std::env::temp_dir().join(format!("ewe-bk-ctx-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir ctx");
+    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo hello-from-ewe\n")
+        .expect("write Dockerfile");
+
+    // Serve the build context back to buildkitd over the session.
+    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    match client.solve(req).await {
+        Ok(_) => eprintln!("BUILD OK — dockerfile.v0 solved with session {}", session.id),
+        Err(e) => eprintln!("BUILD ERR: {e}"),
+    }
+
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -28,6 +28,7 @@
 
 pub mod generated;
 pub mod services;
+pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
