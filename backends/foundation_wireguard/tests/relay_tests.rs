@@ -373,3 +373,41 @@ fn three_node_mesh_with_relay() {
     handle_b.shutdown();
     handle_c.shutdown();
 }
+
+#[traced_test]
+#[test]
+fn selector_multi_relay_returns_top_n() {
+    use foundation_wireguard::shared::relay::{RelaySelector, RelayStrategy};
+
+    let mut records = Vec::new();
+    for i in 1..=3 {
+        let mut caps = foundation_wireguard::shared::membership::Capabilities::default();
+        caps.relay = true;
+        records.push(foundation_wireguard::shared::membership::PeerRecord {
+            id: test_peer(i),
+            tunnel_ip: std::net::IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, i)),
+            endpoints: vec![std::net::SocketAddr::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+                51000 + i as u16,
+            )],
+            caps,
+            incarnation: 1,
+            state: foundation_wireguard::shared::membership::MemberState::Alive,
+            heartbeat: 1,
+        });
+    }
+
+    let mut selector = RelaySelector::new(RelayStrategy::LowestLoad);
+    selector.update(&records);
+
+    // select_multi(2) should return 2 candidates.
+    let multi = selector.select_multi(2);
+    assert_eq!(multi.len(), 2, "select_multi(2) returns 2 relays");
+    let ids: Vec<_> = multi.iter().map(|c| c.peer_id).collect();
+    assert!(ids.contains(&test_peer(1)));
+    assert!(ids.contains(&test_peer(2)));
+
+    // select_multi(10) should cap at available count (3).
+    let all = selector.select_multi(10);
+    assert_eq!(all.len(), 3);
+}

@@ -239,6 +239,16 @@ impl RelaySelector {
         self.candidates.first()
     }
 
+    /// WHY: A peer may benefit from multiple simultaneous relays (RFC: "may use several").
+    ///
+    /// WHAT: Return up to `n` relay candidates (top-N by current strategy), excluding
+    /// any that have failed recently. The current relay (if any) is always included first.
+    #[must_use]
+    pub fn select_multi(&mut self, n: usize) -> Vec<&RelayCandidate> {
+        let _ = self.select(); // refresh current
+        self.candidates.iter().take(n).collect()
+    }
+
     /// WHY: When a relay fails, quickly switch to the next one.
     ///
     /// WHAT: Remove the current relay from the candidate pool and select the next.

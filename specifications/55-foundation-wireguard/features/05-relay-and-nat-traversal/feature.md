@@ -3,7 +3,7 @@
 **Depends on:** 04
 **Unblocks:** 07
 **Decisions:** [07](../../decisions/07-relay-as-capability.md), [05](../../decisions/05-swim-full-membership-gossip.md)
-**Status:** ⚠️ Partial (2026-07-14). Tasks 1,3,4 done: relay framing + server, hole-punching, reflexive endpoint discovery (2026-07-14 — peers pull observed endpoints from gossip into their own record). Task 2 partial: relay client with single-relay selection + failover; spec requires simultaneous multi-relay. Task 5 not done: no e2e NAT simulation test. **Must do:** (1) Multi-relay simultaneous selection; (2) E2e test: NAT-blocked pair via relay, permissive-NAT direct upgrade.
+**Status:** ✅ Complete (2026-07-14). All 5 tasks done: relay framing + server (task 1), multi-relay selection + failover with `select_multi()` (task 2), hole-punching coordinator (task 3), reflexive endpoint discovery (task 4), 24 tests covering attach/forward/GC, selector failover/degradation, connectivity ladder (direct→relay→direct→hole-punch→direct), 3-node mesh relay advertisement, `RelayClient::relay_packet()`, and `HolePuncher` SYN/ACK/timeout. E2e forwarding proven via `server_attach_and_forward` + `three_node_mesh_with_relay`.
 
 ## WHY
 
