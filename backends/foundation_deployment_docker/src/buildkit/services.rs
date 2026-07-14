@@ -52,3 +52,10 @@ pub mod ssh {
     use crate::buildkit::generated::moby::sshforward::v1::*;
     include!(concat!(env!("OUT_DIR"), "/ssh_service.rs"));
 }
+
+/// `grpc.health.v1.Health` — standard gRPC health service; buildkit's session
+/// health-checks the client and tears the session down if it fails.
+pub mod health {
+    use crate::buildkit::generated::grpc::health::v1::*;
+    include!(concat!(env!("OUT_DIR"), "/health_service.rs"));
+}

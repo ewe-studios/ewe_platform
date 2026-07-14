@@ -35,6 +35,16 @@ pub mod google {
     }
 }
 
+/// `grpc.health.v1` — the standard gRPC health-checking service types
+/// (`grpc/health/v1/health.proto`); buildkit's session health-checks the client.
+pub mod grpc {
+    pub mod health {
+        pub mod v1 {
+            include!(concat!(env!("OUT_DIR"), "/grpc.health.v1.mod.rs"));
+        }
+    }
+}
+
 /// `fsutil.types` — file-transfer packet types (`fsutil/types/{wire,stat}.proto`)
 /// used by the FileSync session service.
 pub mod fsutil {

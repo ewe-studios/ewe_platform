@@ -103,7 +103,10 @@ impl TaskIterator for H2ConnectionHandler {
         // preface — may not complete on the first poll.
         if !self.handshaked {
             match self.conn.server_handshake() {
-                Ok(()) => self.handshaked = true,
+                Ok(()) => {
+                    self.handshaked = true;
+                    tracing::debug!("h2 server handshake complete");
+                }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return self.park(),
                 Err(e) => {
                     tracing::debug!(err = %e, "h2 server handshake failed");
@@ -116,11 +119,31 @@ impl TaskIterator for H2ConnectionHandler {
             Ok((head, payload)) => {
                 self.idle_since = None;
                 match head.kind {
-                    Kind::Headers => self.on_headers(&head, &payload),
-                    Kind::Data => self.on_data(&head, &payload),
-                    Kind::Reset => self.on_reset(&head, &payload),
-                    Kind::GoAway => return None,
-                    // SETTINGS / WINDOW_UPDATE / PING are handled by H2Connection.
+                    Kind::Headers => {
+                        tracing::debug!(stream = head.stream_id, kind = "HEADERS", "h2 frame received");
+                        self.on_headers(&head, &payload)
+                    }
+                    Kind::Data => {
+                        tracing::debug!(stream = head.stream_id, kind = "DATA", "h2 frame received");
+                        self.on_data(&head, &payload)
+                    }
+                    Kind::Reset => {
+                        tracing::debug!(stream = head.stream_id, kind = "RST_STREAM", "h2 frame received");
+                        self.on_reset(&head, &payload)
+                    }
+                    Kind::GoAway => {
+                        tracing::debug!("h2 GOAWAY received, closing connection");
+                        return None;
+                    }
+                    Kind::Settings => {
+                        tracing::debug!("h2 SETTINGS frame received post-handshake");
+                    }
+                    Kind::Ping => {
+                        tracing::debug!("h2 PING frame received");
+                    }
+                    Kind::WindowUpdate => {
+                        tracing::debug!("h2 WINDOW_UPDATE frame received");
+                    }
                     _ => {}
                 }
             }
@@ -177,6 +200,7 @@ impl H2ConnectionHandler {
 
         let Some(handler) = self.app.router().dispatch(&header.method, &header.url.url) else {
             // No route is a complete 404 response, not a stream error.
+            tracing::debug!(stream = sid, method = %header.method, path = %header.url.url, "h2: no route → 404");
             self.conn.encode_frame(
                 sid,
                 &H2Frame::Headers {
@@ -187,6 +211,7 @@ impl H2ConnectionHandler {
             );
             return;
         };
+        tracing::debug!(stream = sid, method = %header.method, path = %header.url.url, "h2: request routed");
 
         let (body_tx, body_rx) = Pipe::<H2IncomingFrame>::with_depth(STREAM_PIPE_DEPTH);
         let (resp_tx, resp_rx) = Pipe::<H2Frame>::with_depth(STREAM_PIPE_DEPTH);

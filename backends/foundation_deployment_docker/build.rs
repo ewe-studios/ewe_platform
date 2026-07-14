@@ -15,12 +15,12 @@
 //! then `buffa-codegen` emits the Rust. Requires `protoc` on PATH at build time
 //! (only for the optional `buildkit` feature). No-op otherwise.
 
+#![cfg(feature = "buildkit")]
+
 fn main() {
-    #[cfg(feature = "buildkit")]
     generate_buildkit();
 }
 
-#[cfg(feature = "buildkit")]
 fn generate_buildkit() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     let root = format!("{manifest}/specs/buildkit");
@@ -41,6 +41,8 @@ fn generate_buildkit() {
         format!("{bk}/session/sshforward/ssh.proto"),
         format!("{fsutil}/wire.proto"),
         format!("{fsutil}/stat.proto"),
+        // gRPC Health service — buildkit's session health-checks the client.
+        format!("{root}/grpc/health/v1/health.proto"),
     ];
 
     buffa_build::Config::new()
@@ -60,7 +62,6 @@ fn generate_buildkit() {
 /// lands in its own module (avoids duplicate-module collisions for multi-service
 /// protos). Message types are the buffa types generated above and brought into
 /// scope by `src/buildkit/generated.rs`.
-#[cfg(feature = "buildkit")]
 fn generate_services(root: &str, files: &[String]) {
     use prost::Message;
     use prost_types::FileDescriptorSet;
@@ -91,19 +92,29 @@ fn generate_services(root: &str, files: &[String]) {
         ("auth.proto", "Auth", "auth_service.rs"),
         ("secrets.proto", "Secrets", "secrets_service.rs"),
         ("ssh.proto", "SSH", "ssh_service.rs"),
+        ("health.proto", "Health", "health_service.rs"),
     ];
 
     for (file_suffix, service_name, out_name) in targets {
         let file = fds
             .file
             .iter()
-            .find(|f| f.name.as_deref().map_or(false, |n| n.ends_with(file_suffix)))
+            .find(|f| {
+                f.name
+                    .as_deref()
+                    .map_or(false, |n| n.ends_with(file_suffix))
+            })
             .unwrap_or_else(|| panic!("descriptor for {file_suffix} not found"));
 
         // Retain only the one service so its `pub mod procedure` is unique.
         let mut one = file.clone();
-        one.service.retain(|s| s.name.as_deref() == Some(service_name));
-        assert_eq!(one.service.len(), 1, "service {service_name} not found in {file_suffix}");
+        one.service
+            .retain(|s| s.name.as_deref() == Some(service_name));
+        assert_eq!(
+            one.service.len(),
+            1,
+            "service {service_name} not found in {file_suffix}"
+        );
 
         let code = foundation_connectrpc_codegen::generate_services(&[one]);
         std::fs::write(format!("{out_dir}/{out_name}"), code).expect("write service code");

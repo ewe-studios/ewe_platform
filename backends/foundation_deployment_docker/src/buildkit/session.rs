@@ -32,11 +32,17 @@ use foundation_core::valtron;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
+use tracing::error;
 
 use crate::buildkit::generated::fsutil::types::packet::PacketType;
 use crate::buildkit::generated::fsutil::types::{Packet, Stat};
+use crate::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
+use crate::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
 use crate::buildkit::services::filesync::{self, register_file_sync, FileSync};
+use crate::buildkit::services::health::{self, register_health, Health};
 use crate::buildkit::types::BytesMessage;
+
+use foundation_connectrpc::{ConnectResult, Request, Response};
 
 type BoxErr = Box<dyn std::error::Error + Send + Sync>;
 
@@ -243,6 +249,30 @@ impl FileSync for DirFileSync {
     }
 }
 
+// ── Health service: always SERVING — satisfies buildkit's monitorHealth ──────
+
+/// Always returns `SERVING` — satisfies buildkit's `monitorHealth` so the
+/// session connection stays alive past the HTTP/2 handshake. Without this,
+/// buildkit tears down the session ~20ms after connecting.
+struct HealthService;
+
+impl Health for HealthService {
+    fn check(
+        &self,
+        _ctx: Ctx,
+        _request: Request<HealthCheckRequest>,
+    ) -> impl core::future::Future<Output = ConnectResult<Response<HealthCheckResponse>>> + Send
+    {
+        async move {
+            Ok(Response::new(HealthCheckResponse {
+                status: ServingStatus::SERVING.into(),
+                ..Default::default()
+            }))
+        }
+    }
+    // watch defaults to unimplemented — buildkit only calls Check.
+}
+
 // ── Session server: serve FileSync on loopback + pump to the Session bidi ───
 
 /// A running build-context session. Holds the session id (to pass in
@@ -277,10 +307,13 @@ impl SessionServer {
         // 1. Session gRPC server (FileSync) on a loopback h2c socket.
         let mut router = Router::new();
         register_file_sync(&mut router, Arc::new(DirFileSync::new(context_dir)));
+        register_health(&mut router, Arc::new(HealthService));
         let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
         let mut app = HttpApp::new_h2_serve();
         app.route_any_h2(filesync::procedure::DIFF_COPY, rpc.clone());
-        app.route_any_h2(filesync::procedure::TAR_STREAM, rpc);
+        app.route_any_h2(filesync::procedure::TAR_STREAM, rpc.clone());
+        app.route_any_h2(health::procedure::CHECK, rpc.clone());
+        app.route_any_h2(health::procedure::WATCH, rpc);
 
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let local_addr = listener.local_addr()?;
@@ -330,32 +363,62 @@ impl SessionServer {
         // buildkitd → loopback: async receive → std channel → blocking write.
         let (down_tx, down_rx) = std::sync::mpsc::channel::<Vec<u8>>();
         let read_pool = valtron::from_future(Box::pin(async move {
-            while let Ok(Some(msg)) = receiver.receive().await {
-                if down_tx.send(msg.data).is_err() {
-                    break;
+            loop {
+                match receiver.receive().await {
+                    Ok(Some(msg)) => {
+                        let tag = h2_frame_tag(&msg.data);
+                        let hex: String = msg.data.iter()
+                            .map(|b| format!("{b:02x}")).collect();
+                        eprintln!("[sess] bk->me {:>3}b {tag:<14} {hex}", msg.data.len());
+                        if let Err(e) = down_tx.send(msg.data) {
+                            error!(err = %e, "[sess] down_tx send failed");
+                            break;
+                        }
+                    }
+                    Ok(None) => {
+                        eprintln!("[sess] bk->me: stream ended (Ok None)");
+                        break;
+                    }
+                    Err(e) => {
+                        error!(err = %e, "[sess] bk->me: receive error");
+                        break;
+                    }
                 }
             }
         }));
         valtron::send(read_pool).map_err(|e| format!("spawn session receive task: {e}"))?;
         let write_thread = std::thread::spawn(move || {
             while let Ok(data) = down_rx.recv() {
-                if tcp_write.write_all(&data).is_err() {
+                if let Err(e) = tcp_write.write_all(&data) {
+                    error!(err = %e, "[sess] tcp_write failed");
                     break;
                 }
-                let _ = tcp_write.flush();
+                if let Err(e) = tcp_write.flush() {
+                    error!(err = %e, "[sess] tcp_write flush failed");
+                    break;
+                }
             }
-            let _ = tcp_write.shutdown(std::net::Shutdown::Both);
+            if let Err(e) = tcp_write.shutdown(std::net::Shutdown::Both) {
+                // Expected: the other end may already be closed.
+                eprintln!("[sess] tcp shutdown: {e}");
+            }
         });
 
         // loopback → buildkitd: blocking read → async channel → async send.
         let (up_tx, mut up_rx) = futures::channel::mpsc::unbounded::<Vec<u8>>();
+        let start = std::time::Instant::now();
         let read_thread = std::thread::spawn(move || {
             let mut buf = vec![0u8; 32 * 1024];
             loop {
                 match tcp_read.read(&mut buf) {
-                    Ok(0) | Err(_) => break,
+                    Ok(0) => { eprintln!("[sess] loopback read 0 @ {:?}", start.elapsed()); break; }
+                    Err(e) => { eprintln!("[sess] loopback read err @ {:?}: {e}", start.elapsed()); break; }
                     Ok(n) => {
-                        if up_tx.unbounded_send(buf[..n].to_vec()).is_err() {
+                        let tag = h2_frame_tag(&buf[..n]);
+                        let hex: String = buf[..n].iter()
+                            .map(|b| format!("{b:02x}")).collect();
+                        eprintln!("[sess] me<-lb {:>3}b @{:>6.1?}ms {tag:<14} {hex}", n, start.elapsed().as_secs_f64() * 1000.0);
+                        if let Err(_e) = up_tx.unbounded_send(buf[..n].to_vec()) {
                             break;
                         }
                     }
@@ -366,12 +429,20 @@ impl SessionServer {
         let send_pool = valtron::from_future(Box::pin(async move {
             use futures::StreamExt;
             while let Some(data) = up_rx.next().await {
+                let tag = h2_frame_tag(&data);
+                let hex: String = data.iter()
+                    .map(|b| format!("{b:02x}")).collect();
+                eprintln!("[sess] me->bk {:>3}b {tag:<14} {hex}", data.len());
                 let msg = BytesMessage { data, ..Default::default() };
-                if sender.send(&msg).await.is_err() {
+                if let Err(e) = sender.send(&msg).await {
+                    error!(err = %e, "[sess] me->buildkit send failed");
                     break;
                 }
             }
-            let _ = sender.close_request().await;
+            eprintln!("[sess] me->bk DONE — closing sender");
+            if let Err(e) = sender.close_request().await {
+                eprintln!("[sess] close_request: {e}");
+            }
         }));
         valtron::send(send_pool).map_err(|e| format!("spawn session send task: {e}"))?;
 
@@ -405,4 +476,25 @@ fn new_session_id() -> String {
     }
     s.truncate(32);
     s
+}
+
+/// Quick H2 frame type tag for debug hex dumps.
+fn h2_frame_tag(data: &[u8]) -> &'static str {
+    if data == b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" {
+        return "[H2 PREFACE]";
+    }
+    if data.len() < 9 {
+        return "[?short]";
+    }
+    let ty = data[3];
+    let flags = data[4];
+    match ty {
+        0x00 => "[DATA]",
+        0x01 => "[HEADERS]",
+        0x04 if flags & 0x01 != 0 => "[SETTINGS ACK]",
+        0x04 => "[SETTINGS]",
+        0x07 => "[GOAWAY]",
+        0x08 => "[WINDOW_UPDATE]",
+        _ => "[?]",
+    }
 }

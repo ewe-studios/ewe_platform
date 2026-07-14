@@ -342,10 +342,16 @@ impl<S: Read + Write> H2Connection<S> {
             .apply(&sf.settings)
             .map_err(proto_err)?;
 
-        SettingsFrame::ack().encode(&mut self.write_buf);
+        // Send our own SETTINGS (the server connection preface) BEFORE ACKing
+        // the client's. RFC 7540 §3.5: the server's connection preface is a
+        // SETTINGS frame that MUST be the first frame the server sends. Emitting
+        // the ACK first is a protocol violation that a strict client (grpc-go,
+        // which BuildKit's session uses) rejects, tearing the connection down;
+        // our own lenient H2 client tolerated it, which hid the bug.
+        self.local_settings.to_frame_server().encode(&mut self.write_buf);
         self.flush_write()?;
 
-        self.local_settings.to_frame().encode(&mut self.write_buf);
+        SettingsFrame::ack().encode(&mut self.write_buf);
         self.flush_write()?;
         self.settings_sent = true;
         self.waiting_for_settings_ack = true;

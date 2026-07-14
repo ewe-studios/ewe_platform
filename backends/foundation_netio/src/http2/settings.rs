@@ -16,7 +16,8 @@ use crate::http2::frame::{Setting, SettingId, SettingsFrame};
 /// RFC 7540 §6.5.2 default values.
 pub const DEFAULT_HEADER_TABLE_SIZE: u32 = 4096;
 pub const DEFAULT_ENABLE_PUSH: u32 = 1;
-pub const DEFAULT_MAX_CONCURRENT_STREAMS: u32 = u32::MAX; // "unlimited"
+pub const DEFAULT_MAX_CONCURRENT_STREAMS: u32 = 256; // RFC 7540 leaves this unbounded, but u32::MAX (0xFFFF_FFFF)
+// is interpreted as i32(-1) by Go's grpc-go, which clamps it to 0 and refuses to create streams.
 pub const DEFAULT_INITIAL_WINDOW_SIZE: u32 = 65_535;
 pub const DEFAULT_MAX_FRAME_SIZE: u32 = 16_384;
 pub const DEFAULT_MAX_HEADER_LIST_SIZE: u32 = u32::MAX; // "unlimited"
@@ -144,6 +145,40 @@ impl SettingsStore {
             Setting {
                 id: SettingId::EnablePush,
                 value: self.enable_push,
+            },
+            Setting {
+                id: SettingId::MaxConcurrentStreams,
+                value: self.max_concurrent_streams,
+            },
+            Setting {
+                id: SettingId::InitialWindowSize,
+                value: self.initial_window_size,
+            },
+            Setting {
+                id: SettingId::MaxFrameSize,
+                value: self.max_frame_size,
+            },
+            Setting {
+                id: SettingId::MaxHeaderListSize,
+                value: self.max_header_list_size,
+            },
+        ])
+    }
+
+    /// Build a SETTINGS frame for the **server** connection preface — identical
+    /// to [`Self::to_frame`] but omitting `SETTINGS_ENABLE_PUSH`.
+    ///
+    /// `SETTINGS_ENABLE_PUSH` is a client→server control (RFC 7540 §6.5.2): it is
+    /// how a client tells the server whether it will accept server push. A server
+    /// advertising it (especially with value 1) is meaningless and is rejected by
+    /// strict peers such as grpc-go (which BuildKit's session client uses), which
+    /// tear the connection down. Real servers (nginx, grpc-go, …) never send it.
+    #[must_use]
+    pub fn to_frame_server(&self) -> SettingsFrame {
+        SettingsFrame::new(vec![
+            Setting {
+                id: SettingId::HeaderTableSize,
+                value: self.header_table_size,
             },
             Setting {
                 id: SettingId::MaxConcurrentStreams,

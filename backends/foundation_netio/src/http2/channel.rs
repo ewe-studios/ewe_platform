@@ -299,15 +299,22 @@ impl H2Channel {
                 .apply(&sf.settings)
                 .map_err(proto_err)?;
 
-            // 3. ACK + send own SETTINGS
+            // 3. Send own SETTINGS first, then ACK the client's SETTINGS.
+            //
+            // RFC 7540 §3.5: the server connection preface MUST be a SETTINGS
+            // frame that is *the first frame the server sends*. Emitting the ACK
+            // before our own SETTINGS violates that ordering; a strict client
+            // (e.g. grpc-go, which BuildKit's session uses) treats it as a
+            // connection error and tears the connection down. Our own H2 client
+            // tolerated the wrong order, which hid the bug until now.
+            self.local_settings.to_frame().encode(&mut self.write_buf);
+            self.settings_sent = true;
+            self.waiting_for_settings_ack = true;
+
             let ack = SettingsFrame::ack();
             let mut buf = BytesMut::new();
             ack.encode(&mut buf);
             self.write_buf.extend_from_slice(&buf);
-
-            self.local_settings.to_frame().encode(&mut self.write_buf);
-            self.settings_sent = true;
-            self.waiting_for_settings_ack = true;
         }
 
         // 4. Wait for client SETTINGS ACK
