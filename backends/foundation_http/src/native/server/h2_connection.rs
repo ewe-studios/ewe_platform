@@ -39,6 +39,9 @@ use crate::shared::app::HttpApp;
 use crate::native::serve::H2Serve;
 
 const POLL_DELAY: Duration = Duration::from_millis(10);
+/// Aggressive poll delay during the H2 handshake — grpc-go may fire GOAWAY
+/// within 10ms of completing its side; our SETTINGS + PING must arrive first.
+const HANDSHAKE_POLL_DELAY: Duration = Duration::from_millis(1);
 const IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Depth of the per-stream body and response pipes, in frames. Bounded so a fast
@@ -115,7 +118,13 @@ impl TaskIterator for H2ConnectionHandler {
                     self.conn.flush().ok();
                     eprintln!("[h2-srv] handshake done, sent keepalive PING");
                 }
-                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return self.park(),
+                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    // Handshake in progress — 1ms poll to minimise response latency.
+                    // grpc-go's transport may fire GOAWAY within 10ms of completing
+                    // its side of the handshake. Our SETTINGS + PING must arrive
+                    // before that window closes.
+                    return Some(TaskStatus::Delayed(HANDSHAKE_POLL_DELAY));
+                }
                 Err(e) => {
                     tracing::debug!(err = %e, "h2 server handshake failed");
                     return None;

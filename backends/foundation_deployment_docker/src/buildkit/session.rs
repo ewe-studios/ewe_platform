@@ -285,7 +285,7 @@ pub struct SessionServer {
     _server: Option<JoinHandle<()>>,
     _pump_down: Option<JoinHandle<()>>,
     _pump_up: Option<JoinHandle<()>>,
-    _keepalive: Option<JoinHandle<()>>,
+    _pump_send: Option<JoinHandle<()>>,
 }
 
 impl SessionServer {
@@ -400,16 +400,10 @@ impl SessionServer {
             }
             Err(e) => eprintln!("[sess] bidi response headers FAILED: {e}"),
         }
-        // Send an H2 PING immediately through the bidi — BEFORE the TCP loopback
-        // is connected. Combined with the in-bidi-pump PING, this saturates
-        // buildkitd's Level 2 transport with activity to prevent the GOAWAY.
-        {
-            let ping = h2_ping_frame(&new_ping_opaque());
-            eprintln!("[sess] sending pre-handshake PING ({} bytes)", ping.len());
-            bidi.send(&BytesMessage { data: ping, ..Default::default() }).await
-                .map_err(|e| format!("pre-handshake PING failed: {e}"))?;
-        }
-
+        // NOTE: never send anything on the bidi before the loopback server's
+        // SETTINGS. RFC 7540 §3.5: the first frame the server sends MUST be
+        // SETTINGS — grpc-go treats any other first frame (e.g. a PING) as a
+        // connection error and tears the Level 2 transport down.
         let (mut sender, mut receiver) = bidi.split();
         // 3. Dial our own loopback server.
         let tcp = TcpStream::connect(local_addr)?;
@@ -462,10 +456,9 @@ impl SessionServer {
         // loopback → buildkitd: blocking read → std::sync::mpsc → DEDICATED
         // OS thread that calls sender.send() via futures_lite::block_on. This
         // eliminates valtron pool-polling latency — the thread sleeps on recv()
-        // and wakes instantly when data arrives. Every microsecond counts:
-        // grpc-go fires GOAWAY ~10ms post-handshake.
+        // and wakes instantly when data arrives, keeping the tunnel's added
+        // round-trip latency to a minimum.
         let (up_tx, up_rx) = std::sync::mpsc::channel::<Vec<u8>>();
-        let up_keepalive = up_tx.clone();
         let start = std::time::Instant::now();
         let read_thread = std::thread::spawn(move || {
             let mut buf = vec![0u8; 32 * 1024];
@@ -500,32 +493,13 @@ impl SessionServer {
             let _ = futures_lite::future::block_on(sender.close_request());
         });
 
-        // Keepalive: rapid PINGs at 5ms for the first 200ms (GOAWAY fires ~10ms
-        // post-handshake), then 500ms after.
-        let keepalive = std::thread::spawn(move || {
-            let start = std::time::Instant::now();
-            let ping = h2_ping_frame(&new_ping_opaque());
-            loop {
-                if up_keepalive.send(ping.clone()).is_err() {
-                    break;
-                }
-                let elapsed = start.elapsed();
-                let interval = if elapsed < std::time::Duration::from_millis(200) {
-                    std::time::Duration::from_millis(5)
-                } else {
-                    std::time::Duration::from_millis(500)
-                };
-                std::thread::sleep(interval);
-            }
-        });
-
         Ok(Self {
             id,
             shutdown,
             _server: Some(server_handle),
             _pump_down: Some(write_thread),
             _pump_up: Some(read_thread),
-            _keepalive: Some(keepalive),
+            _pump_send: Some(send_thread),
         })
     }
 }
@@ -550,36 +524,6 @@ fn new_session_id() -> String {
     }
     s.truncate(32);
     s
-}
-
-/// Build a raw H2 PING frame (RFC 7540 §6.7): 9-byte header + 8-byte opaque
-/// data = 17 bytes total. Used by the session keepalive to prevent grpc-go's
-/// transport idle timeout.
-fn h2_ping_frame(opaque: &[u8; 8]) -> Vec<u8> {
-    let mut v = Vec::with_capacity(17);
-    // Frame header: length=8, type=PING(0x06), flags=0, stream_id=0
-    v.extend_from_slice(&[0x00, 0x00, 0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00]);
-    v.extend_from_slice(opaque);
-    v
-}
-
-/// Generate a fresh 8-byte opaque payload for a PING frame.
-fn new_ping_opaque() -> [u8; 8] {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let ns = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos() as u64;
-    ns.to_be_bytes()
-}
-
-/// Returns `true` if `data` looks like an H2 client preface or SETTINGS frame —
-/// the initial handshake frames from buildkitd that we want to hold.
-fn h2_is_preface_or_settings(data: &[u8]) -> bool {
-    if data == b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" {
-        return true;
-    }
-    data.len() >= 9 && data[3] == 0x04 && data[4] & 0x01 == 0 // SETTINGS, not ACK
 }
 
 /// Quick H2 frame type tag for debug hex dumps.

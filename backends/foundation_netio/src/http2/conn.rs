@@ -194,14 +194,19 @@ impl H2Conn {
             let (head, payload) = self.inner.read_frame()?;
             match head.kind {
                 Kind::Ping => {
-                    let ack = PingFrame::ack(
-                        PingFrame::parse(&head, &payload)
-                            .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad PING"))?
-                            .opaque_data,
-                    );
-                    let mut buf = BytesMut::new();
-                    ack.encode(&mut buf);
-                    self.inner.write_buf_mut().extend_from_slice(&buf);
+                    // Only answer PINGs, never PING ACKs — RFC 7540 §6.7 forbids
+                    // responding to a frame that has the ACK flag set (it is the
+                    // peer's answer to one of ours).
+                    if head.flag & ping_flags::ACK == 0 {
+                        let ack = PingFrame::ack(
+                            PingFrame::parse(&head, &payload)
+                                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad PING"))?
+                                .opaque_data,
+                        );
+                        let mut buf = BytesMut::new();
+                        ack.encode(&mut buf);
+                        self.inner.write_buf_mut().extend_from_slice(&buf);
+                    }
                     // continue loop — this isn't a stream frame
                 }
                 Kind::Settings => {

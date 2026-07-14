@@ -250,8 +250,12 @@ pub fn parse_connect_content_type(content_type: &str) -> Option<(String, bool)> 
             let codec = rest.to_string();
             // Reject compound content types (e.g. grpc-web+proto) that contain '+'
             // but don't start with 'connect+' — those belong to other protocols such
-            // as gRPC-Web.
-            if codec.contains('+') {
+            // as gRPC-Web. Likewise the bare `grpc` / `grpc-web` subtypes: plain
+            // `application/grpc` is a gRPC request with the default (proto) codec,
+            // not a Connect request with a codec named "grpc". Claiming it here
+            // starves the gRPC handler in dispatch and 415s every grpc-go client
+            // (e.g. buildkitd's session health check / FileSync calls).
+            if codec.contains('+') || codec == "grpc" || codec == "grpc-web" {
                 None
             } else {
                 Some((codec, false))

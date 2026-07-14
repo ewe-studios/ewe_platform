@@ -177,12 +177,6 @@ impl H2Channel {
         Ok((head, payload))
     }
 
-    /// Encode a frame into `write_buf`.
-    fn queue_frame(&mut self, head: &Head, payload: &[u8]) {
-        head.encode(payload.len() as u32, &mut self.write_buf);
-        self.write_buf.put_slice(payload);
-    }
-
     // ── Stream management ──────────────────────────────────────────────
 
     fn alloc_stream_id(&mut self) -> Option<u32> {
@@ -539,16 +533,8 @@ impl H2Channel {
             error_code,
             debug_data: Bytes::new(),
         };
-        let mut buf = BytesMut::new();
-        gf.encode(&mut buf);
-        self.queue_frame(
-            &Head {
-                kind: Kind::GoAway,
-                flag: 0,
-                stream_id: 0,
-            },
-            &buf,
-        );
+        // `GoAwayFrame::encode` emits the complete frame — do not re-wrap it.
+        gf.encode(&mut self.write_buf);
         self.goaway_sent = true;
     }
 
@@ -682,17 +668,12 @@ impl H2Channel {
         self.remote_settings
             .apply(&sf.settings)
             .map_err(proto_err)?;
-        let ack = SettingsFrame::ack();
-        let mut buf = BytesMut::new();
-        ack.encode(&mut buf);
-        self.queue_frame(
-            &Head {
-                kind: Kind::Settings,
-                flag: settings_flags::ACK,
-                stream_id: 0,
-            },
-            &buf,
-        );
+        // `SettingsFrame::encode` emits the complete frame (header + payload);
+        // wrapping it in `queue_frame` again would prepend a second header and
+        // produce a SETTINGS ACK with a non-zero length — a connection error
+        // (RFC 7540 §6.5, FRAME_SIZE_ERROR) that strict peers kill the
+        // connection over.
+        SettingsFrame::ack().encode(&mut self.write_buf);
         Ok(())
     }
 
@@ -719,18 +700,13 @@ impl H2Channel {
             return Ok(());
         }
         let pf = PingFrame::parse(&head, payload).map_err(proto_err)?;
-        let ack = PingFrame::ack(pf.opaque_data);
-        let mut buf = BytesMut::new();
-        ack.encode(&mut buf);
-        eprintln!("[h2-ch] queuing PING ACK, opaque={:02x?}", &pf.opaque_data);
-        self.queue_frame(
-            &Head {
-                kind: Kind::Ping,
-                flag: ping_flags::ACK,
-                stream_id: 0,
-            },
-            &buf,
-        );
+        // `PingFrame::encode` emits the complete frame (header + 8-byte opaque
+        // data). Double-wrapping it via `queue_frame` produced a PING with
+        // length=17 — a connection error (RFC 7540 §6.7, FRAME_SIZE_ERROR).
+        // grpc-go tears the whole connection down on it, which killed BuildKit
+        // sessions ~10ms after their first DATA frame (the ACK to grpc-go's
+        // BDP-estimator PING was malformed).
+        PingFrame::ack(pf.opaque_data).encode(&mut self.write_buf);
         Ok(())
     }
 
@@ -761,12 +737,10 @@ impl H2Channel {
     /// Send `RST_STREAM` for the given stream.
     pub fn send_rst_stream(&mut self, stream_id: u32) {
         let rf = ResetFrame { stream_id, error_code: crate::http2::frame::ErrorCode::Cancel };
-        let mut buf = BytesMut::new();
-        rf.encode(&mut buf);
-        self.queue_frame(
-            &Head { kind: Kind::Reset, flag: 0, stream_id },
-            &buf,
-        );
+        // `ResetFrame::encode` emits the complete frame — re-wrapping it via
+        // `queue_frame` produced RST_STREAM with length=13 instead of 4, a
+        // connection error (RFC 7540 §6.4, FRAME_SIZE_ERROR).
+        rf.encode(&mut self.write_buf);
     }
 
     /// Decode an HPACK header block from a HEADERS frame, returning

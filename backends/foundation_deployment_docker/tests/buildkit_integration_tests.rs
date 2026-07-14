@@ -213,38 +213,32 @@ async fn session_bidi_raw_no_pump() {
     ).unwrap();
 
     eprintln!("[raw] opening Session bidi (no pump)...");
-    // Use stream::empty() — sends one empty message then closes request direction.
-    // Buildkitd might interpret this differently than pending().
     let mut bidi = session_client
         .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
         .await
         .expect("open bidi");
     eprintln!("[raw] Session bidi opened, reading first message...");
 
-    let (mut sender, mut receiver) = bidi.split();
+    let (sender, mut receiver) = bidi.split();
 
-    // Read the first BytesMessage from buildkitd
-    match receiver.receive().await {
-        Ok(Some(msg)) => {
-            let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
-            eprintln!("[raw] bk→us  {} bytes: {hex}", msg.data.len());
-        }
-        Ok(None) => eprintln!("[raw] bk→us stream ended immediately (Ok None)"),
-        Err(e) => eprintln!("[raw] bk→us receive error: {e}"),
-    }
-
-    // Try to read more
-    for i in 0..5 {
+    // buildkitd dials the tunneled Level 2 connection eagerly (grpc.DialContext),
+    // so exactly two frames arrive unprompted right after the bidi opens: the H2
+    // client preface, then its SETTINGS. Read only those two — with the session
+    // now surviving a held handshake (~40s until health-check timeouts), any
+    // further unbounded `receive()` would block until that teardown and wedge
+    // the suite (a swallowed valtron-task stall, never a FAILED).
+    for i in 0..2 {
         match receiver.receive().await {
             Ok(Some(msg)) => {
                 let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
                 eprintln!("[raw] bk→us #{i} {} bytes: {hex}", msg.data.len());
+                assert!(!msg.data.is_empty(), "handshake frame should be non-empty");
             }
-            Ok(None) => { eprintln!("[raw] bk→us #{i} stream ended (Ok None)"); break; }
-            Err(e) => { eprintln!("[raw] bk→us #{i} receive error: {e}"); break; }
+            Ok(None) => panic!("stream ended before frame #{i} — session died during handshake"),
+            Err(e) => panic!("receive error at frame #{i}: {e}"),
         }
     }
-    eprintln!("[raw] done");
+    eprintln!("[raw] done — buildkitd dialed us unprompted (preface + SETTINGS)");
 
     drop(sender);
     drop(receiver);
