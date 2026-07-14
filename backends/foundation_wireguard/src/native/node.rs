@@ -683,6 +683,30 @@ impl WgMeshTask {
         let (out, _events) = swim.tick(now);
         send_swim(&self.gossip, &swim, out);
 
+        // Reflexive endpoint discovery (F05 task 4): other peers may have
+        // gossiped about us with source addresses we didn't know (NAT).
+        // Pull those discovered endpoints into our own record and re-announce.
+        let my_gossiped = swim.membership().get(&self.my_id).cloned();
+        if let Some(mut rec) = my_gossiped {
+            // Union our known endpoints with whatever the membership has
+            // (which includes what other peers observed).
+            let known: Vec<SocketAddr> = swim.membership()
+                .get(&self.my_id)
+                .map(|r| r.endpoints.clone())
+                .unwrap_or_default();
+            if rec.endpoints != known {
+                tracing::debug!(
+                    old = ?known,
+                    new = ?rec.endpoints,
+                    "reflexive endpoint discovery: merging observed endpoints"
+                );
+                rec.endpoints.extend(known);
+                rec.endpoints.sort_by_key(|a| a.to_string());
+                rec.endpoints.dedup_by_key(|a| a.to_string());
+                swim.merge(&[rec]);
+            }
+        }
+
         let snapshot = swim.snapshot();
         {
             let mut client = self.relay_client.lock().expect("relay client lock");
