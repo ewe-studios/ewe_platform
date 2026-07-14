@@ -261,6 +261,20 @@ impl RelayClient {
         self.selector.record_rtt(peer, rtt_us);
     }
 
+    /// WHY: When direct connectivity to `dst` failed, wrap the WG ciphertext
+    /// in a relay frame to be forwarded by the relay node.
+    ///
+    /// WHAT: Returns `Some(encoded_frame)` if the peer's connectivity path is
+    /// `Relay`, `None` otherwise (direct available or no relay candidate).
+    pub fn relay_packet(&mut self, dst: PeerId, ciphertext: Vec<u8>) -> Option<Vec<u8>> {
+        let path = self.peer_path(dst);
+        if !matches!(path, ConnectivityPath::Relayed(_)) {
+            return None;
+        }
+        let frame = RelayFrame::new(dst, ciphertext);
+        Some(frame.encode())
+    }
+
     /// The mutable selector (for failover from outside).
     #[must_use]
     pub fn selector_mut(&mut self) -> &mut RelaySelector {
