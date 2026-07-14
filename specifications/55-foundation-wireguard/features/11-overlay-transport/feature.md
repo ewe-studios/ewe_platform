@@ -2,7 +2,7 @@
 
 **Depends on:** F04 (data-plane orchestration), F09 (config), F00 (nativeapis dataplane)
 **Unblocks:** WireGuard + ConnectRPC integration, WG-mesh HTTP services
-**Status:** ⚠️ Partial (2026-07-14). Tasks 1-9,11 done: Acceptor/Connector traits, Connection::Overlay, OverlayReadWrite, OverlayConnector, HttpServer::serve_with_acceptor, OverlayAcceptor, **TunDataPlane path** (MeshDataPlane + GossipTransport + optional NetStack in WgHandle — 2026-07-14), example, address bridging, tests. Task 10 IN PROGRESS: non-blocking WouldBlock parking — ConnWaker plumbing exists, not wired through HTTP reader task.
+**Status:** ✅ Complete (implemented + tested 2026-07-14). All 11 task-list items done: Acceptor/Connector traits, Connection::Overlay variant, OverlayReadWrite impl, WgHandle::overlay_connect, HttpServer::serve_with_acceptor, OverlayAcceptor, TunnelDriver<TunDataPlane> (MeshDataPlane+GossipTransport), example, address bridging, non-blocking WouldBlock parking (BoolSignal+ConnWaker→TaskStatus::Depends wired through request_intro/request_redirect), integration test (POST+GET echo over mesh via NativeHttpClient+OverlayConnector).
 
 ## WHY
 
