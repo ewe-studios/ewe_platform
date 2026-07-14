@@ -296,6 +296,65 @@ async fn build_dockerfile_end_to_end() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[valtron_test]
+async fn build_with_status_stream() {
+    use foundation_deployment_docker::buildkit::new_build_ref;
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    let dir = std::env::temp_dir().join(format!("ewe-bk-status-ctx-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir ctx");
+    // Two steps so the status stream has several vertexes to report.
+    std::fs::write(
+        dir.join("Dockerfile"),
+        b"FROM alpine:latest\nRUN echo status-stream-test\nRUN echo second-step\n",
+    )
+    .expect("write Dockerfile");
+
+    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let build_ref = new_build_ref();
+    let mut req = SolveRequest::default();
+    req.Ref = build_ref.clone();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    // Solve and Status run concurrently, like buildx: Status(Ref) attaches to
+    // the running build's progress feed and ends when the build completes.
+    let solve_fut = client.solve(req);
+    let status_fut = async {
+        let mut stream = client.status(&build_ref).await.expect("open Status stream");
+        let mut updates = 0usize;
+        let mut vertexes = 0usize;
+        let mut logs = 0usize;
+        loop {
+            match stream.receive().await {
+                Ok(Some(resp)) => {
+                    updates += 1;
+                    vertexes += resp.vertexes.len();
+                    logs += resp.logs.len();
+                }
+                Ok(None) => break,
+                Err(e) => panic!("Status stream error after {updates} updates: {e}"),
+            }
+        }
+        (updates, vertexes, logs)
+    };
+
+    let (solve_res, (updates, vertexes, logs)) = futures::join!(solve_fut, status_fut);
+    solve_res.expect("solve with status ref");
+    eprintln!("STATUS OK — {updates} updates, {vertexes} vertex reports, {logs} log chunks");
+    assert!(updates > 0, "expected at least one StatusResponse during the build");
+    assert!(vertexes > 0, "expected vertex progress reports during the build");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 /// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
 ///
 /// SETUP: share the socket dir with the host and open its permissions, e.g.

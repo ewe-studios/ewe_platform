@@ -69,6 +69,14 @@ pub struct BuildKitClient {
     pub list_workers: Client<ListWorkersRequest, ListWorkersResponse>,
 }
 
+/// A fresh random build ref (32 lowercase-hex chars, like buildx's
+/// `identity.NewID()`). Set it as `SolveRequest.Ref`, then pass the same
+/// value to [`BuildKitClient::status`] to stream that build's progress.
+#[must_use]
+pub fn new_build_ref() -> String {
+    session::new_session_id()
+}
+
 impl BuildKitClient {
     /// Connect to `buildkitd` at the given Unix socket path
     /// (e.g. `/run/buildkit/buildkitd.sock` — buildkitd's default listener).

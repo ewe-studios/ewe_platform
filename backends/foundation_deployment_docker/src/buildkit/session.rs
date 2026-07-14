@@ -510,8 +510,9 @@ impl Drop for SessionServer {
     }
 }
 
-/// A random BuildKit session id (32 lowercase-hex chars, like buildx).
-fn new_session_id() -> String {
+/// A random BuildKit identifier (32 lowercase-hex chars, like buildx's
+/// `identity.NewID()`). Used for session ids and build refs alike.
+pub(crate) fn new_session_id() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
     let mut x = seed as u64 ^ 0x9E37_79B9_7F4A_7C15;
