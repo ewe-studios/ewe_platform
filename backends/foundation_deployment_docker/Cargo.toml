@@ -10,6 +10,11 @@ version = "0.8.1"
 features = ["json"]
 optional = true
 
+# Streaming combinators referenced by the generated ConnectRPC service code.
+[dependencies.futures]
+version = "0.3"
+optional = true
+
 # Google well-known types (Timestamp, Any, …) referenced by the generated
 # BuildKit message code as `buffa_types::google::protobuf::*`.
 [dependencies.buffa-types]
@@ -19,6 +24,22 @@ optional = true
 
 [build-dependencies.buffa-build]
 version = "0.8.1"
+optional = true
+
+# ConnectRPC service codegen (trait + register fn + typed client) from the
+# BuildKit .proto service definitions — the same generator the connectrpc
+# build.rs pattern uses (README Mode 1), driven per-service here.
+[build-dependencies.foundation_connectrpc_codegen]
+path = "../foundation_connectrpc_codegen"
+version = "0.0.1"
+optional = true
+
+[build-dependencies.prost]
+version = "0.12"
+optional = true
+
+[build-dependencies.prost-types]
+version = "0.12"
 optional = true
 
 [dependencies.chrono]
@@ -66,7 +87,16 @@ workspace = true
 workspace = true
 
 [features]
-buildkit = ["foundation_connectrpc", "dep:buffa", "dep:buffa-types", "dep:buffa-build"]
+buildkit = [
+    "foundation_connectrpc",
+    "dep:buffa",
+    "dep:buffa-types",
+    "dep:buffa-build",
+    "dep:foundation_connectrpc_codegen",
+    "dep:prost",
+    "dep:prost-types",
+    "dep:futures",
+]
 default = []
 integration-tests = []
 docker = [

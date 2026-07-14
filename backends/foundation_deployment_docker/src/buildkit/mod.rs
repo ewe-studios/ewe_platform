@@ -27,6 +27,7 @@
 //! sidecar is the remaining step for end-to-end local Dockerfile builds.
 
 pub mod generated;
+pub mod services;
 pub mod types;
 
 use foundation_connectrpc::{
