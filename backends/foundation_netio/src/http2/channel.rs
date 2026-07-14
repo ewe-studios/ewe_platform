@@ -307,7 +307,7 @@ impl H2Channel {
             // (e.g. grpc-go, which BuildKit's session uses) treats it as a
             // connection error and tears the connection down. Our own H2 client
             // tolerated the wrong order, which hid the bug until now.
-            self.local_settings.to_frame().encode(&mut self.write_buf);
+            self.local_settings.to_frame_server().encode(&mut self.write_buf);
             self.settings_sent = true;
             self.waiting_for_settings_ack = true;
 

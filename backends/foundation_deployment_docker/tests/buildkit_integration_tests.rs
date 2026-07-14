@@ -88,6 +88,110 @@ async fn solve_probe_reports_what_buildkit_needs() {
 }
 
 #[valtron_test(tracing = "debug")]
+async fn session_bidi_manual_response() {
+    use foundation_connectrpc::{
+        Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
+    };
+
+    let Some(addr) = buildkitd_addr() else { return };
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+
+    let session_client = Client::<BytesMessage, BytesMessage>::new(
+        transport,
+        &format!("http://{addr}/moby.buildkit.v1.Control/Session"),
+        ProcedureCodecs::defaults(),
+        ClientOptions::new()
+            .with_grpc()
+            .with_header("x-docker-expose-session-uuid".to_string(), "manual-response-test")
+            .with_header("x-docker-expose-session-name".to_string(), "ewe-manual")
+            .with_header("x-docker-expose-session-grpc-method".to_string(), filesync::procedure::DIFF_COPY)
+            .with_header("x-docker-expose-session-grpc-method".to_string(), health::procedure::CHECK),
+    ).unwrap();
+
+    let mut bidi = session_client
+        .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+        .await
+        .expect("open bidi");
+
+    let (mut sender, mut receiver) = bidi.split();
+
+    // Read H2 preface from buildkitd
+    let preface = match receiver.receive().await {
+        Ok(Some(msg)) => msg.data,
+        other => { eprintln!("[manual] expected preface, got {other:?}"); return; }
+    };
+    eprintln!("[manual] got preface: {} bytes", preface.len());
+
+    // Read client SETTINGS
+    let client_settings = match receiver.receive().await {
+        Ok(Some(msg)) => msg.data,
+        other => { eprintln!("[manual] expected SETTINGS, got {other:?}"); return; }
+    };
+    eprintln!("[manual] got client SETTINGS: {} bytes", client_settings.len());
+
+    // Send back minimal H2 server response: empty SETTINGS + SETTINGS ACK
+    // This is exactly what grpc-go expects from the server
+    // SETTINGS frame (empty — all defaults): 9 bytes
+    // SETTINGS ACK frame: 9 bytes
+    let server_settings: Vec<u8> = vec![
+        0x00, 0x00, 0x00, // length = 0
+        0x04,             // type = SETTINGS
+        0x00,             // flags = none
+        0x00, 0x00, 0x00, 0x00, // stream 0
+    ];
+    let settings_ack: Vec<u8> = vec![
+        0x00, 0x00, 0x00, // length = 0
+        0x04,             // type = SETTINGS
+        0x01,             // flags = ACK
+        0x00, 0x00, 0x00, 0x00, // stream 0
+    ];
+
+    eprintln!("[manual] sending server SETTINGS (9b)...");
+    sender.send(&BytesMessage { data: server_settings, ..Default::default() }).await.unwrap();
+    eprintln!("[manual] sending SETTINGS ACK (9b)...");
+    sender.send(&BytesMessage { data: settings_ack, ..Default::default() }).await.unwrap();
+
+    eprintln!("[manual] waiting for buildkitd's SETTINGS ACK...");
+    // buildkitd should now send SETTINGS ACK
+    match receiver.receive().await {
+        Ok(Some(msg)) => {
+            let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+            eprintln!("[manual] got frame from bk: {} bytes {hex}", msg.data.len());
+        }
+        Ok(None) => eprintln!("[manual] stream ended after our SETTINGS"),
+        Err(e) => eprintln!("[manual] receive error after our SETTINGS: {e}"),
+    }
+
+    // Now wait 3 seconds to see if the bidi stays alive or closes
+    eprintln!("[manual] waiting 3s to see if bidi stays alive...");
+    let start = std::time::Instant::now();
+    // Read in a timeout loop
+    loop {
+        if start.elapsed() > std::time::Duration::from_secs(3) {
+            eprintln!("[manual] TIMEOUT — bidi still alive after 3s! SUCCESS.");
+            break;
+        }
+        match receiver.receive().await {
+            Ok(Some(msg)) => {
+                let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+                eprintln!("[manual] bk→us {} bytes: {hex}", msg.data.len());
+            }
+            Ok(None) => {
+                eprintln!("[manual] stream ended after {:?}", start.elapsed());
+                break;
+            }
+            Err(e) => {
+                eprintln!("[manual] receive error after {:?}: {e}", start.elapsed());
+                break;
+            }
+        }
+    }
+
+    drop(sender);
+    drop(receiver);
+}
+
+#[valtron_test(tracing = "debug")]
 async fn session_bidi_raw_no_pump() {
     use foundation_connectrpc::{
         Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
