@@ -355,7 +355,7 @@ async fn build_with_status_stream() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[valtron_test]
+#[valtron_test(tracing = "debug")]
 async fn build_with_oci_export() {
     use foundation_deployment_docker::buildkit::session::SessionServer;
     use foundation_deployment_docker::buildkit::types::{Exporter, SolveRequest};

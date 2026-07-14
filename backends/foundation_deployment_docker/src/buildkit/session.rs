@@ -180,8 +180,14 @@ impl DirFileSync {
                         st.phase = Phase::EndStats;
                     }
                     Phase::EndStats => {
-                        // Empty stat signals the end of the walk.
-                        let pkt = stat_packet(Stat::default());
+                        // End-of-walk terminator: a PACKET_STAT with NO stat
+                        // message (fsutil checks `p.Stat == nil`). Sending a
+                        // present-but-default Stat instead makes fsutil treat
+                        // it as a real entry and fail with `unclean path ""`.
+                        let pkt = Packet {
+                            r#type: PacketType::PACKET_STAT.into(),
+                            ..Default::default()
+                        };
                         st.phase = Phase::Serving;
                         return Some((Ok(pkt), st));
                     }

@@ -218,8 +218,13 @@ impl BuildKitClient {
     /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
     pub async fn solve(
         &self,
-        request: SolveRequest,
+        mut request: SolveRequest,
     ) -> Result<SolveResponse, Box<dyn std::error::Error + Send + Sync>> {
+        // buildkitd uses `Ref` as the job id — an empty ref collides with any
+        // other in-flight empty-ref solve ("job ID exists"). Always send one.
+        if request.Ref.is_empty() {
+            request.Ref = new_build_ref();
+        }
         let ctx = Ctx::background();
         let response = self.solve.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
