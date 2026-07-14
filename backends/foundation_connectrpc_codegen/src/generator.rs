@@ -98,7 +98,7 @@ enum MethodKind {
 impl MethodInfo {
     fn from(m: &MethodDescriptorProto) -> Self {
         let pascal = m.name.as_deref().unwrap_or("Unknown").to_string();
-        let snake = to_snake_case(&pascal);
+        let snake = escape_keyword(to_snake_case(&pascal));
         let input_type = extract_type_name(m.input_type.as_deref().unwrap_or("UnknownRequest"));
         let output_type =
             extract_type_name(m.output_type.as_deref().unwrap_or("UnknownResponse"));
@@ -126,6 +126,27 @@ impl MethodInfo {
 }
 
 // ── Name helpers ─────────────────────────────────────────────────────────
+
+/// Escape a generated identifier that collides with a Rust keyword by turning
+/// it into a raw identifier (`Return` → `r#return`). Raw identifiers are valid
+/// everywhere the generator uses method names: `fn` names, struct fields,
+/// and call sites (BuildKit's `LLBBridge.Return` is what first hit this).
+fn escape_keyword(name: String) -> String {
+    // Keywords that can appear from snake_casing a proto RPC name and that
+    // Rust permits as raw identifiers.
+    const KEYWORDS: &[&str] = &[
+        "as", "async", "await", "become", "box", "break", "const", "continue", "do", "dyn",
+        "else", "enum", "extern", "false", "final", "fn", "for", "if", "impl", "in", "let",
+        "loop", "match", "mod", "move", "mut", "override", "priv", "pub", "ref", "return",
+        "static", "struct", "trait", "true", "try", "type", "unsafe", "use", "virtual",
+        "where", "while", "yield",
+    ];
+    if KEYWORDS.contains(&name.as_str()) {
+        format!("r#{name}")
+    } else {
+        name
+    }
+}
 
 /// Convert PascalCase to snake_case.
 ///
@@ -211,7 +232,7 @@ fn generate_procedure_module(package: &str, svc_name: &str, methods: &[MethodInf
     out.push_str("/// Procedure path constants — leading slash included (R1).\n");
     out.push_str("pub mod procedure {\n");
     for m in methods {
-        let const_name = m.snake.to_uppercase();
+        let const_name = m.snake.trim_start_matches("r#").to_uppercase();
         let path = format!("/{package}.{svc_name}/{}", m.pascal);
         out.push_str(&format!("    /// Procedure path for \"{path}\".\n"));
         out.push_str(&format!("    pub const {const_name}: &str = \"{path}\";\n"));
@@ -234,7 +255,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         let method_name = &m.snake;
         let req = &m.input_type;
         let res = &m.output_type;
-        let path_const = m.snake.to_uppercase();
+        let path_const = m.snake.trim_start_matches("r#").to_uppercase();
 
         out.push_str("    /// Generated default returns `unimplemented`.\n");
 
@@ -318,7 +339,7 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
     out.push_str(") {\n");
 
     for m in methods {
-        let path_const = m.snake.to_uppercase();
+        let path_const = m.snake.trim_start_matches("r#").to_uppercase();
         let req = &m.input_type;
         let res = &m.output_type;
         let method_name = &m.snake;
@@ -413,7 +434,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         let field_name = &m.snake;
         let req = &m.input_type;
         let res = &m.output_type;
-        let path_const = m.snake.to_uppercase();
+        let path_const = m.snake.trim_start_matches("r#").to_uppercase();
         let idem_suffix = idempotency_suffix(&m.idempotency_expr);
         let is_last = i == methods.len() - 1;
 
