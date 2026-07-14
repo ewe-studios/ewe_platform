@@ -92,12 +92,38 @@ pub struct H2Channel {
     next_outgoing_id: u32,
     _last_peer_stream_id: u32,
 
-    preface_sent: bool,
-    preface_received: bool,
-    settings_sent: bool,
-    waiting_for_settings_ack: bool,
-    goaway_sent: bool,
-    goaway_received: bool,
+    /// Handshake + GOAWAY state bits (see [`ChannelFlags`]). Packed into one
+    /// field because they are otherwise-independent flags spanning the
+    /// handshake and the frame loop.
+    flags: ChannelFlags,
+}
+
+/// The connection-lifecycle state bits of an [`H2Channel`], packed into one
+/// byte. Each accessor reads/writes a single bit — the semantics are exactly
+/// the six former `bool` fields, just consolidated so the struct does not carry
+/// a loose pile of booleans.
+#[derive(Clone, Copy, Default)]
+struct ChannelFlags(u8);
+
+impl ChannelFlags {
+    const PREFACE_SENT: u8 = 1 << 0;
+    const PREFACE_RECEIVED: u8 = 1 << 1;
+    const SETTINGS_SENT: u8 = 1 << 2;
+    const WAITING_SETTINGS_ACK: u8 = 1 << 3;
+    const GOAWAY_SENT: u8 = 1 << 4;
+    const GOAWAY_RECEIVED: u8 = 1 << 5;
+
+    fn has(self, bit: u8) -> bool {
+        self.0 & bit != 0
+    }
+
+    fn set(&mut self, bit: u8, on: bool) {
+        if on {
+            self.0 |= bit;
+        } else {
+            self.0 &= !bit;
+        }
+    }
 }
 
 /// One event on a stream after the initial response headers have been delivered.
@@ -138,12 +164,7 @@ impl H2Channel {
             streams: BTreeMap::new(),
             next_outgoing_id: if is_server { 2 } else { 1 },
             _last_peer_stream_id: 0,
-            preface_sent: false,
-            preface_received: false,
-            settings_sent: false,
-            waiting_for_settings_ack: false,
-            goaway_sent: false,
-            goaway_received: false,
+            flags: ChannelFlags::default(),
         }
     }
 
@@ -229,19 +250,19 @@ impl H2Channel {
     ///
     /// Returns an error if the operation fails.
     pub fn client_handshake_step(&mut self) -> io::Result<()> {
-        if !self.preface_sent {
+        if !self.flags.has(ChannelFlags::PREFACE_SENT) {
             self.write_buf.put_slice(CLIENT_PREFACE);
-            self.preface_sent = true;
+            self.flags.set(ChannelFlags::PREFACE_SENT, true);
         }
 
-        if !self.settings_sent {
+        if !self.flags.has(ChannelFlags::SETTINGS_SENT) {
             let sf = self.local_settings.to_frame();
             sf.encode(&mut self.write_buf);
-            self.settings_sent = true;
-            self.waiting_for_settings_ack = true;
+            self.flags.set(ChannelFlags::SETTINGS_SENT, true);
+            self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, true);
         }
 
-        if self.waiting_for_settings_ack {
+        if self.flags.has(ChannelFlags::WAITING_SETTINGS_ACK) {
             let (head, payload) = match self.read_frame() {
                 Ok(v) => v,
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Err(e),
@@ -250,8 +271,8 @@ impl H2Channel {
             match head.kind {
                 Kind::Settings => {
                     if head.flag & settings_flags::ACK != 0 {
-                        self.waiting_for_settings_ack = false;
-                        self.preface_received = true;
+                        self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, false);
+                        self.flags.set(ChannelFlags::PREFACE_RECEIVED, true);
                         return Ok(());
                     }
                     let sf = SettingsFrame::parse(&head, &payload).map_err(proto_err)?;
@@ -272,7 +293,7 @@ impl H2Channel {
             }
         }
 
-        self.preface_received = true;
+        self.flags.set(ChannelFlags::PREFACE_RECEIVED, true);
         Ok(())
     }
 
@@ -284,7 +305,7 @@ impl H2Channel {
     /// Returns an error if the operation fails.
     pub fn server_handshake_step(&mut self) -> io::Result<()> {
         // 1. Read client preface
-        if !self.preface_received {
+        if !self.flags.has(ChannelFlags::PREFACE_RECEIVED) {
             if self.read_buf.remaining() < CLIENT_PREFACE_LEN {
                 return Err(would_block());
             }
@@ -295,11 +316,11 @@ impl H2Channel {
                     "invalid h2 preface",
                 ));
             }
-            self.preface_received = true;
+            self.flags.set(ChannelFlags::PREFACE_RECEIVED, true);
         }
 
         // 2. Read client SETTINGS
-        if !self.settings_sent {
+        if !self.flags.has(ChannelFlags::SETTINGS_SENT) {
             let (head, payload) = match self.read_frame() {
                 Ok(v) => v,
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Err(e),
@@ -325,8 +346,8 @@ impl H2Channel {
             // connection error and tears the connection down. Our own H2 client
             // tolerated the wrong order, which hid the bug until now.
             self.local_settings.to_frame_server().encode(&mut self.write_buf);
-            self.settings_sent = true;
-            self.waiting_for_settings_ack = true;
+            self.flags.set(ChannelFlags::SETTINGS_SENT, true);
+            self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, true);
 
             let ack = SettingsFrame::ack();
             let mut buf = BytesMut::new();
@@ -335,7 +356,7 @@ impl H2Channel {
         }
 
         // 4. Wait for client SETTINGS ACK
-        if self.waiting_for_settings_ack {
+        if self.flags.has(ChannelFlags::WAITING_SETTINGS_ACK) {
             let (head, _payload) = match self.read_frame() {
                 Ok(v) => v,
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Err(e),
@@ -347,7 +368,7 @@ impl H2Channel {
                     "expected SETTINGS ACK",
                 ));
             }
-            self.waiting_for_settings_ack = false;
+            self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, false);
         }
 
         Ok(())
@@ -558,7 +579,7 @@ impl H2Channel {
         };
         // `GoAwayFrame::encode` emits the complete frame — do not re-wrap it.
         gf.encode(&mut self.write_buf);
-        self.goaway_sent = true;
+        self.flags.set(ChannelFlags::GOAWAY_SENT, true);
     }
 
     // ── Response reader ─────────────────────────────────────────────────
@@ -593,7 +614,7 @@ impl H2Channel {
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
                 Kind::Ping => self.handle_ping(head, &payload)?,
                 Kind::GoAway => {
-                    self.goaway_received = true;
+                    self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true);
                     return Ok(None);
                 }
                 _ => {}
@@ -623,7 +644,7 @@ impl H2Channel {
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
                 Kind::Ping => self.handle_ping(head, &payload)?,
                 Kind::GoAway => {
-                    self.goaway_received = true;
+                    self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true);
                     return Ok(None);
                 }
                 _ => {}
@@ -678,7 +699,7 @@ impl H2Channel {
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
                 Kind::Ping => self.handle_ping(head, &payload)?,
                 Kind::GoAway => {
-                    self.goaway_received = true;
+                    self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true);
                     return Ok(None);
                 }
                 _ => {}
@@ -726,7 +747,7 @@ impl H2Channel {
             ));
         }
         if head.flag & settings_flags::ACK != 0 {
-            self.waiting_for_settings_ack = false;
+            self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, false);
             return Ok(());
         }
         let sf = SettingsFrame::parse(&head, payload).map_err(proto_err)?;
@@ -793,15 +814,15 @@ impl H2Channel {
             Kind::Settings => self.handle_settings(*head, payload)?,
             Kind::WindowUpdate => self.handle_window_update(*head, payload)?,
             Kind::Ping => self.handle_ping(*head, payload)?,
-            Kind::GoAway => { self.goaway_received = true; return Ok(true); }
+            Kind::GoAway => { self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true); return Ok(true); }
             _ => {} // stream-level frames — caller handles
         }
-        Ok(self.goaway_received)
+        Ok(self.flags.has(ChannelFlags::GOAWAY_RECEIVED))
     }
 
     /// Whether the peer has sent GOAWAY.
     #[must_use]
-    pub fn goaway_received(&self) -> bool { self.goaway_received }
+    pub fn goaway_received(&self) -> bool { self.flags.has(ChannelFlags::GOAWAY_RECEIVED) }
 
     /// Send `RST_STREAM` for the given stream.
     pub fn send_rst_stream(&mut self, stream_id: u32) {
