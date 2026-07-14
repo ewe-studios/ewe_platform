@@ -65,6 +65,12 @@ pub enum SwimMessage {
         /// Fresher records for the requester to merge.
         updates: Vec<PeerRecord>,
     },
+    /// WebRTC signaling: SDP offer/answer + ICE candidates carried over gossip
+    /// (spec-55, F07 — no separate signaling server).
+    WebRtcSignal {
+        /// The signaling payload (SDP string or ICE candidate JSON).
+        data: Vec<u8>,
+    },
 }
 
 /// A [`SwimMessage`] addressed to a specific peer. The mesh layer maps `to` onto a

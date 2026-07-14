@@ -93,6 +93,10 @@ tempfile = "3"
 # Also gates the `completeness_tests` integration suite.
 spec55-complete = []
 
+# webtransport: enables the browser WebTransport bridge (requires foundation_netio/quic
+# + web_sys WebTransport unstable API). Off by default — browser peers use WS relay.
+webtransport = ["foundation_netio/quic"]
+
 [lints]
 workspace = true
 

@@ -20,5 +20,15 @@ pub mod device;
 /// WebRTC offerer (browser side).
 pub mod webrtc;
 
-/// WebTransport browser bridge (wasm only).
+/// WebTransport browser bridge (wasm only — requires foundation_netio/quic + web_sys WebTransport).
+#[cfg(all(target_family = "wasm", feature = "webtransport"))]
 pub mod webtransport;
+#[cfg(not(all(target_family = "wasm", feature = "webtransport")))]
+pub mod webtransport {
+    //! Stub module when webtransport feature is not enabled.
+    pub struct WasmWtBridge;
+    impl WasmWtBridge {
+        pub fn connect(_url: &str) -> Result<Self, String> { Err("webtransport feature not enabled".into()) }
+        pub fn tick(&mut self) {}
+    }
+}

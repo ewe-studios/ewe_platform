@@ -253,6 +253,9 @@ impl Swim {
             SwimMessage::SyncResponse { updates } => {
                 self.absorb_and_regossip(updates, &mut out, &mut events);
             }
+            // WebRTC signals are dispatched by the mesh/node layer to the
+            // answerer/offerer state machines — SWIM just delivers them.
+            SwimMessage::WebRtcSignal { .. } => {}
         }
 
         (out, events)
