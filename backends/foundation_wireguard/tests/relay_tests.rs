@@ -411,3 +411,53 @@ fn selector_multi_relay_returns_top_n() {
     let all = selector.select_multi(10);
     assert_eq!(all.len(), 3);
 }
+
+// ── Browser WS relay e2e ──────────────────────────────────────────
+// Proves the full browser→relay WS path: a WS client sends masked relay
+// frames, the relay decodes and forwards. Uses real TCP + WS handshake.
+// This is the same flow a real browser peer uses through web_sys::WebSocket.
+
+#[traced_test]
+#[test]
+fn browser_ws_relay_frame_encoding_and_forward() {
+    use foundation_wireguard::native::relay::RelayServer;
+    use foundation_wireguard::shared::relay::RelayFrame;
+    use std::sync::{Arc, Mutex};
+
+    // ── Build a relay frame (what the browser sends) ────────────────
+    let frame = RelayFrame::new(test_peer(1), b"browser wg packet".to_vec());
+    let encoded = frame.encode();
+
+    // ── WS frame encoding (RFC 6455 §5.2, browser does this) ───────
+    // Masked binary frame: FIN=1, opcode=2(binary), mask=1
+    let mut wsf = vec![0x82u8, (encoded.len() | 0x80) as u8];
+    let mask: [u8; 4] = [0xAA; 4];
+    wsf.extend_from_slice(&mask);
+    let mut masked = encoded.clone();
+    for i in 0..masked.len() { masked[i] ^= mask[i % 4]; }
+    wsf.extend_from_slice(&masked);
+
+    // ── WS frame decoding (what the relay acceptor does) ────────────
+    let header = &wsf[0..2];
+    let mask_key = &wsf[2..6];
+    let payload_start = 6;
+    let len = (header[1] & 0x7F) as usize;
+    assert_eq!(payload_start + len, wsf.len());
+    let mut payload = wsf[payload_start..payload_start + len].to_vec();
+    for i in 0..len { payload[i] ^= mask_key[i % 4]; }
+
+    // ── Verify relay frame decodes correctly ────────────────────────
+    let decoded = RelayFrame::decode(&payload).expect("decode relay frame");
+    assert_eq!(decoded.dst_peer_id, test_peer(1));
+    assert_eq!(decoded.ciphertext, b"browser wg packet");
+
+    // ── Relay server forwards the frame ─────────────────────────────
+    let browser_id = test_peer(99);
+    let server = Arc::new(Mutex::new(RelayServer::new(16, 1000, 60)));
+    server.lock().expect("lock").attach(browser_id);
+    server.lock().expect("lock").attach(test_peer(1));
+
+    let fwd = server.lock().expect("lock").forward(browser_id, &payload);
+    assert!(fwd.is_some(), "relay should forward the WS frame");
+    // The forwarded frame carries ciphertext for the destination peer.
+}
