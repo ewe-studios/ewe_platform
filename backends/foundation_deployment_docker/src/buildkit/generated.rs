@@ -70,6 +70,18 @@ pub mod moby {
             pub mod sourcepolicy {
                 include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.sourcepolicy.mod.rs"));
             }
+
+            /// `moby.buildkit.v1.frontend` — Gateway/LLBBridge messages
+            /// (`frontend/gateway/pb/gateway.proto`).
+            pub mod frontend {
+                include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.frontend.mod.rs"));
+            }
+
+            /// `moby.buildkit.v1.apicaps` — API capability descriptors
+            /// (`util/apicaps/pb/caps.proto`).
+            pub mod apicaps {
+                include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.apicaps.mod.rs"));
+            }
         }
 
         /// `moby.buildkit.secrets.v1` — Secrets session service (`session/secrets`).

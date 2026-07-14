@@ -9,7 +9,7 @@
 //! WHAT: [`BuildKitClient`] holds one typed `Client` per RPC we drive:
 //!   - `Info`   — unary, buildkitd version/worker info.
 //!   - `Solve`  — unary, kick off a build (the request references a `session`
-//!                id whose sidecar streams the build context / secrets / auth).
+//!     id whose sidecar streams the build context / secrets / auth).
 //!   - `Status` — server-streaming, live build progress (vertexes + logs).
 //!
 //! HOW: [`BuildKitClient::connect`] builds an [`H2Transport`] dialing the
@@ -34,16 +34,17 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2PooledTransport, H2Transport, ProcedureCodecs, Request,
+    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request,
     ServerStream, Transport,
 };
 use std::path::Path;
 use std::sync::Arc;
 
 use crate::buildkit::types::{
-    DiskUsageRequest, DiskUsageResponse, InfoRequest, InfoResponse, ListWorkersRequest,
-    ListWorkersResponse, PruneRequest, SolveRequest, SolveResponse, StatusRequest, StatusResponse,
-    UsageRecord,
+    BuildHistoryEvent, BuildHistoryRequest, DiskUsageRequest, DiskUsageResponse, InfoRequest,
+    InfoResponse, ListWorkersRequest, ListWorkersResponse, PruneRequest, SolveRequest,
+    SolveResponse, StatusRequest, StatusResponse, UpdateBuildHistoryRequest,
+    UpdateBuildHistoryResponse, UsageRecord,
 };
 
 /// BuildKit daemon client — gRPC over a Unix socket or TCP.
@@ -55,6 +56,10 @@ pub struct BuildKitClient {
     /// The transport shared by all per-RPC clients — exposed so callers can
     /// open additional streams (e.g. Session bidi) on the same connection.
     pub transport: Arc<dyn Transport>,
+    /// The `host:port` (or placeholder `localhost` for Unix sockets) every
+    /// per-RPC URL was built against — kept so additional clients (e.g. the
+    /// Gateway API) can target the same endpoint.
+    authority: String,
     /// Unary build execution.
     pub solve: Client<SolveRequest, SolveResponse>,
     /// Server-streaming build progress.
@@ -67,6 +72,10 @@ pub struct BuildKitClient {
     pub prune: Client<PruneRequest, UsageRecord>,
     /// Unary worker listing.
     pub list_workers: Client<ListWorkersRequest, ListWorkersResponse>,
+    /// Server-streaming build-history feed.
+    pub listen_build_history: Client<BuildHistoryRequest, BuildHistoryEvent>,
+    /// Unary build-history record update (pin/unpin, delete, finalize).
+    pub update_build_history: Client<UpdateBuildHistoryRequest, UpdateBuildHistoryResponse>,
 }
 
 /// A fresh random build ref (32 lowercase-hex chars, like buildx's
@@ -102,9 +111,9 @@ impl BuildKitClient {
     /// is published on (e.g. `127.0.0.1:1234`). buildkitd's TCP listener is
     /// plaintext h2c when started without TLS — intended for local/testbed use.
     ///
-    /// Each RPC opens a **new** TCP connection. Prefer [`connect_tcp_pooled`]
-    /// when making multiple calls (e.g. Session + Solve) — it multiplexes H2
-    /// streams on one persistent connection, matching how gRPC is designed.
+    /// Each RPC opens a **new** TCP connection. (A multiplexed shared-connection
+    /// transport was prototyped and removed — per-call connections are simpler
+    /// and validated end-to-end; buildkitd accepts them fine.)
     ///
     /// # Errors
     ///
@@ -114,28 +123,9 @@ impl BuildKitClient {
         Self::from_transport(transport, authority)
     }
 
-    /// Connect to a `buildkitd` listening on TCP using a **persistent**,
-    /// multiplexed H2 connection ([`H2PooledTransport`]).
-    ///
-    /// Unlike [`connect_tcp`] (new TCP per RPC), this opens ONE TCP connection
-    /// and creates new H2 **streams** for each call — matching how gRPC is
-    /// designed and how bollard's tonic `Channel` operates. The [`Transport`]
-    /// is also accessible via [`transport`](Self::transport) so
-    /// [`SessionServer::start_with`] can open the Session bidi on the same
-    /// connection as the control-plane RPCs.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the TCP connect, H2 handshake, or client construction
-    /// fails.
-    pub fn connect_tcp_pooled(authority: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let transport: Arc<dyn Transport> = Arc::new(H2PooledTransport::connect(authority)?);
-        Self::from_transport(transport, authority)
-    }
-
     /// The underlying [`Transport`] this client was built with. Useful for
-    /// passing to [`SessionServer`] so the Session bidi shares the same H2
-    /// connection as the control-plane RPCs.
+    /// passing to [`SessionServer::start_with`] so the Session bidi dials the
+    /// same endpoint (e.g. the Unix socket) as the control-plane RPCs.
     #[must_use]
     pub fn transport(&self) -> &Arc<dyn Transport> {
         &self.transport
@@ -192,7 +182,62 @@ impl BuildKitClient {
             opts(),
         )?;
 
-        Ok(Self { transport, solve, status, info, disk_usage, prune, list_workers })
+        let listen_build_history = Client::<BuildHistoryRequest, BuildHistoryEvent>::new(
+            Arc::clone(&transport),
+            &format!("{base_url}/ListenBuildHistory"),
+            ProcedureCodecs::defaults(),
+            opts(),
+        )?;
+
+        let update_build_history =
+            Client::<UpdateBuildHistoryRequest, UpdateBuildHistoryResponse>::new(
+                Arc::clone(&transport),
+                &format!("{base_url}/UpdateBuildHistory"),
+                ProcedureCodecs::defaults(),
+                opts(),
+            )?;
+
+        Ok(Self {
+            transport,
+            authority: authority.to_string(),
+            solve,
+            status,
+            info,
+            disk_usage,
+            prune,
+            list_workers,
+            listen_build_history,
+            update_build_history,
+        })
+    }
+
+    /// A Gateway (`moby.buildkit.v1.frontend.LLBBridge`) client for the build
+    /// identified by `build_ref` — the frontend API buildkitd serves on this
+    /// same Control endpoint while a `Frontend = ""` Solve with that `Ref` is
+    /// running (the code-first `client.Build` flow). Every call carries the
+    /// `buildkit-controlapi-buildid` header that routes it to that build.
+    ///
+    /// Choreography (mirrors buildkit's `client/build.go`): start the Solve
+    /// concurrently, drive gateway calls (`resolve_image_config`, `solve`,
+    /// `read_file`, …), then finish with `r#return` — the Solve completes when
+    /// the result is returned.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a client cannot be constructed.
+    pub fn gateway_for_build(
+        &self,
+        build_ref: impl Into<String>,
+    ) -> Result<services::gateway::LLBBridgeClient, Box<dyn std::error::Error + Send + Sync>>
+    {
+        let client = services::gateway::LLBBridgeClient::new(
+            Arc::clone(&self.transport),
+            &format!("http://{}", self.authority),
+            ClientOptions::new()
+                .with_grpc()
+                .with_header("buildkit-controlapi-buildid".to_string(), build_ref.into()),
+        )?;
+        Ok(client)
     }
 
     /// Get buildkitd info (unary): version, worker records, and capabilities.
@@ -306,5 +351,58 @@ impl BuildKitClient {
         };
         let stream = self.prune.server_stream(ctx, Request::new(request)).await?;
         Ok(stream)
+    }
+
+    /// Stream build-history records (server-streaming `ListenBuildHistory`).
+    ///
+    /// With `early_exit` the stream replays existing records and ends —
+    /// without it, it stays open and follows new builds. `build_ref` filters
+    /// to a single record (empty = all).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
+    pub async fn listen_build_history(
+        &self,
+        build_ref: impl Into<String>,
+        early_exit: bool,
+    ) -> Result<ServerStream<BuildHistoryEvent>, Box<dyn std::error::Error + Send + Sync>> {
+        let ctx = Ctx::background();
+        let request = BuildHistoryRequest {
+            Ref: build_ref.into(),
+            EarlyExit: early_exit,
+            ..Default::default()
+        };
+        let stream = self
+            .listen_build_history
+            .server_stream(ctx, Request::new(request))
+            .await?;
+        Ok(stream)
+    }
+
+    /// Update one build-history record (unary `UpdateBuildHistory`): pin it,
+    /// or delete it.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ConnectError` trace on transport failure or non-OK gRPC status.
+    pub async fn update_build_history(
+        &self,
+        build_ref: impl Into<String>,
+        pinned: bool,
+        delete: bool,
+    ) -> Result<UpdateBuildHistoryResponse, Box<dyn std::error::Error + Send + Sync>> {
+        let ctx = Ctx::background();
+        let request = UpdateBuildHistoryRequest {
+            Ref: build_ref.into(),
+            Pinned: pinned,
+            Delete: delete,
+            ..Default::default()
+        };
+        let response = self
+            .update_build_history
+            .unary(ctx, Request::new(request))
+            .await?;
+        Ok(response.msg)
     }
 }

@@ -60,6 +60,14 @@ pub mod ssh {
     include!(concat!(env!("OUT_DIR"), "/ssh_service.rs"));
 }
 
+/// `moby.buildkit.v1.frontend.LLBBridge` — the Gateway API buildkitd serves on
+/// the Control endpoint during a `Frontend=""` build (code-first frontends).
+/// We use the generated CLIENT (buildkitd is the server here).
+pub mod gateway {
+    use crate::buildkit::generated::moby::buildkit::v1::frontend::*;
+    include!(concat!(env!("OUT_DIR"), "/gateway_service.rs"));
+}
+
 /// `grpc.health.v1.Health` — standard gRPC health service; buildkit's session
 /// health-checks the client and tears the session down if it fails.
 pub mod health {

@@ -137,3 +137,92 @@ async fn health_check_returns_serving() {
 
     shutdown.turn_on();
 }
+
+#[valtron_test]
+async fn ssh_agent_proxy_forwards_bytes() {
+    use foundation_connectrpc::{ConnectRpcServeH2, Router};
+    use foundation_deployment_docker::buildkit::generated::moby::sshforward::v1::{
+        BytesMessage, CheckAgentRequest, CheckAgentResponse,
+    };
+    use foundation_deployment_docker::buildkit::services::ssh::{self, register_ssh};
+    use foundation_deployment_docker::buildkit::session::SshAgentProxy;
+    use foundation_core::synca::OnSignal;
+    use foundation_http::native::serve::H2Serve;
+    use foundation_http::native::server::HttpServer;
+    use foundation_http::shared::app::{HttpApp, ServerApp};
+    use std::io::{Read as _, Write as _};
+
+    // Fake "agent": a unix socket that echoes each chunk back prefixed with
+    // "agent:". Proves ForwardAgent pumps both directions through a real
+    // socket, without needing ssh-agent.
+    let sock_path = std::env::temp_dir().join(format!("ewe-fake-agent-{}.sock", std::process::id()));
+    let _ = std::fs::remove_file(&sock_path);
+    let agent_listener = std::os::unix::net::UnixListener::bind(&sock_path).unwrap();
+    std::thread::spawn(move || {
+        for conn in agent_listener.incoming() {
+            let Ok(mut conn) = conn else { break };
+            std::thread::spawn(move || {
+                let mut buf = [0u8; 4096];
+                while let Ok(n) = conn.read(&mut buf) {
+                    if n == 0 { break; }
+                    let mut reply = b"agent:".to_vec();
+                    reply.extend_from_slice(&buf[..n]);
+                    if conn.write_all(&reply).is_err() { break; }
+                }
+            });
+        }
+    });
+
+    // Serve the SSH service on loopback h2.
+    let mut router = Router::new();
+    register_ssh(&mut router, Arc::new(SshAgentProxy::new(&sock_path)));
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
+    let mut app = HttpApp::new_h2_serve();
+    app.route_any_h2(ssh::procedure::CHECK_AGENT, rpc.clone());
+    app.route_any_h2(ssh::procedure::FORWARD_AGENT, rpc);
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let addr = listener.local_addr().unwrap();
+    let shutdown = Arc::new(OnSignal::new());
+    let sd = shutdown.clone();
+    let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
+    std::thread::spawn(move || server.serve_with_listener(&listener, &sd));
+
+    // CheckAgent succeeds while the socket is up.
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let check = Client::<CheckAgentRequest, CheckAgentResponse>::new(
+        transport.clone(),
+        &format!("http://{addr}/moby.sshforward.v1.SSH/CheckAgent"),
+        ProcedureCodecs::defaults(),
+        ClientOptions::new().with_grpc(),
+    )
+    .unwrap();
+    check
+        .unary(Ctx::background(), Request::new(CheckAgentRequest::default()))
+        .await
+        .expect("CheckAgent should succeed against a live socket");
+
+    // ForwardAgent round-trips bytes through the fake agent.
+    let forward = Client::<BytesMessage, BytesMessage>::new(
+        transport,
+        &format!("http://{addr}/moby.sshforward.v1.SSH/ForwardAgent"),
+        ProcedureCodecs::defaults(),
+        ClientOptions::new().with_grpc(),
+    )
+    .unwrap();
+    let mut bidi = forward
+        .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+        .await
+        .expect("open ForwardAgent");
+    bidi.send(&BytesMessage { data: b"hello".to_vec(), ..Default::default() })
+        .await
+        .expect("send to agent");
+    let reply = bidi
+        .receive()
+        .await
+        .expect("receive from agent")
+        .expect("agent reply present");
+    assert_eq!(reply.data, b"agent:hello", "agent echo mismatch");
+
+    shutdown.turn_on();
+    let _ = std::fs::remove_file(&sock_path);
+}

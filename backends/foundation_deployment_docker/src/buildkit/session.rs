@@ -40,7 +40,14 @@ use crate::buildkit::generated::grpc::health::v1::health_check_response::Serving
 use crate::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
 use crate::buildkit::generated::moby::filesync::v1::BytesMessage as FsBytesMessage;
 use crate::buildkit::generated::moby::filesync::v1::{CredentialsRequest, CredentialsResponse};
+use crate::buildkit::generated::moby::buildkit::secrets::v1::{
+    GetSecretRequest, GetSecretResponse,
+};
+use crate::buildkit::generated::moby::sshforward::v1::BytesMessage as SshBytesMessage;
+use crate::buildkit::generated::moby::sshforward::v1::{CheckAgentRequest, CheckAgentResponse};
 use crate::buildkit::services::auth::{self, register_auth, Auth};
+use crate::buildkit::services::ssh::{self, register_ssh, SSH as Ssh};
+use crate::buildkit::services::secrets::{self, register_secrets, Secrets};
 use crate::buildkit::services::filesend::{self, register_file_send, FileSend};
 use crate::buildkit::services::filesync::{self, register_file_sync, FileSync};
 use crate::buildkit::services::health::{self, register_health, Health};
@@ -351,6 +358,181 @@ impl Auth for StaticRegistryAuth {
     // generated `unimplemented` defaults — see the type docs.
 }
 
+// ── Secrets: build secrets served over the session ──────────────────────────
+
+/// Build secrets keyed by id, served over the session's
+/// `moby.buildkit.secrets.v1.Secrets/GetSecret` callback — what a
+/// `RUN --mount=type=secret,id=…` instruction resolves against.
+///
+/// Unknown ids return `NotFound`, which buildkitd reports as the standard
+/// "secret … not found" build error (same behavior as buildx without a
+/// matching `--secret`).
+#[derive(Default)]
+pub struct StaticSecrets {
+    secrets: std::collections::HashMap<String, Vec<u8>>,
+}
+
+impl StaticSecrets {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Add secret bytes under `id` (the `id=` in `--mount=type=secret,id=…`).
+    #[must_use]
+    pub fn with_secret(mut self, id: impl Into<String>, data: impl Into<Vec<u8>>) -> Self {
+        self.secrets.insert(id.into(), data.into());
+        self
+    }
+}
+
+impl Secrets for StaticSecrets {
+    fn get_secret(
+        &self,
+        _ctx: Ctx,
+        request: Request<GetSecretRequest>,
+    ) -> impl core::future::Future<Output = ConnectResult<Response<GetSecretResponse>>> + Send
+    {
+        let result = match self.secrets.get(&request.msg.ID) {
+            Some(data) => Ok(Response::new(GetSecretResponse {
+                data: data.clone(),
+                ..Default::default()
+            })),
+            None => Err(ConnectError::not_found(format!(
+                "secret {:?} not registered on this session",
+                request.msg.ID
+            ))
+            .into()),
+        };
+        async move { result }
+    }
+}
+
+// ── SSH: agent forwarding over the session ───────────────────────────────────
+
+/// Forwards `RUN --mount=type=ssh` traffic to a local SSH agent socket
+/// (`$SSH_AUTH_SOCK`-style path).
+///
+/// Implements the session's `moby.sshforward.v1.SSH` callbacks:
+/// - `CheckAgent` — succeeds when the agent socket accepts a connection.
+/// - `ForwardAgent` — a byte pump between the gRPC bidi (`BytesMessage`
+///   chunks from the build container's ssh client) and the local agent
+///   socket, same thread↔pipe bridge shape as the session tunnel itself.
+pub struct SshAgentProxy {
+    socket: Arc<PathBuf>,
+}
+
+impl SshAgentProxy {
+    /// Proxy to the agent at `socket` (typically `std::env::var("SSH_AUTH_SOCK")`).
+    #[must_use]
+    pub fn new(socket: impl Into<PathBuf>) -> Self {
+        Self { socket: Arc::new(socket.into()) }
+    }
+}
+
+impl Ssh for SshAgentProxy {
+    fn check_agent(
+        &self,
+        _ctx: Ctx,
+        _request: Request<CheckAgentRequest>,
+    ) -> impl core::future::Future<Output = ConnectResult<Response<CheckAgentResponse>>> + Send
+    {
+        let result = match std::os::unix::net::UnixStream::connect(self.socket.as_ref()) {
+            Ok(_) => Ok(Response::new(CheckAgentResponse::default())),
+            Err(e) => Err(ConnectError::failed_precondition(format!(
+                "ssh agent socket {:?} not reachable: {e}",
+                self.socket
+            ))
+            .into()),
+        };
+        async move { result }
+    }
+
+    fn forward_agent(
+        &self,
+        _ctx: Ctx,
+        requests: impl futures::Stream<Item = ConnectResult<SshBytesMessage>> + Send + 'static,
+    ) -> impl core::future::Future<
+        Output = ConnectResult<
+            std::pin::Pin<Box<dyn futures::Stream<Item = ConnectResult<SshBytesMessage>> + Send>>,
+        >,
+    > + Send {
+        let socket = self.socket.clone();
+        async move {
+            use futures::StreamExt;
+
+            let agent = std::os::unix::net::UnixStream::connect(socket.as_ref())
+                .map_err(|e| ConnectError::failed_precondition(format!("dial ssh agent: {e}")))?;
+            let mut agent_read = agent
+                .try_clone()
+                .map_err(|e| ConnectError::internal(format!("clone agent socket: {e}")))?;
+            let mut agent_write = agent;
+
+            // gRPC → agent: drain the request stream on the pool; blocking
+            // socket writes stay on a dedicated OS thread.
+            let (to_agent_tx, to_agent_rx) = std::sync::mpsc::channel::<Vec<u8>>();
+            let drain = valtron::from_future(Box::pin(async move {
+                let mut requests = Box::pin(requests);
+                while let Some(item) = requests.next().await {
+                    match item {
+                        Ok(msg) => {
+                            if to_agent_tx.send(msg.data).is_err() {
+                                break;
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(err = %e, "ssh forward: request stream error");
+                            break;
+                        }
+                    }
+                }
+                // Sender drop closes the channel; the write thread half-closes
+                // the agent socket so the agent sees EOF.
+            }));
+            valtron::send(drain)
+                .map_err(|e| ConnectError::internal(format!("spawn ssh drain task: {e}")))?;
+            std::thread::spawn(move || {
+                while let Ok(data) = to_agent_rx.recv() {
+                    if agent_write.write_all(&data).is_err() || agent_write.flush().is_err() {
+                        break;
+                    }
+                }
+                let _ = agent_write.shutdown(std::net::Shutdown::Write);
+            });
+
+            // agent → gRPC: blocking reads on an OS thread feed a valtron pipe;
+            // the response stream drains it with readiness-parked awaits.
+            let (from_agent_tx, from_agent_rx) = valtron::Pipe::<Vec<u8>>::new();
+            std::thread::spawn(move || {
+                let mut buf = vec![0u8; 32 * 1024];
+                loop {
+                    match agent_read.read(&mut buf) {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if from_agent_tx.try_send(buf[..n].to_vec()).is_err() {
+                                // Bounded pipe full or receiver gone. Agent
+                                // replies are tiny (key lists/signatures), so
+                                // full means the consumer hung up.
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            let out = futures::stream::unfold(from_agent_rx, |rx| async move {
+                rx.receive()
+                    .await
+                    .map(|data| (Ok(SshBytesMessage { data, ..Default::default() }), rx))
+            });
+            let boxed: std::pin::Pin<
+                Box<dyn futures::Stream<Item = ConnectResult<SshBytesMessage>> + Send>,
+            > = Box::pin(out);
+            Ok(boxed)
+        }
+    }
+}
+
 // ── FileSend sink: receive exported artifacts from buildkitd ─────────────────
 
 /// A [`FileSend`] sink that writes exported build artifacts to a file.
@@ -456,6 +638,8 @@ pub struct SessionBuilder {
     context_dir: PathBuf,
     export_file: Option<PathBuf>,
     auth: Option<Arc<StaticRegistryAuth>>,
+    secrets: Option<Arc<StaticSecrets>>,
+    ssh: Option<Arc<SshAgentProxy>>,
     /// A session-owned temp dir (inline dockerfile) removed on session drop.
     owned_tmp: Option<PathBuf>,
 }
@@ -467,6 +651,22 @@ impl SessionBuilder {
     #[must_use]
     pub fn export_to_file(mut self, path: impl Into<PathBuf>) -> Self {
         self.export_file = Some(path.into());
+        self
+    }
+
+    /// Serve build secrets over the session (`Secrets/GetSecret`) — what
+    /// `RUN --mount=type=secret,id=…` instructions resolve against.
+    #[must_use]
+    pub fn secrets(mut self, secrets: Arc<StaticSecrets>) -> Self {
+        self.secrets = Some(secrets);
+        self
+    }
+
+    /// Forward `RUN --mount=type=ssh` traffic to a local SSH agent socket
+    /// over the session (`SSH/CheckAgent` + `SSH/ForwardAgent`).
+    #[must_use]
+    pub fn ssh_agent(mut self, proxy: Arc<SshAgentProxy>) -> Self {
+        self.ssh = Some(proxy);
         self
     }
 
@@ -527,6 +727,15 @@ impl SessionBuilder {
             register_auth(&mut router, Arc::clone(provider));
             methods.push(auth::procedure::CREDENTIALS);
         }
+        if let Some(provider) = &self.secrets {
+            register_secrets(&mut router, Arc::clone(provider));
+            methods.push(secrets::procedure::GET_SECRET);
+        }
+        if let Some(proxy) = &self.ssh {
+            register_ssh(&mut router, Arc::clone(proxy));
+            methods.push(ssh::procedure::CHECK_AGENT);
+            methods.push(ssh::procedure::FORWARD_AGENT);
+        }
 
         let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
         let mut app = HttpApp::new_h2_serve();
@@ -571,9 +780,9 @@ impl SessionBuilder {
             Ok(h) => {
                 let mut s = String::new();
                 for (k, vs) in h.iter() { s.push_str(&format!("{k}={vs:?} ")); }
-                eprintln!("[sess] bidi response headers: {s}");
+                tracing::debug!(headers = %s, "session bidi response headers");
             }
-            Err(e) => eprintln!("[sess] bidi response headers FAILED: {e}"),
+            Err(e) => tracing::warn!(err = %e, "session bidi response headers failed"),
         }
         // NOTE: never send anything on the bidi before the loopback server's
         // SETTINGS. RFC 7540 §3.5: the first frame the server sends MUST be
@@ -594,14 +803,14 @@ impl SessionBuilder {
                         let tag = h2_frame_tag(&msg.data);
                         let hex: String = msg.data.iter()
                             .map(|b| format!("{b:02x}")).collect();
-                        eprintln!("[sess] bk->me {:>3}b {tag:<14} {hex}", msg.data.len());
+                        tracing::trace!(bytes = msg.data.len(), frame = tag, hex = %hex, "session: buildkitd -> loopback");
                         if let Err(e) = down_tx.send(msg.data) {
                             error!(err = %e, "[sess] down_tx send failed");
                             break;
                         }
                     }
                     Ok(None) => {
-                        eprintln!("[sess] bk->me: stream ended (Ok None)");
+                        tracing::debug!("session bidi: buildkitd stream ended");
                         break;
                     }
                     Err(e) => {
@@ -624,7 +833,7 @@ impl SessionBuilder {
                 }
             }
             if let Err(e) = tcp_write.shutdown(std::net::Shutdown::Both) {
-                eprintln!("[sess] tcp shutdown: {e}");
+                tracing::debug!(err = %e, "session loopback tcp shutdown");
             }
         });
 
@@ -639,11 +848,11 @@ impl SessionBuilder {
             let mut buf = vec![0u8; 32 * 1024];
             loop {
                 match tcp_read.read(&mut buf) {
-                    Ok(0) => { eprintln!("[sess] loopback read 0 @ {:?}", start.elapsed()); break; }
-                    Err(e) => { eprintln!("[sess] loopback read err @ {:?}: {e}", start.elapsed()); break; }
+                    Ok(0) => { tracing::debug!(elapsed = ?start.elapsed(), "session loopback closed"); break; }
+                    Err(e) => { tracing::warn!(elapsed = ?start.elapsed(), err = %e, "session loopback read error"); break; }
                     Ok(n) => {
                         let tag = h2_frame_tag(&buf[..n]);
-                        eprintln!("[sess] me<-lb {:>3}b @{:>6.1?}ms {tag:<14}", n, start.elapsed().as_secs_f64() * 1000.0);
+                        tracing::trace!(bytes = n, frame = tag, elapsed_ms = start.elapsed().as_secs_f64() * 1000.0, "session: loopback -> buildkitd (read)");
                         if up_tx.send(buf[..n].to_vec()).is_err() {
                             break;
                         }
@@ -657,14 +866,14 @@ impl SessionBuilder {
             // sender is moved in via `move` closure — it is now owned here.
             while let Ok(data) = up_rx.recv() {
                 let tag = h2_frame_tag(&data);
-                eprintln!("[sess] me->bk {:>3}b {tag:<14}", data.len());
+                tracing::trace!(bytes = data.len(), frame = tag, "session: loopback -> buildkitd (send)");
                 let msg = BytesMessage { data, ..Default::default() };
                 if let Err(e) = futures_lite::future::block_on(sender.send(&msg)) {
                     error!(err = %e, "[sess] me->buildkit send failed");
                     break;
                 }
             }
-            eprintln!("[sess] me->bk DONE — closing sender");
+            tracing::debug!("session send pump done — closing sender");
             let _ = futures_lite::future::block_on(sender.close_request());
         });
 
@@ -688,6 +897,8 @@ impl SessionServer {
             context_dir: context_dir.into(),
             export_file: None,
             auth: None,
+            secrets: None,
+            ssh: None,
             owned_tmp: None,
         }
     }
@@ -715,6 +926,8 @@ impl SessionServer {
             context_dir: dir.clone(),
             export_file: None,
             auth: None,
+            secrets: None,
+            ssh: None,
             owned_tmp: Some(dir),
         })
     }

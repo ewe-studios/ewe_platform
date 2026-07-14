@@ -463,6 +463,129 @@ async fn build_with_registry_auth_provider() {
     );
 }
 
+#[valtron_test]
+async fn build_with_secret_mount() {
+    use foundation_deployment_docker::buildkit::session::{SessionServer, StaticSecrets};
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    // The RUN asserts the secret's CONTENT — the build fails unless our
+    // Secrets/GetSecret served exactly these bytes.
+    let secrets = Arc::new(
+        StaticSecrets::new().with_secret("apikey", b"s3cr3t-from-ewe".to_vec()),
+    );
+    let session = SessionServer::builder_inline(
+        "FROM alpine:latest\nRUN --mount=type=secret,id=apikey \
+         [ \"$(cat /run/secrets/apikey)\" = \"s3cr3t-from-ewe\" ]\n",
+    )
+    .expect("inline dockerfile")
+    .secrets(secrets)
+    .start(&addr)
+    .await
+    .expect("start session");
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    let resp = client.solve(req).await.expect("solve with secret mount");
+    eprintln!("SECRET BUILD OK — {resp:?}");
+}
+
+#[valtron_test]
+async fn build_history_lists_completed_builds() {
+    let Some(addr) = buildkitd_addr() else { return };
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    // Earlier tests in this suite ran builds, so the daemon has history.
+    // EarlyExit replays existing records and ends the stream.
+    let mut stream = client
+        .listen_build_history("", true)
+        .await
+        .expect("ListenBuildHistory RPC");
+    let mut records = 0usize;
+    while let Some(event) = stream.receive().await.expect("history event") {
+        if event.record.into_option().is_some() {
+            records += 1;
+        }
+    }
+    eprintln!("HISTORY OK — {records} build record(s)");
+    assert!(records > 0, "expected at least one build-history record");
+}
+
+#[valtron_test]
+async fn gateway_build_ping_resolve_and_return() {
+    use foundation_deployment_docker::buildkit::generated::google::rpc::Status as GoogleStatus;
+    use foundation_deployment_docker::buildkit::generated::moby::buildkit::v1::frontend::{
+        PingRequest, ResolveImageConfigRequest, ReturnRequest,
+    };
+    use foundation_deployment_docker::buildkit::new_build_ref;
+    use foundation_deployment_docker::buildkit::services::gateway::LLBBridgeClientExt;
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+    use foundation_connectrpc::{Ctx, Request};
+
+    let Some(addr) = buildkitd_addr() else { return };
+
+    // Code-first frontend flow (buildkit's client.Build): a Frontend="" Solve
+    // runs while the client drives the Gateway API against the same Control
+    // endpoint, routed by the buildkit-controlapi-buildid header = Solve.Ref.
+    let session = SessionServer::builder_inline("# unused by the gateway test\n")
+        .expect("inline session")
+        .start(&addr)
+        .await
+        .expect("start session");
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    let build_ref = new_build_ref();
+    let mut req = SolveRequest::default();
+    req.Ref = build_ref.clone();
+    req.Session = session.id.clone();
+    // Frontend stays empty — the client IS the frontend.
+
+    let gateway = client.gateway_for_build(&build_ref).expect("gateway client");
+    let solve_fut = client.solve(req);
+    let frontend_fut = async {
+        // Ping proves routing; buildkitd fills in its frontend API caps.
+        let pong = gateway
+            .ping(Ctx::background(), Request::new(PingRequest::default()))
+            .await
+            .expect("gateway Ping");
+        // Resolve a public image ref through the running build.
+        let mut resolve = ResolveImageConfigRequest::default();
+        resolve.Ref = "docker.io/library/alpine:latest".into();
+        let resolved = gateway
+            .resolve_image_config(Ctx::background(), Request::new(resolve))
+            .await
+            .expect("gateway ResolveImageConfig");
+        // Return an ERROR result to cleanly abort the build. (Buildkitd
+        // v0.31.1 nil-derefs on a Return with neither Result nor Error set —
+        // gateway.go:1040 — so a real frontend always sets one; we set Error.)
+        let mut ret = ReturnRequest::default();
+        ret.error = buffa::MessageField::some(GoogleStatus {
+            code: 1, // CANCELLED
+            message: "ewe gateway test complete".into(),
+            ..Default::default()
+        });
+        gateway
+            .r#return(Ctx::background(), Request::new(ret))
+            .await
+            .expect("gateway Return");
+        (pong.msg.FrontendAPICaps.len(), resolved.msg.Digest)
+    };
+
+    let (solve_res, (caps, digest)) = futures::join!(solve_fut, frontend_fut);
+    // We aborted via a Return error, so the Solve reports that error — the
+    // frontend RPCs (Ping/ResolveImageConfig) are what this test validates.
+    let solve_msg = solve_res.err().map(|e| e.to_string()).unwrap_or_default();
+    eprintln!("GATEWAY OK — {caps} frontend API caps, alpine digest {digest}; solve ended: {solve_msg}");
+    assert!(caps > 0, "Pong should carry frontend API caps");
+    assert!(digest.starts_with("sha256:"), "resolved digest should be sha256, got {digest:?}");
+}
+
 /// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
 ///
 /// SETUP: share the socket dir with the host and open its permissions, e.g.

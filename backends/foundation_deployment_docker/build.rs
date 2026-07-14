@@ -43,6 +43,10 @@ fn generate_buildkit() {
         format!("{fsutil}/stat.proto"),
         // gRPC Health service — buildkit's session health-checks the client.
         format!("{root}/grpc/health/v1/health.proto"),
+        // Gateway (LLBBridge) — the frontend API buildkitd serves on the
+        // Control endpoint during a Frontend="" build (code-first frontends).
+        format!("{bk}/frontend/gateway/pb/gateway.proto"),
+        format!("{bk}/util/apicaps/pb/caps.proto"),
     ];
 
     buffa_build::Config::new()
@@ -94,6 +98,7 @@ fn generate_services(root: &str, files: &[String]) {
         ("secrets.proto", "Secrets", "secrets_service.rs"),
         ("ssh.proto", "SSH", "ssh_service.rs"),
         ("health.proto", "Health", "health_service.rs"),
+        ("gateway.proto", "LLBBridge", "gateway_service.rs"),
     ];
 
     for (file_suffix, service_name, out_name) in targets {
