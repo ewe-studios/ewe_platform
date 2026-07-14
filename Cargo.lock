@@ -5197,6 +5197,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nativeapis",
  "foundation_netio",
+ "foundation_testbed",
  "getrandom 0.2.16",
  "hex",
  "hkdf",
@@ -5212,6 +5213,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "wasm-bindgen",
+ "wasm-bindgen-test",
  "web-sys",
  "zeroize",
 ]

@@ -58,6 +58,11 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-fe
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 boring = "4"
 
+# wasm32 browser tests (F07 task 5). Optional — only needed when running
+# #[valtron_bindgen] / #[wasm_bindgen_test] tests in a headless browser.
+foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"], optional = true }
+wasm-bindgen-test = { version = "=0.3.76", optional = true }
+
 # Browser WebAssembly APIs (F07 — browser peer).
 [target.'cfg(target_family = "wasm")'.dependencies]
 wasm-bindgen = "0.2"
@@ -97,6 +102,11 @@ spec55-complete = []
 # + web_sys WebTransport unstable API). Off by default — browser peers use WS relay.
 webtransport = ["foundation_netio/quic"]
 
+# wasm-bindgen-test: enables wasm32 browser tests (spec-55 F07 task 5).
+# Provides #[valtron_bindgen] / #[wasm_bindgen_test] macros for headless browser testing.
+# Run with: wasm-testbed test bindgen-deno ./foundation_wireguard --features wasm-bindgen-test
+wasm-bindgen-test = ["dep:foundation_testbed", "dep:wasm-bindgen-test"]
+
 [lints]
 workspace = true
 
@@ -115,3 +125,10 @@ path = "examples/docker_self_assemble.rs"
 name = "completeness_tests"
 path = "tests/completeness_tests.rs"
 required-features = ["spec55-complete"]
+
+# wasm32 browser tests: JsDevice + BrowserWgNode + WebRtcOfferer (spec-55, F07 task 5).
+# Run with: cargo test --target wasm32-unknown-unknown --features wasm-bindgen-test
+[[test]]
+name = "wasm_browser"
+path = "tests/wasm/mod.rs"
+required-features = ["wasm-bindgen-test"]
