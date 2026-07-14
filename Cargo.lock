@@ -4546,6 +4546,7 @@ dependencies = [
  "foundation_macros",
  "foundation_netio",
  "futures",
+ "futures-lite",
  "prost 0.12.6",
  "prost-types",
  "serde",

@@ -400,15 +400,18 @@ impl SessionServer {
             }
             Err(e) => eprintln!("[sess] bidi response headers FAILED: {e}"),
         }
-        let (mut sender, mut receiver) = bidi.split();
+        // Send an H2 PING immediately through the bidi — BEFORE the TCP loopback
+        // is connected. Combined with the in-bidi-pump PING, this saturates
+        // buildkitd's Level 2 transport with activity to prevent the GOAWAY.
+        {
+            let ping = h2_ping_frame(&new_ping_opaque());
+            eprintln!("[sess] sending pre-handshake PING ({} bytes)", ping.len());
+            bidi.send(&BytesMessage { data: ping, ..Default::default() }).await
+                .map_err(|e| format!("pre-handshake PING failed: {e}"))?;
+        }
 
-        // 3. Dial our own loopback server and pump bytes both directions between
-        //    it and the Session bidi.
-        //
-        //    Bridging is split so that BLOCKING TCP I/O never runs on a valtron
-        //    pool worker (which would starve the pool and collapse the session):
-        //    raw threads own the blocking socket read/write, and pool-detached
-        //    async tasks own the (async) bidi send/receive, connected by channels.
+        let (mut sender, mut receiver) = bidi.split();
+        // 3. Dial our own loopback server.
         let tcp = TcpStream::connect(local_addr)?;
         let mut tcp_read = tcp.try_clone()?;
         let mut tcp_write = tcp;
@@ -452,15 +455,16 @@ impl SessionServer {
                 }
             }
             if let Err(e) = tcp_write.shutdown(std::net::Shutdown::Both) {
-                // Expected: the other end may already be closed.
                 eprintln!("[sess] tcp shutdown: {e}");
             }
         });
 
-        // loopback → buildkitd: blocking read → async channel → async send.
-        let (up_tx, mut up_rx) = futures::channel::mpsc::unbounded::<Vec<u8>>();
-        // Clone for the keepalive thread — it injects H2 PING frames to prevent
-        // grpc-go's transport idle timeout from killing the Level 2 connection.
+        // loopback → buildkitd: blocking read → std::sync::mpsc → DEDICATED
+        // OS thread that calls sender.send() via futures_lite::block_on. This
+        // eliminates valtron pool-polling latency — the thread sleeps on recv()
+        // and wakes instantly when data arrives. Every microsecond counts:
+        // grpc-go fires GOAWAY ~10ms post-handshake.
+        let (up_tx, up_rx) = std::sync::mpsc::channel::<Vec<u8>>();
         let up_keepalive = up_tx.clone();
         let start = std::time::Instant::now();
         let read_thread = std::thread::spawn(move || {
@@ -471,49 +475,47 @@ impl SessionServer {
                     Err(e) => { eprintln!("[sess] loopback read err @ {:?}: {e}", start.elapsed()); break; }
                     Ok(n) => {
                         let tag = h2_frame_tag(&buf[..n]);
-                        let hex: String = buf[..n].iter()
-                            .map(|b| format!("{b:02x}")).collect();
-                        eprintln!("[sess] me<-lb {:>3}b @{:>6.1?}ms {tag:<14} {hex}", n, start.elapsed().as_secs_f64() * 1000.0);
-                        if let Err(_e) = up_tx.unbounded_send(buf[..n].to_vec()) {
+                        eprintln!("[sess] me<-lb {:>3}b @{:>6.1?}ms {tag:<14}", n, start.elapsed().as_secs_f64() * 1000.0);
+                        if up_tx.send(buf[..n].to_vec()).is_err() {
                             break;
                         }
                     }
                 }
             }
-            // Dropping `up_tx` closes the channel so the send task ends.
         });
-        let send_pool = valtron::from_future(Box::pin(async move {
-            use futures::StreamExt;
-            while let Some(data) = up_rx.next().await {
+        // Dedicated thread: recv() blocks the OS thread, wakes instantly,
+        // block_on drives the async send future to completion synchronously.
+        let send_thread = std::thread::spawn(move || {
+            // sender is moved in via `move` closure — it is now owned here.
+            while let Ok(data) = up_rx.recv() {
                 let tag = h2_frame_tag(&data);
-                let hex: String = data.iter()
-                    .map(|b| format!("{b:02x}")).collect();
-                eprintln!("[sess] me->bk {:>3}b {tag:<14} {hex}", data.len());
+                eprintln!("[sess] me->bk {:>3}b {tag:<14}", data.len());
                 let msg = BytesMessage { data, ..Default::default() };
-                if let Err(e) = sender.send(&msg).await {
+                if let Err(e) = futures_lite::future::block_on(sender.send(&msg)) {
                     error!(err = %e, "[sess] me->buildkit send failed");
                     break;
                 }
             }
             eprintln!("[sess] me->bk DONE — closing sender");
-            if let Err(e) = sender.close_request().await {
-                eprintln!("[sess] close_request: {e}");
-            }
-        }));
-        valtron::send(send_pool).map_err(|e| format!("spawn session send task: {e}"))?;
+            let _ = futures_lite::future::block_on(sender.close_request());
+        });
 
-        // Keepalive: inject H2 PING frames every 1s (first fire immediate) to
-        // prevent grpc-go's transport idle timeout from killing the Level 2
-        // connection. grpc-go's ClientConn closes the transport ~10ms after the
-        // H2 handshake if no streams are active — an immediate PING creates
-        // bidirectional activity before the GOAWAY can fire.
+        // Keepalive: rapid PINGs at 5ms for the first 200ms (GOAWAY fires ~10ms
+        // post-handshake), then 500ms after.
         let keepalive = std::thread::spawn(move || {
+            let start = std::time::Instant::now();
             let ping = h2_ping_frame(&new_ping_opaque());
             loop {
-                if up_keepalive.unbounded_send(ping.clone()).is_err() {
+                if up_keepalive.send(ping.clone()).is_err() {
                     break;
                 }
-                std::thread::sleep(std::time::Duration::from_secs(1));
+                let elapsed = start.elapsed();
+                let interval = if elapsed < std::time::Duration::from_millis(200) {
+                    std::time::Duration::from_millis(5)
+                } else {
+                    std::time::Duration::from_millis(500)
+                };
+                std::thread::sleep(interval);
             }
         });
 
