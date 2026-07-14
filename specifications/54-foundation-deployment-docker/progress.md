@@ -95,9 +95,12 @@
 - [x] **Service code generated via `foundation_connectrpc_codegen`** (per-service): `ControlClient` + FileSync/Auth/Secrets/SSH traits + register fns, wired in `src/buildkit/services.rs`
 - [x] **Fixed a real codegen bug**: `generate_services` now emits `+ Send` RPITIT (was `async fn`, non-Send → failed Router's Send bound); streaming outputs boxed to `Pin<Box<dyn Stream + Send>>`
 - [x] **Empirically confirmed** via buildkitd testbed: a session-less `dockerfile.v0` Solve returns `could not access local files without session` — so the session server is exactly what's needed
-- [ ] `Session` sidecar **server**: serve the session `Router` (FileSync + Unimplemented Auth/Secrets/SSH) on a **loopback TCP h2 server** (the proven grpc_echo path), and pump bytes between a loopback client socket and the `ControlClient::session()` bidi (`BytesMessage.data` ↔ TCP); set `x-docker-expose-session-*` headers
-- [ ] fsutil `FileSync::diff_copy` handler (walk + stream a local build-context dir)
-- [ ] Local Dockerfile build end-to-end via `Solve` + session (depends on the two above)
+- [x] Service code generated via `foundation_connectrpc_codegen` (Control client + FileSync/Auth/Secrets/SSH traits/register fns); wired in `src/buildkit/services.rs`
+- [x] `ClientOptions::with_header` added to connectrpc (custom request headers on streaming calls — for `x-docker-expose-session-*`)
+- [x] `Session` sidecar **server built** (`src/buildkit/session.rs`): `DirFileSync` implements FileSync via the fsutil `DiffCopy` protocol (unfold state machine); `SessionServer` serves it on a loopback h2 socket + opens `Control/Session` with the session headers + thread↔pool channel-bridge pump
+- [x] **Session now FOUND by buildkitd** — a `dockerfile.v0` Solve gets past "no session" to `ReadEntrypoint`
+- [ ] **BLOCKER**: the `Control/Session` bidi closes ~30ms after opening (buildkitd logs "session started"/"session finished: &lt;nil&gt;" back-to-back, before Solve). Verified: my request half goes out correctly (`end_stream=false`, open bidi); buildkit finishes the session without exchanging any bytes. This is a deep connectrpc-H2Transport-bidi ↔ buildkit-session-hijack interaction needing frame-level h2 debugging (does buildkit send the inner-h2 preface? is connectrpc's response path delivering it? why does buildkit's session Run return `nil` in 30ms?).
+- [ ] Local Dockerfile build end-to-end via `Solve` + session (blocked on the above)
 - [ ] Remaining Control RPCs: build-history wrappers (generated types exist)
 
 ## Related specs
