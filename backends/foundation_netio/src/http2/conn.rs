@@ -218,6 +218,11 @@ impl H2Conn {
         }
     }
 
+    /// Send an H2 PING frame to the peer (keepalive).
+    pub fn send_ping(&mut self, opaque: [u8; 8]) {
+        self.inner.send_ping(opaque);
+    }
+
     /// Flush the write buffer to the socket.
     pub fn flush(&mut self) -> io::Result<()> {
         self.inner.flush()

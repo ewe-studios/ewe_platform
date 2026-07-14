@@ -646,7 +646,16 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
-    fn handle_ping(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
+    /// Send a PING frame to the peer. The opaque data is an 8-byte payload;
+    /// the peer must echo it back in the PING ACK.
+    pub fn send_ping(&mut self, opaque: [u8; 8]) {
+        let pf = PingFrame { flags: 0, opaque_data: opaque };
+        let mut buf = BytesMut::new();
+        pf.encode(&mut buf);
+        self.write_buf.put_slice(&buf);
+    }
+
+    pub fn handle_ping(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,

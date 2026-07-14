@@ -107,6 +107,13 @@ impl TaskIterator for H2ConnectionHandler {
                 Ok(()) => {
                     self.handshaked = true;
                     tracing::debug!("h2 server handshake complete");
+                    // Send immediate PING to prevent grpc-go's transport from
+                    // entering idle and firing GOAWAY 10ms after handshake.
+                    // The PING creates bidirectional activity, keeping the transport
+                    // alive until monitorHealth fires at 5s.
+                    self.conn.send_ping(new_ping_opaque_h2srv());
+                    self.conn.flush().ok();
+                    eprintln!("[h2-srv] handshake done, sent keepalive PING");
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return self.park(),
                 Err(e) => {
@@ -326,6 +333,16 @@ impl H2ConnectionHandler {
 
         self.conn.flush().ok();
     }
+}
+
+/// Generate 8 opaque bytes for a keepalive PING.
+fn new_ping_opaque_h2srv() -> [u8; 8] {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let ns = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos() as u64;
+    ns.to_be_bytes()
 }
 
 /// Whether serializing this frame completes the response direction.
