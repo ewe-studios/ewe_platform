@@ -30,7 +30,8 @@ pub mod generated;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H1Transport, ProcedureCodecs, Request, ServerStream, Transport,
+    Client, ClientOptions, Ctx, H1Transport, H2Transport, ProcedureCodecs, Request, ServerStream,
+    Transport,
 };
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::path::Path;
@@ -62,19 +63,46 @@ pub struct BuildKitClient {
 }
 
 impl BuildKitClient {
-    /// Connect to `buildkitd` at the given Unix socket path.
+    /// Connect to `buildkitd` at the given Unix socket path
+    /// (e.g. `/run/buildkit/buildkitd.sock`).
     ///
     /// # Errors
     ///
     /// Returns an error if the socket cannot be dialed or a client cannot be
     /// constructed.
     pub fn connect(socket_path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let path = socket_path.as_ref();
-        let http: DynNetClient = HttpClientBuilder::new().unix_socket(path).build();
-
+        let http: DynNetClient = HttpClientBuilder::new().unix_socket(socket_path.as_ref()).build();
+        // NOTE: buildkitd speaks gRPC (HTTP/2). H1Transport cannot carry real
+        // gRPC, and H2Transport is TCP-only — so talking to a Unix-socket
+        // buildkitd needs an h2c-over-Unix transport that does not exist yet.
+        // Use `connect_tcp` for a working end-to-end path today; this Unix
+        // constructor is kept for that pending transport.
         let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(http));
+        Self::from_transport(transport, "localhost")
+    }
 
-        let base_url = "http://localhost/moby.buildkit.v1.Control";
+    /// Connect to a `buildkitd` listening on TCP (`--addr tcp://host:port`).
+    ///
+    /// Uses [`H2Transport`] (h2c prior-knowledge) — buildkitd's Control service
+    /// is gRPC, which requires HTTP/2. `authority` is the `host:port` buildkitd
+    /// is published on (e.g. `127.0.0.1:1234`). buildkitd's TCP listener is
+    /// plaintext h2c when started without TLS — intended for local/testbed use.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a client cannot be constructed.
+    pub fn connect_tcp(authority: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+        Self::from_transport(transport, authority)
+    }
+
+    /// Build the six per-RPC clients over an already-configured transport.
+    fn from_transport(
+        transport: Arc<dyn Transport>,
+        authority: &str,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let base_url = format!("http://{authority}/moby.buildkit.v1.Control");
+        let base_url = base_url.as_str();
         let opts = || ClientOptions::new().with_grpc();
 
         let info = Client::<InfoRequest, InfoResponse>::new(
