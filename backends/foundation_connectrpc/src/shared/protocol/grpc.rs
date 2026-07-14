@@ -112,14 +112,13 @@ async fn read_frames(
         }
         match body.next().await {
             Some(Ok(chunk)) => buf.extend_from_slice(&chunk),
-            Some(Err(err)) => {
-                tx.close();
-                return Err(err.into());
-            }
-            None => {
-                tx.close();
-                return Ok(());
-            }
+            // Return WITHOUT closing `tx` in either terminal case: the gRPC
+            // client reader holds a clone and appends a terminal
+            // `Frame::EndStream` (trailers / error) after this returns —
+            // closing here would swallow it. Callers that moved `tx` in close
+            // the pipe implicitly when their task ends and drops it.
+            Some(Err(err)) => return Err(err.into()),
+            None => return Ok(()),
         }
     }
 }
@@ -249,6 +248,12 @@ impl ProtocolHandler for GrpcHandler {
             negotiated.request_decompressor,
             0,
         ));
+        // The compressed envelope flag is only valid when the response HEADERS
+        // advertise the encoding — dispatch fetches it via
+        // `streaming_response_encoding` (same negotiation as here) and sends
+        // `grpc-encoding` alongside the content-type. Without that header,
+        // grpc-go kills the call with "compressed flag set with identity or
+        // empty encoding" (this broke BuildKit FileSync).
         let writer: BoxedTask = Box::pin(write_frames(
             ends.response_rx,
             Arc::new(responder),
@@ -268,6 +273,22 @@ impl ProtocolHandler for GrpcHandler {
         codec_name: &str,
     ) -> String {
         content_type(codec_name)
+    }
+
+    fn streaming_response_encoding(
+        &self,
+        request: &SimpleIncomingRequest,
+        compression: &CompressionRegistry,
+    ) -> Option<(String, String)> {
+        let negotiated = negotiate_compression(
+            compression,
+            header(&request.headers, constants::HEADER_ENCODING).as_deref(),
+            header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
+        )
+        .ok()?;
+        negotiated
+            .response_compressor
+            .map(|c| (constants::HEADER_ENCODING.to_string(), c.name().to_string()))
     }
 
     fn decode_unary_request(
@@ -472,24 +493,26 @@ async fn read_grpc_response(
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
 ) -> ConnectResult<()> {
     // 1. Response head. Publish the headers so `response_headers()` works.
+    // Errors are delivered through the pipe (that's what the caller observes);
+    // the task itself still returns Ok — its result is only logged.
     let (status, resp_headers) = match head.next().await {
         Some(Ok(v)) => v,
         Some(Err(e)) => {
             let err: ErrorTrace<ConnectError> = ConnectError::from(e).into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err.clone()), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
                 .await;
             tx.close();
-            return Err(err);
+            return Ok(());
         }
         None => {
             let err: ErrorTrace<ConnectError> =
                 ConnectError::unavailable("transport closed without response head").into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err.clone()), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
                 .await;
             tx.close();
-            return Err(err);
+            return Ok(());
         }
     };
     *response_headers.lock().unwrap_or_else(|e| e.into_inner()) = Some(resp_headers.clone());
@@ -514,8 +537,16 @@ async fn read_grpc_response(
         return Ok(());
     }
 
-    // 3. Message envelopes until body EOF.
-    read_frames(body, tx.clone(), None, 0).await?;
+    // 3. Message envelopes until body EOF. A mid-stream failure (truncated
+    //    envelope, body error, oversized frame) must reach the receiver as a
+    //    terminal error, not vanish into a clean-looking EOF.
+    if let Err(e) = read_frames(body, tx.clone(), None, 0).await {
+        let _ = tx
+            .send(Frame::EndStream { error: Some(e), trailers: SimpleHeaders::new() })
+            .await;
+        tx.close();
+        return Ok(());
+    }
 
     // 4. Trailing HEADERS carry the call's outcome.
     let trls = trailers.receive().await.unwrap_or_default();

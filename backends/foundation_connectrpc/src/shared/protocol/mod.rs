@@ -128,6 +128,24 @@ pub trait ProtocolHandler: Send + Sync {
         codec_name: &str,
     ) -> String;
 
+    /// The header advertising the **streaming** response compression this
+    /// handler's [`new_conn`](Self::new_conn) writer will apply for `request`
+    /// — `(header_name, encoding)`, or `None` for identity.
+    ///
+    /// Dispatch merges this into the streaming response HEADERS. A compressed
+    /// envelope flag without this header is a protocol error to strict peers
+    /// (grpc-go: "compressed flag set with identity or empty encoding"), so
+    /// the negotiation here MUST match `new_conn`'s — both call
+    /// [`negotiate_compression`](crate::shared::compression::negotiate_compression)
+    /// on the same request headers. Mirrors connect-go, which always
+    /// advertises the compression it applies (`Grpc-Encoding` /
+    /// `Connect-Content-Encoding`).
+    fn streaming_response_encoding(
+        &self,
+        request: &SimpleIncomingRequest,
+        compression: &CompressionRegistry,
+    ) -> Option<(String, String)>;
+
     /// Frame a successful **unary** handler result into the HTTP response
     /// (Connect: bare body + `Trailer-` headers; gRPC-Web: message envelope +
     /// `0x80` trailer frame with `grpc-status: 0`). Errors are rendered separately

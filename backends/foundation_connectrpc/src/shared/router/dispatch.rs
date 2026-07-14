@@ -300,12 +300,18 @@ async fn run_streaming(
         futures::join!(feeder, reader_task, writer_task, handler_fut, collector);
 
     let content_type = protocol.streaming_response_content_type(&request, &codec_name);
+    // The writer task compressed per this same negotiation — the peer only
+    // accepts flagged envelopes when the encoding is advertised.
+    let response_encoding = protocol.streaming_response_encoding(&request, compression);
     if !collected.is_empty() {
         // The stream framed itself (including any in-band terminal error).
         response.status = Status::OK;
         response
             .headers
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+        if let Some((name, enc)) = response_encoding {
+            response.headers.insert(SimpleHeader::from(name), vec![enc]);
+        }
         response.body = Some(SendSafeBody::Bytes(collected));
     } else if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
         write_error(&mut response, &request, &e);
@@ -659,10 +665,11 @@ async fn send_whole_response(
     }
 
     if has_trailers {
-        tx.send(H2Frame::Headers {
-            status: 0,
+        // Real trailing HEADERS (no pseudo-headers) — the old shape here was a
+        // `Headers { status: 0, .. }` frame, which put an invalid `:status: 0`
+        // pseudo-header in the trailers (RFC 9113 §8.1 forbids them).
+        tx.send(H2Frame::Trailers {
             headers: h2_headers(&response.trailers),
-            end_stream: true,
         })
         .await
         .map_err(stream_gone)?;
@@ -863,15 +870,22 @@ async fn run_streaming_h2(
     // until the first chunk so that a handler which fails before emitting
     // anything can still be reported with a real status.
     let content_type = protocol.streaming_response_content_type(&request, &codec_name);
+    // The writer task compressed per this same negotiation — a flagged envelope
+    // is only valid when the encoding header goes out with the response HEADERS.
+    let response_encoding = protocol.streaming_response_encoding(&request, compression);
+    let pump_content_type = content_type.clone();
     let pump = async {
         let mut opened = false;
         while let Some(chunk) = resp_rx.receive().await {
             if !opened {
                 opened = true;
-                let headers = vec![(
+                let mut headers = vec![(
                     Bytes::from_static(b"content-type"),
-                    Bytes::from(content_type.clone()),
+                    Bytes::from(pump_content_type.clone()),
                 )];
+                if let Some((name, enc)) = &response_encoding {
+                    headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
+                }
                 tx.send(H2Frame::Headers {
                     status: 200,
                     headers,
@@ -892,30 +906,90 @@ async fn run_streaming_h2(
 
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let (_, reader_res, writer_res, handler_res, pumped) =
-        futures::join!(feeder, reader_task, writer_task, handler_fut, pump);
+    // The request side (feeder + reader) lives as long as the CLIENT keeps its
+    // request stream open — a gRPC bidi peer like buildkitd's fsutil holds it
+    // open until it sees OUR trailers. Joining on it before closing the
+    // response therefore deadlocks (both sides waiting on the other). The
+    // response side alone decides the RPC outcome: race the two, and if the
+    // response finishes first, abandon the request side (the stream is over;
+    // RFC 9113 lets the server end a stream with a half-open request).
+    let request_side = std::pin::pin!(async { futures::join!(feeder, reader_task) });
+    let response_side = std::pin::pin!(async { futures::join!(writer_task, handler_fut, pump) });
+    let (reader_res, writer_res, handler_res, pumped) =
+        match futures::future::select(request_side, response_side).await {
+            futures::future::Either::Left(((_, reader_res), response_side)) => {
+                let (writer_res, handler_res, pumped) = response_side.await;
+                (reader_res, writer_res, handler_res, pumped)
+            }
+            futures::future::Either::Right(((writer_res, handler_res, pumped), _)) => {
+                (Ok(()), writer_res, handler_res, pumped)
+            }
+        };
+
+    let outcome_err = handler_res.err().or(writer_res.err()).or(reader_res.err());
 
     if pumped? {
-        // The stream framed itself (including any in-band terminal error);
-        // close the response direction.
-        tx.send(H2Frame::Data {
-            payload: Bytes::new(),
-            end_stream: true,
-        })
-        .await
-        .map_err(stream_gone)?;
+        // The response HEADERS are out. Close the stream per the protocol:
+        // gRPC's outcome rides trailing HEADERS (`grpc-status`), and grpc-go
+        // hangs/errors on a stream that ends without them. Connect and
+        // gRPC-Web carry their terminal frame in-band (EndStreamResponse /
+        // 0x80 trailer frame — already written by the protocol writer task),
+        // so a bare END_STREAM DATA closes those.
+        let closing = if protocol.kind() == ProtocolKind::Grpc {
+            H2Frame::Trailers { headers: grpc_status_trailers(outcome_err.as_ref()) }
+        } else {
+            H2Frame::Data { payload: Bytes::new(), end_stream: true }
+        };
+        tx.send(closing).await.map_err(stream_gone)?;
         return Ok(());
     }
 
     // Nothing was emitted: report the failure, or an empty successful stream.
     let mut response = blank_response(&request);
-    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
+    if let Some(e) = outcome_err {
         write_error(&mut response, &request, &e);
     } else {
         response.status = Status::OK;
         response
             .headers
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+        if protocol.kind() == ProtocolKind::Grpc {
+            // A gRPC stream with zero messages is still a gRPC response — it
+            // MUST end in `grpc-status` trailers or the client reports
+            // `Unknown` with an empty message (bit BuildKit's FileSend sink,
+            // whose response stream is legitimately empty).
+            response
+                .trailers
+                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+        }
     }
     send_whole_response(tx, response).await
+}
+
+/// gRPC trailing headers for a streaming outcome: `grpc-status: 0` on success,
+/// the error's code and percent-encoded message otherwise (gRPC spec §Responses).
+fn grpc_status_trailers(
+    error: Option<&foundation_errstacks::ErrorTrace<crate::ConnectError>>,
+) -> Vec<(Bytes, Bytes)> {
+    match error {
+        None => vec![(Bytes::from_static(b"grpc-status"), Bytes::from_static(b"0"))],
+        Some(e) => {
+            let ctx = e.current_context();
+            let code = ctx.code() as u32;
+            let message = ctx.message().to_string();
+            let mut encoded = String::new();
+            for b in message.bytes() {
+                // Percent-encode per gRPC spec: space and non-printable/percent.
+                if b == b'%' || b < 0x20 || b > 0x7e {
+                    encoded.push_str(&format!("%{b:02X}"));
+                } else {
+                    encoded.push(b as char);
+                }
+            }
+            vec![
+                (Bytes::from_static(b"grpc-status"), Bytes::from(code.to_string())),
+                (Bytes::from_static(b"grpc-message"), Bytes::from(encoded)),
+            ]
+        }
+    }
 }

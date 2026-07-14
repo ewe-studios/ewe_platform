@@ -17,7 +17,7 @@
 //! collected, and handler futures run elsewhere. `WouldBlock` parks the task on
 //! a timer (see the reactor-parking gap tracked as feature 47b).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -44,6 +44,19 @@ const POLL_DELAY: Duration = Duration::from_millis(10);
 const HANDSHAKE_POLL_DELAY: Duration = Duration::from_millis(1);
 const IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 
+/// Extra connection-window credit sent right after the handshake, on top of
+/// the RFC 9113 64 KiB default. Bulk uploads (e.g. BuildKit streaming a built
+/// image tar back through a session) collapse to a crawl when the peer must
+/// stop every 64 KiB and wait a round trip for credit — especially through a
+/// tunneled/polled transport where that round trip is tens of milliseconds.
+const CONNECTION_WINDOW_EXTRA: u32 = 4 * 1024 * 1024 - 65_535;
+
+/// Batch consumed-byte credits and flush once this many are pending (half the
+/// default stream window). Per-frame WINDOW_UPDATE pairs fragment the sender's
+/// view of the window into ever-smaller DATA frames and drown the connection
+/// in 13-byte control frames.
+const CREDIT_FLUSH_THRESHOLD: u32 = 32 * 1024;
+
 /// Depth of the per-stream body and response pipes, in frames. Bounded so a fast
 /// peer cannot make us buffer an unbounded request body.
 const STREAM_PIPE_DEPTH: usize = 32;
@@ -56,6 +69,15 @@ struct ActiveStream {
     resp_rx: PipeReceiver<H2Frame>,
     /// Set once a frame carrying END_STREAM has been serialized.
     response_done: bool,
+    /// DATA the bounded `body_tx` pipe couldn't accept yet. Flow control keeps
+    /// this small: these bytes are not credited back to the peer until they
+    /// enter the pipe, so at most one connection window can pile up.
+    pending_body: VecDeque<Bytes>,
+    /// The peer sent END_STREAM; close `body_tx` once `pending_body` drains.
+    body_ended: bool,
+    /// Consumed bytes not yet credited back on this stream's window —
+    /// flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    uncredited: u32,
 }
 
 /// HTTP/2 multiplexed connection handler — one valtron task per connection.
@@ -68,6 +90,9 @@ pub struct H2ConnectionHandler {
     idle_since: Option<Instant>,
     handshaked: bool,
     streams: BTreeMap<u32, ActiveStream>,
+    /// Consumed bytes not yet credited back on the connection window —
+    /// flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    uncredited_conn: u32,
 }
 
 impl H2ConnectionHandler {
@@ -88,6 +113,7 @@ impl H2ConnectionHandler {
             idle_since: None,
             handshaked: false,
             streams: BTreeMap::new(),
+            uncredited_conn: 0,
         }
     }
 }
@@ -115,6 +141,10 @@ impl TaskIterator for H2ConnectionHandler {
                     // The PING creates bidirectional activity, keeping the transport
                     // alive until monitorHealth fires at 5s.
                     self.conn.send_ping(new_ping_opaque_h2srv());
+                    // Grow the connection receive window beyond the 64 KiB
+                    // default so bulk uploads aren't paced by credit round
+                    // trips (see CONNECTION_WINDOW_EXTRA).
+                    self.conn.send_window_update(0, CONNECTION_WINDOW_EXTRA);
                     self.conn.flush().ok();
                     eprintln!("[h2-srv] handshake done, sent keepalive PING");
                 }
@@ -159,6 +189,7 @@ impl TaskIterator for H2ConnectionHandler {
                 return None;
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                self.drain_pending_bodies();
                 self.pump_responses();
                 // Log the first WouldBlock to confirm the server is alive and waiting.
                 if self.idle_since.is_none() {
@@ -172,6 +203,7 @@ impl TaskIterator for H2ConnectionHandler {
             }
         }
 
+        self.drain_pending_bodies();
         self.pump_responses();
         Some(TaskStatus::Pending(()))
     }
@@ -251,31 +283,89 @@ impl H2ConnectionHandler {
                 body_tx,
                 resp_rx,
                 response_done: false,
+                pending_body: VecDeque::new(),
+                body_ended: false,
+                uncredited: 0,
             },
         );
     }
 
     /// Inbound body bytes: forward them to the stream's handler future.
+    ///
+    /// Flow control (RFC 9113 §5.2): every byte handed to the handler pipe is
+    /// credited back to the peer via `WINDOW_UPDATE` (connection + stream) —
+    /// windows are cumulative over the connection's lifetime, so without
+    /// credits any request body beyond the 64 KiB initial window stalls
+    /// forever (bit BuildKit's tar export first). Bytes the bounded pipe
+    /// cannot take yet go to `pending_body` UNcredited — the peer's spent
+    /// window caps that backlog — and are credited when
+    /// [`drain_pending_bodies`](Self::drain_pending_bodies) delivers them.
     fn on_data(&mut self, head: &Head, payload: &[u8]) {
         let sid = head.stream_id;
         let end_stream = head.flag & data_flags::END_STREAM != 0;
 
-        let Some(stream) = self.streams.get(&sid) else {
+        let Some(stream) = self.streams.get_mut(&sid) else {
             return;
         };
 
         if !payload.is_empty() {
-            let frame = H2IncomingFrame::Data(Bytes::copy_from_slice(payload));
-            if stream.body_tx.try_send(frame).is_err() {
-                // The handler is slower than the peer, or has hung up. Flow
-                // control should prevent the former; either way, refuse the
-                // stream rather than silently dropping body bytes.
-                return self.reset_stream(sid, ErrorCode::FlowControlError);
+            let data = Bytes::copy_from_slice(payload);
+            if stream.pending_body.is_empty()
+                && stream.body_tx.try_send(H2IncomingFrame::Data(data.clone())).is_ok()
+            {
+                stream.uncredited += payload.len() as u32;
+                if stream.uncredited >= CREDIT_FLUSH_THRESHOLD {
+                    let credit = std::mem::take(&mut stream.uncredited);
+                    self.conn.send_window_update(sid, credit);
+                }
+                self.uncredited_conn += payload.len() as u32;
+                if self.uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
+                    let credit = std::mem::take(&mut self.uncredited_conn);
+                    self.conn.send_window_update(0, credit);
+                }
+            } else {
+                // Pipe full (or already draining a backlog — keep order).
+                stream.pending_body.push_back(data);
             }
         }
 
         if end_stream {
-            stream.body_tx.close();
+            if stream.pending_body.is_empty() {
+                stream.body_tx.close();
+            } else {
+                stream.body_ended = true;
+            }
+        }
+    }
+
+    /// Deliver buffered request DATA into handler pipes as room frees up,
+    /// crediting the peer's windows (batched, like [`Self::on_data`]) for
+    /// every frame that goes through.
+    fn drain_pending_bodies(&mut self) {
+        let conn = &mut self.conn;
+        let uncredited_conn = &mut self.uncredited_conn;
+        for (sid, stream) in &mut self.streams {
+            while let Some(front) = stream.pending_body.front() {
+                let n = front.len() as u32;
+                let frame = H2IncomingFrame::Data(front.clone());
+                if stream.body_tx.try_send(frame).is_err() {
+                    break;
+                }
+                stream.pending_body.pop_front();
+                stream.uncredited += n;
+                *uncredited_conn += n;
+            }
+            if stream.uncredited >= CREDIT_FLUSH_THRESHOLD {
+                let credit = std::mem::take(&mut stream.uncredited);
+                conn.send_window_update(*sid, credit);
+            }
+            if stream.body_ended && stream.pending_body.is_empty() {
+                stream.body_tx.close();
+            }
+        }
+        if *uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
+            let credit = std::mem::take(uncredited_conn);
+            conn.send_window_update(0, credit);
         }
     }
 
@@ -358,6 +448,6 @@ fn new_ping_opaque_h2srv() -> [u8; 8] {
 fn frame_ends_stream(frame: &H2Frame) -> bool {
     match frame {
         H2Frame::Headers { end_stream, .. } | H2Frame::Data { end_stream, .. } => *end_stream,
-        H2Frame::Reset { .. } => true,
+        H2Frame::Trailers { .. } | H2Frame::Reset { .. } => true,
     }
 }

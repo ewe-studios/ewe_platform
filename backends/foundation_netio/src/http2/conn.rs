@@ -239,6 +239,24 @@ impl H2Conn {
         self.hpack_dec.decode(block)
     }
 
+    /// Queue a `WINDOW_UPDATE` (RFC 9113 §5.2) crediting `increment` bytes back
+    /// to the peer — `stream_id` 0 for the connection window. Must be sent as
+    /// request DATA is consumed, or the peer stalls once the 64 KiB initial
+    /// windows are exhausted. No-op for a zero increment (a zero-increment
+    /// WINDOW_UPDATE is itself a protocol error).
+    pub fn send_window_update(&mut self, stream_id: u32, increment: u32) {
+        if increment == 0 {
+            return;
+        }
+        let wu = crate::http2::frame::WindowUpdateFrame {
+            stream_id,
+            size_increment: increment,
+        };
+        let mut buf = BytesMut::new();
+        wu.encode(&mut buf);
+        self.inner.write_buf_mut().extend_from_slice(&buf);
+    }
+
     /// Encode an [`H2Frame`] for a stream into the connection's write buffer.
     /// Call [`flush`](Self::flush) to send it over the socket.
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
@@ -247,6 +265,7 @@ impl H2Conn {
                 format!("HEADERS(status={status} end={end_stream})"),
             H2Frame::Data { end_stream, .. } =>
                 format!("DATA(end={end_stream})"),
+            H2Frame::Trailers { .. } => "TRAILERS(end=true)".to_string(),
             H2Frame::Reset { error_code } =>
                 format!("RST_STREAM({error_code:?})"),
         };
@@ -281,6 +300,25 @@ impl H2Conn {
                 let hf = HeadersFrame {
                     stream_id,
                     flags,
+                    header_block: header_block.freeze(),
+                    pad_len: None,
+                    priority: None,
+                };
+                let mut buf = BytesMut::new();
+                hf.encode(&mut buf);
+                self.inner.write_buf_mut().extend_from_slice(&buf);
+            }
+            H2Frame::Trailers { headers } => {
+                // Trailing header block: literal fields only, no pseudo-headers
+                // (RFC 9113 §8.1 forbids them in trailers), always END_STREAM.
+                let mut hpack_enc = hpack::Encoder::new();
+                let mut header_block = BytesMut::new();
+                for (name, value) in headers {
+                    hpack_enc.encode_header(name, value, &mut header_block);
+                }
+                let hf = HeadersFrame {
+                    stream_id,
+                    flags: headers_flags::END_HEADERS | headers_flags::END_STREAM,
                     header_block: header_block.freeze(),
                     pad_len: None,
                     priority: None,

@@ -44,6 +44,11 @@ struct StreamEntry {
     flow: FlowControl,
 }
 
+/// Batch consumed-byte credits and flush once this many are pending (half the
+/// default 64 KiB stream window). See
+/// [`H2Channel::credit_received_data`].
+const CREDIT_FLUSH_THRESHOLD: u32 = 32 * 1024;
+
 /// Non-blocking HTTP/2 connection state machine.
 ///
 /// Same state as `H2Connection` but replaces the `S: Read+Write` socket with
@@ -69,6 +74,11 @@ pub struct H2Channel {
 
     _conn_flow: FlowControl,
     remote_conn_window: i32,
+    /// Received DATA bytes not yet credited back to the peer's connection
+    /// window — flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    uncredited_conn: u32,
+    /// Same, per stream (keyed by stream id; entries removed as they flush).
+    uncredited_streams: BTreeMap<u32, u32>,
 
     streams: BTreeMap<u32, StreamEntry>,
 
@@ -116,6 +126,8 @@ impl H2Channel {
             hpack_enc,
             _conn_flow: FlowControl::new(),
             remote_conn_window: 65535,
+            uncredited_conn: 0,
+            uncredited_streams: BTreeMap::new(),
             streams: BTreeMap::new(),
             next_outgoing_id: if is_server { 2 } else { 1 },
             _last_peer_stream_id: 0,
@@ -588,6 +600,7 @@ impl H2Channel {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
                     let end = df.flags & data_flags::END_STREAM != 0;
+                    self.credit_received_data(head.stream_id, df.data.len() as u32);
                     return Ok(Some((head.stream_id, df.data, end)));
                 }
                 Kind::Settings => self.handle_settings(head, &payload)?,
@@ -619,6 +632,7 @@ impl H2Channel {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
                     let end = df.flags & data_flags::END_STREAM != 0;
+                    self.credit_received_data(head.stream_id, df.data.len() as u32);
                     return Ok(Some((
                         head.stream_id,
                         H2StreamEvent::Data {
@@ -652,6 +666,32 @@ impl H2Channel {
     }
 
     // ── Internal frame handlers ─────────────────────────────────────────
+
+    /// Credit consumed DATA back to the peer's flow-control windows
+    /// (RFC 9113 §5.2). Without this, the peer stalls for good once its
+    /// 64 KiB initial windows are spent — flow-control windows are cumulative
+    /// over the connection's lifetime. Credits are batched and flushed at
+    /// [`CREDIT_FLUSH_THRESHOLD`]: per-frame WINDOW_UPDATE pairs fragment the
+    /// sender's view of the window into ever-smaller DATA frames and drown
+    /// the connection in 13-byte control frames.
+    fn credit_received_data(&mut self, stream_id: u32, n: u32) {
+        if n == 0 {
+            return;
+        }
+        let stream_credit = self.uncredited_streams.entry(stream_id).or_insert(0);
+        *stream_credit += n;
+        if *stream_credit >= CREDIT_FLUSH_THRESHOLD {
+            let credit = *stream_credit;
+            self.uncredited_streams.remove(&stream_id);
+            WindowUpdateFrame { stream_id, size_increment: credit }.encode(&mut self.write_buf);
+        }
+        self.uncredited_conn += n;
+        if self.uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
+            let credit = std::mem::take(&mut self.uncredited_conn);
+            WindowUpdateFrame { stream_id: 0, size_increment: credit }
+                .encode(&mut self.write_buf);
+        }
+    }
 
     pub fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {

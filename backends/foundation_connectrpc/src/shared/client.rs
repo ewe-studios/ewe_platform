@@ -36,6 +36,7 @@ use crate::shared::interceptor::{Interceptor, InterceptorChain, UnaryCall, Unary
 use crate::shared::message::{Request, Response};
 use crate::shared::protocol::connect::constants as connect_consts;
 use crate::shared::protocol::grpc_web::constants as grpc_web_consts;
+use crate::shared::protocol::grpc::parse_grpc_error_trailer;
 use crate::shared::protocol::{ClientExchange, ProtocolClient};
 use crate::ConnectClient;
 use crate::GrpcClient;
@@ -1429,7 +1430,7 @@ fn is_method_not_allowed(err: &ErrorTrace<ConnectError>) -> bool {
 }
 
 /// Map an HTTP status to an RPC error [`Code`] (Decision 03).
-fn code_from_http_status(status: &Status) -> Code {
+pub(crate) fn code_from_http_status(status: &Status) -> Code {
     let n: usize = status.clone().into();
     match n {
         400 => Code::InvalidArgument,

@@ -486,6 +486,26 @@ impl ProtocolHandler for ConnectHandler {
         streaming_content_type(codec_name)
     }
 
+    fn streaming_response_encoding(
+        &self,
+        request: &SimpleIncomingRequest,
+        compression: &CompressionRegistry,
+    ) -> Option<(String, String)> {
+        let (content_encoding, accept_encoding) = streaming_encodings(&request.headers);
+        let negotiated = negotiate_compression(
+            compression,
+            content_encoding.as_deref(),
+            accept_encoding.as_deref(),
+        )
+        .ok()?;
+        negotiated.response_compressor.map(|c| {
+            (
+                constants::HEADER_STREAMING_CONTENT_ENCODING.to_string(),
+                c.name().to_string(),
+            )
+        })
+    }
+
     fn decode_unary_request(
         &self,
         request: &SimpleIncomingRequest,

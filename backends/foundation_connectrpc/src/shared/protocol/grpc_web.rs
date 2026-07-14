@@ -610,6 +610,9 @@ impl ProtocolHandler for GrpcWebHandler {
             text,
             false,
         ));
+        // Dispatch advertises this negotiation via `streaming_response_encoding`
+        // (`grpc-encoding` response header) — a compressed envelope flag
+        // without it is a protocol error to strict clients.
         let writer: BoxedTask = Box::pin(write_frames(
             ends.response_rx,
             Arc::new(responder),
@@ -631,6 +634,22 @@ impl ProtocolHandler for GrpcWebHandler {
         codec_name: &str,
     ) -> String {
         content_type(codec_name, is_text(request))
+    }
+
+    fn streaming_response_encoding(
+        &self,
+        request: &SimpleIncomingRequest,
+        compression: &CompressionRegistry,
+    ) -> Option<(String, String)> {
+        let negotiated = negotiate_compression(
+            compression,
+            header(&request.headers, constants::HEADER_ENCODING).as_deref(),
+            header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
+        )
+        .ok()?;
+        negotiated
+            .response_compressor
+            .map(|c| (constants::HEADER_ENCODING.to_string(), c.name().to_string()))
     }
 
     fn decode_unary_request(

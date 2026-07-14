@@ -128,6 +128,12 @@ pub enum H2Frame {
         payload: Bytes,
         end_stream: bool,
     },
+    /// Trailing HEADERS (RFC 9113 §8.1): no pseudo-headers, always ends the
+    /// stream. How gRPC delivers `grpc-status`/`grpc-message` for streaming
+    /// responses — grpc-go treats a stream that ends without them as an error.
+    Trailers {
+        headers: Vec<(Bytes, Bytes)>,
+    },
     Reset {
         error_code: ErrorCode,
     },
