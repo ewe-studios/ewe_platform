@@ -817,6 +817,14 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             content_encoding.as_deref(),
         );
         add_timeout_header(&self.config.protocol, &mut headers, ctx.remaining_timeout());
+        // Merge client-wide extra headers — same contract as the streaming
+        // paths (e.g. BuildKit's `buildkit-controlapi-buildid` gateway routing
+        // header rides every unary call of a gateway client).
+        for (key, values) in self.config.extra_headers.iter() {
+            for value in values {
+                headers.entry(key.clone()).or_default().push(value.clone());
+            }
+        }
 
         // Protocol-specific wire framing. Connect = bare bytes; gRPC/gRPC-Web =
         // single envelope frame. The compression flag (if any) is already in

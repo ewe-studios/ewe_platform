@@ -488,7 +488,7 @@ impl ProtocolClient for GrpcClient {
 async fn read_grpc_response(
     mut head: HeadStream,
     body: BodyStream,
-    mut trailers: PipeReceiver<SimpleHeaders>,
+    trailers: PipeReceiver<SimpleHeaders>,
     tx: PipeSender<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
 ) -> ConnectResult<()> {
