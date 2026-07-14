@@ -13,12 +13,6 @@ keywords = ["wireguard", "mesh", "userspace", "boringtun", "smoltcp"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-# WireGuard Noise state machine + x25519 re-export (decision 01: pin crates.io release).
-# NOTE: boringtun's sleepyinstant only has unix/windows backends — wasm32
-# compilation fails. The browser peer imports WgTunnel but the test suite
-# only runs on native targets (cfg(not(target_family = "wasm"))).
-boringtun = { version = "0.7.1", default-features = false }
-
 # Data plane primitives (feature 00). wasm gets the netstack only; native additionally
 # needs poll/fd for the UDP socket + reactor used by the tunnel driver.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
@@ -42,6 +36,9 @@ serde_json = "1"
 bincode = { version = "2", features = ["serde"] }
 # wireguard.toml config loading (feature 09).
 toml = { workspace = true }
+# WireGuard Noise state machine (decision 01). Pure crypto (Tunn + x25519) —
+# no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
+boringtun = { version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.

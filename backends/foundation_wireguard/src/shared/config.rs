@@ -631,6 +631,7 @@ impl WgConfigBuilder {
     }
 
     /// Use a kernel TUN device. Requires CAP_NET_ADMIN or TUN ownership.
+    #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn dataplane_tun(mut self, name: &str, mtu: u32) -> Self {
         self.dataplane_mode = Some(DataPlaneMode::Tun {
