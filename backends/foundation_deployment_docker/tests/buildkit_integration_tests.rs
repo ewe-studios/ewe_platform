@@ -64,3 +64,21 @@ async fn disk_usage_ok() {
     // A fresh daemon may have an empty cache — we only assert the RPC succeeds.
     let _usage = client.disk_usage(Vec::new()).await.expect("DiskUsage RPC");
 }
+
+#[valtron_test]
+async fn solve_probe_reports_what_buildkit_needs() {
+    let Some(addr) = buildkitd_addr() else { return };
+    let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
+
+    // Fire a dockerfile.v0 solve with NO session — we want to see exactly what
+    // buildkitd complains about (empirical: drives the session design).
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+
+    match client.solve(req).await {
+        Ok(_) => eprintln!("SOLVE OK (unexpected without a context)"),
+        Err(e) => eprintln!("SOLVE ERR (expected — tells us what's needed): {e}"),
+    }
+}

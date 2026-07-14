@@ -92,8 +92,11 @@
 - [x] gRPC needs HTTP/2 — added `connect_tcp` using `H2Transport` (H1 can't carry gRPC; h2c-over-Unix is a pending transport gap)
 - [x] **Validated end-to-end vs real buildkitd v0.31.1** — `Info`/`ListWorkers`/`DiskUsage` pass over gRPC/H2 (testbed: `moby/buildkit` container on TCP; `EWE_BUILDKITD_ADDR`)
 - [x] Session-service proto types generated (FileSync/Auth `moby.filesync.v1`, Secrets, SSH, `fsutil.types`)
-- [ ] `Session` bidi sidecar **server**: `BidiStream::split()` → async↔sync channel bridge → `Connection::Overlay` → `HttpServer::serve_with_acceptor`; serve FileSync/Auth/Secrets/SSH; register session metadata headers
-- [ ] fsutil `DiffCopy` handler (walk + stream a local build-context dir)
+- [x] **Service code generated via `foundation_connectrpc_codegen`** (per-service): `ControlClient` + FileSync/Auth/Secrets/SSH traits + register fns, wired in `src/buildkit/services.rs`
+- [x] **Fixed a real codegen bug**: `generate_services` now emits `+ Send` RPITIT (was `async fn`, non-Send → failed Router's Send bound); streaming outputs boxed to `Pin<Box<dyn Stream + Send>>`
+- [x] **Empirically confirmed** via buildkitd testbed: a session-less `dockerfile.v0` Solve returns `could not access local files without session` — so the session server is exactly what's needed
+- [ ] `Session` sidecar **server**: serve the session `Router` (FileSync + Unimplemented Auth/Secrets/SSH) on a **loopback TCP h2 server** (the proven grpc_echo path), and pump bytes between a loopback client socket and the `ControlClient::session()` bidi (`BytesMessage.data` ↔ TCP); set `x-docker-expose-session-*` headers
+- [ ] fsutil `FileSync::diff_copy` handler (walk + stream a local build-context dir)
 - [ ] Local Dockerfile build end-to-end via `Solve` + session (depends on the two above)
 - [ ] Remaining Control RPCs: build-history wrappers (generated types exist)
 
