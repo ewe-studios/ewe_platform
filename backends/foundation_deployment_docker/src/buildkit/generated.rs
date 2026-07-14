@@ -35,10 +35,18 @@ pub mod google {
     }
 }
 
-/// `moby.buildkit.v1` — the Control service messages plus its `types` and
-/// `sourcepolicy` sub-packages.
+/// `fsutil.types` — file-transfer packet types (`fsutil/types/{wire,stat}.proto`)
+/// used by the FileSync session service.
+pub mod fsutil {
+    pub mod types {
+        include!(concat!(env!("OUT_DIR"), "/fsutil.types.mod.rs"));
+    }
+}
+
+/// `moby.*` — the Control service and the session sidecar services.
 pub mod moby {
     pub mod buildkit {
+        /// `moby.buildkit.v1` — Control service messages + `types` / `sourcepolicy`.
         pub mod v1 {
             include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.mod.rs"));
 
@@ -52,6 +60,29 @@ pub mod moby {
             pub mod sourcepolicy {
                 include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.sourcepolicy.mod.rs"));
             }
+        }
+
+        /// `moby.buildkit.secrets.v1` — Secrets session service (`session/secrets`).
+        pub mod secrets {
+            pub mod v1 {
+                include!(concat!(env!("OUT_DIR"), "/moby.buildkit.secrets.v1.mod.rs"));
+            }
+        }
+    }
+
+    /// `moby.filesync.v1` — FileSync + Auth session services (`session/filesync`,
+    /// `session/auth`).
+    pub mod filesync {
+        pub mod v1 {
+            include!(concat!(env!("OUT_DIR"), "/moby.filesync.v1.mod.rs"));
+        }
+    }
+
+    /// `moby.sshforward.v1` — SSH agent-forwarding session service
+    /// (`session/sshforward`).
+    pub mod sshforward {
+        pub mod v1 {
+            include!(concat!(env!("OUT_DIR"), "/moby.sshforward.v1.mod.rs"));
         }
     }
 }

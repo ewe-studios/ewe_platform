@@ -26,12 +26,21 @@ fn generate_buildkit() {
     let root = format!("{manifest}/specs/buildkit");
     let bk = format!("{root}/github.com/moby/buildkit");
 
+    let fsutil = format!("{root}/github.com/tonistiigi/fsutil/types");
     let files = [
+        // Control service (Solve/Status/Info/DiskUsage/Prune/ListWorkers).
         format!("{bk}/api/services/control/control.proto"),
         format!("{bk}/api/types/worker.proto"),
         format!("{bk}/solver/pb/ops.proto"),
         format!("{bk}/sourcepolicy/pb/policy.proto"),
         format!("{root}/google/rpc/status.proto"),
+        // Session sidecar services (served by the client during a Solve).
+        format!("{bk}/session/filesync/filesync.proto"),
+        format!("{bk}/session/auth/auth.proto"),
+        format!("{bk}/session/secrets/secrets.proto"),
+        format!("{bk}/session/sshforward/ssh.proto"),
+        format!("{fsutil}/wire.proto"),
+        format!("{fsutil}/stat.proto"),
     ];
 
     buffa_build::Config::new()
