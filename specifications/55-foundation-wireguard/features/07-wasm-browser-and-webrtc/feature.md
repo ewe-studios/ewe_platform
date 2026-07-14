@@ -2,7 +2,7 @@
 
 **Depends on:** 04, 05, 06
 **Decisions:** [08](../../decisions/08-wasm-browser-and-webrtc.md), [07](../../decisions/07-relay-as-capability.md), [06](../../decisions/09-webtransport-on-quinn-proto.md)
-**Status:** ⚠️ Partial (2026-07-14 audit). `JsDevice` (smoltcp phy::Device) and `WsRelayClient` (frame queue) are implemented + tested. **Must do:** (1) Fix `boringtun 0.7.1` `sleepyinstant` — does not compile for `wasm32-unknown-unknown` (cfg-gate or patch to use `web_sys::Performance`/`Date` for wasm Instant); (2) Implement native WebSocket accept path in `RelayServer` so browser peers have a relay endpoint; (3) Replace hardcoded `PeerId([0; 32])` in `BrowserWgNode::tick()` with real peer routing from membership data; (4) Implement ICE candidate negotiation + DTLS + SCTP in `WebRtcAnswerer` (native side) — the `WebRtcOfferer` is an SDP-state-machine stub; (5) Add SDP/ICE gossip message types to SWIM for WebRTC signaling; (6) Wire `WasmWtBridge` inbound datagram read path (currently architectural stub); (7) Headless-browser join test: browser peer joins via wss + reaches a native service via relay.
+**Status:** ⚠️ Partial (2026-07-15). Tasks 1,3 done: `JsDevice` (smoltcp Device), `WsRelayClient`, `BrowserWgNode` with `add_peer()` routing (replaces hardcoded PeerId). Remaining: boringtun `sleepyinstant` has no wasm32 backend (native tests pass via `#[cfg(not(target_family = "wasm"))]`), native WS relay accept not implemented, WebRTC offerer/answerer are SDP state-machine stubs (per decision 08: "Land WS relay first — WebRTC is the direct upgrade"), no browser e2e test.
 
 ## WHY
 

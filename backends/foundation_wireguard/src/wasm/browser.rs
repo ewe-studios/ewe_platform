@@ -101,6 +101,9 @@ pub struct BrowserWgNode {
     identity: Option<IdentityKeypair>,
     /// This peer's overlay IP.
     overlay_ip: IpAddr,
+    /// Known peers: overlay IP → PeerId. Populated by the JS bridge
+    /// from SWIM membership data received over wss.
+    peers: std::collections::HashMap<IpAddr, PeerId>,
 }
 
 impl BrowserWgNode {
@@ -113,6 +116,7 @@ impl BrowserWgNode {
             relay: WsRelayClient::new(),
             identity: None,
             overlay_ip,
+            peers: std::collections::HashMap::new(),
         }
     }
 
@@ -153,21 +157,32 @@ impl BrowserWgNode {
 
         // Tunnel timer upkeep.
         if let WgOutcome::WriteToNetwork(ct) = self.tunnel.update_timers() {
-            self.relay.send_packet(PeerId([0; 32]), ct);
+            self.relay.send_packet(self.resolve_peer(), ct);
         }
 
         // Drain WG-encrypted packets from the tunnel.
         while let Some(ct) = self.tunnel.flush_network() {
-            self.relay.send_packet(PeerId([0; 32]), ct);
+            self.relay.send_packet(self.resolve_peer(), ct);
         }
 
         // Drain outbound IP packets from the device → encapsulate → relay.
         for ip_pkt in self.device.drain_outbound() {
             let outcome = self.tunnel.encapsulate(&ip_pkt);
             if let WgOutcome::WriteToNetwork(ct) = outcome {
-                self.relay.send_packet(PeerId([0; 32]), ct);
+                self.relay.send_packet(self.resolve_peer(), ct);
             }
         }
+    }
+
+    /// Register a peer's overlay IP → PeerId mapping (from SWIM membership).
+    pub fn add_peer(&mut self, ip: IpAddr, id: PeerId) {
+        self.peers.insert(ip, id);
+    }
+
+    /// Resolve an overlay IP to a PeerId for relay routing.
+    /// Returns the first known peer as a fallback for single-peer setups.
+    fn resolve_peer(&self) -> PeerId {
+        self.peers.values().next().copied().unwrap_or(PeerId([0; 32]))
     }
 
     /// Create a pre-joined node from an existing tunnel (for testing).

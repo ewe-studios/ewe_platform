@@ -14,6 +14,9 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 # WireGuard Noise state machine + x25519 re-export (decision 01: pin crates.io release).
+# NOTE: boringtun's sleepyinstant only has unix/windows backends — wasm32
+# compilation fails. The browser peer imports WgTunnel but the test suite
+# only runs on native targets (cfg(not(target_family = "wasm"))).
 boringtun = { version = "0.7.1", default-features = false }
 
 # Data plane primitives (feature 00). wasm gets the netstack only; native additionally
@@ -100,6 +103,11 @@ workspace = true
 [[example]]
 name = "two_node_mesh"
 path = "examples/two_node_mesh.rs"
+
+# Docker self-assembly example — containers form a mesh from env vars (F10).
+[[example]]
+name = "docker_self_assemble"
+path = "examples/docker_self_assemble.rs"
 
 # Integration test: full wireguard mesh in userspace (spec-55 completeness).
 [[test]]
