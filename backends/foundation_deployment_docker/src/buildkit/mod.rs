@@ -32,8 +32,8 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H1Transport, H2Transport, ProcedureCodecs, Request, ServerStream,
-    Transport,
+    Client, ClientOptions, Ctx, H1Transport, H2PooledTransport, H2Transport, ProcedureCodecs,
+    Request, ServerStream, Transport,
 };
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::path::Path;
@@ -50,6 +50,9 @@ use crate::buildkit::types::{
 /// Holds one [`Client<Req, Res>`] per gRPC method — all sharing the same
 /// `H1Transport` (which wraps a `DynNetClient` dialing the buildkitd socket).
 pub struct BuildKitClient {
+    /// The transport shared by all per-RPC clients — exposed so callers can
+    /// open additional streams (e.g. Session bidi) on the same connection.
+    pub transport: Arc<dyn Transport>,
     /// Unary build execution.
     pub solve: Client<SolveRequest, SolveResponse>,
     /// Server-streaming build progress.
@@ -90,12 +93,43 @@ impl BuildKitClient {
     /// is published on (e.g. `127.0.0.1:1234`). buildkitd's TCP listener is
     /// plaintext h2c when started without TLS — intended for local/testbed use.
     ///
+    /// Each RPC opens a **new** TCP connection. Prefer [`connect_tcp_pooled`]
+    /// when making multiple calls (e.g. Session + Solve) — it multiplexes H2
+    /// streams on one persistent connection, matching how gRPC is designed.
+    ///
     /// # Errors
     ///
     /// Returns an error if a client cannot be constructed.
     pub fn connect_tcp(authority: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
         Self::from_transport(transport, authority)
+    }
+
+    /// Connect to a `buildkitd` listening on TCP using a **persistent**,
+    /// multiplexed H2 connection ([`H2PooledTransport`]).
+    ///
+    /// Unlike [`connect_tcp`] (new TCP per RPC), this opens ONE TCP connection
+    /// and creates new H2 **streams** for each call — matching how gRPC is
+    /// designed and how bollard's tonic `Channel` operates. The [`Transport`]
+    /// is also accessible via [`transport`](Self::transport) so
+    /// [`SessionServer::start_with`] can open the Session bidi on the same
+    /// connection as the control-plane RPCs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the TCP connect, H2 handshake, or client construction
+    /// fails.
+    pub fn connect_tcp_pooled(authority: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let transport: Arc<dyn Transport> = Arc::new(H2PooledTransport::connect(authority)?);
+        Self::from_transport(transport, authority)
+    }
+
+    /// The underlying [`Transport`] this client was built with. Useful for
+    /// passing to [`SessionServer`] so the Session bidi shares the same H2
+    /// connection as the control-plane RPCs.
+    #[must_use]
+    pub fn transport(&self) -> &Arc<dyn Transport> {
+        &self.transport
     }
 
     /// Build the six per-RPC clients over an already-configured transport.
@@ -143,13 +177,13 @@ impl BuildKitClient {
         )?;
 
         let list_workers = Client::<ListWorkersRequest, ListWorkersResponse>::new(
-            transport,
+            Arc::clone(&transport),
             &format!("{base_url}/ListWorkers"),
             ProcedureCodecs::defaults(),
             opts(),
         )?;
 
-        Ok(Self { solve, status, info, disk_usage, prune, list_workers })
+        Ok(Self { transport, solve, status, info, disk_usage, prune, list_workers })
     }
 
     /// Get buildkitd info (unary): version, worker records, and capabilities.

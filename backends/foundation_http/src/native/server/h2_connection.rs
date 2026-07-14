@@ -96,6 +96,7 @@ impl TaskIterator for H2ConnectionHandler {
 
     fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if self.shutdown.probe() {
+            eprintln!("[h2-srv] shutdown signaled, closing");
             return None;
         }
 
@@ -115,8 +116,10 @@ impl TaskIterator for H2ConnectionHandler {
             }
         }
 
-        match self.conn.read_frame() {
-            Ok((head, payload)) => {
+        // Use read_stream_frame — it auto-handles connection-level frames
+        // (PING→ACK, SETTINGS→ACK, WINDOW_UPDATE) so we only see stream frames.
+        match self.conn.read_stream_frame() {
+            Ok(Some((head, payload))) => {
                 self.idle_since = None;
                 match head.kind {
                     Kind::Headers => {
@@ -131,27 +134,22 @@ impl TaskIterator for H2ConnectionHandler {
                         tracing::debug!(stream = head.stream_id, kind = "RST_STREAM", "h2 frame received");
                         self.on_reset(&head, &payload)
                     }
-                    Kind::GoAway => {
-                        tracing::debug!("h2 GOAWAY received, closing connection");
-                        return None;
-                    }
-                    Kind::Settings => {
-                        tracing::debug!("h2 SETTINGS frame received post-handshake");
-                    }
-                    Kind::Ping => {
-                        tracing::debug!("h2 PING frame received");
-                    }
-                    Kind::WindowUpdate => {
-                        tracing::debug!("h2 WINDOW_UPDATE frame received");
-                    }
                     _ => {}
                 }
+            }
+            Ok(None) => {
+                // GOAWAY — peer is shutting down.
+                tracing::debug!("h2 GOAWAY received, closing connection");
+                return None;
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 self.pump_responses();
                 return self.park();
             }
-            Err(_) => return None,
+            Err(e) => {
+                tracing::debug!(err = %e, "h2 read_stream_frame error");
+                return None;
+            }
         }
 
         self.pump_responses();

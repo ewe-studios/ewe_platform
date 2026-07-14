@@ -25,7 +25,8 @@ use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBuff
 
 use crate::http2::connection::H2Connection;
 use crate::http2::frame::{
-    data_flags, headers_flags, DataFrame, Head, HeadersFrame, ResetFrame, HEADER_LEN,
+    data_flags, headers_flags, ping_flags, DataFrame, Head, HeadersFrame, Kind, PingFrame,
+    ResetFrame, HEADER_LEN,
 };
 use crate::http2::hpack;
 use crate::http2::types::H2Frame;
@@ -171,6 +172,50 @@ impl H2Conn {
             return Err(would_block());
         }
         self.inner.read_frame()
+    }
+
+    /// Read the next **stream-level** frame, auto-handling connection-level
+    /// frames (PING→ACK, SETTINGS→ACK, WINDOW_UPDATE) internally.
+    ///
+    /// Callers that only route stream frames (HEADERS/DATA/RST_STREAM) should
+    /// use this instead of [`read_frame`] — otherwise PING frames from the peer
+    /// are silently dropped, the peer's PING ACK wait times out, and the
+    /// connection is torn down.
+    ///
+    /// Returns `None` for GOAWAY (caller should close the connection).
+    ///
+    /// # Errors
+    /// `WouldBlock` while the frame is still arriving.
+    pub fn read_stream_frame(&mut self) -> io::Result<Option<(Head, Bytes)>> {
+        loop {
+            if !self.frame_buffered()? {
+                return Err(would_block());
+            }
+            let (head, payload) = self.inner.read_frame()?;
+            match head.kind {
+                Kind::Ping => {
+                    let ack = PingFrame::ack(
+                        PingFrame::parse(&head, &payload)
+                            .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad PING"))?
+                            .opaque_data,
+                    );
+                    let mut buf = BytesMut::new();
+                    ack.encode(&mut buf);
+                    self.inner.write_buf_mut().extend_from_slice(&buf);
+                    // continue loop — this isn't a stream frame
+                }
+                Kind::Settings => {
+                    self.inner.handle_settings(head, &payload)?;
+                    // continue loop
+                }
+                Kind::WindowUpdate => {
+                    self.inner.handle_window_update(head, &payload)?;
+                    // continue loop
+                }
+                Kind::GoAway => return Ok(None),
+                _ => return Ok(Some((head, payload))),
+            }
+        }
     }
 
     /// Flush the write buffer to the socket.

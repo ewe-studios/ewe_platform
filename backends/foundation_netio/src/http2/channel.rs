@@ -21,7 +21,7 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use crate::http2::flow_control::FlowControl;
 use crate::http2::frame::{
     data_flags, headers_flags, ping_flags, settings_flags, DataFrame, ErrorCode, GoAwayFrame, Head,
-    HeadersFrame, Kind, PingFrame, SettingId, SettingsFrame, WindowUpdateFrame,
+    HeadersFrame, Kind, PingFrame, ResetFrame, SettingId, SettingsFrame, WindowUpdateFrame,
 };
 use crate::http2::hpack;
 use crate::http2::settings::SettingsStore;
@@ -153,7 +153,7 @@ impl H2Channel {
     }
 
     /// Try to read a 9-byte frame header + payload from the buffer.
-    fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
+    pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
         if self.read_buf.remaining() < 9 {
             return Err(would_block());
         }
@@ -565,6 +565,8 @@ impl H2Channel {
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         loop {
             let (head, payload) = self.read_frame()?;
+            eprintln!("[h2-pump] recv_response frame sid={} kind={} flags={:#x} len={}",
+                head.stream_id, head.kind as u8, head.flag, payload.len());
             match head.kind {
                 Kind::Headers => {
                     let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
@@ -625,6 +627,8 @@ impl H2Channel {
     pub fn recv_stream_event(&mut self) -> io::Result<Option<(u32, H2StreamEvent)>> {
         loop {
             let (head, payload) = self.read_frame()?;
+            eprintln!("[h2-pump] recv_stream_event frame sid={} kind={} flags={:#x} len={}",
+                head.stream_id, head.kind as u8, head.flag, payload.len());
             match head.kind {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
@@ -663,7 +667,7 @@ impl H2Channel {
 
     // ── Internal frame handlers ─────────────────────────────────────────
 
-    fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
+    pub fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -692,7 +696,7 @@ impl H2Channel {
         Ok(())
     }
 
-    fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
+    pub fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
         if head.stream_id == 0 {
             self.remote_conn_window = self
@@ -718,6 +722,7 @@ impl H2Channel {
         let ack = PingFrame::ack(pf.opaque_data);
         let mut buf = BytesMut::new();
         ack.encode(&mut buf);
+        eprintln!("[h2-ch] queuing PING ACK, opaque={:02x?}", &pf.opaque_data);
         self.queue_frame(
             &Head {
                 kind: Kind::Ping,
@@ -727,6 +732,50 @@ impl H2Channel {
             &buf,
         );
         Ok(())
+    }
+
+    // ── Connection-level frame dispatch (for multiplex pumps) ──────────
+
+    /// Handle one connection-level frame (SETTINGS, PING, WINDOW_UPDATE, GOAWAY).
+    /// Returns `true` if GOAWAY was received (caller should drain and close).
+    /// Stream-level frames (HEADERS, DATA, RST_STREAM, etc.) are NOT handled —
+    /// the caller must route those to the correct stream.
+    ///
+    /// # Errors
+    /// Returns a non-WouldBlock I/O error if the frame is malformed.
+    pub fn handle_conn_frame(&mut self, head: &Head, payload: &[u8]) -> io::Result<bool> {
+        match head.kind {
+            Kind::Settings => self.handle_settings(*head, payload)?,
+            Kind::WindowUpdate => self.handle_window_update(*head, payload)?,
+            Kind::Ping => self.handle_ping(*head, payload)?,
+            Kind::GoAway => { self.goaway_received = true; return Ok(true); }
+            _ => {} // stream-level frames — caller handles
+        }
+        Ok(self.goaway_received)
+    }
+
+    /// Whether the peer has sent GOAWAY.
+    #[must_use]
+    pub fn goaway_received(&self) -> bool { self.goaway_received }
+
+    /// Send `RST_STREAM` for the given stream.
+    pub fn send_rst_stream(&mut self, stream_id: u32) {
+        let rf = ResetFrame { stream_id, error_code: crate::http2::frame::ErrorCode::Cancel };
+        let mut buf = BytesMut::new();
+        rf.encode(&mut buf);
+        self.queue_frame(
+            &Head { kind: Kind::Reset, flag: 0, stream_id },
+            &buf,
+        );
+    }
+
+    /// Decode an HPACK header block from a HEADERS frame, returning
+    /// `(name, value)` pairs. Advances the connection's dynamic HPACK table.
+    pub fn decode_headers_for_response(
+        &mut self,
+        header_block: &[u8],
+    ) -> Result<Vec<(Bytes, Bytes)>, &'static str> {
+        self.hpack_dec.decode(header_block)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────

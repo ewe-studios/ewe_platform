@@ -586,7 +586,7 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
-    fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
+    pub fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -633,7 +633,7 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
-    fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
+    pub fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
 
         if head.stream_id == 0 {

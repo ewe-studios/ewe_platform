@@ -292,6 +292,12 @@ impl SessionServer {
     /// Session stream. Returns once the tunnel is wired; the caller then runs a
     /// Solve with `SolveRequest.Session = self.id`.
     ///
+    /// Creates a **new** `H2Transport` for the Session bidi — a separate TCP
+    /// connection from the Solve call. Prefer [`start_with`] when you have a
+    /// shared [`H2PooledTransport`] (via [`BuildKitClient::connect_tcp_pooled`]);
+    /// that way the Session bidi and Solve share one H2 connection, matching how
+    /// gRPC is designed.
+    ///
     /// # Errors
     ///
     /// Returns an error if the loopback server cannot bind, the Session stream
@@ -300,8 +306,36 @@ impl SessionServer {
         control_authority: &str,
         context_dir: impl Into<PathBuf>,
     ) -> Result<Self, BoxErr> {
-        // The Session stream is its own gRPC call; H2Transport is one-conn-per-call.
         let control_transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+        Self::start_inner(control_transport, control_authority, context_dir).await
+    }
+
+    /// Like [`start`], but uses a **caller-supplied** [`Transport`] for the
+    /// Session bidi — so it shares the same H2 connection as the caller's
+    /// control-plane RPCs (e.g. `Solve`).
+    ///
+    /// Obtain the transport from [`BuildKitClient::transport`] after building
+    /// the client with [`BuildKitClient::connect_tcp_pooled`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the loopback server cannot bind, the Session stream
+    /// cannot be opened, or the loopback dial fails.
+    pub async fn start_with(
+        transport: Arc<dyn Transport>,
+        control_authority: &str,
+        context_dir: impl Into<PathBuf>,
+    ) -> Result<Self, BoxErr> {
+        Self::start_inner(transport, control_authority, context_dir).await
+    }
+
+    /// Shared implementation — the only difference between [`start`] and
+    /// [`start_with`] is who supplies the transport.
+    async fn start_inner(
+        control_transport: Arc<dyn Transport>,
+        control_authority: &str,
+        context_dir: impl Into<PathBuf>,
+    ) -> Result<Self, BoxErr> {
         let id = new_session_id();
 
         // 1. Session gRPC server (FileSync) on a loopback h2c socket.
@@ -344,9 +378,19 @@ impl SessionServer {
                 ),
         )?;
 
-        let bidi = session_client
+        let mut bidi = session_client
             .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
             .await?;
+
+        // Check the gRPC response headers — do we have grpc-status?
+        match bidi.response_headers().await {
+            Ok(h) => {
+                let mut s = String::new();
+                for (k, vs) in h.iter() { s.push_str(&format!("{k}={vs:?} ")); }
+                eprintln!("[sess] bidi response headers: {s}");
+            }
+            Err(e) => eprintln!("[sess] bidi response headers FAILED: {e}"),
+        }
         let (mut sender, mut receiver) = bidi.split();
 
         // 3. Dial our own loopback server and pump bytes both directions between
