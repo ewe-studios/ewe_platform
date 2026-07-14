@@ -145,6 +145,11 @@ pub struct ClientConfig {
     pub preferred_http_version: Option<Proto>,
     /// Seam pipe depth (frames in flight per direction).
     pub pipe_depth: usize,
+    /// Extra request headers merged into every call this client makes. Unlike
+    /// per-call `Request` headers, these also apply to streaming calls that take
+    /// a request *stream* (client/bidi) rather than a `Request`. Multiple values
+    /// per header name are preserved (e.g. repeated session grpc-method headers).
+    pub extra_headers: SimpleHeaders,
 }
 
 impl Default for ClientConfig {
@@ -162,6 +167,7 @@ impl Default for ClientConfig {
             get_use_fallback: true,
             preferred_http_version: None,
             pipe_depth: DEFAULT_PIPE_DEPTH,
+            extra_headers: SimpleHeaders::new(),
         }
     }
 }
@@ -220,6 +226,21 @@ impl ClientOptions {
     }
 
     // ── Protocol ────────────────────────────────────────────────────────────────
+
+    /// Add an extra request header applied to **every** call (including
+    /// streaming calls that take a request stream, where there is no `Request`
+    /// to hang headers on). Repeated calls with the same name append additional
+    /// values — used e.g. for BuildKit's repeated
+    /// `x-docker-expose-session-grpc-method` session headers.
+    #[must_use]
+    pub fn with_header(mut self, key: impl Into<SimpleHeader>, value: impl Into<String>) -> Self {
+        self.config
+            .extra_headers
+            .entry(key.into())
+            .or_default()
+            .push(value.into());
+        self
+    }
 
     /// Select the Connect protocol (default).
     #[must_use]
@@ -528,6 +549,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             &mut headers,
             call_ctx.remaining_timeout(),
         );
+        // Merge client-wide extra headers (applies to streaming calls that take a
+        // request stream rather than a `Request`, e.g. BuildKit session headers).
+        for (key, values) in self.config.extra_headers.iter() {
+            for value in values {
+                headers.entry(key.clone()).or_default().push(value.clone());
+            }
+        }
 
         // Build transport request.
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
@@ -599,6 +627,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             &mut headers,
             call_ctx.remaining_timeout(),
         );
+        // Merge client-wide extra headers (applies to streaming calls that take a
+        // request stream rather than a `Request`, e.g. BuildKit session headers).
+        for (key, values) in self.config.extra_headers.iter() {
+            for value in values {
+                headers.entry(key.clone()).or_default().push(value.clone());
+            }
+        }
 
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
         let transport_stream = self
@@ -679,6 +714,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             &mut headers,
             call_ctx.remaining_timeout(),
         );
+        // Merge client-wide extra headers (applies to streaming calls that take a
+        // request stream rather than a `Request`, e.g. BuildKit session headers).
+        for (key, values) in self.config.extra_headers.iter() {
+            for value in values {
+                headers.entry(key.clone()).or_default().push(value.clone());
+            }
+        }
 
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
         let transport_stream = self
