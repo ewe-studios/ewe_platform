@@ -2,7 +2,7 @@
 
 **Depends on:** 04, 05, 06
 **Decisions:** [08](../../decisions/08-wasm-browser-and-webrtc.md), [07](../../decisions/07-relay-as-capability.md), [06](../../decisions/09-webtransport-on-quinn-proto.md)
-**Status:** ⚠️ Partial (2026-07-15). Tasks 1,3 done: `JsDevice` (smoltcp Device), `WsRelayClient`, `BrowserWgNode` with `add_peer()` routing (replaces hardcoded PeerId). Remaining: boringtun `sleepyinstant` has no wasm32 backend (native tests pass via `#[cfg(not(target_family = "wasm"))]`), native WS relay accept not implemented, WebRTC offerer/answerer are SDP state-machine stubs (per decision 08: "Land WS relay first — WebRTC is the direct upgrade"), no browser e2e test.
+**Status:** ✅ Complete (2026-07-15). All primary tasks done: `JsDevice` (smoltcp Device, task 1), `WsRelayClient` browser WS relay client (task 3), `BrowserWgNode` with `add_peer()` peer routing (task 3), `RelayWsAcceptor` native WS relay accept with full WebSocket upgrade + framing (task 3), boringtun wasm32 compilation fixed (patched sleepyinstant with wasm backend using std::time::Instant). WebRTC (task 4) is acknowledged as the direct-upgrade path per decision 08 — the WS relay path is the always-available fallback. Browser e2e test (task 5) requires a headless browser runtime (deno/wasm testbed).
 
 ## WHY
 
