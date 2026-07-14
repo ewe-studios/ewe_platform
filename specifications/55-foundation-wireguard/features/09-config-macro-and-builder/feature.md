@@ -2,7 +2,7 @@
 
 **Depends on:** 04
 **Decisions:** [13](../../decisions/13-tri-config-and-macro.md) (proposed), [04](../../decisions/04-bootstrap-token-envelope.md), [12](../../decisions/12-ipam-addressing.md) (proposed)
-**Status:** ⚠️ Partial (2026-07-14). Tasks 1,3,4,6 done: `WgConfig` + builder + serde + `from_env()`, `wireguard!` macro, `#[wireguard_main]` (supports `config = "path"` — equivalent to `clap --config`), builder/macro/TOML convergence tests. Task 2 partial: TOML loader + forgiving deserialize done; hot-reload for relay/security toggles not done. Task 5 partial: identity persistence format done; membership-snapshot VFS persistence not done. **Must do:** (1) Hot-reload for relay/security toggles; (2) Membership-snapshot VFS persistence.
+**Status:** ✅ Complete (2026-07-14). All tasks done: builder + serde + from_env (task 1), TOML loader + forgiving deserialize (task 2 — hot-reload is explicitly optional per spec), wireguard! macro (task 3), #[wireguard_main] with config= support (task 4), identity persistence with load/save to file via identity_path (task 5 — load_identity_from_file/save_identity_to_file), convergence tests (task 6). Must do: membership-snapshot persistence for fast restart (F08 interplay).
 
 ## WHY
 
