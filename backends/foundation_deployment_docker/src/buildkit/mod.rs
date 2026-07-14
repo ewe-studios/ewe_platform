@@ -12,19 +12,21 @@
 //!                id whose sidecar streams the build context / secrets / auth).
 //!   - `Status` — server-streaming, live build progress (vertexes + logs).
 //!
-//! HOW: [`BuildKitClient::connect`] builds an [`H1Transport`] over a
-//! `DynNetClient` dialing the buildkitd socket, then constructs each
-//! `Client<Req, Res>` with `ProcedureCodecs::defaults()` (proto + json) — the
-//! request/response types are real `buffa::Message` types generated from the
-//! vendored BuildKit protos (see [`generated`] and `build.rs`).
+//! HOW: [`BuildKitClient::connect`] builds an [`H2Transport`] dialing the
+//! buildkitd Unix socket (h2c prior-knowledge — gRPC requires HTTP/2), then
+//! constructs each `Client<Req, Res>` with `ProcedureCodecs::defaults()`
+//! (proto + json) — the request/response types are real `buffa::Message`
+//! types generated from the vendored BuildKit protos (see [`generated`] and
+//! `build.rs`). [`connect_tcp`](BuildKitClient::connect_tcp) does the same
+//! over TCP (`--addr tcp://…`).
 //!
 //! ## Scope
 //!
-//! The `Session` bidi RPC (the callback channel over which buildkitd pulls the
-//! build context via FileSync/Auth/Secrets/SSH sidecar services) is not yet
-//! implemented — a `Solve` therefore only succeeds for builds that need no
-//! client-provided session (e.g. a fully remote context). Wiring the session
-//! sidecar is the remaining step for end-to-end local Dockerfile builds.
+//! The `Session` bidi RPC — the callback channel over which buildkitd pulls
+//! the build context via FileSync/Auth/Secrets/SSH sidecar services — is
+//! implemented in [`session`] ([`session::SessionServer`]). End-to-end local
+//! Dockerfile builds work: start a `SessionServer` for the context directory,
+//! then `Solve` with `SolveRequest.Session = session.id`.
 
 pub mod generated;
 pub mod services;
@@ -32,10 +34,9 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H1Transport, H2PooledTransport, H2Transport, ProcedureCodecs,
-    Request, ServerStream, Transport,
+    Client, ClientOptions, Ctx, H2PooledTransport, H2Transport, ProcedureCodecs, Request,
+    ServerStream, Transport,
 };
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -45,10 +46,11 @@ use crate::buildkit::types::{
     UsageRecord,
 };
 
-/// BuildKit daemon client over a Unix socket.
+/// BuildKit daemon client — gRPC over a Unix socket or TCP.
 ///
 /// Holds one [`Client<Req, Res>`] per gRPC method — all sharing the same
-/// `H1Transport` (which wraps a `DynNetClient` dialing the buildkitd socket).
+/// h2c [`Transport`] (Unix socket via [`connect`](Self::connect), TCP via
+/// [`connect_tcp`](Self::connect_tcp)).
 pub struct BuildKitClient {
     /// The transport shared by all per-RPC clients — exposed so callers can
     /// open additional streams (e.g. Session bidi) on the same connection.
@@ -69,20 +71,19 @@ pub struct BuildKitClient {
 
 impl BuildKitClient {
     /// Connect to `buildkitd` at the given Unix socket path
-    /// (e.g. `/run/buildkit/buildkitd.sock`).
+    /// (e.g. `/run/buildkit/buildkitd.sock` — buildkitd's default listener).
+    ///
+    /// Uses [`H2Transport::unix`] — h2c prior-knowledge over the Unix domain
+    /// socket, since buildkitd's Control service is gRPC and gRPC requires
+    /// HTTP/2. The `:authority` pseudo-header is a fixed `localhost` (gRPC
+    /// servers on Unix sockets ignore it, matching grpc-go's own dialer).
     ///
     /// # Errors
     ///
-    /// Returns an error if the socket cannot be dialed or a client cannot be
-    /// constructed.
+    /// Returns an error if a client cannot be constructed. (The socket is
+    /// dialed lazily, per call.)
     pub fn connect(socket_path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let http: DynNetClient = HttpClientBuilder::new().unix_socket(socket_path.as_ref()).build();
-        // NOTE: buildkitd speaks gRPC (HTTP/2). H1Transport cannot carry real
-        // gRPC, and H2Transport is TCP-only — so talking to a Unix-socket
-        // buildkitd needs an h2c-over-Unix transport that does not exist yet.
-        // Use `connect_tcp` for a working end-to-end path today; this Unix
-        // constructor is kept for that pending transport.
-        let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(http));
+        let transport: Arc<dyn Transport> = Arc::new(H2Transport::unix(socket_path.as_ref()));
         Self::from_transport(transport, "localhost")
     }
 

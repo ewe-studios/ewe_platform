@@ -290,10 +290,72 @@ async fn build_dockerfile_end_to_end() {
     req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
-    match client.solve(req).await {
-        Ok(_) => eprintln!("BUILD OK — dockerfile.v0 solved with session {}", session.id),
-        Err(e) => eprintln!("BUILD ERR: {e}"),
+    let resp = client.solve(req).await.expect("dockerfile.v0 solve with session");
+    eprintln!("BUILD OK — dockerfile.v0 solved with session {} → {resp:?}", session.id);
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
+///
+/// SETUP: share the socket dir with the host and open its permissions, e.g.
+///   mkdir -p /tmp/ewe-bk-sock
+///   docker run -d --name ewe-buildkitd-unix --privileged \
+///     -v /tmp/ewe-bk-sock:/run/buildkit \
+///     moby/buildkit:latest --addr unix:///run/buildkit/buildkitd.sock
+///   docker exec ewe-buildkitd-unix chmod 666 /run/buildkit/buildkitd.sock
+/// then `EWE_BUILDKITD_UNIX=/tmp/ewe-bk-sock/buildkitd.sock` (the default).
+fn buildkitd_unix() -> Option<String> {
+    let path = std::env::var("EWE_BUILDKITD_UNIX")
+        .unwrap_or_else(|_| "/tmp/ewe-bk-sock/buildkitd.sock".to_string());
+    match std::os::unix::net::UnixStream::connect(&path) {
+        Ok(_) => Some(path),
+        Err(_) => {
+            eprintln!("skipping: no buildkitd unix socket at {path} (set EWE_BUILDKITD_UNIX)");
+            None
+        }
     }
+}
+
+#[valtron_test]
+async fn info_over_unix_socket() {
+    let Some(path) = buildkitd_unix() else { return };
+    let client = BuildKitClient::connect(&path).expect("connect unix");
+
+    let info = client.info().await.expect("Info RPC over unix socket");
+    let version = info.buildkitVersion.into_option().expect("buildkitVersion present");
+    assert!(!version.version.is_empty(), "version string should be non-empty");
+    eprintln!("buildkitd (unix) version: {}", version.version);
+}
+
+#[valtron_test]
+async fn build_dockerfile_end_to_end_unix() {
+    use foundation_deployment_docker::buildkit::session::SessionServer;
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
+    let Some(path) = buildkitd_unix() else { return };
+
+    let dir = std::env::temp_dir().join(format!("ewe-bk-unix-ctx-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("mkdir ctx");
+    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo hello-from-ewe-unix\n")
+        .expect("write Dockerfile");
+
+    let client = BuildKitClient::connect(&path).expect("connect unix");
+
+    // Share the unix transport: the Session bidi dials the same socket
+    // (per-call connection, same as connect_tcp's shape).
+    let session = SessionServer::start_with(client.transport().clone(), "localhost", &dir)
+        .await
+        .expect("start session over unix transport");
+
+    let mut req = SolveRequest::default();
+    req.Frontend = "dockerfile.v0".into();
+    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.Session = session.id.clone();
+
+    let resp = client.solve(req).await.expect("dockerfile.v0 solve over unix socket");
+    eprintln!("UNIX BUILD OK — session {} → {resp:?}", session.id);
 
     let _ = std::fs::remove_dir_all(&dir);
 }

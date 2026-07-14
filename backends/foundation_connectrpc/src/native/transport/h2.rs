@@ -42,15 +42,82 @@ use crate::shared::transport::{
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 const POLL_DELAY: Duration = Duration::from_millis(10);
 
+// ── H2Socket — the byte stream a pump drives ───────────────────────────────
+
+/// The socket an [`H2Pump`] reads/writes — TCP (`host:port` from the request
+/// URI) or a Unix domain socket (fixed path supplied at transport build time).
+/// Both sides of the enum expose the same non-blocking I/O surface the pump
+/// needs, so the pump body is socket-agnostic.
+enum H2Socket {
+    Tcp(TcpStream),
+    #[cfg(unix)]
+    Unix(std::os::unix::net::UnixStream),
+}
+
+impl H2Socket {
+    fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
+        match self {
+            Self::Tcp(s) => s.set_nonblocking(nonblocking),
+            #[cfg(unix)]
+            Self::Unix(s) => s.set_nonblocking(nonblocking),
+        }
+    }
+}
+
+impl Read for H2Socket {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match self {
+            Self::Tcp(s) => s.read(buf),
+            #[cfg(unix)]
+            Self::Unix(s) => s.read(buf),
+        }
+    }
+}
+
+impl Write for H2Socket {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self {
+            Self::Tcp(s) => s.write(buf),
+            #[cfg(unix)]
+            Self::Unix(s) => s.write(buf),
+        }
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        match self {
+            Self::Tcp(s) => s.flush(),
+            #[cfg(unix)]
+            Self::Unix(s) => s.flush(),
+        }
+    }
+}
+
 // ── H2Transport ────────────────────────────────────────────────────────────
 
 /// HTTP/2 cleartext (h2c prior-knowledge) transport — one connection per call.
+///
+/// Dials TCP by default (`host:port` from the request URI). Build with
+/// [`unix`](Self::unix) to dial a Unix domain socket instead — the request
+/// URI's authority is then only used for the `:authority` pseudo-header
+/// (gRPC servers on Unix sockets ignore it).
 #[derive(Clone, Default)]
-pub struct H2Transport;
+pub struct H2Transport {
+    /// When set, every `open()` dials this Unix socket instead of TCP.
+    #[cfg(unix)]
+    unix_path: Option<std::path::PathBuf>,
+}
 
 impl H2Transport {
     #[must_use]
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self { Self::default() }
+
+    /// An `H2Transport` that dials the given Unix domain socket for every
+    /// call — h2c-over-Unix, the shape `buildkitd` listens on by default
+    /// (`unix:///run/buildkit/buildkitd.sock`).
+    #[cfg(unix)]
+    #[must_use]
+    pub fn unix(path: impl Into<std::path::PathBuf>) -> Self {
+        Self { unix_path: Some(path.into()) }
+    }
 }
 
 impl Transport for H2Transport {
@@ -77,12 +144,35 @@ impl Transport for H2Transport {
         let method = request.method.clone();
         let req_headers = request.headers.clone();
 
-        // ── TCP connect (blocking — handshake must complete before pump starts) ──
-        let addr = format!("{host}:{port}");
-        let mut stream = TcpStream::connect_timeout(
-            &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            HANDSHAKE_TIMEOUT,
-        ).map_err(|e| TransportError::Connect(Arc::new(e)))?;
+        // ── Connect (blocking — handshake must complete before pump starts) ──
+        #[cfg(unix)]
+        let mut stream = match &self.unix_path {
+            Some(path) => H2Socket::Unix(
+                std::os::unix::net::UnixStream::connect(path)
+                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            ),
+            None => {
+                let addr = format!("{host}:{port}");
+                H2Socket::Tcp(
+                    TcpStream::connect_timeout(
+                        &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                        HANDSHAKE_TIMEOUT,
+                    )
+                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                )
+            }
+        };
+        #[cfg(not(unix))]
+        let mut stream = {
+            let addr = format!("{host}:{port}");
+            H2Socket::Tcp(
+                TcpStream::connect_timeout(
+                    &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                    HANDSHAKE_TIMEOUT,
+                )
+                .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            )
+        };
 
         // ── h2 handshake (blocking, on caller's thread) ────────────────────────
         let mut channel = H2Channel::new(false); // is_server = false (client)
@@ -169,7 +259,7 @@ enum PumpPhase {
 }
 
 struct H2Pump {
-    stream: TcpStream,
+    stream: H2Socket,
     channel: H2Channel,
     state: PumpPhase,
     send_rx: PipeReceiver<Bytes>,
