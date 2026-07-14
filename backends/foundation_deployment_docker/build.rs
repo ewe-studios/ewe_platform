@@ -15,12 +15,15 @@
 //! then `buffa-codegen` emits the Rust. Requires `protoc` on PATH at build time
 //! (only for the optional `buildkit` feature). No-op otherwise.
 
-#![cfg(feature = "buildkit")]
-
 fn main() {
+    // Proto codegen only runs for the `buildkit` feature; the `docker` HTTP
+    // surface needs no build step. `main` must always exist, or a build
+    // without `buildkit` has no entry point (a bare `#![cfg]` strips it).
+    #[cfg(feature = "buildkit")]
     generate_buildkit();
 }
 
+#[cfg(feature = "buildkit")]
 fn generate_buildkit() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     let root = format!("{manifest}/specs/buildkit");
@@ -66,6 +69,7 @@ fn generate_buildkit() {
 /// lands in its own module (avoids duplicate-module collisions for multi-service
 /// protos). Message types are the buffa types generated above and brought into
 /// scope by `src/buildkit/generated.rs`.
+#[cfg(feature = "buildkit")]
 fn generate_services(root: &str, files: &[String]) {
     use prost::Message;
     use prost_types::FileDescriptorSet;

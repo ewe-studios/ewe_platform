@@ -62,6 +62,10 @@ version = "0.0.3"
 path = "../foundation_deployment"
 version = "0.0.1"
 
+[dependencies.foundation_db]
+path = "../foundation_db"
+version = "0.0.1"
+
 [dependencies.foundation_errstacks]
 path = "../foundation_errstacks"
 version = "0.0.1"
