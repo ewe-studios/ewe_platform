@@ -175,9 +175,9 @@ impl H2Conn {
     }
 
     /// Read the next **stream-level** frame, auto-handling connection-level
-    /// frames (PING→ACK, SETTINGS→ACK, WINDOW_UPDATE) internally.
+    /// frames (`PING`→ACK, `SETTINGS`→ACK, `WINDOW_UPDATE`) internally.
     ///
-    /// Callers that only route stream frames (HEADERS/DATA/RST_STREAM) should
+    /// Callers that only route stream frames (`HEADERS`/`DATA`/`RST_STREAM`) should
     /// use this instead of [`read_frame`] — otherwise PING frames from the peer
     /// are silently dropped, the peer's PING ACK wait times out, and the
     /// connection is torn down.
@@ -229,12 +229,18 @@ impl H2Conn {
     }
 
     /// Flush the write buffer to the socket.
+    ///
+    /// # Errors
+    /// Propagates the socket write error (including `WouldBlock`).
     pub fn flush(&mut self) -> io::Result<()> {
         self.inner.flush()
     }
 
     /// Decode an HPACK header block into (name, value) pairs, advancing the
     /// connection's dynamic table.
+    ///
+    /// # Errors
+    /// Returns an HPACK decode error string on a malformed header block.
     pub fn decode_headers(&mut self, block: &[u8]) -> Result<Vec<(Bytes, Bytes)>, &'static str> {
         self.hpack_dec.decode(block)
     }
@@ -243,7 +249,7 @@ impl H2Conn {
     /// to the peer — `stream_id` 0 for the connection window. Must be sent as
     /// request DATA is consumed, or the peer stalls once the 64 KiB initial
     /// windows are exhausted. No-op for a zero increment (a zero-increment
-    /// WINDOW_UPDATE is itself a protocol error).
+    /// `WINDOW_UPDATE` is itself a protocol error).
     pub fn send_window_update(&mut self, stream_id: u32, increment: u32) {
         if increment == 0 {
             return;

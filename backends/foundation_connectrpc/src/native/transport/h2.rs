@@ -233,10 +233,7 @@ impl Transport for H2Transport {
         };
 
         valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::new(
-                io::ErrorKind::Other,
-                e.to_string(),
-            )))
+            TransportError::Connect(Arc::new(io::Error::other(e.to_string())))
         })?;
 
         let head: HeadStream = head_stream_from_pipe(head_rx);

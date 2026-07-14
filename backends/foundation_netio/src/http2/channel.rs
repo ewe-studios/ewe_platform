@@ -38,6 +38,13 @@ fn proto_err(msg: &'static str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, msg)
 }
 
+/// A DATA payload length as `u32`. Frame payloads are bounded by the 24-bit
+/// length field of the frame header (≤ 16 MiB), so the value always fits; the
+/// saturating cast is only to keep the conversion total and clippy-clean.
+fn frame_len_u32(len: usize) -> u32 {
+    u32::try_from(len).unwrap_or(u32::MAX)
+}
+
 /// Per-stream entry.
 struct StreamEntry {
     state: StreamState,
@@ -75,7 +82,7 @@ pub struct H2Channel {
     _conn_flow: FlowControl,
     remote_conn_window: i32,
     /// Received DATA bytes not yet credited back to the peer's connection
-    /// window — flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    /// window — flushed as one `WINDOW_UPDATE` at [`CREDIT_FLUSH_THRESHOLD`].
     uncredited_conn: u32,
     /// Same, per stream (keyed by stream id; entries removed as they flush).
     uncredited_streams: BTreeMap<u32, u32>,
@@ -165,6 +172,10 @@ impl H2Channel {
     }
 
     /// Try to read a 9-byte frame header + payload from the buffer.
+    ///
+    /// # Errors
+    /// `WouldBlock` if a whole frame is not yet buffered, or `InvalidData` on
+    /// a malformed frame header.
     pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
         if self.read_buf.remaining() < 9 {
             return Err(would_block());
@@ -575,7 +586,7 @@ impl H2Channel {
                     let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
                     let decoded = self.hpack_dec.decode(&hf.header_block).map_err(proto_err)?;
                     let resp =
-                        self.build_response(&decoded, hf.flags & headers_flags::END_STREAM != 0);
+                        Self::build_response(&decoded, hf.flags & headers_flags::END_STREAM != 0);
                     return Ok(Some((head.stream_id, resp)));
                 }
                 Kind::Settings => self.handle_settings(head, &payload)?,
@@ -605,7 +616,7 @@ impl H2Channel {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
                     let end = df.flags & data_flags::END_STREAM != 0;
-                    self.credit_received_data(head.stream_id, df.data.len() as u32);
+                    self.credit_received_data(head.stream_id, frame_len_u32(df.data.len()));
                     return Ok(Some((head.stream_id, df.data, end)));
                 }
                 Kind::Settings => self.handle_settings(head, &payload)?,
@@ -642,7 +653,7 @@ impl H2Channel {
                 Kind::Data => {
                     let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
                     let end = df.flags & data_flags::END_STREAM != 0;
-                    self.credit_received_data(head.stream_id, df.data.len() as u32);
+                    self.credit_received_data(head.stream_id, frame_len_u32(df.data.len()));
                     return Ok(Some((
                         head.stream_id,
                         H2StreamEvent::Data {
@@ -681,7 +692,7 @@ impl H2Channel {
     /// (RFC 9113 §5.2). Without this, the peer stalls for good once its
     /// 64 KiB initial windows are spent — flow-control windows are cumulative
     /// over the connection's lifetime. Credits are batched and flushed at
-    /// [`CREDIT_FLUSH_THRESHOLD`]: per-frame WINDOW_UPDATE pairs fragment the
+    /// [`CREDIT_FLUSH_THRESHOLD`]: per-frame `WINDOW_UPDATE` pairs fragment the
     /// sender's view of the window into ever-smaller DATA frames and drown
     /// the connection in 13-byte control frames.
     fn credit_received_data(&mut self, stream_id: u32, n: u32) {
@@ -703,6 +714,10 @@ impl H2Channel {
         }
     }
 
+    /// Apply a peer SETTINGS frame (or absorb its ACK).
+    ///
+    /// # Errors
+    /// `InvalidData` if the frame is on a non-zero stream or malformed.
     pub fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
@@ -727,12 +742,16 @@ impl H2Channel {
         Ok(())
     }
 
+    /// Apply a peer `WINDOW_UPDATE` to the connection or a stream window.
+    ///
+    /// # Errors
+    /// `InvalidData` if the frame is malformed.
     pub fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
         if head.stream_id == 0 {
             self.remote_conn_window = self
                 .remote_conn_window
-                .saturating_add(wu.size_increment as i32);
+                .saturating_add(i32::try_from(wu.size_increment).unwrap_or(i32::MAX));
         } else if let Some(e) = self.streams.get_mut(&head.stream_id) {
             e.flow.inc_window(wu.size_increment).ok();
         }
@@ -762,9 +781,9 @@ impl H2Channel {
 
     // ── Connection-level frame dispatch (for multiplex pumps) ──────────
 
-    /// Handle one connection-level frame (SETTINGS, PING, WINDOW_UPDATE, GOAWAY).
+    /// Handle one connection-level frame (`SETTINGS`, `PING`, `WINDOW_UPDATE`, `GOAWAY`).
     /// Returns `true` if GOAWAY was received (caller should drain and close).
-    /// Stream-level frames (HEADERS, DATA, RST_STREAM, etc.) are NOT handled —
+    /// Stream-level frames (`HEADERS`, `DATA`, `RST_STREAM`, etc.) are NOT handled —
     /// the caller must route those to the correct stream.
     ///
     /// # Errors
@@ -795,6 +814,9 @@ impl H2Channel {
 
     /// Decode an HPACK header block from a HEADERS frame, returning
     /// `(name, value)` pairs. Advances the connection's dynamic HPACK table.
+    ///
+    /// # Errors
+    /// Returns an HPACK decode error string on a malformed header block.
     pub fn decode_headers_for_response(
         &mut self,
         header_block: &[u8],
@@ -804,7 +826,7 @@ impl H2Channel {
 
     // ── Helpers ────────────────────────────────────────────────────────
 
-    fn build_response(&self, headers: &[(Bytes, Bytes)], end_stream: bool) -> H2Request {
+    fn build_response(headers: &[(Bytes, Bytes)], end_stream: bool) -> H2Request {
         let (_st, mut met, mut sch, mut auth, mut path) =
             (0u16, Bytes::new(), Bytes::new(), Bytes::new(), Bytes::new());
         let mut regular = Vec::new();

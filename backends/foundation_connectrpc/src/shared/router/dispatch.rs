@@ -100,7 +100,7 @@ async fn dispatch_request(
 
     // 2. Method check → 405 (+Allow).
     let allowed = allowed_methods(entry);
-    if !allowed.iter().any(|m| *m == request.method) {
+    if !allowed.contains(&request.method) {
         return method_not_allowed(&request, &allowed);
     }
 
@@ -478,8 +478,7 @@ fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>, max_bytes: usize) -> Result<Byte
     while let Ok(chunk) = rx.try_recv() {
         buf.extend_from_slice(&chunk);
         if max_bytes > 0 && buf.len() > max_bytes {
-            return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(Box::new(std::io::Error::other(
                 format!("request body of {} bytes exceeds read_max_bytes of {max_bytes}", buf.len()),
             )));
         }
@@ -731,7 +730,7 @@ async fn dispatch_h2_stream(
     };
 
     let allowed = allowed_methods(entry);
-    if !allowed.iter().any(|m| *m == request.method) {
+    if !allowed.contains(&request.method) {
         return send_whole_response(&tx, method_not_allowed(&request, &allowed)).await;
     }
 
@@ -980,7 +979,7 @@ fn grpc_status_trailers(
             let mut encoded = String::new();
             for b in message.bytes() {
                 // Percent-encode per gRPC spec: space and non-printable/percent.
-                if b == b'%' || b < 0x20 || b > 0x7e {
+                if b == b'%' || !(0x20..=0x7e).contains(&b) {
                     encoded.push_str(&format!("%{b:02X}"));
                 } else {
                     encoded.push(b as char);

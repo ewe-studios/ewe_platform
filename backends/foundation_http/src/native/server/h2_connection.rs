@@ -45,14 +45,14 @@ const HANDSHAKE_POLL_DELAY: Duration = Duration::from_millis(1);
 const IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Extra connection-window credit sent right after the handshake, on top of
-/// the RFC 9113 64 KiB default. Bulk uploads (e.g. BuildKit streaming a built
+/// the RFC 9113 64 KiB default. Bulk uploads (e.g. `BuildKit` streaming a built
 /// image tar back through a session) collapse to a crawl when the peer must
 /// stop every 64 KiB and wait a round trip for credit — especially through a
 /// tunneled/polled transport where that round trip is tens of milliseconds.
 const CONNECTION_WINDOW_EXTRA: u32 = 4 * 1024 * 1024 - 65_535;
 
 /// Batch consumed-byte credits and flush once this many are pending (half the
-/// default stream window). Per-frame WINDOW_UPDATE pairs fragment the sender's
+/// default stream window). Per-frame `WINDOW_UPDATE` pairs fragment the sender's
 /// view of the window into ever-smaller DATA frames and drown the connection
 /// in 13-byte control frames.
 const CREDIT_FLUSH_THRESHOLD: u32 = 32 * 1024;
@@ -67,16 +67,16 @@ struct ActiveStream {
     body_tx: PipeSender<H2IncomingFrame>,
     /// The handler future's response frames arrive here; the poll loop drains them.
     resp_rx: PipeReceiver<H2Frame>,
-    /// Set once a frame carrying END_STREAM has been serialized.
+    /// Set once a frame carrying `END_STREAM` has been serialized.
     response_done: bool,
     /// DATA the bounded `body_tx` pipe couldn't accept yet. Flow control keeps
     /// this small: these bytes are not credited back to the peer until they
     /// enter the pipe, so at most one connection window can pile up.
     pending_body: VecDeque<Bytes>,
-    /// The peer sent END_STREAM; close `body_tx` once `pending_body` drains.
+    /// The peer sent `END_STREAM`; close `body_tx` once `pending_body` drains.
     body_ended: bool,
     /// Consumed bytes not yet credited back on this stream's window —
-    /// flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    /// flushed as one `WINDOW_UPDATE` at [`CREDIT_FLUSH_THRESHOLD`].
     uncredited: u32,
 }
 
@@ -91,7 +91,7 @@ pub struct H2ConnectionHandler {
     handshaked: bool,
     streams: BTreeMap<u32, ActiveStream>,
     /// Consumed bytes not yet credited back on the connection window —
-    /// flushed as one WINDOW_UPDATE at [`CREDIT_FLUSH_THRESHOLD`].
+    /// flushed as one `WINDOW_UPDATE` at [`CREDIT_FLUSH_THRESHOLD`].
     uncredited_conn: u32,
 }
 
@@ -170,15 +170,15 @@ impl TaskIterator for H2ConnectionHandler {
                 match head.kind {
                     Kind::Headers => {
                         tracing::debug!(stream = head.stream_id, kind = "HEADERS", "h2 frame received");
-                        self.on_headers(&head, &payload)
+                        self.on_headers(head, &payload);
                     }
                     Kind::Data => {
                         tracing::debug!(stream = head.stream_id, kind = "DATA", "h2 frame received");
-                        self.on_data(&head, &payload)
+                        self.on_data(head, &payload);
                     }
                     Kind::Reset => {
                         tracing::debug!(stream = head.stream_id, kind = "RST_STREAM", "h2 frame received");
-                        self.on_reset(&head, &payload)
+                        self.on_reset(head, &payload);
                     }
                     _ => {}
                 }
@@ -228,16 +228,14 @@ impl H2ConnectionHandler {
     }
 
     /// A new stream: decode headers, route it, and spawn its handler future.
-    fn on_headers(&mut self, head: &Head, payload: &[u8]) {
+    fn on_headers(&mut self, head: Head, payload: &[u8]) {
         let sid = head.stream_id;
-        let hf = match HeadersFrame::parse(head, payload) {
-            Ok(hf) => hf,
-            Err(_) => return self.reset_stream(sid, ErrorCode::FrameSizeError),
+        let Ok(hf) = HeadersFrame::parse(&head, payload) else {
+            return self.reset_stream(sid, ErrorCode::FrameSizeError);
         };
 
-        let decoded = match self.conn.decode_headers(&hf.header_block) {
-            Ok(d) => d,
-            Err(_) => return self.reset_stream(sid, ErrorCode::CompressionError),
+        let Ok(decoded) = self.conn.decode_headers(&hf.header_block) else {
+            return self.reset_stream(sid, ErrorCode::CompressionError);
         };
 
         let header = match header_from_hpack(&decoded, self.connection.clone()) {
@@ -296,11 +294,11 @@ impl H2ConnectionHandler {
     /// credited back to the peer via `WINDOW_UPDATE` (connection + stream) —
     /// windows are cumulative over the connection's lifetime, so without
     /// credits any request body beyond the 64 KiB initial window stalls
-    /// forever (bit BuildKit's tar export first). Bytes the bounded pipe
-    /// cannot take yet go to `pending_body` UNcredited — the peer's spent
+    /// forever (bit `BuildKit`'s tar export first). Bytes the bounded pipe
+    /// cannot take yet go to `pending_body` un-credited — the peer's spent
     /// window caps that backlog — and are credited when
     /// [`drain_pending_bodies`](Self::drain_pending_bodies) delivers them.
-    fn on_data(&mut self, head: &Head, payload: &[u8]) {
+    fn on_data(&mut self, head: Head, payload: &[u8]) {
         let sid = head.stream_id;
         let end_stream = head.flag & data_flags::END_STREAM != 0;
 
@@ -313,12 +311,12 @@ impl H2ConnectionHandler {
             if stream.pending_body.is_empty()
                 && stream.body_tx.try_send(H2IncomingFrame::Data(data.clone())).is_ok()
             {
-                stream.uncredited += payload.len() as u32;
+                stream.uncredited += payload_len_u32(payload.len());
                 if stream.uncredited >= CREDIT_FLUSH_THRESHOLD {
                     let credit = std::mem::take(&mut stream.uncredited);
                     self.conn.send_window_update(sid, credit);
                 }
-                self.uncredited_conn += payload.len() as u32;
+                self.uncredited_conn += payload_len_u32(payload.len());
                 if self.uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
                     let credit = std::mem::take(&mut self.uncredited_conn);
                     self.conn.send_window_update(0, credit);
@@ -346,7 +344,7 @@ impl H2ConnectionHandler {
         let uncredited_conn = &mut self.uncredited_conn;
         for (sid, stream) in &mut self.streams {
             while let Some(front) = stream.pending_body.front() {
-                let n = front.len() as u32;
+                let n = payload_len_u32(front.len());
                 let frame = H2IncomingFrame::Data(front.clone());
                 if stream.body_tx.try_send(frame).is_err() {
                     break;
@@ -370,9 +368,9 @@ impl H2ConnectionHandler {
     }
 
     /// The peer cancelled: tell the handler future, then stop tracking the stream.
-    fn on_reset(&mut self, head: &Head, payload: &[u8]) {
+    fn on_reset(&mut self, head: Head, payload: &[u8]) {
         let sid = head.stream_id;
-        let code = ResetFrame::parse(head, payload).map_or(ErrorCode::Cancel, |rf| rf.error_code);
+        let code = ResetFrame::parse(&head, payload).map_or(ErrorCode::Cancel, |rf| rf.error_code);
 
         if let Some(stream) = self.streams.remove(&sid) {
             let _ = stream.body_tx.try_send(H2IncomingFrame::Reset(code));
@@ -437,11 +435,18 @@ impl H2ConnectionHandler {
 /// Generate 8 opaque bytes for a keepalive PING.
 fn new_ping_opaque_h2srv() -> [u8; 8] {
     use std::time::{SystemTime, UNIX_EPOCH};
-    let ns = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos() as u64;
-    ns.to_be_bytes()
+    // Opaque 8-byte PING nonce — any value works. Fold the full nanos into a
+    // u64 (truncation is fine and intended for a nonce).
+    let dur = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
+    let nonce = (u64::from(dur.subsec_nanos())) ^ dur.as_secs().rotate_left(32);
+    nonce.to_be_bytes()
+}
+
+/// A payload length as `u32`. HTTP/2 DATA payloads are bounded by the frame
+/// header's 24-bit length field (≤ 16 MiB), so the value always fits; the
+/// saturating conversion just keeps it total and clippy-clean.
+fn payload_len_u32(len: usize) -> u32 {
+    u32::try_from(len).unwrap_or(u32::MAX)
 }
 
 /// Whether serializing this frame completes the response direction.

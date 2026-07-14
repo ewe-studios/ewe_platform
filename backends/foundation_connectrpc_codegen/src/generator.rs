@@ -163,11 +163,11 @@ fn to_snake_case(name: &str) -> String {
                 let prev = chars[i - 1];
                 let next = chars.get(i + 1).copied();
                 let prev_lower = prev.is_lowercase() || prev.is_ascii_digit();
-                let next_lower = next.map_or(false, |n| n.is_lowercase());
-                if prev_lower || (next_lower && i + 1 < len) {
-                    if result.as_bytes().last() != Some(&b'_') {
-                        result.push('_');
-                    }
+                let next_lower = next.is_some_and(|n| n.is_lowercase());
+                if (prev_lower || (next_lower && i + 1 < len))
+                    && result.as_bytes().last() != Some(&b'_')
+                {
+                    result.push('_');
                 }
             }
             result.push(c.to_ascii_lowercase());

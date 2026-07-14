@@ -274,18 +274,15 @@ impl FileSync for DirFileSync {
 pub struct HealthService;
 
 impl Health for HealthService {
-    fn check(
+    async fn check(
         &self,
         _ctx: Ctx,
         _request: Request<HealthCheckRequest>,
-    ) -> impl core::future::Future<Output = ConnectResult<Response<HealthCheckResponse>>> + Send
-    {
-        async move {
-            Ok(Response::new(HealthCheckResponse {
-                status: ServingStatus::SERVING.into(),
-                ..Default::default()
-            }))
-        }
+    ) -> ConnectResult<Response<HealthCheckResponse>> {
+        Ok(Response::new(HealthCheckResponse {
+            status: ServingStatus::SERVING.into(),
+            ..Default::default()
+        }))
     }
     // watch defaults to unimplemented — buildkit only calls Check.
 }

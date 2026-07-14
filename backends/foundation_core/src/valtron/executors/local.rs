@@ -1530,7 +1530,7 @@ impl ExecutorState {
                     // Rate-limit: under sustained pipe throughput every park can
                     // legitimately hit this (see DEPENDS_TRUE_PANIC_THRESHOLD),
                     // and one warn per violation floods the log at wire speed.
-                    if violations <= 3 || violations % 256 == 0 {
+                    if violations <= 3 || violations.is_multiple_of(256) {
                         tracing::warn!(
                             "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
                             top_entry,

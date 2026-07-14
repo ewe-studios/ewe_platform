@@ -89,7 +89,7 @@ impl ProtocolSelection {
 // ============================================================================
 
 /// Read and send size limits for a client call.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SizeLimits {
     /// Maximum response body size (`0` = unlimited).
     pub read_max_bytes: usize,
@@ -97,16 +97,6 @@ pub struct SizeLimits {
     pub send_max_bytes: usize,
     /// Minimum payload size for compression (`0` = always compress).
     pub compress_min_bytes: usize,
-}
-
-impl Default for SizeLimits {
-    fn default() -> Self {
-        Self {
-            read_max_bytes: 0,
-            send_max_bytes: 0,
-            compress_min_bytes: 0,
-        }
-    }
 }
 
 // ============================================================================
@@ -563,7 +553,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let transport_stream = self
             .transport
             .open(desc)
-            .map_err(|e| ConnectError::from(e))?;
+            .map_err(ConnectError::from)?;
 
         // Build the ClientExchange with linked cancel.
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
@@ -640,7 +630,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let transport_stream = self
             .transport
             .open(desc)
-            .map_err(|e| ConnectError::from(e))?;
+            .map_err(ConnectError::from)?;
 
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
         spawn_reader_writer(exchange.reader_task, exchange.writer_task)?;
@@ -727,7 +717,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let transport_stream = self
             .transport
             .open(desc)
-            .map_err(|e| ConnectError::from(e))?;
+            .map_err(ConnectError::from)?;
 
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
         spawn_reader_writer(exchange.reader_task, exchange.writer_task)?;
@@ -926,6 +916,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// 1. URL too long → pre-flight fallback (never sent).
     /// 2. Server rejected with 405/415 → safe single retry as POST (rejection
     ///    precedes execution; no double-send risk).
+    ///
     /// Transport errors are NOT retried (the GET may have executed).
     async fn call_unary_get_or_fallback(
         &self,
@@ -1331,7 +1322,7 @@ async fn do_unary_round_trip(
     desc: RequestDescriptor,
     body: Bytes,
 ) -> ConnectResult<UnaryReply> {
-    let mut stream = transport.open(desc).map_err(|e| ConnectError::from(e))?;
+    let mut stream = transport.open(desc).map_err(ConnectError::from)?;
 
     // Push request body.
     if !body.is_empty() {
@@ -1347,12 +1338,12 @@ async fn do_unary_round_trip(
         .next()
         .await
         .ok_or_else(|| ConnectError::unavailable("transport closed without response head"))?
-        .map_err(|e| ConnectError::from(e))?;
+        .map_err(ConnectError::from)?;
 
     // Collect response body.
     let mut body_buf = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
-        body_buf.extend_from_slice(&chunk.map_err(|e| ConnectError::from(e))?);
+        body_buf.extend_from_slice(&chunk.map_err(ConnectError::from)?);
     }
 
     // Read trailers (h2 trailing HEADERS for gRPC grpc-status; empty for Connect).
