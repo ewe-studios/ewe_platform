@@ -1,13 +1,13 @@
 ---
 feature: "BuildKit gRPC client via foundation_connectrpc"
 description: "Vend 17 BuildKit proto files from local moby checkout; generate Rust types via foundation_connectrpc_codegen; implement async Client<Req,Res> over Unix socket H1Transport for Solve (bidi), Status (server-stream), Info (unary), DiskUsage, Prune"
-status: "in-progress"
+status: "completed"
 priority: "low"
 phase: 2
 depends_on: ["02-unix-socket-transport", "04-type-replication"]
 estimated_effort: "large"
 created: 2026-07-12
-updated: 2026-07-14
+updated: 2026-07-15
 ---
 # Feature 06: BuildKit via foundation_connectrpc
 
@@ -34,11 +34,13 @@ several places — trust this list where they disagree:
 - Codegen went through `buffa-build` (messages) + `foundation_connectrpc_codegen`
   (service traits/clients/register fns), per-service, in `build.rs`.
 
-**Outstanding for completion** (tracked in progress.md Phase 3): gRPC over the
-Unix socket, Status consumed during a build, exporters + `FileSend/Send`,
-inline Dockerfile, Auth (P1), Secrets/SSH/Gateway/build-history (P2), gRPC
-error-trailer decoding client-side, `H2PooledTransport` finish-or-delete,
-diagnostics → `tracing`.
+**COMPLETE (2026-07-15).** gRPC over the Unix socket (`H2Transport::unix`),
+Status streaming during a build, exporters + `FileSend/Send`, inline
+Dockerfile, Auth + Secrets + SSH + Gateway + build-history, client-side gRPC
+error-trailer decoding, H2 flow control, `H2PooledTransport` deleted,
+diagnostics → `tracing`. Full test matrix + the throughput narrative are in
+`export-throughput.md` and progress.md Phase 3. All 17 integration + 3
+filesync/ssh tests green vs buildkitd v0.31.1.
 
 ## Why
 

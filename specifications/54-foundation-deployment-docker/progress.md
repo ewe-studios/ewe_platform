@@ -12,7 +12,7 @@
 | 03 | Generator async fn codegen + regenerate deployment crates | ✅ Complete¹ | 01 | Large |
 | 04 | Docker type replication via gen_api | ✅ Complete | 02, 03 | Large |
 | 05 | Streaming endpoint handling | ✅ Complete | 01, 04 | Small |
-| 06 | BuildKit via connectrpc (P2) | 🟡 In progress | 02, 04 | Large |
+| 06 | BuildKit via connectrpc (P2) | ✅ Complete | 02, 04 | Large |
 
 > **2026-07-14 validation + HTTP parity closed:** The earlier "bollard parity
 > complete" state **did not compile** with `--features docker,buildkit` (a
@@ -93,7 +93,7 @@
 ### Phase 2: Network + Volume (Feature 04 continued)
 - [x] Generated + wrapped network/volume types (create/inspect/list/delete/prune/connect/disconnect/update)
 
-### Phase 3: BuildKit (Feature 06) — 🟡 in progress
+### Phase 3: BuildKit (Feature 06) — ✅ complete
 - [x] Vendor Control-service proto graph (control/worker/ops/policy + google/rpc/status) under `specs/buildkit/`
 - [x] Proto codegen via `buffa-build` (protoc + buffa-codegen) in `build.rs` → real `buffa::Message` types
 - [x] `BuildKitClient` over the Unix socket on `foundation_connectrpc` `Client<Req,Res>` + `H1Transport`
@@ -110,14 +110,28 @@
 - [x] **Session now FOUND by buildkitd** — a `dockerfile.v0` Solve gets past "no session" to `ReadEntrypoint`
 - [x] **Session-death ROOT CAUSE found + fixed (2026-07-14, commit 828ddae91)**: `H2Channel` double-wrapped its control frames — `PingFrame::encode` emits a *complete* frame and `queue_frame` prepended a second header, so the ACK to grpc-go's BDP-estimator PING went out with `length=17` → RFC 7540 §6.7 `FRAME_SIZE_ERROR` → buildkitd tore down the whole Level 1 connection ~10ms after our first tunneled DATA. Same bug fixed in SETTINGS ACK / GOAWAY / RST_STREAM paths. Second fix: connectrpc's Connect handler claimed bare `application/grpc` (codec `"grpc"`) before the gRPC handler → 415 on every grpc-go call. Full writeup: `backends/foundation_deployment_docker/specs/buildkit/README.md`
 - [x] **Local Dockerfile build END-TO-END GREEN** — `build_dockerfile_end_to_end` passes vs buildkitd v0.31.1: session bidi stays open, health checks answered, `FileSync/DiffCopy` serves the context, `dockerfile.v0` solves (alpine layers pulled, overlayfs snapshots built). Suites: integration 8/8, filesync 2/2, types 5/5
-- [ ] gRPC over the **Unix socket** (`connect()` still H1 — h2c-over-unix transport gap; acceptance criterion 3)
-- [ ] `Status` streaming consumed during a real build (`SolveRequest.Ref` + `Status(Ref)` progress/logs)
-- [ ] Exporters + `FileSend/Send` session service (receive built artifacts back)
-- [ ] Inline Dockerfile build (no context dir; acceptance criterion 4)
-- [ ] `Auth/Credentials` + `FetchToken` session service (P1 — private registries)
-- [ ] P2: Secrets / SSH session services, Gateway client, build-history wrappers (generated types exist)
-- [ ] gRPC error trailers decoded client-side (connectrpc still reports some server errors as "transport closed without response head")
-- [ ] `H2PooledTransport` finished or deleted; diagnostic `eprintln!`s → `tracing`
+- [x] **gRPC over the Unix socket** — `H2Transport::unix` (h2c-over-unix); `connect(socket_path)` reaches buildkitd's default `unix:///run/buildkit/buildkitd.sock`. `info_over_unix_socket` + `build_dockerfile_end_to_end_unix` pass (acceptance criterion 3)
+- [x] **`Status` streaming during a real build** — `new_build_ref()` → `SolveRequest.Ref` + concurrent `Status(Ref)`; `build_with_status_stream` observes vertex progress live
+- [x] **Exporters + `FileSend/Send`** — `SessionBuilder::export_to_file` + `FileExportSink`; `build_with_oci_export` receives a 3.86 MB OCI tar through the session (asserts ustar magic + size)
+- [x] **Inline Dockerfile build** — `SessionServer::builder_inline` (session-owned temp Dockerfile, cleaned on drop); `build_inline_dockerfile_no_context_file` passes (acceptance criterion 4)
+- [x] **`Auth/Credentials`** — `StaticRegistryAuth` (per-host creds + anonymous); `build_with_registry_auth_provider` passes (FetchToken/authority keep unimplemented defaults — buildkitd falls back to Credentials)
+- [x] **Secrets / SSH session services** — `StaticSecrets` (`RUN --mount=type=secret`, content-asserted in `build_with_secret_mount`) + `SshAgentProxy` (CheckAgent + ForwardAgent byte pump, round-tripped in `ssh_agent_proxy_forwards_bytes`)
+- [x] **Gateway client** — `gateway_for_build(ref)` LLBBridge client (routed by `buildkit-controlapi-buildid`); `gateway_build_ping_resolve_and_return` drives Ping + ResolveImageConfig (real alpine digest) + Return against a concurrent `Frontend=""` Solve
+- [x] **Build-history wrappers** — `listen_build_history` (server-stream) + `update_build_history` (unary); `build_history_lists_completed_builds` lists 27 records
+- [x] **gRPC error trailers decoded client-side** — `read_grpc_response` reader surfaces Trailers-Only + trailing `grpc-status` as `Err` (previously every server error decoded as `Ok(Default::default())` or `transport closed without response head`); streaming responses end in real `grpc-status` trailing HEADERS (`H2Frame::Trailers`)
+- [x] **H2 flow control** — `WINDOW_UPDATE` credits (batched at 32 KiB) on both client + server, +4 MiB post-handshake connection window; without it any transfer >64 KiB stalled forever
+- [x] **`H2PooledTransport` deleted** (per-call connections validated end-to-end); diagnostic `eprintln!`s → `tracing`
+- [x] **connectrpc-codegen keyword fix** — RPC names colliding with Rust keywords (BuildKit's `LLBBridge.Return`) emit as raw identifiers
+- [x] **Valtron scheduler fixes** surfaced by the tar-export flow (min-deadline sleep, readiness-poll quantum, Depends spin-guard streak reset) — see `foundation_core/src/valtron/docs/scheduler_latency_and_depends_guard.md`
+
+**Full suite: buildkit integration 17/17, filesync/ssh 3/3, types 5/5;
+regressions connectrpc 180, netio+http 1198, core valtron 333 — all green.**
+Feature-06 throughput narrative:
+`features/06-buildkit-connectrpc/export-throughput.md`.
+
+**Known upstream bug found:** buildkitd v0.31.1 nil-derefs (`gateway.go:1040`)
+on a Gateway `Return` with neither `Result` nor `Error` set — a real frontend
+always sets one; our client/test set `Error` to abort cleanly.
 
 ## Related specs
 
