@@ -28,7 +28,7 @@ use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, ProcedureCodecs, Router, Transport,
 };
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::block_on_future;
+use foundation_core::valtron;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
@@ -312,25 +312,75 @@ impl SessionServer {
         )?;
 
         let bidi = session_client
-            .bidi_stream(Ctx::background(), futures::stream::empty::<BytesMessage>())
+            .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
             .await?;
-        let (sender, receiver) = bidi.split();
+        let (mut sender, mut receiver) = bidi.split();
 
-        // 3. Dial our own loopback server; pump bytes both directions between it
-        //    and the Session bidi.
+        // 3. Dial our own loopback server and pump bytes both directions between
+        //    it and the Session bidi.
+        //
+        //    Bridging is split so that BLOCKING TCP I/O never runs on a valtron
+        //    pool worker (which would starve the pool and collapse the session):
+        //    raw threads own the blocking socket read/write, and pool-detached
+        //    async tasks own the (async) bidi send/receive, connected by channels.
         let tcp = TcpStream::connect(local_addr)?;
-        let tcp_read = tcp.try_clone()?;
-        let tcp_write = tcp;
+        let mut tcp_read = tcp.try_clone()?;
+        let mut tcp_write = tcp;
 
-        let pump_down = spawn_pump_down(receiver, tcp_write);
-        let pump_up = spawn_pump_up(tcp_read, sender);
+        // buildkitd → loopback: async receive → std channel → blocking write.
+        let (down_tx, down_rx) = std::sync::mpsc::channel::<Vec<u8>>();
+        let read_pool = valtron::from_future(Box::pin(async move {
+            while let Ok(Some(msg)) = receiver.receive().await {
+                if down_tx.send(msg.data).is_err() {
+                    break;
+                }
+            }
+        }));
+        valtron::send(read_pool).map_err(|e| format!("spawn session receive task: {e}"))?;
+        let write_thread = std::thread::spawn(move || {
+            while let Ok(data) = down_rx.recv() {
+                if tcp_write.write_all(&data).is_err() {
+                    break;
+                }
+                let _ = tcp_write.flush();
+            }
+            let _ = tcp_write.shutdown(std::net::Shutdown::Both);
+        });
+
+        // loopback → buildkitd: blocking read → async channel → async send.
+        let (up_tx, mut up_rx) = futures::channel::mpsc::unbounded::<Vec<u8>>();
+        let read_thread = std::thread::spawn(move || {
+            let mut buf = vec![0u8; 32 * 1024];
+            loop {
+                match tcp_read.read(&mut buf) {
+                    Ok(0) | Err(_) => break,
+                    Ok(n) => {
+                        if up_tx.unbounded_send(buf[..n].to_vec()).is_err() {
+                            break;
+                        }
+                    }
+                }
+            }
+            // Dropping `up_tx` closes the channel so the send task ends.
+        });
+        let send_pool = valtron::from_future(Box::pin(async move {
+            use futures::StreamExt;
+            while let Some(data) = up_rx.next().await {
+                let msg = BytesMessage { data, ..Default::default() };
+                if sender.send(&msg).await.is_err() {
+                    break;
+                }
+            }
+            let _ = sender.close_request().await;
+        }));
+        valtron::send(send_pool).map_err(|e| format!("spawn session send task: {e}"))?;
 
         Ok(Self {
             id,
             shutdown,
             _server: Some(server_handle),
-            _pump_down: Some(pump_down),
-            _pump_up: Some(pump_up),
+            _pump_down: Some(write_thread),
+            _pump_up: Some(read_thread),
         })
     }
 }
@@ -339,55 +389,6 @@ impl Drop for SessionServer {
     fn drop(&mut self) {
         self.shutdown.turn_on();
     }
-}
-
-/// buildkitd → loopback: receive `BytesMessage`s from the Session bidi and write
-/// their payloads to the loopback socket (our h2 server's input).
-fn spawn_pump_down(
-    mut receiver: foundation_connectrpc::shared::client::BidiReceiver<BytesMessage>,
-    mut tcp_write: TcpStream,
-) -> JoinHandle<()> {
-    std::thread::spawn(move || {
-        block_on_future(async move {
-            loop {
-                match receiver.receive().await {
-                    Ok(Some(msg)) => {
-                        if tcp_write.write_all(&msg.data).is_err() {
-                            break;
-                        }
-                        let _ = tcp_write.flush();
-                    }
-                    _ => break,
-                }
-            }
-            let _ = tcp_write.shutdown(std::net::Shutdown::Both);
-        });
-    })
-}
-
-/// loopback → buildkitd: read our h2 server's output from the loopback socket and
-/// forward it as `BytesMessage`s on the Session bidi.
-fn spawn_pump_up(
-    mut tcp_read: TcpStream,
-    mut sender: foundation_connectrpc::shared::client::BidiSender<BytesMessage>,
-) -> JoinHandle<()> {
-    std::thread::spawn(move || {
-        block_on_future(async move {
-            let mut buf = vec![0u8; 32 * 1024];
-            loop {
-                match tcp_read.read(&mut buf) {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => {
-                        let msg = BytesMessage { data: buf[..n].to_vec(), ..Default::default() };
-                        if sender.send(&msg).await.is_err() {
-                            break;
-                        }
-                    }
-                }
-            }
-            let _ = sender.close_request().await;
-        });
-    })
 }
 
 /// A random BuildKit session id (32 lowercase-hex chars, like buildx).
