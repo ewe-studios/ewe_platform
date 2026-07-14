@@ -3,7 +3,7 @@
 **Depends on:** 04
 **Unblocks:** 07
 **Decisions:** [07](../../decisions/07-relay-as-capability.md), [05](../../decisions/05-swim-full-membership-gossip.md)
-**Status:** ⚠️ Partial (2026-07-14 audit). Tasks 1,3 done (relay framing + server, hole-punching). Task 2 partial: relay client exists with single-relay selection + failover, but spec requires simultaneous multi-relay ("may use several"). Task 4 not done: reflexive endpoint discovery from gossip observations not wired. Task 5 not done: no end-to-end NAT simulation test (relay forwarding + hole-punch upgrade). **Must do:** (1) Multi-relay simultaneous selection; (2) Reflexive endpoint discovery from gossip; (3) End-to-end tests: NAT-blocked pair via relay, permissive-NAT direct upgrade.
+**Status:** ⚠️ Partial (2026-07-14). Tasks 1,3,4 done: relay framing + server, hole-punching, reflexive endpoint discovery (2026-07-14 — peers pull observed endpoints from gossip into their own record). Task 2 partial: relay client with single-relay selection + failover; spec requires simultaneous multi-relay. Task 5 not done: no e2e NAT simulation test. **Must do:** (1) Multi-relay simultaneous selection; (2) E2e test: NAT-blocked pair via relay, permissive-NAT direct upgrade.
 
 ## WHY
 
