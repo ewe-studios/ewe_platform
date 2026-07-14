@@ -1,6 +1,6 @@
 # Progress — Spec 54: foundation_deployment_docker
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-07-14
 
 ## Features
 
@@ -29,8 +29,17 @@
 > P3-deferred domains (swarm/service/node/task/secret/config/plugin — generated
 > fns exist, wrappers deferred per requirements).
 
-> **2026-07-14 BuildKit (Feature 06) — real proto types landed, Session sidecar
-> remaining:** Vendored the Control-service proto graph (control/worker/ops/policy
+> **2026-07-14 (later) BuildKit session UNBLOCKED — end-to-end dockerfile build
+> green:** the session-death root cause was a double-wrapped H2 PING ACK in
+> `foundation_netio`'s `H2Channel` (connection-fatal `FRAME_SIZE_ERROR` for
+> grpc-go), plus connectrpc's Connect handler claiming bare `application/grpc`
+> and 415-ing gRPC calls. Both fixed (commit 828ddae91);
+> `build_dockerfile_end_to_end` passes against buildkitd v0.31.1. Remaining
+> Feature 06 work tracked in Phase 3 below. Full investigation writeup:
+> `backends/foundation_deployment_docker/specs/buildkit/README.md`.
+
+> **2026-07-14 BuildKit (Feature 06) — real proto types landed:** Vendored the
+> Control-service proto graph (control/worker/ops/policy
 > + google/rpc/status) under `specs/buildkit/`; `build.rs` runs `buffa-build`
 > (protoc + buffa-codegen) under the `buildkit` feature to emit real
 > `buffa::Message` types (the same `buffa` runtime our `foundation_connectrpc`
@@ -99,9 +108,16 @@
 - [x] `ClientOptions::with_header` added to connectrpc (custom request headers on streaming calls — for `x-docker-expose-session-*`)
 - [x] `Session` sidecar **server built** (`src/buildkit/session.rs`): `DirFileSync` implements FileSync via the fsutil `DiffCopy` protocol (unfold state machine); `SessionServer` serves it on a loopback h2 socket + opens `Control/Session` with the session headers + thread↔pool channel-bridge pump
 - [x] **Session now FOUND by buildkitd** — a `dockerfile.v0` Solve gets past "no session" to `ReadEntrypoint`
-- [ ] **BLOCKER**: the `Control/Session` bidi closes ~30ms after opening (buildkitd logs "session started"/"session finished: &lt;nil&gt;" back-to-back, before Solve). Verified: my request half goes out correctly (`end_stream=false`, open bidi); buildkit finishes the session without exchanging any bytes. This is a deep connectrpc-H2Transport-bidi ↔ buildkit-session-hijack interaction needing frame-level h2 debugging (does buildkit send the inner-h2 preface? is connectrpc's response path delivering it? why does buildkit's session Run return `nil` in 30ms?).
-- [ ] Local Dockerfile build end-to-end via `Solve` + session (blocked on the above)
-- [ ] Remaining Control RPCs: build-history wrappers (generated types exist)
+- [x] **Session-death ROOT CAUSE found + fixed (2026-07-14, commit 828ddae91)**: `H2Channel` double-wrapped its control frames — `PingFrame::encode` emits a *complete* frame and `queue_frame` prepended a second header, so the ACK to grpc-go's BDP-estimator PING went out with `length=17` → RFC 7540 §6.7 `FRAME_SIZE_ERROR` → buildkitd tore down the whole Level 1 connection ~10ms after our first tunneled DATA. Same bug fixed in SETTINGS ACK / GOAWAY / RST_STREAM paths. Second fix: connectrpc's Connect handler claimed bare `application/grpc` (codec `"grpc"`) before the gRPC handler → 415 on every grpc-go call. Full writeup: `backends/foundation_deployment_docker/specs/buildkit/README.md`
+- [x] **Local Dockerfile build END-TO-END GREEN** — `build_dockerfile_end_to_end` passes vs buildkitd v0.31.1: session bidi stays open, health checks answered, `FileSync/DiffCopy` serves the context, `dockerfile.v0` solves (alpine layers pulled, overlayfs snapshots built). Suites: integration 8/8, filesync 2/2, types 5/5
+- [ ] gRPC over the **Unix socket** (`connect()` still H1 — h2c-over-unix transport gap; acceptance criterion 3)
+- [ ] `Status` streaming consumed during a real build (`SolveRequest.Ref` + `Status(Ref)` progress/logs)
+- [ ] Exporters + `FileSend/Send` session service (receive built artifacts back)
+- [ ] Inline Dockerfile build (no context dir; acceptance criterion 4)
+- [ ] `Auth/Credentials` + `FetchToken` session service (P1 — private registries)
+- [ ] P2: Secrets / SSH session services, Gateway client, build-history wrappers (generated types exist)
+- [ ] gRPC error trailers decoded client-side (connectrpc still reports some server errors as "transport closed without response head")
+- [ ] `H2PooledTransport` finished or deleted; diagnostic `eprintln!`s → `tracing`
 
 ## Related specs
 

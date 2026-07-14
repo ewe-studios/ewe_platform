@@ -1,14 +1,44 @@
 ---
 feature: "BuildKit gRPC client via foundation_connectrpc"
 description: "Vend 17 BuildKit proto files from local moby checkout; generate Rust types via foundation_connectrpc_codegen; implement async Client<Req,Res> over Unix socket H1Transport for Solve (bidi), Status (server-stream), Info (unary), DiskUsage, Prune"
-status: "completed"
+status: "in-progress"
 priority: "low"
 phase: 2
 depends_on: ["02-unix-socket-transport", "04-type-replication"]
 estimated_effort: "large"
 created: 2026-07-12
+updated: 2026-07-14
 ---
 # Feature 06: BuildKit via foundation_connectrpc
+
+## Implementation reconciliation (2026-07-14)
+
+The doc below is the original design sketch; the implementation corrected it in
+several places — trust this list where they disagree:
+
+- **`Control/Solve` is UNARY**, not bidi. The `SolveRequest` carries everything;
+  progress arrives on the separate `Status` server-stream. (The sketch's
+  `solve(ctx, reqs: impl Stream)` shape was wrong.)
+- **gRPC cannot ride `H1Transport`** — it needs HTTP/2. `BuildKitClient::connect_tcp`
+  uses `H2Transport` (h2c prior-knowledge over TCP) and is validated against a
+  real buildkitd v0.31.1. h2c-over-Unix-socket is still an open transport gap;
+  `connect(socket_path)` currently wires H1 and cannot do gRPC.
+- **The Session sidecar is the real work** (absent from the sketch): buildkitd
+  dials *back* into a client-run gRPC server tunneled inside the
+  `Control/Session` bidi. Implemented in `src/buildkit/session.rs`
+  (`SessionServer` + `DirFileSync` DiffCopy + `HealthService`); protocol
+  deep-dive + session-death root cause in
+  `backends/foundation_deployment_docker/specs/buildkit/README.md`.
+- **End-to-end dockerfile build is GREEN** (`build_dockerfile_end_to_end`):
+  session stays open, context served via FileSync, `dockerfile.v0` solves.
+- Codegen went through `buffa-build` (messages) + `foundation_connectrpc_codegen`
+  (service traits/clients/register fns), per-service, in `build.rs`.
+
+**Outstanding for completion** (tracked in progress.md Phase 3): gRPC over the
+Unix socket, Status consumed during a build, exporters + `FileSend/Send`,
+inline Dockerfile, Auth (P1), Secrets/SSH/Gateway/build-history (P2), gRPC
+error-trailer decoding client-side, `H2PooledTransport` finish-or-delete,
+diagnostics → `tracing`.
 
 ## Why
 
