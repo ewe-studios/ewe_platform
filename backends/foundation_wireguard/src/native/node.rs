@@ -266,6 +266,7 @@ impl WgNode {
                 self.config.relay.idle_timeout_secs,
             )));
             let relay_server_clone = Arc::clone(&relay_server);
+            let relay_client_for_thread = Arc::clone(&relay_client);
             relay_thread = Some(thread::spawn(move || {
                 let mut last_rate_reset = Instant::now();
                 let mut puncher = HolePuncher::new(30); // 30s punch timeout
@@ -307,8 +308,13 @@ impl WgNode {
                                         if let Some(ep) =
                                             puncher.on_punch_packet(peer, from, pkt)
                                         {
-                                            // Punch succeeded — record endpoint.
-                                            let _ = ep;
+                                            // Punch succeeded — add endpoint to peer record.
+                                            let mut members = relay_shared.members.lock().expect("members lock");
+                                            if let Some(rec) = members.iter_mut().find(|r| r.id == peer) {
+                                                if !rec.endpoints.contains(&ep) {
+                                                    rec.endpoints.push(ep);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -317,9 +323,11 @@ impl WgNode {
                             Err(_) => break,
                         }
                     }
-                    // Tick the holepuncher for timeouts.
+                    // Tick the holepuncher for timeouts — confirmed peers
+                    // are marked as having a direct path available.
                     for confirmed in puncher.tick(now) {
-                        let _ = confirmed; // Connectivity ladder will pick up the new path
+                        let mut client = relay_client_for_thread.lock().expect("relay client lock");
+                        client.on_direct_probe_success(confirmed);
                     }
                     {
                         let mut server = relay_server_clone.lock().expect("relay lock");
