@@ -94,25 +94,34 @@
 - [x] Generated + wrapped network/volume types (create/inspect/list/delete/prune/connect/disconnect/update)
 
 ### Phase 2b: Deployable provider integration — ✅ complete (2026-07-15)
+- [x] **`Deployable` trait is async** — per decision 05. `deploy`/`destroy`
+  return a `BoxFuture<'static, Result<..>>`
+  (`Pin<Box<dyn Future + Send>>`) the caller `.await`s; implementors write
+  `Box::pin(async move { … })`. No `async_trait` macro, no RPITIT — the trait
+  stays **object-safe** (`dyn Deployable`) and `Send` is explicit, not inferred
+  (removing the RPITIT Send-inference fragility). The old TaskIterator/
+  `Deploying`/`Spawner` machinery and the unused `update()`/`UpdateTask` helper
+  were removed from `foundation_deployment::traits`.
 - [x] **`Deployable` impl** (`src/deployable.rs`) — the crate's stated purpose
-  (requirements §Summary, decisions 03/05). `ContainerDeployment` implements
-  `foundation_deployment::Deployable`: `deploy` creates+starts a container and
-  persists its id via the namespaced state store; `destroy` reads it back and
-  stops+removes it. Docker's Unix socket doesn't fit `ProviderClient`'s
-  TCP+DNS `SimpleHttpClient`, so deploy/destroy build their own `DockerClient`
-  and use `ProviderClient` only for state persistence.
-- [x] **`DeployTask` adapter** — re-labels `FutureTask`'s pending/spawner to
-  the `Deployable` contract (`Pending = Deploying`, `Spawner =
-  BoxedSendExecutionAction`), forwarding `Depends` so the executor still parks
-  on I/O readiness. (Decision 05's `async_trait` sketch is outdated; the real
-  trait returns `impl TaskIterator`.)
+  (requirements §Summary, decisions 03/05). `ContainerDeployment` implements it:
+  `deploy` creates+starts a container and persists its id via the namespaced
+  state store; `destroy` reads it back and stops+removes it — each a plain
+  `Box::pin(async move { … })`. Docker's Unix socket doesn't fit
+  `ProviderClient`'s TCP+DNS HTTP client, so the futures build their own
+  `DockerClient` and use `ProviderClient` only for state persistence (the
+  canonical "unique underlying mechanics" case).
+- [x] **`foundation_deployment` docs + README** — the boxed-future contract,
+  why (object safety + explicit `Send` vs the one-alloc cost), state
+  persistence, the unique-mechanics case, and how to drive a deploy.
 - [x] **`build.rs` docker-only fix** — `main()` now always exists (was fully
   `#![cfg(buildkit)]`, so a `--features docker` build had no entry point).
-- [x] **`deployable_tests`** — deploy → inspect(running) → destroy →
-  inspect(gone) against a real dockerd (drives the returned `TaskIterator`s via
-  `drive_iterator`). Passes.
-- NOTE: no other `foundation_deployment` provider implements `Deployable` yet —
-  this is the first working impl in the workspace.
+- [x] **`deployable_tests`** — a `#[valtron_test]` that `.await`s
+  `deploy`/`destroy`: deploy → inspect(running) → destroy → inspect(gone)
+  against a real dockerd (force-removes leftover container first). Passes.
+- NOTE: connectrpc codegen is unrelated to `Deployable` (the deployment
+  generator is `foundation_openapi`, which already emits plain `async fn`s). No
+  other `foundation_deployment` provider implements `Deployable` yet — this is
+  the first working impl in the workspace.
 
 ### Phase 3: BuildKit (Feature 06) — ✅ complete
 - [x] Vendor Control-service proto graph (control/worker/ops/policy + google/rpc/status) under `specs/buildkit/`

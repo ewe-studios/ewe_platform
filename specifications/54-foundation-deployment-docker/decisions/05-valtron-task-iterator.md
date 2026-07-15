@@ -115,17 +115,21 @@ For streaming endpoints, the split observers convert to `Stream<Item = ...>` via
 
 ## Deployable integration
 
-> **Reconciled 2026-07-15 (as implemented).** The `Deployable` trait ended up
-> **not** using `async_trait` — `deploy`/`destroy` return `impl TaskIterator<
-> Ready = Result<Out, Err>, Pending = Deploying, Spawner =
-> BoxedSendExecutionAction>` directly (users drive it however they like). The
-> shipped impl (`src/deployable.rs`, `ContainerDeployment`) wraps its async
-> deploy/destroy work in a small `DeployTask` adapter over `from_future()` that
-> re-labels the pending/spawner types to that contract. Docker's Unix socket
-> doesn't fit `ProviderClient`'s TCP+DNS `SimpleHttpClient`, so deploy/destroy
-> build their own `DockerClient` and use `ProviderClient` only for state
-> persistence. The sketch below (pre-implementation, `async_trait`-shaped) is
-> kept for context.
+> **Reconciled 2026-07-15 (as shipped).** `Deployable` **is async**, as this
+> decision intended — but instead of `async_trait` (proc-macro + boxing) or
+> RPITIT (`-> impl Future + Send`), `deploy`/`destroy` return a
+> **`BoxFuture<'static, Result<Out, Err>>`** = `Pin<Box<dyn Future + Send>>`.
+> Implementors write plain `Box::pin(async move { … })`. This keeps the trait
+> **object-safe** (`dyn Deployable`) and states `Send` in the type rather than
+> relying on fragile inference; the one heap alloc per call is irrelevant at the
+> I/O-bound granularity of a deploy. The old TaskIterator/`Deploying`/`Spawner`
+> return shape and the `update()`/`UpdateTask` helper were removed. The shipped
+> impl (`src/deployable.rs`, `ContainerDeployment`) is just two
+> `Box::pin(async move { … })` blocks; Docker's Unix socket doesn't fit
+> `ProviderClient`'s TCP+DNS client, so the futures build their own
+> `DockerClient` and use `ProviderClient` only for state persistence. See
+> `backends/foundation_deployment/README.md` for the full pattern. The
+> `async_trait` sketch below is the pre-implementation shape, kept for context.
 
 Docker implements `Deployable` using async functions. Valtron executes the async
 fn as a `TaskIterator` internally via `from_future()`:
