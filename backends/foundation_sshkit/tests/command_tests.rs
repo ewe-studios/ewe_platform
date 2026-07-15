@@ -84,3 +84,29 @@ fn test_command_result_is_success() {
     };
     assert!(!result.is_success());
 }
+
+#[test]
+fn test_bash_wraps_in_bash_c() {
+    let cmd = Command::new("echo").arg("hello");
+    let wrapped = cmd.bash();
+    assert!(wrapped.starts_with("bash -c"));
+    assert!(wrapped.contains("echo hello"));
+}
+
+#[test]
+fn test_cmd_wraps_in_cmd_c() {
+    let cmd = Command::new("dir");
+    let wrapped = cmd.cmd();
+    assert!(wrapped.starts_with("cmd /c"));
+    assert!(wrapped.contains("dir"));
+}
+
+#[test]
+fn test_bash_with_env_and_cd() {
+    let cmd = Command::new("make").env("CC", "clang").within("/build");
+    let wrapped = cmd.bash();
+    assert!(wrapped.contains("export CC='clang'"));
+    assert!(wrapped.contains("cd '/build'"));
+    assert!(wrapped.contains("make"));
+    assert!(wrapped.starts_with("bash -c"));
+}
