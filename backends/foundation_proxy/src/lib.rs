@@ -27,6 +27,7 @@ pub mod config;
 pub mod control;
 pub mod forward;
 pub mod h2_proxy;
+pub mod h3_proxy;
 pub mod handler;
 pub mod health;
 pub mod passthrough;
