@@ -13,7 +13,7 @@
 
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 use crate::error::DockerError;
@@ -37,6 +37,111 @@ pub const DEFAULT_API_VERSION: &str = "1.53";
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
 pub(crate) type NoMod = fn(&mut PreparedRequestBuilder);
+
+// ── Container create body (hand-written; the spec has this as an unnamed allOf) ─
+
+/// The body of `POST /containers/create` — combines `ContainerConfig` with an
+/// optional `HostConfig` (networking + resources) and `NetworkingConfig`.
+///
+/// The Docker Engine API spec models this as an unnamed `allOf` of
+/// `ContainerConfig` + `{HostConfig, NetworkingConfig}`, so the code generator
+/// can't give it a name. This hand-written struct fills the gap, using the
+/// generated component types. Resource limits use [`ContainerHostConfig`] which
+/// merges the generated `HostConfig` + `Resources` (the spec has them as one
+/// object; the generator split them).
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ContainerCreateBody {
+    // ── Flattened ContainerConfig fields (generated) ──
+    #[serde(flatten)]
+    pub config: crate::generated::json::ContainerConfig,
+
+    /// Port bindings, volumes, capabilities PLUS CPU/memory/device limits.
+    #[serde(
+        rename = "HostConfig",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub host_config: Option<ContainerHostConfig>,
+
+    /// Per-network endpoint configuration (aliases, static IPs, MAC address).
+    #[serde(
+        rename = "NetworkingConfig",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub networking_config: Option<NetworkingConfig>,
+}
+
+impl ContainerCreateBody {
+    /// Create a minimal body with just the image set.
+    #[must_use]
+    pub fn new(image: impl Into<String>) -> Self {
+        let mut config = crate::generated::json::ContainerConfig::default();
+        config.image = Some(image.into());
+        Self { config, host_config: None, networking_config: None }
+    }
+
+    /// Set the command to run in the container.
+    #[must_use]
+    pub fn with_cmd(mut self, cmd: Vec<String>) -> Self {
+        self.config.cmd = Some(cmd);
+        self
+    }
+
+    /// Add environment variables.
+    #[must_use]
+    pub fn with_env(mut self, env: Vec<(String, String)>) -> Self {
+        self.config.env = Some(env.into_iter().map(|(k, v)| format!("{k}={v}")).collect());
+        self
+    }
+
+    /// Set exposed ports (keys are `"port/proto"`, values are `{}` per Docker spec).
+    #[must_use]
+    pub fn with_exposed_ports(mut self, ports: serde_json::Value) -> Self {
+        self.config.exposed_ports = Some(ports);
+        self
+    }
+
+    /// Set container labels.
+    #[must_use]
+    pub fn with_labels(mut self, labels: serde_json::Value) -> Self {
+        self.config.labels = Some(labels);
+        self
+    }
+
+    /// Attach a host config (port bindings, binds, resources, capabilities).
+    #[must_use]
+    pub fn with_host_config(mut self, hc: ContainerHostConfig) -> Self {
+        self.host_config = Some(hc);
+        self
+    }
+}
+
+/// Merged `HostConfig` + `Resources` for container creation.
+///
+/// The Docker Engine API spec defines `HostConfig` as a single object that
+/// includes both networking/runtime fields and CPU/memory/device resource
+/// limits. Our generated code splits them into two types (`HostConfig` and
+/// `Resources`). This struct re-merges them for the `POST /containers/create`
+/// body via `#[serde(flatten)]` — the field name sets (`PortBindings`, … and
+/// `Memory`, `NanoCpus`, …) are disjoint, so the serialized JSON is correct.
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ContainerHostConfig {
+    /// Networking, runtime, security fields from `HostConfig`.
+    #[serde(flatten)]
+    pub base: crate::generated::json::HostConfig,
+    /// CPU, memory, device resource limits from `Resources`.
+    #[serde(flatten)]
+    pub resources: crate::generated::json::Resources,
+}
+
+/// Container networking configuration — maps network names to endpoint settings.
+///
+/// Corresponds to the `NetworkingConfig` definition in the Docker Engine API spec.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct NetworkingConfig {
+    /// A mapping of network name to endpoint configuration for that network.
+    #[serde(rename = "EndpointsConfig")]
+    pub endpoints_config: std::collections::HashMap<String, crate::generated::connect::EndpointSettings>,
+}
 
 /// Container lifecycle operations (restart, kill, rename, resize, top, changes,
 /// logs, stats, export, archive, attach, list, prune).
@@ -396,24 +501,22 @@ impl DockerClient {
 
     /// Create a container (`POST /containers/create`).
     ///
-    /// WHY: The generated `ContainerCreateArgs` carries only the `name`/`platform`
-    /// query params (the request body was an inline `allOf` the generator did not
-    /// name), so the container config is injected through the request builder.
+    /// WHAT: Serializes `config` as the JSON body and returns the created
+    /// container id + warnings.
     ///
-    /// WHAT: Serializes `config` as the JSON body and returns the created id.
-    ///
-    /// HOW: `container_create_request` with a `builder_mod` that sets the JSON body.
+    /// Accepts any `impl Serialize` — `serde_json::json!({...})` for quick inline
+    /// configs, or [`ContainerCreateBody`] for typed construction.
     ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure, non-2xx status, or a config
     /// that cannot be serialized.
-    pub async fn create_container<C: Serialize>(
+    pub async fn create_container(
         &self,
-        config: &C,
+        config: &impl Serialize,
         name: Option<&str>,
     ) -> Result<ContainerCreateResponse, DockerError> {
-        let body = serde_json::to_value(config)
+        let json = serde_json::to_value(config)
             .map_err(|e| DockerError::JsonParse(format!("serialize container config: {e}")))?;
         let args = ContainerCreateArgs {
             name: name.map(str::to_string),
@@ -425,7 +528,7 @@ impl DockerClient {
             &self.base_url(),
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
-                let _ = b.set_body_json(&body);
+                let _ = b.set_body_json(&json);
             }),
         )
         .await?;

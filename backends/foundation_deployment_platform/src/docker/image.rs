@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 use std::process::Command;
-use bollard::Docker;
+use foundation_deployment_docker::DockerClient;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// Builder for a Dockerfile — inline string or file-on-disk.
@@ -77,7 +77,7 @@ impl DockerFileConfig {
     }
 
     /// Build the Dockerfile. Returns immediately if the tag already
-    /// exists locally (checked via `docker inspect`).
+    /// exists locally (checked via `docker image inspect`).
     pub async fn build_once(&self) -> DockerResult<ImageBuildResult> {
         // Check cache: does the tag already exist?
         if let Ok(true) = image_exists_locally(&self.tag).await {
@@ -138,22 +138,22 @@ impl DockerFileConfig {
     }
 }
 
-/// Check if an image exists locally via bollard.
+/// Check if an image exists locally via the Docker API.
 async fn image_exists_locally(tag: &str) -> Result<bool, DockerError> {
-    let docker = Docker::connect_with_local_defaults()
+    let client = DockerClient::connect_with_defaults()
         .map_err(|e| DockerError::Connection(format!("{e}")))?;
-    match docker.inspect_image(tag).await {
+    match client.image_inspect(tag).await {
         Ok(_) => Ok(true),
-        Err(bollard::errors::Error::DockerResponseServerError { status_code: 404, .. }) => Ok(false),
+        Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => Ok(false),
         Err(e) => Err(DockerError::Connection(format!("inspect_image: {e}"))),
     }
 }
 
 /// Get the SHA256 digest of a locally available image.
 async fn get_image_sha(tag: &str) -> Result<String, DockerError> {
-    let docker = Docker::connect_with_local_defaults()
+    let client = DockerClient::connect_with_defaults()
         .map_err(|e| DockerError::Connection(format!("{e}")))?;
-    let info = docker.inspect_image(tag).await
+    let info = client.image_inspect(tag).await
         .map_err(|e| DockerError::Connection(format!("inspect_image: {e}")))?;
     Ok(info.id.unwrap_or_default())
 }

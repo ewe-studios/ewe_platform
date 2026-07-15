@@ -76,3 +76,19 @@ impl DockerError {
 pub fn docker_err(e: DockerError) -> ErrorTrace<DockerError> {
     ErrorTrace::new(e)
 }
+
+/// Map a `foundation_deployment_docker::DockerError` into our `ErrorTrace<DockerError>`.
+///
+/// Use with `.map_err(map_docker_client_err)` on `foundation_deployment_docker` calls
+/// to convert errors without a manual match at each call site.
+#[must_use]
+pub fn map_docker_client_err(e: foundation_deployment_docker::DockerError) -> ErrorTrace<DockerError> {
+    use foundation_deployment_docker::DockerError as De;
+    docker_err(match e {
+        De::Transport(m) | De::Unavailable(m) => DockerError::Connection(m),
+        De::JsonParse(m) => DockerError::InvalidConfig(m),
+        De::Api { status, message } => {
+            DockerError::Connection(format!("docker API {status}: {message}"))
+        }
+    })
+}

@@ -1,5 +1,6 @@
 //! Docker network management.
 
+use foundation_deployment_docker::DockerClient;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// A handle to a Docker network.
@@ -12,22 +13,21 @@ pub struct NetworkHandle {
 impl NetworkHandle {
     /// Create or find a bridge network. Idempotent.
     pub async fn create_or_find(
-        docker: &bollard::Docker,
+        client: &DockerClient,
         name: &str,
         _subnet: Option<&str>,
     ) -> DockerResult<Self> {
-        if let Some(existing) = Self::find(docker, name).await? {
+        if let Some(existing) = Self::find(client, name).await? {
             return Ok(existing);
         }
 
-        let config = bollard::models::NetworkCreateRequest {
-            name: name.to_string(),
-            driver: Some("bridge".to_string()),
-            ..Default::default()
-        };
+        let config = serde_json::json!({
+            "Name": name,
+            "Driver": "bridge",
+        });
 
-        let response = docker
-            .create_network(config)
+        let response = client
+            .network_create(config)
             .await
             .map_err(|e| docker_err(DockerError::Network(format!("{e}"))))?;
 
@@ -36,17 +36,21 @@ impl NetworkHandle {
 
     /// Find an existing network by name.
     pub async fn find(
-        docker: &bollard::Docker,
+        client: &DockerClient,
         name: &str,
     ) -> DockerResult<Option<Self>> {
-        let networks = docker
-            .list_networks(None::<bollard::query_parameters::ListNetworksOptions>)
+        let networks = client
+            .network_list(None)
             .await
             .map_err(|e| docker_err(DockerError::Network(format!("{e}"))))?;
 
-        for net in networks {
-            if net.name.as_deref() == Some(name) {
-                let id = net.id.unwrap_or_else(|| name.to_string());
+        for net in networks.as_array().unwrap_or(&vec![]) {
+            if net.get("Name").and_then(|n| n.as_str()) == Some(name) {
+                let id = net
+                    .get("Id")
+                    .and_then(|i| i.as_str())
+                    .unwrap_or(name)
+                    .to_string();
                 return Ok(Some(Self { network_id: id, name: name.to_string() }));
             }
         }
@@ -62,24 +66,20 @@ impl NetworkHandle {
     /// Connect a container to this network.
     pub async fn connect(
         &self,
-        docker: &bollard::Docker,
+        client: &DockerClient,
         container_id: &str,
     ) -> DockerResult<()> {
-        let config = bollard::models::NetworkConnectRequest {
-            container: container_id.to_string(),
-            endpoint_config: Some(bollard::models::EndpointSettings::default()),
-        };
-        docker
-            .connect_network(&self.network_id, config)
+        client
+            .network_connect(&self.network_id, container_id)
             .await
             .map_err(|e| docker_err(DockerError::Network(format!("{e}"))))?;
         Ok(())
     }
 
     /// Remove the network.
-    pub async fn remove(&self, docker: &bollard::Docker) -> DockerResult<()> {
-        docker
-            .remove_network(&self.name)
+    pub async fn remove(&self, client: &DockerClient) -> DockerResult<()> {
+        client
+            .network_delete(&self.name)
             .await
             .map_err(|e| docker_err(DockerError::Network(format!("{e}"))))?;
         Ok(())

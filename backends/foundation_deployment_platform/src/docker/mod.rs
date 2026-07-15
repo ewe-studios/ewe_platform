@@ -8,7 +8,6 @@
 //! **Async-first:** Core API is `async fn`. Sync callers use
 //! `futures_lite::block_on` (re-exported from `foundation_deployment_platform`).
 
-pub mod client;
 pub mod config;
 pub mod container;
 pub mod error;
@@ -18,7 +17,8 @@ pub mod network;
 pub mod wait_for;
 pub mod wireguard;
 
-pub use client::DockerClient;
+/// Re-export the spec-54 Docker client directly — the old bollard wrapper is gone.
+pub use foundation_deployment_docker::DockerClient;
 pub use config::{ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount, VolumeSource};
 pub use container::ContainerHandle;
 pub use error::{docker_err, DockerError, DockerResult};

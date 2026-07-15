@@ -15,6 +15,8 @@ use std::collections::HashMap;
 use std::net::{TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
+use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
+use foundation_deployment_docker::DockerClient;
 use foundation_netio::http::SimpleHttpClient;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
@@ -80,9 +82,15 @@ impl WaitFor {
     }
 
     /// Apply this wait strategy. Called by ContainerHandle::start_async().
+    ///
+    /// NOTE: Port/UDP waits are sync (pure TCP/UDP, no Docker API). Stdout/Http
+    /// are async (they call `DockerClient` / `SimpleHttpClient`), but their
+    /// backoff uses `std::thread::sleep` — acceptable because `start_async()`
+    /// is driven by `block_on_future` in a dedicated thread where Docker I/O is
+    /// already blocking. No concurrent valtron tasks are starved.
     pub(crate) async fn apply(
         &self,
-        docker: &bollard::Docker,
+        client: &DockerClient,
         container_id: &str,
         ports: &HashMap<String, u16>,
     ) -> DockerResult<()> {
@@ -96,7 +104,7 @@ impl WaitFor {
                     wait_for_udp(*port, *timeout, ports)?;
                 }
                 WaitFor::Stdout { message, timeout } => {
-                    wait_for_stdout(docker, container_id, message, *timeout).await?;
+                    wait_for_stdout(client, container_id, message, *timeout).await?;
                 }
                 WaitFor::Http { url, expected_status, timeout } => {
                     wait_for_http(url, *expected_status, *timeout).await?;
@@ -186,53 +194,60 @@ fn udp_probe(host_port: u16) -> bool {
     socket.recv_from(&mut buf).is_ok()
 }
 
-/// Scan container stdout logs for a message.
+/// Scan container stdout logs for a message. Polls via
+/// [`DockerClient::container_logs`] (follow=false) with
+/// [`LogFrameDecoder`] — no real-time streaming needed for a readiness
+/// check.
 async fn wait_for_stdout(
-    docker: &bollard::Docker,
+    client: &DockerClient,
     container_id: &str,
     message: &str,
     timeout: Duration,
 ) -> DockerResult<()> {
-    use bollard::container::LogOutput;
-    use bollard::query_parameters::LogsOptionsBuilder;
-    use futures_util::StreamExt;
-    use tokio::time::timeout as tokio_timeout;
+    let start = Instant::now();
 
-    let options = Some(
-        LogsOptionsBuilder::default()
-            .follow(true)
-            .stdout(true)
-            .stderr(true)
-            .build(),
-    );
+    loop {
+        let raw = client
+            .container_logs(
+                container_id,
+                false, // follow
+                true,  // stdout
+                true,  // stderr
+                None,  // since
+                None,  // until
+                false, // timestamps
+                None,  // tail (all)
+            )
+            .await
+            .map_err(|e| {
+                docker_err(DockerError::Connection(format!("container_logs: {e}")))
+            })?;
 
-    let mut stream = docker.logs(container_id, options);
-    let msg = message.to_string();
-
-    let result = tokio_timeout(timeout, async {
-        while let Some(Ok(chunk)) = stream.next().await {
-            let text = match chunk {
-                LogOutput::StdOut { message } => String::from_utf8_lossy(&message).to_string(),
-                LogOutput::StdErr { message } => String::from_utf8_lossy(&message).to_string(),
+        let mut decoder = LogFrameDecoder::new();
+        decoder.feed(&raw);
+        while let Some(frame) = decoder.decode() {
+            let text = match frame {
+                LogOutput::StdOut { message: msg }
+                | LogOutput::StdErr { message: msg } => {
+                    String::from_utf8_lossy(&msg).to_string()
+                }
                 _ => continue,
             };
-            if text.contains(&msg) {
+            if text.contains(message) {
                 return Ok(());
             }
         }
-        Err(docker_err(DockerError::WaitTimeout {
-            strategy: format!("Stdout(\"{msg}\")"),
-            elapsed: timeout,
-        }))
-    })
-    .await;
 
-    match result {
-        Ok(r) => r,
-        Err(_elapsed) => Err(docker_err(DockerError::WaitTimeout {
-            strategy: format!("Stdout(\"{msg}\")"),
-            elapsed: timeout,
-        })),
+        if start.elapsed() >= timeout {
+            return Err(docker_err(DockerError::WaitTimeout {
+                strategy: format!("Stdout(\"{message}\")"),
+                elapsed: start.elapsed(),
+            }));
+        }
+
+        // Poll interval — blocks the valtron task, acceptable in a
+        // readiness loop (DockerClient I/O is also blocking).
+        std::thread::sleep(Duration::from_millis(500));
     }
 }
 
@@ -263,7 +278,7 @@ async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> Do
             }));
         }
 
-        tokio::time::sleep(backoff).await;
+        std::thread::sleep(backoff);
         backoff = (backoff * 2).min(Duration::from_secs(1));
     }
 }

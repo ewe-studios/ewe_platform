@@ -17,15 +17,11 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
 
-# Docker API
-bollard = "0.21"
-
-# Async runtime (bollard requires tokio for hyper)
-tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+# Docker API — our own bollard-free client (spec-54)
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.0", features = ["docker"] }
 
 # Async utilities
 futures-lite = "2"
-futures-util = "0.3"
 
 # Serialization
 serde.workspace = true
@@ -47,6 +43,7 @@ multi = ["foundation_core/multi", "foundation_netio/multi"]
 
 [dev-dependencies]
 foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", features = ["russh-backend"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3"
 
 [lints]
