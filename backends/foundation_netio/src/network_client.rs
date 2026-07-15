@@ -54,6 +54,7 @@ use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 /// ```
 pub struct HttpClientBuilder {
     config: ClientConfig,
+    tls_connector: Option<crate::netcap::ssl::SSLConnector>,
 }
 
 impl Default for HttpClientBuilder {
@@ -67,7 +68,19 @@ impl HttpClientBuilder {
     pub fn new() -> Self {
         Self {
             config: ClientConfig::default(),
+            tls_connector: None,
         }
+    }
+
+    /// Use a specific TLS connector for `https://` requests instead of the
+    /// default (Mozilla-roots, no client auth). Required for mutual TLS —
+    /// e.g. a Docker daemon over `tcp://…:2376` with `DOCKER_CERT_PATH` client
+    /// certs (build the connector with
+    /// [`SSLConnector::from_client_mutual_pem`](crate::netcap::ssl::SSLConnector)).
+    #[must_use]
+    pub fn with_tls_connector(mut self, connector: crate::netcap::ssl::SSLConnector) -> Self {
+        self.tls_connector = Some(connector);
+        self
     }
 
     // -- timeouts ---------------------------------------------------------
@@ -291,7 +304,11 @@ impl HttpClientBuilder {
     pub fn build(self) -> DynNetClient {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
-            Arc::new(crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config))
+            let mut client = crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config);
+            if let Some(connector) = self.tls_connector {
+                client = client.with_tls_connector(connector);
+            }
+            Arc::new(client)
         }
         #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
         {

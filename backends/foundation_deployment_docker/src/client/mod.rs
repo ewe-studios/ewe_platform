@@ -14,7 +14,7 @@
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
@@ -76,6 +76,48 @@ pub struct DockerClient {
     /// Optional remote host:port for TCP connections (e.g. "192.168.1.10:2375").
     /// When `None`, the base URL uses `localhost` (the Unix-socket default).
     remote_host: Option<String>,
+    /// Whether the transport is TLS — controls the `https://` vs `http://`
+    /// scheme in [`Self::base_url`].
+    tls: bool,
+}
+
+/// Mutual-TLS material for a remote Docker daemon (the `DOCKER_CERT_PATH`
+/// `ca.pem` / `cert.pem` / `key.pem` trio).
+#[derive(Clone)]
+pub struct DockerTls {
+    /// `ca.pem` — the CA that signed the daemon's cert. `None` uses the system
+    /// roots (rarely what a private Docker CA wants).
+    pub ca_pem: Option<Vec<u8>>,
+    /// `cert.pem` — the client certificate presented to the daemon.
+    pub cert_pem: Vec<u8>,
+    /// `key.pem` — the client private key.
+    pub key_pem: Vec<u8>,
+    /// Verify the daemon's certificate against `ca_pem` (`DOCKER_TLS_VERIFY`).
+    /// `false` accepts any server cert — encrypted but unauthenticated.
+    pub verify: bool,
+}
+
+impl DockerTls {
+    /// Load the `ca.pem` / `cert.pem` / `key.pem` trio from a `DOCKER_CERT_PATH`
+    /// directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError::Unavailable`] if `cert.pem` or `key.pem` cannot be
+    /// read.
+    pub fn from_cert_dir(dir: impl AsRef<Path>, verify: bool) -> Result<Self, DockerError> {
+        let dir = dir.as_ref();
+        let read = |name: &str| {
+            std::fs::read(dir.join(name))
+                .map_err(|e| DockerError::Unavailable(format!("read {name}: {e}")))
+        };
+        Ok(Self {
+            ca_pem: std::fs::read(dir.join("ca.pem")).ok(),
+            cert_pem: read("cert.pem")?,
+            key_pem: read("key.pem")?,
+            verify,
+        })
+    }
 }
 
 impl std::fmt::Debug for DockerClient {
@@ -115,13 +157,15 @@ impl DockerClient {
             socket_path,
             api_version: DEFAULT_API_VERSION.to_string(),
             remote_host: None,
+            tls: false,
         }
     }
 
     /// Connect via TCP to a remote Docker daemon (e.g. "192.168.1.10:2375").
     ///
     /// WHY: Docker daemons can be exposed over TCP (TLS or plaintext). This is the
-    /// remote / non-localhost path.
+    /// remote / non-localhost path. For a `--tlsverify` daemon use
+    /// [`Self::connect_tls`].
     ///
     /// WHAT: Uses `HttpClientBuilder` default (TCP) + sets `remote_host` so
     /// [`Self::base_url`] generates the correct URL.
@@ -136,7 +180,44 @@ impl DockerClient {
             socket_path,
             api_version: DEFAULT_API_VERSION.to_string(),
             remote_host: Some(host.to_string()),
+            tls: false,
         }
+    }
+
+    /// Connect to a remote Docker daemon over **mutual TLS** (the standard
+    /// `tcp://host:2376` + `DOCKER_CERT_PATH` setup).
+    ///
+    /// WHY: TCP-exposed daemons are normally protected with client-cert mTLS.
+    ///
+    /// WHAT: Builds a TLS connector from `tls` (client cert/key + CA) and dials
+    /// `host` over `https://`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError::Unavailable`] if the certificate material is
+    /// invalid.
+    pub fn connect_tls(host: &str, tls: DockerTls) -> Result<Self, DockerError> {
+        use foundation_netio::netcap::ssl::SSLConnector;
+
+        let connector = SSLConnector::from_client_mutual_pem(
+            tls.ca_pem.as_deref(),
+            &tls.cert_pem,
+            &tls.key_pem,
+            tls.verify,
+        )
+        .map_err(|e| DockerError::Unavailable(format!("build TLS connector: {e}")))?;
+
+        let http = HttpClientBuilder::new()
+            .with_tls_connector(connector)
+            .read_timeout(std::time::Duration::from_secs(120))
+            .build();
+        Ok(Self {
+            http,
+            socket_path: PathBuf::from(format!("tcp://{host}")),
+            api_version: DEFAULT_API_VERSION.to_string(),
+            remote_host: Some(host.to_string()),
+            tls: true,
+        })
     }
 
     /// Set a custom remote host (e.g. for Docker contexts, SSH tunnels).
@@ -156,26 +237,46 @@ impl DockerClient {
     /// WHAT: Uses `DOCKER_HOST` when it names a `unix://` socket, else
     /// [`DEFAULT_DOCKER_SOCKET`].
     ///
-    /// HOW: Parses `DOCKER_HOST`; falls back to `/var/run/docker.sock`.
+    /// HOW: Parses `DOCKER_HOST`; falls back to `/var/run/docker.sock`. A
+    /// `tcp://` host with `DOCKER_TLS_VERIFY` set (or a `DOCKER_CERT_PATH` with
+    /// certs) is dialed over mutual TLS via [`Self::connect_tls`]; a `tcp://`
+    /// host without TLS env is plaintext [`Self::connect_tcp`].
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError::Unavailable`] if `DOCKER_HOST` names a non-unix
-    /// transport (tcp/ssh) — not yet supported.
+    /// Returns [`DockerError::Unavailable`] if `DOCKER_HOST` names an
+    /// `ssh://` transport (not yet supported) or if TLS material is invalid.
     pub fn connect_with_defaults() -> Result<Self, DockerError> {
-        let path = match std::env::var("DOCKER_HOST") {
-            Ok(host) if host.starts_with("unix://") => {
-                PathBuf::from(host.trim_start_matches("unix://"))
+        let host = std::env::var("DOCKER_HOST").unwrap_or_default();
+        if host.is_empty() {
+            return Ok(Self::connect_unix(DEFAULT_DOCKER_SOCKET));
+        }
+        if let Some(path) = host.strip_prefix("unix://") {
+            return Ok(Self::connect_unix(path));
+        }
+        if let Some(addr) = host.strip_prefix("tcp://") {
+            // TLS when DOCKER_TLS_VERIFY is set, or a DOCKER_CERT_PATH is given.
+            let verify = std::env::var("DOCKER_TLS_VERIFY").is_ok_and(|v| v != "0" && !v.is_empty());
+            let cert_dir = std::env::var("DOCKER_CERT_PATH").ok();
+            if verify || cert_dir.is_some() {
+                let dir = cert_dir.ok_or_else(|| {
+                    DockerError::Unavailable(
+                        "DOCKER_TLS_VERIFY set but DOCKER_CERT_PATH is missing".to_string(),
+                    )
+                })?;
+                let tls = DockerTls::from_cert_dir(&dir, verify)?;
+                return Self::connect_tls(addr, tls);
             }
-            Ok(host) if host.is_empty() => PathBuf::from(DEFAULT_DOCKER_SOCKET),
-            Ok(host) => {
-                return Err(DockerError::Unavailable(format!(
-                    "unsupported DOCKER_HOST transport (only unix:// supported): {host}"
-                )))
-            }
-            Err(_) => PathBuf::from(DEFAULT_DOCKER_SOCKET),
-        };
-        Ok(Self::connect_unix(path))
+            return Ok(Self::connect_tcp(addr));
+        }
+        if host.starts_with("ssh://") {
+            return Err(DockerError::Unavailable(format!(
+                "ssh:// DOCKER_HOST not yet supported: {host}"
+            )));
+        }
+        Err(DockerError::Unavailable(format!(
+            "unrecognized DOCKER_HOST transport: {host}"
+        )))
     }
 
     /// The cross-platform HTTP client handle (cheap `Arc` clone).
@@ -202,7 +303,8 @@ impl DockerClient {
     #[must_use]
     pub fn base_url(&self) -> String {
         let host = self.remote_host.as_deref().unwrap_or("localhost");
-        format!("http://{host}/v{}", self.api_version)
+        let scheme = if self.tls { "https" } else { "http" };
+        format!("{scheme}://{host}/v{}", self.api_version)
     }
 
     /// The Unix socket path this client dials.

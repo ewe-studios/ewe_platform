@@ -18,6 +18,58 @@ use zeroize::Zeroizing;
 
 pub use rustls::{ClientConfig, ServerConfig};
 
+/// A server-certificate verifier that accepts any certificate chain but still
+/// validates the handshake signatures. Used for the insecure
+/// `DOCKER_TLS_VERIFY=0` mode — the TLS session is encrypted, the server is not
+/// authenticated.
+#[derive(Debug)]
+struct NoServerCertVerify(Arc<CryptoProvider>);
+
+impl rustls::client::danger::ServerCertVerifier for NoServerCertVerify {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+        _server_name: &rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls12_signature(
+            message,
+            cert,
+            dss,
+            &self.0.signature_verification_algorithms,
+        )
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls13_signature(
+            message,
+            cert,
+            dss,
+            &self.0.signature_verification_algorithms,
+        )
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        self.0.signature_verification_algorithms.supported_schemes()
+    }
+}
+
 #[must_use]
 pub fn initialize_tls_provider() -> Option<CryptoProvider> {
     // Priority: aws-lc-rs > ring. When both are enabled (--all-features), use aws-lc-rs.
@@ -445,6 +497,57 @@ impl RustlsConnector {
     #[must_use]
     pub fn with_config(config: Arc<rustls::ClientConfig>) -> Self {
         Self(config)
+    }
+
+    /// Build a **mutual-TLS** client connector from PEM material — the client
+    /// presents `cert_pem`/`key_pem` and (when `verify`) checks the server
+    /// against `ca_pem` (or the Mozilla roots if `ca_pem` is `None`).
+    ///
+    /// This is exactly the Docker-over-TLS shape (`ca.pem` / `cert.pem` /
+    /// `key.pem`, `DOCKER_TLS_VERIFY`). `verify = false` accepts any server
+    /// certificate (handshake signatures are still checked) — the insecure
+    /// `DOCKER_TLS_VERIFY=0` mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the PEM cannot be parsed, no crypto provider is
+    /// available, or the client-auth key is rejected.
+    pub fn from_client_mutual_pem(
+        ca_pem: Option<&[u8]>,
+        cert_pem: &[u8],
+        key_pem: &[u8],
+        verify: bool,
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        use rustls::pki_types::pem::PemObject;
+        use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+
+        let cert_chain: Vec<CertificateDer<'static>> =
+            CertificateDer::pem_slice_iter(cert_pem).collect::<Result<_, _>>()?;
+        let key = PrivateKeyDer::from_pem_slice(key_pem)?;
+
+        let provider = Arc::new(initialize_tls_provider().ok_or("no rustls crypto provider")?);
+        let builder = rustls::ClientConfig::builder_with_provider(provider.clone())
+            .with_protocol_versions(ALL_VERSIONS)?;
+
+        let config = if verify {
+            let mut roots = RootCertStore::empty();
+            if let Some(ca) = ca_pem {
+                for cert in CertificateDer::pem_slice_iter(ca) {
+                    roots.add(cert?)?;
+                }
+            } else {
+                roots.extend(TLS_SERVER_ROOTS.iter().cloned());
+            }
+            builder
+                .with_root_certificates(roots)
+                .with_client_auth_cert(cert_chain, key)?
+        } else {
+            builder
+                .dangerous()
+                .with_custom_certificate_verifier(Arc::new(NoServerCertVerify(provider)))
+                .with_client_auth_cert(cert_chain, key)?
+        };
+        Ok(Self(Arc::new(config)))
     }
 
     #[must_use]
