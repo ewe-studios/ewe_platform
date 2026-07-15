@@ -840,12 +840,13 @@ where
 
     let mut stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
-    // Next(Vec<T::Ready>) when all complete. find_map skips Pending items.
+    // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream
-        .find_map(|s| match s {
+        .filter_map(|s| match s {
             Stream::Next(v) => Some(v),
             _ => None,
         })
+        .next()
         .ok_or_else(|| "sync_all: no results produced by execute_collect_all".into())
 }
 
