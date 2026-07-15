@@ -87,6 +87,8 @@ struct MeshShared {
     relay_out: Mutex<Vec<(PeerId, Vec<u8>)>>,
     /// Whether this node is running a relay server.
     relay_enabled: bool,
+    /// VFS path for membership-snapshot persistence (F09 — fast restart).
+    membership_path: Option<String>,
 }
 
 /// The admission policy this node applies at `Join` time (decision 11). Because the mesh
@@ -230,6 +232,13 @@ impl WgNode {
         let bootstrap_addr = server.local_addr()?;
 
         let relay_enabled = self.config.relay.advertise;
+        let membership_path = self.config.node.membership_path.clone();
+        // Load membership snapshot for fast restart (F09).
+        if let Some(ref path) = membership_path {
+            if let Some(snapshot) = load_membership_snapshot(path) {
+                swim.lock().expect("swim lock").merge(&snapshot);
+            }
+        }
         let shared = Arc::new(MeshShared {
             members: Mutex::new(swim.lock().expect("swim lock").snapshot()),
             my_ip,
@@ -238,6 +247,7 @@ impl WgNode {
             udp_addr,
             relay_out: Mutex::new(Vec::new()),
             relay_enabled,
+            membership_path,
         });
         let stop = Arc::new(AtomicBool::new(false));
 
@@ -738,7 +748,12 @@ impl WgMeshTask {
             }
         }
 
-        *self.shared.members.lock().expect("members lock") = snapshot;
+        *self.shared.members.lock().expect("members lock") = snapshot.clone();
+
+        // Persist membership snapshot for fast restart (F09).
+        if let Some(ref path) = self.shared.membership_path {
+            save_membership_snapshot(path, &snapshot);
+        }
     }
 }
 
@@ -952,6 +967,22 @@ fn save_identity_to_file(path: &str, keypair: &IdentityKeypair) {
         let _ = std::fs::create_dir_all(parent);
     }
     let _ = std::fs::write(path, &bytes);
+}
+
+/// Load a membership snapshot from a file (F09 — fast restart).
+fn load_membership_snapshot(path: &str) -> Option<Vec<PeerRecord>> {
+    let bytes = std::fs::read(path).ok()?;
+    serde_json::from_slice(&bytes).ok()
+}
+
+/// Save the current membership snapshot for fast restart (F09).
+fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
+    if let Ok(json) = serde_json::to_vec(members) {
+        if let Some(parent) = std::path::Path::new(path).parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::write(path, &json);
+    }
 }
 
 // ---------------------------------------------------------------------------

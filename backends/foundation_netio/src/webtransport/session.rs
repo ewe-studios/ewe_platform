@@ -167,6 +167,20 @@ impl WtConnector {
             (b"sec-webtransport-http3-draft".to_vec(), b"draft-07".to_vec()),
         ]
     }
+
+    /// Wrap an existing QUIC connection as a WebTransport session
+    /// (client-side — call after the Extended CONNECT handshake completes).
+    ///
+    /// The QUIC connection has already completed the CONNECT → 200 OK
+    /// exchange (driven by http3 or manual framing). This constructs a
+    /// [`WtSession`] that exposes streams and datagrams.
+    #[must_use]
+    pub fn into_session<C: crate::quic::QuicConnection>(
+        conn: C,
+        datagrams: bool,
+    ) -> WtSession<C> {
+        WtSession::new(conn, datagrams)
+    }
 }
 
 // ── NoIoSession — sans-I/O, no QUIC connection ──

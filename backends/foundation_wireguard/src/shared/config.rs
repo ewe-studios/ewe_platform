@@ -142,6 +142,11 @@ pub struct NodeConfig {
     /// VFS path for persisting the identity keypair (F09/F10 interplay).
     #[serde(default)]
     pub identity_path: Option<String>,
+
+    /// VFS path for persisting the membership snapshot (F09 — fast restart).
+    /// Save on each mesh tick; load at join to seed the SWIM state.
+    #[serde(default)]
+    pub membership_path: Option<String>,
 }
 
 fn default_udp_listen() -> SocketAddr {
@@ -159,6 +164,7 @@ impl Default for NodeConfig {
             bootstrap_listen: default_bootstrap_listen(),
             caps: Capabilities::default(),
             identity_path: None,
+            membership_path: None,
         }
     }
 }
@@ -500,6 +506,7 @@ pub struct WgConfigBuilder {
     bootstrap_listen: Option<SocketAddr>,
     caps: Option<Capabilities>,
     identity_path: Option<String>,
+    membership_path: Option<String>,
     mtu: Option<u16>,
     keepalive_secs: Option<u16>,
     mtls: bool,
@@ -571,6 +578,13 @@ impl WgConfigBuilder {
     #[must_use]
     pub fn identity_path(mut self, path: impl Into<String>) -> Self {
         self.identity_path = Some(path.into());
+        self
+    }
+
+    /// Set the VFS path for membership-snapshot persistence (fast restart).
+    #[must_use]
+    pub fn membership_path(mut self, path: impl Into<String>) -> Self {
+        self.membership_path = Some(path.into());
         self
     }
 
@@ -664,6 +678,7 @@ impl WgConfigBuilder {
                 .unwrap_or_else(default_bootstrap_listen),
             caps: self.caps.unwrap_or_default(),
             identity_path: self.identity_path,
+            membership_path: self.membership_path,
         };
 
         let dataplane = DataPlaneConfig {
