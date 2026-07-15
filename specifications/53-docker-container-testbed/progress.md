@@ -44,6 +44,26 @@ The platform crate originally wrapped bollard 0.21 + tokio. Migrated to
 | 04 | Image Management | ✅ Complete |
 | 05 | Wait Strategies | ✅ Complete |
 | — | Bollard migration | ✅ Complete (2026-07-15) |
+| 09 | sshkit enhancements | ✅ Complete (2026-07-15) |
+| 10 | Provider migration (associated types) | ✅ Complete (2026-07-15) |
+| 11 | vms/ file migration → platform | ✅ Complete (2026-07-15) |
+
+### Feature 09: sshkit enhancements — ✅ Complete
+- `powershell.rs`: `ps_exec()` — UTF-16LE+Base64, CLIXML stripping
+- `shell.rs`: `interactive()` + `exec_streaming()` via ssh CLI
+- `command.rs`: `Command::bash()` / `cmd()` OS-aware wrappers
+
+### Feature 10: Provider trait migration — ✅ Complete
+- `QemuProvider`, `UtmProvider` implement `Provider<Handle=VmHandle, Config=VmProfile>`
+- `DockerProvider` implements `Provider<Handle=ContainerHandle, Config=ContainerConfig>`
+- `DisplayMode` is a provider field, not a `launch()` parameter
+- Backward-compatible: `VmProvider` trait preserved for existing CLI callers
+
+### Feature 11: vms/ file migration — ✅ Complete
+- 58 files moved from `foundation_testbed/src/vms/` → `foundation_deployment_platform/src/`
+- `crate::vms::` → `crate::` imports fixed
+- Scripts copied, `include_str!` paths adjusted
+- Feature-gated: default-build has Docker only; `--features vms` enables QEMU/UTM
 
 ### foundation_proxy ✅ — Stage 1 data plane COMPLETE
 - ProxyServer::start(), ProxyHandler, HTTP forwarding, health probes, TCP passthrough
@@ -86,8 +106,10 @@ The platform crate originally wrapped bollard 0.21 + tokio. Migrated to
 | 25 | SSL redirect (HTTP→HTTPS) | 📋 Bundled with 18 |
 | 26 | HTTP/2 proxy integration | 📋 Stage 4 |
 | 27 | HTTP/3 (QUIC) proxy integration | 📋 Stage 4+ |
-| 28 | Testbed vms/ migration | 📋 Minor refactor |
+| 28 | Testbed vms/ migration | ✅ Complete (Features 09-11) |
 | 29 | Docker test tokio fix | ✅ Resolved by migration |
+
+## Stages 2-4 (proxy) — belong to foundation_proxy, not this spec
 
 ## Stage 2 (next up — foundation_proxy)
 
