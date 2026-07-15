@@ -11,6 +11,7 @@ mod map_circuit;
 mod notification_based_waiting;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
+mod sleep_tests;
 #[cfg(not(target_family = "wasm"))]
 mod spread;
 mod stream_future;

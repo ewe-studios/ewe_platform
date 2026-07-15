@@ -12,7 +12,7 @@ use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
-    StreamIterator, StreamSpread, TaskIterator, TaskStatus,
+    StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus,
 };
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
@@ -2016,4 +2016,23 @@ where
         Some(Err(e)) => Ok(Err(e)),
         None => Err("no result from future execution".into()),
     }
+}
+
+// ── Cooperative sleep ─────────────────────────────────────────────────
+
+/// Schedule a sleep for `duration`. Returns a stream that completes after the
+/// duration elapses.
+pub fn sleep(
+    duration: std::time::Duration,
+) -> crate::valtron::GenericResult<DrivenStreamIterator<super::sleep::SleepingTask>>
+{
+    execute(super::sleep::SleepingTask::sleep(duration), None)
+}
+
+/// Return a [`Future`](std::future::Future) that completes after `duration`.
+/// Calls [`sleep()`] and bridges via
+/// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub async fn sleep_async(duration: std::time::Duration) {
+    let _ = sleep(duration).expect("sleep").into_ready_future().await;
 }

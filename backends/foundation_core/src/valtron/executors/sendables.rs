@@ -2029,3 +2029,22 @@ where
         None => Err("no result from future execution".into()),
     }
 }
+
+// ── Cooperative sleep ─────────────────────────────────────────────────
+
+/// Schedule a sleep for `duration`. Returns a stream that completes after the
+/// duration elapses.
+pub fn sleep(
+    duration: std::time::Duration,
+) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>>
+{
+    execute(super::sleep::SleepingTask::sleep(duration), None)
+}
+
+/// Return a [`Future`](std::future::Future) that completes after `duration`.
+/// Calls [`sleep()`] and bridges via
+/// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
+pub async fn sleep_async(duration: std::time::Duration) {
+    use crate::valtron::StreamIteratorExt;
+    let _ = sleep(duration).expect("sleep").into_ready_future().await;
+}
