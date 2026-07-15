@@ -9,6 +9,7 @@
 //! plus the scheme the front end terminates (used for `X-Forwarded-Proto`).
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use foundation_iogate::ServerIo;
 
@@ -21,6 +22,11 @@ pub struct ProxyState {
     client: SharedHttpClient,
     scheme: String,
     io_mode: ServerIo,
+    /// When true, the accept loop has stopped and in-flight requests are draining.
+    /// The handler checks this before routing new requests — if draining, it
+    /// responds 503 to signal the client to retry elsewhere (zero-downtime deploy,
+    /// Decision 22).
+    draining: AtomicBool,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -49,7 +55,30 @@ impl ProxyState {
             client,
             scheme: scheme.into(),
             io_mode,
+            draining: AtomicBool::new(false),
         }
+    }
+
+    /// Begin connection draining — stop routing new requests.
+    pub fn start_drain(&self) {
+        self.draining.store(true, Ordering::SeqCst);
+    }
+
+    /// Whether the proxy is currently draining.
+    #[must_use]
+    pub fn is_draining(&self) -> bool {
+        self.draining.load(Ordering::SeqCst)
+    }
+
+    /// The total in-flight request count across all services/backends.
+    #[must_use]
+    pub fn inflight_total(&self) -> u32 {
+        self.router
+            .services()
+            .iter()
+            .flat_map(|s| s.backends())
+            .map(|b| b.inflight())
+            .sum()
     }
 
     #[must_use]

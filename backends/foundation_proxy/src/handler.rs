@@ -61,6 +61,14 @@ impl Serve for ProxyHandler {
         req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
+        // Decision 22: during draining, respond 503 so clients retry elsewhere.
+        if self.state.is_draining() {
+            tracing::info!("proxy draining — returning 503");
+            let _ = respond::text(&mut conn, 503, "Service Unavailable — draining");
+            let _ = conn.flush();
+            return ConnectionResult::Close(None);
+        }
+
         let host = header_first(&req, &SimpleHeader::HOST).unwrap_or_default();
         let path = req.request_url.url.clone();
 

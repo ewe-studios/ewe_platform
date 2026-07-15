@@ -186,6 +186,33 @@ impl ProxyServer {
         &self.state
     }
 
+    /// Begin graceful drain: stop accepting new connections, let in-flight
+    /// requests finish. Does NOT block — call [`drain_complete`](Self::drain_complete)
+    /// with a timeout, then [`shutdown`](Self::shutdown) to tear down.
+    ///
+    /// Decision 22 — zero-downtime deploy.
+    pub fn start_drain(&self) {
+        tracing::info!("proxy entering drain — new requests will receive 503");
+        self.state.start_drain();
+    }
+
+    /// Poll until all in-flight requests have drained, or `timeout` elapses.
+    /// Returns `true` if drain completed (inflight == 0), `false` on timeout.
+    pub fn drain_complete(&self, timeout: Duration) -> bool {
+        let start = Instant::now();
+        loop {
+            let inflight = self.state.inflight_total();
+            if inflight == 0 {
+                return true;
+            }
+            if start.elapsed() >= timeout {
+                tracing::warn!(inflight, "drain timed out after {:?}", timeout);
+                return false;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+    }
+
     /// Signal shutdown and join the server and probe threads.
     ///
     /// The accept loop stops taking connections, drains in-flight requests
