@@ -5,6 +5,7 @@ use std::collections::VecDeque;
 use bytes::Bytes;
 use foundation_core::valtron::Stream;
 
+#[cfg(feature = "quic")]
 use crate::quic::{QuicConnError, QuicConnection, QuicStreamError};
 
 use super::proto::{self, CapsuleType, WtProtocolError};
@@ -154,10 +155,39 @@ impl<C: QuicConnection> Default for WtAcceptor<C> {
 }
 
 // ── WtConnector ──
+
+/// Error during the Extended CONNECT handshake (client side).
+/// Matches `ConnectError` from the reference `web-transport-proto`.
+#[derive(Debug)]
+pub enum WtConnectError {
+    /// The server rejected the CONNECT request (non-200 status).
+    Rejected(String),
+    /// The QUIC connection or stream failed.
+    Quic(String),
+    /// The peer closed before responding.
+    Closed,
+}
+
+impl std::fmt::Display for WtConnectError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Rejected(m) => write!(f, "CONNECT rejected: {m}"),
+            Self::Quic(m) => write!(f, "QUIC error: {m}"),
+            Self::Closed => write!(f, "connection closed during CONNECT"),
+        }
+    }
+}
+impl std::error::Error for WtConnectError {}
+
+/// Utility for building WebTransport client sessions.
 pub struct WtConnector;
 
 impl WtConnector {
-    /// Build request headers for Extended CONNECT (QPACK-encoded by caller).
+    /// Build request headers for Extended CONNECT.
+    ///
+    /// These are the HTTP pseudo-headers QPACK encodes for the CONNECT
+    /// request. The caller serializes them into QPACK format and sends
+    /// them on an http3 bidi stream.
     pub fn build_connect_headers(authority: &str, path: &str) -> Vec<(Vec<u8>, Vec<u8>)> {
         vec![
             (b":method".to_vec(), b"CONNECT".to_vec()),
@@ -169,12 +199,18 @@ impl WtConnector {
         ]
     }
 
+    /// Check if an HTTP/3 response is a successful WebTransport CONNECT
+    /// response (status 200). Matches `ConnectRequest::check_response`
+    /// from the reference.
+    #[must_use]
+    pub fn is_success_response(headers: &[(Vec<u8>, Vec<u8>)]) -> bool {
+        headers
+            .iter()
+            .any(|(k, v)| k == b":status" && v == b"200")
+    }
+
     /// Wrap an existing QUIC connection as a WebTransport session
     /// (client-side — call after the Extended CONNECT handshake completes).
-    ///
-    /// The QUIC connection has already completed the CONNECT → 200 OK
-    /// exchange (driven by http3 or manual framing). This constructs a
-    /// [`WtSession`] that exposes streams and datagrams.
     #[must_use]
     pub fn into_session<C: crate::quic::QuicConnection>(
         conn: C,

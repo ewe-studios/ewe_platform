@@ -20,15 +20,30 @@ pub mod device;
 /// WebRTC offerer (browser side).
 pub mod webrtc;
 
-/// WebTransport browser bridge (wasm only — requires foundation_netio/quic + web_sys WebTransport).
-#[cfg(all(target_family = "wasm", feature = "webtransport"))]
+/// WebTransport browser bridge — NoIoSession-based sans-I/O bridge
+/// driven by JS callbacks. Uses `foundation_netio::webtransport` types
+/// (always compiled, no QUIC feature needed).
+///
+/// The browser's `web_sys::WebTransport` API creates the QUIC connection;
+/// this Rust module provides the data-plane session state machine.
+#[cfg(target_family = "wasm")]
 pub mod webtransport;
-#[cfg(not(all(target_family = "wasm", feature = "webtransport")))]
+#[cfg(not(target_family = "wasm"))]
 pub mod webtransport {
-    //! Stub module when webtransport feature is not enabled.
+    //! WebTransport is unavailable on native targets — native peers use
+    //! the full `WtSession<QuinnConnection>` (foundation_netio + quic feature).
     pub struct WasmWtBridge;
     impl WasmWtBridge {
-        pub fn connect(_url: &str) -> Result<Self, String> { Err("webtransport feature not enabled".into()) }
-        pub fn tick(&mut self) {}
+        pub fn new(_datagrams_enabled: bool) -> Self { Self }
+        pub fn on_connected(&mut self) {}
+        pub fn is_ready(&self) -> bool { false }
+        pub fn is_open(&self) -> bool { false }
+        pub fn is_closed(&self) -> bool { false }
+        pub fn tick(&mut self) -> Vec<Vec<u8>> { Vec::new() }
+        pub fn inject_datagram(&mut self, _data: Vec<u8>) {}
+        pub fn drain_inbound(&mut self) -> Vec<Vec<u8>> { Vec::new() }
+        pub fn queue_datagram(&mut self, _data: Vec<u8>) -> Result<(), String> { Err("not wasm".into()) }
+        pub fn close(&mut self, _code: u32, _reason: String) {}
+        pub fn on_peer_close(&mut self, _code: u32, _reason: String) {}
     }
 }
