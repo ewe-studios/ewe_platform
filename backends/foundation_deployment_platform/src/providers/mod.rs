@@ -44,18 +44,16 @@ pub struct ResolvedPorts {
 pub struct VmHandle {
     pub profile: VmProfile,
     pub provider_id: ProviderId,
-    pub internal_id: String, // PID for QEMU, UUID for UTM
+    pub internal_id: String,
     pub resolved_ports: ResolvedPorts,
     pub display_mode: DisplayMode,
 }
 
+#[cfg(feature = "vms")]
 impl VmHandle {
-    /// Check if this handle is for a QEMU provider.
     pub fn is_qemu(&self) -> bool {
         self.provider_id == ProviderId::Qemu
     }
-
-    /// Get the QEMU process PID, if applicable.
     pub fn pid(&self) -> Option<i32> {
         if self.is_qemu() {
             self.internal_id.parse::<i32>().ok()
@@ -65,11 +63,7 @@ impl VmHandle {
     }
 }
 
-/// A VM backend provider (QEMU, UTM). Uses concrete types — no associated types.
-///
-/// TODO(Feature 10): Migrate to the associated-types `Provider` trait alongside
-/// Docker. `DisplayMode` will move to provider construction; `monitor_command`
-/// and `ensure_image` will become inherent methods.
+#[cfg(feature = "vms")]
 pub trait VmProvider: Send + Sync {
     fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
@@ -82,17 +76,19 @@ pub trait VmProvider: Send + Sync {
     fn host_health(&self) -> HostHealth;
 }
 
-/// Select the appropriate provider based on the host OS.
+#[cfg(feature = "vms")]
 #[cfg(target_os = "linux")]
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Ok(Box::new(qemu::QemuProvider::new()))
 }
 
+#[cfg(feature = "vms")]
 #[cfg(target_os = "macos")]
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Ok(Box::new(utm::UtmProvider::new()))
 }
 
+#[cfg(feature = "vms")]
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Err(crate::config::TestbedError::Qcow2Error {
@@ -117,13 +113,16 @@ pub trait Provider: Send + Sync {
     fn stop(&self, handle: &Self::Handle) -> std::result::Result<(), Self::Error>;
     fn is_running(&self, handle: &Self::Handle) -> bool;
     fn resolved_ports(&self, handle: &Self::Handle) -> std::result::Result<ResolvedPorts, Self::Error>;
-    fn host_health(&self) -> HostHealth;
+    fn host_health(&self) -> Vec<(String, bool, String)>;
 }
 
 // ── Provider backend modules ─────────────────────────────────────────────────
 
 pub mod docker;
+#[cfg(feature = "vms")]
 pub mod http;
+#[cfg(feature = "vms")]
 pub mod qemu;
+#[cfg(feature = "vms")]
 pub mod utm;
 

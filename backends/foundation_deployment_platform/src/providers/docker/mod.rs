@@ -1,7 +1,6 @@
 //! DockerProvider — implements `Provider` using `ContainerHandle`.
 
 use crate::docker::{ContainerConfig, ContainerHandle, DockerResult};
-use crate::doctor::HostHealth;
 use crate::providers::{Provider, ProviderId, ResolvedPorts};
 
 pub struct DockerProvider;
@@ -36,24 +35,17 @@ impl Provider for DockerProvider {
         })
     }
 
-    fn host_health(&self) -> HostHealth {
+    fn host_health(&self) -> Vec<(String, bool, String)> {
         let sock_ok = std::path::Path::new("/var/run/docker.sock").exists()
             || std::env::var("DOCKER_HOST").is_ok();
-        HostHealth {
-            checks: vec![crate::doctor::Check {
-                name: "docker_socket",
-                ok: sock_ok,
-                message: if sock_ok {
-                    "Docker socket available".to_string()
-                } else {
-                    "Docker socket not found".to_string()
-                },
-                suggestion: if !sock_ok {
-                    Some("Install Docker or set DOCKER_HOST")
-                } else {
-                    None
-                },
-            }],
-        }
+        vec![(
+            "docker_socket".to_string(),
+            sock_ok,
+            if sock_ok {
+                "Docker socket available".to_string()
+            } else {
+                "Docker socket not found".to_string()
+            },
+        )]
     }
 }

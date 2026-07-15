@@ -15,6 +15,7 @@ pub mod group;
 pub mod image;
 pub mod network;
 pub mod wait_for;
+#[cfg(feature = "wireguard")]
 pub mod wireguard;
 
 /// Re-export the spec-54 Docker client directly — the old bollard wrapper is gone.

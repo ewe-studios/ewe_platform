@@ -17,7 +17,6 @@ use std::net::SocketAddr;
 
 use foundation_wireguard::{NetworkId, SeedBits, WgSeed};
 
-#![cfg(feature = "wireguard")]
 
 use super::config::{ContainerConfig, PortMapping, PortProtocol};
 
