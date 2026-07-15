@@ -1,8 +1,9 @@
-# Feature 10 — Deployment-Platform Integration
+# WireGuard Mesh Integration — Docker Self-Assembly
 
-**Depends on:** 02, 09
-**Decisions:** [11](../../decisions/11-ephemeral-seed-lifecycle.md), [04](../../decisions/04-bootstrap-token-envelope.md), [14](../../decisions/14-crate-layering.md)
-**Status:** ✅ Complete (2026-07-14). Wireguard-side tasks 1-3 done: `WgSeed::generate()`, `WgConfig::from_env()` (reads `WG_SECRET`/`WG_NETWORK`/`WG_SEED_ENDPOINTS`/`WG_RELAY`), `#[wireguard_main]` self-assembly, `docker_self_assemble` example demonstrating env-based container pattern. Tasks 4-5 (Docker testbed integration + `ContainerConfig` env injection) belong in `foundation_deployment_platform` per decision 14 (top-down, deployment platform consumes wireguard).
+**Spec:** 53 (Docker Container Testbed)
+**Depends on:** spec-55 F02 (Bootstrap), F09 (Config)
+**Decisions:** spec-55 [11](../../decisions/11-ephemeral-seed-lifecycle.md), spec-55 [14](../../decisions/14-crate-layering.md)
+**Status:** ⚠️ Partial (2026-07-15). Wireguard-side done: `WgSeed::generate()`, `WgConfig::from_env()`, `#[wireguard_main]`, `docker_self_assemble` example. Docker testbed e2e test (container launch + mesh formation) not written.
 
 ## WHY
 

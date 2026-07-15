@@ -13,7 +13,7 @@ browser side.
 
 ## Why — the crate split already isolates tokio for us
 
-Reviewed `@formulas/.../src.WebTransport/src.MoqDev/web-transport`:
+Reviewed `@formulas/src.rust/src.WebTransport/src.MoqDev/web-transport`:
 
 | Crate | Role | tokio? | Our plan |
 |-------|------|--------|----------|

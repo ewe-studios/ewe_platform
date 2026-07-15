@@ -66,7 +66,7 @@ and the seed's compromise window is bounded.
 
 1. Identity generation + persistence format.
 2. Handoff state machine (announce → establish identity tunnels → migrate → retire bootstrap).
-3. Seed TTL / rotation / revocation plumbing (ties to feature 02 admission + feature 10).
+3. Seed TTL / rotation / revocation plumbing (ties to feature 02 admission + spec-53 deployment integration).
 4. Optional app-layer mTLS wrapper over `OverlayStream`.
 5. Tests: after join, peers use identity keys (inspect tunnel key material); revoke seed → new joiner
    with old seed refused; optional mTLS handshake succeeds pinned to identity.

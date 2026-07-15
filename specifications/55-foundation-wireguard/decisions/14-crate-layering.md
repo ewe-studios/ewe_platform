@@ -51,7 +51,7 @@ graph TD
   primitives layer; if some lower crate ever needs a WG-defined type, we introduce a **small bridge
   crate** (the iogate pattern) rather than make a lower crate depend on `foundation_wireguard`.
 - **`foundation_deployment_platform` consumes `foundation_wireguard`** (top-down), for secret
-  generation/injection ([feature 10](../features/10-deployment-platform-integration/feature.md)) —
+  generation/injection — moved to [spec-53](../../specifications/53-docker-container-testbed/features/wireguard-mesh-integration.md) —
   never the reverse.
 
 ## Consequences

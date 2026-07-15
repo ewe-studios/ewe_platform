@@ -237,7 +237,7 @@ discovery, mesh, and finally the platform-reach and ergonomics features.
 | **07** | [wasm/browser & WebRTC](features/07-wasm-browser-and-webrtc/feature.md) | 04,05,06 | Browser Tunn+smoltcp; wss join; WS relay client; WebRTC direct data channel + signaling over gossip |
 | **08** | [Identity handoff & mTLS](features/08-identity-handoff-and-mtls/feature.md) | 04 | Bootstrap→identity rotation; ephemeral-seed retirement/revocation; optional per-service app-layer mTLS |
 | **09** | [Config, macro & builder](features/09-config-macro-and-builder/feature.md) | 04 | `wireguard!` macro + programmatic builder + `wireguard.toml`; `#[wireguard_main]` entry |
-| **10** | [Deployment-platform integration](features/10-deployment-platform-integration/feature.md) | 02,09 | Generate network secret; inject `WG_SECRET`/`WG_NETWORK`/`WG_ENDPOINT` env into docker containers; persist generated seed |
+| **10** | Deployment-platform integration → moved to [spec-53](../../specifications/53-docker-container-testbed/features/wireguard-mesh-integration.md) | 02,09 | Generate network secret; inject WG env into docker containers; container mesh self-assembly |
 
 ---
 

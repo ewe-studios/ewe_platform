@@ -317,9 +317,26 @@ impl<C: QuicConnection> H3Connection<C> {
     /// HEADERS frame), returns a [`WtSession`] wrapping the underlying QUIC
     /// connection, and resets the H3 state so this connection is now a
     /// WebTransport session, not an HTTP/3 connection.
+    /// Consume this `H3Connection` and return a [`WtSession`] wrapping the
+    /// underlying QUIC connection (spec-55, F06 — server accept path).
+    ///
+    /// Call after `poll_accept_bidi()` confirms a WebTransport Extended CONNECT
+    /// request (`:method = CONNECT` + `:protocol = webtransport`). The caller
+    /// stops driving HTTP/3 — the QUIC connection is now a WT session.
+    #[must_use]
+    pub fn into_webtransport(self, datagrams: bool) -> crate::webtransport::session::WtSession<C> {
+        crate::webtransport::session::WtSession::new(self.conn, datagrams)
+    }
+
+    /// Poll for an incoming bidi stream and check if it's a WebTransport
+    /// Extended CONNECT request (spec-55, F06 — server accept path).
+    ///
+    /// Returns `Stream::Next(Ok(true))` when a WebTransport CONNECT is detected
+    /// and the 200 response has been sent. The caller should then call
+    /// [`Self::into_webtransport`] to consume this connection and get the session.
+    /// Returns `Stream::Next(Ok(false))` for regular HTTP/3 requests.
     pub fn poll_accept_webtransport(
         &mut self,
-        _acceptor: &mut crate::webtransport::session::WtAcceptor<C>,
     ) -> Stream<Result<bool, H3Error>, ()> {
         // Accept a bidi stream and check if it's a WebTransport CONNECT.
         match self.conn.accept_bidi() {
@@ -333,7 +350,7 @@ impl<C: QuicConnection> H3Connection<C> {
                             let is_wt = method.map(|(_, v)| v.as_ref() == b"CONNECT" as &[u8]).unwrap_or(false)
                                 && protocol.map(|(_, v)| v.as_ref() == b"webtransport" as &[u8]).unwrap_or(false);
                             if is_wt {
-                                // Send 200 response via QPACK-encoded HEADERS.
+                                // Send 200 response via HEADERS frame.
                                 let resp = crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
                                 let encoded = H3Request::<C::BidiStream>::encode_headers(&resp);
                                 let mut pending = encoded;
@@ -344,7 +361,6 @@ impl<C: QuicConnection> H3Connection<C> {
                                         _ => return Stream::Pending(()),
                                     }
                                 }
-                                // Finish the response.
                                 loop {
                                     match req.poll_finish() {
                                         Stream::Next(Ok(())) => break,
@@ -354,8 +370,7 @@ impl<C: QuicConnection> H3Connection<C> {
                                 }
                                 return Stream::Next(Ok(true));
                             }
-                            // Not a WebTransport request — return false so caller
-                            // can poll_accept again for regular HTTP/3.
+                            // Regular HTTP/3 request — caller handles it.
                             return Stream::Next(Ok(false));
                         }
                         Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
