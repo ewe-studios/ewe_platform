@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::net::{TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::sleep_async;
 use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
 use foundation_deployment_docker::DockerClient;
 use foundation_netio::http::SimpleHttpClient;
@@ -83,11 +84,8 @@ impl WaitFor {
 
     /// Apply this wait strategy. Called by ContainerHandle::start_async().
     ///
-    /// NOTE: Port/UDP waits are sync (pure TCP/UDP, no Docker API). Stdout/Http
-    /// are async (they call `DockerClient` / `SimpleHttpClient`), but their
-    /// backoff uses `std::thread::sleep` — acceptable because `start_async()`
-    /// is driven by `block_on_future` in a dedicated thread where Docker I/O is
-    /// already blocking. No concurrent valtron tasks are starved.
+    /// All waits are async and use valtron's cooperative [`sleep_async`] for
+    /// backoff — no thread blocking.
     pub(crate) async fn apply(
         &self,
         client: &DockerClient,
@@ -98,10 +96,10 @@ impl WaitFor {
         while let Some(strategy) = stack.pop() {
             match strategy {
                 WaitFor::Port { port, timeout } => {
-                    wait_for_port(*port, *timeout, ports)?;
+                    wait_for_port(*port, *timeout, ports).await?;
                 }
                 WaitFor::Udp { port, timeout } => {
-                    wait_for_udp(*port, *timeout, ports)?;
+                    wait_for_udp(*port, *timeout, ports).await?;
                 }
                 WaitFor::Stdout { message, timeout } => {
                     wait_for_stdout(client, container_id, message, *timeout).await?;
@@ -121,8 +119,9 @@ impl WaitFor {
     }
 }
 
-/// TCP connect loop with exponential backoff.
-fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+/// TCP connect loop with exponential backoff. Uses valtron's cooperative
+/// [`sleep_async`] — no thread blocking.
+async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("port {port} was not mapped")))
@@ -141,7 +140,7 @@ fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> 
                 }));
             }
             Err(_) => {
-                std::thread::sleep(backoff);
+                sleep_async(backoff).await;
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -149,8 +148,9 @@ fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> 
 }
 
 /// UDP readiness: send a 1-byte probe to the mapped host port, retry until a
-/// response arrives or the timeout elapses.
-fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+/// response arrives or the timeout elapses. Uses valtron's cooperative
+/// [`sleep_async`].
+async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
     let key = format!("{port}/udp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("UDP port {port} was not mapped")))
@@ -169,7 +169,7 @@ fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> D
                 }));
             }
             false => {
-                std::thread::sleep(backoff);
+                sleep_async(backoff).await;
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -245,9 +245,8 @@ async fn wait_for_stdout(
             }));
         }
 
-        // Poll interval — blocks the valtron task, acceptable in a
-        // readiness loop (DockerClient I/O is also blocking).
-        std::thread::sleep(Duration::from_millis(500));
+        // Cooperatively sleep between polls.
+        sleep_async(Duration::from_millis(500)).await;
     }
 }
 
@@ -278,7 +277,7 @@ async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> Do
             }));
         }
 
-        std::thread::sleep(backoff);
+        sleep_async(backoff).await;
         backoff = (backoff * 2).min(Duration::from_secs(1));
     }
 }
