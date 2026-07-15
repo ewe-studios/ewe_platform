@@ -12,7 +12,9 @@ pub mod backends;
 pub mod command;
 pub mod host;
 pub mod pool;
+pub mod powershell;
 pub mod runner;
+pub mod shell;
 
 pub use backends::Backend;
 pub use command::{Command, CommandResult};

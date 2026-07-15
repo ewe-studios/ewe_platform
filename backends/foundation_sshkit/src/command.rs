@@ -70,6 +70,18 @@ impl Command {
         self
     }
 
+    /// Wrap inside `bash -c "..."`.
+    #[must_use]
+    pub fn bash(self) -> String {
+        format!("bash -c {:?}", self.to_shell_command())
+    }
+
+    /// Wrap inside `cmd /c "..."` (Windows).
+    #[must_use]
+    pub fn cmd(self) -> String {
+        format!("cmd /c {:?}", self.to_shell_command())
+    }
+
     /// Render to a shell command string.
     pub fn to_shell_command(&self) -> String {
         let mut parts = Vec::new();

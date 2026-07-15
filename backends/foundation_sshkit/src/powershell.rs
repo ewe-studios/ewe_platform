@@ -7,6 +7,8 @@
 //! WHAT: [`ps_exec`] encodes a script as UTF-16LE + Base64, executes it via
 //! `powershell -NoProfile -EncodedCommand`, and strips the CLIXML noise.
 
+use std::io::Read;
+
 /// Execute a PowerShell script over an authenticated ssh2 session.
 ///
 /// Returns `(stdout, exit_code)`. The CLIXML envelope (`#< CLIXML ...`) is
