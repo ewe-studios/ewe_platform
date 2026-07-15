@@ -15,8 +15,6 @@ use foundation_core::valtron::{
     valtron_test,
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
-use tracing_test::traced_test;
-
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {
     remaining: usize,
@@ -40,7 +38,6 @@ impl TaskIterator for FiniteTask {
 /// WHY: Validates basic task execution with sleeper-aware yielding
 /// WHAT: Tasks should complete normally when sleeper-aware yielding is active
 /// HOW: Spawn tasks and verify they complete within expected time
-#[traced_test]
 #[valtron_test(seed = 42, threads = 3)]
 fn basic_execution_with_sleeper_aware_yielding() {
     let counter = Arc::new(AtomicUsize::new(0));
@@ -73,7 +70,6 @@ fn basic_execution_with_sleeper_aware_yielding() {
 /// WHY: Validates multiple tasks complete with sleeper-aware yielding
 /// WHAT: Multiple concurrent tasks should all complete
 /// HOW: Spawn multiple tasks and verify all complete
-#[traced_test]
 #[valtron_test(seed = 42, threads = 3)]
 fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     let results = Arc::new(Mutex::new(Vec::new()));
