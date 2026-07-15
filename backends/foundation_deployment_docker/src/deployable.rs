@@ -10,23 +10,19 @@
 //! implements [`Deployable`]: `deploy` creates + starts the container and
 //! persists its id; `destroy` reads the id back and stops + removes it.
 //!
-//! HOW: Docker speaks over a Unix socket, which does not fit the
-//! `ProviderClient`'s TCP+DNS [`SimpleHttpClient`] — so `deploy`/`destroy` build
-//! their own [`DockerClient`] from the socket path and use the `ProviderClient`
-//! only for **state persistence** (via the `Deployable::store` namespaced
-//! store). The async work is wrapped in [`DeployTask`], a small adapter that
-//! re-labels [`FutureTask`]'s pending/spawner types to the `Deployable`
-//! contract (`Pending = Deploying`, `Spawner = BoxedSendExecutionAction`).
+//! HOW: `deploy`/`destroy` are plain async — each returns
+//! `Box::pin(async move { … })` (a [`BoxFuture`]). Docker speaks over a Unix
+//! socket, which does not fit the `ProviderClient`'s TCP+DNS HTTP client, so the
+//! futures build their **own** [`DockerClient`] from the socket path and use the
+//! `ProviderClient` only for **state persistence** (via the `Deployable::store`
+//! namespaced store) — the canonical "unique underlying mechanics" case for a
+//! `Deployable`.
 
 use std::path::PathBuf;
-use std::pin::Pin;
 
-use foundation_core::valtron::{
-    from_future, BoxedSendExecutionAction, FutureTask, TaskIterator, TaskStatus,
-};
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
-use foundation_deployment::traits::{Deployable, Deploying};
+use foundation_deployment::traits::{BoxFuture, Deployable};
 use foundation_netio::shared::client::dns::SystemDnsResolver;
 use serde::{Deserialize, Serialize};
 
@@ -129,26 +125,17 @@ impl Deployable for ContainerDeployment {
         &self,
         instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl TaskIterator<
-                Ready = Result<Self::DeployOutput, Self::Error>,
-                Pending = Deploying,
-                Spawner = BoxedSendExecutionAction,
-            > + Send
-            + 'static,
-        Self::Error,
-    > {
+    ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>> {
+        // Docker dials its own Unix socket; ProviderClient is used only for the
+        // namespaced state store (built here — needs `&self`/`&client` — and
+        // moved into the future so `destroy` can read the container id back).
         let docker = DockerClient::connect_unix(&self.socket_path);
         let body = self.create_body();
         let name = self.name.clone();
-        // The namespaced store persists the container id so `destroy` can find
-        // it; built here (needs `&self`/`&client`) and moved into the task.
         let store = self.store(&client);
 
-        Ok(DeployTask::new(async move {
-            let created = docker
-                .create_container(&body, name.as_deref())
-                .await?;
+        Box::pin(async move {
+            let created = docker.create_container(&body, name.as_deref()).await?;
             docker.start_container(&created.id).await?;
 
             let output = ContainerDeployOutput { container_id: created.id };
@@ -156,26 +143,18 @@ impl Deployable for ContainerDeployment {
                 .store_typed(&instance_id.to_string(), &output)
                 .map_err(|e| DockerError::Unavailable(format!("persist deploy state: {e}")))?;
             Ok(output)
-        }))
+        })
     }
 
     fn destroy(
         &self,
         instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl TaskIterator<
-                Ready = Result<Self::DestroyOutput, Self::Error>,
-                Pending = Deploying,
-                Spawner = BoxedSendExecutionAction,
-            > + Send
-            + 'static,
-        Self::Error,
-    > {
+    ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
         let docker = DockerClient::connect_unix(&self.socket_path);
         let store = self.store(&client);
 
-        Ok(DeployTask::new(async move {
+        Box::pin(async move {
             let key = instance_id.to_string();
             let output: ContainerDeployOutput = store
                 .get_typed(&key)
@@ -192,44 +171,6 @@ impl Deployable for ContainerDeployment {
                 .remove(&key)
                 .map_err(|e| DockerError::Unavailable(format!("clear deploy state: {e}")))?;
             Ok(())
-        }))
-    }
-}
-
-/// Adapts a [`FutureTask`] to the [`Deployable`] `TaskIterator` contract:
-/// re-labels `Pending` as [`Deploying`] and `Spawner` as
-/// [`BoxedSendExecutionAction`]. The wrapped future never spawns, so the
-/// `Spawn` arm is unreachable; parking (`Depends`) is forwarded unchanged so
-/// the executor can still sleep on pipe/IO readiness.
-pub struct DeployTask<T> {
-    inner: FutureTask<Pin<Box<dyn std::future::Future<Output = T> + Send>>>,
-}
-
-impl<T> DeployTask<T>
-where
-    T: Send + 'static,
-{
-    fn new(future: impl std::future::Future<Output = T> + Send + 'static) -> Self {
-        Self { inner: from_future(Box::pin(future)) }
-    }
-}
-
-impl<T> TaskIterator for DeployTask<T>
-where
-    T: Send + 'static,
-{
-    type Ready = T;
-    type Pending = Deploying;
-    type Spawner = BoxedSendExecutionAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Some(match self.inner.next_status()? {
-            TaskStatus::Ready(value) => TaskStatus::Ready(value),
-            TaskStatus::Depends(readiness) => TaskStatus::Depends(readiness),
-            TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
-            // FutureTask only emits Ready / Pending / Depends; everything else
-            // (including its self-wake Pending) maps to "still working".
-            _ => TaskStatus::Pending(Deploying::Processing),
         })
     }
 }
