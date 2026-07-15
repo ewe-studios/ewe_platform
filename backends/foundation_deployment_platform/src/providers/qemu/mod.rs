@@ -4,15 +4,23 @@
 
 use std::path::PathBuf;
 
-use crate::config::{DisplayMode, Result, VmProfile};
-use crate::providers::{ProviderId, ResolvedPorts, VmHandle, VmProvider};
+use crate::config::{DisplayMode, Result, TestbedError, VmProfile};
+use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider};
 
 /// QEMU provider — launches and manages QEMU/KVM VMs on Linux.
-pub struct QemuProvider;
+pub struct QemuProvider {
+    display: DisplayMode,
+}
 
 impl QemuProvider {
     pub fn new() -> Self {
-        QemuProvider
+        QemuProvider { display: DisplayMode::Headless }
+    }
+
+    #[must_use]
+    pub fn with_display(mut self, mode: DisplayMode) -> Self {
+        self.display = mode;
+        self
     }
 }
 
@@ -103,6 +111,36 @@ impl VmProvider for QemuProvider {
 
     fn host_health(&self) -> crate::doctor::HostHealth {
         crate::doctor::check_host()
+    }
+}
+
+impl Provider for QemuProvider {
+    type Handle = VmHandle;
+    type Config = VmProfile;
+    type Error = TestbedError;
+
+    fn name(&self) -> &'static str { "qemu" }
+    fn id(&self) -> ProviderId { ProviderId::Qemu }
+
+    fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
+        <Self as VmProvider>::launch(self, config, self.display)
+    }
+
+    fn stop(&self, handle: &VmHandle) -> Result<()> {
+        <Self as VmProvider>::stop(self, handle)
+    }
+
+    fn is_running(&self, handle: &VmHandle) -> bool {
+        <Self as VmProvider>::is_running(self, handle)
+    }
+
+    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> {
+        <Self as VmProvider>::resolved_ports(self, handle)
+    }
+
+    fn host_health(&self) -> Vec<(String, bool, String)> {
+        let h = <Self as VmProvider>::host_health(self);
+        h.checks.iter().map(|c| (c.name.to_string(), c.ok, c.message.clone())).collect()
     }
 }
 
