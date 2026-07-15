@@ -3,6 +3,11 @@
 ## Overview
 This specification defines the creation of a new `foundation_platform` crate to manage cross-platform (desktop, mobile, web) capabilities using Tauri. It will integrate with the existing WASM UI foundation established in `specifications/completed/39-foundation-wasm-ui`.
 
+## Links
+- Basecamp Hotwire Native: /home/darkvoid/Boxxed/@formulas/src.UIFrameworks/src.basecamp/Basecamp Apps/
+- Tauri: /home/darkvoid/Boxxed/@formulas/src.rust/src.Tauri/src.tauri/
+- FoundationWasmUI: /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/completed/39-foundation-wasm-ui 
+
 ## Goals
 - Create `foundation_platform` crate.
 - Integrate Tauri for cross-platform support.

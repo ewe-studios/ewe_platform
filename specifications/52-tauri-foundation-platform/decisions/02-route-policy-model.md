@@ -17,7 +17,7 @@ single `RouteHandler` trait.
 3. [The `RouteDecision` struct](#the-routedecision-struct)
 4. [Execution contract: what happens after a decision](#execution-contract-what-happens-after-a-decision)
 5. [How each `presentation` mode works](#how-each-presentation-mode-works)
-6. [How each `render_mode` works](#how-each-render_mode-works)
+6. [How `ViewKind` drives rendering surface selection](#how-viewkind-drives-rendering-surface-selection)
 7. [How `source` drives protocol and transport selection](#how-source-drives-protocol-and-transport-selection)
 8. [How `profile` gates platform service access](#how-profile-gates-platform-service-access)
 9. [How `cache_policy` controls offline behavior](#how-cache_policy-controls-offline-behavior)
@@ -196,9 +196,12 @@ struct RouteDecision {
     /// How the navigation is presented in the UI stack.
     presentation: Presentation,
 
-    /// What format the content is rendered in — determines which
-    /// rendering pipeline the platform invokes.
-    render_mode: RenderMode,
+    /// What kind of view renders this route: a WebView or a platform-native
+    /// OS view (SwiftUI, Jetpack Compose, etc.). Replaces the old
+    /// `RenderMode` — the platform does NOT need to know the content format
+    /// (DomOps, HTML, Arrow, WASM module, etc.). That is foundation_wasm_ui's
+    /// concern. The platform only needs to know which view container to create.
+    view_kind: ViewKind,
 
     /// Preferred wire protocol for delivering the content.
     /// The backend can override this.
@@ -208,7 +211,14 @@ struct RouteDecision {
     cache_policy: CachePolicy,
 
     /// WebView trust profile for this route (gates platform services).
+    /// Only enforced when view_kind is WebView; native views have their
+    /// own OS-level trust model.
     profile: Profile,
+
+    /// Identifies which registered native view component to instantiate.
+    /// Only meaningful when view_kind is Native. The platform looks up
+    /// the view factory by this ID in the native view registry.
+    native_view_id: Option<String>,
 
     /// Native capabilities allowed on this route (per-route allowlisting).
     capabilities: Vec<CapabilityId>,
@@ -230,11 +240,6 @@ enum RouteSource {
     /// Content is fetched from a remote server over the network.
     /// The appropriate transport lane (HTTP, SSE, WebSocket) carries it.
     RemoteServer,
-
-    /// Content is served from the local cache.
-    /// The cache layer provides the stored rendered page.
-**TODO**: This is rather odd, because content can be cached regardless of the first 3, so why make it a source, probably better to add a cache, and then its that a cache wraps existing sources.
-    Cache,
 }
 ```
 
@@ -246,10 +251,12 @@ RouteDecision::ipc_shell()     // RouteSource::IpcShell
 RouteDecision::remote_fetch()  // RouteSource::RemoteServer
 ```
 
-A from_cache that indicates cache delivers the content first before going to source
-```rust
-RouteDecision::from_cache(RouteDecision::local_wasm/ipc_shell/remote_fetch, CachePolicy)    // RouteSource::Cache
-```
+**Cache is not a source.** `CachePolicy` on the `RouteDecision` already controls
+*when* the cache is consulted (Step 3 of the execution contract). The cache wraps
+the existing three sources — it can serve cached `LocalWasm` output, cached
+`IpcShell` responses, or cached `RemoteServer` content. Making it a peer source
+created a redundant code path that was never reached (the cache check in Step 3
+always short-circuits before Step 5 resolves the source).
 
 ### `Presentation` — how navigation appears in the UI stack
 
@@ -281,105 +288,220 @@ enum Presentation {
 }
 ```
 
-The distinction between `presentation` and `render_mode`:
+The distinction between `presentation` and `view_kind`:
 
 - **`presentation`** controls the **navigation stack** — where the screen lives
   in the stack hierarchy, what transition plays, how the back button behaves.
   It drives the WebView stack manager ([decision 21](10-multi-webview-stack.md)).
 
-- **`render_mode`** controls the **content rendering pipeline** — what format
-  the content is in, which rendering subsystem processes it, how it becomes
-  pixels. It drives the UI runtime in `foundation_wasm_ui`.
+- **`view_kind`** controls the **rendering surface** — whether the platform
+  creates a WebView or a platform-native OS view (SwiftUI `View`, Jetpack
+  `Composable`, etc.) for this route. The platform does NOT need to know what
+  format the content is in (DomOps, HTML, Arrow, WASM module, etc.). That is
+  `foundation_wasm_ui`'s concern inside the WebView, or the native view
+  component's concern on the native side.
 
-These are orthogonal. You can `Morph`-replace a `WasmApp` screen or
-`Push`-navigate to an `HtmlDocument` screen. The stack manager handles
-presentation; the rendering lane handles render_mode.
+These are orthogonal. You can `Morph`-replace a `WebView` screen or
+`Push`-navigate to a `Native` screen. The stack manager handles
+presentation; `view_kind` determines which view container the platform creates.
 
-### `RenderMode` — what format the content is in
-
+### `ViewKind` — what kind of view renders this route
 
 ```rust
-enum RenderMode {
-    /// The response is a full WASM application module.
-    /// foundation_wasm_ui instantiates the WASM, runs its main(),
-    /// and the WASM takes over rendering for this screen.
-    WasmApp,
+enum ViewKind {
+    /// Content renders in a WebView (the default for most routes).
+    /// foundation_wasm_ui handles all rendering concerns — WASM apps,
+    /// HTML documents, DomOps streams, fragment morphs, data projection,
+    /// etc. The platform does NOT need to know which rendering path
+    /// the runtime takes. The platform's job is to deliver bytes;
+    /// the bootstrap script (foundation-wasm-ui.js) interprets the
+    /// Content-Type and routes to the correct rendering pipeline.
+    WebView,
 
-    /// The response is a complete HTML document.
-    /// The WebView renders it as a new page (like a browser loading a URL).
-    /// foundation_wasm_ui's JS runtime re-initializes on the new document.
-    HtmlDocument,
-
-    /// The response is a stream of DomOps (binary columnar or JSON).
-    /// foundation_wasm_ui's runtime receives the stream, applies each
-    /// DomOp to the current DOM, continuously updating the screen.
-    /// This is the default for server-driven content — the server
-    /// pushes DomOps patches; the runtime applies them without a full reload.
-    DomOpsStream,
-
-    /// The response is an HTML fragment.
-    /// foundation_wasm_ui's runtime morphs the fragment into the existing
-    /// DOM at a target element. Only the changed portion is replaced.
-    /// Used for partial page updates, Turbo/Hotwire-style replacements.
-    FragmentMorph,
-
-    /// The response is structured data (Arrow IPC or JSON).
-    /// foundation_wasm_ui's runtime projects it through a signal graph
-    /// or template. The data drives the UI; the rendering is
-    /// template-defined, not content-defined.
-    DataProjection,
+    /// Content renders in a platform-native OS view.
+    /// The platform instantiates a registered native view component:
+    /// SwiftUI View on iOS, Jetpack Compose on Android, native widget
+    /// on desktop. The native view receives data through the IPC shell
+    /// lane or capability bridge. The view component is registered
+    /// with the platform's native view registry (see below).
+    Native,
 }
 ```
 
-How each mode works concretely:
+### Why `ViewKind` replaces `RenderMode`
 
-**`WasmApp`:**
-1. The platform loads the user's WASM module into the WebView's WASM runtime.
-2. `foundation-wasm-ui.js` instantiates the module, calls its exported `main()`
-   with a `PlatformSession` handle.
-3. The WASM owns the rendering surface for this screen — it uses the `html!`
-   macro, signals, templates, and components from `foundation_wasm_ui`.
-4. The platform's rendering lane is not involved after bootstrap — the WASM
-   drives everything from inside the WebView.
+The old `RenderMode` enum enumerated content formats (`WasmApp`, `HtmlDocument`,
+`DomOpsStream`, `FragmentMorph`, `DataProjection`) as platform-level concerns.
+This was wrong at two levels:
 
-**`HtmlDocument`:**
-1. The backend (remote server, local shell, or cache) returns a full HTML
-   document: `<html><head>...</head><body>...</body></html>`.
-2. The platform delivers it through the transport lane as `text/html`.
-3. The WebView loads it as a new document. `foundation-wasm-ui.js` is
-   re-injected as an initialization script. The JS runtime re-bootstraps.
-4. Used for server-rendered pages that are complete documents (landing pages,
-   auth screens, static content).
+1. **The platform doesn't render anything.** It delivers bytes to a WebView or
+   instantiates a native view. What happens inside the WebView after delivery is
+   `foundation_wasm_ui`'s business. The runtime's bootstrap script
+   (`foundation-wasm-ui.js`) receives the response, checks the `Content-Type`,
+   and routes to the correct pipeline — WASM instantiation, DomOp decoding,
+   HTML parsing, signal graph projection, etc. The platform never branches on
+   content format.
 
-**`DomOpsStream`:**
-1. The backend streams binary columnar v1 DomOps (or JSON DomOps) over the
-   transport lane.
-2. `foundation_wasm_ui`'s runtime receives each batch, decodes the DomOps, and
-   applies them to the current DOM.
-3. The screen updates incrementally — no full reload, no document replacement.
-4. This is the primary mode for server-driven UIs. The server pushes patches;
-   the runtime applies them. Every interaction (click, form submit, etc.) is a
-   DomOps exchange over the transport lane.
+2. **Content format is not a route-level decision.** The frontend code already
+   expresses what it wants: `mount_stream()` expects DomOps,
+   `mount_data()` expects Arrow/JSON, a `<script type="module">` tag loads WASM.
+   The route handler doesn't need to duplicate this. The runtime inside the
+   WebView knows what it asked for; let it handle the response format.
 
-**`FragmentMorph`:**
-1. The backend returns an HTML fragment: `<div id="content">...</div>`.
-2. `foundation_wasm_ui`'s runtime identifies the target element in the current
-   DOM (by `id` or CSS selector), computes a morph between the old fragment and
-   the new one, and applies only the differences.
-3. The surrounding page (navigation, sidebars, etc.) is untouched.
-4. Used for Turbo/Hotwire-style partial updates — the server sends only the
-   part of the page that changed, and only that part is updated.
+`ViewKind` captures the ONLY rendering decision the platform actually makes:
+**WebView or native OS view?** Everything else is the runtime's concern.
 
-**`DataProjection`:**
-**TODO**: This makes no sense, the backend already streams the changes the UI needs to do, why are we concerning ourselves with this? We are just to setup either a means to pipe data to the webview (app in webview) or send DomOps to the webview efficiently (the wasm app running in the backend is deliverying update signals). If raw arrow data is being sent then thats what it expects and knows how to do (whether its running in webview or background), why is this lifted to render mode?
+### How Hotwire Native handles this
 
-1. The backend returns structured data — Arrow IPC `RecordBatch` or JSON.
-2. `foundation_wasm_ui`'s runtime receives the data, routes it through the
-   signal graph or template system.
-3. Reactive bindings update the DOM automatically — the data changes, the UI
-   reflects it. No DomOps stream, no HTML fragment.
-4. Used for data-heavy screens (dashboards, tables, analytics) where the
-   structure is template-defined and only the data changes.
+Hotwire Native separates the same concerns. Its `PathConfiguration` JSON (served
+by the backend) maps URL patterns to rules. The key rules are:
+
+| PathConfiguration key | What it controls | Our equivalent |
+|---|---|---|
+| `presentation` | How the screen appears in the nav stack (`push`, `replace`, `modal`, `pop`, `replace_root`, `clear_all`) | `Presentation` enum |
+| Native view controller registration | Whether a URL pattern maps to a native `UIViewController` (iOS) / `Activity` (Android) or the `WKWebView` Turbo Session | `ViewKind` enum |
+| `layout` | Which native chrome/layout wraps the screen | Native view component registration |
+| `context` | Arbitrary data passed to the native view | Capability payload |
+
+The critical insight from Hotwire Native: **the decision between native view and
+WebView is made at the route level, by pattern-matching the URL.** If a URL
+matches a registered native view controller pattern, the native VC is
+instantiated and pushed onto the navigation stack. If no native VC matches, the
+shared `WKWebView` handles it through Turbo.
+
+Our model mirrors this, but in code rather than JSON:
+
+```rust
+// Route handler (the "PathConfiguration" — but code, not config):
+session.route("/app/settings/*", RouteDecision::ipc_shell()
+    .with_view_kind(ViewKind::Native)
+    .with_native_view("settings"));
+    // → Platform instantiates the registered "settings" native view
+    //   (SwiftUI SettingsView on iOS, Compose SettingsScreen on Android).
+
+session.route("/app/feed/*", RouteDecision::remote_fetch()
+    .with_view_kind(ViewKind::WebView)
+    .with_presentation(Presentation::Push));
+    // → Platform creates a WebView, fetches from remote, delivers bytes.
+    //   foundation_wasm_ui handles rendering (DomOps, HTML, whatever).
+
+session.route("/app/camera/*", RouteDecision::local_wasm()
+    .with_view_kind(ViewKind::WebView));
+    // → Local WASM module runs in the WebView. Platform bootstraps
+    //   the WASM runtime and steps back.
+```
+
+### Native view registration
+
+Native view components are registered with the platform, similar to how
+capabilities are registered ([decision 18](07-native-capability-contract.md)):
+
+```rust
+// Register a native view component:
+session.register_native_view(
+    "settings",                              // view ID
+    |intent, shell| -> NativeViewHandle {    // factory
+        // On iOS: creates a SwiftUI SettingsView
+        // On Android: creates a Compose SettingsScreen
+        // On desktop: creates a native settings window/widget
+        shell.create_native_view::<SettingsView>(intent)
+    }
+);
+```
+
+### What Tauri provides (verified against source)
+
+Tauri is fundamentally a WebView host — its `Runtime` trait
+(`tauri-runtime/src/lib.rs`) provides `create_window` and `create_webview` but
+has **no built-in `create_native_view` API**. That's fine. Tauri provides
+escape hatches that let `foundation_platform` build native view support on top:
+
+**iOS** (`tao/src/platform_impl/ios/window.rs`):
+
+Tao creates a `UIWindow` + `UIViewController` + `UIView` for each window:
+
+```rust
+// tao/src/platform_impl/ios/window.rs
+pub struct Inner {
+    pub window: id,           // UIWindow
+    pub view_controller: id,  // UIViewController
+    pub view: id,             // UIView
+    gl_or_metal_backed: bool,
+}
+```
+
+Tauri calls `on_webview_created(webview: *const c_void, controller: *const c_void)`
+(`tauri/src/ios.rs`) via swift-rs, passing both the `WKWebView` and its parent
+`UIViewController` to Swift. This means the native side already has access to
+the view controller hierarchy.
+
+Escape hatches we use:
+- `WindowDispatch::run_on_main_thread()` (`tauri-runtime/src/lib.rs:306`) —
+  run arbitrary code on the main thread to create/push native UIViewControllers.
+- `RunEvent::SceneRequested { scene, options }` (`tauri-runtime/src/lib.rs:242`) —
+  surfaces the `UIScene` when iOS requests a new scene (e.g., for a native view).
+- `InputAccessoryViewBuilder` (`wry/src/lib.rs:420`) — allows custom UIKit
+  `UIView` injection into the keyboard area (narrow, but demonstrates the
+  pattern of mixing UIKit with WebView).
+
+**Android** (`wry/src/android/mod.rs`, `tauri-runtime/src/lib.rs`):
+
+- `RuntimeHandle::run_on_android_context()` — runs arbitrary code on the
+  Android UI thread with `JNIEnv`, `Activity`, and `WebView` references.
+  This is how we create native Jetpack Compose views or Fragments.
+- `WindowDispatch::find_class()` / `activity_name()` — JNI class resolution
+  and Activity identification.
+
+**Desktop** (`wry/src/lib.rs`):
+
+- `WebViewBuilder::build_as_child()` (line 1562) — creates a WebView as a child
+  of a native window's content view. On macOS this is an `NSView` subview.
+  Native views can be siblings in the same window's view tree.
+- `WindowDispatch::create_window()` — creates a native OS window that can
+  hold native content. The platform can create a native window (e.g., with a
+  SwiftUI/GTK/WinUI surface) alongside WebView windows.
+
+### How foundation_platform builds on this
+
+The platform does not rely on Tauri having a native view abstraction. Instead:
+
+1. **Native view factory registration** — `register_native_view()` stores a
+   closure in the platform's native view registry (similar to the capability
+   registry).
+
+2. **Instantiation via thread hooks** — When a route resolves to `ViewKind::Native`,
+   the platform calls `run_on_main_thread` (or the Android equivalent) and
+   runs the registered factory closure. On iOS, this creates a
+   `UIViewController` (or `UIHostingController` for SwiftUI) and pushes it
+   onto the `UINavigationController`. On Android, it creates a `Fragment`
+   or Compose view through JNI.
+
+3. **Integration with the stack manager** — The `ScreenSlot` enum (defined in
+   [How `ViewKind` drives rendering surface selection](#how-viewkind-drives-rendering-surface-selection))
+   holds either a `WebView` or a `NativeViewHandle`. Native views participate
+   in the same push/pop/morph/present semantics as WebView screens.
+
+4. **Communication through the session backbone** — Native views don't talk
+   to the platform directly. They use the same capability bridge as WebView
+   screens: `CapabilityRequest` → session backbone → `CapabilityResponse`.
+   This is identical to how Hotwire Native's bridge components work — native
+   views receive data through the session backbone, not ad-hoc channels.
+
+**Tauri does not provide the native view abstraction. foundation_platform builds it using Tauri's escape hatches.** This is the same approach as the
+capability registry: Tauri provides the raw primitives (window management,
+WebView creation, thread hooks, JNI access); the platform builds the
+coordination layer.
+
+### Data flow for native views
+
+When `view_kind` is `Native`, the platform:
+1. Instantiates the registered native view component via `run_on_main_thread`
+2. Resolves the `RouteSource` to get data:
+   - `LocalWasm` → WASM runs in the native shell, passes data through shared memory (Arrow IPC)
+   - `IpcShell` → native shell generates data directly for the native view
+   - `RemoteServer` → platform fetches from remote, passes the response to the native view
+3. The native view receives data through the capability bridge
+4. The native view owns its own rendering — the platform steps back
 
 ### `ProtocolHint` — preferred wire format
 
@@ -548,7 +670,7 @@ fn resolve_route(&self, intent: &NavigationIntent) -> RouteDecision {
 
 The platform default: if the URL is to a known external origin, open in system
 browser (`Presentation::External`). If it's same-origin with no handler,
-render as `HtmlDocument` with `UntrustedRemote` profile. The user can override
+render in a WebView with `UntrustedRemote` profile. The user can override
 the default by registering a catch-all handler last in the chain.
 
 ### Step 3: Cache check
@@ -633,12 +755,13 @@ match decision.source {
         // The transport lane carries the request and streams the response.
         // Auth tokens are attached by the shell (never enter JS context).
     }
-    RouteSource::Cache => {
-        // Already handled in Step 3. If we reach here, it's a cache miss
-        // with a policy that falls through — re-query the backend.
-    }
 }
 ```
+
+Cache is not a source — `CachePolicy` was already checked in Step 3. If we
+reach Step 5, the cache either missed or the policy said "go to backend."
+The session queries the actual source (`LocalWasm`, `IpcShell`, or
+`RemoteServer`) directly.
 
 ### Step 6: Protocol selection
 
@@ -665,20 +788,30 @@ delivers it through the appropriate transport lane:
 - **`ewe+http://`:** HTTP fetch — standard web semantics, proxies to dev
   server or remote.
 
-### Step 8: Rendering
+### Step 8: View instantiation
 
-The rendering lane receives the encoded content and applies it using the
-pipeline determined by `RouteDecision.render_mode`:
+The platform creates the rendering surface determined by `RouteDecision.view_kind`:
 
 ```
-RenderMode::WasmApp       → WASM runtime instantiates module, calls main()
-RenderMode::HtmlDocument  → WebView loads full document, JS runtime bootstraps
-RenderMode::DomOpsStream  → Runtime applies DomOp batches incrementally to DOM
-RenderMode::FragmentMorph → Runtime morphs HTML fragment into target element
-RenderMode::DataProjection→ Runtime projects data through signals/templates
+ViewKind::WebView → Platform acquires a WebView from the pool (or creates one).
+                    Content bytes are delivered through the transport lane.
+                    foundation-wasm-ui.js bootstrap script receives the response,
+                    checks Content-Type, and routes to the correct rendering
+                    pipeline (WASM instantiation, DomOp decoding, HTML parsing,
+                    signal graph projection, etc.). The platform steps back —
+                    it does not interpret the content format.
+
+ViewKind::Native  → Platform looks up the registered native view component by ID.
+                    Instantiates the native OS view (SwiftUI View, Jetpack
+                    Compose, etc.) through the platform's native bridge.
+                    Passes the NavigationIntent and initial data payload.
+                    The native view owns its rendering surface. The platform
+                    steps back — the native view communicates through the
+                    capability bridge for subsequent data/events.
 ```
 
-Full details in [How each `render_mode` works](#how-each-render_mode-works).
+Full details in [How `ViewKind` drives rendering surface
+selection](#how-viewkind-drives-rendering-surface-selection).
 
 ### Step 9: Post-render
 
@@ -711,7 +844,7 @@ Concrete example of the full chain:
      Returns RouteDecision {
        source: RemoteServer,
        presentation: Push,
-       render_mode: DomOpsStream,
+       view_kind: WebView,
        protocol: Default,
        cache_policy: NetworkFirst,
        profile: TrustedRemote,
@@ -736,10 +869,13 @@ Concrete example of the full chain:
 9. Transport: response delivered through ewe:// custom protocol as
    application/primal-columnar ArrayBuffer.
 
-10. Render: DomOpsStream.
-    foundation_wasm_ui runtime receives the stream.
-    Each DomOp batch is decoded and applied to the new screen's DOM.
-    Screen renders incrementally.
+10. View: WebView.
+    Platform acquires WebView, delivers bytes.
+    foundation-wasm-ui.js bootstrap script receives the stream.
+    Content-Type is application/primal-columnar → runtime decodes DomOp batches,
+    applies them to the new screen's DOM. Screen renders incrementally.
+    The platform never branches on content format — the bootstrap script
+    handles the routing.
 
 11. Post-render:
     Session records navigation in history.
@@ -870,150 +1006,92 @@ Use for: login → main app transition, deep link that resets the app state,
 
 ---
 
-## How each `render_mode` works
+## How `ViewKind` drives rendering surface selection
 
-### `WasmApp`
+### `WebView` (default)
 
-The response is a WASM module. This is the mode for locally-executed
-application code.
-
-**What the backend sends:** A compiled `.wasm` binary (or a reference to an
-already-loaded module).
+The platform creates or reuses a WebView for this route. This is the default for
+all `RouteSource` variants — local WASM, IPC shell responses, and remote
+content all flow through a WebView unless explicitly marked as `Native`.
 
 **What the platform does:**
-1. The WebView's WASM runtime (`foundation-wasm-ui.js`) instantiates the
-   module.
-2. Calls the module's exported `main()` function with a `PlatformSession`
-   handle.
-3. The WASM module takes over rendering for this screen. It uses
-   `foundation_wasm_ui`'s APIs — `html!` macro, signals, templates,
-   components, event handling.
-4. All subsequent interactions on this screen are handled by the WASM module.
-   No network round-trip needed (unless the WASM explicitly makes one).
+1. Acquires a WebView from the pool (or creates one) — see
+   [decision 21](10-multi-webview-stack.md).
+2. Resolves the `RouteSource` to get content (Step 5 of the execution contract).
+3. Opens the appropriate transport lane and delivers bytes to the WebView.
+4. **Steps back.** The platform does NOT interpret the bytes.
+   `foundation-wasm-ui.js` (the bootstrap script injected into every WebView)
+   receives the response, checks the `Content-Type`, and routes to the correct
+   rendering pipeline:
+   - `application/wasm` → instantiate WASM module, call `main()`
+   - `text/html` → load as full document or morph fragment (depending on context)
+   - `application/primal-columnar` → decode DomOps, apply to DOM
+   - `application/vnd.apache.arrow.stream` → route through signal graph
+   - etc.
 
-**When to use:** Local-first apps where the application logic runs on-device.
-Offline by default. The WASM is bundled with the app or hot-updated through
-the shell's update mechanism.
+The platform doesn't need a `RenderMode` enum to know which pipeline
+`foundation_wasm_ui` will invoke. The bootstrap script handles that. If
+`foundation_wasm_ui` adds a new rendering pipeline (Canvas, WebGPU, etc.), the
+platform doesn't change.
 
-**Crate dependency:** The WASM module depends on `foundation_wasm_ui`. The
-platform crate is not in the WASM's dependency graph — it communicates with
-the platform through the `PlatformSession` handle, which is a
-`foundation_ui_traits` type.
+### `Native`
 
-### `HtmlDocument`
-
-The response is a complete HTML document.
-
-**What the backend sends:** A full HTML document with `<html>`, `<head>`,
-and `<body>`. The response `Content-Type` is `text/html; charset=utf-8`.
-
-**What the platform does:**
-1. Delivers the HTML to the WebView as an HTTP response (via Tauri custom
-   protocol or direct load).
-2. The WebView renders it as a new page — it's a full document load.
-3. `foundation-wasm-ui.js` is re-injected as an initialization script (per
-   WebView profile's CSP).
-4. The JS runtime bootstraps: attaches signal runtime, event listeners, custom
-   protocol interceptors.
-5. If the HTML includes `<script>` tags that load the user's WASM module, the
-   WASM runtime instantiates it.
-
-**When to use:** Server-rendered pages from a traditional web backend. Landing
-pages, marketing content, auth screens (OAuth providers return HTML).
-Interoperability with existing server-rendered web applications.
-
-**How it relates to `foundation_wasm_ui`:** The HTML document may include
-`foundation-wasm-ui.js` as a `<script>` tag. If present, the runtime
-initializes and provides signal/template/component capabilities. If absent,
-the page is a plain HTML document with no platform runtime — just standard web
-content.
-
-### `DomOpsStream`
-
-The response is a stream of DOM operation batches. This is the primary mode
-for server-driven UIs.
-
-**What the backend sends:** A continuous (or batched) stream of DomOps —
-instructions like "create element," "set attribute," "insert text," "remove
-node." Encoded in columnar v1 binary, JSON, or Arrow IPC, depending on the
-selected protocol.
+The platform instantiates a platform-native OS view for this route. No WebView
+is created. The native view component is registered with the platform's native
+view registry and identified by a view ID in the `RouteDecision`.
 
 **What the platform does:**
-1. Opens a transport to the backend (HTTP streaming response, SSE, WebSocket,
-   or IPC).
-2. As each batch of DomOps arrives, the transport lane delivers it to the
-   WebView as an `ArrayBuffer` (binary) or JSON object.
-3. `foundation_wasm_ui`'s runtime decodes each batch and applies the DomOps
-   to the current DOM:
-   - **Binary columnar v1:** Decoded by the WASM runtime's no-std columnar
-     decoder. TypedArray-friendly. Zero-copy where possible.
-   - **JSON:** Decoded by the JS runtime. Slower but debuggable.
-   - **Arrow IPC:** Decoded by Arrow JS or the WASM runtime's Arrow reader.
-4. The DOM updates incrementally. The user sees the screen build up (or morph)
-   as DomOps arrive.
+1. Looks up the registered native view component by view ID.
+2. Instantiates the native view through the platform's native bridge:
+   - **iOS:** Creates a `UIViewController` (or `UIHostingController` for SwiftUI)
+     via the Tauri native bridge.
+   - **Android:** Creates a `Fragment` or `ComposeView` via JNI.
+   - **Desktop:** Creates a native window or embedded widget.
+3. Resolves the `RouteSource` to get data for the native view.
+4. Passes the `NavigationIntent` and initial data payload to the native view.
+5. **Steps back.** The native view owns its rendering surface. It communicates
+   with the platform through the capability bridge — sending capability requests
+   and receiving responses through the session backbone, exactly like a WebView
+   screen.
 
-**When to use:** Server-driven UIs where the backend owns rendering logic.
-Real-time updates (collaborative editing, live dashboards, chat). Any screen
-where the server pushes changes and the client applies them.
+**Native views in the navigation stack:**
 
-**How it relates to `foundation_wasm_ui`:** This is `foundation_wasm_ui`'s
-core rendering path. The DOM applicator, columnar decoder, and morph engine
-all live in `foundation_wasm_ui`. The platform provides the transport; the UI
-runtime provides the rendering.
+The WebView stack manager ([decision 21](10-multi-webview-stack.md)) is extended
+to handle native views as peers to WebView slots. A `WebViewSlot` becomes a
+`ScreenSlot` that holds either a WebView or a native view handle:
 
-### `FragmentMorph`
+```rust
+enum ScreenSlot {
+    WebView {
+        webview: Webview<R>,
+        screenshot: Option<Vec<u8>>,
+        state: SlotState,
+    },
+    Native {
+        view_handle: NativeViewHandle,
+        state: SlotState,
+    },
+}
+```
 
-The response is an HTML fragment that replaces a portion of the current DOM.
+Native views participate in the same screenshot-swap stack simulation — they
+can be pushed, popped, replaced, and modally presented alongside WebView
+screens. The same `Presentation` enum applies to both.
 
-**What the backend sends:** An HTML fragment — not a full document. Typically
-a `<div>` or `<turbo-frame>` with an `id` attribute. `Content-Type` is
-`text/html; charset=utf-8`.
+**Learning from Hotwire Native:**
 
-**What the platform does:**
-1. Delivers the HTML fragment to the WebView.
-2. `foundation_wasm_ui`'s runtime parses the fragment into a DOM subtree.
-3. Identifies the target element in the current document (by matching `id` or
-   a CSS selector from the fragment's root element).
-4. Computes a morph between the existing element and the new fragment — finds
-   the minimal set of DOM changes.
-5. Applies only the differences: adds new nodes, removes old nodes, updates
-   changed attributes and text. The rest of the page is untouched.
-6. Optionally animates the transition (CSS transitions on changed elements).
+Hotwire Native's `Navigator` manages two stacks: `session` (main) and
+`modalSession` (modal). Each can contain a mix of `VisitableViewController`s
+(WebView screens) and native `UIViewController`s. Our model generalizes this:
+the stack manager holds `ScreenSlot`s, each of which is either a WebView or a
+native view. The `Presentation` enum determines the transition; the `ViewKind`
+determines the slot type.
 
-**When to use:** Turbo/Hotwire-style partial updates. Server-rendered
-templates where only a section changes (navigation stays static, content area
-updates). Form submissions that return updated HTML for the form area.
-
-**How it relates to `foundation_wasm_ui`:** The morph engine exists in
-`foundation_wasm_ui` (it already handles DomOp-based morphing for
-`DomOpsStream`). `FragmentMorph` uses the same engine but takes HTML fragments
-as input instead of DomOps — the fragment is parsed, diffed, and morphed.
-
-### `DataProjection`
-
-The response is structured data. The rendering is template-driven.
-
-**What the backend sends:** Structured data — Arrow IPC `RecordBatch` (for
-tabular data), JSON objects (for nested data), or columnar v1 data batches.
-The `Content-Type` reflects the format.
-
-**What the platform does:**
-1. Delivers the data to the WebView as an `ArrayBuffer` or JSON object.
-2. `foundation_wasm_ui`'s runtime receives the data and routes it through the
-   signal graph for this screen.
-3. Reactive bindings update the DOM: a signal changes, the template re-renders
-   the affected elements.
-4. Subsequent data updates (new batches, server push) update the signals,
-   which update the DOM. The template is defined once; data drives updates.
-
-**When to use:** Data-heavy screens: dashboards, analytics tables, data grids,
-charts. Any screen where the structure is known at build time and only the data
-changes at runtime. Arrow IPC for zero-copy large datasets.
-
-**How it relates to `foundation_wasm_ui`:** `foundation_signals` provides the
-reactive signal graph. `foundation_wasm_ui` provides the template system and
-the `html!` macro that binds signals to DOM elements. `foundation_arrow`
-provides the Arrow IPC encoding/decoding on both sides.
+Hotwire Native's `PathConfiguration` maps URL patterns to presentation rules
+AND native view controller registration. Our route handler chain is the same
+concept — but code, not JSON. The server CAN still influence routing decisions
+(a route handler can fetch server-provided routing tables), but the compiled
+handler is the final authority.
 
 ---
 
@@ -1026,18 +1104,19 @@ The `RouteSource` constrains which transport lanes and protocols are available:
 | `LocalWasm` | No transport needed — WASM generates content in-process in the WebView. Session handle passes data through in-memory channels. | Whatever the WASM produces (columnar v1, Arrow IPC, JSON). | Zero — no process boundary. |
 | `IpcShell` | Tauri command IPC (control lane). Native shell IPC (data lane — shared-memory Arrow). Custom protocol binary response. | Arrow IPC (zero-copy in same process). Columnar v1 for DomOps. | Microseconds — pointer write, not memory copy (same process). |
 | `RemoteServer` | HTTP fetch (request/response). SSE (unidirectional stream). WebSocket (bidirectional stream). Tauri custom protocol (proxies to remote). | Any — server decides. Columnar v1, HTML, JSON, Arrow IPC. | Network round-trip time. |
-| `Cache` | Tauri custom protocol (serves from local SQLite). | Whatever was cached (stored as-encoded). | Local disk read. |
 
-The transport is selected automatically based on `RouteSource` and the
-available lanes. The user doesn't manually pick a transport — the `RouteSource`
-implies it:
+Cache is not a separate source — `CachePolicy` controls whether and when the
+cache layer intercepts requests for any of the three sources above. When a
+cached response is served, it uses the same transport lane as the original
+source (custom protocol for local, HTTP for remote). The transport is selected
+automatically based on `RouteSource` and the available lanes. The user doesn't
+manually pick a transport — the `RouteSource` implies it:
 
 - `LocalWasm` → in-memory channel (no transport needed).
 - `IpcShell` → Tauri command IPC + shared memory for data.
 - `RemoteServer` → the session opens the best available transport for the URL
   scheme: `ewe://` = custom protocol, `ewe+ws://` = WebSocket, `ewe+http://`
   = HTTP fetch, `https://` = direct HTTP fetch.
-- `Cache` → custom protocol handler serves from SQLite.
 
 Full transport lane definitions, Tauri integration points, and protocol
 selection priority are in [decision 03](03-session-backbone-transport.md).
@@ -1171,7 +1250,7 @@ Per [decision 01](01-platform-and-crates.md), the types are split across two cra
 Pure data types — no Tauri dependency, no WASM dependency, no I/O:
 
 - `RouteDecision`, `RouteSource`, `NavigationIntent`, `IntentSource`
-- `Presentation`, `RenderMode`, `ProtocolHint`
+- `Presentation`, `ViewKind`, `ProtocolHint`
 - `CachePolicy`, `Profile`, `CapabilityId`
 - `SessionId`, `PageIdentity`
 
@@ -1184,7 +1263,8 @@ Implementation types — Tauri-specific, platform-specific:
 
 - `RouteHandler` trait — references `PlatformSession` and `NavigationIntent`
 - `PlatformSession` struct — wraps `AppHandle<R>`, holds handler chain,
-  capability registry, cache handle, transport lane references
+  capability registry, native view registry, cache handle, transport lane
+  references
 - `PatternRouter` — impl of `RouteHandler` (convenience)
 - `FnRouteHandler` — impl of `RouteHandler` for closures (convenience)
 

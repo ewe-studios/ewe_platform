@@ -103,7 +103,7 @@ window/webview/plugin/event state — the session just coordinates them.
                         ├── SessionId, PageIdentity (session scoping)
                         ├── RouteDecision, NavigationIntent (route policy)
                         ├── CapabilityRequest, CapabilityResponse (capability contract)
-                        ├── Profile, CachePolicy, Presentation, RenderMode (enums)
+                        ├── Profile, CachePolicy, Presentation, ViewKind (enums)
                         └── Protocol (extended)
                          ↑            ↑            ↑
                          |            |            |
@@ -162,7 +162,7 @@ They are needed by both the web side (`foundation_wasm_ui`) and the native side
 |---|---|
 | `SessionId` | Opaque session identifier. Generated at app launch. Used for route scoping, page identity checks, stale-message guards. |
 | `PageIdentity` | `{ session_id, route, visit_id }`. Identifies a specific page load. Capability requests and responses carry this so results are delivered to the right page. |
-| `RouteDecision` | `{ source, presentation, render_mode, protocol, cache_policy, capabilities, profile }`. The output of a route handler. Pure data — the platform executes it. |
+| `RouteDecision` | `{ source, presentation, view_kind, protocol, cache_policy, profile, native_view_id, capabilities }`. The output of a route handler. Pure data — the platform executes it. |
 | `NavigationIntent` | `{ url, method, source, referrer }`. The input to a route handler. Pure data — the session creates it from intercepted events. |
 | `CapabilityRequest` | `{ id, page_identity, capability_name, action, payload, permissions }`. A request from the web side for a native capability. |
 | `CapabilityResponse` | `{ id, page_identity, status, payload_or_error }`. The result. Delivered scoped to the requesting page. |
@@ -170,7 +170,7 @@ They are needed by both the web side (`foundation_wasm_ui`) and the native side
 | `Profile` enum | `App \| TrustedRemote \| UntrustedRemote \| Auth \| Devtools`. The WebView profile taxonomy. Needed by both the session (gating access) and the UI runtime (CSP, origin policy). |
 | `CachePolicy` enum | `CacheFirst \| NetworkFirst \| OnlineOnly \| LocalOnly \| StaleWhileRevalidate`. Pure enum, no cache implementation. |
 | `Presentation` enum | `Morph \| Push \| Modal \| Replace \| External \| Root`. How navigation is presented. The session decides; the platform executes. |
-| `RenderMode` enum | `WasmApp \| HtmlDocument \| DomOpsStream \| FragmentMorph \| DataProjection`. How content is rendered. The session decides; the UI runtime executes. |
+| `ViewKind` enum | `WebView \| Native`. What kind of view renders this route. `WebView` = platform delivers bytes, `foundation_wasm_ui` handles rendering via Content-Type dispatch. `Native` = platform instantiates a registered native OS view component (SwiftUI, Jetpack Compose, etc.). The session decides; the platform creates the view container. Content format (DomOps, HTML, Arrow, WASM module, etc.) is `foundation_wasm_ui`'s concern — the platform doesn't branch on it. |
 
 ---
 
@@ -180,13 +180,14 @@ These types are Tauri-specific or platform-implementation-specific:
 
 | Type | Why it stays in `foundation_platform` |
 |---|---|
-| `PlatformSession` struct | Wraps `AppHandle<R>`, holds the route handler chain, capability registry, cache handle, transport lane references. Tauri-dependent. |
+| `PlatformSession` struct | Wraps `AppHandle<R>`, holds the route handler chain, capability registry, native view registry, cache handle, transport lane references. Tauri-dependent. |
 | `RouteHandler` trait | References `PlatformSession` and `NavigationIntent`. Lives with the platform's session implementation. |
 | `PatternRouter` | Impl of `RouteHandler`. Convenience, not core type. Lives with the platform. |
 | `FnRouteHandler` | Impl of `RouteHandler` for closures. Convenience. |
 | `CapabilityRegistry` | Wraps Tauri's plugin system and command registration. Tauri-dependent. |
+| `NativeViewRegistry` | Maps view IDs to platform-native view factories. Uses Tauri's `run_on_main_thread`/`run_on_android_context` hooks to instantiate SwiftUI / Jetpack Compose views. Tauri only provides WebViews — `foundation_platform` builds the native view abstraction on top of Tauri's escape hatches. |
 | `CacheManager` | Wraps `foundation_db` (SQLite) and Tauri's filesystem scope. Platform implementation. |
-| `WebViewStack` | Manages child WebViews, screenshot capture, pool. Tauri `Webview<R>` dependent. |
+| `WebViewStack` | Manages child WebViews and native view `ScreenSlot`s, screenshot capture, pool. Tauri `Webview<R>` dependent. |
 | `UriSchemeProtocol` adapter | Tauri-specific `ewe://` transport layer. |
 | `PlatformBuilder` | Wraps `tauri::Builder`, registers hooks, protocols, commands. |
 | `PlatformBundleGenerator` | Build tool that targets Tauri's packaging pipeline. |

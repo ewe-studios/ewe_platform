@@ -41,21 +41,49 @@ Basecamp's approach (verified from source):
   `modalSession` (modal stack). Each has its own WebView. Navigation can switch
   between stacks.
 
-### What we build on top (Tauri specifics)
+### What we build on top (Tauri specifics, verified against source)
 
 Tauri's model is different from UIKit. Instead of moving a shared WebView between
 view controllers, Tauri has:
 
-- **`WebviewWindow`** — a window with an integrated WebView. One WebView per window.
-- **Child WebViews** — a window can have child WebViews (`Window::add_child`).
-  Each child is a separate `Webview<R>` with its own label.
-- **`WebviewManager`** — tracks all WebViews by label. The shell can create,
-  destroy, navigate, and evaluate JS in any WebView.
-- **Windows are the heavy resource.** Creating a new window is expensive.
-  Creating a new child WebView within a window is lighter.
+- **`WebviewWindow<R>`** (`tauri/crates/tauri/src/webview/webview_window.rs:1441`) —
+  a window with a single integrated WebView. One WebView per window. This is the
+  ONLY model on iOS/Android.
+- **`Window::add_child`** (`tauri/crates/tauri/src/window/mod.rs:1129`) — creates
+  a child WebView within a desktop window. **Gated:** `#[cfg(any(test, all(desktop,
+  feature = "unstable")))]`. Desktop-only, behind the `unstable` Cargo feature.
+  NOT available on iOS/Android. v1 does not depend on this.
+- **`WebviewManager<R>`** (`tauri/crates/tauri/src/manager/webview.rs:70`) —
+  `pub webviews: Mutex<HashMap<String, Webview<R>>>`. Tracks all WebViews by
+  label across windows. The shell can create, destroy, navigate, and evaluate JS
+  in any WebView.
+- **`WebviewWindow::on_navigation`** (`webview_window.rs:266`) — Tauri's
+  navigation interception. `Fn(&Url) -> bool` — return false to block. This is a
+  per-WebView hook; the session backbone transforms it into the handler chain.
+- **`WebviewWindow.controller()`** (`webview/mod.rs:227`) — on iOS, returns the
+  `UIViewController` pointer. The escaping point for native view insertion.
+- **`WebviewWindow.inner()`** — returns the raw platform WebView handle
+  (`WKWebView*` on iOS, `WebView` on Android).
 
-Our stack manager works WITHIN a single Tauri window, managing multiple child
-WebViews and screenshot swap:
+**Critical constraint:** `Window::add_child` is desktop+unstable only. On
+mobile, each WebView is a separate `WebviewWindow`. This means the multi-WebView
+stack model differs by platform:
+
+| Platform | WebView model | Stack simulation |
+|---|---|---|
+| **Desktop** (with `unstable`) | One window, multiple child WebViews via `add_child` | Multi-WebView: swap active child, screenshots for inactive |
+| **Desktop** (stable) | One `WebviewWindow` per screen | Basecamp model: single shared WebView + screenshots |
+| **iOS/Android** | One `WebviewWindow` per screen. No child WebViews. | Basecamp model: single shared WebView + screenshots. Each window = overhead, so pool carefully. |
+
+**v1 strategy:** Use the Basecamp single-WebView + screenshot model for mobile
+and stable desktop. The multi-WebView model (desktop+unstable) is a future
+optimization. The `ScreenSlot` abstraction (below) supports both models — the
+stack manager can be backed by one shared WebView or multiple child WebViews
+without changing the route handler API.
+
+### Desktop multi-WebView (future, unstable feature)
+
+When the `unstable` feature is enabled on desktop:
 
 ```
 Tauri Window (single OS window)
@@ -66,7 +94,7 @@ Tauri Window (single OS window)
         └── [pool]     child WebView _idle (warm, ready to be assigned)
 ```
 
-### The stack manager design
+### The stack manager design (supports both models)
 
 ```rust
 struct WebViewStack {
@@ -115,54 +143,73 @@ enum SlotState {
 }
 ```
 
-### Navigation flow: push (navigate forward)
+### Navigation flow: push (navigate forward) — single-WebView (v1 default)
+
+This is the **Basecamp model** used on mobile and stable desktop. One shared
+WebView is moved between screens:
+
+1. User taps a link on the active screen.
+2. Session backbone intercepts → route handler returns `RouteDecision`.
+3. If presentation is `Push`:
+   - **Deactivate current screen:** screenshot captured, slot state → `Screenshot`.
+   - **Move WebView to new screen:** the shared WebView navigates to the new URL.
+     `foundation-wasm-ui.js` is re-injected (or already present from initial load).
+   - The shared WebView replaces the screenshot when content is ready.
+   - Animate transition: old screenshot slides left, new content slides in.
+4. Previous slot now shows its screenshot. It has no live WebView.
+
+### Navigation flow: push — multi-WebView (desktop+unstable)
 
 1. User taps a link on the active screen.
 2. Session backbone intercepts → route handler returns `RouteDecision`.
 3. If presentation is `Push`:
    - Capture screenshot of current active WebView → store in current slot.
-   - Current slot: `Active → Ready` (or `Screenshot` if we move the WebView).
-   - Create or assign a WebView for the new screen.
-   - New slot: `Active` (or `Preloading` if we want to show a screenshot first).
-   - Animate transition (slide from right on mobile, no animation on desktop
-     unless configured).
+   - Current slot: `Active → Ready` (or `Screenshot` if WebView moved).
+   - Acquire a WebView for the new screen from pool (or create one).
+   - New slot: `Active` (or `Preloading` if showing screenshot first).
+   - Animate transition (slide from right on mobile, instant on desktop).
 4. New screen renders → user sees the new content.
 
-### Navigation flow: pop (navigate back)
+### Navigation flow: pop (navigate back) — single-WebView
+
+1. User taps back (or native back gesture).
+2. Stack manager pops the top slot.
+3. Previous slot has a screenshot (`Screenshot`):
+   - Show the screenshot INSTANTLY (feels fast, exactly like Basecamp).
+   - Move the shared WebView to this slot, navigate to the route.
+   - `Screenshot → Active` once content loads.
+4. If the content is stale (`isShowingStaleContent`), reload after visible.
+5. The user perceived a native-feeling instant back gesture.
+
+### Navigation flow: pop — multi-WebView
 
 1. User taps back (or native back gesture).
 2. Stack manager pops the top slot.
 3. If the previous slot has a live WebView (`Ready`):
    - Show the previous WebView → `Ready → Active`.
-   - It may briefly show its last rendered state (no reload needed if state
-     is still valid).
-   - If the content is stale (`isShowingStaleContent` flag), trigger a reload
-     after the WebView becomes visible.
+   - May briefly show last rendered state.
+   - If stale, trigger reload after visible.
 4. If the previous slot has only a screenshot (`Screenshot`):
-   - Show the screenshot INSTANTLY (feels fast, exactly like Basecamp).
-   - Assign a WebView from the pool (or create one).
-   - Load the route → `Preloading → Active`.
-   - Once loaded, hide the screenshot, show the real content.
-   - The user perceived a native-feeling instant back gesture, even though
-     the WebView needed to reload.
+   - Show screenshot instantly.
+   - Assign WebView from pool (or create one).
+   - Load route → `Preloading → Active`.
+   - Once loaded, hide screenshot, show real content.
 
-### Navigation flow: preload (background)
+### WebView pool — shared-WebView strategy (v1/mobile)
 
-1. The route handler or predictive logic decides "the user will likely tap
-   this link next."
-2. Stack manager assigns an idle WebView from the pool.
-3. Loads the target route in the background → `Preloading`.
-4. When the user actually taps:
-   - If preload is complete (`Ready`): instant swap. Screenshot → real content
-     with no loading delay.
-   - If preload is still in progress: show screenshot immediately, swap to
-     real content when ready.
+On mobile, the "pool" is a single shared WebView. The `WebViewWindow` is created
+once (by Tauri at app launch). All screens share it. Pooling is about managing
+the one WebView, not creating multiple:
 
-### WebView pool
+```rust
+// On mobile: single WebView, shared across all screens.
+// acquire_webview() always returns the same WebView.
+// release_webview() just captures a screenshot — the WebView is reused.
+```
 
-Idle WebViews are kept warm rather than destroyed. Destroying and recreating
-WebViews is expensive (process creation, JS engine init, WASM instantiation).
-The pool reuses them:
+### WebView pool — multi-WebView strategy (desktop+unstable)
+
+When multiple child WebViews are available, idle ones are kept warm:
 
 ```rust
 impl WebViewStack {
@@ -305,19 +352,18 @@ When limits are hit:
 - Idle WebViews past TTL are destroyed (not returned to pool).
 - New WebView requests when pool is exhausted → screenshot-only fallback.
 
-### Tauri integration
+### Tauri integration (verified against source)
 
-| Tauri primitive | How the stack manager hooks in |
-|---|---|
-| `WebviewWindow` | The stack manager operates within a single window. It creates child WebViews via `Window::add_child`. |
-| Child `Webview<R>` | Each slot's WebView is a Tauri child WebView with a unique label. The stack manager positions, shows, and hides them. |
-| `Webview::set_position` / `set_size` | Child WebViews are positioned within the window. The active one fills the content area. Inactive ones are moved off-screen or hidden. |
-| `Webview::set_visible` / `hide` | Only the active WebView is visible. Others are hidden (screenshot shown instead). |
-| `Webview::navigate` | Preloading navigates to the target URL. Screenshot-only slots navigate when activated. |
-| `Webview::evaluate_script` | JS calls for showing/hiding screenshots, communicating session identity, and triggering reloads. |
-| `Webview::screenshot` (or JS canvas fallback) | Captured when a slot is deactivated. Stored in the slot's state. |
-| `on_navigation` callback | Intercepted by the session backbone for route policy. The stack manager reacts to push/pop decisions. |
-| Mobile lifecycle events | On `didEnterBackground`: cache screenshots, release idle pool. On `willEnterForeground`: validate stale content, re-warm pool if needed. |
+| Tauri primitive | Source | How the stack manager hooks in |
+|---|---|---|
+| `WebviewWindow<R>` | `webview/webview_window.rs:1441` | On mobile: one window = one WebView = shared across all screens. On desktop: one window, child WebViews via `add_child` (unstable). |
+| `Window::add_child()` | `window/mod.rs:1129` | Desktop only, `#[cfg(all(desktop, feature = "unstable"))]`. Creates child `Webview<R>` inside a window. Multi-WebView model (future). |
+| `WebviewManager<R>` | `manager/webview.rs:70` | `pub webviews: Mutex<HashMap<String, Webview<R>>>`. Tracks all WebViews by label. Used for acquire/release in multi-WebView mode. |
+| `Webview::navigate()` | `webview_window.rs:2384` | URL change for preloading and activation. Shared WebView in single-WebView mode; per-slot in multi-WebView mode. |
+| `Webview::eval()` | `webview_window.rs:2403` | JS calls for showing/hiding screenshots, communicating session identity, triggering reloads. |
+| `WebviewWindow::on_navigation()` | `webview_window.rs:266` | Intercepted by session backbone for route policy. Returns `bool` — false blocks. Stack manager reacts to push/pop decisions. |
+| Screenshot capture | JS canvas fallback (no native API) | Captured when a slot is deactivated. Stored as base64 PNG in slot state. CSS overlay for display. |
+| Mobile lifecycle | `tauri-runtime/src/lib.rs` `RunEvent::Resumed`/`Suspended` | On `didEnterBackground`: cache screenshots. On `willEnterForeground`: validate stale content. |
 
 ### Integration with the session backbone
 
@@ -330,7 +376,7 @@ session.register_subsystem(WebViewStack::new(config));
 session.on_navigate(|intent, session| {
     match intent.presentation {
         Presentation::Push => {
-            session.stack().push(intent.route, intent.render_mode);
+            session.stack().push(intent.route, intent.view_kind);
         }
         Presentation::Pop => {
             session.stack().pop();

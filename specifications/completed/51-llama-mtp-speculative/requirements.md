@@ -1,9 +1,9 @@
 ---
 description: "Opt-in, capability-gated Multi-Token Prediction (MTP) / speculative decoding for the llama.cpp provider, surfaced through the foundation_ai harness presets for the models that support it (GLM 5.2, Qwen 3.6, Gemma 4)."
-status: "in_progress"
+status: "completed"
 priority: "medium"
 created: 2026-07-01
-updated: 2026-07-01
+updated: 2026-07-15
 author: "Main Agent"
 metadata:
   version: "1.0"

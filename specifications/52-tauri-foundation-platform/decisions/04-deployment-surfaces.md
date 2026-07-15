@@ -478,9 +478,10 @@ fn main(session: PlatformSession) {
     session.route("/data/analytics/*", RouteDecision::ipc_shell()
         .with_protocol(ProtocolHint::ArrowIpc));
 
-    // Surface 3: Business logic runs in shell's WASM runtime
+    // Surface 3: Business logic runs in shell's WASM runtime,
+    // results delivered to WebView (content format is foundation_wasm_ui's concern)
     session.route("/api/business/*", RouteDecision::ipc_shell()
-        .with_render_mode(RenderMode::DataProjection));
+        .with_view_kind(ViewKind::WebView));
 
     // Surface 4: Dynamic content from remote server
     session.route("/remote/content/*", RouteDecision::remote_fetch()

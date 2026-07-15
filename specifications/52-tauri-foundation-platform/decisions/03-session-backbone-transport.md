@@ -814,19 +814,28 @@ WASM, remote server, cached replay) are in [decision
 
 ## What Tauri already provides vs what we build
 
-Verified against source (`manager/mod.rs`, `state.rs`, `app.rs`):
+Verified against source (`manager/mod.rs`, `manager/webview.rs`, `webview/mod.rs`,
+`webview/webview_window.rs`, `window/mod.rs`, `state.rs`, `app.rs`, `ios.rs`,
+`tauri-runtime/src/lib.rs`, `wry/src/lib.rs`):
 
 **Tauri provides:**
-- `AppManager` — container: owns `WindowManager`, `WebviewManager`,
+- `AppManager` (`manager/mod.rs:187`) — container: owns `WebviewManager`,
   `PluginStore`, `StateManager`, `Listeners`, `ResourceTable`, `Config`.
-- `StateManager` — type-indexed dependency injection (`TypeId → Pin<Box<dyn
-  Any>>`). No lifecycle, no route scoping, no message routing.
+- `WebviewManager<R>` (`manager/webview.rs:70`) — `pub webviews: Mutex<HashMap<String, Webview<R>>>`. Tracks all WebViews by label.
+- `WebviewWindow<R>` (`webview/webview_window.rs:1441`) — window + single WebView. The primary creation API. `build()`, `on_navigation()`, `navigate()`, `eval()`.
+- `Window::add_child()` (`window/mod.rs:1129`) — child WebView within a desktop window. **Gated:** `#[cfg(all(desktop, feature = "unstable"))]`. Not on mobile.
+- `StateManager` — type-indexed dependency injection (`TypeId → Pin<Box<dyn Any>>`). No lifecycle, no route scoping, no message routing.
 - `Listeners` — typed pub-sub with target scoping. Raw event bus.
+- `on_navigation(Url) -> bool` — per-WebView navigation interception. Returns false to block. The session backbone transforms this into the handler chain.
+- `UriSchemeProtocol` — custom protocol handler. Foundation for `ewe://`.
+- `PluginBuilder` / `mobile::PluginBuilder` — plugin system. Foundation for the capability registry.
+- `tauri-runtime` escape hatches — `run_on_main_thread()`, `run_on_android_context()`, `SceneRequested` event. Foundation for native view instantiation.
 
 **What Tauri does NOT provide (we build these):**
 - Route/navigation policy — [decision 02](02-route-policy-model.md)
 - Session lifecycle management — this document
 - Capability registry — [decision 18](07-native-capability-contract.md)
+- Native view registration and instantiation — [decision 02](02-route-policy-model.md) (Tauri only does WebViews; we build native views via thread hooks)
 - Bridge component routing
 - Cache/offline policy — [decision 05](05-offline-and-sync.md)
 - Page/screen identity tracking
