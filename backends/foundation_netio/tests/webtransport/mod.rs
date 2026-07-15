@@ -9,7 +9,7 @@ use foundation_netio::webtransport::proto::*;
 use foundation_netio::webtransport::session::{NoIoSession, WtAcceptor, WtConnector, WtSession, WtSessionState};
 
 #[test] fn decode_datagram_capsule() { let e = encode_datagram_capsule(b"h"); let (c,_) = decode_capsule(&e).unwrap(); assert!(matches!(c, CapsuleType::Datagram(ref d) if d == b"h")); }
-#[test] fn decode_close_session() { let e = encode_close_session(42,"g"); let (c,_) = decode_capsule(&e).unwrap(); assert!(matches!(c, CapsuleType::CloseSession{code:42,..})); }
+#[test] fn decode_close_session() { let e = encode_close_session(42,"g"); let (c,_) = decode_capsule(&e).unwrap(); assert!(matches!(c, CapsuleType::CloseWebTransportSession{code:42,..})); }
 #[test] fn decode_truncated() { assert!(matches!(decode_capsule(&[]), Err(WtProtocolError::Truncated))); }
 
 #[test] fn incremental_decoder() {
@@ -24,7 +24,7 @@ use foundation_netio::webtransport::session::{NoIoSession, WtAcceptor, WtConnect
 #[test] fn session_lifecycle() {
     let mut s = NoIoSession::new(true,true); assert!(!s.is_open());
     s.on_connected(); assert!(s.is_open());
-    s.on_capsule(CapsuleType::CloseSession{code:0,reason:"d".into()}); assert!(s.is_closed());
+    s.on_capsule(CapsuleType::CloseWebTransportSession{code:0,reason:"d".into()}); assert!(s.is_closed());
 }
 #[test] fn session_datagrams() {
     let mut s = NoIoSession::new(true,true); s.on_connected();
@@ -197,7 +197,7 @@ impl QuicConnection for MockQuicConn {
     let mut session: WtSession<MockQuicConn> = WtSession::new(mqc, true);
     session.on_connected();
 
-    session.on_capsule(CapsuleType::CloseSession { code: 42, reason: "bye".into() });
+    session.on_capsule(CapsuleType::CloseWebTransportSession { code: 42, reason: "bye".into() });
     assert!(session.is_closed());
     assert_eq!(session.close_info(), Some((42, "bye")));
 

@@ -4504,10 +4504,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_deployment_aws"
-version = "0.1.0"
-
-[[package]]
 name = "foundation_deployment_cloudflare"
 version = "0.1.0"
 dependencies = [
@@ -4558,14 +4554,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_deployment_flyio"
-version = "0.1.0"
-
-[[package]]
-name = "foundation_deployment_gcp"
-version = "0.1.0"
-
-[[package]]
 name = "foundation_deployment_huggingface"
 version = "0.1.0"
 dependencies = [
@@ -4590,18 +4578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_deployment_mongoatlas"
-version = "0.1.0"
-
-[[package]]
-name = "foundation_deployment_neon"
-version = "0.1.0"
-
-[[package]]
-name = "foundation_deployment_planetscale"
-version = "0.1.0"
-
-[[package]]
 name = "foundation_deployment_platform"
 version = "0.1.0"
 dependencies = [
@@ -4622,18 +4598,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
-
-[[package]]
-name = "foundation_deployment_prisma"
-version = "0.1.0"
-
-[[package]]
-name = "foundation_deployment_stripe"
-version = "0.1.0"
-
-[[package]]
-name = "foundation_deployment_supabase"
-version = "0.1.0"
 
 [[package]]
 name = "foundation_errstacks"

@@ -2,6 +2,7 @@
 
 **Depends on:** none (parallel track; needs netio `quic`+`http3`)
 **Unblocks:** 07 (optimization path)
+**Source**: /home/darkvoid/Boxxed/@formulas/src.rust/src.WebTransport/src.MoqDev/web-transport/rs/
 **Decisions:** [09](../../decisions/09-webtransport-on-quinn-proto.md)
 **Status:** ✅ Complete (implemented + tested 2026-07-14). All 4 task-list items done: proto layer, server accept, native client, 15 tests (10 sans-I/O + 5 e2e with `MockQuicConn` exercising `WtSession<C: QuicConnection>` — datagram round-trip, close/drain capsules, acceptor queue/accept). Zero tokio in tree.
 

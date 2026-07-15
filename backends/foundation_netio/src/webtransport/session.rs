@@ -63,12 +63,13 @@ impl<C: QuicConnection> WtSession<C> {
                 if self.datagrams_enabled { self.recv_datagrams.push_back(Bytes::from(data)); }
                 false
             }
-            CapsuleType::CloseSession { code, reason } => {
+            CapsuleType::CloseWebTransportSession { code, reason } => {
                 self.peer_close = Some((code, reason));
                 self.state = WtSessionState::Closed;
                 true
             }
             CapsuleType::Drain => { self.state = WtSessionState::Draining; true }
+            CapsuleType::Grease { .. } => false,
             CapsuleType::Unknown(_, _) => false,
         }
     }
@@ -209,8 +210,9 @@ impl NoIoSession {
                 if self.datagrams_enabled { self.recv_datagrams.push_back(Bytes::from(data)); }
                 false
             }
-            CapsuleType::CloseSession { code, reason } => { self.peer_close = Some((code, reason)); self.state = WtSessionState::Closed; true }
+            CapsuleType::CloseWebTransportSession { code, reason } => { self.peer_close = Some((code, reason)); self.state = WtSessionState::Closed; true }
             CapsuleType::Drain => { self.state = WtSessionState::Draining; true }
+            CapsuleType::Grease { .. } => false,
             CapsuleType::Unknown(_, _) => false,
         }
     }

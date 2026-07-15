@@ -49,15 +49,31 @@ pub mod capsule {
     pub const LEGACY_DATAGRAM: u64 = 0xff37a0;
 }
 
+/// Check if a capsule type is a GREASE value (per draft-ietf-webtrans).
+/// Grease values have specific bit patterns used for protocol extension
+/// negotiation; they carry no application meaning.
+fn is_grease(ty: u64) -> Option<u64> {
+    // GREASE values: the high bits identify it as GREASE, the low bits
+    // carry the value. Pattern: 0x1f * N for some N.
+    if ty == 0x1f || (ty > 0x1f && ty <= 0x1f_1f_1f_1f_1f && (ty & 0x1f == 0x1f)) {
+        Some(ty & 0x1f_1f_1f_1f_1f)
+    } else {
+        None
+    }
+}
+
 /// Capsule frame types, decoded from the session control stream.
+/// Matches `web-transport-proto::Capsule` from the reference implementation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CapsuleType {
-    /// An application datagram payload.
+    /// An application datagram payload (RFC 9297 DATAGRAM capsule, type 0x00).
     Datagram(Vec<u8>),
-    /// Close the session with `code` and `reason`.
-    CloseSession { code: u32, reason: String },
-    /// Drain the session (stop creating new streams).
+    /// Close the session with `code` and `reason` (CloseWebTransportSession, type 0x2843).
+    CloseWebTransportSession { code: u32, reason: String },
+    /// Drain the session — stop creating new streams (type 0x2a05).
     Drain,
+    /// GREASE capsule for protocol extension negotiation.
+    Grease { num: u64 },
     /// Unknown capsule type (forward-compatible).
     Unknown(u64, Vec<u8>),
 }
@@ -103,7 +119,7 @@ pub fn decode_capsule(buf: &[u8]) -> Result<(CapsuleType, usize), WtProtocolErro
             } else {
                 String::new()
             };
-            CapsuleType::CloseSession { code, reason }
+            CapsuleType::CloseWebTransportSession { code, reason }
         }
         capsule::DRAIN_WEBTRANSPORT_SESSION => CapsuleType::Drain,
         other => CapsuleType::Unknown(other, payload),
@@ -302,6 +318,11 @@ impl CapsuleDecoder {
         payload: &[u8],
     ) -> Result<Option<CapsuleType>, WtProtocolError> {
         self.compact();
+        // GREASE: capsule types where (ty & 0x1f) encodes a value and the
+        // remaining bits follow a specific pattern (per draft-ietf-webtrans).
+        if let Some(num) = is_grease(ty) {
+            return Ok(Some(CapsuleType::Grease { num }));
+        }
         let capsule = match ty {
             capsule::DATAGRAM | capsule::LEGACY_DATAGRAM => {
                 CapsuleType::Datagram(payload.to_vec())
@@ -317,7 +338,7 @@ impl CapsuleDecoder {
                 } else {
                     String::new()
                 };
-                CapsuleType::CloseSession { code, reason }
+                CapsuleType::CloseWebTransportSession { code, reason }
             }
             capsule::DRAIN_WEBTRANSPORT_SESSION => CapsuleType::Drain,
             other => CapsuleType::Unknown(other, payload.to_vec()),
