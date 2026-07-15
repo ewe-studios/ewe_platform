@@ -21,18 +21,23 @@
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
-/// `user@host[:port]` or `None` to skip (no SSH docker host configured/reachable).
+/// `user@host[:port]` (or a `~/.ssh/config` alias) or `None` to skip.
+///
+/// Reachability is probed with a TCP connect. For a bare `host`/`user@host` the
+/// probe target is derived from the spec; for a config **alias** (which the host
+/// machine can't resolve) set `EWE_DOCKER_SSH_PROBE=ip:port` to probe instead.
 fn ssh_target() -> Option<String> {
     let spec = std::env::var("EWE_DOCKER_SSH_HOST").ok()?;
-    // Reachability probe: parse host:port (default 22) and try a TCP connect.
-    let after_user = spec.rsplit('@').next().unwrap_or(&spec);
-    let hostport = if after_user.contains(':') {
-        after_user.to_string()
-    } else {
-        format!("{after_user}:22")
-    };
-    if std::net::TcpStream::connect(&hostport).is_err() {
-        eprintln!("skipping: SSH host {hostport} unreachable");
+    let probe = std::env::var("EWE_DOCKER_SSH_PROBE").unwrap_or_else(|_| {
+        let after_user = spec.rsplit('@').next().unwrap_or(&spec);
+        if after_user.contains(':') {
+            after_user.to_string()
+        } else {
+            format!("{after_user}:22")
+        }
+    });
+    if std::net::TcpStream::connect(&probe).is_err() {
+        eprintln!("skipping: SSH host probe {probe} unreachable");
         return None;
     }
     Some(spec)

@@ -4956,6 +4956,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "derive_more",
+ "dirs 5.0.1",
  "foundation_core",
  "foundation_errstacks",
  "futures-lite",
@@ -4965,6 +4966,7 @@ dependencies = [
  "serde",
  "serde_json",
  "ssh2",
+ "ssh2-config",
  "tokio",
  "tracing",
 ]
@@ -5824,6 +5826,8 @@ dependencies = [
  "libc",
  "libgit2-sys",
  "log",
+ "openssl-probe 0.1.6",
+ "openssl-sys",
  "url",
 ]
 
@@ -7397,7 +7401,9 @@ checksum = "005d6ae6eac1912906073e069f7db60b1fa98e052a68227824afe3e3a1c59ca2"
 dependencies = [
  "cc",
  "libc",
+ "libssh2-sys",
  "libz-sys",
+ "openssl-sys",
  "pkg-config",
 ]
 
@@ -11629,6 +11635,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ssh2-config"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68555eda3e0678ceb573e60be349cc7a2df7332dcc6a56791af404a361392186"
+dependencies = [
+ "anyhow",
+ "bitflags 2.13.0",
+ "dirs 6.0.0",
+ "git2",
+ "glob",
+ "log",
+ "thiserror 2.0.17",
+ "wildmatch",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14319,6 +14341,12 @@ name = "widestring"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72069c3113ab32ab29e5584db3c6ec55d416895e60715417b5b883a357c3e471"
+
+[[package]]
+name = "wildmatch"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29333c3ea1ba8b17211763463ff24ee84e41c78224c16b001cd907e663a38c68"
 
 [[package]]
 name = "winapi"

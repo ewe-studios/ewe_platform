@@ -235,8 +235,10 @@ impl DockerClient {
     /// HOW: Installs an [`ssh::SshConnector`] on the HTTP client via
     /// [`HttpClientBuilder::with_connector`]; each request opens a fresh
     /// `dial-stdio` channel (session reused across requests, channel not pooled).
-    /// Authentication (key / agent / password) comes from the SSH host config —
-    /// see [`foundation_sshkit::Host`].
+    /// The target is resolved through `~/.ssh/config` (HostName/User/Port/
+    /// IdentityFile), the server's key is checked against `~/.ssh/known_hosts`
+    /// (trust-on-first-use), and auth follows OpenSSH order: agent, then the
+    /// resolved/default `~/.ssh/id_*` keys — see [`foundation_sshkit::Host`].
     ///
     /// # Errors
     ///
@@ -245,9 +247,10 @@ impl DockerClient {
     pub fn connect_ssh(url: &str) -> Result<Self, DockerError> {
         use foundation_sshkit::Host;
 
-        // `Host::parse` accepts `[user@]host[:port]` — strip the scheme first.
+        // `Host::resolve` accepts `[user@]alias[:port]` and layers in
+        // `~/.ssh/config` (HostName/User/Port/IdentityFile) — strip the scheme first.
         let spec = url.strip_prefix("ssh://").unwrap_or(url);
-        let host = Host::parse(spec);
+        let host = Host::resolve(spec);
         let connector = std::sync::Arc::new(ssh::SshConnector::new(host));
         let http = HttpClientBuilder::new()
             .with_connector(connector)
