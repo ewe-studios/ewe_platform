@@ -26,6 +26,7 @@ derive_more.workspace = true
 tracing.workspace = true
 ssh2-config = "0.6"
 dirs = "5"
+base64 = "0.22"
 
 [features]
 default = []
