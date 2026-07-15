@@ -15,10 +15,7 @@ use std::collections::HashMap;
 use std::net::{TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::sleep_async;
-use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
-use foundation_deployment_docker::DockerClient;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::simple_http::client::native::SimpleHttpClient;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.
@@ -83,31 +80,31 @@ impl WaitFor {
     }
 
     /// Apply this wait strategy. Called by ContainerHandle::start_async().
-    ///
-    /// All waits are async and use valtron's cooperative [`sleep_async`] for
-    /// backoff — no thread blocking.
-    pub async fn apply(
+    /// Composite strategies run each child iteratively (no recursion).
+    pub(crate) async fn apply(
         &self,
-        client: &DockerClient,
+        docker: &bollard::Docker,
         container_id: &str,
         ports: &HashMap<String, u16>,
     ) -> DockerResult<()> {
+        // Flatten composites into a flat list of leaf strategies
         let mut stack = vec![self];
         while let Some(strategy) = stack.pop() {
             match strategy {
                 WaitFor::Port { port, timeout } => {
-                    wait_for_port(*port, *timeout, ports).await?;
+                    wait_for_port(*port, *timeout, ports)?;
                 }
                 WaitFor::Udp { port, timeout } => {
-                    wait_for_udp(*port, *timeout, ports).await?;
+                    wait_for_udp(*port, *timeout, ports)?;
                 }
                 WaitFor::Stdout { message, timeout } => {
-                    wait_for_stdout(client, container_id, message, *timeout).await?;
+                    wait_for_stdout(docker, container_id, message, *timeout).await?;
                 }
                 WaitFor::Http { url, expected_status, timeout } => {
                     wait_for_http(url, *expected_status, *timeout).await?;
                 }
                 WaitFor::Composite { strategies } => {
+                    // Push children in reverse so they execute in original order
                     for s in strategies.iter().rev() {
                         stack.push(s);
                     }
@@ -119,7 +116,8 @@ impl WaitFor {
     }
 }
 
-pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+/// TCP connect loop with exponential backoff.
+fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("port {port} was not mapped")))
@@ -138,7 +136,7 @@ pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String,
                 }));
             }
             Err(_) => {
-                sleep_async(backoff).await;
+                std::thread::sleep(backoff);
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -146,9 +144,8 @@ pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String,
 }
 
 /// UDP readiness: send a 1-byte probe to the mapped host port, retry until a
-/// response arrives or the timeout elapses. Uses valtron's cooperative
-/// [`sleep_async`].
-pub(crate) async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+/// response arrives or the timeout elapses.
+fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
     let key = format!("{port}/udp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("UDP port {port} was not mapped")))
@@ -167,7 +164,7 @@ pub(crate) async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<S
                 }));
             }
             false => {
-                sleep_async(backoff).await;
+                std::thread::sleep(backoff);
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -176,8 +173,8 @@ pub(crate) async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<S
 
 /// Send a 1-byte probe to `127.0.0.1:host_port` and return true if a response
 /// comes back within a short window.  Uses a non-empty payload (0x01) because
-/// `socat EXEC:cat` produces no response for an empty datagram — cat reads 0
-/// bytes and exits without writing.
+/// `socat EXEC:cat` (and similar UDP echoers) produce no response for an empty
+/// datagram — cat reads 0 bytes and exits without writing.
 fn udp_probe(host_port: u16) -> bool {
     let socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
@@ -192,59 +189,53 @@ fn udp_probe(host_port: u16) -> bool {
     socket.recv_from(&mut buf).is_ok()
 }
 
-/// Scan container stdout logs for a message. Polls via
-/// [`DockerClient::container_logs`] (follow=false) with
-/// [`LogFrameDecoder`] — no real-time streaming needed for a readiness
-/// check.
+/// Scan container stdout logs for a message.
 async fn wait_for_stdout(
-    client: &DockerClient,
+    docker: &bollard::Docker,
     container_id: &str,
     message: &str,
     timeout: Duration,
 ) -> DockerResult<()> {
-    let start = Instant::now();
+    use bollard::container::LogOutput;
+    use bollard::query_parameters::LogsOptionsBuilder;
+    use futures_util::StreamExt;
+    use tokio::time::timeout as tokio_timeout;
 
-    loop {
-        let raw = client
-            .container_logs(
-                container_id,
-                false, // follow
-                true,  // stdout
-                true,  // stderr
-                None,  // since
-                None,  // until
-                false, // timestamps
-                None,  // tail (all)
-            )
-            .await
-            .map_err(|e| {
-                docker_err(DockerError::Connection(format!("container_logs: {e}")))
-            })?;
+    let options = Some(
+        LogsOptionsBuilder::default()
+            .follow(true)
+            .stdout(true)
+            .stderr(true)
+            .build(),
+    );
 
-        let mut decoder = LogFrameDecoder::new();
-        decoder.feed(&raw);
-        while let Some(frame) = decoder.decode() {
-            let text = match frame {
-                LogOutput::StdOut { message: msg }
-                | LogOutput::StdErr { message: msg } => {
-                    String::from_utf8_lossy(&msg).to_string()
-                }
+    let mut stream = docker.logs(container_id, options);
+    let msg = message.to_string();
+
+    let result = tokio_timeout(timeout, async {
+        while let Some(Ok(chunk)) = stream.next().await {
+            let text = match chunk {
+                LogOutput::StdOut { message } => String::from_utf8_lossy(&message).to_string(),
+                LogOutput::StdErr { message } => String::from_utf8_lossy(&message).to_string(),
                 _ => continue,
             };
-            if text.contains(message) {
+            if text.contains(&msg) {
                 return Ok(());
             }
         }
+        Err(docker_err(DockerError::WaitTimeout {
+            strategy: format!("Stdout(\"{msg}\")"),
+            elapsed: timeout,
+        }))
+    })
+    .await;
 
-        if start.elapsed() >= timeout {
-            return Err(docker_err(DockerError::WaitTimeout {
-                strategy: format!("Stdout(\"{message}\")"),
-                elapsed: start.elapsed(),
-            }));
-        }
-
-        // Cooperatively sleep between polls.
-        sleep_async(Duration::from_millis(500)).await;
+    match result {
+        Ok(r) => r,
+        Err(_elapsed) => Err(docker_err(DockerError::WaitTimeout {
+            strategy: format!("Stdout(\"{msg}\")"),
+            elapsed: timeout,
+        })),
     }
 }
 
@@ -275,7 +266,7 @@ async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> Do
             }));
         }
 
-        sleep_async(backoff).await;
+        tokio::time::sleep(backoff).await;
         backoff = (backoff * 2).min(Duration::from_secs(1));
     }
 }

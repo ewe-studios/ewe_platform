@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use foundation_deployment_docker::client::{ContainerCreateBody, ContainerHostConfig};
-use foundation_deployment_docker::generated::json::{
-    ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
+use bollard::models::{ContainerCreateBody, HostConfig};
+use bollard::query_parameters::{
+    CreateContainerOptionsBuilder, CreateImageOptionsBuilder, InspectContainerOptions,
+    RemoveContainerOptionsBuilder, StartContainerOptions, StopContainerOptionsBuilder,
 };
-use foundation_deployment_docker::DockerClient;
 use tracing::{info, warn};
 
 use crate::docker::config::ContainerConfig;
@@ -14,7 +14,7 @@ use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
 pub struct ContainerHandle {
-    docker: DockerClient,
+    docker: bollard::Docker,
     container_id: String,
     container_name: Option<String>,
     stop_timeout: u64,
@@ -24,28 +24,37 @@ pub struct ContainerHandle {
 impl ContainerHandle {
     /// Start a container: pull → create → start → inspect → wait.
     pub async fn start_async(config: ContainerConfig) -> DockerResult<Self> {
-        let docker = DockerClient::connect_with_defaults()
-            .map_err(|e| docker_err(DockerError::Connection(format!("{e}"))))?;
+        let docker = bollard::Docker::connect_with_local_defaults().map_err(|e| {
+            docker_err(DockerError::Connection(format!(
+                "failed to connect to Docker daemon: {e}"
+            )))
+        })?;
 
         Self::ensure_image(&docker, &config.image, config.always_pull).await?;
 
         let body = Self::build_body(&config);
 
-        let created = docker
-            .create_container(&body, config.name.as_deref())
+        let create_opts = config
+            .name
+            .as_deref()
+            .map(|n| CreateContainerOptionsBuilder::default().name(n).build());
+
+        let create_result = docker
+            .create_container(create_opts, body)
             .await
             .map_err(|e| docker_err(DockerError::ContainerCreate(format!("{e}"))))?;
 
-        let container_id = created.id;
+        let container_id = create_result.id;
 
         docker
-            .start_container(&container_id)
+            .start_container(&container_id, None::<StartContainerOptions>)
             .await
             .map_err(|e| docker_err(DockerError::ContainerStart(format!("{e}"))))?;
 
-        let ports = Self::resolve_ports(&docker, &container_id, &config).await?;
+        let ports =
+            Self::resolve_ports(&docker, &container_id, &config).await?;
 
-        // Apply wait strategy.
+        // Apply wait strategy
         config.wait.apply(&docker, &container_id, &ports).await?;
 
         Ok(Self {
@@ -92,17 +101,28 @@ impl ContainerHandle {
     }
 
     pub async fn shutdown_async(&self) -> DockerResult<()> {
+        let stop_opts = Some(
+            StopContainerOptionsBuilder::default()
+                .t(self.stop_timeout as i32)
+                .build(),
+        );
         if let Err(e) = self
             .docker
-            .stop_container(&self.container_id, Some(self.stop_timeout as u32))
+            .stop_container(&self.container_id, stop_opts)
             .await
         {
             warn!(container_id = %self.container_id, "failed to stop container: {e}");
         }
 
+        let remove_opts = Some(
+            RemoveContainerOptionsBuilder::default()
+                .force(true)
+                .v(true)
+                .build(),
+        );
         if let Err(e) = self
             .docker
-            .remove_container(&self.container_id, true)
+            .remove_container(&self.container_id, remove_opts)
             .await
         {
             warn!(container_id = %self.container_id, "failed to remove container: {e}");
@@ -118,7 +138,7 @@ impl ContainerHandle {
     pub async fn is_running_async(&self) -> DockerResult<bool> {
         let info = self
             .docker
-            .inspect_container(&self.container_id)
+            .inspect_container(&self.container_id, None::<InspectContainerOptions>)
             .await
             .map_err(|e| docker_err(DockerError::Connection(format!("inspect failed: {e}"))))?;
 
@@ -133,68 +153,63 @@ impl ContainerHandle {
     // ── Private ──
 
     /// Pull the image when forced, or when it is not already in the local cache.
+    ///
+    /// Decision 09 fixes the lifecycle as pull → create → start; feature 05 adds
+    /// the local cache. Pulling only on `always_pull` left a missing image to
+    /// fail at `create_container` with an opaque `404: No such image`, which
+    /// breaks every container test on a cold machine or in CI.
     async fn ensure_image(
-        docker: &DockerClient,
+        docker: &bollard::Docker,
         image: &str,
         always_pull: bool,
     ) -> DockerResult<()> {
-        if !always_pull {
-            match docker.image_inspect(image).await {
-                Ok(_) => return Ok(()),
-                // 404 = not cached → fall through to pull.
-                Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => {}
-                Err(e) => {
-                    return Err(docker_err(DockerError::Connection(format!(
-                        "image_inspect: {e}"
-                    ))));
-                }
-            }
+        if !always_pull && docker.inspect_image(image).await.is_ok() {
+            return Ok(());
         }
         Self::pull_image(docker, image).await
     }
 
-    async fn pull_image(docker: &DockerClient, image: &str) -> DockerResult<()> {
-        let (repo, tag) = Self::split_image_tag(image);
-        info!(image = %image, "pulling image");
+    /// Qualify a bare repository with `:latest`.
+    ///
+    /// `create_image` treats a missing tag as "every tag in the repository", so
+    /// an unqualified name would pull the entire repo. A colon in the final
+    /// path segment is the tag; a colon before the last `/` is a registry port.
+    fn with_default_tag(image: &str) -> String {
+        let last_segment = image.rsplit('/').next().unwrap_or(image);
+        if last_segment.contains(':') {
+            image.to_string()
+        } else {
+            format!("{image}:latest")
+        }
+    }
 
-        docker
-            .image_pull(
-                Some(&repo),
-                None, // from_src
-                None, // repo (alias)
-                tag.as_deref(),
-                None, // message
-                None, // platform
-            )
-            .await
-            .map_err(|e| {
-                docker_err(DockerError::ImagePull {
+    async fn pull_image(docker: &bollard::Docker, image: &str) -> DockerResult<()> {
+        use futures_util::StreamExt;
+
+        let tagged = Self::with_default_tag(image);
+        info!(image = %tagged, "pulling image");
+
+        let options = Some(
+            CreateImageOptionsBuilder::default()
+                .from_image(&tagged)
+                .build(),
+        );
+
+        let mut stream = docker.create_image(options, None, None);
+        while let Some(result) = stream.next().await {
+            if let Err(e) = result {
+                return Err(docker_err(DockerError::ImagePull {
                     image: image.to_string(),
                     reason: format!("{e}"),
-                })
-            })?;
-
+                }));
+            }
+        }
         Ok(())
     }
 
-    /// Split `"alpine:latest"` into `("alpine", Some("latest"))`. A registry port
-    /// colon (e.g. `"localhost:5000/img"`) is not a tag separator.
-    fn split_image_tag(image: &str) -> (String, Option<String>) {
-        // The last segment is after the final `/`. If it contains `:`, that's the tag.
-        let last_segment = image.rsplit('/').next().unwrap_or(image);
-        if let Some((repo, tag)) = image.rsplit_once(':') {
-            // Only split if the colon is in the last path segment (not a registry port).
-            if repo.rsplit('/').next().map_or(true, |s| !s.contains(':')) {
-                return (repo.to_string(), Some(tag.to_string()));
-            }
-        }
-        (image.to_string(), None)
-    }
-
-    /// Build a typed [`ContainerCreateBody`] from our `ContainerConfig` builder.
     fn build_body(config: &ContainerConfig) -> ContainerCreateBody {
-        let mut exposed_ports = serde_json::Map::new();
-        let mut port_bindings = serde_json::Map::new();
+        let mut port_bindings = HashMap::new();
+        let mut exposed_ports = Vec::new();
 
         for pm in &config.ports {
             let port_key = format!(
@@ -205,123 +220,107 @@ impl ContainerHandle {
                     crate::docker::config::PortProtocol::Udp => "udp",
                 }
             );
-            // ExposedPorts: keys mapped to empty objects.
-            exposed_ports.insert(port_key.clone(), serde_json::Value::Object(Default::default()));
+            exposed_ports.push(port_key.clone());
 
-            // PortBindings: keys mapped to arrays of {HostIp, HostPort}.
             let host_port_str = pm
                 .host_port
                 .map(|p| p.to_string())
-                .unwrap_or_else(|| String::new());
+                .unwrap_or_else(|| "0".to_string());
             port_bindings.insert(
                 port_key,
-                serde_json::json!([{
-                    "HostIp": "127.0.0.1",
-                    "HostPort": host_port_str,
+                Some(vec![bollard::models::PortBinding {
+                    host_ip: Some("127.0.0.1".to_string()),
+                    host_port: Some(host_port_str),
                 }]),
             );
         }
 
-        let binds: Vec<String> = config
-            .volumes
-            .iter()
-            .filter_map(|v| match &v.source {
-                crate::docker::config::VolumeSource::Bind(host_path) => {
-                    Some(format!("{}:{}", host_path.display(), v.target.display()))
-                }
-                crate::docker::config::VolumeSource::Named(_) => None,
-            })
-            .collect();
-
-        let host_config = ContainerHostConfig {
-            base: HostConfig {
-                port_bindings: if port_bindings.is_empty() {
-                    None
-                } else {
-                    Some(PortMap {
-                        data: port_bindings.into_iter().collect(),
+        let binds: Option<Vec<String>> = if config.volumes.is_empty() {
+            None
+        } else {
+            Some(
+                config
+                    .volumes
+                    .iter()
+                    .filter_map(|v| match &v.source {
+                        crate::docker::config::VolumeSource::Bind(host_path) => {
+                            Some(format!("{}:{}", host_path.display(), v.target.display()))
+                        }
+                        crate::docker::config::VolumeSource::Named(_) => None,
                     })
-                },
-                binds: if binds.is_empty() { None } else { Some(binds) },
-                cap_add: if config.cap_add.is_empty() {
-                    None
-                } else {
-                    Some(config.cap_add.clone())
-                },
-                extra_hosts: if config.extra_hosts.is_empty() {
-                    None
-                } else {
-                    Some(config.extra_hosts.clone())
-                },
-                network_mode: config.network.clone(),
-                ..Default::default()
-            },
-            resources: Resources {
-                memory: config.memory.as_ref().and_then(|m| m.parse::<i64>().ok()),
-                nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
-                devices: if config.devices.is_empty() {
-                    None
-                } else {
-                    Some(
-                        config
-                            .devices
-                            .iter()
-                            .map(|d| DeviceMapping {
-                                path_on_host: Some(d.host_path.display().to_string()),
-                                path_in_container: d
-                                    .container_path
-                                    .as_ref()
-                                    .map(|p| p.display().to_string()),
-                                cgroup_permissions: Some("rwm".to_string()),
-                            })
-                            .collect(),
-                    )
-                },
-                ..Default::default()
-            },
+                    .collect(),
+            )
         };
 
-        let gen_config = GenContainerConfig {
-            image: Some(config.image.clone()),
-            env: if config.env.is_empty() {
+        let host_config = HostConfig {
+            port_bindings: Some(port_bindings),
+            memory: config.memory.as_ref().and_then(|m| m.parse::<i64>().ok()),
+            nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
+            devices: if config.devices.is_empty() {
                 None
             } else {
                 Some(
                     config
-                        .env
+                        .devices
                         .iter()
-                        .map(|(k, v)| format!("{k}={v}"))
+                        .map(|d| bollard::models::DeviceMapping {
+                            path_on_host: Some(d.host_path.display().to_string()),
+                            path_in_container: d
+                                .container_path
+                                .as_ref()
+                                .map(|p| p.display().to_string()),
+                            cgroup_permissions: Some("rwm".to_string()),
+                        })
                         .collect(),
                 )
             },
-            cmd: config.command.clone(),
-            exposed_ports: if exposed_ports.is_empty() {
+            cap_add: if config.cap_add.is_empty() {
                 None
             } else {
-                Some(serde_json::Value::Object(exposed_ports))
+                Some(config.cap_add.clone())
             },
-            labels: if config.labels.is_empty() {
+            binds,
+            extra_hosts: if config.extra_hosts.is_empty() {
                 None
             } else {
-                Some(serde_json::to_value(&config.labels).unwrap_or_default())
+                Some(config.extra_hosts.clone())
             },
+            network_mode: config.network.clone(),
             ..Default::default()
         };
 
         ContainerCreateBody {
-            config: gen_config,
+            image: Some(config.image.clone()),
+            env: Some(
+                config
+                    .env
+                    .iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect(),
+            ),
+            cmd: config.command.clone(),
+            exposed_ports: if exposed_ports.is_empty() {
+                None
+            } else {
+                Some(exposed_ports)
+            },
             host_config: Some(host_config),
-            networking_config: None,
+            labels: if config.labels.is_empty() {
+                None
+            } else {
+                Some(config.labels.clone())
+            },
+            ..Default::default()
         }
     }
 
     async fn resolve_ports(
-        docker: &DockerClient,
+        docker: &bollard::Docker,
         container_id: &str,
         config: &ContainerConfig,
     ) -> DockerResult<HashMap<String, u16>> {
         let info = docker
-            .inspect_container(container_id)
+            .inspect_container(container_id, None::<InspectContainerOptions>)
             .await
             .map_err(|e| {
                 docker_err(DockerError::Connection(format!("inspect failed: {e}")))
@@ -329,8 +328,8 @@ impl ContainerHandle {
 
         let mut ports = HashMap::new();
 
-        if let Some(ns) = &info.network_settings {
-            if let Some(bindings) = &ns.ports {
+        if let Some(settings) = &info.network_settings {
+            if let Some(bindings) = &settings.ports {
                 for pm in &config.ports {
                     let key = format!(
                         "{}/{}",
@@ -340,16 +339,11 @@ impl ContainerHandle {
                             crate::docker::config::PortProtocol::Udp => "udp",
                         }
                     );
-                    if let Some(binding) = bindings.data.get(&key) {
-                        if let Some(arr) = binding.as_array() {
-                            if let Some(first) = arr.first() {
-                                if let Some(hp) = first
-                                    .get("HostPort")
-                                    .and_then(|v| v.as_str())
-                                {
-                                    if let Ok(port) = hp.parse::<u16>() {
-                                        ports.insert(key, port);
-                                    }
+                    if let Some(Some(binding_list)) = bindings.get(&key) {
+                        if let Some(first) = binding_list.first() {
+                            if let Some(host_port_str) = &first.host_port {
+                                if let Ok(port) = host_port_str.parse::<u16>() {
+                                    ports.insert(key, port);
                                 }
                             }
                         }
@@ -369,13 +363,21 @@ impl Drop for ContainerHandle {
         let timeout = self.stop_timeout;
 
         let _ = crate::block_on(async move {
-            if let Err(e) = docker
-                .stop_container(&id, Some(timeout as u32))
-                .await
-            {
+            let stop_opts = Some(
+                StopContainerOptionsBuilder::default()
+                    .t(timeout as i32)
+                    .build(),
+            );
+            if let Err(e) = docker.stop_container(&id, stop_opts).await {
                 warn!(container_id = %id, "drop: failed to stop container: {e}");
             }
-            if let Err(e) = docker.remove_container(&id, true).await {
+            let remove_opts = Some(
+                RemoveContainerOptionsBuilder::default()
+                    .force(true)
+                    .v(true)
+                    .build(),
+            );
+            if let Err(e) = docker.remove_container(&id, remove_opts).await {
                 warn!(container_id = %id, "drop: failed to remove container: {e}");
             }
         });

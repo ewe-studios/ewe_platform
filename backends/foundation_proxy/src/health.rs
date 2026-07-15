@@ -188,8 +188,9 @@ fn probe_tcp(authority: &str, timeout: Duration) -> bool {
     }
 }
 
-/// UDP echo probe: send a 1-byte datagram, return `true` if a response arrives
-/// within the timeout.
+/// UDP echo probe: send a 1-byte probe and return `true` if a response arrives
+/// within the timeout. Uses a non-empty payload because `socat EXEC:cat` and
+/// similar UDP echoers produce no response for an empty datagram.
 fn probe_udp(authority: &str, timeout: Duration) -> bool {
     use std::net::UdpSocket;
     let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {

@@ -22,47 +22,29 @@ use std::time::{Duration, Instant};
 
 use foundation_core::synca::OnSignal;
 
-/// Upper bound on how long a parked splice sleeps before re-checking its fds —
-/// the shutdown/lost-wakeup safety net. In reactor mode a data event wakes it
-/// sooner; this only caps the worst case.
-const PARK_TIMEOUT: Duration = Duration::from_millis(25);
+/// How long the UDP relay waits for a backend response before giving up on that
+/// datagram.  The relay checks the shutdown signal on every poll cycle, so
+/// shutdown is never delayed by more than the poll sleep (5ms).
+const BACKEND_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Copy bytes in both directions between `a` and `b` until one side closes.
 ///
 /// WHAT: Reads whatever is available on each side and writes it to the other,
 /// looping until an EOF (`Ok(0)`) or a non-`WouldBlock` error on either side.
 ///
-/// When `use_reactor_park` is set (the connection is reactor-backed — F50 B2),
-/// an idle iteration parks on the shared reactor's event generation instead of a
-/// fixed 1 ms sleep: a data event on either fd wakes it immediately, and the
-/// splice stops busy-polling. Off the reactor (plain sockets) it falls back to
-/// the 1 ms sleep, unchanged.
-///
 /// # Preconditions
 /// Both streams must already be in non-blocking mode; otherwise a read on an
 /// idle side blocks the other direction. Callers own that setup because the two
 /// stream types differ.
-pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(
-    mut a: A,
-    mut b: B,
-    use_reactor_park: bool,
-) {
-    let reactor = if use_reactor_park {
-        foundation_nativeapis::native::fd::Reactor::get().ok()
-    } else {
-        None
-    };
+pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B) {
     let mut buf = [0u8; 16 * 1024];
     loop {
-        // Snapshot the reactor generation *before* the reads: an event that lands
-        // in the read→park race window bumps it, so the park returns at once.
-        let gen = reactor.as_ref().map(|r| r.events_generation());
         let mut progressed = false;
 
         match a.read(&mut buf) {
             Ok(0) => break,
             Ok(n) => {
-                if !relay_write(&mut b, &buf[..n], reactor.as_ref()) {
+                if b.write_all(&buf[..n]).and_then(|()| b.flush()).is_err() {
                     break;
                 }
                 progressed = true;
@@ -74,7 +56,7 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(
         match b.read(&mut buf) {
             Ok(0) => break,
             Ok(n) => {
-                if !relay_write(&mut a, &buf[..n], reactor.as_ref()) {
+                if a.write_all(&buf[..n]).and_then(|()| a.flush()).is_err() {
                     break;
                 }
                 progressed = true;
@@ -84,52 +66,8 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(
         }
 
         if !progressed {
-            match (reactor.as_ref(), gen) {
-                (Some(r), Some(g)) => {
-                    r.wait_for_events(g, PARK_TIMEOUT);
-                }
-                _ => std::thread::sleep(Duration::from_millis(1)),
-            }
+            std::thread::sleep(Duration::from_millis(1));
         }
-    }
-}
-
-/// Write all of `data` to `w`, tolerating `WouldBlock` (a full socket buffer, or
-/// a momentarily exhausted `IORING_OP_SEND` pool in completion mode) by parking
-/// briefly and retrying rather than dropping the connection. Returns `false` on a
-/// hard error or peer close.
-///
-/// The final `flush` treats `WouldBlock` as success: in completion mode the SEND
-/// has been submitted and the reactor drains its CQE — the bytes are on their way.
-fn relay_write<W: Write>(
-    w: &mut W,
-    mut data: &[u8],
-    reactor: Option<&std::sync::Arc<foundation_nativeapis::native::fd::Reactor>>,
-) -> bool {
-    while !data.is_empty() {
-        match w.write(data) {
-            Ok(0) => return false,
-            Ok(n) => data = &data[n..],
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => park_briefly(reactor),
-            Err(_) => return false,
-        }
-    }
-    match w.flush() {
-        Ok(()) => true,
-        Err(ref e) if e.kind() == ErrorKind::WouldBlock => true,
-        Err(_) => false,
-    }
-}
-
-/// Park briefly on reactor activity (or sleep off the reactor) — used when a write
-/// hits backpressure.
-fn park_briefly(reactor: Option<&std::sync::Arc<foundation_nativeapis::native::fd::Reactor>>) {
-    match reactor {
-        Some(r) => {
-            let gen = r.events_generation();
-            r.wait_for_events(gen, Duration::from_millis(5));
-        }
-        None => std::thread::sleep(Duration::from_millis(1)),
     }
 }
 
@@ -228,13 +166,9 @@ fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::
     let backend = TcpStream::connect(backend_authority)?;
     client.set_nonblocking(true)?;
     backend.set_nonblocking(true)?;
-    splice_bidirectional(client, backend, false);
+    splice_bidirectional(client, backend);
     Ok(())
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// UdpPassthrough — raw UDP datagram relay (Decision 17)
-// ═══════════════════════════════════════════════════════════════════════════════
 
 /// A raw UDP passthrough: datagrams arriving on `listen_addr` are forwarded to
 /// `backend_authority` and responses are sent back to the originating client.
@@ -243,8 +177,8 @@ fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::
 /// semantics (DNS, QUIC, game servers, syslog, STUN).
 ///
 /// HOW: Binds a single `UdpSocket`. Each datagram is forwarded to the backend;
-/// the backend's response is sent back to the client address. Connectionless —
-/// one socket serves all clients. The relay runs on a dedicated OS thread.
+/// the backend's response is sent back to the client address that sent the
+/// original datagram.  Connectionless — one socket serves all clients.
 #[derive(Debug)]
 pub struct UdpPassthrough {
     local_addr: std::net::SocketAddr,
@@ -252,16 +186,14 @@ pub struct UdpPassthrough {
     relay_thread: Option<JoinHandle<()>>,
 }
 
-/// How long the relay waits for a backend response before giving up on that
-/// datagram. The relay checks the shutdown signal on every poll cycle (5ms
-/// sleep), so shutdown is never delayed by more than 5ms.
-const BACKEND_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
-
 impl UdpPassthrough {
     /// Bind `listen_addr` and relay every datagram to `backend_authority`.
     ///
-    /// Returns immediately; the relay loop runs on its own thread until
-    /// [`UdpPassthrough::shutdown`] (or drop).
+    /// Returns immediately with a handle; the relay loop runs on its own thread
+    /// until [`UdpPassthrough::shutdown`] (or drop).
+    ///
+    /// # Errors
+    /// Returns the bind error if `listen_addr` cannot be bound.
     pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
         let socket = UdpSocket::bind(listen_addr)?;
         socket.set_nonblocking(true)?;
@@ -303,8 +235,7 @@ impl Drop for UdpPassthrough {
     }
 }
 
-/// Single-threaded relay: recv client datagram → send to backend → recv
-/// response → send to client. Stays non-blocking so shutdown is responsive.
+/// Single-threaded relay loop: client datagram → backend, response → client.
 fn relay_udp(socket: UdpSocket, backend_addr: &str, shutdown: &Arc<OnSignal>) {
     let mut buf = [0u8; 65535];
     let backend = match backend_addr.to_socket_addrs_first() {
@@ -321,12 +252,12 @@ fn relay_udp(socket: UdpSocket, backend_addr: &str, shutdown: &Arc<OnSignal>) {
         }
         match socket.recv_from(&mut buf) {
             Ok((n, client_addr)) => {
+                // Forward to backend.
                 if let Err(e) = socket.send_to(&buf[..n], backend) {
                     tracing::warn!(%backend, "UDP relay send to backend failed: {e}");
                     continue;
                 }
-                // Poll backend for response — non-blocking spin with short
-                // sleeps, shutdown check on every iteration.
+                // Poll for a response while keeping shutdown responsive.
                 let deadline = Instant::now() + BACKEND_RESPONSE_TIMEOUT;
                 let mut responded = false;
                 while Instant::now() < deadline {

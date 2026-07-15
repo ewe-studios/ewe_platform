@@ -126,7 +126,7 @@ impl ContainerConfig {
         self
     }
 
-    /// Expose a container port with an auto-assigned host port.
+    /// Expose a TCP container port with an auto-assigned host port.
     #[must_use]
     pub fn port(mut self, container_port: u16) -> Self {
         self.ports.push(PortMapping {
@@ -137,7 +137,7 @@ impl ContainerConfig {
         self
     }
 
-    /// Map a container port to an explicit host port.
+    /// Map a TCP container port to an explicit host port.
     #[must_use]
     pub fn port_mapped(mut self, container_port: u16, host_port: u16) -> Self {
         self.ports.push(PortMapping {

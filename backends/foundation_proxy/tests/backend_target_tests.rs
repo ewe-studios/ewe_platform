@@ -83,9 +83,28 @@ fn test_protocol_inference_from_scheme() {
         BackendProtocol::Tcp
     );
     assert_eq!(
+        BackendTarget::new("udp://x:1").protocol(),
+        BackendProtocol::Udp,
+        "udp:// scheme maps to Udp"
+    );
+    assert_eq!(
         BackendTarget::new("x:1").protocol(),
         BackendProtocol::Http,
         "scheme-less URL defaults to HTTP"
+    );
+}
+
+/// WHY: UDP passthrough needs the same authority stripping as TCP.
+/// WHAT: `udp://host:port/path` → `host:port`.
+#[test]
+fn test_udp_authority_stripping() {
+    assert_eq!(
+        BackendTarget::new("udp://127.0.0.1:9000/ignored").authority(),
+        "127.0.0.1:9000"
+    );
+    assert_eq!(
+        BackendTarget::new("udp://dns.example.com:53").authority(),
+        "dns.example.com:53"
     );
 }
 

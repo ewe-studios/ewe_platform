@@ -1,7 +1,7 @@
 /// File descriptor management — wraps any raw fd with readiness tracking.
 ///
-/// Built for our sync, task-driven model on top of our cross-platform
-/// poll::Selector (epoll/kqueue/IOCP).
+/// Adapted from tokio's `AsyncFd`, but works with our sync, task-driven model
+/// and our cross-platform poll::Selector (epoll/kqueue/IOCP).
 ///
 /// ## Key Types
 ///
@@ -22,13 +22,11 @@
 ///
 /// The pattern a transport task follows:
 ///
-/// 1. **Obtain a reactor `Registry`.** Use the process-shared reactor —
-///    `let reactor = `[`Reactor::get`]`()?; let registry = reactor.registry();` —
-///    so all connections share one selector and `is_ready()` reads a cached
-///    atomic instead of issuing a syscall (spec-41 F40, Decision 14 §Scope 3).
-///    Passing a registry from your own `Poll` is still honoured: the fd is
-///    registered there and readiness is queried against it with a zero-timeout
-///    poll. What you pass is what you get.
+/// 1. **Obtain a reactor `Registry`.** Today each task owns its selector:
+///    `let poll = `[`Poll::new`](crate::native::poll::Poll::new)`()?; let registry = poll.registry();`.
+///    (A process-shared reactor — one `Poll` for all connections — is the
+///    io_uring/shared-reactor work in spec-41 features 40–43; the seam here is
+///    unchanged by it.)
 /// 2. **Register the connection's fd.** The fd comes from `netcap::RawStream`
 ///    via `AsRawFd` (spec-41 F09 / Decision 12 §12), reachable from above netio:
 ///    `let fd = Arc::new(`[`RegisteredFd::new`]`(stream, &registry, token)?);`.
@@ -46,26 +44,9 @@ pub mod guard;
 pub mod error;
 pub mod reactor;
 
-/// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
-pub mod completion;
-
-/// The `SendPool` — user-filled buffer pool for the `IORING_OP_SEND` write path.
-#[cfg(all(target_os = "linux", feature = "uring"))]
-pub mod send_pool;
-
-// `CompletionSocket` — the transport-facing byte-source wrapper — moved to
-// `foundation_iogate::native`, the one crate that owns both this reactor and
-// the netio `Connection`/`CompletionReadWrite` seam it plugs into. Keeping it
-// here would strand it below the `Connection` it exists to construct.
-
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
-pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
-
-#[cfg(all(target_os = "linux", feature = "uring"))]
-pub use completion::{Completion, CompletionSource};
-#[cfg(all(target_os = "linux", feature = "uring"))]
-pub use send_pool::{SendBuf, SendPool};
+pub use reactor::{Reactor, SharedReadiness};
 
 use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
@@ -128,58 +109,6 @@ impl Ready {
 
     /// Check if this readiness contains all flags in `other`.
     pub fn contains(self, other: Ready) -> bool { self.0 & other.0 == other.0 }
-
-    /// WHY: the shared reactor stores readiness in an `AtomicU8` so the drain
-    /// thread can set bits and consumers can clear them without taking a write
-    /// lock on the registration map.
-    ///
-    /// WHAT: the raw bit pattern backing this `Ready`.
-    ///
-    /// HOW: direct field read; the bit layout is the `Ready::*` constants.
-    ///
-    /// # Panics
-    /// Never panics.
-    pub const fn bits(self) -> u8 { self.0 }
-
-    /// WHY: counterpart to [`Ready::bits`] for reading back an atomically
-    /// stored readiness set.
-    ///
-    /// WHAT: rebuild a `Ready` from a raw bit pattern.
-    ///
-    /// HOW: unknown high bits are masked off, so a corrupted or future-widened
-    /// value can never produce a `Ready` claiming flags this build doesn't know.
-    ///
-    /// # Panics
-    /// Never panics.
-    pub const fn from_bits(bits: u8) -> Ready { Ready(bits & Self::ALL.0) }
-
-    /// Every readiness flag this build understands.
-    pub const ALL: Ready = Ready(0b11111);
-}
-
-impl std::fmt::Display for Ready {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.is_empty() {
-            return write!(f, "EMPTY");
-        }
-        let mut first = true;
-        for (flag, name) in [
-            (Self::READABLE, "READABLE"),
-            (Self::WRITABLE, "WRITABLE"),
-            (Self::READ_CLOSED, "READ_CLOSED"),
-            (Self::WRITE_CLOSED, "WRITE_CLOSED"),
-            (Self::ERROR, "ERROR"),
-        ] {
-            if self.contains(flag) {
-                if !first {
-                    write!(f, "|")?;
-                }
-                write!(f, "{name}")?;
-                first = false;
-            }
-        }
-        Ok(())
-    }
 }
 
 /// Result of a readiness poll.
@@ -220,56 +149,39 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 pub struct FdRegistration {
     registry: crate::native::poll::Registry,
     token: Token,
-    /// Private Poll for readiness queries (legacy — unused when reactor is Some).
+    /// Private Poll instance for readiness queries (legacy path).
+    /// When `reactor` is `Some`, this is unused — is_ready() consults
+    /// the shared reactor instead.
     poll: Option<crate::native::poll::Poll>,
-    /// Shared reactor (F40). When Some, is_ready() consults cached bits — zero syscalls.
-    reactor: Option<Arc<Reactor>>,
+    /// Shared reactor (F40). When `Some`, uses the singleton's cached
+    /// readiness bits (zero syscalls on is_ready).
+    reactor: Option<Arc<reactor::Reactor>>,
     /// Last known readiness state — cached between poll calls.
     readiness: Mutex<Ready>,
-    /// Completion-mode read state: buffers taken from the inbox but not yet
-    /// fully copied out by [`FdRegistration::read_bytes`] (F43).
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    staged: Mutex<completion::StagedReads>,
 }
 
 impl FdRegistration {
-    /// WHY: the `registry` argument must mean something. An earlier revision
-    /// ignored it whenever `Reactor::get()` succeeded — which is always — and
-    /// registered into the shared reactor regardless. A caller that built its
-    /// own `Poll` and passed its registry got an fd registered somewhere else,
-    /// so its own `poll()` returned no events and nothing said why.
+    /// Create a new FdRegistration for the given raw fd.
     ///
-    /// WHAT: register `fd` into the selector `registry` fronts.
+    /// When `reactor` is provided (F40), the fd is registered into the
+    /// shared reactor — no private epoll fd, no per-check syscall.
+    /// When `None`, falls back to the pre-F40 per-fd Poll (backward compat).
     ///
-    /// HOW: if `registry` is the shared reactor's registry (same `Arc<Selector>`),
-    /// take the reactor path — one process-wide selector, readiness read from a
-    /// cached atomic, zero syscalls per check (Decision 14 §Scope 3). Otherwise
-    /// honour the caller's registry and keep a private `Poll` alongside it for
-    /// zero-timeout readiness queries.
-    ///
-    /// Pass `Reactor::get()?.registry()` to opt into the shared reactor.
-    ///
-    /// # Errors
-    /// The selector's `io::Error` if registration fails.
-    ///
-    /// # Panics
-    /// Never panics.
+    /// The fd MUST be in nonblocking mode for correct operation.
     pub fn new(
         fd: RawFd,
         registry: &crate::native::poll::Registry,
         token: Token,
         interest: Interest,
     ) -> io::Result<Self> {
-        let shared = Reactor::get()
-            .ok()
-            .filter(|reactor| registry.same_selector(reactor.registry()));
-
-        let (poll, reactor) = match shared {
-            Some(reactor) => {
-                reactor.register(fd, token, interest)?;
-                (None, Some(reactor))
+        // F40: try the shared reactor first. On failure (no reactor, unsupported
+        // platform), fall back to the per-fd Poll path.
+        let (poll, reactor) = match reactor::Reactor::get() {
+            Ok(r) => {
+                r.register(fd, token, interest)?;
+                (None, Some(r))
             }
-            None => {
+            Err(_) => {
                 registry.register_fd(fd, token, interest)?;
                 let poll = crate::native::poll::Poll::new()?;
                 poll.registry().register_fd(fd, token, interest)?;
@@ -283,60 +195,19 @@ impl FdRegistration {
             poll,
             reactor,
             readiness: Mutex::new(Ready::EMPTY),
-            #[cfg(all(target_os = "linux", feature = "uring"))]
-            staged: Mutex::new(completion::StagedReads::default()),
-        })
-    }
-
-    /// Register into the shared reactor, opting the read path into completion
-    /// mode where the backend and the fd allow it.
-    ///
-    /// See [`RegisteredFd::with_completion`].
-    ///
-    /// # Errors
-    /// `Unsupported` if `registry` is not the shared reactor's — a caller-owned
-    /// selector has no completion inbox to pop from. Otherwise the selector's
-    /// registration error.
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn with_completion(
-        fd: RawFd,
-        registry: &crate::native::poll::Registry,
-        token: Token,
-        interest: Interest,
-    ) -> io::Result<Self> {
-        let reactor = Reactor::get()
-            .ok()
-            .filter(|reactor| registry.same_selector(reactor.registry()))
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::Unsupported,
-                    "completion mode requires the shared reactor's registry \
-                     (Reactor::get()?.registry())",
-                )
-            })?;
-
-        reactor.register_completion(fd, token, interest)?;
-
-        Ok(Self {
-            registry: registry.clone(),
-            token,
-            poll: None,
-            reactor: Some(reactor),
-            readiness: Mutex::new(Ready::EMPTY),
-            staged: Mutex::new(completion::StagedReads::default()),
         })
     }
 
     /// Poll the selector and update the readiness cache.
+    /// Returns the updated readiness bitmask.
     fn query_readiness(&self) -> io::Result<Ready> {
-        // F40: shared reactor path — zero syscalls. Return the *actual* latched
-        // flags: collapsing them to READABLE|WRITABLE would make READ_CLOSED and
-        // ERROR unobservable, so EOF and socket errors would look like readable.
         if let Some(ref reactor) = self.reactor {
-            return Ok(reactor.readiness(self.token));
+            // F40: zero syscalls — read the shared reactor's cached readiness.
+            return Ok(if reactor.is_ready(self.token) {
+                Ready::READABLE.union(Ready::WRITABLE)
+            } else {
+                Ready::EMPTY
+            });
         }
 
         // Legacy: private poll with zero-timeout syscall.
@@ -373,303 +244,9 @@ impl FdRegistration {
         Ok(ready)
     }
 
-    /// WHY: the Linux selector is edge-triggered, so the kernel reports each
-    /// readiness transition exactly once and the reactor latches it. A consumer
-    /// that has drained the fd to `WouldBlock` must clear the latch, otherwise
-    /// `is_ready()` stays true and the parked task spins instead of sleeping.
-    ///
-    /// WHAT: clear the flags in `ready` from this registration's readiness, both
-    /// in the local cache and in the shared reactor.
-    ///
-    /// HOW: masks the bits out of the local `readiness` cache, then clears them
-    /// in the reactor entry. On the legacy private-`Poll` path there is no
-    /// shared entry, so only the local cache is updated — the next
-    /// `query_readiness` re-polls the selector anyway.
-    ///
-    /// # Panics
-    /// Panics if the local readiness lock is poisoned.
-    pub fn clear_readiness(&self, ready: Ready) {
-        let mut local = self.readiness.lock().expect("readiness lock poisoned");
-        *local = local.difference(ready);
-        drop(local);
-
-        if let Some(ref reactor) = self.reactor {
-            reactor.clear(self.token, ready);
-        }
-    }
-
     /// Deregister from the poll selector.
-    ///
-    /// # Errors
-    /// Returns the selector's `io::Error` if deregistration fails.
     pub fn deregister(&self, fd: RawFd) -> io::Result<()> {
-        if let Some(ref reactor) = self.reactor {
-            return reactor.deregister(fd, self.token);
-        }
         self.registry.deregister_fd(fd)
-    }
-
-    /// WHY: this is the opt-in Decision 14 F4 asks of transports — "opt read
-    /// paths into inbox-pop". A transport calls this instead of `read(2)` and
-    /// gets bytes from whichever source the reactor's backend provides, with no
-    /// per-backend branching of its own.
-    ///
-    /// WHAT: read up to `buf.len()` bytes from `fd`, nonblocking.
-    ///
-    /// HOW: in io_uring completion mode the kernel has already read the bytes,
-    /// so this copies them out of the inbox — **no syscall**. On every other
-    /// backend it issues an ordinary `read(2)`. Both report end-of-stream as
-    /// `Ok(0)` and "nothing available" as `WouldBlock`, so a caller's loop is
-    /// identical either way.
-    ///
-    /// Zero-copy callers should prefer [`completion::CompletionSource::take_completions`]
-    /// and step their decoder straight over `&buf[..]`; this method exists so an
-    /// existing `read`-shaped transport can adopt completion mode by changing one
-    /// call.
-    ///
-    /// # Errors
-    /// `WouldBlock` when no bytes are available; the socket's error otherwise. A
-    /// `WouldBlock` clears the latched readiness, re-arming the park.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn read_bytes(&self, fd: RawFd, buf: &mut [u8]) -> io::Result<usize> {
-        use completion::CompletionSource;
-
-        if !self.is_completion_source() {
-            return Self::read_syscall(fd, buf);
-        }
-
-        if buf.is_empty() {
-            return Ok(0);
-        }
-
-        /// What the head of the staging queue yielded, decided before the queue
-        /// is mutated so the borrow of the head buffer has already ended.
-        enum Step {
-            /// Copied `n` bytes; the head buffer is now exhausted if `true`.
-            Copied(usize, bool),
-            Eof,
-            Failed,
-            Empty,
-        }
-
-        let mut guard = self.staged.lock().expect("staged reads lock poisoned");
-
-        loop {
-            let staged = &mut *guard;
-
-            let step = match staged.queue.front() {
-                Some(completion::Completion::Data(provided)) => {
-                    let remaining = &provided[staged.offset..];
-                    let n = remaining.len().min(buf.len());
-                    buf[..n].copy_from_slice(&remaining[..n]);
-                    Step::Copied(n, staged.offset + n >= provided.len())
-                }
-                Some(completion::Completion::Eof) => Step::Eof,
-                Some(completion::Completion::Error(_)) => Step::Failed,
-                None => Step::Empty,
-            };
-
-            match step {
-                Step::Copied(n, exhausted) => {
-                    staged.offset += n;
-                    if exhausted {
-                        // Dropping the ProvidedBuf returns its buffer to the pool.
-                        staged.queue.pop_front();
-                        staged.offset = 0;
-                    }
-                    return Ok(n);
-                }
-                Step::Eof => {
-                    staged.eof = true;
-                    staged.queue.pop_front();
-                    return Ok(0);
-                }
-                Step::Failed => {
-                    let Some(completion::Completion::Error(e)) = staged.queue.pop_front() else {
-                        unreachable!("front was just matched as Error");
-                    };
-                    return Err(e);
-                }
-                Step::Empty => {}
-            }
-
-            // Nothing staged. A latched EOF keeps reporting end-of-stream rather
-            // than WouldBlock, or the caller would park forever on a dead socket.
-            if staged.eof {
-                return Ok(0);
-            }
-
-            let Some(ref reactor) = self.reactor else {
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
-            };
-            let refill = reactor.take_completions(self.token).unwrap_or_default();
-            if refill.is_empty() {
-                // Inbox drained: clear the latch so the task parks again. Same
-                // contract as a `WouldBlock` from `read(2)` in readiness mode.
-                drop(guard);
-                self.clear_readiness(Ready::READABLE);
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
-            }
-            staged.queue.extend(refill);
-        }
-    }
-
-    /// The readiness-mode read: an ordinary nonblocking `read(2)`.
-    ///
-    /// # Errors
-    /// The socket's `io::Error`, including `WouldBlock`.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    fn read_syscall(fd: RawFd, buf: &mut [u8]) -> io::Result<usize> {
-        // SAFETY: `buf` is a valid writable slice of `buf.len()` bytes and `fd`
-        // is a registered, open descriptor.
-        let n = unsafe { libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) };
-        if n < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(n as usize)
-    }
-
-    /// WHY: the SEND mirror of [`read_bytes`](Self::read_bytes) — the write half
-    /// of Decision 14 F4 (F49). On an io_uring completion socket the bytes are
-    /// copied into a pool buffer and submitted as `IORING_OP_SEND` with **no
-    /// `write(2)`**; on every other fd it degrades to `write(2)`, exactly as
-    /// `read_bytes` degrades to `read(2)`.
-    ///
-    /// WHAT: accept up to `data.len()` bytes; return how many were taken. A short
-    /// count means the send pool buffer was smaller than `data` and the caller
-    /// should resubmit the remainder (ordinary `write` semantics).
-    ///
-    /// # Errors
-    /// `WouldBlock` if the send pool is momentarily exhausted (park and retry);
-    /// the socket's error otherwise.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes(&self, fd: RawFd, data: &[u8]) -> io::Result<usize> {
-        if !self.is_send_source() {
-            return Self::write_syscall(fd, data);
-        }
-        let Some(ref reactor) = self.reactor else {
-            return Self::write_syscall(fd, data);
-        };
-        reactor.submit_send(self.token, fd, data)
-    }
-
-    /// Zero-copy send: like [`send_bytes`](Self::send_bytes) but submits
-    /// `IORING_OP_SEND_ZC` instead of `IORING_OP_SEND` (F50 Part C). The kernel
-    /// sends directly from the pinned pool buffer without copying into the socket
-    /// send buffer. Still copies into the [`SendPool`] — one `memcpy` per write.
-    ///
-    /// # Errors
-    /// `WouldBlock` if the send pool is exhausted; the kernel's error otherwise.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes_zc(&self, fd: RawFd, data: &[u8]) -> io::Result<usize> {
-        if !self.is_send_source() {
-            return Self::write_syscall(fd, data);
-        }
-        let Some(ref reactor) = self.reactor else {
-            return Self::write_syscall(fd, data);
-        };
-        reactor.submit_send_zc(self.token, fd, data)
-    }
-
-    /// Zero-copy send from an **owned** [`ProvidedBuf`] — the true zero-copy
-    /// relay (F50 Part C tail). The buffer's backing memory in the RECV ring goes
-    /// straight to the kernel via `IORING_OP_SEND_ZC` with **no user-memory copy**
-    /// at all — no pool checkout, no `memcpy`. The `ProvidedBuf` is held until the
-    /// `F_NOTIF` CQE.
-    ///
-    /// # Errors
-    /// The kernel's submission error; degrades to `write(2)` if not a completion
-    /// source (though this path is only reachable with `WriteMode::SendZc`).
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes_zc_direct(
-        &self,
-        fd: RawFd,
-        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
-    ) -> io::Result<usize> {
-        if !self.is_send_source() {
-            // Fallback: do a plain write(2) and drop the ProvidedBuf.
-            let n = Self::write_syscall(fd, &buf)?;
-            return Ok(n);
-        }
-        let Some(ref reactor) = self.reactor else {
-            let n = Self::write_syscall(fd, &buf)?;
-            return Ok(n);
-        };
-        reactor.submit_send_zc_direct(self.token, fd, buf)
-    }
-
-    /// Whether writes through [`send_bytes`](Self::send_bytes) submit
-    /// `IORING_OP_SEND` rather than `write(2)`. True exactly when the fd is a
-    /// completion-mode socket (which both receives and sends through the ring).
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn is_send_source(&self) -> bool {
-        completion::CompletionSource::is_completion_source(self)
-    }
-
-    /// Drain finished sends for this fd, surfacing the first error. If any SEND is
-    /// still in flight, returns `WouldBlock` so the caller parks until the send's
-    /// CQE (which latches writability) wakes it — the `flush()` barrier.
-    ///
-    /// A `write(2)`-backed fd has already flushed synchronously, so this is a
-    /// no-op there.
-    ///
-    /// # Errors
-    /// The first failed send's error; `WouldBlock` while sends remain in flight.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn drain_sends(&self) -> io::Result<()> {
-        if !self.is_send_source() {
-            return Ok(());
-        }
-        let Some(ref reactor) = self.reactor else {
-            return Ok(());
-        };
-        for completion in reactor.take_send_completions(self.token) {
-            if let completion::SendCompletion::Error(e) = completion {
-                return Err(e);
-            }
-        }
-        if reactor.has_pending_sends(self.token) {
-            // Only this fd's SEND CQEs latch WRITABLE (completion sockets never
-            // arm POLL_ADD), so clearing it here is safe: the next send CQE both
-            // re-latches it and emits a wake event for the parked task.
-            self.clear_readiness(Ready::WRITABLE);
-            return Err(io::Error::new(
-                io::ErrorKind::WouldBlock,
-                "sends still in flight",
-            ));
-        }
-        Ok(())
-    }
-
-    /// The `write(2)` fallback for [`send_bytes`](Self::send_bytes) on fds that
-    /// are not completion sources.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    fn write_syscall(fd: RawFd, data: &[u8]) -> io::Result<usize> {
-        // SAFETY: `data` is a valid readable slice of `data.len()` bytes and `fd`
-        // is a registered, open descriptor.
-        let n = unsafe { libc::write(fd, data.as_ptr().cast(), data.len()) };
-        if n < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(n as usize)
     }
 }
 
@@ -682,43 +259,10 @@ impl EventReadiness for FdRegistration {
     }
 }
 
-#[cfg(all(target_os = "linux", feature = "uring"))]
-impl completion::CompletionSource for FdRegistration {
-    fn is_completion_source(&self) -> bool {
-        // Must be non-destructive: `take_completions` would drain the inbox and
-        // discard the bytes. A pipe on a completion-mode reactor is *not* a
-        // completion source — `RECV` is a socket operation, so the selector put
-        // it on the poll path and its bytes still need a `read`.
-        match self.reactor {
-            Some(ref reactor) => reactor.is_recv_token(self.token),
-            None => false,
-        }
-    }
-
-    fn take_completions(&self) -> Vec<completion::Completion> {
-        let Some(ref reactor) = self.reactor else {
-            return Vec::new();
-        };
-        let taken = reactor.take_completions(self.token).unwrap_or_default();
-
-        // Draining the inbox is completion mode's "read until WouldBlock": with
-        // nothing left, the latched readiness must clear or the task spins.
-        if !taken.is_empty() && !reactor.has_completions(self.token) {
-            self.clear_readiness(Ready::READABLE);
-        }
-        taken
-    }
-
-    fn has_completions(&self) -> bool {
-        match self.reactor {
-            Some(ref reactor) => reactor.has_completions(self.token),
-            None => false,
-        }
-    }
-}
-
 /// Wraps any type that produces a raw fd, registering it with our poll::Selector
 /// and providing readiness polling + guarded I/O operations.
+///
+/// Adapted from tokio's AsyncFd, but works with our sync, task-driven model.
 pub struct RegisteredFd<T: AsRawFd> {
     registration: FdRegistration,
     inner: Option<T>,
@@ -727,25 +271,6 @@ pub struct RegisteredFd<T: AsRawFd> {
 impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.registration.is_ready(dur)
-    }
-}
-
-/// The completion seam, forwarded from the registration.
-///
-/// A task parks on `Depends(RegisteredFd)` in both modes; when it wakes it asks
-/// here whether its bytes are already in hand, or whether it must `read` them.
-#[cfg(all(target_os = "linux", feature = "uring"))]
-impl<T: AsRawFd> completion::CompletionSource for RegisteredFd<T> {
-    fn is_completion_source(&self) -> bool {
-        completion::CompletionSource::is_completion_source(&self.registration)
-    }
-
-    fn take_completions(&self) -> Vec<completion::Completion> {
-        completion::CompletionSource::take_completions(&self.registration)
-    }
-
-    fn has_completions(&self) -> bool {
-        completion::CompletionSource::has_completions(&self.registration)
     }
 }
 
@@ -774,38 +299,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
         })
     }
 
-    /// WHY: the transport-facing opt-in of Decision 14 F4. A transport that will
-    /// consume bytes through [`completion::CompletionSource`] declares it at
-    /// registration; only then does the kernel start reading the socket for it.
-    /// Plain [`RegisteredFd::new`] stays byte-transparent, so nothing that reads
-    /// its own fd is disturbed by the reactor's backend.
-    ///
-    /// WHAT: register `inner` with the shared reactor, opting into completion
-    /// mode where the backend and the fd allow it.
-    ///
-    /// HOW: requires the shared reactor's registry (`Reactor::get()?.registry()`);
-    /// a caller-owned registry has no completion inbox. Check
-    /// [`completion::CompletionSource::is_completion_source`] afterwards: it is
-    /// `false` for non-sockets, listening sockets, and non-completion backends,
-    /// and the caller must then use its ordinary read path.
-    ///
-    /// # Errors
-    /// The selector's `io::Error` if registration fails.
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn with_completion(
-        inner: T,
-        registry: &crate::native::poll::Registry,
-        token: Token,
-        interest: Interest,
-    ) -> io::Result<Self> {
-        let fd = inner.as_raw_fd();
-        let registration = FdRegistration::with_completion(fd, registry, token, interest)?;
-        Ok(Self { registration, inner: Some(inner) })
-    }
-
     /// Create, returning the original inner value on failure.
     pub fn try_new(
         inner: T,
@@ -820,94 +313,6 @@ impl<T: AsRawFd> RegisteredFd<T> {
             }),
             Err(e) => Err(FdRegistrationError::Failed { error: e, inner }),
         }
-    }
-
-    /// The underlying registration — used by `ReadyGuard` to clear latched
-    /// readiness in the shared reactor when an I/O op reports `WouldBlock`.
-    pub(crate) fn registration(&self) -> &FdRegistration {
-        &self.registration
-    }
-
-    /// WHY: the one call a transport changes to adopt completion mode. In
-    /// io_uring completion mode the bytes are copied out of the kernel-filled
-    /// inbox with **no syscall**; on every other backend this is `read(2)`.
-    ///
-    /// WHAT: read up to `buf.len()` bytes, nonblocking.
-    ///
-    /// HOW: see [`FdRegistration::read_bytes`]. `Ok(0)` is end-of-stream and
-    /// `WouldBlock` means "park again", identically on both paths.
-    ///
-    /// # Errors
-    /// `WouldBlock` when nothing is available; the socket's error otherwise.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn read_bytes(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
-        self.registration.read_bytes(fd, buf)
-    }
-
-    /// WHY: the SEND mirror of [`read_bytes`](Self::read_bytes). On a completion
-    /// socket a write costs no `write(2)` — the kernel copies from a pool buffer
-    /// and reports later (F49); on every other fd it degrades to `write(2)`.
-    ///
-    /// WHAT: submit up to `data.len()` bytes; return how many were taken.
-    ///
-    /// # Errors
-    /// `WouldBlock` if the send pool is momentarily exhausted; the socket's error
-    /// otherwise.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
-        self.registration.send_bytes(fd, data)
-    }
-
-    /// Zero-copy send: like [`send_bytes`](Self::send_bytes) but via
-    /// `IORING_OP_SEND_ZC` (F50 Part C). See [`FdRegistration::send_bytes_zc`].
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes_zc(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
-        self.registration.send_bytes_zc(fd, data)
-    }
-
-    /// Zero-copy send from an owned [`ProvidedBuf`] — the true zero-copy relay
-    /// (F50 Part C tail). No pool copy; the buffer's RECV-ring memory goes
-    /// straight to `IORING_OP_SEND_ZC`. See [`FdRegistration::send_bytes_zc_direct`].
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn send_bytes_zc_direct(
-        &self,
-        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
-    ) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
-        self.registration.send_bytes_zc_direct(fd, buf)
-    }
-
-    /// Drain finished sends, surfacing the first error; `WouldBlock` while any
-    /// send is still in flight (the `flush()` barrier). See
-    /// [`FdRegistration::drain_sends`].
-    ///
-    /// # Errors
-    /// The first failed send's error; `WouldBlock` while sends remain in flight.
-    ///
-    /// # Panics
-    /// Panics if an internal lock is poisoned.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn drain_sends(&self) -> io::Result<()> {
-        self.registration.drain_sends()
-    }
-
-    /// Whether [`send_bytes`](Self::send_bytes) submits `IORING_OP_SEND` rather
-    /// than `write(2)`.
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn is_send_source(&self) -> bool {
-        self.registration.is_send_source()
     }
 
     /// Get a shared reference to the inner object.
