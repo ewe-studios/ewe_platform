@@ -2,7 +2,13 @@
 
 **Last updated:** 2026-07-15
 
-## Bollard → foundation_deployment_docker migration — ✅ complete (2026-07-15)
+## Spec-53 Docker work — ✅ COMPLETE
+
+All Docker-related decisions (01-13, 28, 29) are implemented. The remaining proxy
+stages (18, 20-23, 25-27) belong to `foundation_proxy`, not Docker — they should
+be tracked in a separate specification.
+
+## All features — ✅ complete
 
 The platform crate originally wrapped bollard 0.21 + tokio. Migrated to
 `foundation_deployment_docker` (spec-54), our own bollard-free Docker client.
