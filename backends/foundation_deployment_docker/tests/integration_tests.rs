@@ -8,7 +8,6 @@
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
-use tracing_test::traced_test;
 
 /// One fresh client per test — no shared state, no pool interference.
 fn client() -> DockerClient { DockerClient::connect_unix("/var/run/docker.sock") }
@@ -153,8 +152,12 @@ async fn cleanup_leftovers() {
     }
 }
 
+// NOTE: no `#[traced_test]` here — `#[valtron_test]` already installs a tracing
+// subscriber, and `traced_test`'s `set_global_default().expect(..)` panics with
+// `SetGlobalDefaultError` once any earlier test in the binary has set the global
+// default (fine alone, fails in the suite). The `tracing::*` calls below still
+// route through valtron_test's subscriber.
 #[valtron_test]
-#[traced_test]
 async fn container_logs_chunked_body_round_trip() {
     let c = client();
     let id = c.create_container(

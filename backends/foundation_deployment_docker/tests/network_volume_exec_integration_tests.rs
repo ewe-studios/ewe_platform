@@ -163,8 +163,17 @@ async fn exec_resize() {
 #[valtron_test]
 async fn system_events() {
     let c = client();
+    // `/events` is an infinite stream unless bounded — with no `until` the
+    // daemon holds the connection open forever and `collect_bytes` never
+    // returns (this hung the suite). `until=<now>` makes Docker replay events
+    // up to this instant and close the stream, so the call terminates.
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("system clock before UNIX epoch")
+        .as_secs()
+        .to_string();
     let _ = c
-        .system_events(None, None, None)
+        .system_events(None, Some(&now), None)
         .await
         .expect("system events");
 }
