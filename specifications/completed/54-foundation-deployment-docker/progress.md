@@ -1,6 +1,6 @@
 # Progress — Spec 54: foundation_deployment_docker
 
-**Last updated:** 2026-07-14
+**Last updated:** 2026-07-15
 
 ## Features
 
@@ -13,6 +13,8 @@
 | 04 | Docker type replication via gen_api | ✅ Complete | 02, 03 | Large |
 | 05 | Streaming endpoint handling | ✅ Complete | 01, 04 | Small |
 | 06 | BuildKit via connectrpc (P2) | ✅ Complete | 02, 04 | Large |
+| 07 | TLS transport (mTLS over TCP) | ✅ Complete | 02 | Small |
+| 08 | SSH transport (`ssh://` via `dial-stdio`) | ✅ Complete | 02 | Medium |
 
 > **2026-07-14 validation + HTTP parity closed:** The earlier "bollard parity
 > complete" state **did not compile** with `--features docker,buildkit` (a
@@ -162,6 +164,27 @@ Feature-06 throughput narrative:
 **Known upstream bug found:** buildkitd v0.31.1 nil-derefs (`gateway.go:1040`)
 on a Gateway `Return` with neither `Result` nor `Error` set — a real frontend
 always sets one; our client/test set `Error` to abort cleanly.
+
+### Phase 4: Remote transports (Feature 07, 08) — ✅ complete (2026-07-15)
+
+- [x] **Feature 07: TLS transport** — `SSLConnector::from_client_mutual_pem`
+  (uniform PEM mTLS constructor, rustls); `DockerTls { from_cert_dir }`;
+  `DockerClient::connect_tls`; `base_url()` emits `https://` under TLS;
+  `connect_with_defaults` parses `unix://` / `tcp://` (+
+  `DOCKER_TLS_VERIFY` / `DOCKER_CERT_PATH`) / `ssh://`. Verified against
+  docker-in-dind (`DOCKER_TLS_CERTDIR`): `tls_transport_tests.rs` 3/3
+  (full-mTLS info, mTLS container round-trip, insecure-TLS info).
+- [x] **Feature 08: SSH transport** — `connect_session()` extracted from pool
+  (TCP + handshake + host-key verify + auth); `ChannelStream` (exec channel as
+  `Read+Write` duplex owning its session); `Dialer` (session cache, fresh channel
+  per request); `Host::resolve()` for `~/.ssh/config` (HostName/User/Port/
+  IdentityFile); TOFU host-key verification with MITM rejection; OpenSSH auth
+  order (password → agent → key files). Reused the existing `Connector` seam
+  rather than a new transport mode; `should_pool()` opt-out for one-shot channels.
+  `SshOverlay` + `SshConnector` in `client/ssh.rs`. Verified against dind + sshd:
+  `ssh_transport_tests.rs` 2/2 (info + container round-trip).
+
+**All 8 features complete. Spec-54 is done.**
 
 ## Related specs
 
