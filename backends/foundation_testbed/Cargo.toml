@@ -7,42 +7,14 @@ license = "MIT"
 
 [features]
 
-# Build everything by default (both binaries); consumers opt out with
-# --no-default-features --features <vms|wasm[,cli]> to take just one part.
-default = ["vms", "wasm", "cli"]
+# Default: wasm + cli only (vms moved to foundation_deployment_platform, spec-53 Feature 11)
+default = ["wasm", "cli"]
 
-# all things vms (QEMU/KVM + the VM-infrastructure deps)
-vms = [
-  "qemu",
-  "dep:foundation_netio",
-  "dep:ssh2",
-  "dep:indicatif",
-  "dep:tar",
-  "dep:flate2",
-  "dep:xz2",
-  "dep:dirs",
-  "dep:anyhow",
-  "dep:image",
-  "dep:libc",
-  "dep:chrono",
-  "dep:toml",
-  "dep:fs2",
-  "dep:sha2",
-  "dep:whoami",
-  "dep:which",
-]
-
-# Linux: QEMU/KVM backend
-qemu = []
-
-# macOS: UTM/Hypervisor backend
-utm = []
-
-# CLI: standalone clap binary + bin/platform integration
+# vms feature kept as alias — enables foundation_deployment_platform with vms
+vms = ["dep:foundation_deployment_platform"]
+# cli kept for backward compat
 cli = ["dep:clap"]
-
-# All providers (for testing on a machine with both)
-all-providers = ["qemu", "utm"]
+foundation_deployment_platform_vms = ["dep:foundation_deployment_platform"]
 
 # wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
 wasm = [
@@ -150,32 +122,13 @@ clap = { version = "4", features = ["derive"], optional = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "*", features = ["js"] }
 
-# vms feature — VM infrastructure deps (optional, enabled by `vms`).
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true, features = ["multi"] }
-ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }  # SSH to guests
-indicatif = { version = "0.17", optional = true }  # progress UX
-tar = { version = "0.4", optional = true }          # archive
-flate2 = { version = "1", optional = true }         # gzip
-xz2 = { version = "0.1", optional = true }          # xz
-dirs = { version = "6", optional = true }           # paths
-anyhow = { version = "1", optional = true }         # vms error handling
-image = { version = "0.25", optional = true }       # screenshot validation
-libc = { version = "0.2", optional = true }         # kill(pid, 0) stale checks
-chrono = { version = "0.4", optional = true }       # state timestamps
-toml = { version = "0.8", optional = true }         # config parsing
-fs2 = { version = "0.4", optional = true }          # disk-space (doctor)
-sha2 = { version = "0.10", optional = true }        # export manifest checksums
-whoami = { version = "2", optional = true }         # export manifest creator
+# vms has moved to foundation_deployment_platform (spec-53, Feature 11)
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
-
-[[bin]]
-name = "testbed"
-path = "src/bin/testbed.rs"
-required-features = ["cli"]
 
 [[bin]]
 name = "wasm-testbed"

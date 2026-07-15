@@ -60,8 +60,6 @@ boring = "4"
 
 # wasm32 browser tests (F07 task 5). Optional — only needed when running
 # #[valtron_bindgen] / #[wasm_bindgen_test] tests in a headless browser.
-foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"], optional = true }
-wasm-bindgen-test = { version = "=0.3.76", optional = true }
 
 # Browser WebAssembly APIs (F07 — browser peer).
 [target.'cfg(target_family = "wasm")'.dependencies]
@@ -86,6 +84,10 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", 
 getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
+# wasm32 browser tests (F07 task 5). Dev-only to prevent dep cycle:
+# deployment_platform -> wireguard -> testbed -> deployment_platform
+foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
+wasm-bindgen-test = { version = "=0.3.76" }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"
@@ -105,7 +107,7 @@ webtransport = ["foundation_netio/quic"]
 # wasm-bindgen-test: enables wasm32 browser tests (spec-55 F07 task 5).
 # Provides #[valtron_bindgen] / #[wasm_bindgen_test] macros for headless browser testing.
 # Run with: wasm-testbed test bindgen-deno ./foundation_wireguard --features wasm-bindgen-test
-wasm-bindgen-test = ["dep:foundation_testbed", "dep:wasm-bindgen-test"]
+wasm-bindgen-test = []
 
 [lints]
 workspace = true

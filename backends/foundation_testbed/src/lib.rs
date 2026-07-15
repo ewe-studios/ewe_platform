@@ -1,12 +1,15 @@
 //! foundation_testbed — a holistic test harness. Feature-gated capabilities:
-//! `vms` (QEMU/KVM cross-platform VM build & test) and `wasm` (a CLI-driven
-//! `wasm32-unknown-unknown` harness: browser via the pure-Rust CDP/BiDi driver,
-//! Deno, and Cloudflare Workers).
+//! `wasm` (a CLI-driven `wasm32-unknown-unknown` harness: browser via the
+//! pure-Rust CDP/BiDi driver, Deno, and Cloudflare Workers).
+//!
+//! VM/container orchestration (QEMU, UTM, Docker) moved to
+//! `foundation_deployment_platform` (spec-53, Feature 11). Re-exported here
+//! for convenience.
 
 #![allow(clippy::too_many_arguments)]
 
-#[cfg(feature = "vms")]
-pub mod vms;
+// Re-export the platform for backward compatibility
+pub use foundation_deployment_platform as platform;
 
 #[cfg(feature = "wasm")]
 pub mod wasm;

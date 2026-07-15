@@ -1,7 +1,7 @@
 [package]
 name = "foundation_deployment_platform"
 version = "0.1.0"
-edition.workspace = true
+edition = "2024"
 rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
@@ -15,7 +15,8 @@ foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
+# WireGuard mesh (for docker/wireguard.rs, optional)
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1", optional = true }
 
 # Docker API — our own bollard-free client (spec-54)
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.0", features = ["docker"] }
@@ -36,15 +37,57 @@ tracing.workspace = true
 # Time
 chrono.workspace = true
 
+# VM infrastructure deps (moved from foundation_testbed, spec-53 Feature 11)
+ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }
+indicatif = { version = "0.17", optional = true }
+tar = { version = "0.4", optional = true }
+flate2 = { version = "1", optional = true }
+xz2 = { version = "0.1", optional = true }
+dirs = { version = "6", optional = true }
+anyhow = { version = "1", optional = true }
+image = { version = "0.25", optional = true }
+libc = { version = "0.2", optional = true }
+toml = { version = "0.8", optional = true }
+fs2 = { version = "0.4", optional = true }
+sha2 = { version = "0.10", optional = true }
+whoami = { version = "2", optional = true }
+which = { version = "7", optional = true }
+base64 = "0.22"
+portpicker = { version = "0.1", optional = true }
+clap = { version = "4", features = ["derive"], optional = true }
+foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", optional = true }
+
 [features]
-default = []
+default = ["docker", "wireguard"]
 # Enable when using with valtron multi executor
 multi = ["foundation_core/multi", "foundation_netio/multi"]
 
+# VM orchestration (QEMU/UTM providers, moved from foundation_testbed)
+vms = [
+    "dep:ssh2", "dep:indicatif", "dep:tar", "dep:flate2", "dep:xz2",
+    "dep:dirs", "dep:anyhow", "dep:image", "dep:libc",
+    "dep:toml", "dep:fs2", "dep:sha2", "dep:whoami", "dep:which",
+    "dep:clap", "dep:portpicker", "dep:foundation_sshkit",
+    "dep:foundation_wireguard",
+]
+
+# WireGuard mesh integration (gated, depends on foundation_wireguard)
+wireguard = ["dep:foundation_wireguard"]
+
+# Docker runtime only (default)
+docker = ["foundation_deployment_docker/docker"]
+
+# All providers
+all-providers = ["vms", "docker"]
+
 [dev-dependencies]
-foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", features = ["russh-backend"] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3"
+
+[[bin]]
+name = "platform"
+path = "src/bin/platform.rs"
+required-features = ["clap"]
 
 [lints]
 workspace = true
