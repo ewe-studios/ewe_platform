@@ -22,6 +22,7 @@
 //! (`foundation_core::valtron::initialize_pool`) and hold its guard for the
 //! server's lifetime.
 
+pub mod acme;
 pub mod config;
 pub mod forward;
 pub mod handler;
