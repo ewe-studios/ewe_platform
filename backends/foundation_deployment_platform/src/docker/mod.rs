@@ -25,4 +25,4 @@ pub use error::{docker_err, DockerError, DockerResult};
 pub use group::ContainerGroup;
 pub use image::{DockerFileConfig, ImageBuildResult};
 pub use network::NetworkHandle;
-pub use wait_for::WaitFor;
+pub use wait_for::{wait_for_port, WaitFor};
