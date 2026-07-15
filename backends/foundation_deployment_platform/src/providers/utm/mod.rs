@@ -35,36 +35,18 @@ impl UtmProvider {
         self.display = mode;
         self
     }
-}
 
-impl Default for UtmProvider {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+    // ── Shared helpers ──
 
-impl VmProvider for UtmProvider {
-    fn name(&self) -> &'static str {
-        "utm"
-    }
-
-    fn id(&self) -> ProviderId {
-        ProviderId::Utm
-    }
-
-    fn launch(&self, profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
-        // Ensure UTM is installed and responsive
+    fn launch_vm(profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
         let warnings = utmctl::ensure_utm()?;
         for w in &warnings {
             eprintln!("  Warning: {w}");
         }
 
-        // Ensure the VM bundle is imported into UTM
         let bundle_path = import::ensure_utm_bundle(profile)?;
-
-        // Find the VM in UTM to get its UUID
         let vm_entry = utmctl::find_vm_by_name(profile.name)?.ok_or_else(|| {
-            crate::config::TestbedError::Qcow2Error {
+            TestbedError::Qcow2Error {
                 message: format!(
                     "VM '{}' not found in UTM after import — bundle at {}",
                     profile.name,
@@ -73,28 +55,24 @@ impl VmProvider for UtmProvider {
             }
         })?;
 
-        // Check if already running
         if utmctl::is_vm_running(profile.name)? {
-            return Err(crate::config::TestbedError::Qcow2Error {
+            return Err(TestbedError::Qcow2Error {
                 message: format!("VM '{}' is already running. Stop it first.", profile.name),
             });
         }
 
-        // Apply per-VM mount configuration from testbed.toml
+        // Per-VM mount configuration
         if let Some((host_path, _guest_path, readonly, _methods)) =
             crate::config::get_mount_for_profile(profile.name, ".")
         {
             if let Err(e) = applescript::configure_shared_directory(
-                &vm_entry.uuid,
-                &host_path,
-                "project",
-                readonly,
+                &vm_entry.uuid, &host_path, "project", readonly,
             ) {
                 eprintln!("  Warning: could not configure shared directory (non-fatal): {e}");
             }
         }
 
-        // Configure resources via AppleScript (CPU, memory)
+        // Resources
         if profile.cpu_cores > 0 || profile.memory_mib > 0 {
             let cpus = if profile.cpu_cores > 0 { profile.cpu_cores } else { 4 };
             let mem = if profile.memory_mib > 0 { profile.memory_mib } else { 4096 };
@@ -103,29 +81,19 @@ impl VmProvider for UtmProvider {
             }
         }
 
-        // Start the VM (with built-in retry logic)
         utmctl::start_vm(profile.name)?;
-
-        // Wait for VM to appear in utmctl list as "started"
         let vm_entry = wait_for_vm_started(profile.name, 120)?;
 
-        // Configure network port forwards via AppleScript
+        // Network port forwards
         let mut extra_forwards = Vec::new();
-        if let Some(rdp) = profile.rdp_port {
-            extra_forwards.push((3389, rdp));
-        }
-        if let Some(winrm) = profile.winrm_port {
-            extra_forwards.push((5985, winrm));
-        }
-        if let Err(e) = applescript::configure_port_forwards(
-            &vm_entry.uuid,
-            profile.ssh_port,
-            &extra_forwards,
-        ) {
+        if let Some(rdp) = profile.rdp_port { extra_forwards.push((3389, rdp)); }
+        if let Some(winrm) = profile.winrm_port { extra_forwards.push((5985, winrm)); }
+        if let Err(e) =
+            applescript::configure_port_forwards(&vm_entry.uuid, profile.ssh_port, &extra_forwards)
+        {
             eprintln!("  Warning: could not configure port forwards (non-fatal): {e}");
         }
 
-        // Resolve ports
         let resolved_ports = ResolvedPorts {
             ssh_port: profile.ssh_port,
             winrm_port: profile.winrm_port,
@@ -133,62 +101,43 @@ impl VmProvider for UtmProvider {
             vnc_port: profile.vnc_port,
         };
 
-        // Build handle
         let vm_uuid = vm_entry.uuid.clone();
-        let handle = VmHandle {
-            profile: profile.clone(),
-            provider_id: ProviderId::Utm,
-            internal_id: vm_uuid.clone(),
-            resolved_ports: resolved_ports.clone(),
-            display_mode: mode,
-        };
-
-        // Save state
         state::save_from_runtime(
             profile.name,
             bundle_path.to_str().unwrap(),
             &vm_uuid,
             resolved_ports.ssh_port,
-            false, // not yet bootstrapped
+            false,
         )?;
 
-        Ok(handle)
-    }
-
-    fn stop(&self, handle: &VmHandle) -> Result<()> {
-        // Run shutdown scripts before stopping the VM
-        run_shutdown_scripts(handle);
-
-        utmctl::stop_vm(handle.profile.name)?;
-
-        // Clean up state
-        let _ = state::delete(handle.profile.name);
-
-        Ok(())
-    }
-
-    fn is_running(&self, handle: &VmHandle) -> bool {
-        utmctl::is_vm_running(handle.profile.name).unwrap_or(false)
-    }
-
-    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> {
-        Ok(handle.resolved_ports.clone())
-    }
-
-    fn monitor_command(&self, _handle: &VmHandle, _cmd: &str) -> Result<String> {
-        Err(crate::config::TestbedError::MonitorFailed {
-            source: anyhow::anyhow!("UTM does not expose a QEMU monitor interface"),
+        Ok(VmHandle {
+            profile: profile.clone(),
+            provider_id: ProviderId::Utm,
+            internal_id: vm_uuid,
+            resolved_ports,
+            display_mode: mode,
         })
     }
 
-    fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
-        import::ensure_utm_bundle(profile)
+    fn stop_vm(handle: &VmHandle) -> Result<()> {
+        run_shutdown_scripts(handle);
+        utmctl::stop_vm(handle.profile.name)?;
+        let _ = state::delete(handle.profile.name);
+        Ok(())
     }
 
-    fn host_health(&self) -> crate::doctor::HostHealth {
-        crate::doctor::check_host()
+    fn is_vm_running(handle: &VmHandle) -> bool {
+        utmctl::is_vm_running(handle.profile.name).unwrap_or(false)
     }
 }
+
+impl Default for UtmProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ── Associated-types Provider (canonical impl) ─────────────────────────
 
 impl Provider for UtmProvider {
     type Handle = VmHandle;
@@ -199,33 +148,60 @@ impl Provider for UtmProvider {
     fn id(&self) -> ProviderId { ProviderId::Utm }
 
     fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
-        <Self as VmProvider>::launch(self, config, self.display)
+        Self::launch_vm(config, self.display)
     }
 
     fn stop(&self, handle: &VmHandle) -> Result<()> {
-        <Self as VmProvider>::stop(self, handle)
+        Self::stop_vm(handle)
     }
 
     fn is_running(&self, handle: &VmHandle) -> bool {
-        <Self as VmProvider>::is_running(self, handle)
+        Self::is_vm_running(handle)
     }
 
     fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> {
-        <Self as VmProvider>::resolved_ports(self, handle)
+        Ok(handle.resolved_ports.clone())
     }
 
     fn host_health(&self) -> Vec<(String, bool, String)> {
-        let h = <Self as VmProvider>::host_health(self);
-        h.checks.iter().map(|c| (c.name.to_string(), c.ok, c.message.clone())).collect()
+        crate::doctor::check_host()
+            .checks
+            .iter()
+            .map(|c| (c.name.to_string(), c.ok, c.message.clone()))
+            .collect()
     }
 }
+
+// ── VmProvider (compatibility — delegates to Provider) ──────────────────
+
+impl VmProvider for UtmProvider {
+    fn name(&self) -> &'static str { <Self as Provider>::name(self) }
+    fn id(&self) -> ProviderId { <Self as Provider>::id(self) }
+    fn launch(&self, profile: &VmProfile, _mode: DisplayMode) -> Result<VmHandle> {
+        <Self as Provider>::launch(self, profile)
+    }
+    fn stop(&self, handle: &VmHandle) -> Result<()> { <Self as Provider>::stop(self, handle) }
+    fn is_running(&self, handle: &VmHandle) -> bool { <Self as Provider>::is_running(self, handle) }
+    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> { <Self as Provider>::resolved_ports(self, handle) }
+    fn monitor_command(&self, _handle: &VmHandle, _cmd: &str) -> Result<String> {
+        Err(TestbedError::MonitorFailed {
+            source: anyhow::anyhow!("UTM does not expose a QEMU monitor interface"),
+        })
+    }
+    fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
+        import::ensure_utm_bundle(profile)
+    }
+    fn host_health(&self) -> crate::doctor::HostHealth { crate::doctor::check_host() }
+}
+
+// ── Public API ──────────────────────────────────────────────────────────
 
 /// Wait for a VM to appear in `utmctl list` with status "started".
 fn wait_for_vm_started(name: &str, timeout_secs: u64) -> Result<utmctl::VmEntry> {
     let start = std::time::Instant::now();
     loop {
         if start.elapsed().as_secs() > timeout_secs {
-            return Err(crate::config::TestbedError::Qcow2Error {
+            return Err(TestbedError::Qcow2Error {
                 message: format!("VM '{name}' did not start within {timeout_secs}s"),
             });
         }
@@ -239,9 +215,6 @@ fn wait_for_vm_started(name: &str, timeout_secs: u64) -> Result<utmctl::VmEntry>
 }
 
 /// Run startup scripts after the VM is booted and bootstrapped.
-///
-/// This should be called by the caller after `launch()` + bootstrap
-/// completes, before marking the VM as "ready".
 pub fn run_startup_scripts_for(handle: &VmHandle) -> Result<()> {
     crate::init::run_startup_scripts(
         handle.profile.name,
@@ -252,7 +225,6 @@ pub fn run_startup_scripts_for(handle: &VmHandle) -> Result<()> {
 }
 
 /// Run shutdown scripts via SSH before stopping the VM.
-/// Best-effort: if SSH isn't available, scripts are skipped.
 fn run_shutdown_scripts(handle: &VmHandle) {
     if let Err(e) = crate::init::run_shutdown_scripts(
         handle.profile.name,
