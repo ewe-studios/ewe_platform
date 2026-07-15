@@ -30,20 +30,41 @@ pub mod webrtc;
 pub mod webtransport;
 #[cfg(not(target_family = "wasm"))]
 pub mod webtransport {
-    //! WebTransport is unavailable on native targets — native peers use
-    //! the full `WtSession<QuinnConnection>` (foundation_netio + quic feature).
+    //! WebTransport is only available on wasm32 targets. Native peers use
+    //! `foundation_netio::webtransport::WtSession<QuinnConnection>`.
+    //! This type exists solely so the `wasm` module compiles on all targets;
+    //! constructing it on native panics.
     pub struct WasmWtBridge;
+
     impl WasmWtBridge {
-        pub fn new(_datagrams_enabled: bool) -> Self { Self }
-        pub fn on_connected(&mut self) {}
+        /// # Panics
+        /// Always panics on native. `WasmWtBridge` is wasm32-only.
+        pub fn new(_datagrams_enabled: bool) -> Self {
+            panic!("WasmWtBridge is wasm32-only; native peers use foundation_netio::webtransport::WtSession")
+        }
+        /// Always panics on native.
+        pub fn on_connected(&mut self) { Self::unreachable() }
+        /// Always `false` on native.
         pub fn is_ready(&self) -> bool { false }
+        /// Always `false` on native.
         pub fn is_open(&self) -> bool { false }
+        /// Always `false` on native.
         pub fn is_closed(&self) -> bool { false }
-        pub fn tick(&mut self) -> Vec<Vec<u8>> { Vec::new() }
-        pub fn inject_datagram(&mut self, _data: Vec<u8>) {}
-        pub fn drain_inbound(&mut self) -> Vec<Vec<u8>> { Vec::new() }
-        pub fn queue_datagram(&mut self, _data: Vec<u8>) -> Result<(), String> { Err("not wasm".into()) }
-        pub fn close(&mut self, _code: u32, _reason: String) {}
-        pub fn on_peer_close(&mut self, _code: u32, _reason: String) {}
+        /// Panics on native.
+        pub fn tick(&mut self) -> Vec<Vec<u8>> { Self::unreachable() }
+        /// Panics on native.
+        pub fn inject_datagram(&mut self, _data: Vec<u8>) { Self::unreachable() }
+        /// Panics on native.
+        pub fn drain_inbound(&mut self) -> Vec<Vec<u8>> { Self::unreachable() }
+        /// Panics on native.
+        pub fn queue_datagram(&mut self, _data: Vec<u8>) -> Result<(), String> { Self::unreachable() }
+        /// Panics on native.
+        pub fn close(&mut self, _code: u32, _reason: String) { Self::unreachable() }
+        /// Panics on native.
+        pub fn on_peer_close(&mut self, _code: u32, _reason: String) { Self::unreachable() }
+
+        fn unreachable() -> ! {
+            panic!("WasmWtBridge is wasm32-only")
+        }
     }
 }
