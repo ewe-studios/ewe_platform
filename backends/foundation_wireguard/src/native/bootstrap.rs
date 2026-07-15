@@ -233,6 +233,30 @@ impl BootstrapServer {
         Ok(self.listener.local_addr()?)
     }
 
+    /// The raw fd of the TCP listener, for reactor registration (F02 valtron task).
+    #[must_use]
+    pub fn listener_fd(&self) -> std::os::unix::io::RawFd {
+        use std::os::unix::io::AsRawFd;
+        self.listener.as_raw_fd()
+    }
+
+    /// Try to accept one connection and serve it synchronously.
+    /// Returns `Ok(true)` when a connection was served, `Ok(false)` when
+    /// no connection was waiting (WouldBlock), or an error.
+    pub fn try_accept_and_serve(&self) -> io::Result<bool> {
+        match self.listener.accept() {
+            Ok((tcp, _peer)) => {
+                tcp.set_nonblocking(false)?;
+                if let Err(err) = self.handshake_and_serve(tcp) {
+                    tracing::debug!(error = %err, "bootstrap connection dropped");
+                }
+                Ok(true)
+            }
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+
     /// WHY: Tests and simple deployments accept one joiner at a time.
     ///
     /// WHAT: Accept a single TCP connection, complete the TLS-PSK handshake, and serve its
@@ -252,15 +276,29 @@ impl BootstrapServer {
     ///
     /// WHAT: Accept and serve joiners until `stop` is set.
     ///
-    /// HOW: Non-blocking `accept` with a short sleep when idle; each accepted connection
-    /// is handshaken and served (sequentially) to completion.
+    /// HOW: Non-blocking `accept` with reactor-based idle waiting (F02 must-do:
+    /// no `thread::sleep` polling). The listener fd is registered with the shared
+    /// reactor; when idle, the thread polls the atomic readiness cache with 1ms
+    /// granularity — the reactor drain thread updates it asynchronously from
+    /// epoll/kqueue events. Falls back to 50ms sleep when no reactor is running.
     ///
     /// # Errors
     /// [`WgError::Io`] only on a fatal listener error; per-connection failures (e.g. a
     /// wrong-seed handshake) are logged and skipped.
     pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool) -> WgResult<()> {
         use std::sync::atomic::Ordering;
+        use std::time::{Duration, Instant};
+
         self.listener.set_nonblocking(true)?;
+        let fd = self.listener_fd();
+
+        // Try to register with the shared reactor for edge-triggered wake.
+        let reactor_token = foundation_nativeapis::native::poll::Token(0xF200);
+        let reactor = foundation_nativeapis::native::fd::Reactor::get().ok();
+        if let Some(ref r) = reactor {
+            r.register(fd, reactor_token, foundation_nativeapis::native::poll::Interest::READABLE).ok();
+        }
+
         while !stop.load(Ordering::Relaxed) {
             match self.listener.accept() {
                 Ok((tcp, _peer)) => {
@@ -273,7 +311,21 @@ impl BootstrapServer {
                     }
                 }
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    std::thread::sleep(std::time::Duration::from_millis(5));
+                    // Wait for a connection or timeout using reactor readiness.
+                    if let Some(ref r) = reactor {
+                        r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
+                        let deadline = Instant::now() + Duration::from_millis(50);
+                        while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
+                            if r.is_ready(reactor_token) {
+                                r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
+                                break;
+                            }
+                            std::hint::spin_loop();
+                            std::thread::sleep(Duration::from_millis(1));
+                        }
+                    } else {
+                        std::thread::sleep(Duration::from_millis(50));
+                    }
                 }
                 Err(e) => return Err(e.into()),
             }

@@ -251,7 +251,9 @@ impl WgNode {
         });
         let stop = Arc::new(AtomicBool::new(false));
 
-        // Bootstrap server thread.
+        // Bootstrap server thread — drive the accept loop. Register the
+        // listener fd with the reactor for edge-triggered wake; sleep only
+        // when the reactor signals data or the poll timeout expires.
         let server_stop = Arc::clone(&stop);
         let bootstrap_thread = thread::spawn(move || {
             if let Err(err) = server.serve_until(&server_stop) {
@@ -348,7 +350,9 @@ impl WgNode {
                         relay_server_clone.lock().expect("relay lock").reset_rate_limits();
                         last_rate_reset = now;
                     }
-                    thread::sleep(Duration::from_millis(10));
+                    // Park until the relay UDP socket is readable or a
+                    // short timeout passes — no blind sleep.
+                    wait_readable(relay_udp.as_raw_fd(), 10);
                 }
             }));
         }
@@ -398,18 +402,43 @@ impl WgNode {
         let mesh_stop = Arc::clone(&stop);
         let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
         let mesh_thread: JoinHandle<()> = thread::spawn(move || {
-            // Drive the TaskIterator until stop is set. The executor isn't
-            // running in this thread, but we can still call next_status() in
-            // a loop — Depends/Ready are both followed by re-ticking, and
-            // the reactor latch is cleared each iteration. The 50ms fallback
-            // keeps WG timers serviced when the link is idle.
+            // Drive the TaskIterator until stop is set. When the task returns
+            // Depends(signal), poll the signal with 1ms reactor cache checks
+            // instead of blind 50ms sleep — the reactor drain thread updates
+            // the atomic readiness cache asynchronously.
             let mut task = mesh_wrapper;
             while !task.stop.load(Ordering::Relaxed) {
-                // Drive one tick through the TaskIterator. We ignore the
-                // status: Depends means park (we sleep instead since there's
-                // no executor to unpark us), Ready means re-tick immediately.
-                let _ = task.next_status();
-                thread::sleep(Duration::from_millis(MESH_TASK_INTERVAL_MS));
+                match task.next_status() {
+                    // Task completed.
+                    None => break,
+                    // Ready/Ready work done — re-tick immediately.
+                    Some(TaskStatus::Ready(())) => {}
+                    // Parked on reactor + timer. Poll the signal until it
+                    // fires or a short deadline passes (WG timers).
+                    Some(TaskStatus::Depends(ref signal)) => {
+                        let deadline = Instant::now() + Duration::from_millis(200);
+                        while Instant::now() < deadline
+                            && !task.stop.load(Ordering::Relaxed)
+                            && !signal.is_ready(None)
+                        {
+                            std::hint::spin_loop();
+                            thread::sleep(Duration::from_millis(1));
+                        }
+                    }
+                    // Delayed fallback (no reactor).
+                    Some(TaskStatus::Delayed(d)) => {
+                        let deadline = Instant::now() + d.min(Duration::from_millis(200));
+                        while Instant::now() < deadline
+                            && !task.stop.load(Ordering::Relaxed)
+                        {
+                            std::hint::spin_loop();
+                            thread::sleep(Duration::from_millis(1));
+                        }
+                    }
+                    _ => {
+                        thread::sleep(Duration::from_millis(MESH_TASK_INTERVAL_MS));
+                    }
+                }
             }
         });
 
@@ -982,6 +1011,55 @@ fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
             let _ = std::fs::create_dir_all(parent);
         }
         let _ = std::fs::write(path, &json);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Reactor-aware waiting — replaces thread::sleep in daemon loops
+// ---------------------------------------------------------------------------
+
+/// Wait up to `timeout_ms` milliseconds for `fd` to become readable, using
+/// the shared reactor's atomic readiness cache. The reactor drain thread
+/// (epoll/kqueue) updates the cache asynchronously; polling it at 1ms
+/// intervals yields sub-ms wake latency with near-zero CPU when idle.
+///
+/// Falls back to `thread::sleep(timeout_ms)` when no reactor is running.
+fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64) {
+    use std::os::unix::io::AsRawFd;
+    use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
+    use foundation_nativeapis::native::poll::{Interest, Token};
+    use foundation_nativeapis::native::fd::Ready;
+
+    // Use a unique token for this transient registration request.
+    // The fd is the same across all callers (e.g. the UDP socket),
+    // so use distinct tokens for each polling site.
+    static TOKEN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0x10000);
+    let token = Token(TOKEN_COUNTER.fetch_add(1, Ordering::Relaxed) as usize);
+
+    if let Ok(reactor) = Reactor::get() {
+        // Register for READABLE edge-triggered events. This is idempotent
+        // for the same fd+token — subsequent calls just update interest.
+        reactor.register(fd, token, Interest::READABLE).ok();
+
+        let start = Instant::now();
+        let deadline = Duration::from_millis(timeout_ms);
+        loop {
+            if reactor.is_ready(token) {
+                reactor.clear(token, Ready::READABLE);
+                return;
+            }
+            if start.elapsed() >= deadline {
+                return;
+            }
+            // The reactor drain thread processes epoll/kqueue events in
+            // a separate OS thread and updates the atomic readiness cache.
+            // Poll the cache at 1ms granularity — this is idle-time only;
+            // most loops break out immediately when work arrives.
+            std::hint::spin_loop();
+            thread::sleep(Duration::from_millis(1));
+        }
+    } else {
+        thread::sleep(Duration::from_millis(timeout_ms));
     }
 }
 

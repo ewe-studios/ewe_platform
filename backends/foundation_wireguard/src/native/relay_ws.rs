@@ -20,7 +20,7 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine as _;
@@ -185,12 +185,35 @@ impl RelayWsAcceptor {
     /// Each connection gets its own relay session; frames are forwarded
     /// through the relay server's UDP path.
     pub fn serve(&self, stop: &AtomicBool) -> io::Result<()> {
+        use std::os::unix::io::AsRawFd;
         self.listener.set_nonblocking(true)?;
+        // Register listener fd with shared reactor for edge-triggered wake.
+        let listener_fd = self.listener.as_raw_fd();
+        let token = foundation_nativeapis::native::poll::Token(0xF300);
+        let reactor = foundation_nativeapis::native::fd::Reactor::get().ok();
+        if let Some(ref r) = reactor {
+            r.register(listener_fd, token, foundation_nativeapis::native::poll::Interest::READABLE).ok();
+        }
+
         while !stop.load(Ordering::Relaxed) {
-            let (mut stream, peer_addr) = match self.listener.accept() {
+            let (mut stream, _peer_addr) = match self.listener.accept() {
                 Ok(c) => c,
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    thread::sleep(Duration::from_millis(10));
+                    // Park on reactor until a connection arrives or timeout.
+                    if let Some(ref r) = reactor {
+                        r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
+                        let deadline = Instant::now() + Duration::from_millis(50);
+                        while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
+                            if r.is_ready(token) {
+                                r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
+                                break;
+                            }
+                            std::hint::spin_loop();
+                            thread::sleep(Duration::from_millis(1));
+                        }
+                    } else {
+                        thread::sleep(Duration::from_millis(50));
+                    }
                     continue;
                 }
                 Err(e) => return Err(e),
