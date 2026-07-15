@@ -952,6 +952,17 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
 pub trait IsUnixTransport {
     /// Whether the underlying transport is a Unix-domain socket.
     fn is_unix(&self) -> bool;
+
+    /// Whether an HTTP connection over this transport may be returned to the
+    /// pool for reuse.
+    ///
+    /// WHY: Unix sockets close after every response, so they are never pooled —
+    /// the default reflects that. Transports that carry their own poolability
+    /// decision (e.g. a caller-provided stream: a `WireGuard` overlay pools, an
+    /// SSH `docker system dial-stdio` channel does not) override this.
+    fn should_pool(&self) -> bool {
+        !self.is_unix()
+    }
 }
 
 pub struct SharedByteBufferStream<T: Read>(OwnedReader<ByteBufferPointer<T>>);
@@ -1039,6 +1050,18 @@ impl<T: Read> SharedByteBufferStream<T> {
         T: IsUnixTransport,
     {
         self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
+    }
+
+    /// Whether an HTTP connection over this stream may be returned to the pool.
+    ///
+    /// Delegates through `ByteBufferPointer::with_inner` →
+    /// `RawStream::should_pool()` → `Connection::should_pool()`.
+    #[must_use]
+    pub fn should_pool(&self) -> bool
+    where
+        T: IsUnixTransport,
+    {
+        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.should_pool()))
     }
 
     /// Run `f` against the innermost reader `T` by shared reference.

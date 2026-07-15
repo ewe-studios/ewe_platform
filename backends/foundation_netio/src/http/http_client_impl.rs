@@ -260,6 +260,20 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         }
         self
     }
+
+    /// Route requests over a custom transport connector (WireGuard overlay, SSH
+    /// `docker system dial-stdio`) instead of dialing DNS+TCP.
+    #[must_use]
+    pub fn with_connector(
+        mut self,
+        connector: Arc<dyn crate::native::connection::Connector>,
+    ) -> Self {
+        if let Some(pool) = self.pool.take() {
+            let pool_inner = Arc::try_unwrap(pool).unwrap_or_else(|arc| (*arc).clone());
+            self.pool = Some(Arc::new(pool_inner.with_connector(connector)));
+        }
+        self
+    }
 }
 
 impl<R: DnsResolver + Default + Clone + Send + 'static> NativeHttpClient<R> {

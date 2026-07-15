@@ -215,11 +215,33 @@ impl RawStream {
             Self::AsServerTls(..) | Self::AsClientTls(..) => false,
         }
     }
+
+    /// Whether an HTTP connection over this stream may be pooled for reuse.
+    ///
+    /// WHY: Delegates to the underlying [`Connection`] so caller-provided
+    /// transports (a `WireGuard` overlay pools; an SSH `docker system dial-stdio`
+    /// channel does not) can opt out. TLS-over-TCP always pools.
+    #[must_use]
+    pub fn should_pool(&self) -> bool {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().should_pool(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => true,
+        }
+    }
 }
 
 impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
     fn is_unix(&self) -> bool {
         RawStream::is_unix(self)
+    }
+
+    fn should_pool(&self) -> bool {
+        RawStream::should_pool(self)
     }
 }
 

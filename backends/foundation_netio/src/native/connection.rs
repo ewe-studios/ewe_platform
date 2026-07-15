@@ -369,6 +369,20 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     /// (send buffer has spare capacity). Symmetric to [`Self::set_read_waker`] for
     /// write backpressure.
     fn set_write_waker(&self, waker: ConnWaker);
+
+    /// Whether an HTTP connection over this stream may be returned to the pool
+    /// for reuse.
+    ///
+    /// WHY: A `WireGuard` overlay socket is a long-lived multiplexed tunnel — safe
+    /// to keep-alive and pool. An SSH `docker system dial-stdio` channel, by
+    /// contrast, is a one-shot bridge to the remote socket; the daemon may close
+    /// it after a response, so a pooled handle could be handed to a later request
+    /// dead. Overriding this to `false` marks the connection non-poolable.
+    ///
+    /// Defaults to `true` (poolable) — the `WireGuard` overlay relies on that.
+    fn should_pool(&self) -> bool {
+        true
+    }
 }
 
 /// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
@@ -532,6 +546,21 @@ impl Connection {
     #[must_use]
     pub fn is_overlay(&self) -> bool {
         matches!(self, Self::Overlay(_))
+    }
+
+    /// Whether an HTTP connection over this transport may be returned to the pool.
+    ///
+    /// WHY: Unix sockets (Docker/BuildKitd) close after every response, so they
+    /// are never pooled. A caller-provided `Overlay` stream decides for itself
+    /// via [`OverlayReadWrite::should_pool`] — a `WireGuard` tunnel pools, an SSH
+    /// `docker system dial-stdio` channel does not. TCP/TLS pool as usual.
+    #[must_use]
+    pub fn should_pool(&self) -> bool {
+        match self {
+            Self::Unix(_) => false,
+            Self::Overlay(o) => o.should_pool(),
+            _ => true,
+        }
     }
 }
 

@@ -89,6 +89,11 @@ features = [
 path = "../foundation_netio"
 version = "0.0.1"
 
+[dependencies.foundation_sshkit]
+path = "../foundation_sshkit"
+version = "0.1.0"
+optional = true
+
 [dependencies.serde]
 workspace = true
 
@@ -174,6 +179,7 @@ docker = [
     "docker_volumes",
     "docker_wait",
     "docker_ws",
+    "dep:foundation_sshkit",
 ]
 docker_all = [
     "docker_archive",

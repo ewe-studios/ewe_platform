@@ -59,6 +59,9 @@ pub mod exec;
 /// (`version` lives directly on [`DockerClient`].)
 pub mod system;
 
+/// SSH transport (`ssh://user@host` via `docker system dial-stdio`).
+pub mod ssh;
+
 /// Docker daemon client over a Unix socket.
 ///
 /// WHY: Talks to `dockerd` without bollard/tokio — a `DynNetClient` over the Unix
@@ -220,6 +223,46 @@ impl DockerClient {
         })
     }
 
+    /// Connect to a remote Docker daemon over **SSH** (`ssh://user@host[:port]`).
+    ///
+    /// WHY: SSH is Docker's port-less remote transport — it reuses an existing
+    /// SSH login instead of exposing a TCP port or managing TLS certs.
+    ///
+    /// WHAT: SSHes in and runs `docker system dial-stdio`, whose stdio bridges to
+    /// the remote `/var/run/docker.sock`. The client then speaks the ordinary
+    /// Docker HTTP API over that channel (base URL `http://localhost`).
+    ///
+    /// HOW: Installs an [`ssh::SshConnector`] on the HTTP client via
+    /// [`HttpClientBuilder::with_connector`]; each request opens a fresh
+    /// `dial-stdio` channel (session reused across requests, channel not pooled).
+    /// Authentication (key / agent / password) comes from the SSH host config —
+    /// see [`foundation_sshkit::Host`].
+    ///
+    /// # Errors
+    ///
+    /// Never fails at construction (the SSH session is established lazily on the
+    /// first request); returns [`DockerError`] only via later API calls.
+    pub fn connect_ssh(url: &str) -> Result<Self, DockerError> {
+        use foundation_sshkit::Host;
+
+        // `Host::parse` accepts `[user@]host[:port]` — strip the scheme first.
+        let spec = url.strip_prefix("ssh://").unwrap_or(url);
+        let host = Host::parse(spec);
+        let connector = std::sync::Arc::new(ssh::SshConnector::new(host));
+        let http = HttpClientBuilder::new()
+            .with_connector(connector)
+            .read_timeout(std::time::Duration::from_secs(120))
+            .build();
+        Ok(Self {
+            http,
+            socket_path: PathBuf::from(url),
+            api_version: DEFAULT_API_VERSION.to_string(),
+            // dial-stdio bridges to the remote's *local* docker.sock — Host: localhost.
+            remote_host: None,
+            tls: false,
+        })
+    }
+
     /// Set a custom remote host (e.g. for Docker contexts, SSH tunnels).
     ///
     /// WHY: Lets callers use `connect_unix` then override the URL for cases
@@ -240,12 +283,13 @@ impl DockerClient {
     /// HOW: Parses `DOCKER_HOST`; falls back to `/var/run/docker.sock`. A
     /// `tcp://` host with `DOCKER_TLS_VERIFY` set (or a `DOCKER_CERT_PATH` with
     /// certs) is dialed over mutual TLS via [`Self::connect_tls`]; a `tcp://`
-    /// host without TLS env is plaintext [`Self::connect_tcp`].
+    /// host without TLS env is plaintext [`Self::connect_tcp`]; an `ssh://` host
+    /// is driven over `docker system dial-stdio` via [`Self::connect_ssh`].
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError::Unavailable`] if `DOCKER_HOST` names an
-    /// `ssh://` transport (not yet supported) or if TLS material is invalid.
+    /// Returns [`DockerError::Unavailable`] if `DOCKER_HOST` names an unrecognized
+    /// transport or if TLS material is invalid.
     pub fn connect_with_defaults() -> Result<Self, DockerError> {
         let host = std::env::var("DOCKER_HOST").unwrap_or_default();
         if host.is_empty() {
@@ -270,9 +314,7 @@ impl DockerClient {
             return Ok(Self::connect_tcp(addr));
         }
         if host.starts_with("ssh://") {
-            return Err(DockerError::Unavailable(format!(
-                "ssh:// DOCKER_HOST not yet supported: {host}"
-            )));
+            return Self::connect_ssh(&host);
         }
         Err(DockerError::Unavailable(format!(
             "unrecognized DOCKER_HOST transport: {host}"

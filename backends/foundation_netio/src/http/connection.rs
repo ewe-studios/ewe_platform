@@ -526,7 +526,8 @@ pub struct HttpConnectionPool<R: DnsResolver> {
     resolver: Arc<R>,
     tls_connector: Option<Arc<SSLConnector>>,
     /// Optional transport connector — when set, bypasses DNS+TcpStream in
-    /// `create_http_connection` for the fresh-connection path (F11).
+    /// `create_http_connection` for the fresh-connection path (F11 `WireGuard`
+    /// overlay, F08 SSH `docker system dial-stdio`).
     pub connector: Option<Arc<dyn Connector>>,
 }
 
@@ -584,7 +585,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         self
     }
 
-    /// Use a custom transport connector (WireGuard overlay, Unix socket).
+    /// Use a custom transport connector (`WireGuard` overlay, SSH `dial-stdio`).
     /// When set, `create_http_connection` uses this for fresh connections.
     #[must_use]
     pub fn with_connector(mut self, c: Arc<dyn Connector>) -> Self {
@@ -687,12 +688,14 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// This is a best-effort helper that calls into the pool's `put`/`release`
     /// style API. Adjust the call if your pool uses a different method name.
     pub fn return_to_pool(&self, conn: HttpClientConnection) {
-        // WHY: Unix sockets are closed by the server after every response
-        // (Docker, BuildKitd). Never pool them — the next checkout would
-        // get a dead connection. Checks the actual transport type via
-        // SharedByteBufferStream::is_unix → RawStream::is_unix → Connection::is_unix.
-        if conn.stream.is_unix() {
-            tracing::trace!("return_to_pool: dropping Unix-socket connection (not poolable)");
+        // WHY: Some transports must never be pooled — Unix sockets (Docker,
+        // BuildKitd) close after every response, and an SSH `docker system
+        // dial-stdio` channel is a one-shot bridge. The next checkout would get
+        // a dead connection. Poolability is carried by the transport itself via
+        // SharedByteBufferStream::should_pool → RawStream::should_pool →
+        // Connection::should_pool (→ OverlayReadWrite::should_pool).
+        if !conn.stream.should_pool() {
+            tracing::trace!("return_to_pool: dropping non-poolable connection");
             return;
         }
         tracing::trace!("Returning http client connection to the pool");

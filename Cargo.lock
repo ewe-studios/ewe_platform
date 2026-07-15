@@ -4542,6 +4542,7 @@ dependencies = [
  "foundation_http",
  "foundation_macros",
  "foundation_netio",
+ "foundation_sshkit",
  "futures",
  "futures-lite",
  "prost 0.12.6",

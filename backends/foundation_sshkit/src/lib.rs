@@ -20,7 +20,8 @@ pub use host::Host;
 pub use pool::ConnectionPool;
 pub use runner::Runner;
 
-pub use backends::ssh2::Ssh2Backend;
+pub use backends::ssh2::{ChannelStream, Dialer, Ssh2Backend};
+pub use pool::connect_session;
 
 #[cfg(feature = "russh-backend")]
 pub use backends::russh::RusshBackend;

@@ -54,7 +54,10 @@ use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 /// ```
 pub struct HttpClientBuilder {
     config: ClientConfig,
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     tls_connector: Option<crate::netcap::ssl::SSLConnector>,
+    #[cfg(not(target_family = "wasm"))]
+    connector: Option<Arc<dyn crate::native::connection::Connector>>,
 }
 
 impl Default for HttpClientBuilder {
@@ -68,7 +71,14 @@ impl HttpClientBuilder {
     pub fn new() -> Self {
         Self {
             config: ClientConfig::default(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
             tls_connector: None,
+            #[cfg(not(target_family = "wasm"))]
+            connector: None,
         }
     }
 
@@ -77,9 +87,33 @@ impl HttpClientBuilder {
     /// e.g. a Docker daemon over `tcp://…:2376` with `DOCKER_CERT_PATH` client
     /// certs (build the connector with
     /// [`SSLConnector::from_client_mutual_pem`](crate::netcap::ssl::SSLConnector)).
+    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
     #[must_use]
     pub fn with_tls_connector(mut self, connector: crate::netcap::ssl::SSLConnector) -> Self {
         self.tls_connector = Some(connector);
+        self
+    }
+
+    /// Route requests over a custom transport [`Connector`] instead of dialing
+    /// DNS+TCP.
+    ///
+    /// WHY: Some transports are not `host:port` dials. The Docker SSH transport
+    /// (`DOCKER_HOST=ssh://…`) logs in over SSH and runs `docker system dial-stdio`
+    /// — the exec channel *is* the socket; the connector opens a fresh channel and
+    /// hands back a `Connection::Overlay`. The `WireGuard` overlay uses the same
+    /// seam (F11). The client then speaks ordinary HTTP/1.1 over the connection.
+    ///
+    /// Native-only: [`Connector`] yields a native `Connection`, which does not
+    /// exist on wasm (the browser owns the network stack).
+    ///
+    /// [`Connector`]: crate::native::connection::Connector
+    #[cfg(not(target_family = "wasm"))]
+    #[must_use]
+    pub fn with_connector(
+        mut self,
+        connector: Arc<dyn crate::native::connection::Connector>,
+    ) -> Self {
+        self.connector = Some(connector);
         self
     }
 
@@ -305,8 +339,16 @@ impl HttpClientBuilder {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
             let mut client = crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config);
-            if let Some(connector) = self.tls_connector {
-                client = client.with_tls_connector(connector);
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            if let Some(tls) = self.tls_connector {
+                client = client.with_tls_connector(tls);
+            }
+            if let Some(connector) = self.connector {
+                client = client.with_connector(connector);
             }
             Arc::new(client)
         }
