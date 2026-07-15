@@ -225,6 +225,26 @@ fn collect_referenced_type_names(
             }
         }
     }
+
+    // Top-level array items: when the schema is *itself* an array
+    // (`{type: array, items: {...}}`), follow the element schema. Without this,
+    // a `$ref` to a standalone array schema (e.g. an Access "exclude" list whose
+    // items `$ref` `access_rule`) collects the array wrapper but never its
+    // element type, so the element type is referenced in generated field
+    // positions (`Vec<AccessRule>`) yet never emitted — an `E0425` at compile.
+    if let Some(items) = &schema.items {
+        if let Some(ref_path) = &items.ref_path {
+            let ref_name = ref_path
+                .trim_start_matches("#/components/schemas/")
+                .trim_start_matches("#/schemas/");
+            let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+            if seen_types.insert(safe_name) {
+                types_to_process.push(ref_name.to_string());
+            }
+        } else {
+            collect_referenced_type_names(items, seen_types, types_to_process);
+        }
+    }
 }
 
 /// Build a map of which types reference which other types (dependency graph).
@@ -625,6 +645,10 @@ fn update_cargo_toml(
 /// Unified generator that produces cohesive per-endpoint units.
 pub struct UnifiedGenerator {
     output_dir: PathBuf,
+    /// Optional override: write files directly to this directory instead of
+    /// `output_dir.join(provider)`. Used for providers split into their own
+    /// crate (e.g. cloudflare → foundation_deployment_cloudflare/src).
+    provider_dir_override: Option<PathBuf>,
 }
 
 /// Error type for generation failures.
@@ -665,7 +689,15 @@ impl From<std::fmt::Error> for GenError {
 
 impl UnifiedGenerator {
     pub fn new(output_dir: PathBuf) -> Self {
-        Self { output_dir }
+        Self { output_dir, provider_dir_override: None }
+    }
+
+    /// Override the provider output directory. When set, `generate()` writes
+    /// files to this path instead of `output_dir.join(provider)`.
+    #[must_use]
+    pub fn with_provider_dir(mut self, dir: PathBuf) -> Self {
+        self.provider_dir_override = Some(dir);
+        self
     }
 
     /// Generate all artifacts for a provider as cohesive per-endpoint units.
@@ -681,11 +713,17 @@ impl UnifiedGenerator {
         let analysis = analyze_spec(spec_content, provider, options)
             .map_err(|e| GenError::AnalysisFailed(e.to_string()))?;
 
-        let provider_output_dir = self.output_dir.join(provider);
-        fs::create_dir_all(&provider_output_dir)?;
+        let provider_root = self
+            .provider_dir_override
+            .clone()
+            .unwrap_or_else(|| self.output_dir.join(provider));
+        // All generated files live under `generated/` so hand-written code
+        // in neighbouring directories is never overwritten by regeneration.
+        let generated_dir = provider_root.join("generated");
+        fs::create_dir_all(&generated_dir)?;
 
         // Generate shared/ module (always needed for ApiError/ApiResponse types)
-        self.generate_shared_module(&analysis, &provider_output_dir)?;
+        self.generate_shared_module(&analysis, &generated_dir)?;
 
         // Generate one module per group
         for group in &analysis.groups {
@@ -694,25 +732,38 @@ impl UnifiedGenerator {
                 group,
                 &analysis.shared_resources,
                 &analysis.schemas,
-                &provider_output_dir,
+                &generated_dir,
             )?;
         }
 
-        // Generate provider mod.rs with feature guards
-        self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources)?;
+        // Generate generated/mod.rs with feature guards — this becomes the
+        // single entry point for all generated code.
+        self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources, &generated_dir)?;
 
-        // Update Cargo.toml with missing feature flags
-        // output_dir is typically "backends/foundation_deployment/src/providers"
-        // We need to go up 2 levels to reach the crate root where Cargo.toml is:
-        // - ancestors[0] = backends/foundation_deployment/src/providers
-        // - ancestors[1] = backends/foundation_deployment/src
-        // - ancestors[2] = backends/foundation_deployment (crate root with Cargo.toml)
-        let cargo_toml_path = self
-            .output_dir
-            .ancestors()
-            .nth(2)
-            .map(|p| p.join("Cargo.toml"))
-            .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"));
+        // For monolith providers, write a thin parent mod.rs that just re-exports
+        // `generated/`. Only create it if the file doesn't already exist (so
+        // users can replace it with hand-written code without losing it on the
+        // next regeneration).
+        if self.provider_dir_override.is_none() {
+            let parent_mod = provider_root.join("mod.rs");
+            if !parent_mod.exists() {
+                fs::write(&parent_mod, "//! Auto-generated thin re-export module.\n//! Replace with hand-written code — this file will not be overwritten.\npub mod generated;\n")?;
+            }
+        }
+
+        // Update Cargo.toml with missing feature flags.
+        // For split-out providers (provider_dir_override set), output_dir IS the
+        // crate root. For monolith providers, output_dir is
+        // foundation_deployment/src/providers and the crate root is 2 levels up.
+        let cargo_toml_path = if self.provider_dir_override.is_some() {
+            self.output_dir.join("Cargo.toml")
+        } else {
+            self.output_dir
+                .ancestors()
+                .nth(2)
+                .map(|p| p.join("Cargo.toml"))
+                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+        };
 
         if cargo_toml_path.exists() {
             update_cargo_toml(provider, &analysis.groups, &cargo_toml_path).map_err(|e| {
@@ -778,9 +829,12 @@ impl UnifiedGenerator {
         // Common imports — only what's actually used in the generated code
         writeln!(
             out,
-            "use foundation_core::valtron::{{TaskIterator, TaskIteratorExt}};"
+            "use foundation_netio::{{DynNetClient, PreparedRequestBuilder}};"
         )?;
-        writeln!(out, "use foundation_netio::simple_http::client::{{ClientRequestBuilder, SimpleHttpClient}};")?;
+        writeln!(
+            out,
+            "use foundation_netio::shared::client::http_client::HttpClient;"
+        )?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out)?;
@@ -842,13 +896,47 @@ impl UnifiedGenerator {
             }
         }
 
-        // Second pass: collect all transitively referenced types from schemas
-        // This ensures nested types (e.g., types referenced via $ref in properties) are also generated
+        // Second pass: collect all transitively referenced types from schemas.
+        // This ensures nested types (e.g., types referenced via $ref in properties)
+        // are also generated.
+        //
+        // all_types contains PascalCase names, but schemas are keyed by the spec's
+        // original names. Use resolve_schema_key to bridge the gap.
         let mut types_to_process: Vec<String> = all_types.iter().cloned().collect();
+        let mut already_traversed: std::collections::HashSet<String> = std::collections::HashSet::new();
 
         while let Some(type_name) = types_to_process.pop() {
-            if let Some(schema) = schemas.get(&type_name) {
+            if already_traversed.contains(&type_name.to_lowercase()) {
+                continue;
+            }
+            if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+                already_traversed.insert(type_name.to_lowercase());
                 collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+            }
+        }
+        // Converging pass: after traversing all $ref chains, scan every generated
+        // type's schema for properties that reference other schemas via $ref. Any
+        // target type not yet known gets generated too. Repeat until no new types
+        // are discovered.
+        loop {
+            let before = all_types.len();
+            let snapshot: Vec<String> = all_types.iter().cloned().collect();
+            for type_name in &snapshot {
+                if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
+                    collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+                }
+            }
+            while let Some(type_name) = types_to_process.pop() {
+                if already_traversed.contains(&type_name.to_lowercase()) {
+                    continue;
+                }
+                if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+                    already_traversed.insert(type_name.to_lowercase());
+                    collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+                }
+            }
+            if all_types.len() == before {
+                break;
             }
         }
 
@@ -939,8 +1027,9 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_type_name = rename_std_type_conflict(type_name);
 
-            // Try to find the schema for this type
-            if let Some(schema) = schemas.get(type_name) {
+            // Try to find the schema for this type (may be PascalCase while
+            // schemas use the original spec key convention)
+            if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
                 // Generate proper struct from schema, wrapping recursive refs in Box<>
                 self.generate_type_from_schema(
                     &mut out,
@@ -991,36 +1080,33 @@ impl UnifiedGenerator {
                 to_pascal_case(&sanitize_identifier(&ep.operation_id))
             );
 
-            // Check if this endpoint has params
-            let has_params = !ep.path_params.is_empty()
-                || !ep.query_params.is_empty()
-                || ep.request_type.is_some();
+            // Always emit the Args struct — the generated `*_request` function
+            // unconditionally takes `args: &{Op}Args`, so a param-less endpoint
+            // still needs the (empty) struct to exist, otherwise its function
+            // references an undefined type (`E0425`).
+            writeln!(out, "/// Arguments for [`{}_request`].", ep.operation_id)?;
+            writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
+            writeln!(out, "pub struct {} {{", args_name)?;
 
-            if has_params {
-                writeln!(out, "/// Arguments for [`{}_builder`].", ep.operation_id)?;
-                writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
-                writeln!(out, "pub struct {} {{", args_name)?;
-
-                for param in &ep.path_params {
-                    let param_name =
-                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                    writeln!(out, "    /// Path parameter: `{}`.", param)?;
-                    writeln!(out, "    pub {}: String,", param_name)?;
-                }
-                for param in &ep.query_params {
-                    let param_name =
-                        escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                    writeln!(out, "    /// Query parameter: `{}`.", param)?;
-                    writeln!(out, "    pub {}: Option<String>,", param_name)?;
-                }
-                if let Some(rt) = &ep.request_type {
-                    writeln!(out, "    /// Request body.")?;
-                    writeln!(out, "    pub body: {},", rt)?;
-                }
-
-                writeln!(out, "}}")?;
-                writeln!(out)?;
+            for param in &ep.path_params {
+                let param_name =
+                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                writeln!(out, "    /// Path parameter: `{}`.", param)?;
+                writeln!(out, "    pub {}: String,", param_name)?;
             }
+            for param in &ep.query_params {
+                let param_name =
+                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                writeln!(out, "    /// Query parameter: `{}`.", param)?;
+                writeln!(out, "    pub {}: Option<String>,", param_name)?;
+            }
+            if let Some(rt) = &ep.request_type {
+                writeln!(out, "    /// Request body.")?;
+                writeln!(out, "    pub body: {},", rt)?;
+            }
+
+            writeln!(out, "}}")?;
+            writeln!(out)?;
         }
 
         // Generate client functions per endpoint
@@ -1068,6 +1154,11 @@ impl UnifiedGenerator {
             out,
             "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
         )?;
+        // WHY: OpenAPI specs use mixed naming conventions (PascalCase, camelCase,
+        // snake_case). We convert all property names to snake_case for Rust fields,
+        // so we must emit per-field #[serde(rename)] when the original name differs
+        // from the snake_cased field name. A single rename_all can't handle mixed
+        // specs like Docker (ApiVersion + architecture in the same schema).
         writeln!(out, "pub struct {} {{", type_name)?;
 
         // Handle allOf - merge properties from all members
@@ -1095,6 +1186,12 @@ impl UnifiedGenerator {
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
+                // Emit per-field serde rename when the snake_cased field name
+                // differs from the original property name (handles PascalCase,
+                // camelCase, and mixed-casing specs like Docker).
+                if prop_name.as_str() != field_name.as_str() {
+                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                }
                 if is_required {
                     writeln!(out, "    pub {}: {},", field_name, rust_type)?;
                 } else {
@@ -1121,6 +1218,11 @@ impl UnifiedGenerator {
                 let is_required = required.contains(prop_name);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
+                // Emit per-field serde rename when the snake_cased field name
+                // differs from the original property name.
+                if prop_name != &field_name {
+                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                }
                 if is_required {
                     writeln!(out, "    pub {}: {},", field_name, rust_type)?;
                 } else {
@@ -1129,7 +1231,10 @@ impl UnifiedGenerator {
             }
         }
 
-        // If no properties were generated, add a fallback field
+        // If no properties were generated, the schema is opaque — emit a
+        // placeholder. (Shared resource types with real schemas are now
+        // resolved in generate_shared_module; this fallback only fires for
+        // truly unresolvable cases.)
         if schema.properties.is_none() && schema.all_of.is_none() {
             writeln!(out, "    #[serde(flatten)]")?;
             writeln!(
@@ -1155,6 +1260,15 @@ impl UnifiedGenerator {
             let ref_name = ref_path
                 .trim_start_matches("#/components/schemas/")
                 .trim_start_matches("#/schemas/");
+
+            // If the referenced schema is an array, resolve to Vec<…> inline
+            // instead of returning a PascalCase wrapper name.  Array schemas
+            // should never be generated as standalone structs.
+            if let Some(target) = schemas.get(ref_name) {
+                if target.schema_type.as_deref() == Some("array") {
+                    return self.schema_to_rust_type(target, schemas);
+                }
+            }
 
             // Rename std type conflicts
             let pascal_name = crate::to_pascal_case(ref_name);
@@ -1220,14 +1334,14 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        // Single merged function: builds request, applies optional modifications, returns task
+        // Single merged async fn: builds request, applies optional modifications, sends.
         writeln!(out, "/// {} {}.", ep.method, ep.path)?;
         writeln!(out, "///")?;
         writeln!(
             out,
-            "/// Takes client and args, builds the request, optionally applies modifications,"
+            "/// Takes a `DynNetClient` and args, builds the request, optionally applies"
         )?;
-        writeln!(out, "/// and returns a `TaskIterator` for execution.")?;
+        writeln!(out, "/// modifications, then sends it via `send_async().await`.")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
@@ -1243,62 +1357,52 @@ impl UnifiedGenerator {
         writeln!(out, "/// ```ignore")?;
         writeln!(
             out,
-            "/// let task = {}_request(&client, &args, Some(|b| {{",
+            "/// let response = {}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{",
             fn_prefix
         )?;
-        writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\")")?;
-        writeln!(out, "/// }}))?;")?;
+        writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\");")?;
+        writeln!(out, "/// }})).await?;")?;
         writeln!(out, "/// ```")?;
-        writeln!(out, "#[inline]")?;
-        writeln!(out, "pub fn {}_request<R, F>(", fn_prefix)?;
-        writeln!(out, "    client: &SimpleHttpClient<R>,")?;
-        writeln!(out, "    args: &{},", args_name)?;
+        // `args` is only read when the endpoint has path params, query params,
+        // or a request body. Name it `_args` otherwise so the (always-emitted)
+        // parameter doesn't trip `unused_variables`.
+        let args_uses = !ep.path_params.is_empty()
+            || !ep.query_params.is_empty()
+            || ep.request_type.is_some();
+        let args_binding = if args_uses { "args" } else { "_args" };
+        writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
+        writeln!(out, "    client: DynNetClient,")?;
+        writeln!(out, "    {}: &{},", args_binding, args_name)?;
+        // WHY: The base URL (e.g. "http://localhost/v1.53") is configurable so
+        // callers can point at remote Docker daemons, not just Unix-socket-local.
+        // For providers whose spec declares an explicit baseUrl, the caller
+        // should pass that value; for Docker the caller derives it from
+        // DockerClient::base_url().
+        writeln!(out, "    base_url: &str,")?;
         writeln!(out, "    builder_mod: Option<F>,")?;
-        writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>", return_type)?;
+        writeln!(out, ") -> Result<ApiResponse<{}>, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
-        writeln!(out, "    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,")?;
-        writeln!(out, "    F: FnOnce(&mut ClientRequestBuilder<R>),")?;
+        writeln!(out, "    F: FnOnce(&mut PreparedRequestBuilder),")?;
         writeln!(out, "{{")?;
 
-        // Build URL with path params, then append query params if any
+        // Build URL: base_url is the caller-supplied scheme+host+version prefix
+        // (e.g. "http://localhost/v1.53"); we format the path separately then
+        // join — avoids nested format!() indentation issues.
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        let (escaped_base, _) = escape_url_for_format(
-            ep.base_url.as_deref().unwrap_or("https://api.example.com"),
-            &[],
-        );
-        writeln!(out, "    let endpoint_url = format!(")?;
-        writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
+        writeln!(out, "    let path = format!(\"{}\",", escaped_path)?;
         for param_name in &params_in_url_order {
             let safe_param = escape_rust_keyword(param_name);
             writeln!(out, "        args.{safe_param},")?;
         }
         writeln!(out, "    );")?;
+        writeln!(out, "    let endpoint_url = format!(\"{{}}{{}}\", base_url, path);")?;
         writeln!(out)?;
 
-        // Append query params from args if any
-        if !ep.query_params.is_empty() {
-            writeln!(out, "    let endpoint_url = {{")?;
-            writeln!(out, "        let mut url = endpoint_url;")?;
-            writeln!(out, "        let mut first = true;")?;
-            for qp in &ep.query_params {
-                let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
-                let url_qp_name = sanitize_identifier(qp);
-                writeln!(out, "        if let Some(ref v) = args.{safe_qp} {{")?;
-                writeln!(out, "            if first {{ url.push('?'); first = false; }} else {{ url.push('&'); }}")?;
-                writeln!(out, "            url.push_str(\"{url_qp_name}=\");")?;
-                writeln!(out, "            url.push_str(&urlencoding::encode(v));")?;
-                writeln!(out, "        }}")?;
-            }
-            writeln!(out, "        url")?;
-            writeln!(out, "    }};")?;
-            writeln!(out)?;
-        }
-
-        // Build request
+        // Build request via the cross-platform PreparedRequestBuilder.
         let method_lower = ep.method.to_lowercase();
         writeln!(
             out,
-            "    let mut builder = client.{}(&endpoint_url)",
+            "    let mut builder = PreparedRequestBuilder::{}(&endpoint_url)",
             method_lower
         )?;
         writeln!(
@@ -1307,62 +1411,89 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        // Add body if present
+        // Structured query params from args (None values are skipped).
+        for qp in &ep.query_params {
+            let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
+            writeln!(
+                out,
+                "    builder = builder.query(\"{qp}\", args.{safe_qp}.as_deref());"
+            )?;
+        }
+        if !ep.query_params.is_empty() {
+            writeln!(out)?;
+        }
+
+        // Add body if present.
         if ep.request_type.is_some() {
             writeln!(out, "    builder = builder.body_json(&args.body)")?;
             writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;")?;
             writeln!(out)?;
         }
 
-        // Apply user modifications
+        // Apply user modifications.
         writeln!(out, "    if let Some(f) = builder_mod {{")?;
         writeln!(out, "        f(&mut builder);")?;
         writeln!(out, "    }}")?;
         writeln!(out)?;
 
-        // Build and return task
-        writeln!(out, "    Ok(")?;
-        writeln!(out, "        builder")?;
-        writeln!(out, "            .build_send_request()")?;
-        writeln!(out, "            .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
-        writeln!(out, "            .map_ready(|intro| match intro {{")?;
+        // Send asynchronously and parse the response.
+        writeln!(out, "    let response = client.send_async(builder.build()).await")?;
+        writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
+        writeln!(out)?;
+        writeln!(out, "    let status: usize = response.get_status().into();")?;
+        writeln!(out, "    let headers = response.get_headers_ref().clone();")?;
+        writeln!(out, "    if status < 200 || status >= 300 {{")?;
+        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body: None }});")?;
+        writeln!(out, "    }}")?;
         if return_type == "()" {
-            writeln!(out, "                super::shared::RequestIntro::Success {{ stream: _, intro, headers, .. }} => {{")?;
+            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
         } else {
-            writeln!(out, "                super::shared::RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
+            writeln!(out, "    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
+            writeln!(out, "    let parsed: {} = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
+            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: parsed }})")?;
         }
-        writeln!(
-            out,
-            "                    let status: usize = intro.0.into();"
-        )?;
-        writeln!(
-            out,
-            "                    if status < 200 || status >= 300 {{"
-        )?;
-        writeln!(out, "                        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers: headers.clone(), body: None }});")?;
-        writeln!(out, "                    }}")?;
-        if return_type == "()" {
-            writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: () }})")?;
-        } else {
-            writeln!(out, "                    let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);")?;
-            writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
-            writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: parsed }})")?;
-        }
-        writeln!(out, "                }}")?;
-        writeln!(out, "                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),")?;
-        writeln!(out, "            }})")?;
-        writeln!(
-            out,
-            "            .map_pending(|_| super::shared::ApiPending::Sending)"
-        )?;
-        writeln!(out, "    )")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 
         Ok(())
     }
 
+    /// Resolve a PascalCase type name to the original OpenAPI spec schema key.
+    ///
+    /// The `schemas` map uses the spec's original keys (typically `snake_case`),
+    /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
+    /// (some specs use PascalCase keys), then convert to snake_case.
+    fn resolve_schema_key<'a>(
+        type_name: &str,
+        schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> Option<&'a crate::spec::Schema> {
+        // 1. Direct lookup (spec may use PascalCase keys)
+        if let Some(s) = schemas.get(type_name) {
+            return Some(s);
+        }
+        // 2. Convert to snake_case (Cloudflare spec uses snake_case keys)
+        let snake = crate::to_snake_case(type_name);
+        if let Some(s) = schemas.get(&snake) {
+            return Some(s);
+        }
+        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar")
+        if let Some(first) = type_name.chars().next() {
+            let lower_first = first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
+            if let Some(s) = schemas.get(&lower_first) {
+                return Some(s);
+            }
+        }
+        None
+    }
+
     /// Generate shared module for cross-group types.
+    ///
+    /// WHY: Types used by multiple groups (shared_resources) must live in one place so
+    /// group modules can import them via `super::shared::`. The OLD behaviour was to emit
+    /// a `HashMap<String, Value>` stub for every shared type regardless of the actual
+    /// OpenAPI schema. The NEW behaviour resolves each type's schema and generates a
+    /// properly typed struct with real fields, only falling back to HashMap when the
+    /// schema truly cannot be resolved.
     fn generate_shared_module(
         &self,
         analysis: &super::analyzer::AnalysisResult,
@@ -1370,6 +1501,11 @@ impl UnifiedGenerator {
     ) -> Result<(), GenError> {
         let shared_dir = output_dir.join("shared");
         fs::create_dir_all(&shared_dir)?;
+
+        // Build dependency graph across ALL schemas (including shared ones) so we
+        // detect mutually recursive types that need Box wrapping.
+        let type_deps = build_type_dependencies(&analysis.schemas);
+        let recursive_types = find_recursive_types(&type_deps);
 
         let mut out = String::new();
         writeln!(
@@ -1384,11 +1520,19 @@ impl UnifiedGenerator {
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
+        // For split-out providers (provider_dir_override set), the shared
+        // module lives in its own crate so it must import from
+        // foundation_deployment rather than crate::providers::common.
+        let common_path = if self.provider_dir_override.is_some() {
+            "foundation_deployment::providers::common"
+        } else {
+            "crate::providers::common"
+        };
         writeln!(
             out,
             "// Re-export common API types from foundation_deployment"
         )?;
-        writeln!(out, "pub use crate::providers::common::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
+        writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -1405,7 +1549,46 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
-        for type_name in &analysis.shared_resources {
+        // Transitively expand the shared resource list so that any type referenced
+        // by a shared struct's fields (nested objects, array element types, etc.)
+        // is *also* emitted here. Without this a shared struct can reference a type
+        // that lives only in some group module — an `E0425 cannot find type` in the
+        // shared module itself. The convergence mirrors the per-group collection.
+        let shared_types_to_emit: Vec<String> = {
+            let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+            let mut to_process: Vec<String> = analysis.shared_resources.clone();
+            for t in &analysis.shared_resources {
+                seen.insert(t.clone());
+            }
+            let mut traversed: std::collections::HashSet<String> = std::collections::HashSet::new();
+            while let Some(type_name) = to_process.pop() {
+                let key = type_name.to_lowercase();
+                if traversed.contains(&key) {
+                    continue;
+                }
+                traversed.insert(key);
+                if let Some(schema) = Self::resolve_schema_key(&type_name, &analysis.schemas) {
+                    let mut discovered: Vec<String> = Vec::new();
+                    collect_referenced_type_names(schema, &mut seen, &mut discovered);
+                    to_process.extend(discovered);
+                }
+            }
+            // Preserve the original shared_resources ordering first, then append the
+            // transitively discovered types (which are stored PascalCase in `seen`).
+            let mut ordered: Vec<String> = analysis.shared_resources.clone();
+            let original: std::collections::HashSet<String> =
+                analysis.shared_resources.iter().cloned().collect();
+            let mut extras: Vec<String> = seen
+                .into_iter()
+                .filter(|t| !original.contains(t))
+                .collect();
+            extras.sort();
+            ordered.extend(extras);
+            ordered
+        };
+
+        let mut emitted_shared: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for type_name in &shared_types_to_emit {
             // Skip types that aren't valid identifiers (generics like Vec<...>, paths with ::, etc.)
             if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
                 continue;
@@ -1435,19 +1618,51 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_name = rename_std_type_conflict(type_name);
 
-            writeln!(out, "/// Shared type: `{}`.", safe_name)?;
-            writeln!(
-                out,
-                "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
-            )?;
-            writeln!(out, "pub struct {} {{", safe_name)?;
-            writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(
-                out,
-                "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-            )?;
-            writeln!(out, "}}")?;
-            writeln!(out)?;
+            // Deduplicate — a type may be reached both directly and transitively.
+            if !emitted_shared.insert(safe_name.clone()) {
+                continue;
+            }
+
+            // Array schemas inline to `Vec<Item>` at field positions, so they
+            // must not be emitted as standalone structs (the element type is
+            // emitted instead, having been collected transitively).
+            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
+                if schema.schema_type.as_deref() == Some("array") {
+                    continue;
+                }
+            }
+
+            // Try to resolve the schema for this shared type.
+            // Schemas are keyed by original spec names (usually snake_case);
+            // shared_resources stores PascalCase names. resolve_schema_key
+            // tries multiple naming conventions.
+            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
+                // Generate a properly typed struct from the OpenAPI schema.
+                self.generate_type_from_schema(
+                    &mut out,
+                    &safe_name,
+                    schema,
+                    &analysis.schemas,
+                    &recursive_types,
+                )?;
+            } else {
+                // No schema found — emit a placeholder HashMap wrapper so the
+                // generated code still compiles (callers should investigate
+                // why the schema wasn't resolved).
+                writeln!(out, "/// Shared type: `{}`.", safe_name)?;
+                writeln!(
+                    out,
+                    "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
+                )?;
+                writeln!(out, "pub struct {} {{", safe_name)?;
+                writeln!(out, "    #[serde(flatten)]")?;
+                writeln!(
+                    out,
+                    "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+                )?;
+                writeln!(out, "}}")?;
+                writeln!(out)?;
+            }
         }
 
         fs::write(shared_dir.join("mod.rs"), out)?;
@@ -1455,24 +1670,26 @@ impl UnifiedGenerator {
     }
 
     /// Generate provider mod.rs with feature guards.
+    /// Generate `mod.rs` inside `generated/` that declares all sub-modules.
     fn generate_provider_mod(
         &self,
         provider: &str,
         groups: &[ApiGroup],
         _shared_resources: &[String],
+        generated_dir: &Path,
     ) -> Result<(), GenError> {
         let feature_name = provider.replace('-', "_").replace('/', "_");
 
         let mut out = String::new();
-        writeln!(out, "//! Auto-generated provider module for {}.", provider)?;
+        writeln!(out, "//! Auto-generated module for {provider}.",)?;
         writeln!(out, "//!")?;
         writeln!(
             out,
-            "//! Generated by `cargo run --bin ewe_platform gen_api`."
+            "//! Generated by `cargo run --bin genapi generate`."
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
-        writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
+        writeln!(out, "#![cfg(feature = \"{feature_name}\")]")?;
         writeln!(
             out,
             "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
@@ -1500,9 +1717,8 @@ impl UnifiedGenerator {
             writeln!(out, "pub mod {safe_name:};")?;
         }
 
-        let provider_dir = self.output_dir.join(provider);
-        fs::create_dir_all(&provider_dir)?;
-        fs::write(provider_dir.join("mod.rs"), out)?;
+        fs::create_dir_all(generated_dir)?;
+        fs::write(generated_dir.join("mod.rs"), out)?;
 
         Ok(())
     }

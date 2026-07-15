@@ -2,11 +2,14 @@
 //!
 //! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
 //! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
+//!
+//! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
+//! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
 
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     SimpleHeader, SendSafeBody,
 };
@@ -138,6 +141,7 @@ fn status_from_code(code: u16) -> Status {
         502 => Status::BadGateway,
         503 => Status::ServiceUnavailable,
         504 => Status::GatewayTimeout,
+        505 => Status::HttpVersionNotSupported,
         n => Status::Numbered(n as usize, String::new()),
     }
 }

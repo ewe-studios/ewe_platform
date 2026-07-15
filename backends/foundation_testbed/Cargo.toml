@@ -7,41 +7,14 @@ license = "MIT"
 
 [features]
 
-# Build everything by default (both binaries); consumers opt out with
-# --no-default-features --features <vms|wasm[,cli]> to take just one part.
-default = ["vms", "wasm", "cli"]
+# Default: wasm + cli only (vms moved to foundation_deployment_platform, spec-53 Feature 11)
+default = ["wasm", "cli"]
 
-# all things vms (QEMU/KVM + the VM-infrastructure deps)
-vms = [
-  "qemu",
-  "dep:foundation_netio",
-  "dep:ssh2",
-  "dep:indicatif",
-  "dep:tar",
-  "dep:flate2",
-  "dep:xz2",
-  "dep:dirs",
-  "dep:anyhow",
-  "dep:image",
-  "dep:libc",
-  "dep:chrono",
-  "dep:toml",
-  "dep:fs2",
-  "dep:sha2",
-  "dep:whoami",
-]
-
-# Linux: QEMU/KVM backend
-qemu = []
-
-# macOS: UTM/Hypervisor backend
-utm = []
-
-# CLI: standalone clap binary + bin/platform integration
+# vms feature kept as alias — enables foundation_deployment_platform with vms
+vms = ["dep:foundation_deployment_platform"]
+# cli kept for backward compat
 cli = ["dep:clap"]
-
-# All providers (for testing on a machine with both)
-all-providers = ["qemu", "utm"]
+foundation_deployment_platform_vms = ["dep:foundation_deployment_platform"]
 
 # wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
 wasm = [
@@ -56,6 +29,17 @@ wasm = [
   "dep:tempfile",
   "dep:portpicker",
   "dep:tracing-subscriber",
+  "dep:which",
+]
+
+# F52: re-export #[wasm_bindgen_test] from foundation_testbed so consumer crates
+# can write browser tests without depending on wasm-bindgen directly.
+wasm-bindgen-test = [
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-test",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
 ]
 
 # spec-44: run the wasm harness JS in-process via an embedded Deno runtime. We
@@ -69,6 +53,7 @@ wasm-embedded-js = [
   "dep:deno_web",      # TextEncoder/TextDecoder, timers, console, URL, performance
   "dep:deno_webidl",   # WebIDL bindings deno_web depends on
   "dep:deno_fetch",    # fetch / Request / Response / Headers
+  "dep:deno_websocket", # WebSocket global (F51 — cross-platform WebSocket client tests)
   "dep:deno_net",      # TLS/net JS deno_fetch's http client lazy-loads (ext:deno_net/02_tls.js)
   "dep:deno_permissions", # PermissionsContainer that op_fetch/op_net read from OpState
   "dep:sys_traits",    # RealSys for the permission descriptor parser
@@ -81,7 +66,7 @@ wasm-embedded-js = [
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
-which = "7"
+which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"
 serde = { version = "1", features = ["derive"] }
@@ -100,6 +85,20 @@ portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
 
+# F52: wasm-bindgen ecosystem — re-exported for consumer browser tests.
+# Pinned by foundation_testbed (single source of truth). Update the CLI:
+#   cargo install wasm-bindgen-cli --version <same as wasm-bindgen below>
+# The runtime version check (>=) allows newer CLI, not older.
+wasm-bindgen = { version = "=0.2.126", optional = true }
+wasm-bindgen-test = { version = "=0.3.76", optional = true }
+wasm-bindgen-test-macro = { version = "=0.3.76", optional = true }
+wasm-bindgen-futures = { version = "=0.4.76", optional = true }
+js-sys = { version = "=0.3.103", optional = true }
+web-sys = { version = "=0.3.103", optional = true, features = [
+  "Window", "console",
+  "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
+] }
+
 # wasm-embedded-js feature — embedded Deno runtime, composed (spec-44, optional).
 # deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
 # Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
@@ -107,42 +106,29 @@ deno_core = { version = "0.404", optional = true }
 deno_web = { version = "0.282", optional = true }  # console/url/encoding folded in (those crates are now deprecated stubs)
 deno_webidl = { version = "0.251", optional = true }
 deno_fetch = { version = "0.275", optional = true }  # fetch / Request / Response / Headers
+deno_websocket = { version = "0.256", optional = true }  # WebSocket global (pairs with deno_core 0.404)
 deno_net = { version = "0.243", optional = true }    # net/TLS JS deno_fetch lazy-loads
 deno_permissions = { version = "0.110", optional = true }  # op_fetch's PermissionsContainer (allow-all for tests)
 sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys for the permission descriptor parser
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }  # CryptoProvider for deno_tls
 deno_error = { version = "0.7", optional = true }  # JsErrorBox for fallible ops
-tokio = { version = "1", features = ["rt", "time"], optional = true }  # drives deno_core's event loop (current-thread)
+tokio = { version = "1", features = ["rt", "time", "net", "io-util"], optional = true }  # drives deno_core's event loop (current-thread); net+io for deno_websocket's TCP dial
 
 # clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
 clap = { version = "4", features = ["derive"], optional = true }
 
-# vms feature — VM infrastructure deps (optional, enabled by `vms`).
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true, features = ["multi"] }
-ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }  # SSH to guests
-indicatif = { version = "0.17", optional = true }  # progress UX
-tar = { version = "0.4", optional = true }          # archive
-flate2 = { version = "1", optional = true }         # gzip
-xz2 = { version = "0.1", optional = true }          # xz
-dirs = { version = "6", optional = true }           # paths
-anyhow = { version = "1", optional = true }         # vms error handling
-image = { version = "0.25", optional = true }       # screenshot validation
-libc = { version = "0.2", optional = true }         # kill(pid, 0) stale checks
-chrono = { version = "0.4", optional = true }       # state timestamps
-toml = { version = "0.8", optional = true }         # config parsing
-fs2 = { version = "0.4", optional = true }          # disk-space (doctor)
-sha2 = { version = "0.10", optional = true }        # export manifest checksums
-whoami = { version = "2", optional = true }         # export manifest creator
+# getrandom needs the "js" feature on wasm32. It's a transitive dep
+# (walrus→wasmparser→hashbrown→ahash→const-random→getrandom).
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "*", features = ["js"] }
+
+# vms has moved to foundation_deployment_platform (spec-53, Feature 11)
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
-
-[[bin]]
-name = "testbed"
-path = "src/bin/testbed.rs"
-required-features = ["cli"]
 
 [[bin]]
 name = "wasm-testbed"

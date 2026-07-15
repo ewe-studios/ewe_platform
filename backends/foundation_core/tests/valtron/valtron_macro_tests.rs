@@ -17,8 +17,13 @@
 use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
 
-use foundation_core::valtron::{sync_one, valtron, valtron_test, NoSpawner, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    sync_collect_one, sync_one, valtron, valtron_test, NoSpawner, TaskIterator, TaskStatus,
+};
 
 /// Produces `max` ready values, one per executor iteration.
 struct CountingTask {
@@ -144,4 +149,66 @@ async fn async_entry_point() -> u32 {
 #[test]
 fn valtron_async_entry_point_returns() {
     assert_eq!(async_entry_point(), 8);
+}
+
+// ============================================================================
+// Panic → channel.close(): a panicking task must unblock the caller, not wedge
+// ============================================================================
+
+/// A task that panics immediately when the executor polls it.
+///
+/// Used to verify that valtron closes the result channel on panic (the fix in
+/// `task_iters.rs`). Without that fix the channel stays open forever, the
+/// collector blocks indefinitely, and the test silently hangs.
+struct PanickingTask;
+
+impl TaskIterator for PanickingTask {
+    type Ready = u32;
+    type Pending = ();
+    type Spawner = NoSpawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        panic!("intentional panic from within a valtron task — this MUST be caught");
+    }
+}
+
+/// WHY: A panicking valtron task used to leave its result channel open, so
+/// `collect_one` / `sync_collect_one` / `block_on_future` blocked forever.
+/// That turned a failing assertion inside a task into a silent test hang
+/// instead of a `FAILED` line — the harness never even printed `test result:`.
+/// The fix in `task_iters.rs` calls `channel.close()` + `alive.take()` in every
+/// `Panicked` arm so the collector unblocks.
+///
+/// WHAT: Schedule `PanickingTask` via `sync_collect_one` and assert it
+/// returns `Err` (channel closed, no ready value). A watchdog thread catches the
+/// regression case (hang) so CI cannot wedge silently.
+///
+/// HOW: `#[valtron_test]` initialises a multi-worker pool; one worker blocks in
+/// `sync_collect_one`, another picks up `PanickingTask` and panics → channel
+/// closes → the blocked worker wakes and sees `Err`.
+#[valtron_test]
+fn panicking_task_closes_channel_and_unblocks_caller() {
+    // Watchdog: if this test ever hangs (because someone reverted the
+    // channel.close() fix), the watchdog fires after 10s and panics so the
+    // test runner sees a failure instead of a hung process.
+    let done = Arc::new(AtomicBool::new(false));
+    let done_clone = Arc::clone(&done);
+
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(10));
+        if !done_clone.load(Ordering::SeqCst) {
+            panic!(
+                "WATCHDOG: panicking task hung for 10s — \
+                 valtron may have regressed the panic-channel-close fix in task_iters.rs"
+            );
+        }
+    });
+
+    let result = sync_collect_one(PanickingTask);
+    done.store(true, Ordering::SeqCst);
+
+    assert!(
+        result.is_err(),
+        "panicking task should unblock the caller with Err, got {result:?}"
+    );
 }

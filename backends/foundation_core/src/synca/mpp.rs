@@ -737,7 +737,7 @@ mod test_tracked_broadcaster {
         let r2 = b.subscribe();
         assert_eq!(b.subscriber_count(), 2);
 
-        r2.close();
+        assert!(r2.close(), "closing an open receiver reports that it closed it");
         b.broadcast(1);
 
         assert_eq!(b.subscriber_count(), 1);

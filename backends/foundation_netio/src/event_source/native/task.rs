@@ -17,19 +17,19 @@
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 //! PHASE 3 SCOPE: Idle timeout support.
 
-use foundation_core::extensions::result_ext::SendableBoxedError;
-use crate::netcap::RawStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::event_source::{EventSourceError, ParseResult, SseParser};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpClientConnection;
-use crate::simple_http::client::HttpConnectionPool;
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use foundation_core::url::Uri;
-use crate::simple_http::shared::{
+use crate::http::HttpClientConnection;
+use crate::http::HttpConnectionPool;
+use crate::netcap::RawStream;
+use crate::shared::client::DnsResolver;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_core::extensions::result_ext::SendableBoxedError;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
@@ -83,7 +83,7 @@ enum EventSourceState {
         parser: SseParser<RawStream>,
         last_activity: Instant,
     },
-    /// Reading from SSE stream iterator (when body was returned as SseStream).
+    /// Reading from SSE stream iterator (when body was returned as `SseStream`).
     ReadingStream {
         conn: HttpClientConnection,
         iterator: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send>,
@@ -133,7 +133,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -221,7 +221,7 @@ where
 
     /// Set the request body.
     ///
-    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
+    /// WHY: Some SSE endpoints (e.g. `OpenAI` chat completions) require POST with a JSON body.
     /// WHAT: Returns Self with the body configured. The method switches from GET to POST.
     #[must_use]
     pub fn with_body(mut self, body: SendSafeBody) -> Self {
@@ -257,12 +257,12 @@ where
     /// Set the timeout calculator for dynamic timeout configuration.
     ///
     /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
-    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// The `TimeoutCalculator` provides dynamic timeout calculation based on context.
     /// WHAT: Returns Self with `timeout_calculator` configured.
     ///
     /// # Parameters
     ///
-    /// * `calculator` - TimeoutCalculator for dynamic timeout computation
+    /// * `calculator` - `TimeoutCalculator` for dynamic timeout computation
     #[must_use]
     pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
         debug!("Setting timeout calculator");
@@ -384,7 +384,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::simple_http::shared::HttpResponseReader::new(
+                    crate::shared::http::HttpResponseReader::new(
                         stream,
                         SimpleHttpBody::default(),
                     ),
@@ -427,7 +427,7 @@ where
                             let content_type = h
                                 .get(&SimpleHeader::CONTENT_TYPE)
                                 .and_then(|v| v.first())
-                                .map(|s| s.as_str());
+                                .map(std::string::String::as_str);
 
                             match content_type {
                                 Some(ct) if ct.contains("text/event-stream") => {
@@ -455,24 +455,20 @@ where
                         )))) => {
                             debug!("Got SSE stream body");
                             // Extract the iterator from SseStream
-                            match opt_iter {
-                                Some(iterator) => {
-                                    // Transition to ReadingStream state with the iterator
-                                    self.state = Some(EventSourceState::ReadingStream {
-                                        conn,
-                                        iterator,
-                                        last_activity: Instant::now(),
-                                    });
-                                    return Some(TaskStatus::Pending(EventSourceProgress::Reading));
-                                }
-                                None => {
-                                    error!("SseStream iterator is None");
-                                    self.state = Some(EventSourceState::Closed(
-                                        EventSourceCloseReason::ConnectionError,
-                                    ));
-                                    return None;
-                                }
+                            if let Some(iterator) = opt_iter {
+                                // Transition to ReadingStream state with the iterator
+                                self.state = Some(EventSourceState::ReadingStream {
+                                    conn,
+                                    iterator,
+                                    last_activity: Instant::now(),
+                                });
+                                return Some(TaskStatus::Pending(EventSourceProgress::Reading));
                             }
+                            error!("SseStream iterator is None");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
                         }
                         Some(Ok(IncomingResponseParts::SizedBody(_))) => {
                             error!("Expected streamed SSE body, got sized body");
@@ -508,7 +504,6 @@ where
                         }
                         _ => {
                             // Skip unknown parts
-                            continue;
                         }
                     }
                 }

@@ -21,12 +21,9 @@ pub fn join<T: MessageBox, R: MessageBox>(
     options: Options,
     timeout: Option<Duration>,
 ) -> Result<(EndpointSender<T>, EndpointReceiver<R>), JoinError> {
-    let rule = Arc::new(RwLock::new(Rule::join(
-        options,
-        0,
-        Arc::new(IoMultiplexing::new()),
-        timeout,
-    )?));
+    let joined = Rule::join(options, 0, Arc::new(IoMultiplexing::new()), timeout)?;
+    tracing::debug!(endpoint_id = ?joined.endpoint_id(), "ipc endpoint joined the bus");
+    let rule = Arc::new(RwLock::new(joined));
 
     Ok((
         EndpointSender {
@@ -285,6 +282,16 @@ enum Rule {
 }
 
 impl Rule {
+    /// The endpoint identity this rule joined the bus under.
+    ///
+    /// Carried on both variants so a disconnect or routing decision can name the
+    /// endpoint; surfaced here so it is observable rather than dead.
+    pub(crate) fn endpoint_id(&self) -> EndpointID {
+        match self {
+            Rule::Client { endpoint_id, .. } | Rule::Server { endpoint_id, .. } => *endpoint_id,
+        }
+    }
+
     fn join(
         options: Options,
         epoch: u32,

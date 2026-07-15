@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::SimpleMethod;
+use foundation_netio::shared::http::SimpleMethod;
 
 use crate::shared::context::ContextBag;
 use crate::shared::middleware::RequestMiddleware;
@@ -109,6 +109,47 @@ impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
 }
 
 // ---------------------------------------------------------------------------
+// Native H2Serve handlers (cfg-gated, non-wasm only)
+
+#[cfg(not(target_family = "wasm"))]
+impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
+    /// Create a new empty `HttpApp` for HTTP/2 handlers.
+    #[must_use]
+    pub fn new_h2_serve() -> Self {
+        Self {
+            ctx: Arc::new(ContextBag::new()),
+            router: Router::new(),
+            middleware: Vec::new(),
+        }
+    }
+
+    /// Register an `H2Serve` handler for a specific method and path.
+    ///
+    /// Unlike the `Serve` registrations, this takes the handler itself rather
+    /// than a factory: an h2 handler is shared across every stream on every
+    /// connection, so there is nothing to construct per request.
+    pub fn route_h2(
+        &mut self,
+        method: SimpleMethod,
+        path: &str,
+        handler: Arc<dyn crate::native::serve::H2Serve>,
+    ) -> &mut Self {
+        self.router.add_route(method, path, handler);
+        self
+    }
+
+    /// Register an `H2Serve` handler for all methods on a path.
+    pub fn route_any_h2(
+        &mut self,
+        path: &str,
+        handler: Arc<dyn crate::native::serve::H2Serve>,
+    ) -> &mut Self {
+        self.router.add_route_any(path, &handler);
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
 // ServeWriter handlers (available on all targets)
 
 impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
@@ -143,5 +184,126 @@ where
 {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+// ── ServerApp: dual-protocol server ─────────────────────────────────────────
+
+/// Which protocol(s) a server can speak, and the app that answers each.
+///
+/// `Serve` takes a whole `SimpleIncomingRequest`; `H2Serve` takes a header plus
+/// a body pipe. The two handler types — and their middleware — cannot be
+/// unified, so a dual-protocol server carries one app per protocol.
+///
+/// There is deliberately no `Any(Option, Option)` variant: it would make a
+/// server that speaks nothing representable, and `All(a, b)` would duplicate
+/// `Both`. Adding HTTP/3 later means adding a variant, not loosening this one.
+#[cfg(not(target_family = "wasm"))]
+pub type H1App = Arc<HttpApp<Arc<dyn crate::shared::serve::Serve>>>;
+
+#[cfg(not(target_family = "wasm"))]
+pub type H2App = Arc<HttpApp<Arc<dyn crate::native::serve::H2Serve>>>;
+
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+pub type H3App = Arc<HttpApp<Arc<dyn crate::native::serve::H3Serve>>>;
+
+#[cfg(not(target_family = "wasm"))]
+#[derive(Clone)]
+pub enum ServerApp {
+    Http1(H1App),
+    Http2(H2App),
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    Http3(H3App),
+    Both { http1: H1App, http2: H2App },
+    /// HTTP/1.1 + HTTP/2 + HTTP/3 multiplexed on one port (h1 + h2c-negotiated +
+    /// Alt-Svc-advertised QUIC). Only available with the `quic` feature (F35).
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    Any { http1: H1App, http2: H2App, http3: H3App },
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl ServerApp {
+    #[must_use]
+    pub fn http1(app: HttpApp<Arc<dyn crate::shared::serve::Serve>>) -> Self {
+        ServerApp::Http1(Arc::new(app))
+    }
+
+    #[must_use]
+    pub fn http2(app: HttpApp<Arc<dyn crate::native::serve::H2Serve>>) -> Self {
+        ServerApp::Http2(Arc::new(app))
+    }
+
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn http3(app: HttpApp<Arc<dyn crate::native::serve::H3Serve>>) -> Self {
+        ServerApp::Http3(Arc::new(app))
+    }
+
+    #[must_use]
+    pub fn both(
+        http1: HttpApp<Arc<dyn crate::shared::serve::Serve>>,
+        http2: HttpApp<Arc<dyn crate::native::serve::H2Serve>>,
+    ) -> Self {
+        ServerApp::Both {
+            http1: Arc::new(http1),
+            http2: Arc::new(http2),
+        }
+    }
+
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn any(
+        http1: HttpApp<Arc<dyn crate::shared::serve::Serve>>,
+        http2: HttpApp<Arc<dyn crate::native::serve::H2Serve>>,
+        http3: HttpApp<Arc<dyn crate::native::serve::H3Serve>>,
+    ) -> Self {
+        ServerApp::Any {
+            http1: Arc::new(http1),
+            http2: Arc::new(http2),
+            http3: Arc::new(http3),
+        }
+    }
+
+    /// The HTTP/1.1 app, or `None` if this server does not speak HTTP/1.1.
+    ///
+    /// A `None` here means the connection must be refused with `505`, never
+    /// served by an empty router — "no app" is not "route not found".
+    #[must_use]
+    pub fn get_h1(&self) -> Option<&H1App> {
+        match self {
+            ServerApp::Http1(a)
+            | ServerApp::Both { http1: a, .. } => Some(a),
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Any { http1: a, .. } => Some(a),
+            ServerApp::Http2(_) => None,
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Http3(_) => None,
+        }
+    }
+
+    /// The HTTP/2 app, or `None` if this server does not speak HTTP/2.
+    ///
+    /// A `None` here means the h2 connection must be refused, never downgraded.
+    #[must_use]
+    pub fn get_h2(&self) -> Option<&H2App> {
+        match self {
+            ServerApp::Http2(a)
+            | ServerApp::Both { http2: a, .. } => Some(a),
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Any { http2: a, .. } => Some(a),
+            ServerApp::Http1(_) => None,
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Http3(_) => None,
+        }
+    }
+
+    /// The HTTP/3 app, or `None` if this server does not speak HTTP/3 (F35).
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn get_h3(&self) -> Option<&H3App> {
+        match self {
+            ServerApp::Http3(a) | ServerApp::Any { http3: a, .. } => Some(a),
+            ServerApp::Http1(_) | ServerApp::Http2(_) | ServerApp::Both { .. } => None,
+        }
     }
 }

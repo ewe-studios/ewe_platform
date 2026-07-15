@@ -167,7 +167,7 @@ impl SseEvent {
 
 impl Default for SseEvent {
     fn default() -> Self {
-        SseEvent::new().build()
+        Self::new().build()
     }
 }
 

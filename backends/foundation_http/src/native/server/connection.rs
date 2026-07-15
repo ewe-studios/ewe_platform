@@ -14,11 +14,11 @@ use std::time::{Duration, Instant};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use foundation_netio::simple_http::shared::{
-    HTTPStreams, Http11, HttpReaderError, RenderHttp, SimpleHeader, SimpleIncomingRequest,
-    SimpleOutgoingResponse,
+use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use foundation_netio::shared::http::{
+    HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
+    SimpleIncomingRequest, SimpleOutgoingResponse,
 };
 use foundation_errstacks::ErrorTrace;
 
@@ -78,6 +78,8 @@ pub struct ConnectionHandler {
     max_continue_retries: usize,
     escalation_threshold: u32,
     max_delay_cycles: u32,
+    /// When set, every response carries `Alt-Svc: h3=":<port>"` (F53).
+    alt_svc_h3_port: Option<u16>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
@@ -95,6 +97,7 @@ impl ConnectionHandler {
         shutdown: Arc<OnSignal>,
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
+        alt_svc_h3_port: Option<u16>,
     ) -> Self {
         let max_expect_attempts = config
             .timeout_calculator
@@ -114,6 +117,7 @@ impl ConnectionHandler {
             max_continue_retries: 3,
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
+            alt_svc_h3_port,
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
@@ -134,6 +138,10 @@ impl ConnectionHandler {
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
+        // The reader's explicit non-blocking signal — "no data yet", retry (F11).
+        if e.is_would_block() {
+            return true;
+        }
         if matches!(e, HttpReaderError::ReadFailed) {
             return true;
         }
@@ -144,6 +152,57 @@ impl ConnectionHandler {
                 || msg.contains("interrupted");
         }
         false
+    }
+
+    /// Whether this HTTP/1.x handler is willing to speak `proto`.
+    ///
+    /// WHY: `Proto::from_str` is infallible — an unrecognised token in the
+    /// request line (`GET / SPDY/3.1`) becomes `Proto::Custom(..)` rather than a
+    /// parse error. `detect_protocol` decides only *which parser* gets the
+    /// connection, and it accepts anything shaped like a request line; the
+    /// version named inside that line is never its concern. Nothing below this
+    /// point inspects the version either, so without this gate a peer can name
+    /// *any* protocol and still be routed and served as though it said HTTP/1.1.
+    ///
+    /// HOW: Callers reject on `false` with `505` and close the connection —
+    /// a version we did not agree to speak is a version whose message framing
+    /// we cannot trust, so the connection cannot be reused (RFC 7231 §6.6.6).
+    fn is_supported_proto(proto: &Proto) -> bool {
+        matches!(proto, Proto::HTTP10 | Proto::HTTP11)
+    }
+
+    /// Whether `req`'s `Connection` header names `token`.
+    fn connection_header_has(req: &SimpleIncomingRequest, token: &str) -> bool {
+        req.headers
+            .get(&SimpleHeader::CONNECTION)
+            .is_some_and(|values| {
+                values.iter().any(|value| {
+                    value
+                        .split(',')
+                        .any(|part| part.trim().eq_ignore_ascii_case(token))
+                })
+            })
+    }
+
+    /// Whether the connection must close once this request has been answered.
+    ///
+    /// WHY: persistence is version-dependent, and the version is the one thing
+    /// this handler used to ignore. Under HTTP/1.1 connections are persistent
+    /// unless the client says `Connection: close`. Under HTTP/1.0 the default is
+    /// the *opposite*: the connection closes unless the client opts in with
+    /// `Connection: keep-alive`. Deciding on the header alone silently held HTTP
+    /// /1.0 sockets open, so a 1.0 client that sent one request and expected the
+    /// close waited for the idle timeout instead.
+    ///
+    /// `Connection: close` always wins, at either version.
+    fn should_close_after(req: &SimpleIncomingRequest) -> bool {
+        if Self::connection_header_has(req, "close") {
+            return true;
+        }
+        match req.proto {
+            Proto::HTTP10 => !Self::connection_header_has(req, "keep-alive"),
+            _ => false,
+        }
     }
 
     fn has_body(req: &SimpleIncomingRequest) -> bool {
@@ -211,7 +270,13 @@ impl ConnectionHandler {
             );
             return None;
         }
-        if self.total_delay_cycles >= self.max_delay_cycles {
+        // The delay-cycle close is for blocking transports that spin-retry on
+        // `WouldBlock`. Non-blocking transports (the WireGuard overlay) never
+        // accumulate delay cycles — they park on the read waker below — so the gate
+        // must not apply to them, or the first request (which naturally arrives a
+        // poll or two after accept) would close the connection before it lands.
+        let supports_waker = self.conn.with_inner_ref(RawStream::supports_read_waker);
+        if !supports_waker && self.total_delay_cycles >= self.max_delay_cycles {
             tracing::trace!(
                 client_ip = %self.client_ip,
                 max_delay_cycles = self.max_delay_cycles,
@@ -224,14 +289,24 @@ impl ConnectionHandler {
 
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(req)) => {
-                let should_close =
-                    req.headers
-                        .get(&SimpleHeader::CONNECTION)
-                        .is_some_and(|values| {
-                            values
-                                .iter()
-                                .any(|v| v.trim().eq_ignore_ascii_case("close"))
-                        });
+                // Version gate, before the body is read and before any
+                // middleware or route lookup can observe the request.
+                if !Self::is_supported_proto(&req.proto) {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        proto = %req.proto,
+                        method = %req.method,
+                        "Idle: unsupported HTTP version on HTTP/1.x connection, sending 505"
+                    );
+                    let _ = respond::text(
+                        &mut self.conn.clone(),
+                        505,
+                        "HTTP Version Not Supported",
+                    );
+                    return None;
+                }
+
+                let should_close = Self::should_close_after(&req);
 
                 tracing::trace!(
                     client_ip = %self.client_ip,
@@ -254,6 +329,11 @@ impl ConnectionHandler {
             }
             Some(Err(e)) => {
                 if Self::is_transient_error(&e) {
+                    // Non-blocking transport: park on the read waker instead of
+                    // spin-delaying, so the driver unparks us when the request lands.
+                    if let Some(status) = self.park_on_read_waker() {
+                        return Some(status);
+                    }
                     tracing::trace!(
                         client_ip = %self.client_ip,
                         err = ?e,
@@ -278,6 +358,11 @@ impl ConnectionHandler {
                 }
             }
             None => {
+                // Non-blocking transport: park on the read waker instead of
+                // spin-delaying, so the driver unparks us when the request lands.
+                if let Some(status) = self.park_on_read_waker() {
+                    return Some(status);
+                }
                 tracing::trace!(
                     client_ip = %self.client_ip,
                     "Idle: no data available (WouldBlock)"
@@ -286,6 +371,33 @@ impl ConnectionHandler {
                 self.track_idle();
                 Some(self.maybe_delay_idle())
             }
+        }
+    }
+
+    /// Park on the connection's read waker after a `WouldBlock` reading the next
+    /// request, for non-blocking transports (the WireGuard overlay).
+    ///
+    /// Returns `Some(Depends(signal))` — re-entering `Idle` when unparked — if the
+    /// transport supports readiness wakeups, or `None` for a blocking transport
+    /// (whose caller falls back to the delay/timeout path). The `TunnelDriver`
+    /// flips the `BoolSignal` when the socket becomes readable.
+    fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        let signal = BoolSignal::new(false);
+        let flag = signal.clone_inner();
+        let waker: foundation_netio::native::connection::ConnWaker =
+            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+        let registered = self
+            .conn
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
+        if registered {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "Idle: request not ready; parking on connection read waker"
+            );
+            self.state = Some(HandlerState::Idle);
+            Some(TaskStatus::Depends(Arc::new(signal)))
+        } else {
+            None
         }
     }
 
@@ -547,15 +659,45 @@ impl ConnectionHandler {
                     middleware_response = Some(resp);
                     break;
                 }
-                crate::shared::middleware::MiddlewareResult::InterimResponse(resp) => {
+                crate::shared::middleware::MiddlewareResult::InterimResponse(mut resp) => {
                     tracing::trace!(
                         client_ip = %self.client_ip,
                         status = %resp.status,
                         "Processing: middleware returned interim response"
                     );
 
+                    // RFC 9110 §15.2: an interim (1xx) response never carries
+                    // content. The final response follows it on the same
+                    // connection, so emitting a middleware-supplied body here
+                    // desynchronises the stream — the client reads those bytes
+                    // as the beginning of the final response's status line.
+                    // Drop the body rather than corrupt the connection, and warn:
+                    // a middleware that set one has a bug.
+                    // `SendSafeBody::None` is the *representation* of "no body"
+                    // that the renderer expects; `Option::None` is not
+                    // interchangeable with it. Only real content is stripped.
+                    let carries_content =
+                        !matches!(resp.body, None | Some(SendSafeBody::None));
+                    if carries_content {
+                        tracing::warn!(
+                            client_ip = %self.client_ip,
+                            status = %resp.status,
+                            "Processing: interim response carried a body; dropping it (RFC 9110 §15.2)"
+                        );
+                        resp.body = Some(SendSafeBody::None);
+                        resp.headers.remove(&SimpleHeader::CONTENT_LENGTH);
+                        resp.headers.remove(&SimpleHeader::CONTENT_TYPE);
+                    }
+
                     let client_ip = self.client_ip.clone();
                     let client_status = resp.status.clone();
+
+                    if let Some(port) = self.alt_svc_h3_port {
+                        resp.headers.insert(
+                            SimpleHeader::from("alt-svc".to_string()),
+                            vec![format!("h3=\":{port}\"")],
+                        );
+                    }
 
                     if let Err(err) =
                         Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
@@ -577,6 +719,12 @@ impl ConnectionHandler {
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
+            }
+            if let Some(port) = self.alt_svc_h3_port {
+                resp.headers.insert(
+                    SimpleHeader::from("alt-svc".to_string()),
+                    vec![format!("h3=\":{port}\"")],
+                );
             }
             let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
             if should_close {

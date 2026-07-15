@@ -11,7 +11,7 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::{ServeWriter, ServeWriterFactory, ConnectionResult};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

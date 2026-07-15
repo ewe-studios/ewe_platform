@@ -20,6 +20,10 @@ pub struct AuthContext {
     pub ip_address: Option<String>,
     /// User agent string.
     pub user_agent: Option<String>,
+    /// Principal identifier (from JWT sub, session user_id).
+    pub sub: Option<String>,
+    /// RBAC roles from the credential.
+    pub roles: Vec<String>,
 }
 
 impl AuthContext {
@@ -31,6 +35,8 @@ impl AuthContext {
             path,
             ip_address,
             user_agent,
+            sub: None,
+            roles: Vec::new(),
         }
     }
 
@@ -111,13 +117,17 @@ pub fn extract_session_token(cookies: &[&str], cookie_name: &str) -> Option<Stri
 /// Check whether a bearer token is present in the Authorization header.
 ///
 /// Returns the token value (without the "Bearer " prefix) if found.
+/// Per RFC 9110, the scheme matching is case-insensitive.
 #[must_use]
 pub fn extract_bearer_token(auth_header: Option<&str>) -> Option<String> {
     let header = auth_header?;
-    header
-        .strip_prefix("Bearer ")
-        .or_else(|| header.strip_prefix("bearer "))
-        .map(String::from)
+    const PREFIX: &[u8] = b"Bearer ";
+    let bytes = header.as_bytes();
+    if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
+        header.get(PREFIX.len()..).map(String::from)
+    } else {
+        None
+    }
 }
 
 /// Validate that a token has one of the required scopes.

@@ -14,8 +14,28 @@ pub struct VirtualFdTable {
 struct FdEntry {
     path: String,
     offset: u64,
+    /// The `open(2)` access mode this descriptor was created with.
+    ///
+    /// Stored but never consulted before this: a virtual fd opened `O_RDONLY`
+    /// happily accepted `write()`, and one opened `O_WRONLY` happily served
+    /// `read()`. Real descriptors return `EBADF` for both.
     flags: c_int,
     file: ErasedFile,
+}
+
+impl FdEntry {
+    /// `O_RDONLY` is 0, so the access mode is a masked value, not a bit test.
+    fn access_mode(&self) -> c_int {
+        self.flags & libc::O_ACCMODE
+    }
+
+    fn is_readable(&self) -> bool {
+        matches!(self.access_mode(), libc::O_RDONLY | libc::O_RDWR)
+    }
+
+    fn is_writable(&self) -> bool {
+        matches!(self.access_mode(), libc::O_WRONLY | libc::O_RDWR)
+    }
 }
 
 impl VirtualFdTable {
@@ -59,6 +79,9 @@ impl VirtualFdTable {
     pub fn read(&self, fd: c_int, buf: &mut [u8]) -> Option<usize> {
         let mut entries = self.entries.lock().unwrap();
         let entry = entries.get_mut(&fd)?;
+        if !entry.is_readable() {
+            return None;
+        }
         let offset = entry.offset;
         let n = entry.file.read_at(buf, offset).ok()?;
         entry.offset += n as u64;
@@ -69,6 +92,9 @@ impl VirtualFdTable {
     pub fn write(&self, fd: c_int, buf: &[u8]) -> Option<usize> {
         let mut entries = self.entries.lock().unwrap();
         let entry = entries.get_mut(&fd)?;
+        if !entry.is_writable() {
+            return None;
+        }
         let offset = entry.offset;
         let n = entry.file.write_at(buf, offset).ok()?;
         entry.offset += n as u64;

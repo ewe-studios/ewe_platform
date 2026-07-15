@@ -11,7 +11,7 @@ use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 use bytes::{Buf, BufMut, Bytes};
 
-use foundation_connectrpc::codec::{Codec, CodecError, CodecFor};
+use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor};
 use foundation_connectrpc::{Code, JsonCodec, ProcedureCodecs, ProtoCodec};
 use foundation_errstacks::ErrorTrace;
 

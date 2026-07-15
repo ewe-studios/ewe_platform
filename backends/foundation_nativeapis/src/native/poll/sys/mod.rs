@@ -4,8 +4,10 @@
 /// On macOS/BSD: kqueue
 /// On Windows: IOCP
 
+/// On Linux the concrete backend is chosen at runtime by the F42 probe ladder,
+/// so `Selector` is the dispatch enum rather than one of the leaf selectors.
 #[cfg(target_os = "linux")]
-pub use self::unix::selector::epoll::{Selector, RawFd};
+pub use self::unix::selector::dispatch::{RawFd, Selector};
 
 #[cfg(any(
     target_os = "macos",
@@ -32,8 +34,10 @@ pub use self::windows::{Selector, RawFd};
 )))]
 pub use self::shell::{Selector, RawFd};
 
+/// Public so the F41 parity suite can construct `epoll::Selector` and
+/// `uring::Selector` side by side in one test process.
 #[cfg(unix)]
-mod unix;
+pub mod unix;
 #[cfg(unix)]
 pub use self::unix::SourceFd;
 

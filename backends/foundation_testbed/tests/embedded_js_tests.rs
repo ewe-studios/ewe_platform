@@ -76,6 +76,65 @@ fn fetch_data_url_round_trips_in_process() {
     run_module(&dir.path().join("entry.mjs")).expect("fetch ran to completion");
 }
 
+/// F51: the `WebSocket` global is wired into the embedded runtime — it exists as a
+/// constructor and a fresh instance reports `CONNECTING` (0). This is the enabler
+/// for testing the cross-platform WebSocket client's wasm path under deno.
+#[test]
+fn websocket_global_present_in_process() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    std::fs::write(
+        dir.path().join("entry.mjs"),
+        r#"
+        if (typeof WebSocket !== "function") throw new Error("WebSocket global missing");
+        const ws = new WebSocket("ws://127.0.0.1:9");
+        if (ws.readyState !== WebSocket.CONNECTING) {
+            throw new Error("fresh WebSocket should be CONNECTING, got " + ws.readyState);
+        }
+        ws.onerror = () => {};   // swallow the imminent connection failure
+        ws.onclose = () => {};
+        console.log("WebSocket global ok");
+        "#,
+    )
+    .expect("write entry");
+
+    run_module(&dir.path().join("entry.mjs")).expect("WebSocket global module ran");
+}
+
+/// F51: the embedded `WebSocket` actually attempts a connection and delivers a
+/// `close` event through the event loop (proving the ops + net permissions +
+/// event-loop wiring, not just the class). We dial a port with nothing listening
+/// — the refused connection must surface as `onclose` (code 1006), not a hang.
+#[test]
+fn websocket_connection_refused_delivers_close() {
+    // Reserve then release a port so it is guaranteed free (connection refused).
+    let port = {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+        listener.local_addr().expect("addr").port()
+    };
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    std::fs::write(
+        dir.path().join("entry.mjs"),
+        format!(
+            r#"
+            const code = await new Promise((resolve, reject) => {{
+                const ws = new WebSocket("ws://127.0.0.1:{port}");
+                ws.onopen = () => ws.close();
+                ws.onclose = (e) => resolve(e.code);
+                ws.onerror = () => {{}};   // a refused dial fires error then close
+                setTimeout(() => reject(new Error("no close within 5s")), 5000);
+            }});
+            // 1006 = abnormal closure (connection could not be established).
+            if (typeof code !== "number") throw new Error("close code not a number: " + code);
+            console.log("WebSocket closed with code " + code);
+            "#
+        ),
+    )
+    .expect("write entry");
+
+    run_module(&dir.path().join("entry.mjs")).expect("WebSocket close module ran");
+}
+
 /// W3: run the real `fwt_sample.wasm` fixture's five `#[wasm_test]` cases end-to-end
 /// through the embedded runtime — no external node/deno. The fixture has a deliberate
 /// failure, so the verdict is red (3 passed, 1 failed, 1 ignored), with `should_panic`

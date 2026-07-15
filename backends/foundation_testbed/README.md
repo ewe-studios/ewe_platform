@@ -8,12 +8,18 @@ Cargo feature:
   networking, so **no root privileges are required** at runtime.
 - **`wasm`** — a CLI-driven `wasm32-unknown-unknown` test harness: runs
   `#[wasm_test]` cases in a real **browser** (the pure-Rust CDP/BiDi driver, no
-  node/Playwright) or **Cloudflare Workers** (wrangler).
+  node/Playwright), in the **embedded Deno runtime** (in-process V8), or via
+  **wasm-bindgen** for `web_sys`-based crates (F52).
 - **`wasm-embedded-js`** — adds the **embedded Deno runtime** (spec-44): the owned
   `#[wasm_test]` harness runs JS **in-process** via `deno_core` + `deno_web` +
   `deno_fetch` (V8) — ES modules, `WebAssembly`, `console`, encoding, timers, `URL`,
   and `fetch` — so `wasm-testbed deno` needs **no `node`/`deno` install**;
   `cargo build` gives JS test execution for free.
+- **`wasm-bindgen-test`** — adds the `wasm-testbed bindgen` command (F52): build
+  a crate with `#[wasm_bindgen_test]` cases, run `wasm-bindgen` CLI, serve, and
+  execute in Chromium. Also re-exports `js-sys` / `web-sys` / `wasm-bindgen-futures`
+  so consumer crates only add `foundation_testbed` + `wasm-bindgen-test` as dev-deps.
+  [Docs →](./docs/running-js-and-wasm-tests.md)
 
 ## What it does
 
@@ -32,11 +38,26 @@ Cargo feature:
 
 **wasm harness (`wasm`)**
 
-- **Discovery** — enumerate `#[wasm_test]` cases from a built module's exports
-- **Runners** — the owned harness runs **in-process on the embedded Deno runtime**
-  (`wasm-testbed deno`, with `wasm-embedded-js`) or in a real **browser** (CDP/BiDi
-  via `foundation_browser`, `wasm-testbed web`); plus the wasm-bindgen interop modes
-  and the Cloudflare Workers (wrangler) path
+- **Discovery** — enumerate `#[wasm_test]` cases (`__fwt_*` exports) or
+  `#[wasm_bindgen_test]` cases (`__wbgt_*` exports) from a built module
+- **Owned runners** — `wasm-testbed deno` (embedded V8, in-process) and
+  `wasm-testbed browser` (Chromium CDP) for `#[wasm_test]` cases
+- **Bindgen runner (F52)** — `wasm-testbed bindgen` builds with `--tests`,
+  runs `wasm-bindgen --target web`, and executes in Chromium CDP for
+  `#[wasm_bindgen_test]` cases. `foundation_testbed` re-exports `js-sys`,
+  `web-sys`, and `wasm-bindgen-futures` — consumer crates add one dev-dep.
+- **Valtron-pool macros (F52)** — `#[valtron_wasm_test]` (owned path) and
+  `#[valtron_bindgen]` (bindgen path) in `foundation_macros` auto-init the
+  single-threaded pool so `valtron::execute()` and `valtron::spawn()` work
+  without manual setup.
+- **Unified client (F52)** — `NetClient` / `DynNetClient` supertrait
+  (`HttpClient + WebSocketConnector`) in `foundation_netio::network_client`
+  — transports hold one `Arc<dyn NetClient>` for both protocols.
+  `WebSocketConnector::open_websocket_task()` returns a boxed `TaskIterator`
+  (`WsExchangeTask`) mirroring `HttpClient::open_exchange()`.
+- **Native browser tests** — `foundation_browser::test::Harness` for plain
+  `#[test]` functions that launch Chromium/Firefox, serve HTML over
+  `foundation_http`, and drive pages over CDP/BiDi — no wasm32 needed
 - **Scaffolding** — `init` writes the per-runner templates into a target project
 
 ## Features & binaries
@@ -49,6 +70,7 @@ are available out of the box. Disable selectively to take just one part.
 | `vms` *(default)* | the VM testbed (`src/vms/`) | qemu backend + ssh2, tar, image, `foundation_netio`, … |
 | `wasm` *(default)* | the wasm harness (`src/wasm/`) | `foundation_browser`, `foundation_wasm_ui`, `foundation_http`, walrus, … |
 | `wasm-embedded-js` | in-process JS runner for `wasm-testbed deno` (spec-44) | `deno_core` + `deno_web` + `deno_fetch`/`deno_net` (**links V8** — heavy) + tokio |
+| `wasm-bindgen-test` | `wasm-testbed bindgen` command (F52) + re-exports for consumer crates | `wasm-bindgen`, `wasm-bindgen-test`, `js-sys`, `web-sys` |
 | `cli` *(default)* | the `clap` CLI for the VM testbed binary | clap |
 | `utm` | macOS UTM/Hypervisor backend (with `vms`) | — |
 
@@ -62,7 +84,7 @@ are available out of the box. Disable selectively to take just one part.
 | Binary | Requires | Purpose |
 |--------|----------|---------|
 | `testbed` | `cli` + `vms` | VM lifecycle CLI (`testbed start windows-build`, …) |
-| `wasm-testbed` | `wasm` | wasm test runner (`wasm-testbed deno/web <module>`; `deno` needs `wasm-embedded-js`) |
+| `wasm-testbed` | `wasm` | wasm test runner: `deno` (embedded V8), `browser` (Chromium CDP), `bindgen` (wasm-bindgen, needs `wasm-bindgen-test`) |
 
 > Why `cli` is in the default set: the `testbed` binary is gated on `cli` (its CLI
 > module is `#[cfg(feature = "cli")]` and needs `clap`). Without `cli`, `vms`
@@ -79,15 +101,18 @@ cargo build -p foundation_testbed --no-default-features --features vms,cli
 cargo build -p foundation_testbed --no-default-features --features wasm
 # wasm harness + the in-process embedded Deno runner (links V8):
 cargo build -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat
+# wasm harness + wasm-bindgen browser runner (F52):
+cargo build -p foundation_testbed --no-default-features --features wasm,wasm-bindgen-test --profile uat
 # vms as a library only (no CLI binary):
 cargo build -p foundation_testbed --no-default-features --features vms
 ```
 
 > **Build profile:** this crate's dev profile uses Cranelift, which currently
 > crashes compiling it — build/test with the `uat` profile (LLVM):
-> `cargo test -p foundation_testbed --profile uat`. The `web` runner needs a
-> browser (`mise run test:browsers`); the owned `deno` runner is **in-process**
-> (`wasm-embedded-js`) and needs **nothing installed**.
+> `cargo test -p foundation_testbed --profile uat`. The `browser` / `bindgen`
+> runners need a browser (`mise run test:browsers` + `wasm-bindgen-cli`); the
+> owned `deno` runner is **in-process** (`wasm-embedded-js`) and needs
+> **nothing installed**.
 
 ### Zero-install JS testing (spec-44)
 
@@ -99,6 +124,20 @@ cargo run -p foundation_testbed --no-default-features --features wasm-embedded-j
   --profile uat --bin wasm-testbed -- deno path/to/your/wasm-crate
 # or via mise:
 mise run test:wasm-testbed:deno
+```
+
+**Browser (CDP) —** run `#[wasm_test]` cases in a real browser:
+
+```bash
+cargo run -p foundation_testbed --no-default-features --features wasm \
+  --bin wasm-testbed -- browser path/to/your/wasm-crate --headless
+```
+
+**Bindgen (F52) —** run `#[wasm_bindgen_test]` cases in Chromium:
+
+```bash
+cargo run -p foundation_testbed --no-default-features --features wasm,wasm-bindgen-test \
+  --bin wasm-testbed -- bindgen path/to/crate --headless --features <crate-features>
 ```
 
 How it works: `cargo build` links V8 (via `deno_core`), the harness stages a
@@ -113,7 +152,7 @@ loading + result reporting go through two Rust ops (`op_fwt_read_file`,
 | Doc | What's inside |
 |-----|---------------|
 | [Overview & architecture](./docs/embedded-js.md) | what it is, why V8/`deno_core` (not `deno_runtime`), the build→discover→stage→run pipeline, the runtime in three parts (composition, globals bootstrap, ops), the tokio loop |
-| [Running JS & wasm tests](./docs/running-js-and-wasm-tests.md) | write `#[wasm_test]` cases, run them in-process, and the execution-core API (`build_runtime` / `run_module` / `run_staged_harness` / `HarnessReport`) for driving JS from Rust |
+| [Running JS & wasm tests](./docs/running-js-and-wasm-tests.md) | the three testing paths: owned `#[wasm_test]` (embedded Deno + Chromium), wasm-bindgen `#[wasm_bindgen_test]` (Chromium CDP), and native browser tests via `foundation_browser::test::Harness` (no wasm32). Quick-ref table, setup guides, architecture diagram, FAQ.
 | [Extending the runtime](./docs/extending-the-runtime.md) | add a Web global, add a Rust↔JS op, **add Web Crypto (`crypto.subtle`)**, and bump the deno crates |
 | [Internals & decisions](./docs/embedded-js-internals.md) | `lazy_loaded_js`/`loadExtScript`/`__bootstrap`, the `aes`/`deno_crypto` conflict, why tokio not valtron, the op result contract, API-drift notes |
 
@@ -124,7 +163,7 @@ The harness stages tests from embedded templates. They fall into three groups �
 
 | Group | Files | Used by | Runs on |
 |-------|-------|---------|---------|
-| **`fwt/`** — owned `#[wasm_test]` harness | `runner.mjs`, `index.html`, `sample_wasm_test.rs` | `stage_from_wasm` (runner + html); `wasm-testbed init owned` (sample) | **embedded** deno (`wasm-testbed deno`) **or** a real browser (`wasm-testbed web`) |
+| **`fwt/`** — owned `#[wasm_test]` harness | `runner.mjs`, `index.html`, `sample_wasm_test.rs` | `stage_from_wasm` (runner + html); `wasm-testbed init owned` (sample) | **embedded** deno (`wasm-testbed deno`) **or** a real browser (`wasm-testbed browser`) |
 | **`web/` `deno/` `wrangler/`** — custom-harness modes | `index.html`/`index.js`/`loader.js`, … | `wasm-testbed test web\|deno\|wrangler` + `init web\|deno\|wrangler` | browser / **external** `deno` / wrangler (you write the JS) |
 | **`bindgen-*`** — wasm-bindgen interop | `bindgen-{web,deno,wrangler}/…` | `wasm-testbed test bindgen-web\|deno\|wrangler` | browser / **external** `deno` / wrangler |
 
@@ -135,6 +174,10 @@ arbitrary user JS / wasm-bindgen output that needs the full Deno/browser API sur
 (`crypto.subtle`, full `Deno.*`, the whole web platform) our composed
 `deno_core + deno_web + deno_fetch` runtime doesn't fully provide. That's
 intentional and out of spec-44's scope.
+
+**F52:** the new `wasm-testbed bindgen` command streamlines the bindgen-web path —
+no `integrations/` directory, no `test` sub-mode, auto-detects `__wbgt_` exports,
+stages to a temp dir, and runs in Chromium CDP. See [Running JS & wasm tests](./docs/running-js-and-wasm-tests.md).
 
 ## Quick start
 

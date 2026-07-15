@@ -9,7 +9,7 @@
 //! Simple implementation suitable for basic HTTP client testing.
 //!
 //! NOTE: This is a simplified test server. For production HTTP parsing/rendering,
-//! use `foundation_netio::simple_http` types directly.
+//! use `foundation_netio::shared::http` types directly.
 
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
@@ -18,8 +18,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::client::shared::body_reader::collect_bytes_from_send_safe;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeaders,
     SimpleMethod, SimpleUrl,
 };

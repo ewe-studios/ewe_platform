@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::{SimpleIncomingRequest, SimpleMethod};
+use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;

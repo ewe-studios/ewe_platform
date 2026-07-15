@@ -10,9 +10,19 @@ description = "Central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+# rlib only: every consumer that needs a shared library (nodejs integrations,
+# examples, the wasm_tests harness) declares its OWN `crate-type = ["cdylib"]`
+# and depends on this crate as an rlib. Declaring `cdylib` here just emitted a
+# redundant, fixed-named `libfoundation_core.so` that collided with itself across
+# feature-variant builds (cargo#6313 "output filename collision").
+crate-type = ["rlib"]
 
 [dependencies]
+# RNG (ChaCha8Rng / SeedableRng / RngCore / thread `rng()`) comes from
+# foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
+# builds never drag getrandom's wasm-bindgen backend into the OWNED path
+# (decision 031 / feature 14). std is followed from this crate's `std` feature.
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
@@ -30,11 +40,6 @@ toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
 toml = { version = "0.9" }
 fastrand = "2.3.0"
-# RNG (ChaCha8Rng / SeedableRng / RngCore / thread `rng()`) comes from
-# foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
-# builds never drag getrandom's wasm-bindgen backend into the OWNED path
-# (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 tracing = { version = "0.1.41" }
 bytes = "1.5"
 
@@ -80,7 +85,7 @@ js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bin
 js-foundation-wasm = ["foundation_wasm/web"]
 
 # default flags
-default = ["standard", "std"]
+default = ["standard", "std", "alloc"]
 
 [build-dependencies]
 foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.1" }

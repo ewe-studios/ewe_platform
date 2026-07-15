@@ -16,14 +16,17 @@ use std::{
 
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
-    valtron::{AnyResult, EventReadiness, ExecutionEngine, ExecutionIterator, State},
+    valtron::{
+        AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, NoAction, State,
+        TaskIterator, TaskStatus,
+    },
 };
 use crate::{
     synca::{Timeable, Timing},
-    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask, TaskIterator},
+    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
 };
-use foundation_compact::rng::SeedableRng;
 use foundation_compact::rng::ChaCha8Rng;
+use foundation_compact::rng::SeedableRng;
 
 use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 
@@ -31,14 +34,46 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 use crate::compati::Mutex;
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
-    ExecutorError, GlobalTask, ProcessController, SharedTaskQueue, SpawnInfo, SpawnType,
-    TaskReadyResolver, TaskStatusMapper,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutorError, GlobalTask,
+    ProcessController, SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::valtron::executors::constants::{
     DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
 };
+
+/// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
+///
+/// WHY: Allows standard iterators of plain values to be used as `TaskIterators`.
+/// WHAT: Each `next()` call wraps the iterator's item in `TaskStatus::Ready`.
+pub struct WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    iter: I,
+}
+
+impl<I, T> WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    pub fn new(iter: I) -> Self {
+        Self { iter }
+    }
+}
+
+impl<I, T> TaskIterator for WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    type Pending = ();
+    type Ready = T;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.iter.next().map(TaskStatus::Ready)
+    }
+}
 
 const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
@@ -135,7 +170,7 @@ pub enum Sleepable {
 
     /// Readiness represents a task waiting on an arbitrary `EventReadiness`
     /// signal. The executor calls `is_ready(None)` to check without blocking.
-    Readiness(sync::Arc<dyn EventReadiness>, Entry),
+    Readiness(EventReadinessPtr, Entry),
 }
 
 impl core::fmt::Debug for Sleepable {
@@ -348,6 +383,16 @@ impl<T> NotifyQueue<T> {
     pub fn queue(&self) -> &ConcurrentQueue<T> {
         &self.queue
     }
+
+    /// Returns a clone of the `Arc` to the underlying queue.
+    ///
+    /// WHY: A producer parking on a full bounded delivery queue needs to hand the
+    /// executor a [`QueueVacancyReadiness`](crate::valtron::QueueVacancyReadiness)
+    /// over this same queue (Decision 00 §L1b / Feature 45 Part A), which owns an
+    /// `Arc<ConcurrentQueue<T>>` — not a borrow.
+    pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
+        self.queue.clone()
+    }
 }
 
 /// `NotifyRecvIter` provides notification-based receiving for `NotifyQueue`.
@@ -455,7 +500,7 @@ use crate::valtron::iterators::Stream;
 /// It uses CondVar notification instead of spin-polling, significantly reducing CPU usage
 /// when waiting for stream values.
 ///
-/// The iterator polls the queue up to `max_turns` times, yielding `Stream::Ignore` if no
+/// The iterator polls the queue up to `max_turns` times, yielding `Stream::Wait` if no
 /// value is available. Between polls, it efficiently waits using CondVar notification.
 #[derive(Debug)]
 pub struct NotifyQueueStreamIterator<D, P> {
@@ -482,11 +527,6 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
         park_duration: time::Duration,
     ) -> Self {
         assert!(max_turns > 0, "max_turns must be greater than 0");
-        tracing::trace!(
-            max_turns = max_turns,
-            park_duration_ms = park_duration.as_millis(),
-            "created NotifyQueueStreamIterator"
-        );
         Self {
             chan,
             max_turns,
@@ -535,16 +575,12 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        tracing::trace!(max_turns = self.max_turns, "starting poll cycle");
-
         // First try a quick non-blocking pop
         match self.chan.pop() {
             Ok(value) => {
-                tracing::debug!("received value from queue (non-blocking)");
                 return Some(value);
             }
             Err(PopError::Closed) => {
-                tracing::debug!("queue closed, ending iteration");
                 return None;
             }
             Err(PopError::Empty) => {}
@@ -552,18 +588,13 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
 
         // Queue is empty - block efficiently until item is available
         match self.chan.wait_for_item(self.park_duration) {
-            Some(NotificationItem::Ready(value)) => {
-                tracing::debug!("received value after blocking wait");
-                Some(value)
-            }
+            Some(NotificationItem::Ready(value)) => Some(value),
             Some(NotificationItem::None) => {
                 // Queue open but empty after max_spins — signal executor to yield
-                tracing::trace!("queue empty after max_spins, returning Stream::Wait");
                 Some(Stream::Wait)
             }
             None => {
                 // Queue closed, iteration ends
-                tracing::debug!("queue closed, ending iteration");
                 None
             }
         }
@@ -653,8 +684,25 @@ pub struct ExecutorState {
 
 static DEQUEUE_CAPACITY: usize = 10;
 
+/// How often a worker re-polls when its only pending work is READINESS-parked
+/// tasks (pipe waits). Their producers live on other threads and cannot
+/// interrupt this worker's sleep, so the quantum bounds cross-worker handoff
+/// latency. Timed sleepers are unaffected (the worker sleeps exactly to the
+/// nearest deadline).
+const READINESS_POLL_QUANTUM: time::Duration = time::Duration::from_millis(1);
+
 /// Maximum consecutive `State::Depends(true)` violations before panic.
-const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 3;
+///
+/// "Parked on an already-ready signal" also occurs benignly: a pipe consumer
+/// drains, returns `Depends(queue readiness)`, and the producer refills the
+/// queue before the executor inspects the signal. Under sustained throughput
+/// (first seen streaming a multi-MB BuildKit tar export) that race can repeat
+/// back-to-back, so the streak alone is weak evidence of a bug. The counter
+/// resets on every genuine (not-ready) park, the executor degrades gracefully
+/// either way (re-queue at the back), and a real livelock — a task that
+/// returns `Depends` without ever consuming the signal — repeats indefinitely.
+/// The threshold therefore only needs to be finite, not small.
+const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 4096;
 
 impl ExecutorState {
     pub fn new(
@@ -818,8 +866,6 @@ impl ExecutorState {
     /// for the full stale sleeper lifecycle explanation.
     #[inline]
     pub fn wake_up(&self, target: Entry) {
-        tracing::debug!("[SLEEPER] Waking up task {:?}", target);
-
         // Check if entry still exists in local_tasks
         if !self.local_tasks.borrow_mut().has(&target) {
             tracing::warn!(
@@ -912,6 +958,18 @@ impl ExecutorState {
         !self.global_tasks.is_empty()
     }
 
+    /// Whether this worker has real work to run on the current tick — an active
+    /// task, an in-flight (processing-queue) task, or a global task waiting to be
+    /// acquired.
+    ///
+    /// When this is `false` the worker is kept alive solely by sleeping tasks and
+    /// is busy-spinning `schedule_and_do_work` until one of them becomes ready.
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.has_active_tasks() || self.has_inflight_task() || self.has_incoming_global_tasks()
+    }
+
     /// Returns totla
     #[must_use]
     pub fn total_inprocess_tasks(&self) -> usize {
@@ -939,18 +997,9 @@ impl ExecutorState {
     pub fn total_active_tasks(&self) -> usize {
         let local_task_count = self.local_tasks.borrow().active_slots();
         let sleeping_task_count = self.sleepers.count();
-        let in_process_task_count = self.number_of_inprocess();
         // Use saturating_sub to prevent underflow when sleepers reference
         // entries that have been removed (stale sleeper entries).
-        let active_task_count = local_task_count.saturating_sub(sleeping_task_count);
-        tracing::debug!(
-            "Local TaskCount={} and SleepingTaskCount={}, InProcessTasks={}, ActiveTasks={}",
-            local_task_count,
-            sleeping_task_count,
-            in_process_task_count,
-            active_task_count,
-        );
-        active_task_count
+        local_task_count.saturating_sub(sleeping_task_count)
     }
 
     /// Removes any sleepers referencing the given entry.
@@ -978,103 +1027,70 @@ impl ExecutorState {
     /// as the local queue had a task or no task was found.
     #[inline]
     pub fn schedule_next(&self) -> ScheduleOutcome {
-        let span = tracing::trace_span!("LocalThreadExecutor::schedule_next");
-        span.in_scope(|| {
-            if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty()
-            {
-                return ScheduleOutcome::LocalTaskRunning;
-            }
+        if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty() {
+            return ScheduleOutcome::LocalTaskRunning;
+        }
 
-            match self.global_tasks.pop() {
-                Ok(task) => {
-                    let task_entry = self.local_tasks.borrow_mut().insert(task);
-                    self.processing.borrow_mut().push_front(task_entry);
-                    ScheduleOutcome::GlobalTaskAcquired
-                }
-                Err(_) => ScheduleOutcome::NoTaskRunningOrAcquired,
+        match self.global_tasks.pop() {
+            Ok(task) => {
+                let task_entry = self.local_tasks.borrow_mut().insert(task);
+                self.processing.borrow_mut().push_front(task_entry);
+                ScheduleOutcome::GlobalTaskAcquired
             }
-        })
+            Err(_) => ScheduleOutcome::NoTaskRunningOrAcquired,
+        }
     }
 
     #[inline]
     pub fn request_global_task(&self) -> ProgressIndicator {
-        let span = tracing::trace_span!("LocalThreadExecutor::request_global_task");
-        span.in_scope(|| {
-            if self.has_active_tasks() {
-                tracing::debug!("Still have active tasks");
-                return ProgressIndicator::CanProgress(None);
-            }
+        if self.has_active_tasks() {
+            return ProgressIndicator::CanProgress(None);
+        }
 
-            match self.schedule_next() {
-                ScheduleOutcome::GlobalTaskAcquired => {
-                    tracing::debug!("Successfully acquired new tasks for processing");
-                    ProgressIndicator::CanProgress(None)
+        match self.schedule_next() {
+            ScheduleOutcome::GlobalTaskAcquired => ProgressIndicator::CanProgress(None),
+            ScheduleOutcome::NoTaskRunningOrAcquired => {
+                if self.has_sleeping_tasks() {
+                    return ProgressIndicator::CanProgress(None);
                 }
-                ScheduleOutcome::NoTaskRunningOrAcquired => {
-                    if self.has_sleeping_tasks() {
-                        tracing::debug!(
-                            "No new tasks, but we have sleeping tasks, so we can make progress"
-                        );
-                        return ProgressIndicator::CanProgress(None);
-                    }
-
-                    tracing::debug!("No new tasks, no need to perform work");
-                    ProgressIndicator::NoWork
-                }
-                ScheduleOutcome::LocalTaskRunning => {
-                    tracing::debug!(
-                        "Invalid state reached, no local task should have been in queue"
-                    );
-                    unreachable!("No local task should be running at this point")
-                }
+                ProgressIndicator::NoWork
             }
-        })
+            ScheduleOutcome::LocalTaskRunning => {
+                unreachable!("No local task should be running at this point")
+            }
+        }
     }
 
     #[inline]
-    #[tracing::instrument(skip(self, engine), fields(owner = %self.state_owner))]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
-        tracing::trace!("Running work retreival from global queue");
         match self.request_global_task() {
             ProgressIndicator::CanProgress(_) => {}
             ProgressIndicator::NoWork => {
-                tracing::debug!("[request_global_task] Received NoWork indicator from task");
                 return ProgressIndicator::NoWork;
             }
             ProgressIndicator::SpinWait(_) => {
                 unreachable!("Requesting global task should never spin wait")
             }
             ProgressIndicator::Wait => {
-                tracing::debug!("[request_global_task] Received Wait indicator from task");
                 return ProgressIndicator::Wait;
             }
         }
 
-        tracing::trace!("Waking up sleepers");
         self.wakeup_ready_sleepers();
 
-        tracing::trace!("Calling do work with engine");
         match self.do_work(engine) {
-            ProgressIndicator::CanProgress(state) => {
-                tracing::debug!("Received CanProgress indicator from task: state={state:?}");
-                // TODO: I feel like I am missing something here
-                ProgressIndicator::CanProgress(state)
-            }
+            ProgressIndicator::CanProgress(state) => ProgressIndicator::CanProgress(state),
             ProgressIndicator::NoWork => {
-                tracing::debug!("[DoWork] Received NoWork indicator from task");
-
                 if self.has_sleeping_tasks() {
-                    if let Some(max_sleep_dur) = self.sleepers.max_duration() {
-                        tracing::debug!(
-                            "[DoWork] still has sleepers and recommend sleep: {:?}",
-                            max_sleep_dur
-                        );
-                        return ProgressIndicator::SpinWait(max_sleep_dur);
+                    // Sleep until the NEAREST deadline. Sleeping to the
+                    // furthest (`max_duration`, the previous behavior) made
+                    // every shorter timer fire late by the gap to the longest
+                    // sleeper — a 10ms-polling I/O pump next to a 1s sleeper
+                    // woke ~1s late, collapsing transport throughput.
+                    if let Some(min_sleep_dur) = self.sleepers.min_duration() {
+                        return ProgressIndicator::SpinWait(min_sleep_dur);
                     }
 
-                    tracing::debug!(
-                        "[DoWork] still has sleepers - returning with CanProgress(None)"
-                    );
                     return ProgressIndicator::CanProgress(None);
                 }
 
@@ -1087,8 +1103,6 @@ impl ExecutorState {
                 }
             }
             ProgressIndicator::SpinWait(duration) => {
-                tracing::debug!("Received SpinWait({:?}) indicator from task", &duration);
-
                 if self.has_inflight_task() {
                     return ProgressIndicator::CanProgress(None);
                 }
@@ -1109,48 +1123,26 @@ impl ExecutorState {
                 // attempt to get global task else return
                 // duration as is.
                 match self.schedule_next() {
-                    ScheduleOutcome::GlobalTaskAcquired => {
-                        tracing::debug!(
-                            "Global task indicate we can make progress, possible acquired task"
-                        );
-                        ProgressIndicator::CanProgress(None)
-                    }
+                    ScheduleOutcome::GlobalTaskAcquired => ProgressIndicator::CanProgress(None),
                     ScheduleOutcome::NoTaskRunningOrAcquired => {
-                        tracing::debug!("No new task from global queue");
                         ProgressIndicator::SpinWait(duration)
                     }
                     ScheduleOutcome::LocalTaskRunning => {
-                        tracing::debug!("Unexpected state with local task available");
                         unreachable!("global task never spinWaits")
                     }
                 }
             }
-            ProgressIndicator::Wait => {
-                tracing::debug!("Received Wait indicator from task");
-                ProgressIndicator::Wait
-            }
+            ProgressIndicator::Wait => ProgressIndicator::Wait,
         }
     }
 
-    #[tracing::instrument(skip(self), fields(owner = %self.state_owner))]
     pub fn check_processing_queue(&self) -> Option<ProgressIndicator> {
-        let total_sleepers = self.sleepers.count();
         let has_sleeping_tasks = self.has_sleeping_tasks();
         let handle = self.processing.borrow_mut();
-        let has_current_task = self.current_task.borrow().iter().len() > 0;
-
-        tracing::debug!(
-            "check_processing_queue: sleep_task: {} (total={}), processing_tasks: {} and has_current_task: {}",
-            has_sleeping_tasks,
-            total_sleepers,
-            handle.len(),
-            has_current_task,
-        );
 
         // if after wake up, no task still enters
         // the processing queue then no work is available
         if handle.is_empty() {
-            tracing::debug!("Task queue is empty: {:?}", handle.is_empty());
             if has_sleeping_tasks {
                 return Some(ProgressIndicator::CanProgress(None));
             }
@@ -1169,71 +1161,35 @@ impl ExecutorState {
     ///    as at this point work should be in queue before `do_work` is called.
     ///
     #[inline]
-    #[tracing::instrument(skip(self, engine), fields(owner = %self.state_owner))]
     pub fn do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         // if after wake up, no task still enters
         // the processing queue then no work is available
         if let Some(inner) = self.check_processing_queue() {
             match inner {
                 ProgressIndicator::NoWork => {
-                    tracing::trace!("No work found, in do_work, returning no work");
                     return ProgressIndicator::NoWork;
                 }
                 ProgressIndicator::CanProgress(inner) => {
-                    tracing::trace!("Can progress from checking queue");
                     return ProgressIndicator::CanProgress(inner);
                 }
                 ProgressIndicator::SpinWait(_) => {
-                    tracing::trace!("Spin wait requested");
                     unreachable!("check_processing_queue should never reach here")
                 }
                 ProgressIndicator::Wait => {
-                    tracing::trace!("Wait indicator from processing queue");
                     unreachable!("check_processing_queue should never return Wait")
                 }
             }
         }
 
-        let active_tasks = self.total_active_tasks();
-        tracing::debug!(
-            "Processing entries: {:?} (active_tasks={})",
-            self.processing.borrow(),
-            active_tasks
-        );
-
         let top_entry = self.processing.borrow_mut().pop_front().unwrap();
 
         let remaining_tasks = self.processing.borrow().len();
-        tracing::debug!(
-            "do_work: Popped top entry: {:?} with remaining: {} (queue empty: {})",
-            top_entry,
-            remaining_tasks,
-            self.processing.borrow().is_empty()
-        );
 
         if self.is_packed(&top_entry) {
-            tracing::debug!(
-                "Top entry: {:?} is parked with queue: {:?}",
-                top_entry,
-                self.processing.borrow()
-            );
             return ProgressIndicator::CanProgress(None);
         }
 
-        tracing::debug!(
-            "Current top task = {:?} | processing: {:?}",
-            self.current_task.borrow(),
-            self.processing.borrow(),
-        );
-
         self.current_task.borrow_mut().replace(top_entry);
-
-        tracing::debug!(
-            "Current task with top: {:?} -> {:?} | processing: {:?}",
-            top_entry,
-            self.current_task.borrow(),
-            self.processing.borrow(),
-        );
 
         let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
         assert!(
@@ -1246,25 +1202,12 @@ impl ExecutorState {
 
         // if result is none
         if next_result.is_none() {
-            tracing::debug!(
-                "Task returned None (has finished) (rem_tasks: {})",
-                remaining_tasks
-            );
-
             // remove task from queue
             self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
             // Clean up sleepers before removing the task to prevent stale entries
-            tracing::trace!(
-                "[MARKER-REMOVE-NONE] Removing sleeper record if found: {:?}",
-                top_entry
-            );
             self.remove_sleepers_for_entry(&top_entry);
 
-            tracing::trace!(
-                "[MARKER-REMOVE-NONE] Removing task after None: {:?}",
-                top_entry
-            );
             self.local_tasks.borrow_mut().take(&top_entry);
 
             // Task Iterator is really done
@@ -1275,25 +1218,26 @@ impl ExecutorState {
             return ProgressIndicator::CanProgress(None);
         }
 
-        tracing::debug!("Task delivered state: {:?}", &next_result);
+        // Any state other than `Depends` is a healthy run and ends the task's
+        // "already-ready Depends" violation streak — the counter must measure
+        // CONSECUTIVE violations only (a task alternating progress and racy
+        // parks is fine; one that returns Depends-on-ready every single run is
+        // the livelock the tripwire exists for). The `Depends` arm manages the
+        // counter itself: increment on an already-ready signal, reset on a
+        // genuine park.
+        if !matches!(next_result.as_ref().unwrap(), State::Depends(_)) {
+            self.depends_true_violations.borrow_mut().remove(&top_entry);
+        }
+
         match next_result.unwrap() {
             State::SpawnFailed(parent_key) => {
-                tracing::debug!(
-                        "Task just failed to spawn next work which might mean it cant make progress, to be safe we should remove immediately"
-                    );
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Clean up sleepers before removing the task
-                tracing::trace!(
-                    "[MARKER-REMOVE-SPAWNFAILED] Removing task after SpawnFailed: {:?}",
-                    top_entry
-                );
                 self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
 
                 // no need to push entry since it must have
-                tracing::debug!("Task is removed from queue due to spawn failed");
 
                 // Task Iterator is really done
                 if remaining_tasks == 0 {
@@ -1303,22 +1247,13 @@ impl ExecutorState {
                 }
             }
             State::Panicked => {
-                tracing::debug!(
-                        "Task just panicked and communicated that with State::Panicked, will remove immediately"
-                    );
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Clean up sleepers before removing the task
-                tracing::trace!(
-                    "[MARKER-REMOVE-PANICKED] Removing task after Panicked: {:?}",
-                    top_entry
-                );
                 self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
 
                 // no need to push entry since it must have
-                tracing::debug!("Task is removed from queue due to panic");
 
                 // Task Iterator is really done
                 if remaining_tasks == 0 {
@@ -1328,35 +1263,15 @@ impl ExecutorState {
                 }
             }
             State::SpawnFinished(info) => {
-                let active_tasks = self.total_active_tasks();
-                let in_process_tasks = self.total_inprocess_tasks();
-
-                tracing::debug!(
-                        "Spawned successfully over current {:?}, info: {:?} (rem_tasks: {}, active_tasks: {}, in_process_tasks: {})",
-                        &top_entry,
-                        info,
-                        remaining_tasks,
-                        active_tasks,
-                        in_process_tasks,
-                    );
-
-                tracing::debug!("Unparking task after spawn success: {:?}", info);
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
                 // create a new task for spawn information where both parent and child tag exists.
 
                 if !info.has_parent_and_child() {
-                    tracing::debug!("Spawned task has no parent info just child: {:?}", info);
                     return match info.spawn_type() {
                         SpawnType::Lifted => {
                             let child_entry = info.parent().unwrap();
-
-                            tracing::trace!(
-                                "[MARKER-COMBINE-LIFTED] Taking parent {:?} and child {:?} for combining",
-                                top_entry, child_entry
-                            );
 
                             // get the parent task - i.e top_entry
                             let parent_task = self
@@ -1371,12 +1286,10 @@ impl ExecutorState {
                                 .take(&child_entry)
                                 .expect("get child task");
 
-                            tracing::debug!("Combining parent task and new task into FinishChildBeforeParentTask executor: {:?}", info);
                             let task =
                                 FinishChildBeforeParentTask::new(info, parent_task, child_task);
 
                             let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
-                            tracing::debug!("registered new task: {:?}", new_task_id);
 
                             // push entry back into processing mut
                             self.processing.borrow_mut().push_front(new_task_id);
@@ -1401,7 +1314,6 @@ impl ExecutorState {
                     };
                 }
 
-                tracing::debug!("Spawned task has both parent and child: {:?}", info);
                 match info.spawn_type() {
                     SpawnType::LiftedWithParent => {
                         assert!(
@@ -1411,17 +1323,6 @@ impl ExecutorState {
 
                         let parent_entry = info.parent().unwrap();
                         let child_entry = info.child().unwrap();
-
-                        tracing::trace!(
-                            "[MARKER-COMBINE-LIFTEDWITHPARENT] Taking parent {:?} and child {:?} for combining",
-                            parent_entry, child_entry
-                        );
-
-                        tracing::debug!(
-                            "Retrieve parent id={:?} and child={:?}",
-                            parent_entry,
-                            child_entry
-                        );
 
                         // get the parent task - i.e top_entry
                         let parent_task = self
@@ -1436,21 +1337,12 @@ impl ExecutorState {
                             .take(&child_entry)
                             .expect("get child task");
 
-                        tracing::debug!("Combining parent task and new task into FinishChildBeforeParentTask executor: {:?}", info);
                         let task = FinishChildBeforeParentTask::new(info, parent_task, child_task);
 
                         let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
-                        tracing::debug!("registered new task: {:?}", new_task_id);
 
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
-
-                        tracing::debug!(
-                            "Created new task from: {:?} to {:?} -> processing queue: {:?}",
-                            info,
-                            new_task_id,
-                            self.processing.borrow()
-                        );
 
                         // no need to push entry since it must have
                         ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
@@ -1481,7 +1373,6 @@ impl ExecutorState {
                             .take(&child_entry)
                             .expect("get child task");
 
-                        tracing::debug!("Combining parent task and new task into DualSequeunceChildAndParentLinkedTask executor: {:?}", info);
                         let task = DualSequeunceChildAndParentLinkedTask::new(
                             info,
                             parent_task,
@@ -1489,12 +1380,9 @@ impl ExecutorState {
                         );
 
                         let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
-                        tracing::debug!("registered new task: {:?}", new_task_id);
 
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
-
-                        tracing::debug!("Created new task from: {:?} to {:?}", info, new_task_id);
 
                         // no need to push entry since it must have
                         ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
@@ -1519,40 +1407,12 @@ impl ExecutorState {
                 }
             }
             State::Done => {
-                tracing::debug!(
-                    "Task as finished with State::Done (task: {:?}, rem_tasks: {})",
-                    &top_entry,
-                    remaining_tasks
-                );
-
                 // now unpack and take entry out of local tasks
-                tracing::trace!(
-                    "[MARKER-UNPARK-DONE] Unparking task after Done: {:?}",
-                    top_entry
-                );
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                tracing::trace!(
-                    "[MARKER-REMOVE-DONE] Removing task after Done: {:?}",
-                    top_entry
-                );
                 // Clean up sleepers before removing the task
-                tracing::trace!(
-                    "[MARKER-CLEANUP-DONE] Cleaning up sleepers for entry: {:?}",
-                    top_entry
-                );
                 self.remove_sleepers_for_entry(&top_entry);
 
-                tracing::trace!(
-                    "[MARKER-CLEANUP-DONE] Take task from local task registry: {:?}",
-                    top_entry
-                );
                 self.local_tasks.borrow_mut().take(&top_entry);
-
-                tracing::debug!(
-                    "Finished unparking and taking task (task: {:?}, rem_tasks: {})",
-                    &top_entry,
-                    remaining_tasks
-                );
 
                 // Task Iterator is really done
                 if remaining_tasks == 0 {
@@ -1562,7 +1422,6 @@ impl ExecutorState {
                 }
             }
             State::ReadyValue(entry_id) => {
-                tracing::debug!("Task is has seen a ready value");
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1571,7 +1430,6 @@ impl ExecutorState {
                 ProgressIndicator::CanProgress(Some(State::ReadyValue(entry_id)))
             }
             State::Progressed => {
-                tracing::debug!("Task is progressing with State::Progressed");
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1580,11 +1438,6 @@ impl ExecutorState {
                 ProgressIndicator::CanProgress(Some(State::Progressed))
             }
             State::Pending(duration) => {
-                tracing::debug!(
-                    "Task indicates it is in pending state: State::Pending({:?})",
-                    &duration
-                );
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1598,18 +1451,11 @@ impl ExecutorState {
                 // the processing queue and gets registered with the
                 // sleepers (which monitors task that are sleeping).
                 let final_state = if let Some(inner) = duration {
-                    tracing::debug!(
-                        "[SLEEPER] Task {:?} going to sleep for {:?}",
-                        top_entry,
-                        inner
-                    );
-
                     // Store sleeper keyed by the task entry to avoid ID collisions
                     self.sleepers.insert(
                         top_entry,
                         Sleepable::Timable(DurationWaker::from_now(top_entry, inner)),
                     );
-                    tracing::debug!("[SLEEPER] Task {:?} registered as sleeper", top_entry);
 
                     if !self.processing.borrow().is_empty() {
                         return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
@@ -1621,22 +1467,13 @@ impl ExecutorState {
                     ProgressIndicator::SpinWait(inner)
                 } else {
                     // push back to top
-                    tracing::debug!("State::Pending(None): pushing entry {:?} back to front of processing queue (queue len before: {})", top_entry, self.processing.borrow().len());
                     self.processing.borrow_mut().push_front(top_entry);
-                    tracing::debug!(
-                        "State::Pending(None): entry {:?} pushed, queue len after: {}",
-                        top_entry,
-                        self.processing.borrow().len()
-                    );
                     ProgressIndicator::CanProgress(None)
                 };
 
-                tracing::debug!("Sending out state: {:?}", &final_state);
                 final_state
             }
             State::Reschedule => {
-                tracing::debug!("Task is wishes to reschedule with State::Reschedule");
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1646,8 +1483,6 @@ impl ExecutorState {
                 ProgressIndicator::CanProgress(Some(State::Reschedule))
             }
             State::Wait => {
-                tracing::debug!("Task is waiting, yielding to executor");
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1692,12 +1527,17 @@ impl ExecutorState {
                         );
                     }
 
-                    tracing::warn!(
-                        "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
-                        top_entry,
-                        violations,
-                        DEPENDS_TRUE_PANIC_THRESHOLD
-                    );
+                    // Rate-limit: under sustained pipe throughput every park can
+                    // legitimately hit this (see DEPENDS_TRUE_PANIC_THRESHOLD),
+                    // and one warn per violation floods the log at wire speed.
+                    if violations <= 3 || violations.is_multiple_of(256) {
+                        tracing::warn!(
+                            "[DEPENDS] Task {:?} returned already-ready signal (violation {}/{})",
+                            top_entry,
+                            violations,
+                            DEPENDS_TRUE_PANIC_THRESHOLD
+                        );
+                    }
 
                     self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                     self.processing.borrow_mut().push_back(top_entry);
@@ -1705,10 +1545,11 @@ impl ExecutorState {
                 }
 
                 // 3. Signal is false -> register as Sleepable::Readiness(signal, entry)
-                tracing::debug!(
-                    "[DEPENDS] Task {:?} registered as Readiness sleeper",
-                    top_entry
-                );
+                // A genuine park also ends any "already-ready" violation streak —
+                // the counter tracks CONSECUTIVE violations, so a well-behaved
+                // park must clear it or the count accumulates over the task's
+                // whole lifetime and eventually panics a healthy hot task.
+                self.depends_true_violations.borrow_mut().remove(&top_entry);
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry));
@@ -1761,7 +1602,6 @@ impl ExecutorState {
         // the top of the executing set.
         match *self.current_task.borrow() {
             Some(current_task) => {
-                tracing::debug!("Who is lifting: {:?} -> {:?}", current_task, parent);
                 if !current_task.eq(&parent) {
                     return Err(ExecutorError::ParentMustBeExecutingToLift);
                 }
@@ -1770,19 +1610,6 @@ impl ExecutorState {
         }
 
         let task_entry = self.local_tasks.borrow_mut().insert(task);
-
-        tracing::debug!(
-            "Processing list-before: {:?} with new task: {:?}",
-            self.processing.borrow(),
-            task_entry
-        );
-
-        tracing::debug!(
-            "Sequenced: new task {:?} for parent: {:?} with processing: {:?}",
-            task_entry,
-            parent,
-            self.processing.borrow()
-        );
 
         Ok(SpawnInfo::new(
             SpawnType::Sequenced,
@@ -1818,7 +1645,6 @@ impl ExecutorState {
         if let Some(parent_handle) = &parent {
             match *self.current_task.borrow() {
                 Some(current_task) => {
-                    tracing::debug!("Who is lifting: {:?} -> {:?}", current_task, parent_handle);
                     if !current_task.eq(parent_handle) {
                         return Err(ExecutorError::ParentMustBeExecutingToLift);
                     }
@@ -1828,13 +1654,6 @@ impl ExecutorState {
         }
 
         let task_entry = self.local_tasks.borrow_mut().insert(task);
-
-        tracing::debug!(
-            "Lift: new task {:?} for parent: {:?} with processing: {:?}",
-            task_entry,
-            parent,
-            self.processing.borrow()
-        );
 
         Ok(if parent.is_some() {
             SpawnInfo::new(SpawnType::LiftedWithParent, Some(task_entry), parent)
@@ -1976,6 +1795,13 @@ impl ReferencedExecutorState {
         self.inner.has_inflight_task()
     }
 
+    /// See [`ExecutorState::has_runnable_work`].
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.inner.has_runnable_work()
+    }
+
     #[must_use]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         self.inner.schedule_and_do_work(engine)
@@ -2097,11 +1923,6 @@ impl ExecutionEngine for LocalExecutionEngine {
         parent: Entry,
     ) -> AnyResult<SpawnInfo, ExecutorError> {
         let entry = self.inner.sequenced(task, parent)?;
-        tracing::debug!(
-            "Sequenced: new task with entry: {:?} from parent: {:?}",
-            entry,
-            parent
-        );
         Ok(entry)
     }
 
@@ -2111,23 +1932,16 @@ impl ExecutionEngine for LocalExecutionEngine {
         parent: Option<Entry>,
     ) -> AnyResult<SpawnInfo, ExecutorError> {
         let entry = self.inner.lift(task, parent)?;
-        tracing::debug!(
-            "Lifted: new task with entry: {:?} from parent: {:?}",
-            entry,
-            parent
-        );
         Ok(entry)
     }
 
     fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
         let entry = self.inner.schedule(task)?;
-        tracing::debug!("schedule: new task into Executor with entry: {:?}", entry);
         Ok(entry)
     }
 
     fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError> {
         let info = self.inner.broadcast(task)?;
-        tracing::debug!("broadcast: new task into Executor");
         if let Some(sender) = &self.activities {
             if let Err(err) = sender.send(ThreadActivity::BroadcastedTask) {
                 tracing::error!("Failure in sending thread activity occurred: {:?}", err);
@@ -2616,13 +2430,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// as well.
     #[inline]
     pub fn run_once(&self) -> ProgressIndicator {
-        let span = tracing::trace_span!("LocalThreadExecutor::run_once");
-        let _enter = span.enter();
-
-        tracing::debug!("Get local engine for work execution");
         let local_executor = self.state.local_engine();
-
-        tracing::debug!("run: ReferencedExecutorState::schedule_and_do_work with local executor");
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
@@ -2633,7 +2441,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// This keeps executing the `schedule_and_do_work` until the condition
     /// with the function is true.
     #[inline]
-    #[tracing::instrument(skip(self, checker), fields(owner = %self.state_owner))]
     pub fn run_until<S>(&self, checker: S)
     where
         S: Fn(ProgressIndicator) -> bool,
@@ -2642,7 +2449,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // Check kill_signal if provided, otherwise continue
             if let Some(ref kill_signal) = self.kill_signal {
                 if kill_signal.probe() {
-                    tracing::debug!("Received signal to stop and die at loop level, stopping");
                     return;
                 }
             }
@@ -2650,22 +2456,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             let local_executor = self.state.local_engine();
 
             let response = self.state.schedule_and_do_work(Box::new(local_executor));
-            tracing::debug!(
-                "run_until: received response from schedule_and_do_work: {:?}",
-                response
-            );
             if checker(response.clone()) {
-                tracing::debug!(
-                    "run_until: condition returned true on: {:?}, exiting loop",
-                    response
-                );
                 break;
             }
 
             // JS: intercept NoWork → stop and return to JS
             #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
             if matches!(&response, ProgressIndicator::NoWork) {
-                tracing::debug!("run_until: NoWork → yielding to JS event loop");
                 break;
             }
 
@@ -2675,7 +2472,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 &response,
                 ProgressIndicator::CanProgress(Some(State::Reschedule))
             ) {
-                tracing::debug!("run_until: Reschedule → yielding to JS event loop");
                 break;
             }
 
@@ -2685,10 +2481,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 {
                     let signal = self.yielder.yield_for(spin_duration);
                     if self.yielder.should_stop(&signal) {
-                        tracing::debug!(
-                            "run_until: SpinWait({}ms) → yielding to JS event loop",
-                            spin_duration.as_millis()
-                        );
                         break;
                     }
                 }
@@ -2700,10 +2492,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // JS: intercept Wait → yield to event loop with short timer
             #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
             if matches!(&response, ProgressIndicator::Wait) {
-                tracing::debug!(
-                    "run_until: Wait → yielding to JS event loop ({}ms)",
-                    crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL.as_millis()
-                );
                 let signal = self
                     .yielder
                     .yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
@@ -2728,7 +2516,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 .min(MAX_YIELD_DURATION);
             self.yielder.yield_for(yield_duration);
         }
-        tracing::debug!("run_until: exited loop");
     }
 
     /// `block_until_finished` defers from `block_on` in that it will
@@ -2745,9 +2532,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// processing via `block_until_finished`.
     #[inline]
     pub fn block_until_finished(&self) {
-        let span = tracing::trace_span!("LocalThreadExecutor::block_until_finished");
-        let _enter = span.enter();
-
         'main_loop: loop {
             for _ in 0..200 {
                 match self.run_once() {
@@ -2814,9 +2598,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     #[inline]
     pub fn block_on(&self) {
-        let span = tracing::trace_span!("LocalThreadExecutor::block_on");
-        let _enter = span.enter();
-
         /// panics: if [`kill_signal`] is not set or instantiated
         /// require `kill_signal` to be provided.
         let kill_signal = self.kill_signal
@@ -2825,7 +2606,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
         loop {
             if kill_signal.probe() {
-                tracing::debug!("Received signal to stop and die at loop level, stopping");
                 return;
             }
 
@@ -2834,7 +2614,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             for i in 0..200 {
                 // Check kill signal at configured interval (default: every 16 iterations)
                 if i % self.kill_signal_check_interval == 0 && kill_signal.probe() {
-                    tracing::debug!("Received signal stopping immediately");
                     return;
                 }
 
@@ -2843,24 +2622,29 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::NoWork => {
                         // Also check kill signal when no work
                         if kill_signal.probe() {
-                            tracing::debug!(
-                                "Received signal stopping immediately at no work probing"
-                            );
                             return;
                         }
 
-                        tracing::debug!("No work received, yielding until signaled");
-                        // Use sleeper-aware yielding: sleep until next sleeper wakes
-                        let yield_duration = self
-                            .state
-                            .time_until_next_wakeup()
-                            .unwrap_or(self.no_work_yield);
+                        // Use sleeper-aware yielding: sleep until next sleeper wakes.
+                        // Readiness-parked tasks (pipe waits) have NO deadline and
+                        // their cross-thread wake cannot interrupt a plain sleep, so
+                        // a worker hosting them must poll at a short quantum — a
+                        // blind `no_work_yield` (seconds) here turned every
+                        // cross-worker pipe handoff into a multi-second stall
+                        // (first seen collapsing BuildKit tar-export throughput).
+                        let yield_duration =
+                            self.state.time_until_next_wakeup().unwrap_or_else(|| {
+                                if self.state.number_of_sleepers() > 0 {
+                                    READINESS_POLL_QUANTUM
+                                } else {
+                                    self.no_work_yield
+                                }
+                            });
                         self.yielder.yield_for(yield_duration);
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         // Also check kill signal during spin wait
                         if kill_signal.probe() {
-                            tracing::debug!("Received signal stopping immediately at spin wait");
                             return;
                         }
 
@@ -2869,7 +2653,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::Wait => {
                         // Queue empty, yield and re-check
                         if kill_signal.probe() {
-                            tracing::debug!("Received signal stopping immediately at wait");
                             return;
                         }
 
@@ -2888,14 +2671,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 #[must_use]
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
-    Task::Ready,
-    Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
-    Resolver,
-    Task,
->
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
 where
     Task::Ready: Send,
     Task::Pending: Send,
@@ -2903,7 +2679,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `any_task` allows you to create a task builder with less restrictive type
@@ -2911,11 +2687,10 @@ where
 #[must_use]
 pub fn any_task<Task, Action>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
     Task,
 >
@@ -2925,7 +2700,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `send_any_task` will unlike [`any_task`] deliver the provided
@@ -2934,11 +2709,10 @@ where
 #[must_use]
 pub fn send_any_task<Task, Action>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
@@ -2948,7 +2722,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `send_typed_task` will unlike `type_task` deliver the provided
@@ -2957,14 +2731,7 @@ where
 #[must_use]
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
-    Task::Ready,
-    Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
-    Resolver,
-    Task,
->
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -2972,7 +2739,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 #[cfg(all(test, not(target_family = "wasm")))]
@@ -2988,9 +2755,9 @@ mod test_local_thread_executor {
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
         valtron::{
-            BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction,
-            InlineSendAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner,
-            OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
+            BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction, InlineAction,
+            InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
+            ProcessController, TaskIterator, TaskStatus, WrapTask,
         },
     };
 
@@ -3020,12 +2787,9 @@ mod test_local_thread_executor {
             let new_count = old_count + 1;
             self.1 = new_count;
 
-            tracing::debug!(
-                "Counter({}) has current count {} from old count {}",
-                self.0,
-                new_count,
-                old_count,
-            );
+            // Field 0 is the task's label; surfacing it here is what makes an
+            // interleaving failure readable when several counters run at once.
+            tracing::trace!(task = self.0, count = new_count, "Counter advanced");
 
             if new_count == self.2 {
                 return None;
@@ -3045,7 +2809,7 @@ mod test_local_thread_executor {
         Done,
     }
 
-    struct ListItems(InlineSendActionBehaviour, Option<ListItemInner>);
+    struct ListItems(InlineActionBehaviour, Option<ListItemInner>);
 
     impl TaskIterator for ListItems {
         type Ready = usize;
@@ -3059,9 +2823,8 @@ mod test_local_thread_executor {
                         if let Some(inner) = items.take() {
                             let task = WrapTask::new(inner.into_iter());
 
-                            let (inline_action, receiver) = InlineSendAction::boxed_mapper(
+                            let (inline_action, receiver) = InlineAction::new(
                                 self.0,
-                                Vec::new(),
                                 task,
                                 std::time::Duration::from_millis(100),
                             );
@@ -3078,7 +2841,6 @@ mod test_local_thread_executor {
                     }
                     ListItemInner::Response(mut iter) => {
                         let val_next = iter.next();
-                        tracing::debug!("Get the next value from the iterator: {:?}", val_next);
 
                         self.1 = Some(ListItemInner::Response(iter));
 
@@ -3108,7 +2870,7 @@ mod test_local_thread_executor {
     }
 
     // ============================================================================
-    // PHASE 0: InlineAction and InlineSendAction tests
+    // PHASE 0: InlineAction and InlineAction tests
     // ============================================================================
 
     #[test]
@@ -3138,9 +2900,8 @@ mod test_local_thread_executor {
         let item_list = vec![1, 2, 3];
         let task = WrapTask::new(item_list.into_iter());
 
-        let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-            InlineSendActionBehaviour::Lift,
-            Vec::new(),
+        let (mut inline_action, receiver) = InlineAction::new(
+            InlineActionBehaviour::Lift,
             task,
             std::time::Duration::from_millis(10),
         );
@@ -3193,10 +2954,11 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::Lift,
+                InlineActionBehaviour::Lift,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -3243,10 +3005,11 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::LiftWithParent,
+                InlineActionBehaviour::LiftWithParent,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -3293,10 +3056,11 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::Sequenced,
+                InlineActionBehaviour::Sequenced,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -3352,7 +3116,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(
             executor.run_once(),
@@ -3401,11 +3166,9 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Arc::clone(&counts);
-        let on_next = OnNext::on_next(
-            Counter("Counter1", 0, 3, 3),
-            move |next, _engine| count_clone.lock().unwrap().push(next),
-            None,
-        );
+        let on_next = OnNext::on_next(Counter("Counter1", 0, 3, 3), move |next, _engine| {
+            count_clone.lock().unwrap().push(next)
+        });
 
         panic_if_failed!(global.push(on_next.into()));
 
@@ -3457,7 +3220,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(
             executor.run_once(),
@@ -3506,8 +3270,7 @@ mod test_local_thread_executor {
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 10, 20, 12),
-            move |next, _engine| { count_clone.lock().unwrap().push(next) },
-            None,
+            move |next, _engine| { count_clone.lock().unwrap().push(next) }
         ))));
 
         assert!(matches!(
@@ -3577,17 +3340,15 @@ mod test_local_thread_executor {
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 0, 4, 2),
-            move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-            None,
+            move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
         ))));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 20, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None,
-            )
+            OnNext::on_next(Counter("Counter2", 0, 20, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -3732,21 +3493,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -3901,7 +3660,8 @@ mod test_local_thread_executor {
                     match any_task(executor)
                         .maybe_parent(key)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
-                        .lift()
+                        .as_lifted()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3911,7 +3671,8 @@ mod test_local_thread_executor {
                     tracing::debug!("Spawning task as InThread");
                     match any_task(executor)
                         .with_task(SimpleCounter("SubTask2", 0, 5))
-                        .schedule()
+                        .as_scheduled()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3921,7 +3682,8 @@ mod test_local_thread_executor {
                     tracing::debug!("Spawning task as OutOfThread");
                     match send_any_task(executor)
                         .with_task(SimpleCounter("SubTask3", 0, 5))
-                        .broadcast()
+                        .as_broadcast()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -4030,7 +3792,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
@@ -4130,7 +3893,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
@@ -4224,21 +3988,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -4296,21 +4058,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -4369,21 +4129,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -4518,8 +4276,7 @@ mod test_local_thread_executor {
             DependsCounter::new(1, signal),
             move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {
                 // callback - we track via run_once return values
-            },
-            None,
+            }
         ))));
 
         // First run_once: task returns Depends(false), should register as sleeper
@@ -4564,8 +4321,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Run 1: Depends(false) → registered as sleeper
@@ -4609,8 +4365,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Depends(true) → violation, treated as Pending, pushed to back
@@ -4655,8 +4410,7 @@ mod test_local_thread_executor {
                 max: 3,
                 signal: signal.clone(),
             },
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // First run_once: Depends(false), registers as sleeper
@@ -4723,8 +4477,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal.clone()),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Verify signal is initially false

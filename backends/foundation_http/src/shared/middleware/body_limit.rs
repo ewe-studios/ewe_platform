@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SendSafeBody, Status,
 };
 

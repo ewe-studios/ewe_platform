@@ -163,6 +163,7 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
 // runs and joins INSIDE block_on using a cloned pool handle, so it kills the
 // pool (letting block_on's waitgroup().wait() return) without ever calling
 // get_pool() after the guard clears the global registry.
+#[test]
 #[traced_test]
 fn can_finish_even_when_task_panics() {
     let seed = fastrand::u64(..);
@@ -195,6 +196,7 @@ fn can_finish_even_when_task_panics() {
 // cloned pool handle — it must call kill() before block_on's internal
 // waitgroup().wait() can return, and must not touch get_pool() after the guard
 // drops (which clears the global registry).
+#[test]
 #[traced_test]
 fn can_queue_and_complete_task() {
     let seed = fastrand::u64(..);

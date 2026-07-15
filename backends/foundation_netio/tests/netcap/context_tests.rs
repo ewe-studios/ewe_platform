@@ -9,7 +9,7 @@
 use std::sync::Arc;
 
 use foundation_netio::netcap::{ConnectionContext, PeerIdentity, TlsInfo};
-use foundation_netio::simple_http::shared::SimpleIncomingRequest;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 
 /// WHY: The default must be a valid "nothing known" value so callers that build
 /// requests directly (tests, wasm client rendering) pay nothing and change no
@@ -26,7 +26,10 @@ fn test_connection_context_empty_default() {
     assert_eq!(ctx.alpn_str(), None);
     assert!(ctx.peer_addr.is_none());
     // `empty()` is the same as `default()`.
-    assert_eq!(ConnectionContext::empty().peer_identity, PeerIdentity::Anonymous);
+    assert_eq!(
+        ConnectionContext::empty().peer_identity,
+        PeerIdentity::Anonymous
+    );
 }
 
 /// WHY: A request built without a connection context must still be valid and
@@ -51,7 +54,7 @@ fn test_request_defaults_to_empty_connection() {
 fn test_request_carries_populated_connection() {
     let addr = "127.0.0.1:8080".parse().expect("valid socket addr");
     let ctx = Arc::new(ConnectionContext {
-        peer_addr: Some(foundation_netio::netcap::SocketAddr::Tcp(addr)),
+        peer_addr: Some(addr),
         peer_identity: PeerIdentity::Ed25519(vec![0xAB; 32]),
         tls: Some(TlsInfo {
             peer_certificates: vec![vec![1, 2, 3]],
@@ -68,10 +71,16 @@ fn test_request_carries_populated_connection() {
         .expect("valid request");
 
     assert!(req.connection.peer_addr.is_some());
-    assert_eq!(req.connection.peer_identity, PeerIdentity::Ed25519(vec![0xAB; 32]));
+    assert_eq!(
+        req.connection.peer_identity,
+        PeerIdentity::Ed25519(vec![0xAB; 32])
+    );
     assert_eq!(req.connection.alpn_str(), Some("h2"));
     assert_eq!(
-        req.connection.tls.as_ref().and_then(|t| t.server_name.as_deref()),
+        req.connection
+            .tls
+            .as_ref()
+            .and_then(|t| t.server_name.as_deref()),
         Some("example.com")
     );
     // Shared by refcount: the builder cloned the Arc, so both point at one value.

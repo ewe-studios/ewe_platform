@@ -50,16 +50,16 @@ pub enum WebSocketError {
 impl fmt::Display for WebSocketError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            WebSocketError::UpgradeFailed(code) => write!(f, "upgrade failed: HTTP {code}"),
-            WebSocketError::InvalidAcceptKey => write!(f, "invalid Sec-WebSocket-Accept key"),
-            WebSocketError::MissingAcceptKey => write!(f, "missing Sec-WebSocket-Accept header"),
-            WebSocketError::MissingKey => write!(f, "missing Sec-WebSocket-Key header"),
-            WebSocketError::InvalidFrame(msg) => write!(f, "invalid frame: {msg}"),
-            WebSocketError::InvalidUtf8(err) => write!(f, "invalid UTF-8: {err}"),
-            WebSocketError::ConnectionClosed => write!(f, "connection closed"),
-            WebSocketError::ProtocolError(msg) => write!(f, "protocol error: {msg}"),
-            WebSocketError::IoError(err) => write!(f, "I/O error: {err}"),
-            WebSocketError::InvalidUrl(msg) => write!(f, "invalid URL: {msg}"),
+            Self::UpgradeFailed(code) => write!(f, "upgrade failed: HTTP {code}"),
+            Self::InvalidAcceptKey => write!(f, "invalid Sec-WebSocket-Accept key"),
+            Self::MissingAcceptKey => write!(f, "missing Sec-WebSocket-Accept header"),
+            Self::MissingKey => write!(f, "missing Sec-WebSocket-Key header"),
+            Self::InvalidFrame(msg) => write!(f, "invalid frame: {msg}"),
+            Self::InvalidUtf8(err) => write!(f, "invalid UTF-8: {err}"),
+            Self::ConnectionClosed => write!(f, "connection closed"),
+            Self::ProtocolError(msg) => write!(f, "protocol error: {msg}"),
+            Self::IoError(err) => write!(f, "I/O error: {err}"),
+            Self::InvalidUrl(msg) => write!(f, "invalid URL: {msg}"),
         }
     }
 }
@@ -68,12 +68,12 @@ impl std::error::Error for WebSocketError {}
 
 impl From<std::io::Error> for WebSocketError {
     fn from(err: std::io::Error) -> Self {
-        WebSocketError::IoError(err)
+        Self::IoError(err)
     }
 }
 
 impl From<std::string::FromUtf8Error> for WebSocketError {
     fn from(err: std::string::FromUtf8Error) -> Self {
-        WebSocketError::InvalidUtf8(err)
+        Self::InvalidUtf8(err)
     }
 }

@@ -10,7 +10,7 @@ harness = false
 path = "condvar_bench.rs"
 
 [dependencies]
-foundation_nostd = { workspace = true, features = ["std"] }
+foundation_nostd = { path = "../backends/foundation_nostd", version = "0.0.4", features = ["std"] }
 criterion = { workspace = true }
 
 [dev-dependencies]

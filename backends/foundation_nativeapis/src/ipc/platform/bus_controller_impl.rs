@@ -6,9 +6,9 @@
 use std::{mem, sync::mpsc::Sender, thread, time::{Duration, Instant}};
 
 use crate::ipc::{
-    decode, version::version, version::Version,
+    decode, version::version,
     ConnectMessage, ConnectMessageAck, Message,
-    EndpointID, Error, Label, LabelOp, Selector, SelectorMode,
+    EndpointID, Error, Label, SelectorMode,
 };
 use super::{Remote, EncodedMessage, IoHub};
 use foundation_core::type_uuid::TypeUuid;
@@ -213,6 +213,7 @@ impl BusController {
             label: payload.label,
             remote,
         };
+        tracing::debug!(endpoint_id = ?pair.id, label = ?pair.label, "ipc endpoint registered");
 
         // Don't add duplicates
         if self

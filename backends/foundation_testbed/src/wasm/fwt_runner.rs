@@ -28,7 +28,7 @@ use crate::wasm::{build, fwt, server};
 /// Verify every tool a runner needs is on PATH BEFORE doing any work, so a
 /// missing prerequisite is one clear actionable error rather than a mid-run
 /// failure after a multi-minute wasm build.
-fn preflight(tools: &[(&str, &str)]) -> Result<()> {
+pub(crate) fn preflight(tools: &[(&str, &str)]) -> Result<()> {
     for (tool, why) in tools {
         if which::which(tool).is_err() {
             return Err(WasmTestbedError::MissingTool {

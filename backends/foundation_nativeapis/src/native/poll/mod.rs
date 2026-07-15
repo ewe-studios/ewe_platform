@@ -33,6 +33,15 @@ pub use event::{Events, Source};
 pub mod sys;
 pub use sys::SourceFd;
 
+pub mod backend;
+pub use backend::{Backend, BackendPreference, SelectionError};
+
+/// The functional io_uring capability probe (Decision 14 OQ#14.3).
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub mod probe;
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub use probe::{ProbeError, UringCapabilities};
+
 use std::io;
 use std::sync::Arc;
 use std::time::Duration;
@@ -95,6 +104,12 @@ pub struct Poll {
     selector: Arc<sys::Selector>,
 }
 
+impl std::fmt::Debug for Poll {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Poll").field("backend", &self.backend()).finish()
+    }
+}
+
 impl Poll {
     /// Create a new `Poll` instance.
     ///
@@ -103,8 +118,175 @@ impl Poll {
     /// - macOS/BSD: `kqueue()`
     /// - Windows: `CreateIoCompletionPort`
     pub fn new() -> io::Result<Self> {
-        let (selector, _) = sys::Selector::new_with_registry()?;
+        // Construct the selector and wrap it here rather than asking the
+        // selector to hand back a `Registry`: on Linux both `epoll::Selector`
+        // and `uring::Selector` are compiled, so only `Poll` knows which one
+        // `Registry` is parameterised over.
+        let selector = Arc::new(sys::Selector::new()?);
         Ok(Self { selector })
+    }
+
+    /// WHY: Decision 14 OQ#14.3 makes an explicit backend request a
+    /// *requirement*. A deployment that asks for io_uring and silently gets
+    /// epoll discovers it from latency graphs months later.
+    ///
+    /// WHAT: create a `Poll` on a specific backend preference.
+    ///
+    /// HOW: [`BackendPreference::Auto`] walks the probe ladder
+    /// (uring-completion → uring-readiness → epoll) and logs the choice.
+    /// [`BackendPreference::Uring`] fails hard if the probe says io_uring is
+    /// unusable. [`BackendPreference::Epoll`] skips the probe entirely.
+    ///
+    /// # Errors
+    /// `io::ErrorKind::Unsupported` carrying the concrete probe failure when an
+    /// explicitly requested backend is unavailable, or the platform selector's
+    /// own `io::Error`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(target_os = "linux")]
+    pub fn with_preference(preference: BackendPreference) -> io::Result<Self> {
+        let selector = Arc::new(sys::Selector::with_preference(preference)?);
+        Ok(Self { selector })
+    }
+
+    /// WHY: observability — operators need to see which backend a process
+    /// actually landed on, not which one it was configured to prefer.
+    ///
+    /// WHAT: the backend this `Poll` is driving.
+    ///
+    /// HOW: reported by the runtime dispatch selector on Linux; a constant on
+    /// platforms with a single backend.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn backend(&self) -> Backend {
+        #[cfg(target_os = "linux")]
+        {
+            self.selector.backend()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Backend::Kqueue
+        }
+    }
+
+    /// WHY: in completion mode the kernel has already read the bytes; the
+    /// transport pops them here rather than issuing `read(2)` (Decision 14 F4).
+    ///
+    /// WHAT: drain everything the kernel delivered for `token`.
+    ///
+    /// HOW: forwards to the selector. `None` on every backend without an inbox,
+    /// which tells the caller to use its ordinary read path.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_completions(
+        &self,
+        token: Token,
+    ) -> Option<Vec<sys::unix::selector::uring_completion::Completion>> {
+        self.selector.take_completions(token)
+    }
+
+    /// Whether `token` has kernel-delivered bytes waiting.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_completions(&self, token: Token) -> bool {
+        self.selector.has_completions(token)
+    }
+
+    /// Whether `token`'s bytes arrive as completions rather than needing a read.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn is_recv_token(&self, token: Token) -> bool {
+        self.selector.is_recv_token(token)
+    }
+
+    /// Submit an `IORING_OP_SEND` for `token`/`fd` on the completion backend (F49).
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send(&self, token: Token, fd: sys::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.selector.submit_send(token, fd, data)
+    }
+
+    /// Submit a zero-copy `IORING_OP_SEND_ZC` for `token`/`fd` (F50 Part C).
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc(&self, token: Token, fd: sys::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.selector.submit_send_zc(token, fd, data)
+    }
+
+    /// Zero-copy send from an owned [`ProvidedBuf`] — the `ProvidedBuf`-direct
+    /// handoff (F50 Part C tail). No pool copy. Only the completion backend.
+    ///
+    /// # Errors
+    /// The kernel's submission error; `Unsupported` off the completion backend.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc_direct(
+        &self,
+        token: Token,
+        fd: sys::RawFd,
+        buf: sys::unix::selector::bufring::ProvidedBuf,
+    ) -> io::Result<usize> {
+        self.selector.submit_send_zc_direct(token, fd, buf)
+    }
+
+    /// Take finished sends for `token`. Empty off the completion backend.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_send_completions(
+        &self,
+        token: Token,
+    ) -> Vec<sys::unix::selector::uring_completion::SendCompletion> {
+        self.selector.take_send_completions(token)
+    }
+
+    /// Whether finished sends are waiting for `token`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_send_completions(&self, token: Token) -> bool {
+        self.selector.has_send_completions(token)
+    }
+
+    /// Whether `token` has an unfinished SEND in flight.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_pending_sends(&self, token: Token) -> bool {
+        self.selector.has_pending_sends(token)
+    }
+
+    /// Register `fd`, opting its read path into completion mode where possible.
+    ///
+    /// Returns whether the kernel will now read this fd for you. See
+    /// [`sys::unix::selector::dispatch::Selector::register_recv_fd`].
+    ///
+    /// # Errors
+    /// Propagates the selector's registration error.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn register_recv_fd(
+        &self,
+        fd: sys::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<bool> {
+        self.selector.register_recv_fd(fd, token, interest)
     }
 
     /// Returns a [`Registry`] for registering/deregistering sources.
@@ -142,6 +324,21 @@ pub struct Registry {
 }
 
 impl Registry {
+    /// WHY: `FdRegistration` must honour the registry it is handed. It decides
+    /// between the shared-reactor path (cached readiness, zero syscalls per
+    /// check) and a caller-owned selector by asking whether the two registries
+    /// front the *same* selector — not by silently preferring the singleton.
+    ///
+    /// WHAT: whether `self` and `other` register into the same selector.
+    ///
+    /// HOW: pointer equality of the `Arc<Selector>` both hold.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn same_selector(&self, other: &Registry) -> bool {
+        Arc::ptr_eq(&self.selector, &other.selector)
+    }
+
     /// Register a source with the selector.
     ///
     /// # Arguments

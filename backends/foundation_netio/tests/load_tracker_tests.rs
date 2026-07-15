@@ -1,6 +1,6 @@
 //! Tests extracted from simple_http/shared/load_tracker.rs
 mod tests {
-    use foundation_netio::simple_http::shared::load_tracker::*;
+    use foundation_netio::shared::http::load_tracker::*;
     use std::thread;
     use std::time::Duration;
 

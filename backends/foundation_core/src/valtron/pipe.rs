@@ -39,26 +39,26 @@ use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
 
 /// Shared state behind both pipe halves: the bounded queue plus the two waker
 /// stashes fired by the opposite end.
-struct PipeInner<T> {
+pub(crate) struct PipeInner<T> {
     /// Bounded queue. Held behind its own `Arc` so the readiness accessors can
     /// hand out `QueueReadiness`/`QueueVacancyReadiness` over the same queue.
-    queue: Arc<ConcurrentQueue<T>>,
+    pub(crate) queue: Arc<ConcurrentQueue<T>>,
     /// Waker of a consumer parked on an empty pipe; fired by a producer `push`.
-    consumer_waker: Mutex<Option<Waker>>,
+    pub(crate) consumer_waker: Mutex<Option<Waker>>,
     /// Waker of a producer parked on a full pipe; fired by a consumer `pop`.
-    producer_waker: Mutex<Option<Waker>>,
+    pub(crate) producer_waker: Mutex<Option<Waker>>,
 }
 
 impl<T> PipeInner<T> {
     /// Wake a consumer parked on an empty pipe (called after a successful push).
-    fn wake_consumer(&self) {
+    pub(crate) fn wake_consumer(&self) {
         if let Some(waker) = self.consumer_waker.lock().unwrap().take() {
             waker.wake();
         }
     }
 
     /// Wake a producer parked on a full pipe (called after a successful pop).
-    fn wake_producer(&self) {
+    pub(crate) fn wake_producer(&self) {
         if let Some(waker) = self.producer_waker.lock().unwrap().take() {
             waker.wake();
         }
@@ -119,7 +119,13 @@ impl<T> Pipe<T> {
 /// The producer half of a [`Pipe<T>`]. Not `Clone` — the seam model gives each
 /// pipe exactly one sender and one receiver.
 pub struct PipeSender<T> {
-    inner: Arc<PipeInner<T>>,
+    pub(crate) inner: Arc<PipeInner<T>>,
+}
+
+impl<T> Clone for PipeSender<T> {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone() }
+    }
 }
 
 impl<T> PipeSender<T> {
@@ -278,7 +284,13 @@ impl<T> Future for SendFuture<'_, T> {
 
 /// The consumer half of a [`Pipe<T>`]. Not `Clone` — one receiver per pipe.
 pub struct PipeReceiver<T> {
-    inner: Arc<PipeInner<T>>,
+    pub(crate) inner: Arc<PipeInner<T>>,
+}
+
+impl<T> Clone for PipeReceiver<T> {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone() }
+    }
 }
 
 impl<T> PipeReceiver<T> {
@@ -494,3 +506,4 @@ impl<T> fmt::Display for SendError<T> {
 
 #[cfg(feature = "std")]
 impl<T> std::error::Error for SendError<T> {}
+

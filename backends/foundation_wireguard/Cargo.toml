@@ -1,0 +1,136 @@
+[package]
+name = "foundation_wireguard"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Userspace WireGuard mesh: seed-derived keys, boringtun tunnels, SWIM gossip, and a smoltcp/TUN data plane — no kernel module, no privileges, no tokio"
+keywords = ["wireguard", "mesh", "userspace", "boringtun", "smoltcp"]
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+# Data plane primitives (feature 00). wasm gets the netstack only; native additionally
+# needs poll/fd for the UDP socket + reactor used by the tunnel driver.
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+
+# Seed -> key derivation (decision 03: HKDF-BLAKE2s).
+hkdf = "0.12"
+blake2 = "0.10"
+getrandom = { version = "0.2", features = ["std"] }
+base64 = "0.22"
+hex = "0.4"
+zeroize = "1"
+
+tracing = { workspace = true }
+thiserror = { workspace = true }
+derive_more = { workspace = true }
+serde = { workspace = true }
+serde_json = "1"
+# Compact, versioned wire codec for SWIM gossip messages (feature 03).
+bincode = { version = "2", features = ["serde"] }
+# wireguard.toml config loading (feature 09).
+toml = { workspace = true }
+# WireGuard Noise state machine (decision 01). Pure crypto (Tunn + x25519) —
+# no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
+boringtun = { version = "0.7.1", default-features = false }
+# Proc macros: wireguard! + #[wireguard_main] (feature 09).
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+# smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
+smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
+# HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
+# The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
+# makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
+# compiled in — `Connector` lives in `foundation_netio::http`, which is itself gated
+# behind `multi`.
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
+
+# Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
+# BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+# boring is pinned to 4.x to match the workspace's existing jwt-simple constraint
+# (boring-sys links to BoringSSL, so only one version may exist workspace-wide).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+boring = "4"
+
+# wasm32 browser tests (F07 task 5). Optional — only needed when running
+# #[valtron_bindgen] / #[wasm_bindgen_test] tests in a headless browser.
+
+# Browser WebAssembly APIs (F07 — browser peer).
+[target.'cfg(target_family = "wasm")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+    "BinaryType",
+    "MessageEvent",
+    "ReadableStream",
+    "RtcDataChannel",
+    "RtcPeerConnection",
+    "RtcSessionDescriptionInit",
+    "WebSocket",
+    "WebTransport",
+    "WebTransportDatagramDuplexStream",
+    "WebTransportHash",
+    "WebTransportOptions",
+] }
+js-sys = "0.3"
+# For wasm32, the netstack (smoltcp) is all we need — no poll/fd reactor.
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
+# wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+# wasm32 browser tests (F07 task 5). Dev-only to prevent dep cycle:
+# deployment_platform -> wireguard -> testbed -> deployment_platform
+foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
+wasm-bindgen-test = { version = "=0.3.76" }
+tracing-test.workspace = true
+tracing-subscriber.workspace = true
+serial_test = "3.3"
+tempfile = "3"
+
+[features]
+# spec55-complete: compile-time completeness gate.
+# When enabled, emits `compile_error!` for every known spec-55 gap so they
+# cannot be ignored. Delete the corresponding error line as each gap is fixed.
+# Also gates the `completeness_tests` integration suite.
+spec55-complete = []
+
+# webtransport: enables the browser WebTransport bridge (requires foundation_netio/quic
+# + web_sys WebTransport unstable API). Off by default — browser peers use WS relay.
+webtransport = ["foundation_netio/quic"]
+
+# wasm-bindgen-test: enables wasm32 browser tests (spec-55 F07 task 5).
+# Provides #[valtron_bindgen] / #[wasm_bindgen_test] macros for headless browser testing.
+# Run with: wasm-testbed test bindgen-deno ./foundation_wireguard --features wasm-bindgen-test
+wasm-bindgen-test = []
+
+[lints]
+workspace = true
+
+# Two-node WireGuard mesh example (spec-55).
+[[example]]
+name = "two_node_mesh"
+path = "examples/two_node_mesh.rs"
+
+# Docker self-assembly example — containers form a mesh from env vars (F10).
+[[example]]
+name = "docker_self_assemble"
+path = "examples/docker_self_assemble.rs"
+
+# Integration test: full wireguard mesh in userspace (spec-55 completeness).
+[[test]]
+name = "completeness_tests"
+path = "tests/completeness_tests.rs"
+required-features = ["spec55-complete"]
+
+# wasm32 browser tests: JsDevice + BrowserWgNode + WebRtcOfferer (spec-55, F07 task 5).
+# Run with: cargo test --target wasm32-unknown-unknown --features wasm-bindgen-test
+[[test]]
+name = "wasm_browser"
+path = "tests/wasm/mod.rs"
+required-features = ["wasm-bindgen-test"]

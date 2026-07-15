@@ -1,0 +1,5 @@
+error: unknown service key: invalid
+  --> tests/trybuild/fail/proxy_unknown_service_key.rs:12:17
+   |
+12 |                 invalid: true,
+   |                 ^^^^^^^

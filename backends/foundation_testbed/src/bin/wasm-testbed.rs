@@ -13,6 +13,8 @@ use foundation_testbed::wasm::{
     browser, build, cli, deno, emscripten_runner, error, fwt_runner, init, server, wasi_runner,
     wasm, wasm_test, wrangler,
 };
+#[cfg(feature = "wasm-bindgen-test")]
+use foundation_testbed::wasm::bindgen_runner;
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;
@@ -31,7 +33,24 @@ fn main() {
         Command::Init(args) => init::run(args),
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
-        Command::Web(args) => run_owned(fwt_runner::run_web(&args)),
+        Command::Browser(args) => run_owned(fwt_runner::run_web(&args)),
+        Command::Bindgen(args) => {
+            #[cfg(feature = "wasm-bindgen-test")]
+            {
+                run_bindgen_outcome(bindgen_runner::run_bindgen(&args))
+            }
+            #[cfg(not(feature = "wasm-bindgen-test"))]
+            {
+                use error::ToTrace;
+                Err(WasmTestbedError::BrowserDriver(
+                    "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\
+                     Re-run with: cargo run -p foundation_testbed \
+                     --features wasm,wasm-bindgen-test --bin wasm-testbed -- bindgen ..."
+                        .into(),
+                )
+                .trace())
+            }
+        }
         Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
@@ -53,6 +72,19 @@ fn run_subprocess<T>(
 /// Surface an owned-harness outcome as the process verdict.
 fn run_owned(
     outcome: foundation_testbed::wasm::error::Result<fwt_runner::RunOutcome>,
+) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    use error::ToTrace;
+    let outcome = outcome?;
+    if outcome.exit_code != 0 {
+        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+    }
+    Ok(())
+}
+
+/// Surface a bindgen browser outcome as the process verdict.
+#[cfg(feature = "wasm-bindgen-test")]
+fn run_bindgen_outcome(
+    outcome: foundation_testbed::wasm::error::Result<bindgen_runner::RunOutcome>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::ToTrace;
     let outcome = outcome?;
@@ -163,7 +195,15 @@ fn run_bindgen_web(
     use wasm::BindgenTarget;
 
     tracing::info!("Running wasm-bindgen (web)...");
-    wasm::run_wasm_bindgen(&build.wasm_path, integration_dir, BindgenTarget::Web)?;
+    // Pass --out-name so the output is {name}.js / {name}_bg.wasm (no hash).
+    // The deno mode already does this; without it, the hashed input filename
+    // becomes the output name and the index.html/run.js imports don't resolve.
+    wasm::run_wasm_bindgen_with_name(
+        &build.wasm_path,
+        integration_dir,
+        BindgenTarget::Web,
+        Some(&build.package_name),
+    )?;
 
     init::write_template_to(
         "bindgen-web/index.html",
@@ -249,7 +289,12 @@ fn run_bindgen_wrangler(
     use wasm::BindgenTarget;
 
     tracing::info!("Running wasm-bindgen (esmodules)...");
-    wasm::run_wasm_bindgen(&build.wasm_path, integration_dir, BindgenTarget::EsModules)?;
+    wasm::run_wasm_bindgen_with_name(
+        &build.wasm_path,
+        integration_dir,
+        BindgenTarget::EsModules,
+        Some(&build.package_name),
+    )?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;

@@ -8,10 +8,10 @@
 //! presence and basic ergonomics of the authority parsing types without
 //! performing heavy I/O.
 
-use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::client::shared::*;
 use foundation_core::url::*;
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::client::*;
+use foundation_netio::http::*;
+use foundation_netio::shared::http::*;
 
 #[test]
 fn test_authority_type_is_send_sync() {

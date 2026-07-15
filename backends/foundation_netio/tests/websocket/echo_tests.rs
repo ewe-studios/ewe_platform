@@ -2,10 +2,8 @@
 
 #![cfg(feature = "multi")]
 
-use std::time::Duration;
-
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;

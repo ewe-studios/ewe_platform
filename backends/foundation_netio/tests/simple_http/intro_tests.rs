@@ -9,9 +9,9 @@
 //! integration suite where `HttpResponseReader` and stream-based probing can be
 //! exercised deterministically.
 
-use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::client::shared::*;
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::client::*;
+use foundation_netio::http::*;
+use foundation_netio::shared::http::*;
 
 #[test]
 fn test_intro_type_is_send_sync() {

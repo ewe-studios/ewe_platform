@@ -25,6 +25,12 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 async-trait = "0.1"
 
+# The I/O gate: ServerIo + the completion-mode accept path (Feature 48). Native
+# only — there is no reactor on wasm. iogate brings foundation_nativeapis in
+# transitively, above netio, so no dependency cycle forms.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
+
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
@@ -49,7 +55,10 @@ web-sys = { version = "0.3", features = [
 foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
 foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+# `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
@@ -68,6 +77,8 @@ ssl-rustls-ring = ["foundation_netio/ssl-rustls-ring"]
 ssl-rustls-awsrc = ["foundation_netio/ssl-rustls-awsrc"]
 ssl-openssl = ["foundation_netio/ssl-openssl"]
 ssl-native-tls = ["foundation_netio/ssl-native-tls"]
+# HTTP/3 (QUIC) — gates H3Serve trait and ServerApp::Http3 (F35)
+quic = ["foundation_netio/quic"]
 # Wasm compatibility — uses browser crypto for UUID generation
 wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers

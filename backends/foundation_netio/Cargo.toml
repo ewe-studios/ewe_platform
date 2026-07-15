@@ -19,6 +19,9 @@ workspace = true
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+# RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
+# → wasm-clean). std is followed from this crate's `std` feature.
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -31,9 +34,6 @@ serde_yml = { version = "0.0.12" }
 toml = { version = "0.9" }
 fastrand = "2.3.0"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
-# RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
-# → wasm-clean). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
@@ -58,6 +58,8 @@ web-sys = { version = "0.3", optional = true, features = [
     "Request", "RequestInit", "RequestMode",
     "Response", "Headers",
     "ReadableStream", "ReadableStreamDefaultReader", "ReadableStreamDefaultController",
+    # WebSocket (F51 — unified cross-platform WebSocket client)
+    "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -70,14 +72,23 @@ webpki-roots = { version = "0.26", optional = true }
 native-tls = { version = "0.2", optional = true }
 openssl = { version = "0.10", optional = true }
 socket2 = { version = "0.6", optional = true }
+quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"] }
 
 [dev-dependencies]
+# F52: wasm-bindgen browser tests via foundation_testbed (wasm32-only).
+# All wasm-bindgen ecosystem re-exported by foundation_testbed.
+foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
+wasm-bindgen-test = "=0.3.76"
+# Proc-macro crate — always compiled for host, safe for all targets.
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+foundation_testing = { path = "../foundation_testing" }
+
 serial_test = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
-foundation_testing = { path = "../foundation_testing" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 futures-lite = "2"
 ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
@@ -92,25 +103,33 @@ log_warnings = []
 log_errors = []
 log_debug = []
 log_info = []
-nightly = ["socket2"]
+nightly = ["dep:socket2"]
 
 socks5 = []
-ssl-provider-ring = ["ring"]
-ssl-provider-awsrc = ["aws-lc-rs"]
-ssl-openssl = ["std", "openssl"]
-ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "rustls/std", "rustls/tls12", "rustls/logging"]
+# QUIC (F33). quinn-proto is sans-IO and needs a rustls crypto provider; declare
+# them here rather than relying on the default feature set happening to enable
+# rustls, which is what made `--no-default-features --features quic` fail to build.
+quic = ["std", "dep:quinn-proto", "dep:rustls", "rustls/std", "rustls/ring", "ssl-provider-ring", "dep:rustls-pemfile"]
+ssl-provider-ring = ["dep:ring"]
+ssl-provider-awsrc = ["dep:aws-lc-rs"]
+ssl-openssl = ["std", "dep:openssl"]
+ssl-rustls = ["std", "dep:rustls", "dep:rustls-pemfile", "dep:webpki-roots", "rustls/std", "rustls/tls12", "rustls/logging"]
 ssl-rustls-awsrc =  ["ssl-rustls", "ssl-provider-awsrc", "rustls/aws-lc-rs"]
 ssl-rustls-ring =  ["ssl-rustls", "ssl-provider-ring", "rustls/ring", "rustls/tls12", "rustls/logging", "rustls/std"]
-ssl-native-tls = ["std", "native-tls", "native-tls/vendored"]
+ssl-native-tls = ["std", "dep:native-tls", "native-tls/vendored"]
 ssl = ["ssl-rustls-ring"]
 # ssl = ["ssl-openssl"]
 # ssl = ["ssl-native-tls"]
 
 
 # Compression features
-compression = ["flate2", "brotli"]
-gzip = ["flate2"]
-deflate = ["flate2"]
+# `dep:brotli` suppresses the implicit `brotli` feature, but the code guards its
+# brotli paths with `cfg(feature = "brotli")` — so those paths compiled out
+# silently. Name the feature so the cfg means something.
+brotli = ["dep:brotli"]
+compression = ["dep:flate2", "brotli"]
+gzip = ["dep:flate2"]
+deflate = ["dep:flate2"]
 
 # Wire module features
 # wire-native: includes socket/TLS-dependent wire modules (simple_http client, websocket, event_source, http_stream)
@@ -137,6 +156,31 @@ default = ["standard", "std", "ssl", "compression", "wire-native", "multi"]
 name = "foundation_netio_tests"
 path = "tests/mod.rs"
 required-features = ["multi"]
+
+# QUIC backend acceptance (F33). Its own target: the traits and driver are behind
+# the `quic` feature, and the suite drives real UDP sockets on loopback.
+[[test]]
+name = "quic"
+path = "tests/quic/mod.rs"
+required-features = ["quic"]
+
+# HTTP/3 framing + QPACK (F34).
+[[test]]
+name = "http3"
+path = "tests/http3/mod.rs"
+required-features = ["quic"]
+
+# F52: wasm32 browser tests (wasm-bindgen). Only compiled for wasm32 targets.
+[[test]]
+name = "wasm"
+path = "tests/wasm/mod.rs"
+required-features = ["wasm-fetch"]
+
+# WebTransport protocol + session tests (spec-55, F06).
+[[test]]
+name = "webtransport"
+path = "tests/webtransport/mod.rs"
+required-features = ["quic"]
 
 [package.metadata.docs.rs]
 # enable one of these as default implementation

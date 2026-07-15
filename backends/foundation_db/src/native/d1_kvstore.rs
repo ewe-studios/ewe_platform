@@ -3,7 +3,7 @@
 //! WHY: D1 is Cloudflare's edge `SQLite` - useful for KV, query execution,
 //! blob storage, rate limiting, and deployment state.
 //!
-//! WHAT: `D1Store` implements multiple storage traits via `SimpleHttpClient`
+//! WHAT: `D1Store` implements multiple storage traits via `NativeHttpClient`
 //! for HTTP calls to the D1 API over HTTP.
 //!
 //! HOW: Different constructors for different usage modes:
@@ -12,9 +12,9 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{Stream, ThreadedValue};
-use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_string_async};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use futures_lite::stream;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -128,7 +128,7 @@ pub struct D1Store {
     account_id: String,
     database_id: String,
     base_url: String,
-    client: SimpleHttpClient,
+    client: NativeHttpClient,
     mode: D1Mode,
 }
 
@@ -151,7 +151,7 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: D1Mode::KeyValue { kv_table: format!("{table_prefix}_kv") },
         }
     }
@@ -194,7 +194,7 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: D1Mode::State { state_table },
         }
     }
@@ -249,7 +249,7 @@ impl D1Store {
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
-    /// Async version of `execute_sql`. Uses `SimpleHttpClient::send_async()`
+    /// Async version of `execute_sql`. Uses `NativeHttpClient::send_async()`
     /// to perform the HTTP request without blocking.
     async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
         let body = serde_json::json!({ "sql": sql, "params": params });

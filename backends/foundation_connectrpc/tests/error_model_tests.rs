@@ -2,7 +2,7 @@
 //! JSON error serialization byte-for-byte, detail round-trips, and domain-error
 //! flow via `From`/`change_context`.
 
-use foundation_connectrpc::error::{
+use foundation_connectrpc::shared::error::{
     code_of, wrap_if_context, wrap_if_h2c, wrap_if_rst, wrap_if_uncoded, EndStreamResponse,
     ERRSTACKS_TYPE_URL,
 };

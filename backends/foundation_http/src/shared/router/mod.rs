@@ -7,7 +7,7 @@
 pub mod segments;
 pub mod method;
 
-use foundation_netio::simple_http::shared::SimpleMethod;
+use foundation_netio::shared::http::SimpleMethod;
 
 pub use segments::{RouteOp, RouteResult, RouteSegment, SegmentType, ParamStaticValidation};
 pub use method::RouteMethod;

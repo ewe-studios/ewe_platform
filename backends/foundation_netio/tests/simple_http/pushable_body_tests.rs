@@ -14,7 +14,7 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::{queue_waker, BoxedSendableDataIterator, TrySendError, WakeToken};
-use foundation_netio::simple_http::shared::{pushable_request_body_with_depth, SendSafeBody};
+use foundation_netio::shared::http::{pushable_request_body_with_depth, SendSafeBody};
 
 /// Extract the backing stream iterator from a `SendSafeBody::Stream`.
 fn into_stream(body: SendSafeBody) -> BoxedSendableDataIterator<BoxedError> {

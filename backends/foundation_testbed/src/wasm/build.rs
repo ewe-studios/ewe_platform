@@ -151,6 +151,12 @@ fn run_impl(
         cmd.arg("--tests");
     }
 
+    // wasm32 targets can't use native default features (ssl, multi, wire-native, etc.).
+    // The caller passes the features they need (e.g. --features wasm-fetch).
+    if target_triple.starts_with("wasm32") {
+        cmd.arg("--no-default-features");
+    }
+
     // Override dev profile: use LLVM backend (Cranelift doesn't support wasm32).
     cmd.env("CARGO_PROFILE_DEV_CODEGEN_BACKEND", "llvm")
         .current_dir(crate_path);
@@ -182,32 +188,34 @@ fn run_impl(
         .join(profile)
         .join("deps");
 
-    // When building with --tests, we need the test integration wasm binary
-    // which contains the __wbgt_ exports. Look for mod-*.wasm in deps/.
+    // When building with --tests, find the test wasm binary containing
+    // __wbgt_ exports (wasm-bindgen). Scan ALL .wasm files in deps/ —
+    // cargo names them mod-<hash>.wasm, {pkg}-<hash>.wasm, or
+    // {test_target}-<hash>.wasm depending on how the test target is defined.
     if include_tests && deps_dir.exists() {
-        // Find the test wasm binary (mod-*.wasm or package_name_test-*.wasm)
         for entry in std::fs::read_dir(&deps_dir).ok().into_iter().flatten().flatten() {
-            {
-                let name = entry.file_name();
-                let name = name.to_string_lossy();
-                // Test binaries start with "mod-" or "{package_name}-" with a hash
-                if (name.starts_with("mod-") || name.starts_with(&format!("{package_name}-")))
-                    && name.ends_with(".wasm")
-                    && name != format!("{package_name}.wasm")
-                {
-                    let path = entry.path();
-                    // Verify it has __wbgt_ exports
-                    if let Ok(content) = std::fs::read(&path) {
-                        let needle = b"__wbgt_";
-                        if content.windows(7).any(|w| w == needle) {
-                            info!("Built test wasm: {}", path.display());
-                            return Ok(BuildOutput {
-                                wasm_path: path,
-                                package_name,
-                                profile: profile.to_string(),
-                            });
-                        }
-                    }
+            let Ok(meta) = entry.metadata() else { continue };
+            if !meta.is_file() {
+                continue;
+            }
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+            if !name.ends_with(".wasm") {
+                continue;
+            }
+            // Skip the bare library wasm (no tests, no __wbgt_).
+            if name == format!("{package_name}.wasm") {
+                continue;
+            }
+            let path = entry.path();
+            if let Ok(content) = std::fs::read(&path) {
+                if content.windows(7).any(|w| w == b"__wbgt_") {
+                    info!("Built test wasm: {}", path.display());
+                    return Ok(BuildOutput {
+                        wasm_path: path,
+                        package_name,
+                        profile: profile.to_string(),
+                    });
                 }
             }
         }

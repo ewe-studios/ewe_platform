@@ -111,10 +111,30 @@ struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
     timeout: Option<syn::Expr>,
+    /// `tracing = "debug"` — override the default `RUST_LOG` fallback (`"info"`).
+    tracing: Option<syn::Expr>,
+    /// `tracing_targets = true` — show module path per event.
+    tracing_targets: Option<syn::Expr>,
+    /// `tracing_ids = false` — hide thread ids.
+    tracing_ids: Option<syn::Expr>,
+    /// `tracing_names = true` — show thread names.
+    tracing_names: Option<syn::Expr>,
+    /// `tracing_files = true` — show source file per event.
+    tracing_files: Option<syn::Expr>,
+    /// `tracing_lines = true` — show line numbers.
+    tracing_lines: Option<syn::Expr>,
+    /// `tracing_ansi = true` — enable ANSI escapes.
+    tracing_ansi: Option<syn::Expr>,
 }
 
-/// Argument grammar: a comma-separated list of `name = expr` pairs, where name ∈
-/// {`seed`, `threads`, `timeout`}. A newtype because `Punctuated` doesn't implement `Parse`.
+const KNOWN_ARGS: &[&str] = &[
+    "seed", "threads", "timeout",
+    "tracing", "tracing_targets", "tracing_ids",
+    "tracing_names", "tracing_files", "tracing_lines", "tracing_ansi",
+];
+
+/// Argument grammar: a comma-separated list of `name = expr` pairs. A newtype
+/// because `Punctuated` doesn't implement `Parse`.
 struct ArgList(syn::punctuated::Punctuated<syn::MetaNameValue, syn::Token![,]>);
 
 impl syn::parse::Parse for ArgList {
@@ -131,7 +151,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `seed = <u64 expr>`, `threads = <usize expr>`, and/or `timeout = <ms expr>`",
+            "expected `key = value` pairs (seed, threads, timeout, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi)",
         )
     })?;
     for pair in pairs {
@@ -144,15 +164,57 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
             "timeout" => args.timeout = Some(pair.value),
+            "tracing" => args.tracing = Some(pair.value),
+            "tracing_targets" => args.tracing_targets = Some(pair.value),
+            "tracing_ids" => args.tracing_ids = Some(pair.value),
+            "tracing_names" => args.tracing_names = Some(pair.value),
+            "tracing_files" => args.tracing_files = Some(pair.value),
+            "tracing_lines" => args.tracing_lines = Some(pair.value),
+            "tracing_ansi" => args.tracing_ansi = Some(pair.value),
             other => {
                 return Err(syn::Error::new_spanned(
                     &pair.path,
-                    format!("unknown argument `{other}` (expected `seed`, `threads`, or `timeout`)"),
+                    format!("unknown argument `{other}` (expected one of: {KNOWN_ARGS:?})"),
                 ))
             }
         }
     }
     Ok(args)
+}
+
+/// Build a `foundation_compact::trace::try_init_tracing_with(TracingTestConfig { ... })`
+/// call from the parsed macro args. Called at macro expansion time (not inside
+/// `quote!`), so the returned tokens are spliced directly into the test body.
+fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    // env_filter: None → None. Some(filter_str) → Some(filter_str.to_string()).
+    let env_filter = match &args.tracing {
+        None => quote! { ::core::option::Option::None },
+        Some(expr) => quote! { ::core::option::Option::Some(#expr.to_string()) },
+    };
+    let field = |opt: &Option<syn::Expr>, default_val: bool| -> proc_macro2::TokenStream {
+        match opt {
+            None => quote! { #default_val },
+            Some(e) => quote! { (#e) },
+        }
+    };
+    let targets = field(&args.tracing_targets, false);
+    let thread_ids = field(&args.tracing_ids, true);
+    let thread_names = field(&args.tracing_names, false);
+    let files = field(&args.tracing_files, false);
+    let line_numbers = field(&args.tracing_lines, false);
+    let ansi = field(&args.tracing_ansi, false);
+
+    quote! {
+        #fc::valtron::trace::try_init_tracing_with(#fc::valtron::trace::TracingTestConfig {
+            env_filter: #env_filter,
+            targets: #targets,
+            thread_ids: #thread_ids,
+            thread_names: #thread_names,
+            files: #files,
+            line_numbers: #line_numbers,
+            ansi: #ansi,
+        })
+    }
 }
 
 /// Shared expansion for both macros — see the module walkthrough.
@@ -226,6 +288,10 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         )
     };
 
+    // Pre-compute the tracing init call BEFORE any moves out of `args`
+    // (seed/threads below consume those fields via map_or_else / match).
+    let tracing_init = expand_tracing_init(&args, &fc);
+
     // Seed: explicit expression, or a RandomState-derived u64 (no rand dep —
     // see the module docs). `hash_one` is BuildHasher's one-shot hashing API.
     let seed = args.seed.map_or_else(
@@ -263,6 +329,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             #inner_def
 
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            #tracing_init;
             let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
@@ -299,6 +366,11 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // the whole body (a `let _ =` would drop it immediately and kill the
             // pool before anything ran).
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+
+            // Wire up tracing so #[valtron_test] diagnostics land on stderr.
+            // Idempotent — safe to call in every test. Macro args like
+            // `tracing = "debug"` and `tracing_targets = true` feed the config.
+            #tracing_init;
 
             // Sync: call the inner fn. Async: drive the body future to completion
             // (`.await` points park on the engine — Decision 00).

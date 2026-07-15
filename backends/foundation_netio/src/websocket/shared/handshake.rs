@@ -10,11 +10,11 @@
 use base64::Engine;
 use sha1::{Digest, Sha1};
 
-use crate::websocket::shared::error::WebSocketError;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleIncomingRequestBuilder, SimpleMethod,
     Status,
 };
+use crate::websocket::shared::error::WebSocketError;
 
 /// The magic GUID defined in RFC 6455 Section 4.2.2 for Sec-WebSocket-Accept computation.
 const WEBSOCKET_GUID: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -78,6 +78,7 @@ pub fn build_upgrade_request(
     path: &str,
     key: &str,
     protocols: Option<&str>,
+    extra_headers: &SimpleHeaders,
 ) -> Result<SimpleIncomingRequest, WebSocketError> {
     let url = format!("http://{host}{path}");
 
@@ -92,6 +93,15 @@ pub fn build_upgrade_request(
 
     if let Some(protos) = protocols {
         builder = builder.add_header_raw(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protos);
+    }
+
+    // Caller-supplied headers, applied after the mandatory handshake headers and
+    // multi-value aware (each value for a name is emitted). A caller who repeats
+    // a mandatory header simply adds another value for it.
+    for (name, values) in extra_headers {
+        for value in values {
+            builder = builder.add_header(name.clone(), value.clone());
+        }
     }
 
     builder

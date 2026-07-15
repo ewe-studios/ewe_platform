@@ -16,8 +16,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
-use foundation_netio::simple_http::client::native::NativeHttpClient;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::http_client::HttpClient;
 use tracing_test::traced_test;
 
 fn setup_responses_provider() -> impl Model {
@@ -25,7 +25,7 @@ fn setup_responses_provider() -> impl Model {
         std::env::var("LLAMA_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:8999".into());
     let api_key = std::env::var("LLAMA_SERVER_API_KEY").unwrap_or_default();
 
-    let resolver = foundation_netio::simple_http::client::shared::SystemDnsResolver;
+    let resolver = foundation_netio::shared::client::SystemDnsResolver;
     let http_client: Arc<dyn HttpClient> = Arc::new(
         NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
     );

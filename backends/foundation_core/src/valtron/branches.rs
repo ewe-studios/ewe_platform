@@ -17,6 +17,33 @@ pub enum CollectionState {
     Close(bool),
 }
 
+/// [`BroadcastPolicy`] selects how an N-way broadcast combinator behaves when one
+/// of its bounded observer branches is **full** (F45 N-way broadcast).
+///
+/// The three policies trade delivery guarantees against source progress:
+///
+/// - [`Backpressure`](Self::Backpressure) — **zero loss**: the source stalls
+///   (parks on a task path, yields `Stream::Wait` on a stream path) until *every*
+///   open branch has vacancy, so the slowest consumer gates the rest. No value is
+///   ever dropped, but one stuck consumer stalls the whole broadcast.
+/// - [`DropNewest`](Self::DropNewest) — **never stalls**: a full branch drops the
+///   *incoming* value, keeping its buffered backlog. A slow consumer holds onto its
+///   older items and stops seeing new ones until it drains — it falls off the
+///   *live* edge of the stream.
+/// - [`DropOldest`](Self::DropOldest) — **never stalls**: a full branch evicts its
+///   *oldest* value (`force_push`) to make room for the newest. Every consumer is
+///   guaranteed to always hold the **latest** values (never kicked off the live
+///   edge); only intermediate history is lost. This is `broadcast_latest`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
+pub enum BroadcastPolicy {
+    /// Zero-loss: stall the source until every open branch has vacancy.
+    Backpressure,
+    /// Never stall: drop the incoming value on a full branch (keep the backlog).
+    DropNewest,
+    /// Never stall: evict the oldest value on a full branch (keep the latest).
+    DropOldest,
+}
+
 /// [`BranchPath`] defines the pathway of a giving execution
 /// allowing a result to either go one path or another.
 ///

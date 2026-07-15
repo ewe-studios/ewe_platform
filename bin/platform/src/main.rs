@@ -7,7 +7,7 @@
 #![allow(clippy::cognitive_complexity)]
 #![allow(clippy::type_complexity)]
 
-mod gen_api;
+use foundation_codegentools::cli::gen_api;
 mod generate;
 mod local;
 mod models;

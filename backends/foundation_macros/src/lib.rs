@@ -1,8 +1,11 @@
 use proc_macro::TokenStream;
 
+mod connectrpc_service;
 mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
+mod docker_container;
+mod proxy;
 mod embedders;
 mod from_arrow;
 mod json_hash;
@@ -19,8 +22,10 @@ mod wasm_modes;
 mod serial_test;
 mod valtron_entry;
 mod wasm_test;
+mod bindgen_test;
 mod wasm_ui_server_entry;
 mod wasmbin_codec;
+mod wireguard;
 
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
@@ -526,6 +531,48 @@ pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_test::wasm_test(attr.into(), item.into()).into()
 }
 
+/// `#[valtron_wasm_test]` — `#[wasm_test]` with valtron pool auto-init (F52).
+///
+/// Same as `#[wasm_test]` (owned export + manifest), but wraps the test body
+/// in `valtron::initialize_pool()` / `drop()` so `execute()` + `spawn()` are
+/// available without manual pool setup.
+///
+/// ```ignore
+/// use foundation_macros::valtron_wasm_test;
+///
+/// #[valtron_wasm_test]
+/// fn my_test() {
+///     let mut stream = valtron::execute(task, None).unwrap();
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_test::valtron_wasm_test(attr.into(), item.into()).into()
+}
+
+/// `#[valtron_bindgen]` — wasm-bindgen browser test with valtron pool (F52).
+///
+/// Single attribute that combines:
+/// 1. Browser-mode link-section marker for wasm-bindgen-test-runner
+/// 2. Valtron single-threaded pool init + teardown (like `#[valtron_test]`)
+/// 3. Delegation to `#[wasm_bindgen_test]` for test discovery (`__wbgt_` export)
+///
+/// ```ignore
+/// use foundation_macros::valtron_bindgen;
+/// use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
+///
+/// #[valtron_bindgen]
+/// fn my_browser_test() {
+///     let (task, _delivery) = client.open_websocket_task(...);
+///     let mut stream = valtron::execute(task, None).expect("execute");
+///     // pool is live here
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn valtron_bindgen(attr: TokenStream, item: TokenStream) -> TokenStream {
+    bindgen_test::valtron_bindgen(attr, item)
+}
+
 /// Runs a function with the valtron execution engine live around it (the
 /// `#[tokio::main]` analogue): initializes the pool via
 /// `foundation_core::valtron::initialize_pool(seed, threads)` and holds the
@@ -640,6 +687,94 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_ui_server_entry::wasm_ui_server(attr.into(), item.into()).into()
 }
 
+/// `#[docker_container]` — start Docker containers for the duration of a function.
+///
+/// Parses key=value attributes (`image`, `port`, `network`, `wait_stdout`, etc.)
+/// into a `ContainerConfig`, starts the container before the function body,
+/// and stops/removes it after (even on panic — Drop cleanup).
+///
+/// # Examples
+///
+/// ```ignore
+/// use foundation_deployment_platform::docker_container;
+///
+/// #[valtron_test]
+/// #[docker_container(image = "redis:7", port = 6379)]
+/// fn test_redis() {
+///     // Redis is running at localhost:<auto-assigned port>
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
+    docker_container::docker_container(attr, item)
+}
+
+/// `wireguard!` — compile-time WireGuard mesh configuration (spec-55, feature 09).
+///
+/// Desugars a custom block syntax into a `WgConfig` builder chain.
+/// Unknown keys and missing required fields are compile errors.
+///
+/// ```ignore
+/// use foundation_wireguard::wireguard;
+///
+/// let config = wireguard! {
+///     seed: "base64url-seed...",
+///     network_id: "deadbeef...",
+///     udp_listen: "0.0.0.0:51820",
+///     relay: { advertise: true },
+///     security: { mtls: false },
+/// };
+/// let node = foundation_wireguard::native::WgNode::from_config(config);
+/// ```
+#[proc_macro]
+pub fn wireguard(input: TokenStream) -> TokenStream {
+    wireguard::wireguard_impl(input)
+}
+
+/// `#[wireguard_main]` — entry point that initialises the valtron pool, joins the mesh,
+/// and hands a [`WgHandle`] to the annotated function (spec-55, feature 09).
+///
+/// ```ignore
+/// use foundation_wireguard::wireguard_main;
+///
+/// #[wireguard_main(config = "wireguard.toml")]
+/// fn main(handle: &foundation_wireguard::native::WgHandle) {
+///     let stream = handle.tcp_connect(peer_ip, 8080).unwrap();
+///     // ...
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wireguard::wireguard_main_impl(attr, item)
+}
+
+/// `proxy!` — compile-time proxy configuration (Decision 19).
+///
+/// Desugars a custom block syntax into a `ProxyConfig` builder chain.
+/// Unknown keys and missing required fields are compile errors.
+///
+/// ```ignore
+/// use foundation_proxy::proxy;
+///
+/// let config = proxy! {
+///     domain: "example.com",
+///     public_ip: "1.2.3.4",
+///     ssl: lets_encrypt { email: "admin@example.com" },
+///     services: {
+///         app: {
+///             host: "app.example.com",
+///             backends: ["http://localhost:3000"],
+///             health_check: { path: "/up", interval: 5, timeout: 2 },
+///         },
+///     },
+/// };
+/// config.start()?;
+/// ```
+#[proc_macro]
+pub fn proxy(input: TokenStream) -> TokenStream {
+    proxy::proxy_impl(input)
+}
+
 /// `html!` — compile-time HTML templates producing typed
 /// [`foundation_ui_traits::Html`] trees with `Part` descriptors (feature 03,
 /// decisions 001/005/008/029).
@@ -702,5 +837,54 @@ pub fn wasm_worker(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_modes::wasm_service(attr.into(), item.into()).into()
+}
+
+// ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
+
+/// `#[service]` — code-first ConnectRPC (Decision 10 Mode 3).
+///
+/// Transforms a Rust trait definition into a full ConnectRPC service:
+/// service name constant, procedure path constants (R1), the trait with
+/// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
+/// (R2), typed client (R4), and an exported descriptor macro for cross-crate
+/// generation via `generate!`.
+///
+/// # Attribute arguments
+///
+/// - `package = "pkg.name.v1"` — (required) protobuf-style package prefix.
+/// - `codecs(json, arrow, proto)` — (optional, default `json`) codec families.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+///
+/// #[service(package = "my.api.v1")]
+/// trait MyService {
+///     async fn unary(&self, ctx: Ctx, req: Request<MyReq>)
+///         -> ConnectResult<Response<MyRes>>;
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
+    connectrpc_service::expand_service(attr.into(), item.into()).into()
+}
+
+/// `generate!` — cross-crate ConnectRPC artifact generation.
+///
+/// Re-expands a descriptor macro exported by `#[service]` in
+/// another crate inside a new module.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_connectrpc::generate;
+/// generate!(my_api::my_api_rpc_definitions => mod my_svc {
+///     server, client
+/// });
+/// ```
+#[proc_macro]
+pub fn generate(input: TokenStream) -> TokenStream {
+    connectrpc_service::expand_generate(input.into()).into()
 }
 

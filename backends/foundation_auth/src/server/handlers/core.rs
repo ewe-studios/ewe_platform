@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::SimpleIncomingRequest;
-use foundation_netio::simple_http::shared::SendSafeBody;
+use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
@@ -1187,7 +1187,7 @@ fn extract_body_text(body: &Option<SendSafeBody>) -> String {
     }
 }
 
-fn header_name_eq(header: &foundation_netio::simple_http::shared::SimpleHeader, name: &str) -> bool {
+fn header_name_eq(header: &foundation_netio::shared::http::SimpleHeader, name: &str) -> bool {
     // SimpleHeader is an enum — match on the variant name
     format!("{:?}", header).eq_ignore_ascii_case(name)
 }

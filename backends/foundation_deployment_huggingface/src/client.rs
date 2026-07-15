@@ -31,12 +31,12 @@ use crate::types::{
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::shared::client::{
     body_reader, DnsResolver,
 };
-use foundation_netio::simple_http::client::native::{ClientRequestBuilder, RequestIntro};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders, Status};
+use foundation_netio::http::{ClientRequestBuilder, RequestIntro};
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -580,7 +580,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
     });
 
     let builder = http_client.post(&url).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -588,14 +588,14 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {
@@ -649,7 +649,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     });
 
     let builder = http_client.delete(&url).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -657,14 +657,14 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {
@@ -716,7 +716,7 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
     });
 
     let builder = http_client.post(&url).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
@@ -724,14 +724,14 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
     let builder = client.apply_auth_headers(builder);
 
     let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::simple_http::shared::HttpClientError| {
+        |e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         },
     )?;
 
     let task = builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             HuggingFaceError::Backend(e.to_string())
         })?
         .map_ready(move |intro| match intro {

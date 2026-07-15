@@ -14,8 +14,8 @@
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::event_source::{Event, EventSourceError, ParseResult};
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use std::io::Read;
 
 /// Accumulator for building a single SSE event from parsed lines.
@@ -118,7 +118,7 @@ impl<R: Read> SseParser<R> {
     /// Clone the underlying stream.
     ///
     /// WHY: Allows creating a new parser from the same stream position.
-    /// WHAT: Returns a new SseParser with a cloned stream.
+    /// WHAT: Returns a new `SseParser` with a cloned stream.
     ///
     /// NOTE: The new parser starts with the same stream position but fresh state.
     #[must_use]
@@ -140,6 +140,10 @@ impl<R: Read> SseParser<R> {
     /// - `Err(EventSourceError)` on I/O read failure.
     ///
     /// NOTE: Field lines accumulate locally; empty lines dispatch; comments return immediately.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse_next(&mut self) -> Result<Option<ParseResult>, EventSourceError> {
         let mut builder = EventBuilder::new();
 

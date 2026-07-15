@@ -5,8 +5,8 @@
 
 use foundation_core::valtron::TaskIterator;
 use foundation_netio::event_source::native::EventSourceTask;
-use foundation_netio::simple_http::client::shared::MockDnsResolver;
-use foundation_netio::simple_http::shared::{DnsError, SimpleHeader};
+use foundation_netio::shared::client::MockDnsResolver;
+use foundation_netio::shared::http::{DnsError, SimpleHeader};
 
 /// WHY: `EventSourceTask::connect` should create task in Init state.
 /// WHAT: Verify connect returns Ok and transitions through Connecting → None when connection fails.

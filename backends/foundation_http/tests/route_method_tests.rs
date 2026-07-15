@@ -1,7 +1,7 @@
 //! Tests for RouteMethod<S> — generic handler storage per HTTP method.
 
 use foundation_http::shared::router::RouteMethod;
-use foundation_netio::simple_http::shared::SimpleMethod;
+use foundation_netio::shared::http::SimpleMethod;
 
 // -----------------------------------------------------------------------
 // Tests

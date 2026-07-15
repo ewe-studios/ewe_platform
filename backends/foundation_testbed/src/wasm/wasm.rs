@@ -27,7 +27,7 @@ impl BindgenTarget {
     /// Returns the CLI argument for this target, or None for the default.
     fn cli_arg(self) -> Option<&'static str> {
         match self {
-            BindgenTarget::Web => None,
+            BindgenTarget::Web => Some("web"),
             BindgenTarget::Deno => Some("deno"),
             BindgenTarget::EsModules => Some("esmodules"),
         }

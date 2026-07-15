@@ -1,4 +1,6 @@
-use foundation_netio::simple_http::client::shared::{Cookie, CookieJar, CookieParseError, SameSite};
+use foundation_netio::shared::client::{
+    Cookie, CookieJar, CookieParseError, SameSite,
+};
 use std::time::{Duration, SystemTime};
 
 /// WHY: Basic cookie creation is the foundation - must work correctly

@@ -192,3 +192,89 @@ where
         Poll::Ready(iter.next())
     }
 }
+
+// ============================================================================
+// StreamNextStream
+// ============================================================================
+
+/// WHY: `into_ready_future()` yields one value plus the remaining iterator, which
+/// is ceremonial for consuming a body chunk-by-chunk (re-wrap loop). `into_future_stream()`
+/// is a raw lens that yields `Stream<D, P>` items as-is (including `Wait`) and never
+/// returns `Poll::Pending`, so it cannot serve as an awaitable value stream. This
+/// adapter fills the gap (F45 Resolution 5).
+///
+/// WHAT: A [`futures_core::Stream`] whose `Item` is `SI::D` — it surfaces `Next(v)`
+/// (and `Spread` `Done(v)`) payloads, drives past in-band control states, and ends
+/// on iterator exhaustion, enabling `while let Some(chunk) = body.next().await`.
+///
+/// HOW: On `Next(v)` returns `Ready(Some(v))`; on `Spread` buffers every `Done`
+/// payload and drains them one per poll; on `Wait`/`Pending`/`Delayed`/`Init`
+/// self-wakes via `wake_by_ref()` and returns `Pending` so the executor gets a
+/// turn (the self-wake mechanics the existing bridges use); on `Ignore` loops; on
+/// `None` returns `Ready(None)` permanently.
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub struct StreamNextStream<SI: StreamIterator> {
+    inner: Option<SI>,
+    /// `Done` payloads peeled from a single `Spread` item, surfaced one per poll
+    /// before pulling more work from the inner iterator.
+    spread: Vec<SI::D>,
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl<SI: StreamIterator> StreamNextStream<SI> {
+    pub fn new(iter: SI) -> Self {
+        Self {
+            inner: Some(iter),
+            spread: Vec::new(),
+        }
+    }
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl<SI> FuturesStream for StreamNextStream<SI>
+where
+    SI: StreamIterator + Unpin,
+    SI::D: Unpin,
+{
+    type Item = SI::D;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        // Drain any buffered Spread(Done) payloads first (lossless fan-out).
+        if !this.spread.is_empty() {
+            return Poll::Ready(Some(this.spread.remove(0)));
+        }
+
+        let iter = match this.inner.as_mut() {
+            Some(iter) => iter,
+            None => return Poll::Ready(None),
+        };
+
+        loop {
+            match iter.next() {
+                Some(Stream::Next(v)) => return Poll::Ready(Some(v)),
+                Some(Stream::Ignore) => {}
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
+                Some(Stream::Spread(items)) => {
+                    for item in items {
+                        if let StreamSpread::Done(v) = item {
+                            this.spread.push(v);
+                        }
+                    }
+                    if !this.spread.is_empty() {
+                        return Poll::Ready(Some(this.spread.remove(0)));
+                    }
+                    // Spread carried no Done payloads; keep polling.
+                }
+                None => {
+                    this.inner = None;
+                    return Poll::Ready(None);
+                }
+            }
+        }
+    }
+}

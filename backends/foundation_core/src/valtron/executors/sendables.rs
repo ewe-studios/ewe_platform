@@ -9,7 +9,6 @@ use crate::valtron::FutureTask;
 use crate::valtron::ReadyValues;
 use crate::valtron::StreamConfig;
 use crate::valtron::StreamTask;
-use crate::valtron::TaskStatusMapper;
 use crate::valtron::ThreadedValue;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
@@ -22,7 +21,121 @@ use core::sync::atomic::AtomicBool;
 
 use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
 
-use crate::valtron::{InlineSendAction, InlineSendActionBehaviour};
+use super::inline_action::InlineActionBehaviour;
+use crate::valtron::executors::local::NotifyQueue;
+use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
+
+#[allow(clippy::type_complexity)]
+pub struct InlineAction<Done, Pending, Action, Task>(
+    Option<(
+        InlineActionBehaviour,
+        Task,
+        Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    )>,
+)
+where
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static;
+
+impl<Done, Pending, Action, Task> InlineAction<Done, Pending, Action, Task>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    pub fn new(
+        behaviour: InlineActionBehaviour,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
+        (
+            Self(Some((behaviour, task, iter_chan.clone()))),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
+        )
+    }
+
+    pub fn from_parts(
+        behaviour: InlineActionBehaviour,
+        task: Task,
+        channel: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    ) -> Self {
+        Self(Some((behaviour, task, channel)))
+    }
+}
+
+impl<Done, Pending, Action, Task> ExecutionAction
+    for InlineAction<Done, Pending, Action, Task>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn apply(
+        &mut self,
+        key: Option<crate::synca::Entry>,
+        executor: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
+        if let Some((behaviour, task, channel)) = self.0.take() {
+            match behaviour {
+                InlineActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Lift => {
+                    tracing::debug!("Lift action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), key)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Schedule => {
+                    tracing::debug!("Schedule action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor.schedule(consuming_iter.into()).map_err(Into::into)
+                }
+                InlineActionBehaviour::Broadcast => {
+                    tracing::debug!("Broadcast action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .broadcast(consuming_iter.into())
+                        .map_err(Into::into)
+                }
+            }
+        } else {
+            Err("Action has being used up".into())
+        }
+    }
+}
 
 #[must_use]
 pub fn initialize_pool(
@@ -511,53 +624,19 @@ where
 // inline iterator creation methods
 // ===========================================
 
-/// [`inlined_mapped_task`] creates an inlined task you can use within another task that
-/// lets you forward the task as a action your main task can send for execution
-/// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using `BoxedTaskAction`
-///
-/// You then are able to receive the output of that task from the returned
-/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
-pub fn inlined_mapped_task<Done, Pending, Action, Task, Mapper>(
-    behaviour: InlineSendActionBehaviour,
-    mappers: Vec<Mapper>,
-    task: Task,
-    wait_cycle: std::time::Duration,
-) -> (
-    InlineSendAction<Done, Pending, Action, Task, Mapper>,
-    DrivenRecvIterator<Task>,
-)
-where
-    Done: Send + 'static,
-    Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-{
-    let (task_action, task_receiver) = InlineSendAction::new(behaviour, mappers, task, wait_cycle);
-    (task_action, drive_receiver(task_receiver))
-}
+// ===========================================
+// inline iterator creation methods
+// ===========================================
 
-/// [`inlined_task`] creates an inlined task you can use within another task that
-/// lets you forward the task as a action your main task can send for execution
-/// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using boxed [`TaskStatusMapper`].
-///
-/// You then are able to receive the output of that task from the returned
-/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
+/// Creates an `InlineAction` + `DrivenRecvIterator` pair — a convenience
+/// wrapper combining [`InlineAction::new`] + [`drive_receiver`].
+#[must_use]
 pub fn inlined_task<Done, Pending, Action, Task>(
-    behaviour: InlineSendActionBehaviour,
-    mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
+    behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
 ) -> (
-    InlineSendAction<
-        Done,
-        Pending,
-        Action,
-        Task,
-        Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>,
-    >,
+    InlineAction<Done, Pending, Action, Task>,
     DrivenRecvIterator<Task>,
 )
 where
@@ -566,8 +645,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 {
-    let (task_action, task_receiver) =
-        InlineSendAction::boxed_mapper(behaviour, mappers, task, wait_cycle);
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
     (task_action, drive_receiver(task_receiver))
 }
 
@@ -762,12 +840,13 @@ where
 
     let mut stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
-    // Next(Vec<T::Ready>) when all complete. find_map skips Pending items.
+    // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream
-        .find_map(|s| match s {
+        .filter_map(|s| match s {
             Stream::Next(v) => Some(v),
             _ => None,
         })
+        .next()
         .ok_or_else(|| "sync_all: no results produced by execute_collect_all".into())
 }
 
@@ -879,7 +958,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next_status();
 
@@ -943,7 +1021,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next();
 
@@ -1006,7 +1083,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next();
 
@@ -1953,4 +2029,23 @@ where
         Some(Err(e)) => Ok(Err(e)),
         None => Err("no result from future execution".into()),
     }
+}
+
+// ── Cooperative sleep ─────────────────────────────────────────────────
+
+/// Schedule a sleep for `duration`. Returns a stream that completes after the
+/// duration elapses.
+pub fn sleep(
+    duration: std::time::Duration,
+) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>>
+{
+    execute(super::sleep::SleepingTask::sleep(duration), None)
+}
+
+/// Return a [`Future`](std::future::Future) that completes after `duration`.
+/// Calls [`sleep()`] and bridges via
+/// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
+pub async fn sleep_async(duration: std::time::Duration) {
+    use crate::valtron::StreamIteratorExt;
+    let _ = sleep(duration).expect("sleep").into_ready_future().await;
 }

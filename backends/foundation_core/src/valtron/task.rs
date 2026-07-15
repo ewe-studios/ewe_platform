@@ -24,10 +24,12 @@ use crate::{
 
 /// A trait for types that can answer "is this task ready to run?"
 ///
-/// Implementors must be `Send + Sync` safe, as they will be shared
-/// between the task (which may mutate the signal) and the executor
-/// (which polls `is_ready`).
-pub trait EventReadiness: Send + Sync {
+/// Under `multi` the pointer type used by `State::Depends` requires
+/// `Send + Sync` on the trait object; under single-threaded / wasm it
+/// does not.  Concrete impls are always `Send + Sync` under `multi`
+/// (they already were) and the trait itself carries no supertraits so
+/// it can be implemented for `!Send` payload types under `not(multi)`.
+pub trait EventReadiness {
     /// Check if the task is ready to run.
     ///
     /// `dur`: Optional timeout. If `None`, check immediately without blocking.
@@ -36,6 +38,18 @@ pub trait EventReadiness: Send + Sync {
     /// Returns `true` if ready, `false` otherwise.
     fn is_ready(&self, dur: Option<time::Duration>) -> bool;
 }
+
+/// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
+///
+/// Under `multi` the trait object requires `Send + Sync` so that `State`
+/// itself is `Send` (the global task queue needs it).  Under
+/// `not(multi)` those bounds are dropped — `State` is `!Send`, but the
+/// single-threaded executor never crosses threads anyway.
+#[cfg(feature = "multi")]
+pub type EventReadinessPtr = Arc<dyn EventReadiness + Send + Sync>;
+
+#[cfg(not(feature = "multi"))]
+pub type EventReadinessPtr = Arc<dyn EventReadiness>;
 
 /// A simple readiness signal backed by an `Arc<AtomicBool>`.
 ///
@@ -109,11 +123,19 @@ impl<T> QueueReadiness<T> {
     }
 }
 
+#[cfg(feature = "multi")]
 impl<T: Send> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
         // observe end-of-stream (its next `pop` drains any backlog then returns
         // `Closed`) instead of sleeping forever.
+        !self.0.is_empty() || self.0.is_closed()
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         !self.0.is_empty() || self.0.is_closed()
     }
 }
@@ -166,10 +188,18 @@ impl<T> QueueVacancyReadiness<T> {
     }
 }
 
+#[cfg(feature = "multi")]
 impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: report ready when the queue closes so a producer parked on
         // a full-then-closed pipe unparks to observe the close on its next push.
+        self.0.is_closed() || !self.0.is_full()
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueVacancyReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         self.0.is_closed() || !self.0.is_full()
     }
 }
@@ -200,22 +230,22 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
 /// ]);
 /// Some(TaskStatus::Depends(Arc::new(signal)))
 /// ```
-pub struct AnyReadiness(Vec<Arc<dyn EventReadiness>>);
+pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
 impl AnyReadiness {
     /// Create an `AnyReadiness` over the given child signals.
-    pub fn new(children: Vec<Arc<dyn EventReadiness>>) -> Self {
+    pub fn new(children: Vec<EventReadinessPtr>) -> Self {
         Self(children)
     }
 
     /// Build from exactly two children (the common "event OR cancel" case).
-    pub fn either(a: Arc<dyn EventReadiness>, b: Arc<dyn EventReadiness>) -> Self {
+    pub fn either(a: EventReadinessPtr, b: EventReadinessPtr) -> Self {
         Self(vec![a, b])
     }
 
     /// Add another child signal, returning `self` for chaining.
     #[must_use]
-    pub fn with(mut self, child: Arc<dyn EventReadiness>) -> Self {
+    pub fn with(mut self, child: EventReadinessPtr) -> Self {
         self.0.push(child);
         self
     }
@@ -362,7 +392,7 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     ///
     /// The signal must return `false` on first receipt. If `true`, treated as `Pending`.
     /// Any type implementing `EventReadiness` can be used.
-    Depends(Arc<dyn EventReadiness>),
+    Depends(EventReadinessPtr),
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -375,17 +405,15 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
             TaskStatus::Pending(inner) => Stream::Pending(inner),
             TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
-            TaskStatus::Spread(items) => {
-                Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            TaskSpread::Ready(d) => crate::valtron::streams::StreamSpread::Done(d),
-                            TaskSpread::Pending(p) => crate::valtron::streams::StreamSpread::Pending(p),
-                        })
-                        .collect(),
-                )
-            }
+            TaskStatus::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        TaskSpread::Ready(d) => crate::valtron::streams::StreamSpread::Done(d),
+                        TaskSpread::Pending(p) => crate::valtron::streams::StreamSpread::Pending(p),
+                    })
+                    .collect(),
+            ),
             TaskStatus::Depends(_) => Stream::Ignore,
         }
     }
@@ -589,6 +617,35 @@ pub trait TaskIterator {
     }
 }
 
+/// Newtype wrapper that exposes **only** the [`TaskIterator`] and
+/// [`TaskIteratorExt`] surface — standard `Iterator` methods (`.map`,
+/// `.filter`, `.collect`, `.next`) are intentionally absent so callers
+/// use the valtron-native combinators (`.map_ready`, `.map_pending`,
+/// `.filter_ready`, etc.) without ambiguity.
+///
+/// Construct via [`TaskIteratorExt::into_task_iter`].
+///
+/// # Why no `Iterator` impl?
+///
+/// The blanket `TaskIterator` impl (line 594) gives `TaskIterator` to
+/// anything that is `Iterator<Item = TaskStatus<…>>`.  That means every
+/// `TaskIterator` automatically carries the full `Iterator` method set.
+/// By wrapping in `TaskIter<T>` and implementing `TaskIterator`
+/// explicitly (coherence: a non-blanket impl on a concrete struct
+/// outranks the universal blanket), the chain is broken — no `Iterator`
+/// impl is generated.
+pub struct TaskIter<T: TaskIterator>(pub T);
+
+impl<T: TaskIterator> TaskIterator for TaskIter<T> {
+    type Ready = T::Ready;
+    type Pending = T::Pending;
+    type Spawner = T::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.0.next_status()
+    }
+}
+
 // TaskIterator implementations for wrapper types
 //
 impl<M, R, P, S> TaskIterator for M
@@ -777,7 +834,7 @@ pub enum State {
     ///
     /// The executor registers this as a `Sleepable::Readiness` sleeper.
     /// The signal must return `false` on first receipt; if `true`, treated as `Pending(None)`.
-    Depends(Arc<dyn EventReadiness>),
+    Depends(EventReadinessPtr),
 }
 
 impl core::fmt::Debug for State {
@@ -1212,7 +1269,8 @@ pub type BoxedSendTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P
 /// perform final resolution of a task when the task emits
 /// the relevant `TaskStatus::Ready` enum state.
 ///
-/// Unlike `TaskStatusMapper` these implementing types do
+/// Unlike a per-status stream transform (use `TaskIteratorExt` combinators for
+/// that), these implementing types do
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
@@ -1347,139 +1405,6 @@ where
     }
 }
 
-pub type BoxedTaskStatusMapper<Done, Pending, Action> =
-    Box<dyn TaskStatusMapper<Done, Pending, Action>>;
-
-pub type BoxedSendTaskStatusMapper<Done, Pending, Action> =
-    Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>;
-
-/// [`TaskStatusMapper`] are types implementing this trait to
-/// perform unique operations on the underlying `TaskStatus`
-/// received, possibly generating a new `TaskStatus`.
-pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
-}
-
-pub trait IntoBoxedSendTaskStatusMapper<D, P, S: ExecutionAction> {
-    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static>;
-}
-
-impl<F, S, D, P> IntoBoxedSendTaskStatusMapper<D, P, S> for F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + Send + 'static,
-{
-    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static> {
-        Box::new(self)
-    }
-}
-
-pub trait IntoBoxedTaskStatusMapper<D, P, S: ExecutionAction> {
-    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>>;
-}
-
-impl<F, D, P, S> IntoBoxedTaskStatusMapper<D, P, S> for F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + Send + 'static,
-{
-    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>> {
-        Box::new(self)
-    }
-}
-
-#[derive(Default, Clone)]
-pub struct ZeroMapping<D, P, S: ExecutionAction>(PhantomData<(D, P, S)>);
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for ZeroMapping<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        item
-    }
-}
-
-#[allow(clippy::extra_unused_lifetimes)]
-#[allow(clippy::needless_lifetimes)]
-impl<'a, F, S, D, P> TaskStatusMapper<D, P, S> for &'a mut F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S>,
-{
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        (**self).map(item)
-    }
-}
-
-impl<F, S, D, P> TaskStatusMapper<D, P, S> for Box<F>
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + ?Sized,
-{
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        (**self).map(item)
-    }
-}
-
-pub struct FnMapper<D, P, S: ExecutionAction>(
-    Box<dyn FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>>>,
-);
-
-impl<D, P, S: ExecutionAction> FnMapper<D, P, S> {
-    pub fn new<F>(f: F) -> Self
-    where
-        F: FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>> + 'static,
-    {
-        Self(Box::new(f))
-    }
-}
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnMapper<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        match item {
-            None => None,
-            Some(item) => self.0(item),
-        }
-    }
-}
-
-pub struct FnOptionMapper<D, P, S: ExecutionAction>(
-    Box<dyn FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>>,
-);
-
-impl<D, P, S: ExecutionAction> FnOptionMapper<D, P, S> {
-    pub fn new<F>(f: F) -> Self
-    where
-        F: FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> + 'static,
-    {
-        Self(Box::new(f))
-    }
-}
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnOptionMapper<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        self.0(item)
-    }
-}
-
-#[cfg(test)]
-mod test_fn_mapper {
-    use crate::valtron::TaskStatus;
-
-    use crate::valtron::{FnMapper, NoSpawner, TaskStatusMapper};
-
-    #[test]
-    fn test_can_create_fn_mapper_for_trait() {
-        let mut mapper = FnMapper::new(Box::new(|item: TaskStatus<usize, usize, NoSpawner>| {
-            Some(item)
-        }));
-
-        let instance = TaskStatus::Pending(1);
-        assert_eq!(mapper.map(Some(instance.clone())), Some(instance));
-
-        // validate we can meet expected trait type
-        let _: Box<dyn TaskStatusMapper<usize, usize, NoSpawner>> = Box::new(mapper);
-    }
-}
-
 /// [`OnceCache`] implements a `TaskStatus` iterator that wraps
 /// a provided iterator and provides a onetime read semantic
 /// on the iterator, where it ends its operation once the first
@@ -1582,14 +1507,15 @@ where
                 TaskStatus::Ready(item) => Some(Stream::Next(item)),
                 TaskStatus::Ignore => Some(Stream::Ignore),
                 TaskStatus::Wait => Some(Stream::Wait),
-                TaskStatus::Spread(items) => {
-                    Some(Stream::Spread(
-                        items.into_iter().map(|item| match item {
+                TaskStatus::Spread(items) => Some(Stream::Spread(
+                    items
+                        .into_iter()
+                        .map(|item| match item {
                             TaskSpread::Ready(d) => StreamSpread::Done(d),
                             TaskSpread::Pending(p) => StreamSpread::Pending(p),
-                        }).collect(),
-                    ))
-                }
+                        })
+                        .collect(),
+                )),
                 TaskStatus::Depends(_) => Some(Stream::Ignore),
             },
             None => None,

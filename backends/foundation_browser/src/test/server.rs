@@ -32,7 +32,7 @@ use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::OnSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
     Status,
 };

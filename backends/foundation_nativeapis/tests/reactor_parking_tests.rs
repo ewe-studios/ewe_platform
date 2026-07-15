@@ -20,11 +20,11 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness, PoolGuard,
-    TaskIterator, TaskStatus,
+    collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness,
+    EventReadinessPtr, PoolGuard, TaskIterator, TaskStatus,
 };
-use foundation_nativeapis::native::fd::RegisteredFd;
-use foundation_nativeapis::{Poll, Token};
+use foundation_nativeapis::native::fd::{Reactor, RegisteredFd};
+use foundation_nativeapis::Token;
 
 /// Initialize the valtron thread pool (multi executor is enabled for nativeapis).
 fn init_pool() -> PoolGuard {
@@ -46,7 +46,10 @@ impl EventReadiness for FlipReadiness {
 /// When the signal becomes ready the executor re-runs the task → `Ready`. The
 /// next tick terminates the iterator.
 struct ParkUntilReady {
-    readiness: Arc<dyn EventReadiness>,
+    /// `EventReadinessPtr` rather than a bare `Arc<dyn EventReadiness>`: under
+    /// the `multi` feature `TaskStatus::Depends` carries a `Send + Sync` trait
+    /// object so `State` can cross the global task queue.
+    readiness: EventReadinessPtr,
     done: bool,
 }
 
@@ -74,8 +77,8 @@ impl TaskIterator for ParkUntilReady {
 /// It performs the real (nonblocking) read on each tick rather than re-checking
 /// `is_ready()`: readiness only *wakes* the task (the executor's park gate polls
 /// the edge-triggered fd and consumes the one-shot edge), so the woken task must
-/// act on the buffered data directly — the same contract as tokio's `AsyncFd`.
-/// A `WouldBlock` read parks again via `Depends(Arc<RegisteredFd>)`.
+/// act on the buffered data directly. A `WouldBlock` read parks again via
+/// `Depends(Arc<RegisteredFd>)`.
 struct ReadOnReady {
     fd: Arc<RegisteredFd<std::os::fd::OwnedFd>>,
     done: bool,
@@ -100,7 +103,7 @@ impl TaskIterator for ReadOnReady {
             // Nothing buffered yet (EAGAIN) — park until the reactor signals the
             // fd readable, then this task is re-run and the read above succeeds.
             Some(TaskStatus::Depends(
-                Arc::clone(&self.fd) as Arc<dyn EventReadiness>,
+                Arc::clone(&self.fd) as EventReadinessPtr,
             ))
         }
     }
@@ -153,9 +156,12 @@ fn registered_fd_parks_task_until_readable() {
     let _guard = init_pool();
 
     let (reader, writer) = make_pipe();
-    let poll = Poll::new().expect("create poll");
-    let registry = poll.registry();
-    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("register fd");
+    // The shared reactor's registry, not a private `Poll` — this test exists to
+    // prove the *shared* reactor wakes a parked task. Handing `RegisteredFd` a
+    // caller-owned registry would register into a selector that has no drain
+    // thread, and the task would park forever.
+    let reactor = Reactor::get().expect("shared reactor");
+    let registered = RegisteredFd::new(reader, reactor.registry(), Token(0)).expect("register fd");
 
     // Write only AFTER a delay, so the task must genuinely park first.
     thread::spawn(move || {

@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use foundation_core::url::Uri;
-use foundation_netio::simple_http::client::shared::body_reader::collect_strings_from_send_safe;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::request::{Extensions, PreparedRequest};
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::client::body_reader::collect_strings_from_send_safe;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::shared::client::request::{Extensions, PreparedRequest};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 
 use crate::store::{
     AsyncVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig, VectorStoreError,

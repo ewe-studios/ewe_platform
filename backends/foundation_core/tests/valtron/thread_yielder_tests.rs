@@ -10,7 +10,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tracing_test::traced_test;
 
 use foundation_core::valtron::multi::get_num_threads;
 use foundation_core::valtron::{
@@ -49,7 +48,6 @@ impl TaskIterator for ImmediateTask {
 }
 
 #[test]
-#[traced_test]
 fn shutdown_interrupts_delayed_tasks() {
     // Initialize pool with seed=42, thread_num=10. Time AFTER acquiring the pool
     // so the lifecycle-gate queueing time is excluded from the shutdown assertion.
@@ -82,7 +80,6 @@ fn shutdown_interrupts_delayed_tasks() {
 }
 
 #[test]
-#[traced_test]
 fn multiple_delayed_tasks_shutdown_quickly() {
     let guard = initialize_pool(42, Some(4));
     // Start timing AFTER acquiring the pool — initialize_pool blocks on the
@@ -120,7 +117,6 @@ fn multiple_delayed_tasks_shutdown_quickly() {
 /// When a thread is sleeping on a long sleeper deadline, spawning new work
 /// should interrupt the sleep so the new work is picked up quickly.
 #[test]
-#[traced_test]
 fn new_work_interrupts_sleep() {
     // Time AFTER acquiring the pool so the lifecycle-gate queueing time is
     // excluded from the interrupt-latency assertion.
@@ -166,7 +162,6 @@ fn new_work_interrupts_sleep() {
 }
 
 #[test]
-#[traced_test]
 fn test_get_num_threads_when_env_is_not_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     let thread_num = get_num_threads();
@@ -175,7 +170,6 @@ fn test_get_num_threads_when_env_is_not_set() {
 }
 
 #[test]
-#[traced_test]
 fn test_get_num_threads_when_env_is_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     env::set_var("VALTRON_NUM_THREADS", "2");

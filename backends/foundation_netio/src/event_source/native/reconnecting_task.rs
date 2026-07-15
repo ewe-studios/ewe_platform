@@ -13,12 +13,12 @@
 //!
 //! PHASE 3 SCOPE: Max reconnect duration support.
 
+use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
+use crate::shared::client::DnsResolver;
+use crate::shared::http::timeout::TimeoutCalculator;
+use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
-use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -117,12 +117,10 @@ where
         })?;
 
         if !uri.scheme().is_http() && !uri.scheme().is_https() {
-            return Err(crate::event_source::EventSourceError::InvalidUrl(
-                format!(
-                    "Unsupported scheme: {}. Only http:// and https:// are supported.",
-                    uri.scheme()
-                ),
-            ));
+            return Err(crate::event_source::EventSourceError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only http:// and https:// are supported.",
+                uri.scheme()
+            )));
         }
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
@@ -181,7 +179,7 @@ where
     /// Set the timeout calculator for dynamic timeout configuration.
     ///
     /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
-    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// The `TimeoutCalculator` provides dynamic timeout calculation based on context.
     /// WHAT: Returns Self with `timeout_calculator` configured.
     #[must_use]
     pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
@@ -209,7 +207,7 @@ where
 
     /// Set the request body (applied only on the first connection).
     ///
-    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
+    /// WHY: Some SSE endpoints (e.g. `OpenAI` chat completions) require POST with a JSON body.
     /// WHAT: Returns Self with the body applied to the initial inner task.
     /// On reconnect, the body is dropped — only the URL, method, and headers are re-sent.
     #[must_use]
@@ -344,7 +342,9 @@ where
                             .map(|item| match item {
                                 TaskSpread::Ready(v) => TaskSpread::Ready(v),
                                 TaskSpread::Pending(p) => TaskSpread::Pending(match p {
-                                    EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
+                                    EventSourceProgress::Connecting => {
+                                        ReconnectingProgress::Connecting
+                                    }
                                     EventSourceProgress::Reading => ReconnectingProgress::Reading,
                                 }),
                             })
@@ -356,8 +356,7 @@ where
                         let close_reason = inner.close_reason();
                         debug!(reason = ?close_reason, "Inner task closed");
 
-                        if let Some(crate::event_source::EventSourceCloseReason::Eof) =
-                            close_reason
+                        if let Some(crate::event_source::EventSourceCloseReason::Eof) = close_reason
                         {
                             // Legitimate EOF - server closed connection normally
                             // Don't retry, just exhaust

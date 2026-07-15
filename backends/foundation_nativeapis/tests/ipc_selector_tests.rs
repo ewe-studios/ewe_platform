@@ -1,7 +1,7 @@
 //! Tests extracted from shared/ipc/selector.rs
 mod tests {
     use foundation_nativeapis::shared::ipc::*;
-    use foundation_nativeapis::shared::ipc::selector::*;
+    
     use foundation_nativeapis::ipc::Label;
 
     #[test]

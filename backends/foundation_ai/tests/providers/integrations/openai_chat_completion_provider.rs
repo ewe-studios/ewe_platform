@@ -16,8 +16,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::simple_http::client::native::NativeHttpClient;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::http_client::HttpClient;
 
 // ============================================================================
 // llama-server integration tests (#[ignore]-gated)
@@ -31,7 +31,7 @@ fn setup_llama_server_provider() -> impl Model {
     let model_name =
         std::env::var("LLAMA_SERVER_MODEL").unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into());
 
-    let resolver = foundation_netio::simple_http::client::shared::SystemDnsResolver;
+    let resolver = foundation_netio::shared::client::SystemDnsResolver;
     let http_client: Arc<dyn HttpClient> = Arc::new(
         NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
     );

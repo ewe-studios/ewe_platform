@@ -14,9 +14,9 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::simple_http::client::native::NativeHttpClient;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::Arc;

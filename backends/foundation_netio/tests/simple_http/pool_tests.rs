@@ -5,7 +5,7 @@
 //! deterministic, quick, and suitable for running as part of the unit test
 //! suite under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_netio::simple_http::client::ConnectionPool;
+use foundation_netio::http::ConnectionPool;
 use std::time::Duration;
 
 /// Basic sanity checks for `ConnectionPool`.

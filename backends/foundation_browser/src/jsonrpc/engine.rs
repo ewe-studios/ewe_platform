@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use foundation_netio::simple_http::client::shared::dns::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use serde_json::{json, Value};
 

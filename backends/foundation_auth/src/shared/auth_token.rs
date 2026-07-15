@@ -9,7 +9,7 @@
 use chrono::Utc;
 
 use crate::{AuthCredential, ConfidentialText, JwtCredential, OAuthCredential, SessionCredential};
-use foundation_netio::simple_http::client::shared::Cookie;
+use foundation_netio::shared::client::Cookie;
 
 /// Unified authentication token representation.
 #[derive(Debug, Clone)]

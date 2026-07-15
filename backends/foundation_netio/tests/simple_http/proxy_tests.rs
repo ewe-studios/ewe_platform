@@ -1,3 +1,4 @@
+use foundation_core::url::Scheme;
 /// Unit tests for proxy support
 ///
 /// WHY: Verify proxy configuration parsing, environment detection, and `NO_PROXY` bypass logic
@@ -5,8 +6,7 @@
 /// WHAT: Tests for `ProxyConfig`, `ProxyAuth`, `ProxyProtocol` parsing and functionality
 ///
 /// HOW: External unit tests following `ewe_platform` testing conventions
-use foundation_netio::simple_http::client::shared::{ProxyAuth, ProxyConfig, ProxyProtocol};
-use foundation_core::url::Scheme;
+use foundation_netio::shared::client::{ProxyAuth, ProxyConfig, ProxyProtocol};
 use serial_test::serial;
 
 // ============================================================================

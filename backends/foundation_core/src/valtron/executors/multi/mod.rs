@@ -41,7 +41,6 @@ use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
     ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController,
     ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
-    TaskStatusMapper,
 };
 
 use crate::valtron::{ThreadActivity, ThreadId};
@@ -54,7 +53,7 @@ use crate::valtron::{
     ConsumingIter, DoNext, StreamConsumingIter,
 };
 
-use crate::compati::{Condvar, CondVarMutex, Mutex, RwLock};
+use crate::compati::{CondVarMutex, Condvar, Mutex, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
 use crate::valtron::{split_thread_count, BackgroundJobRegistry, GenericResult};
@@ -173,7 +172,6 @@ impl LocalPoolHandle {
         Task::Ready,
         Task::Pending,
         Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
         Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
         Task,
     >
@@ -187,17 +185,16 @@ impl LocalPoolHandle {
             .with_yielders(self.yielders.clone())
     }
 
-    /// Create a task builder with explicit Mapper and Resolver types.
+    /// Create a task builder with an explicit Resolver type.
     #[must_use]
-    pub fn spawn2<Task, Action, Mapper, Resolver>(
+    pub fn spawn2<Task, Action, Resolver>(
         &self,
-    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
         Task: TaskIterator<Spawner = Action> + Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
@@ -238,7 +235,6 @@ where
     let guard = initialize_pool(seed_from_rng, thread_num);
     let handle = get_pool();
     setup(handle);
-    tracing::debug!("Initialize and call WaitGroup::wait");
     guard.waitgroup().wait();
     guard
 }
@@ -273,10 +269,6 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
     };
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
-
-    tracing::debug!(
-        "Splitting {thread_num} threads: {task_threads} for tasks, {bg_threads} for background jobs"
-    );
 
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
         seed_for_rng,
@@ -338,7 +330,6 @@ pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
@@ -352,19 +343,18 @@ where
 }
 
 /// [`spawn2`] provides a builder which allows you to build out
-/// the underlying tasks with explicit Mapper and Resolver types.
+/// the underlying tasks with an explicit Resolver type.
 #[must_use]
-pub fn spawn2<Task, Action, Mapper, Resolver>(
-) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+pub fn spawn2<Task, Action, Resolver>(
+) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
 {
-    get_pool().spawn2::<Task, Action, Mapper, Resolver>()
+    get_pool().spawn2::<Task, Action, Resolver>()
 }
 
 // ============================================================================
@@ -502,9 +492,7 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 /// Panics if the desired thread count is zero.
 pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
-    tracing::debug!("Max available threads: {max_threads:}");
     let desired_threads = get_num_threads();
-    tracing::debug!("Desired thread count: {desired_threads:}");
 
     assert!(
         (desired_threads <= max_threads),
@@ -521,14 +509,6 @@ pub fn get_allocatable_thread_count() -> usize {
     if desired_threads == max_threads {
         return max_threads - 1;
     }
-
-    let rem_threads = max_threads - desired_threads;
-    tracing::debug!(
-        "Remaining threads {} from desired: {} and max: {}",
-        rem_threads,
-        desired_threads,
-        max_threads
-    );
 
     desired_threads
 }
@@ -615,35 +595,18 @@ impl ThreadYielders {
     }
 
     /// Register a yielder for interrupt tracking.
-    #[tracing::instrument(skip(self))]
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
-        tracing::trace!("ThreadYielders::register() - registering yielder");
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
-        tracing::trace!(
-            "ThreadYielders::register() - done, {} yielders registered",
-            yielders.len()
-        );
     }
 
     /// Interrupt all registered yielders.
     /// Call this when new work arrives to wake threads waiting in yield_for.
-    #[tracing::instrument(skip(self))]
     pub fn interrupt_all(&self) {
-        tracing::trace!("ThreadYielders::interrupt_all() - acquiring read lock");
         let yielders = self.yielders.read().unwrap();
-        tracing::trace!(
-            "ThreadYielders::interrupt_all() - interrupting {} yielders",
-            yielders.len()
-        );
-        for (i, yielder) in yielders.iter().enumerate() {
-            tracing::trace!(
-                "ThreadYielders::interrupt_all() - interrupting yielder {}",
-                i
-            );
+        for yielder in yielders.iter() {
             yielder.interrupt();
         }
-        tracing::trace!("ThreadYielders::interrupt_all() - done");
     }
 }
 
@@ -707,16 +670,11 @@ impl ThreadYielder {
     /// This wakes threads waiting in yield_for() even if they're in the middle
     /// of a long sleep. The wait_timeout_while will check the predicate again
     /// after waking and return immediately since state != Waiting.
-    #[tracing::instrument(skip(self))]
     pub fn interrupt(&self) {
-        tracing::trace!("ThreadYielder::interrupt() - setting state to Notified");
         if let Ok(mut guard) = self.wait_state.lock() {
             *guard = WaitState::Notified;
-            tracing::trace!("ThreadYielder::interrupt() - state set to Notified");
         }
-        tracing::trace!("ThreadYielder::interrupt() - calling condvar.notify_all()");
         self.condvar.notify_all();
-        tracing::trace!("ThreadYielder::interrupt() - done");
     }
 }
 
@@ -751,37 +709,26 @@ impl ProcessController for ThreadYielder {
     /// We MUST use that returned guard directly to reset state.
     /// Attempting to acquire the lock again causes deadlock.
     fn yield_for(&self, dur: std::time::Duration) {
-        tracing::trace!("ThreadYielder::yield_for() - START, duration={:?}", dur);
         // Send parked notification
         self.sender
             .send(ThreadActivity::Parked(self.thread_id.clone()))
             .expect("should send event");
 
-        tracing::trace!("ThreadYielder::yield_for() - acquiring wait_state lock");
         let guard = self.wait_state.lock().unwrap();
 
-        tracing::trace!("ThreadYielder::yield_for() - calling wait_timeout_while");
         // Wait while not notified (spurious wakeups are handled by re-checking)
-        // The wait_timeout_while atomically:
-        // 1. Checks the predicate (returns immediately if false)
-        // 2. If predicate is true, unlocks mutex and waits
-        // 3. On wakeup, re-locks mutex and re-checks predicate
-        // This ensures we never miss a notification that arrives between check and wait
         let (mut guard, result) = self
             .condvar
             .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
             .unwrap();
         let _timed_out = result.timed_out();
-        tracing::trace!("ThreadYielder::yield_for() - wait_timeout_while returned");
 
         // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-        // The guard is still locked - don't try to acquire again or deadlock!
         *guard = WaitState::Waiting;
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
             .expect("should send event");
-        tracing::trace!("ThreadYielder::yield_for() - END");
     }
 }
 
@@ -941,7 +888,6 @@ pub struct ThreadPoolTaskBuilder<
     Done: Send + 'static,
     Pending: Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 > {
@@ -951,7 +897,6 @@ pub struct ThreadPoolTaskBuilder<
     yielders: Option<SharedThreadYielders>,
     task: Option<Task>,
     resolver: Option<Resolver>,
-    mappers: Option<Vec<Mapper>>,
     panic_handler: Option<BoxedPanicHandler>,
     /// Channel capacity for bounded queues (None = unbounded)
     channel_capacity: Option<usize>,
@@ -962,10 +907,9 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Resolver, Task>
 {
     pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
         Self {
@@ -973,7 +917,6 @@ impl<
             latch,
             yielders: None,
             task: None,
-            mappers: None,
             resolver: None,
             panic_handler: None,
             channel_capacity: None,
@@ -985,19 +928,6 @@ impl<
     #[must_use]
     pub fn with_yielders(mut self, yielders: SharedThreadYielders) -> Self {
         self.yielders = Some(yielders);
-        self
-    }
-
-    #[allow(clippy::return_self_not_must_use)]
-    pub fn with_mappers(mut self, mapper: Mapper) -> Self {
-        let mut mappers = if self.mappers.is_some() {
-            self.mappers.take().unwrap()
-        } else {
-            Vec::new()
-        };
-
-        mappers.push(mapper);
-        self.mappers = Some(mappers);
         self
     }
 
@@ -1055,10 +985,9 @@ impl<
             };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => ReadyConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => ReadyConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1133,10 +1062,9 @@ impl<
         };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => StreamConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1182,10 +1110,9 @@ impl<
             };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => ConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1214,29 +1141,21 @@ impl<
     /// be processed by the underlying thread pool.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (Some(resolver), Some(mappers)) => {
-                    let mut task_iter = OnNext::new(task, resolver, mappers);
+            Some(task) => match self.resolver {
+                Some(resolver) => {
+                    let mut task_iter = OnNext::new(task, resolver);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-                (Some(resolver), None) => {
-                    let mut task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
-                    if let Some(panic_handler) = self.panic_handler {
-                        task_iter = task_iter.with_panic_handler(panic_handler);
-                    }
-                    Box::new(task_iter)
-                }
-                (None, None) => {
+                None => {
                     let mut task_iter = DoNext::new(task);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-                (None, Some(_)) => return Err(ExecutorError::FailedToCreate),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1267,9 +1186,8 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, FnReady<F, Action>, Task>
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
@@ -1283,9 +1201,8 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, FnMutReady<F, Action>, Task>
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
@@ -1483,11 +1400,8 @@ impl ThreadRegistry {
     }
 
     /// Register a yielder for interrupt_all tracking.
-    #[tracing::instrument(skip(self))]
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
-        tracing::trace!("ThreadRegistry::register_yielder() - registering yielder");
         self.yielders.register(yielder);
-        tracing::trace!("ThreadRegistry::register_yielder() - done");
     }
 
     /// Get the shared yielders registry.
@@ -1499,9 +1413,7 @@ impl ThreadRegistry {
     /// Interrupt all registered yielders.
     /// Call this during shutdown to wake threads waiting in yield_for.
     pub fn interrupt_all_yielders(&self) {
-        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - calling interrupt_all");
         self.yielders.interrupt_all();
-        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - done");
     }
 
     /// Shutdown the registry - signals kill and waits for all threads.

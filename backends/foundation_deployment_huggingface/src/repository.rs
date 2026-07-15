@@ -15,12 +15,12 @@ use crate::types::{
 };
 use foundation_core::synca::RunOnDrop;
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::simple_http::client::native::{HttpClientConnection, RequestIntro};
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::http::{HttpClientConnection, RequestIntro};
+use foundation_netio::shared::client::{
     body_reader::{self, collect_bytes_into, collect_strings_from_send_safe},
     ResponseIntro,
 };
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders};
 use std::collections::BTreeMap;
 
 use foundation_macros::JsonHash;

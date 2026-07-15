@@ -497,7 +497,13 @@ fn test_split_collector_observer_receives_matched_items() {
     assert!(observer_values.contains(&15));
 }
 
-/// Test 2: `split_collect_one` convenience method
+/// Test 2: `split_collect_one` (queue depth 1) backpressures, loses nothing.
+///
+/// F45 Part C1 changed the split family from `force_push` (drop-oldest) to a
+/// vacancy-park: a full observer queue now parks the source (`TaskStatus::Depends`)
+/// rather than dropping. With a depth-1 queue and two matches, the continuation
+/// and observer must be driven in lockstep — draining only after the continuation
+/// finishes would deadlock. Zero items are lost.
 #[test]
 fn test_split_collect_one_first_match() {
     use foundation_core::valtron::TaskIteratorExt;
@@ -510,29 +516,38 @@ fn test_split_collect_one_first_match() {
         TaskStatus::Ready(4),
     ]);
 
-    // Split: observer gets first value > 2
+    // Split: observer gets values > 2 through a depth-1 (queue_size = 1) queue.
     let (mut observer, mut continuation) = task.split_collect_one(|v| *v > 2);
 
-    // Continuation produces all original values
+    // Drive the continuation and drain the observer in lockstep so the depth-1
+    // queue never permanently backs up.
     let mut continuation_values = Vec::new();
-    for status in &mut continuation {
-        if let TaskStatus::Ready(v) = status {
-            continuation_values.push(v);
-        }
-    }
-    assert_eq!(continuation_values, vec![1, 2, 3, 4]);
-
-    // Observer should receive first match
-    let mut got_match = false;
-    for stream in &mut observer {
-        if let Stream::Next(v) = stream {
-            if v > 2 {
-                got_match = true;
-                break;
+    let mut observer_values = Vec::new();
+    loop {
+        // Free any pending slot first so a parked source can advance.
+        while let Some(stream) = observer.next() {
+            match stream {
+                Stream::Next(v) => observer_values.push(v),
+                _ => break,
             }
         }
+        match continuation.next() {
+            Some(TaskStatus::Ready(v)) => continuation_values.push(v),
+            Some(_) => {} // Depends (parked on full) / Pending — keep driving
+            None => break,
+        }
     }
-    assert!(got_match, "Observer should receive first match");
+    // Final drain after the continuation closed the queue.
+    for stream in &mut observer {
+        if let Stream::Next(v) = stream {
+            observer_values.push(v);
+        }
+    }
+
+    // Continuation forwards every original value, in order.
+    assert_eq!(continuation_values, vec![1, 2, 3, 4]);
+    // Observer receives BOTH matches (> 2): zero loss, unlike the old force_push.
+    assert_eq!(observer_values, vec![3, 4]);
 }
 
 /// Test 3: Observer receives `Stream::Next` for matched items
@@ -651,28 +666,44 @@ fn test_stream_split_collect_one_first_match() {
         Stream::Next(4),
     ]);
 
-    // Split: observer gets first value > 2
+    // Split: observer gets values > 2 through a depth-1 (queue_size = 1) queue.
     let (mut observer, mut continuation) =
         stream.split_collect_one(|s| matches!(s, Stream::Next(v) if *v > 2));
 
-    // Continuation produces all original values
+    // F45 Resolution 4: a full observer queue backpressures the continuation
+    // (yields `Stream::Wait`) instead of dropping. Drive the continuation and drain
+    // the observer in lockstep so the depth-1 queue never permanently backs up —
+    // draining the continuation fully before the observer would deadlock.
     let mut continuation_values = Vec::new();
-    for status in &mut continuation {
-        if let Stream::Next(v) = status {
-            continuation_values.push(v);
+    let mut got_match = false;
+    loop {
+        // Free any pending slot first so a parked source can advance.
+        while let Some(stream_item) = observer.next() {
+            match stream_item {
+                Stream::Next(v) => {
+                    if v > 2 {
+                        got_match = true;
+                    }
+                }
+                _ => break,
+            }
+        }
+        match continuation.next() {
+            Some(Stream::Next(v)) => continuation_values.push(v),
+            Some(_) => {} // Wait (parked on full) — keep driving
+            None => break,
         }
     }
-    assert_eq!(continuation_values, vec![1, 2, 3, 4]);
-
-    // Observer should receive first match
-    let mut got_match = false;
+    // Final drain after the continuation closed the queue.
     for stream_item in &mut observer {
         if let Stream::Next(v) = stream_item {
             if v > 2 {
                 got_match = true;
-                break;
             }
         }
     }
+
+    // Continuation forwards every original value, in order.
+    assert_eq!(continuation_values, vec![1, 2, 3, 4]);
     assert!(got_match, "Observer should receive first match");
 }

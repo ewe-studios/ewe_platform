@@ -15,7 +15,7 @@ use foundation_arrow::arrow_schema::{DataType, Field, Schema};
 use foundation_arrow::{ArrowSchema, FromArrow, IpcResult, ToArrow};
 use std::sync::Arc;
 
-use foundation_connectrpc::codec::CodecFor;
+use foundation_connectrpc::shared::codec::CodecFor;
 use foundation_connectrpc::{ArrowCodec, JsonCodec, ProcedureCodecs, ProtoCodec};
 
 /// A tri-family message: buffa `Message` (+ serde) and Arrow (`v: int32`).

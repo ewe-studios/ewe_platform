@@ -51,6 +51,8 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.1" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.1" }
+futures = "0.3"
 
 [lints]
 workspace = true

@@ -3,10 +3,10 @@ mod test_http_reader {
 
     use foundation_core::panic_if_failed;
     use foundation_netio::netcap::RawStream;
-    use foundation_netio::simple_http::client::shared::body_reader::{
+    use foundation_netio::shared::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, HttpReaderError, IncomingRequestParts, SendSafeBody, SimpleHeader,
         SimpleMethod, SimpleUrl,
     };
@@ -226,12 +226,12 @@ mod http_response_compliance {
     use foundation_core::extensions::result_ext::BoxedError;
 
     use foundation_netio::netcap::RawStream;
-    use foundation_netio::simple_http::client::shared::body_reader::{
+    use foundation_netio::shared::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody,
         SimpleHeader, Status,
     };
@@ -3484,7 +3484,7 @@ mod http_requests_compliance {
     use foundation_netio::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, ChunkedData, HttpReaderError, IncomingRequestParts, SendSafeBody,
         SimpleHeader, SimpleMethod, SimpleUrl,
     };
@@ -3500,7 +3500,7 @@ mod http_requests_compliance {
     mod hello_request {
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::shared::body_reader::{
+        use foundation_netio::shared::client::body_reader::{
             collect_bytes_from_send_safe, try_collect_bytes,
         };
 
@@ -3981,7 +3981,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::shared::LineFeed;
+        use foundation_netio::shared::http::LineFeed;
 
         use super::*;
 
@@ -7078,7 +7078,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::shared::body_reader::{
+        use foundation_netio::shared::client::body_reader::{
             collect_bytes_from_send_safe, try_collect_bytes,
         };
 
@@ -7813,7 +7813,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
+        use foundation_netio::shared::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -7924,7 +7924,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
+        use foundation_netio::shared::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -9748,7 +9748,7 @@ mod hardening_tests {
 
     use foundation_core::panic_if_failed;
     use foundation_netio::netcap::RawStream;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
 
@@ -10041,7 +10041,7 @@ mod hardening_tests {
 /// `Expect: 100-continue` request stalled until the client timed out.
 #[cfg(test)]
 mod interim_1xx_response_render {
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         Http11, RenderHttp, SendSafeBody, SimpleOutgoingResponse, Status,
     };
 

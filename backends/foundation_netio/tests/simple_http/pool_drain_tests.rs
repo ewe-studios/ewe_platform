@@ -8,7 +8,7 @@
 //! when connection pooling is enabled.
 
 use foundation_core::valtron::initialize_pool;
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use std::net::SocketAddr;

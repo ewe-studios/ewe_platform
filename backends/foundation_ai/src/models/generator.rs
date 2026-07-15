@@ -3,10 +3,10 @@ use std::collections::BTreeMap;
 
 use derive_more::{Display, From};
 use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::shared::body_reader;
-use foundation_netio::simple_http::client::HttpRequestPending;
-use foundation_netio::simple_http::client::RequestIntro;
-use foundation_netio::simple_http::client::{SendRequestTask, SimpleHttpClient};
+use foundation_netio::shared::client::body_reader;
+use foundation_netio::http::HttpRequestPending;
+use foundation_netio::http::RequestIntro;
+use foundation_netio::http::{SendRequestTask, SimpleHttpClient};
 use serde::Deserialize;
 
 use crate::types::base_types::{
@@ -24,7 +24,7 @@ pub enum GenModelError {
     #[display("http error for {url}: {source}")]
     Http {
         url: String,
-        source: foundation_netio::simple_http::shared::HttpClientError,
+        source: foundation_netio::shared::http::HttpClientError,
     },
 
     #[display("http {status} from {url}")]

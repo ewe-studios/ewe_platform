@@ -7,12 +7,16 @@
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience
 pub use foundation_core::valtron::BoxedSendExecutionAction;
-pub use foundation_netio::simple_http::client::RequestIntro;
+#[deprecated(
+    note = "RequestIntro is native-only; use HttpClient::open_exchange() + HttpExchange \
+            (or body_reader::split_exchange/collect_exchange) instead"
+)]
+pub use foundation_netio::http::RequestIntro;
 
 // =============================================================================
 // ERROR TYPES

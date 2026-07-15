@@ -13,7 +13,7 @@
 use std::sync::Arc;
 
 use foundation_netio::netcap::ConnectionContext;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     HTTPStreams, HttpReaderError, IncomingRequestParts, SimpleIncomingRequest,
 };
 
@@ -30,7 +30,7 @@ use crate::shared::client_ip::ClientIp;
 /// Returns `Some(Err(_))` on parse errors.
 #[must_use]
 #[tracing::instrument(skip(streams, connection))]
-pub fn read_next_request<T: std::io::Read + Send + 'static>(
+pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
     streams: &HTTPStreams<T>,
     client_ip: &str,
     connection: &Arc<ConnectionContext>,

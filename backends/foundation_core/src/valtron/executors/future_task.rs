@@ -33,6 +33,8 @@ use alloc::sync::Arc;
 #[cfg(all(feature = "std", feature = "multi"))]
 use crate::synca::mpp::{self, SenderError};
 
+use crate::valtron::EventReadinessPtr;
+
 // ============================================================================
 // No-Op Waker (no_std compatible)
 // ============================================================================
@@ -273,11 +275,35 @@ where
                 self.completed = true;
                 Some(TaskStatus::Ready(output))
             }
-            // Park on the wake queue rather than re-polling every turn: the
-            // executor only re-runs us once `wake()` pushes a token.
-            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                self.wake_queue.clone(),
-            )))),
+            Poll::Pending => {
+                // Two distinct Pending semantics (Decision 00-F1):
+                //
+                // 1. **Self-wake**: the future called `cx.waker().wake_by_ref()` during
+                //    poll, pushing a token onto this queue. This is the stream-future
+                //    pattern — the underlying `StreamIterator` advanced one step but
+                //    isn't ready yet; the future wants another poll after other tasks
+                //    run. → return `Pending(None)` to requeue without parking.
+                //
+                // 2. **External-wake**: no token was pushed. The future stashed the waker
+                //    (e.g. `RecvFuture` waiting on a pipe, `SendFuture` waiting on
+                //    capacity) and an *external* entity will fire it when data/capacity
+                //    is ready. → return `Depends(queue)` to park until that wake.
+                //
+                // Draining before poll guarantees only a self-wake token (produced
+                // *during* this poll) sits in the queue right now. The wake-before-park
+                // race (token arriving between this check and the executor's
+                // `is_ready()`) is harmless — it just means `Depends` is already ready,
+                // the executor requeues, and we drain it on the next poll.
+                if self.wake_queue.is_empty() {
+                    // No self-wake: genuine park.
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                        self.wake_queue.clone(),
+                    ))))
+                } else {
+                    // Self-wake: requeue without parking.
+                    Some(TaskStatus::Pending(FuturePollState::Pending))
+                }
+            }
         }
     }
 }
@@ -298,9 +324,8 @@ where
             return None;
         }
 
-        // Drain stale tokens BEFORE polling so a prior turn's wake isn't mistaken
-        // for a fresh one — a wake that lands *after* this drain (the
-        // wake-before-park race) stays in the queue and keeps the readiness ready.
+        // Drain stale tokens BEFORE polling — see the non-multi impl above for
+        // the full rationale.
         while self.wake_queue.pop().is_ok() {}
 
         let waker = queue_waker(self.wake_queue.clone(), 0);
@@ -311,11 +336,15 @@ where
                 self.completed = true;
                 Some(TaskStatus::Ready(output))
             }
-            // Park on the wake queue rather than re-polling every turn: the
-            // executor only re-runs us once `wake()` pushes a token.
-            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                self.wake_queue.clone(),
-            )))),
+            Poll::Pending => {
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                        self.wake_queue.clone(),
+                    ))))
+                } else {
+                    Some(TaskStatus::Pending(FuturePollState::Pending))
+                }
+            }
         }
     }
 }
@@ -396,10 +425,15 @@ where
                 self.exhausted = true;
                 Some(TaskStatus::Ready(None))
             }
-            // Park on the wake queue rather than re-polling every turn.
-            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                self.wake_queue.clone(),
-            )))),
+            Poll::Pending => {
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                        self.wake_queue.clone(),
+                    ))))
+                } else {
+                    Some(TaskStatus::Pending(StreamPollState::Pending))
+                }
+            }
         }
     }
 }
@@ -434,10 +468,15 @@ where
                 self.exhausted = true;
                 Some(TaskStatus::Ready(None))
             }
-            // Park on the wake queue rather than re-polling every turn.
-            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                self.wake_queue.clone(),
-            )))),
+            Poll::Pending => {
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                        self.wake_queue.clone(),
+                    ))))
+                } else {
+                    Some(TaskStatus::Pending(StreamPollState::Pending))
+                }
+            }
         }
     }
 }
@@ -469,7 +508,7 @@ pub enum CancelOutcome {
 /// Never panics.
 #[cfg(any(feature = "std", feature = "alloc"))]
 struct CancelOrReadiness {
-    inner: Arc<dyn crate::valtron::EventReadiness>,
+    inner: EventReadinessPtr,
     cancel: Arc<core::sync::atomic::AtomicBool>,
 }
 
@@ -497,10 +536,7 @@ where
 
 #[cfg(any(feature = "std", feature = "alloc"))]
 impl<F: Future> CancellableFutureTask<F> {
-    pub fn new(
-        future: F,
-        cancel: Arc<core::sync::atomic::AtomicBool>,
-    ) -> Self {
+    pub fn new(future: F, cancel: Arc<core::sync::atomic::AtomicBool>) -> Self {
         Self {
             inner: FutureTask::new(future),
             cancel,
@@ -514,8 +550,7 @@ impl<F: Future> CancellableFutureTask<F> {
 
     #[must_use]
     pub fn is_cancelled(&self) -> bool {
-        self.cancel
-            .load(core::sync::atomic::Ordering::Acquire)
+        self.cancel.load(core::sync::atomic::Ordering::Acquire)
     }
 
     #[must_use]
@@ -548,10 +583,12 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             // Compose the cancel flag into the park signal so a set cancel
             // unparks the task even when the inner future never wakes.
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
-                inner: r,
-                cancel: self.cancel.clone(),
-            }))),
+            Some(TaskStatus::Depends(r)) => {
+                Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                    inner: r,
+                    cancel: self.cancel.clone(),
+                })))
+            }
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(
@@ -593,10 +630,12 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             // Compose the cancel flag into the park signal so a set cancel
             // unparks the task even when the inner future never wakes.
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
-                inner: r,
-                cancel: self.cancel.clone(),
-            }))),
+            Some(TaskStatus::Depends(r)) => {
+                Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                    inner: r,
+                    cancel: self.cancel.clone(),
+                })))
+            }
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(

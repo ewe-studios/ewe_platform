@@ -1,4 +1,7 @@
 #[cfg(not(target_family = "wasm"))]
+mod broadcast_tests;
+mod builder_tests;
+#[cfg(not(target_family = "wasm"))]
 mod channel_backpressure_tests;
 mod flatten_combinators;
 mod cancellable_future;
@@ -8,6 +11,7 @@ mod map_circuit;
 mod notification_based_waiting;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
+mod sleep_tests;
 #[cfg(not(target_family = "wasm"))]
 mod spread;
 mod stream_future;
@@ -26,5 +30,7 @@ mod valtron_macro_tests;
 mod waker_queue_bridge;
 #[cfg(not(target_family = "wasm"))]
 mod pipe_primitive;
+#[cfg(not(target_family = "wasm"))]
+mod pipe_mapped_tests;
 #[cfg(feature="multi")]
 mod multi_workers;

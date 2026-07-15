@@ -5,7 +5,7 @@
 use std::sync::Arc;
 use std::thread;
 
-use foundation_connectrpc::compression::GzipStreamCompressor;
+use foundation_connectrpc::shared::compression::GzipStreamCompressor;
 use foundation_connectrpc::{
     negotiate_compression, BufferPool, CompressionError, CompressionRegistry, Compressor,
     GzipCompressor, SizeLimits,

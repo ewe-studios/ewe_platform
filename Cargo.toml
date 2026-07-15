@@ -40,50 +40,6 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
-
-# --- infrastructure crates
-
-infrastructure_llama_bindings = { path = "./infrastructure/llama-bindings", version = "0.0.1" }
-infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0.1" }
-
-# --- foundation crates
-foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
-foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1", default-features = false }
-foundation_db = { path = "./backends/foundation_db", version = "0.0.1", default-features = false }
-foundation_deployment = { path = "./backends/foundation_deployment", version = "0.0.1" }
-foundation_deployment_huggingface = { path = "./backends/foundation_deployment_huggingface", version = "0.1.0" }
-foundation_errstacks = { path = "./backends/foundation_errstacks", version = "0.0.1" }
-foundation_openapi = { path = "./backends/foundation_openapi", version = "0.0.1" }
-foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
-foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1" }
-foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
-foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.3" }
-foundation_netio = { path = "./backends/foundation_netio", version = "0.0.1" }
-foundation_runtimes = { path = "./backends/foundation_runtimes", version = "0.0.3" }
-foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
-foundation_codegen = { path = "./backends/foundation_codegen", version = "0.1.0" }
-foundation_conditional = { path = "./backends/foundation_conditional", version = "0.1.0" }
-foundation_config = { path = "./backends/foundation_config", version = "0.1.0" }
-foundation_html = { path = "./backends/foundation_html", version = "0.0.1" }
-foundation_packager = { path = "./backends/foundation_packager", version = "0.1.0" }
-foundation_jsonschema = { path = "./backends/foundation_jsonschema", version = "0.0.1" }
-foundation_testbed = { path = "./backends/foundation_testbed", version = "0.0.1" }
-foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
-foundation_browser = { path = "./backends/foundation_browser", version = "0.0.1" }
-foundation_arrow = { path = "./backends/foundation_arrow", version = "0.0.1" }
-foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "0.0.1" }
-foundation_vectors = { path = "./backends/foundation_vectors", version = "0.0.1" }
-foundation_toolings = { path = "./backends/foundation_toolings", version = "0.0.1" }
-foundation_buildtools = { path = "./backends/foundation_buildtools", version = "0.0.1" }
-
-foundation_codegentools = { path = "./backends/foundation_codegentools", version = "0.1.0" }
-foundation_compact = { path = "./backends/foundation_compact", version = "0.2.0" }
-foundation_ui_traits = { path = "./backends/foundation_ui_traits", version = "0.0.1" }
-foundation_theme = { path = "./backends/foundation_theme", version = "0.0.1" }
-foundation_signals = { path = "./backends/foundation_signals", version = "0.0.1" }
-foundation_wasm_ui = { path = "./backends/foundation_wasm_ui", version = "0.1.0" }
-foundation_ui_components = { path = "./backends/foundation_ui_components", version = "0.1.0" }
-foundation_platform = { path = "./backends/foundation_platform", version = "0.0.1" }
 derive_more = { version = ">=2.0", features = ["full"] }
 
 # core library dependencies

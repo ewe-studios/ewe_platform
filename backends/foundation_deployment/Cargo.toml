@@ -34,6 +34,10 @@ sha2 = "0.10"
 toml = "0.8"
 urlencoding = "2.1"
 walkdir = "2.5"
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
+foundation_db = { path = "../foundation_db", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 [dependencies.chrono]
 workspace = true
@@ -41,18 +45,6 @@ workspace = true
 [dependencies.derive_more]
 workspace = true
 
-[dependencies.foundation_core]
-workspace = true
-
-[dependencies.foundation_netio]
-features = ["ssl", "multi"]
-workspace = true
-
-[dependencies.foundation_db]
-workspace = true
-
-[dependencies.foundation_macros]
-workspace = true
 
 [dependencies.serde]
 workspace = true

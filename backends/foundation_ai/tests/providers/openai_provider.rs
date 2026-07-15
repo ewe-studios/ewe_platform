@@ -29,10 +29,10 @@ use foundation_ai::types::*;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::simple_http::client::native::NativeHttpClient;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
-use foundation_netio::simple_http::shared::SimpleMethod;
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::shared::http::SimpleMethod;
 use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
@@ -302,9 +302,9 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             };
 
             let body_len = match &req.body {
-                foundation_netio::simple_http::shared::SendSafeBody::Text(s) => s.len(),
-                foundation_netio::simple_http::shared::SendSafeBody::Bytes(v) => v.len(),
-                foundation_netio::simple_http::shared::SendSafeBody::None => 0,
+                foundation_netio::shared::http::SendSafeBody::Text(s) => s.len(),
+                foundation_netio::shared::http::SendSafeBody::Bytes(v) => v.len(),
+                foundation_netio::shared::http::SendSafeBody::None => 0,
                 _ => 0,
             };
 

@@ -7,11 +7,11 @@
 //! HOW: Checks Upgrade/Connection headers, validates Sec-WebSocket-Key, computes accept key,
 //! builds 101 response. Server connection does NOT mask outgoing frames (per RFC 6455).
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
+use foundation_core::io::ioutils::SharedByteBufferStream;
 
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::error::WebSocketError;
@@ -432,6 +432,6 @@ impl WebSocketError {
     /// Returns a `ProtocolError` indicating the masking violation.
     #[must_use]
     pub fn unmasked_client_frame() -> Self {
-        WebSocketError::ProtocolError("Client sent unmasked frame".to_string())
+        Self::ProtocolError("Client sent unmasked frame".to_string())
     }
 }

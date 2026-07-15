@@ -109,8 +109,12 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
 
     /// Manually clear all readiness flags.
     /// Call this when your I/O operation blocks or you've consumed all data.
-    /// After clear_ready(), the next poll() will re-query the poll layer.
+    ///
+    /// Clears the latched readiness in the shared reactor as well as this
+    /// guard's view — the selector is edge-triggered, so without the reactor
+    /// clear the entry stays ready forever and the parked task spins.
     pub fn clear_ready(&mut self) {
+        self.fd.registration().clear_readiness(self.readiness);
         self.readiness = Ready::EMPTY;
     }
 
@@ -118,6 +122,7 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
     /// Use with combined interests — only clear what actually blocked.
     /// Example: if you read but couldn't write, clear only READABLE.
     pub fn clear_ready_matching(&mut self, ready: Ready) {
+        self.fd.registration().clear_readiness(ready);
         self.readiness = self.readiness.difference(ready);
     }
 
@@ -182,12 +187,17 @@ impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
     }
 
     /// Manually clear all readiness flags.
+    ///
+    /// Clears the latched readiness in the shared reactor as well as this
+    /// guard's view — see [`ReadyGuard::clear_ready`].
     pub fn clear_ready(&mut self) {
+        self.fd.registration().clear_readiness(self.readiness);
         self.readiness = Ready::EMPTY;
     }
 
     /// Clear only specific readiness flags.
     pub fn clear_ready_matching(&mut self, ready: Ready) {
+        self.fd.registration().clear_readiness(ready);
         self.readiness = self.readiness.difference(ready);
     }
 

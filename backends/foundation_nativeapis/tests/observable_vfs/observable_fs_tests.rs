@@ -5,7 +5,7 @@ use foundation_nativeapis::{
 use foundation_core::synca::mpp::Receiver;
 
 fn make_observable() -> (ObservableFs<MemoryFs>, Receiver<VfsEvent>) {
-    let mut fs = ObservableFs::new(MemoryFs::new());
+    let fs = ObservableFs::new(MemoryFs::new());
     let rx = fs.subscribe();
     (fs, rx)
 }
@@ -25,7 +25,7 @@ fn test_observable_fs_new() {
 
 #[test]
 fn test_subscribe_before_operations() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.mkdir("/src").unwrap();
     let events = collect_events(&rx);
     assert_eq!(events.len(), 1);
@@ -41,7 +41,7 @@ fn test_subscribe_before_operations() {
 
 #[test]
 fn test_write_file_emits_events() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/hello.txt", b"world").unwrap();
     let events = collect_events(&rx);
     // write_file creates a file and writes — we expect FileOpened + FileCreated or similar
@@ -50,7 +50,7 @@ fn test_write_file_emits_events() {
 
 #[test]
 fn test_read_file_emits_events() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/data.bin", &[1, 2, 3, 4]).unwrap();
     let _ = collect_events(&rx); // clear creation events
 
@@ -71,7 +71,7 @@ fn test_read_file_emits_events() {
 
 #[test]
 fn test_stat_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/test.txt", b"hello").unwrap();
     let _ = collect_events(&rx);
 
@@ -90,7 +90,7 @@ fn test_stat_emits_event() {
 
 #[test]
 fn test_exists_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/exists.txt", b"yes").unwrap();
     let _ = collect_events(&rx);
 
@@ -112,7 +112,7 @@ fn test_exists_emits_event() {
 
 #[test]
 fn test_mkdir_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.mkdir("/a").unwrap();
     fs.mkdir("/b").unwrap();
 
@@ -128,7 +128,7 @@ fn test_mkdir_emits_event() {
 
 #[test]
 fn test_open_directory_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.mkdir("/src").unwrap();
     let _ = collect_events(&rx);
 
@@ -147,7 +147,7 @@ fn test_open_directory_emits_event() {
 
 #[test]
 fn test_remove_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/delete_me.txt", b"bye").unwrap();
     let _ = collect_events(&rx);
 
@@ -164,7 +164,7 @@ fn test_remove_emits_event() {
 
 #[test]
 fn test_rename_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/old.txt", b"hello").unwrap();
     let _ = collect_events(&rx);
 
@@ -184,7 +184,7 @@ fn test_rename_emits_event() {
 
 #[test]
 fn test_chmod_emits_event() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.write_file("/perm.txt", b"test").unwrap();
     let _ = collect_events(&rx);
 
@@ -204,7 +204,7 @@ fn test_chmod_emits_event() {
 
 #[test]
 fn test_error_emits_operation_failed() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     let result = fs.stat("/nonexistent");
     assert!(result.is_err());
 
@@ -223,9 +223,9 @@ fn test_error_emits_operation_failed() {
 
 #[test]
 fn test_multiple_subscribers() {
-    let mut fs = ObservableFs::new(MemoryFs::new());
-    let mut rx1 = fs.subscribe();
-    let mut rx2 = fs.subscribe();
+    let fs = ObservableFs::new(MemoryFs::new());
+    let rx1 = fs.subscribe();
+    let rx2 = fs.subscribe();
 
     fs.mkdir("/test").unwrap();
 
@@ -239,7 +239,7 @@ fn test_multiple_subscribers() {
 
 #[test]
 fn test_event_versions_are_monotonic() {
-    let (mut fs, rx) = make_observable();
+    let (fs, rx) = make_observable();
     fs.mkdir("/a").unwrap();
     fs.mkdir("/b").unwrap();
     fs.mkdir("/c").unwrap();

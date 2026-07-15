@@ -1,0 +1,1573 @@
+//! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
+//! Abstractions of Tcp and Unix socket types
+
+use foundation_core::io::ioutils::{
+    PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream,
+};
+use foundation_core::url::{InvalidUri, Uri};
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+#[cfg(unix)]
+use std::os::unix::net as unix_net;
+use std::{
+    io::{Read, Write},
+    net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs},
+    ops::{Deref, DerefMut},
+    path::PathBuf,
+    time::Duration,
+};
+
+use derive_more::derive::From;
+
+use crate::shared::errors::{DataStreamError, DataStreamResult};
+
+// ---------------------------------------------------------------------------
+// TLS type alias with priority resolution: ssl-rustls > ssl-openssl > ssl-native-tls.
+// When --all-features enables multiple backends, the primary (rustls) wins.
+// The ssl module emits compile_error! if the user manually enables conflicts,
+// so this only fires for the blanket --all-features case.
+// ---------------------------------------------------------------------------
+#[cfg(feature = "ssl-rustls")]
+type TlsStream = crate::native::ssl::rustls::RustTlsClientStream;
+
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
+type TlsStream = crate::native::ssl::openssl::SplitOpenSslStream;
+
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
+type TlsStream = crate::native::ssl::native_ttls::NativeTlsStream;
+
+#[derive(From, Debug, Clone)]
+pub enum SocketAddr {
+    Tcp(core::net::SocketAddr),
+
+    #[cfg(unix)]
+    Unix(std::os::unix::net::SocketAddr),
+}
+
+#[derive(From, Debug)]
+pub enum EndpointError {
+    ParseUrlFailed(InvalidUri),
+}
+
+impl std::error::Error for EndpointError {}
+
+impl core::fmt::Display for EndpointError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum EndpointConfig {
+    NoTimeout(Uri),
+    WithTimeout(Uri, Duration),
+}
+
+#[allow(unused)]
+impl EndpointConfig {
+    /// Returns a reference to the URI of the target endpoint.
+    #[inline]
+    #[must_use]
+    pub fn url(&self) -> &Uri {
+        match self {
+            Self::NoTimeout(inner) | Self::WithTimeout(inner, _) => inner,
+        }
+    }
+}
+
+/// Endpoint represents a target endpoint to be connected
+/// to communication.
+#[derive(Clone, Debug)]
+pub enum Endpoint<I: Clone> {
+    WithDefault(EndpointConfig),
+    WithIdentity(EndpointConfig, I),
+}
+
+#[allow(unused)]
+impl Endpoint<()> {
+    #[inline]
+    #[must_use]
+    pub fn with_default(target: Uri) -> Self {
+        Self::WithDefault(EndpointConfig::NoTimeout(target))
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn with_timeout(target: Uri, timeout: Duration) -> Self {
+        Self::WithDefault(EndpointConfig::WithTimeout(target, timeout))
+    }
+
+    /// Create an endpoint from a string.
+    ///
+    /// # Errors
+    /// Returns an error if the URI parsing fails.
+    #[inline]
+    pub fn with_string<S: Into<String>>(target: S) -> std::result::Result<Self, EndpointError> {
+        match Uri::parse(&target.into()) {
+            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::NoTimeout(uri))),
+            Err(err) => Err(EndpointError::ParseUrlFailed(err)),
+        }
+    }
+
+    /// Create an endpoint from a string with a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the URI parsing fails.
+    #[inline]
+    pub fn with_string_timeout<S: Into<String>>(
+        target: S,
+        timeout: Duration,
+    ) -> std::result::Result<Self, EndpointError> {
+        match Uri::parse(&target.into()) {
+            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::WithTimeout(uri, timeout))),
+            Err(err) => Err(EndpointError::ParseUrlFailed(err)),
+        }
+    }
+}
+
+#[allow(unused)]
+impl<T: Clone> Endpoint<T> {
+    #[inline]
+    pub fn with_identity(target: Uri, identity: T) -> Self {
+        Self::WithIdentity(EndpointConfig::NoTimeout(target), identity)
+    }
+
+    #[inline]
+    pub fn with_identity_timeout(target: Uri, timeout: Duration, identity: T) -> Self {
+        Self::WithIdentity(EndpointConfig::WithTimeout(target, timeout), identity)
+    }
+}
+
+// --- Custom methods / Helper methods
+
+#[allow(unused)]
+impl<T: Clone> Endpoint<T> {
+    /// Returns a reference to the URI of the target endpoint.
+    #[inline]
+    #[allow(clippy::match_same_arms)]
+    pub fn url(&self) -> &Uri {
+        match self {
+            Self::WithDefault(inner) => inner.url(),
+            Self::WithIdentity(inner, _) => inner.url(),
+        }
+    }
+
+    #[inline]
+    pub fn host(&self) -> String {
+        self.get_host_from(self.url())
+    }
+
+    #[inline]
+    pub fn get_host_from(&self, endpoint_url: &Uri) -> String {
+        let mut host = match endpoint_url.host_str() {
+            Some(h) => h,
+            None => String::from("localhost"),
+        };
+
+        let port = endpoint_url.port_or_default();
+        host = format!("{host}:{port}");
+
+        host
+    }
+
+    #[inline]
+    pub fn scheme(&self) -> &str {
+        self.url().scheme().as_str()
+    }
+
+    #[inline]
+    pub fn query(&self) -> Option<String> {
+        self.url().query()
+    }
+
+    #[inline]
+    pub fn path_and_query(&self) -> String {
+        self.get_path_with_query_params(self.url())
+    }
+
+    #[inline]
+    pub fn path(&self) -> &str {
+        self.url().path()
+    }
+
+    #[inline]
+    pub fn get_path_with_query_params(&self, endpoint_url: &Uri) -> String {
+        match endpoint_url.query() {
+            Some(query) => format!("{}?{}", endpoint_url.path(), query),
+            None => endpoint_url.path().to_owned(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct DataStreamAddr(SocketAddr, Option<SocketAddr>);
+
+// --- Constructors
+
+impl DataStreamAddr {
+    #[must_use]
+    pub fn new(local_addr: SocketAddr, remote_addr: Option<SocketAddr>) -> Self {
+        Self(local_addr, remote_addr)
+    }
+}
+
+// --- Methods
+
+impl DataStreamAddr {
+    #[inline]
+    #[must_use]
+    pub fn peer_addr(&self) -> Option<SocketAddr> {
+        self.1.clone()
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn local_addr(&self) -> SocketAddr {
+        self.0.clone()
+    }
+}
+
+/// Unified listener. Either a [`TcpListener`] or [`std::os::unix::net::UnixListener`]
+pub enum Listener {
+    Tcp(TcpListener),
+
+    #[cfg(unix)]
+    Unix(unix_net::UnixListener),
+}
+
+impl Listener {
+    /// Get the peer address of the listener.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
+    pub fn peer_addr(&self) -> std::io::Result<Option<ListenAddr>> {
+        Ok(None)
+    }
+
+    /// Get the local address of the listener.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
+    pub fn local_addr(&self) -> std::io::Result<ListenAddr> {
+        match self {
+            Self::Tcp(l) => l.local_addr().map(ListenAddr::from),
+            #[cfg(unix)]
+            Self::Unix(l) => l.local_addr().map(ListenAddr::from),
+        }
+    }
+
+    /// Accept a new connection on the listener.
+    ///
+    /// # Errors
+    /// Returns an error if accepting the connection fails.
+    pub fn accept(&self) -> std::io::Result<(Connection, Option<SocketAddr>)> {
+        match self {
+            Self::Tcp(l) => l
+                .accept()
+                .map(|(conn, addr)| (Connection::from(conn), Some(SocketAddr::from(addr)))),
+
+            #[cfg(unix)]
+            Self::Unix(l) => l
+                .accept()
+                .map(|(conn, addr)| (Connection::from(conn), Some(SocketAddr::from(addr)))),
+        }
+    }
+}
+
+impl From<TcpListener> for Listener {
+    fn from(s: TcpListener) -> Self {
+        Self::Tcp(s)
+    }
+}
+
+#[cfg(unix)]
+impl From<unix_net::UnixListener> for Listener {
+    fn from(s: unix_net::UnixListener) -> Self {
+        Self::Unix(s)
+    }
+}
+
+/// The trait a completion-mode byte source must satisfy so that
+/// [`Connection::Completion`] can delegate through it.
+///
+/// WHY: `Connection::Completion` cannot hold a concrete type from
+/// `foundation_nativeapis` — that crate depends (optionally) on `foundation_db`,
+/// which depends on `foundation_netio`, creating a dependency cycle. The trait
+/// object breaks the cycle: any crate that owns both netio and nativeapis
+/// (today, `foundation_http`) constructs the implementation and hands it in.
+///
+/// WHAT: `Read + Write + AsRawFd` plus the few extras `Connection` needs
+/// beyond those — peer address (captured at accept time), local address
+/// (getsockname on the fd), shutdown, and a flag for whether reads cost no
+/// syscall.
+///
+/// HOW: the implementor overrides `peer_addr` and `is_kernel_read` at minimum;
+/// `local_addr` and `shutdown` delegate to the fd.
+#[cfg(unix)]
+pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send + Sync {
+    /// The peer address captured at accept time.
+    fn peer_addr(&self) -> Option<SocketAddr>;
+
+    /// The local address via getsockname on the fd.
+    fn local_addr(&self) -> std::io::Result<Option<SocketAddr>>;
+
+    /// Shutdown the socket.
+    fn shutdown(&self, how: Shutdown) -> std::io::Result<()>;
+
+    /// Whether `read` here costs no syscall. Observational only.
+    fn is_kernel_read(&self) -> bool {
+        false
+    }
+}
+
+/// WireGuard overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
+///
+/// Same pattern as [`CompletionReadWrite`]: a boxed trait object so
+/// `foundation_netio` does not need to depend on `foundation_nativeapis`
+/// (which depends on `foundation_db` which depends on us — a cycle).
+/// The impl lives in `foundation_wireguard` where `OverlayStream` is available.
+///
+/// Cloneable via [`clone_box`](Self::clone_box) — the underlying smoltcp socket
+/// is an `Arc<Mutex<..>>`, so cloning is a cheap ref-count increment.
+/// Callback fired when a non-blocking connection becomes readable or writable.
+///
+/// Registered via [`Connection::register_read_waker`] /
+/// [`Connection::register_write_waker`]; the transport's own driver (e.g. the
+/// WireGuard `TunnelDriver`) invokes it when the underlying socket's readiness
+/// changes. Structurally identical to `foundation_nativeapis::dataplane::WakeFn`,
+/// so a wireguard `OverlayReadWrite` impl can pass it straight through to
+/// `OverlayStream::set_read_waker`.
+pub type ConnWaker = std::sync::Arc<dyn Fn() + Send + Sync>;
+
+pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
+    /// Duplicate the underlying stream handle (cheap `Arc` clone).
+    fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
+
+    /// The local overlay endpoint (`my_ip:port`), captured at connect/accept time.
+    ///
+    /// WHY: `Connection::stream_addr` (used by `RawStream::from_connection`) needs a
+    /// concrete local address; smoltcp has no `getsockname(2)`, so the address is
+    /// carried on the stream rather than queried from a kernel socket.
+    fn local_addr(&self) -> std::net::SocketAddr;
+
+    /// The remote overlay endpoint (`peer_ip:port`), captured at connect/accept time.
+    fn peer_addr(&self) -> std::net::SocketAddr;
+
+    /// Register a one-shot callback fired when the stream becomes readable.
+    ///
+    /// WHY: overlay reads are non-blocking (`WouldBlock` when empty); a parked
+    /// reader task returns `TaskStatus::Depends` and needs the driver to unpark it
+    /// when data arrives. The `TunnelDriver` fires this waker on the next poll where
+    /// the smoltcp socket `can_recv()`.
+    fn set_read_waker(&self, waker: ConnWaker);
+
+    /// Register a one-shot callback fired when the stream becomes writable
+    /// (send buffer has spare capacity). Symmetric to [`Self::set_read_waker`] for
+    /// write backpressure.
+    fn set_write_waker(&self, waker: ConnWaker);
+
+    /// Whether an HTTP connection over this stream may be returned to the pool
+    /// for reuse.
+    ///
+    /// WHY: A `WireGuard` overlay socket is a long-lived multiplexed tunnel — safe
+    /// to keep-alive and pool. An SSH `docker system dial-stdio` channel, by
+    /// contrast, is a one-shot bridge to the remote socket; the daemon may close
+    /// it after a response, so a pooled handle could be handed to a later request
+    /// dead. Overriding this to `false` marks the connection non-poolable.
+    ///
+    /// Defaults to `true` (poolable) — the `WireGuard` overlay relies on that.
+    fn should_pool(&self) -> bool {
+        true
+    }
+}
+
+/// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
+/// behind `&mut self`. OverlayAcceptor (in wireguard) wraps smoltcp.
+pub trait Acceptor: Send + Sync + 'static {
+    fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
+    fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
+    fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
+}
+
+/// Opens a `Connection` for a given host:port (spec-55, F11).
+///
+/// WHY: `HttpConnectionPool` hardcodes DNS + `TcpStream::connect()`. This trait
+/// lets different transports plug in — kernel TCP, WireGuard overlay, Unix
+/// sockets — without changing the HTTP stack.
+///
+/// WHAT: `connect(host, port, timeout)` returns an established `Connection`.
+/// Seat it here in `native::connection` (not in `http`) so it is available
+/// without the `multi` feature — it only needs `Connection` and `io::Result`,
+/// both of which live in modules reachable without `multi`.
+///
+/// Implementors: `OverlayConnector` in `foundation_wireguard`.
+pub trait Connector: Send + Sync + 'static {
+    /// Open a connection to `host:port` with an optional timeout.
+    fn connect(
+        &self,
+        host: &str,
+        port: u16,
+        timeout: Option<Duration>,
+    ) -> std::io::Result<Connection>;
+}
+
+/// Blanket impl — `TcpListener::accept(&self)` maps to `Acceptor`.
+impl Acceptor for std::net::TcpListener {
+    fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)> {
+        let (tcp, addr): (std::net::TcpStream, std::net::SocketAddr) =
+            std::net::TcpListener::accept(self)?;
+        Ok((Connection::Tcp(tcp), addr))
+    }
+
+    fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        std::net::TcpListener::set_nonblocking(self, nonblocking)
+    }
+
+    fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        std::net::TcpListener::local_addr(self)
+    }
+}
+
+/// An honest asymmetric split into a read half and a write half.
+///
+/// WHY: `SplitReadStream::split_connection` is a `try_clone` in disguise — it
+/// duplicates the fd and hands back a second full-duplex handle, leaving "who
+/// reads?" to convention. That is unsound for a completion socket (the inbox
+/// is keyed by one `Token`) and was never what any caller wanted: H1's pump
+/// writes on one half and reads on the other.
+///
+/// WHAT: the read half keeps the reactor registration and therefore the inbox.
+/// The write half `dup(2)`s the fd and writes with `write(2)`.
+///
+/// # Errors
+/// `Unsupported` if the underlying stream cannot be split.
+pub trait ReadWriteStream: Sized {
+    /// The read half — keeps the reactor registration.
+    type ReadHalf: Read;
+    /// The write half — a `dup(2)`d fd that only writes.
+    type WriteHalf: Write;
+
+    /// Split into independent read and write halves.
+    ///
+    /// # Errors
+    /// `Unsupported` if the underlying stream cannot be split (e.g. a
+    /// completion socket whose inbox is keyed by one Token).
+    fn split_read_write(self) -> std::io::Result<(Self::ReadHalf, Self::WriteHalf)>;
+}
+
+/// [`Connection`] is a unified connection. Either
+/// a [`TcpStream`], [`std::os::unix::net::UnixStream`], or a TLS-encrypted stream.
+#[derive(Debug)]
+pub enum Connection {
+    Tcp(TcpStream),
+    #[cfg(unix)]
+    Unix(unix_net::UnixStream),
+    #[cfg(any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    ))]
+    Tls(TlsStream),
+
+    /// A byte source whose reads come from the `io_uring` completion inbox — the
+    /// kernel already performed them (Decision 14 F4 / Feature 48).
+    ///
+    /// The boxed trait object breaks the dependency cycle that a concrete
+    /// `CompletionSocket` from `foundation_nativeapis` would create. The
+    /// composition root (`foundation_http`) constructs the implementation.
+    #[cfg(unix)]
+    Completion(Box<dyn CompletionReadWrite>),
+
+    /// WireGuard overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
+    /// The trait object avoids a `netio → nativeapis → db → netio` cycle.
+    /// The impl lives in `foundation_wireguard`.
+    Overlay(Box<dyn OverlayReadWrite>),
+}
+
+impl Connection {
+    /// Create a new TCP connection without a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the TCP connection fails.
+    pub fn without_timeout(
+        addr: core::net::SocketAddr,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self::Tcp(TcpStream::connect(addr)?))
+    }
+
+    /// Create a new TCP connection with a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the TCP connection fails or the timeout expires.
+    pub fn with_timeout(
+        addr: core::net::SocketAddr,
+        timeout: Duration,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
+    }
+
+    /// Connect to a Unix domain socket.
+    ///
+    /// WHY: The Docker daemon and BuildKitd listen on Unix sockets
+    /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — the primary,
+    /// unprivileged, TLS-free local transport.
+    ///
+    /// WHAT: Opens a `UnixStream` to `path` and wraps it as `Connection::Unix`.
+    ///
+    /// HOW: Delegates to `std::os::unix::net::UnixStream::connect`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the socket path does not exist or the connection fails.
+    #[cfg(unix)]
+    pub fn connect_unix(
+        path: impl AsRef<std::path::Path>,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        let stream = unix_net::UnixStream::connect(path)?;
+        // Docker closes the connection after every response — a blocking read
+        // on a dead socket hangs forever. A short read timeout converts the
+        // dead-socket read into a WouldBlock error our buffer layer handles.
+        let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+        Ok(Self::Unix(stream))
+    }
+
+    /// Whether this connection is a Unix-domain socket (never reusable after
+    /// a single HTTP exchange — Docker/BuildKitd close after each response).
+    #[must_use]
+    pub fn is_unix(&self) -> bool {
+        matches!(self, Self::Unix(_))
+    }
+
+    /// Whether this connection is a WireGuard overlay stream (smoltcp userspace TCP).
+    #[must_use]
+    pub fn is_overlay(&self) -> bool {
+        matches!(self, Self::Overlay(_))
+    }
+
+    /// Whether an HTTP connection over this transport may be returned to the pool.
+    ///
+    /// WHY: Unix sockets (Docker/BuildKitd) close after every response, so they
+    /// are never pooled. A caller-provided `Overlay` stream decides for itself
+    /// via [`OverlayReadWrite::should_pool`] — a `WireGuard` tunnel pools, an SSH
+    /// `docker system dial-stdio` channel does not. TCP/TLS pool as usual.
+    #[must_use]
+    pub fn should_pool(&self) -> bool {
+        match self {
+            Self::Unix(_) => false,
+            Self::Overlay(o) => o.should_pool(),
+            _ => true,
+        }
+    }
+}
+
+impl ReadTimeoutOperations for Connection {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        let previous_read_timeout = self.read_timeout()?;
+
+        // set new read timeout
+        self.set_read_timeout(Some(timeout))?;
+        let result = self.read(buf);
+
+        // set back old timeout
+        self.set_read_timeout(previous_read_timeout)?;
+        result
+    }
+
+    fn set_read_timeout_as(
+        &mut self,
+        timeout: std::time::Duration,
+    ) -> std::result::Result<(), std::io::Error> {
+        match self {
+            Self::Tcp(t) => {
+                tracing::debug!(
+                    "Tcp::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+                t.set_read_timeout(Some(timeout))
+            }
+            #[cfg(unix)]
+            Self::Unix(u) => {
+                tracing::debug!(
+                    "Unix::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+
+                u.set_read_timeout(Some(timeout))
+            }
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => {
+                tracing::debug!(
+                    "Tls::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
+                    &timeout,
+                );
+                tls.set_read_timeout(Some(timeout))
+            }
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // In completion mode the read never blocks — it returns
+                // `WouldBlock` and the task parks. Setting a timeout is a
+                // documented no-op.
+                tracing::debug!(
+                    "Completion::set_read_timeout_as: timeouts are a socket-option \
+                     concept; completion reads never block — no-op"
+                );
+                Ok(())
+            }
+            Self::Overlay(_) => {
+                // Overlay reads go through smoltcp — no kernel socket to
+                // set SO_RCVTIMEO on. Timeouts are applied at the HTTP layer.
+                Ok(())
+            }
+        }
+    }
+
+    fn get_current_read_timeout(
+        &self,
+    ) -> std::result::Result<Option<std::time::Duration>, std::io::Error> {
+        match self {
+            Self::Tcp(t) => t.read_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
+        }
+    }
+}
+
+impl Connection {
+    /// Returns the current read timeout for this connection.
+    ///
+    /// The result is `Ok(Some(duration))` if a read timeout is set, `Ok(None)` if no timeout
+    /// is configured, and `Err` if obtaining the timeout fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an `std::io::Error` when the underlying platform call to query
+    /// the socket timeout fails.
+    pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        match self {
+            Self::Tcp(t) => t.read_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.read_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
+        }
+    }
+
+    /// Returns the current write timeout for this connection.
+    ///
+    /// The result is `Ok(Some(duration))` if a write timeout is set, `Ok(None)` if no timeout
+    /// is configured, and `Err` if obtaining the timeout fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an `std::io::Error` when the underlying platform call to query
+    /// the socket timeout fails.
+    pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        match self {
+            Self::Tcp(t) => t.write_timeout(),
+            #[cfg(unix)]
+            Self::Unix(u) => u.write_timeout(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.write_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
+            Self::Overlay(_) => Ok(None),
+        }
+    }
+
+    /// Sets the write timeout for this connection.
+    ///
+    /// Pass `Some(duration)` to set a timeout or `None` to disable timeouts.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `std::io::Error` if the underlying platform call to set the socket
+    /// write timeout fails.
+    pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(t) => t.set_write_timeout(dur),
+            #[cfg(unix)]
+            Self::Unix(u) => u.set_write_timeout(dur),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.set_write_timeout(dur),
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // Writes are still `write(2)` — timeouts apply to the socket.
+                // We let this succeed silently; a caller that needs write timeouts
+                // on completion sockets should use socket options directly.
+                Ok(())
+            }
+            Self::Overlay(_) => Ok(()),
+        }
+    }
+
+    /// Sets the read timeout for this connection.
+    ///
+    /// Pass `Some(duration)` to set a timeout or `None` to disable timeouts.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `std::io::Error` if the underlying platform call to set the socket
+    /// read timeout fails.
+    pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(t) => t.set_read_timeout(dur),
+            #[cfg(unix)]
+            Self::Unix(u) => u.set_read_timeout(dur),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.set_read_timeout(dur),
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // In completion mode the read never blocks — it returns
+                // `WouldBlock` and the task parks. Setting a read timeout is a
+                // documented no-op.
+                Ok(())
+            }
+            Self::Overlay(_) => Ok(()),
+        }
+    }
+}
+
+impl SplitReadStream for Connection {
+    fn split_connection(&self) -> std::io::Result<Self> {
+        match self {
+            Self::Tcp(inner) => inner.try_clone().map(Connection::Tcp),
+
+            #[cfg(all(unix, not(feature = "nightly")))]
+            Self::Unix(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "Not supported",
+            )),
+
+            #[cfg(all(feature = "nightly", unix))]
+            Self::Unix(inner) => inner.try_clone().map(Connection::Unix),
+
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(inner) => inner.try_clone_connection(),
+
+            #[cfg(unix)]
+            Self::Completion(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "a completion socket cannot be split by cloning: its inbox is keyed \
+                 by one Token. Use ReadWriteStream::split_read_write.",
+            )),
+            Self::Overlay(o) => Ok(Connection::Overlay(o.clone_box())),
+        }
+    }
+}
+
+impl PeekableReadStream for Connection {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        match self {
+            Self::Tcp(inner) => match inner.peek(buf) {
+                Ok(count) => Ok(count),
+                Err(err) => Err(PeekError::IOError(err)),
+            },
+
+            #[cfg(all(unix, not(feature = "nightly")))]
+            Self::Unix(_) => Err(PeekError::NotSupported),
+
+            #[cfg(all(feature = "nightly", unix))]
+            Self::Unix(inner) => match inner.peek(buf) {
+                Ok(count) => Ok(count),
+                Err(err) => Err(PeekError::IOError(err)),
+            },
+
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(_) => Err(PeekError::NotSupported),
+
+            // Completion mode: the kernel already read the bytes into the inbox.
+            // `MSG_PEEK` on the socket would race with the kernel's RECV and return
+            // garbage. The correct peek would read from the staged `ProvidedBuf`s
+            // without advancing the offset — not yet implemented. For now, peek is
+            // a destructive read (the bytes are consumed), which is correct if
+            // suboptimal — a caller that peeked and then read would get the next
+            // batch. Any caller that depends on non-destructive peek will see
+            // `NotSupported` on the completion path.
+            #[cfg(unix)]
+            Self::Completion(_) => Err(PeekError::NotSupported),
+            Self::Overlay(_) => Err(PeekError::NotSupported),
+        }
+    }
+}
+
+impl std::io::Read for Connection {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self {
+            Self::Tcp(s) => s.read(buf),
+            #[cfg(unix)]
+            Self::Unix(s) => s.read(buf),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.read(buf),
+            #[cfg(unix)]
+            Self::Completion(s) => s.read(buf), // inbox pop on completion; read(2) elsewhere
+            Self::Overlay(s) => s.read(buf),
+        }
+    }
+}
+
+impl std::io::Write for Connection {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            Self::Tcp(s) => s.write(buf),
+            #[cfg(unix)]
+            Self::Unix(s) => s.write(buf),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.write(buf),
+            #[cfg(unix)]
+            Self::Completion(s) => s.write(buf), // write(2) — SEND is future work (F49)
+            Self::Overlay(s) => s.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(s) => s.flush(),
+            #[cfg(unix)]
+            Self::Unix(s) => s.flush(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.flush(),
+            #[cfg(unix)]
+            Self::Completion(s) => s.flush(),
+            Self::Overlay(_) => Ok(()), // smoltcp flushes on each send
+        }
+    }
+}
+
+impl Connection {
+    /// Gets the peer's address. Some for TCP, None for Unix sockets.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
+    pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
+        match self {
+            Self::Tcp(s) => s.peer_addr().map(SocketAddr::from).map(Some),
+            #[cfg(unix)]
+            Self::Unix(_) => Ok(None),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.peer_addr(),
+            // Captured at accept time — no getpeername(2) needed.
+            #[cfg(unix)]
+            Self::Completion(s) => Ok(s.peer_addr()),
+            // Carried on the overlay stream (no getpeername(2) for smoltcp).
+            Self::Overlay(o) => Ok(Some(SocketAddr::from(o.peer_addr()))),
+        }
+    }
+
+    /// Gets the local's address. Some for TCP, None for Unix sockets.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
+    pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
+        match self {
+            Self::Tcp(s) => s.local_addr().map(SocketAddr::from).map(Some),
+            #[cfg(unix)]
+            Self::Unix(u) => u.local_addr().map(SocketAddr::from).map(Some),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => tls.local_addr(),
+            // Delegates to the trait impl (getsockname on the fd).
+            #[cfg(unix)]
+            Self::Completion(s) => s.local_addr(),
+            // Carried on the overlay stream (no getsockname(2) for smoltcp).
+            Self::Overlay(o) => Ok(Some(SocketAddr::from(o.local_addr()))),
+        }
+    }
+
+    /// Get the stream address information.
+    ///
+    /// # Errors
+    /// Returns an error if getting local or peer address fails, or if address information is missing.
+    pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
+        let local_addr = self.local_addr()?;
+        let peer_addr = self.peer_addr()?;
+
+        match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoLocalAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }
+    }
+
+    /// Shutdown the connection.
+    ///
+    /// # Errors
+    /// Returns an error if shutting down the connection fails.
+    pub fn shutdown(&self, how: Shutdown) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(s) => s.shutdown(how),
+            #[cfg(unix)]
+            Self::Unix(s) => s.shutdown(how),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(_tls) => {
+                // TLS streams need mutable access for shutdown, but we have &self
+                // This is a design limitation - for now, return Ok(())
+                // The underlying TCP connection will be closed when dropped
+                Ok(())
+            }
+            #[cfg(unix)]
+            Self::Completion(s) => s.shutdown(how),
+            Self::Overlay(_) => Ok(()), // smoltcp socket — close on drop
+        }
+    }
+
+    /// Register a wake callback fired when this connection becomes readable.
+    ///
+    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// overlay), `false` for blocking transports (TCP/TLS/Unix) whose reads block
+    /// until data or timeout and never surface `WouldBlock` for parking. A reader
+    /// task uses the result to decide between parking (`Depends`) and treating a
+    /// `WouldBlock` as a real timeout error.
+    #[must_use]
+    pub fn register_read_waker(&self, waker: ConnWaker) -> bool {
+        match self {
+            Self::Overlay(o) => {
+                o.set_read_waker(waker);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Whether this connection supports readiness wakeups (a non-blocking overlay).
+    /// Lets a reader decide up front whether to park on `WouldBlock` or fall back to
+    /// the blocking-transport delay/timeout path, without registering a waker.
+    #[must_use]
+    pub fn supports_read_waker(&self) -> bool {
+        matches!(self, Self::Overlay(_))
+    }
+
+    /// Register a wake callback fired when this connection becomes writable.
+    /// Same transport support rules as [`Self::register_read_waker`].
+    #[must_use]
+    pub fn register_write_waker(&self, waker: ConnWaker) -> bool {
+        match self {
+            Self::Overlay(o) => {
+                o.set_write_waker(waker);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Try to clone the connection.
+    ///
+    /// # Errors
+    /// Returns an error if cloning the underlying socket fails, or if
+    /// the connection is a completion socket (inbox is keyed by one Token).
+    pub fn try_clone(&self) -> std::io::Result<Self> {
+        match self {
+            Self::Tcp(s) => s.try_clone().map(Self::from),
+            #[cfg(unix)]
+            Self::Unix(s) => s.try_clone().map(Self::from),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => Ok(Self::Tls(tls.clone())),
+            #[cfg(unix)]
+            Self::Completion(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "a completion socket cannot be cloned: its inbox is keyed by one Token",
+            )),
+            Self::Overlay(o) => Ok(Connection::Overlay(o.clone_box())),
+        }
+    }
+
+    /// Reads bytes until a delimiter is found, returning the bytes including the delimiter.
+    ///
+    /// # Errors
+    /// Returns an error if reading fails or the connection closes before the delimiter is found.
+    pub fn take_until(&mut self, delimiter: &[u8], output: &mut Vec<u8>) -> std::io::Result<usize> {
+        let mut buf = [0u8; 4096];
+        let mut total_read = 0;
+
+        loop {
+            let bytes_read = self.read(&mut buf)?;
+            if bytes_read == 0 {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::UnexpectedEof,
+                    "Connection closed before delimiter found",
+                ));
+            }
+
+            output.extend_from_slice(&buf[..bytes_read]);
+            total_read += bytes_read;
+
+            // Check if delimiter is in the output
+            if let Some(pos) = output.windows(delimiter.len()).position(|w| w == delimiter) {
+                // Remove the delimiter from output
+                output.truncate(pos);
+                return Ok(total_read);
+            }
+        }
+    }
+
+    /// Consumes the first `n` bytes from the read buffer.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying stream fails.
+    pub fn consume(&mut self, n: usize) -> std::io::Result<()> {
+        // Since Connection doesn't have a buffer, we need to read and discard
+        let mut buf = vec![0u8; n];
+        if n > 0 {
+            self.read_exact(&mut buf)?;
+        }
+        Ok(())
+    }
+}
+
+impl From<TcpStream> for Connection {
+    fn from(s: TcpStream) -> Self {
+        Self::Tcp(s)
+    }
+}
+
+#[cfg(unix)]
+impl From<unix_net::UnixStream> for Connection {
+    fn from(s: unix_net::UnixStream) -> Self {
+        Self::Unix(s)
+    }
+}
+
+/// `AsRawFd`/`AsFd` expose the connection's underlying socket file descriptor so
+/// it can be registered with the `foundation_nativeapis` reactor from above
+/// `netio` (Decision 12 §12 of spec 41-connectrpc). Readiness is a property of
+/// the socket, not the TLS layer, so TLS connections delegate to the fd of the
+/// TCP socket the TLS session wraps. Native-socket only (Unix); wasm has no fd.
+#[cfg(unix)]
+impl std::os::unix::io::AsRawFd for Connection {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        match self {
+            Self::Tcp(stream) => stream.as_raw_fd(),
+            Self::Unix(stream) => stream.as_raw_fd(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(stream) => stream.as_raw_fd(),
+            #[cfg(unix)]
+            Self::Completion(s) => s.as_raw_fd(),
+            Self::Overlay(_) => -1, // smoltcp — no kernel fd
+        }
+    }
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for Connection {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by `self` and stays open for the borrow's
+        // lifetime; `BorrowedFd` does not close it.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
+#[cfg(feature = "ssl-rustls")]
+impl From<crate::native::ssl::rustls::RustTlsClientStream> for Connection {
+    fn from(s: crate::native::ssl::rustls::RustTlsClientStream) -> Self {
+        Self::Tls(s)
+    }
+}
+
+#[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
+impl From<crate::native::ssl::openssl::SplitOpenSslStream> for Connection {
+    fn from(s: crate::native::ssl::openssl::SplitOpenSslStream) -> Self {
+        Self::Tls(s)
+    }
+}
+
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
+impl From<crate::native::ssl::native_ttls::NativeTlsStream> for Connection {
+    fn from(s: crate::native::ssl::native_ttls::NativeTlsStream) -> Self {
+        Self::Tls(s)
+    }
+}
+
+#[derive(From, Debug, Clone)]
+pub enum ConfigListenAddr {
+    IP(Vec<std::net::SocketAddr>),
+
+    // TODO: use SocketAddr when bind_addr is stabilized
+    #[cfg(unix)]
+    Unix(std::path::PathBuf),
+}
+
+impl ConfigListenAddr {
+    /// Create a `ConfigListenAddr` from socket addresses.
+    ///
+    /// # Errors
+    /// Returns an error if converting to socket addresses fails.
+    pub fn from_socket_addrs<A: ToSocketAddrs>(addrs: A) -> std::io::Result<Self> {
+        addrs.to_socket_addrs().map(|it| Self::IP(it.collect()))
+    }
+
+    #[cfg(unix)]
+    pub fn unix_from_path<P: Into<PathBuf>>(path: P) -> Self {
+        Self::Unix(path.into())
+    }
+
+    /// Bind to the configured address.
+    ///
+    /// # Errors
+    /// Returns an error if binding to the address fails.
+    pub fn bind(&self) -> std::io::Result<Listener> {
+        match self {
+            Self::IP(a) => TcpListener::bind(a.as_slice()).map(Listener::from),
+            #[cfg(unix)]
+            Self::Unix(a) => unix_net::UnixListener::bind(a).map(Listener::from),
+        }
+    }
+}
+
+/// Unified listen socket address. Either a [`SocketAddr`] or [`std::os::unix::net::SocketAddr`].
+#[derive(From, Debug, Clone)]
+pub enum ListenAddr {
+    IP(core::net::SocketAddr),
+
+    #[cfg(unix)]
+    Unix(unix_net::SocketAddr),
+}
+
+impl ListenAddr {
+    #[must_use]
+    pub fn to_addr(self) -> Option<SocketAddr> {
+        match self {
+            Self::IP(s) => Some(SocketAddr::from(s)),
+            #[cfg(unix)]
+            Self::Unix(s) => Some(SocketAddr::from(s)),
+        }
+    }
+
+    #[must_use]
+    pub fn to_ip(self) -> Option<SocketAddr> {
+        match self {
+            Self::IP(s) => Some(SocketAddr::from(s)),
+            #[cfg(unix)]
+            Self::Unix(_) => None,
+        }
+    }
+
+    /// Gets the Unix socket address.
+    ///
+    /// This is also available on non-Unix platforms, for ease of use, but always returns `None`.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn to_unix(self) -> Option<unix_net::SocketAddr> {
+        match self {
+            Self::IP(_) => None,
+            Self::Unix(s) => Some(s),
+        }
+    }
+    #[cfg(not(unix))]
+    pub fn to_unix(self) -> Option<SocketAddr> {
+        None
+    }
+}
+
+impl std::fmt::Display for ListenAddr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::IP(s) => s.fmt(f),
+            #[cfg(unix)]
+            Self::Unix(s) => std::fmt::Debug::fmt(s, f),
+        }
+    }
+}
+
+/// A wrapper around `TcpStream`.
+pub struct TcpStreamWrapper {
+    inner: TcpStream,
+}
+
+impl TcpStreamWrapper {
+    /// Creates a new `TcpStreamWrapper` from a `TcpStream`
+    #[must_use]
+    pub fn new(stream: TcpStream) -> Self {
+        Self { inner: stream }
+    }
+
+    /// Consumes the wrapper and returns the inner `TcpStream`
+    #[must_use]
+    pub fn into_inner(self) -> TcpStream {
+        self.inner
+    }
+
+    /// Sets the value of the `TCP_NODELAY` option on this socket.
+    ///
+    /// If set, this disables Nagle's algorithm, meaning segments are sent as soon as possible.
+    ///
+    /// # Errors
+    /// Returns an error if setting the `TCP_NODELAY` option fails.
+    pub fn set_nodelay(&self, nodelay: bool) -> std::io::Result<()> {
+        self.inner.set_nodelay(nodelay)
+    }
+
+    /// Gets the value of the `TCP_NODELAY` option for this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the `TCP_NODELAY` option fails.
+    pub fn nodelay(&self) -> std::io::Result<bool> {
+        self.inner.nodelay()
+    }
+
+    /// Sets the value for the `IP_TTL` option on this socket.
+    ///
+    /// This specifies the time-to-live for IP packets.
+    ///
+    /// # Errors
+    /// Returns an error if setting the TTL fails.
+    pub fn set_ttl(&self, ttl: u32) -> std::io::Result<()> {
+        self.inner.set_ttl(ttl)
+    }
+
+    /// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the TTL fails.
+    pub fn ttl(&self) -> std::io::Result<u32> {
+        self.inner.ttl()
+    }
+
+    /// Sets the read timeout to the timeout specified.
+    ///
+    /// If the value specified is None, then read operations will not timeout.
+    ///
+    /// # Errors
+    /// Returns an error if setting the read timeout fails.
+    pub fn set_read_timeout(&self, timeout: Option<Duration>) -> std::io::Result<()> {
+        self.inner.set_read_timeout(timeout)
+    }
+
+    /// Sets the write timeout to the timeout specified.
+    ///
+    /// If the value specified is None, then write operations will not timeout.
+    ///
+    /// # Errors
+    /// Returns an error if setting the write timeout fails.
+    pub fn set_write_timeout(&self, timeout: Option<Duration>) -> std::io::Result<()> {
+        self.inner.set_write_timeout(timeout)
+    }
+
+    /// Returns the read timeout of this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the read timeout fails.
+    pub fn read_timeout(&self) -> std::io::Result<Option<Duration>> {
+        self.inner.read_timeout()
+    }
+
+    /// Returns the write timeout of this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the write timeout fails.
+    pub fn write_timeout(&self) -> std::io::Result<Option<Duration>> {
+        self.inner.write_timeout()
+    }
+
+    /// Receives data on the socket without removing it from the input queue.
+    ///
+    /// On success, returns the number of bytes peeked.
+    ///
+    /// # Errors
+    /// Returns an error if peeking fails.
+    pub fn peek(&self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.peek(buf)
+    }
+
+    /// Gets the socket error and clears it.
+    ///
+    /// Returns None if no error is pending.
+    ///
+    /// # Errors
+    /// Returns an error if getting the socket error fails.
+    pub fn take_error(&self) -> std::io::Result<Option<std::io::Error>> {
+        self.inner.take_error()
+    }
+
+    /// Shuts down the read, write, or both halves of this connection.
+    ///
+    /// # Errors
+    /// Returns an error if shutting down the socket fails.
+    pub fn shutdown(&self, how: Shutdown) -> std::io::Result<()> {
+        self.inner.shutdown(how)
+    }
+
+    /// Creates a new TCP stream and issues a non-blocking connect to the specified address.
+    ///
+    /// # Errors
+    /// Returns an error if connecting fails.
+    pub fn connect<A: std::net::ToSocketAddrs>(addr: A) -> std::io::Result<Self> {
+        TcpStream::connect(addr).map(Self::new)
+    }
+
+    /// Creates a new TCP stream and issues a connect with a timeout to the specified address.
+    ///
+    /// # Errors
+    /// Returns an error if connecting fails or the timeout expires.
+    pub fn connect_timeout(
+        addr: &core::net::SocketAddr,
+        timeout: Duration,
+    ) -> std::io::Result<Self> {
+        TcpStream::connect_timeout(addr, timeout).map(Self::new)
+    }
+
+    /// Sets the linger duration for this TCP stream.
+    ///
+    /// When linger is set, the stream will wait for the specified duration
+    /// for data to be sent when closing. If duration is None, the socket
+    /// will close immediately.
+    ///
+    /// # Errors
+    /// Returns an error if setting the linger option fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn set_linger(&self, linger: Option<Duration>) -> std::io::Result<()> {
+        self.inner.set_linger(linger)
+    }
+
+    /// Gets the linger duration for this TCP stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the linger option fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn linger(&self) -> std::io::Result<Option<Duration>> {
+        self.inner.linger()
+    }
+
+    /// Gets the local socket address of this stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn local_addr(&self) -> std::io::Result<SocketAddr> {
+        self.inner.local_addr().map(SocketAddr::from)
+    }
+
+    /// Gets the remote socket address of this stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn peer_addr(&self) -> std::io::Result<SocketAddr> {
+        self.inner.peer_addr().map(SocketAddr::from)
+    }
+
+    /// Sets the value for the SO_REUSEADDR socket option.
+    ///
+    /// # Errors
+    /// Returns an error if setting the reuse address option fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn set_reuse_address(&self, reuse: bool) -> std::io::Result<()> {
+        use socket2::SockRef;
+        SockRef::from(&self.inner).set_reuse_address(reuse)
+    }
+
+    /// Gets the value of the SO_REUSEADDR socket option.
+    ///
+    /// # Errors
+    /// Returns an error if getting the reuse address option fails.
+    #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    pub fn reuse_address(&self) -> std::io::Result<bool> {
+        use socket2::SockRef;
+        SockRef::from(&self.inner).reuse_address()
+    }
+}
+
+// Implement Deref to allow accessing other TcpStream methods
+impl Deref for TcpStreamWrapper {
+    type Target = TcpStream;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+// Implement DerefMut to allow accessing mutable TcpStream methods
+impl DerefMut for TcpStreamWrapper {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+// Forward Read implementation
+impl Read for TcpStreamWrapper {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.read(buf)
+    }
+}
+
+// Forward Write implementation
+impl Write for TcpStreamWrapper {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.inner.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush()
+    }
+}
+
+// Example usage and tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::TcpListener;
+    use std::time::Duration;
+
+    #[test]
+    fn test_wrapper_standard() {
+        // Set up a simple server
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        // Test connect
+        let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
+
+        // Test writing
+        wrapper.write_all(b"test").unwrap();
+        wrapper.flush().unwrap();
+
+        // Test nodelay
+        wrapper.set_nodelay(true).unwrap();
+        assert!(wrapper.nodelay().unwrap());
+
+        // Test ttl
+        wrapper.set_ttl(100).unwrap();
+        assert_eq!(wrapper.ttl().unwrap(), 100);
+
+        // Test timeouts
+        let timeout = Some(Duration::from_secs(1));
+        wrapper.set_read_timeout(timeout).unwrap();
+        wrapper.set_write_timeout(timeout).unwrap();
+        assert_eq!(wrapper.read_timeout().unwrap(), timeout);
+        assert_eq!(wrapper.write_timeout().unwrap(), timeout);
+
+        // Test peek
+        let mut buf = [0u8; 128];
+        let result = wrapper.peek(&mut buf);
+        assert!(result.is_ok() || result.unwrap_err().kind() == std::io::ErrorKind::WouldBlock);
+
+        // Test take_error
+        assert!(wrapper.take_error().unwrap().is_none());
+
+        // Test shutdown
+        wrapper.shutdown(Shutdown::Both).unwrap();
+    }
+
+    #[test]
+    fn test_connect_timeout() {
+        // Test connect_timeout with an unreachable address
+        let addr = "127.0.0.1:54321".parse().expect("generate addrs"); // Assuming no server is running here
+        let result = TcpStreamWrapper::connect_timeout(&addr, Duration::from_millis(100));
+        assert!(result.is_err());
+    }
+
+    #[cfg(feature = "nightly")]
+    #[test]
+    fn test_wrapper_nightly() {
+        // Set up a simple server
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        // Connect to server
+        let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
+
+        // Test linger
+        wrapper.set_linger(Some(Duration::from_secs(1))).unwrap();
+        assert_eq!(wrapper.linger().unwrap(), Some(Duration::from_secs(1)));
+
+        // Test addresses
+        let _local_addr = wrapper.local_addr().expect("as local address");
+        let _peer_addr = wrapper.peer_addr().expect("expect peer addr");
+
+        // Test reuse address
+        wrapper.set_reuse_address(true).unwrap();
+        assert!(wrapper.reuse_address().unwrap());
+    }
+}

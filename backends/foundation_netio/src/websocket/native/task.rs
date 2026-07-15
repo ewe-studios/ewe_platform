@@ -12,18 +12,18 @@
 //! Uses `HttpConnectionPool` for connection management with pooling support.
 //! Uses WebSocket frame decoding for message parsing.
 
-use foundation_core::io::ioutils::ReadTimeoutOperations;
+use crate::http::HttpClientConnection;
+use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpClientConnection;
-use crate::simple_http::client::HttpConnectionPool;
-use foundation_core::url::Uri;
-use crate::simple_http::shared::{
-    Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
+use crate::shared::client::DnsResolver;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::{
+    Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use concurrent_queue::ConcurrentQueue;
+use foundation_core::io::ioutils::ReadTimeoutOperations;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{BoxedSendExecutionAction, PipeReceiver, TaskIterator, TaskStatus};
+
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
@@ -31,7 +31,9 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
-use crate::websocket::shared::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
+use crate::websocket::shared::handshake::{
+    build_upgrade_request, compute_accept_key, generate_websocket_key,
+};
 use crate::websocket::shared::message::WebSocketMessage;
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
@@ -46,8 +48,8 @@ pub enum WebSocketProgress {
 pub struct WebSocketConnectInfo {
     pub url: String,
     pub subprotocols: Option<String>,
-    pub extra_headers: Vec<(SimpleHeader, String)>,
-    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub extra_headers: SimpleHeaders,
+    pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     /// Dynamic timeout calculator - provides all timeout values
     pub timeout_calculator: TimeoutCalculator,
 }
@@ -60,7 +62,7 @@ pub struct WebSocketConnectInfo {
 /// Added buffer pool and reusable buffer for zero-copy frame parsing.
 pub struct WebSocketOpenState {
     pub stream: foundation_core::io::ioutils::SharedByteBufferStream<RawStream>,
-    pub delivery_queue: Arc<ConcurrentQueue<WebSocketMessage>>,
+    pub outbound_rx: PipeReceiver<WebSocketMessage>,
     pub timeout_calculator: TimeoutCalculator,
     pub assembler: crate::websocket::shared::assembler::MessageAssembler,
     /// Buffer pool for zero-copy frame reading
@@ -74,8 +76,8 @@ pub struct WebSocketConnectingState {
     pub url: Uri,
     pub ws_key: String,
     pub subprotocols: Option<String>,
-    pub extra_headers: Vec<(SimpleHeader, String)>,
-    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub extra_headers: SimpleHeaders,
+    pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
 }
 
@@ -86,7 +88,7 @@ pub struct WebSocketHandshakeSendingState {
     pub current_chunk: usize,
     pub ws_key: String,
     pub subprotocols: Option<String>,
-    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
 }
 
@@ -96,17 +98,17 @@ pub struct WebSocketHandshakeReadingState {
     pub reader: HttpResponseReader<SimpleHttpBody, RawStream>,
     pub ws_key: String,
     pub subprotocols: Option<String>,
-    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
 }
 
 /// `HandshakeValidating` state data.
 pub struct WebSocketHandshakeValidatingState {
     pub connection: HttpClientConnection,
-    pub headers: crate::simple_http::shared::SimpleHeaders,
+    pub headers: crate::shared::http::SimpleHeaders,
     pub ws_key: String,
     pub subprotocols: Option<String>,
-    pub delivery_queue: Option<Arc<ConcurrentQueue<WebSocketMessage>>>,
+    pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
 }
 
@@ -174,7 +176,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -182,8 +184,8 @@ where
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
-                extra_headers: Vec::new(),
-                delivery_queue: None,
+                extra_headers: SimpleHeaders::new(),
+                outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
@@ -221,8 +223,8 @@ where
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
-                extra_headers: Vec::new(),
-                delivery_queue: None,
+                extra_headers: SimpleHeaders::new(),
+                outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
@@ -243,13 +245,13 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(resolver, extra_headers, delivery, url), err, fields(url_string = %url))]
+    #[instrument(skip(resolver, extra_headers, outbound_rx, url), err, fields(url_string = %url))]
     pub fn connect_with_delivery(
         resolver: R,
         url: String,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
-        delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+        extra_headers: SimpleHeaders,
+        outbound_rx: PipeReceiver<WebSocketMessage>,
         read_timeout: Duration,
         sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
@@ -271,7 +273,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -280,7 +282,7 @@ where
                 url: url_str,
                 subprotocols,
                 extra_headers,
-                delivery_queue: Some(delivery),
+                outbound_rx: Some(outbound_rx),
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
@@ -292,13 +294,13 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(pool, extra_headers, delivery, _url), err, fields(url = %_url))]
+    #[instrument(skip(pool, extra_headers, outbound_rx, _url), err, fields(url = %_url))]
     pub fn connect_with_pool_and_delivery(
         _url: String,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
-        delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+        extra_headers: SimpleHeaders,
+        outbound_rx: PipeReceiver<WebSocketMessage>,
         read_timeout: Duration,
         sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
@@ -324,7 +326,7 @@ where
                 url: url_str,
                 subprotocols,
                 extra_headers,
-                delivery_queue: Some(delivery),
+                outbound_rx: Some(outbound_rx),
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
             pool,
@@ -361,7 +363,7 @@ where
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
         if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
-            info.extra_headers.push((name, value.into()));
+            info.extra_headers.entry(name).or_default().push(value.into());
         }
         self
     }
@@ -398,7 +400,7 @@ where
                         ws_key,
                         subprotocols: info.subprotocols,
                         extra_headers: info.extra_headers,
-                        delivery_queue: info.delivery_queue,
+                        outbound_rx: info.outbound_rx,
                         timeout_calculator: info.timeout_calculator,
                     },
                 ))));
@@ -432,7 +434,7 @@ where
                 let host_only = state.url.host_str().unwrap_or_default();
                 let host = match state.url.port() {
                     Some(p) => format!("{host_only}:{p}"),
-                    None => host_only.to_string(),
+                    None => host_only,
                 };
                 let path = state.url.path();
                 let query = state.url.query();
@@ -446,6 +448,7 @@ where
                     &path_query,
                     &state.ws_key,
                     state.subprotocols.as_deref(),
+                    &state.extra_headers,
                 ) else {
                     error!("Failed to build upgrade request");
                     self.state = Some(WebSocketState::Closed(Some(WebSocketError::InvalidUrl(
@@ -476,7 +479,7 @@ where
                         current_chunk: 0,
                         ws_key: state.ws_key,
                         subprotocols: state.subprotocols,
-                        delivery_queue: state.delivery_queue,
+                        outbound_rx: state.outbound_rx,
                         timeout_calculator: state.timeout_calculator,
                     },
                 ))));
@@ -510,7 +513,7 @@ where
                         reader,
                         ws_key: state.ws_key,
                         subprotocols: state.subprotocols,
-                        delivery_queue: state.delivery_queue,
+                        outbound_rx: state.outbound_rx,
                         timeout_calculator: state.timeout_calculator,
                     },
                 ))));
@@ -523,7 +526,7 @@ where
                 match state.reader.next() {
                     Some(Ok(part)) => {
                         match part {
-                            crate::simple_http::shared::IncomingResponseParts::Intro(
+                            crate::shared::http::IncomingResponseParts::Intro(
                                 status,
                                 _proto,
                                 _text,
@@ -533,7 +536,7 @@ where
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
                                     self.state = Some(WebSocketState::Closed(Some(
                                         WebSocketError::UpgradeFailed(
-                                            status.clone().into_usize() as u16
+                                            status.into_usize() as u16
                                         ),
                                     )));
                                     return None;
@@ -542,7 +545,7 @@ where
                                 self.state = Some(WebSocketState::HandshakeReading(Some(state)));
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
-                            crate::simple_http::shared::IncomingResponseParts::Headers(headers) => {
+                            crate::shared::http::IncomingResponseParts::Headers(headers) => {
                                 debug!("Received headers, transitioning to validation");
                                 self.state = Some(WebSocketState::HandshakeValidating(Some(
                                     Box::new(WebSocketHandshakeValidatingState {
@@ -550,7 +553,7 @@ where
                                         headers,
                                         ws_key: state.ws_key,
                                         subprotocols: state.subprotocols,
-                                        delivery_queue: state.delivery_queue,
+                                        outbound_rx: state.outbound_rx,
                                         timeout_calculator: state.timeout_calculator,
                                     }),
                                 )));
@@ -612,20 +615,20 @@ where
                                 // Success - transition to Open state with delivery queue and read_timeout
                                 let stream = state.connection.clone_stream();
 
-                                // delivery_queue must always be provided - panic if missing as this
+                                // outbound_rx must always be provided - panic if missing as this
                                 // is a programming error (queue should be created before connect)
-                                let queue = state
-                                    .delivery_queue
-                                    .expect("delivery_queue must be provided");
+                                let queue =
+                                    state.outbound_rx.expect("delivery_queue must be provided");
 
                                 // Create buffer pool for zero-copy frame reading (8KB buffers, 4 pre-allocated)
-                                let buffer_pool =
-                                    Arc::new(foundation_core::io::buffer_pool::BytesPool::new(8192, 4));
+                                let buffer_pool = Arc::new(
+                                    foundation_core::io::buffer_pool::BytesPool::new(8192, 4),
+                                );
 
                                 self.state = Some(WebSocketState::Open(Some(Box::new(
                                     WebSocketOpenState {
                                         stream,
-                                        delivery_queue: queue,
+                                        outbound_rx: queue,
                                         timeout_calculator: state.timeout_calculator,
                                         assembler: crate::websocket::shared::assembler::MessageAssembler::default(),
                                         buffer_pool,
@@ -658,10 +661,10 @@ where
 
                 let mut open_state = open_state_opt.take()?;
                 trace!(state = "Open", "Reading WebSocket frame");
-                debug!("Delivery queue len: {}", open_state.delivery_queue.len());
+                debug!("Delivery queue len: {}", 0usize);
 
                 // Check for outgoing messages in delivery queue first
-                match open_state.delivery_queue.pop() {
+                match open_state.outbound_rx.try_recv() {
                     Ok(outgoing) => {
                         debug!("Popped message from delivery queue: {:?}", outgoing);
                         // Send outgoing message - client MUST mask frames per RFC 6455
@@ -750,13 +753,8 @@ where
                 // Set read timeout before reading - get from calculator
                 let ctx = TimeoutContext::default();
                 let read_timeout = open_state.timeout_calculator.calculate_read_timeout(&ctx);
-                let _ = open_state
-                    .stream
-                    .set_read_timeout_as(read_timeout);
-                debug!(
-                    "Read timeout set to {:?} from calculator",
-                    read_timeout,
-                );
+                let _ = open_state.stream.set_read_timeout_as(read_timeout);
+                debug!("Read timeout set to {:?} from calculator", read_timeout,);
 
                 // Use pooled buffer for zero-copy frame reading
                 match WebSocketFrame::decode_with_buffer(
@@ -878,7 +876,8 @@ where
                         debug!("Read timeout - no data available yet, will retry after delay");
                         // Calculate sleep BEFORE moving open_state
                         let ctx = TimeoutContext::default().streaming();
-                        let sleep_duration = open_state.timeout_calculator.calculate_sleep_duration(&ctx);
+                        let sleep_duration =
+                            open_state.timeout_calculator.calculate_sleep_duration(&ctx);
                         self.state = Some(WebSocketState::Open(Some(open_state)));
                         Some(TaskStatus::Delayed(sleep_duration))
                     }

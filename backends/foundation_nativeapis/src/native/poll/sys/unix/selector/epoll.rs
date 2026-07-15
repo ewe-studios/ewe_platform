@@ -1,11 +1,11 @@
 /// Linux epoll selector.
 
 use super::super::super::super::event::Events;
-use crate::native::poll::{Interest, Registry, Token};
+use crate::native::poll::{Interest, Token};
 
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::time::Duration;
 
 /// The internal epoll selector.
@@ -19,6 +19,14 @@ pub struct Selector {
     waker_fd: Mutex<Option<OwnedFd>>,
     /// Token associated with the waker.
     waker_token: Mutex<Option<Token>>,
+}
+
+impl std::fmt::Debug for Selector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("epoll::Selector")
+            .field("epoll_fd", &self.epoll.as_raw_fd())
+            .finish()
+    }
 }
 
 impl Selector {
@@ -37,29 +45,6 @@ impl Selector {
             waker_fd: Mutex::new(None),
             waker_token: Mutex::new(None),
         })
-    }
-
-    /// Create a new selector and return both the Arc<Selector> and its Registry.
-    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
-        let epoll_fd = unsafe {
-            let fd = libc::epoll_create1(libc::EPOLL_CLOEXEC);
-            if fd < 0 {
-                return Err(io::Error::last_os_error());
-            }
-            OwnedFd::from_raw_fd(fd)
-        };
-
-        let selector = Arc::new(Self {
-            epoll: epoll_fd,
-            waker_fd: Mutex::new(None),
-            waker_token: Mutex::new(None),
-        });
-
-        let registry = Registry {
-            selector: selector.clone(),
-        };
-
-        Ok((selector, registry))
     }
 
     /// Register a raw file descriptor with the epoll selector.

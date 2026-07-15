@@ -5,7 +5,7 @@
 //! by the `simple_http` client. They are fast, deterministic unit tests that
 //! avoid network IO.
 
-use foundation_core::url::{Uri, Scheme};
+use foundation_core::url::{Scheme, Uri};
 
 #[test]
 fn test_parsed_url_http_has_default_port_80() {

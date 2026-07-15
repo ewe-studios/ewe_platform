@@ -4,3 +4,4 @@ pub mod server;
 pub mod reader;
 pub mod upgrade;
 pub mod handlers;
+pub mod serve;
