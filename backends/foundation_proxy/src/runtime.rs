@@ -163,6 +163,9 @@ pub struct ServiceRuntime {
     select_lock: Mutex<()>,
 }
 
+/// Sticky session cookie name.
+pub const STICKY_COOKIE: &str = "__proxy_sticky";
+
 impl ServiceRuntime {
     /// Build runtime state for `config`, one [`BackendRuntime`] per target.
     #[must_use]
@@ -190,25 +193,46 @@ impl ServiceRuntime {
         &self.backends
     }
 
-    /// Pick the next eligible backend and reserve an in-flight slot on it.
+    /// Pick a backend with writer-affinity (sticky sessions, Decision 23).
     ///
-    /// Returns `None` when no backend is `Active`, healthy, and under its
-    /// connection cap — the caller answers `503` in that case.
+    /// If `sticky_cookie` is `Some(idx)`, tries that specific backend first
+    /// (if eligible). Falls back to weighted round-robin on miss/unhealthy.
     ///
-    /// HOW: Smooth weighted round-robin over the eligible subset. Each call adds
-    /// every eligible backend's weight to its running `current_weight`, selects
-    /// the maximum, then subtracts the total eligible weight from the winner.
-    /// Over a cycle this distributes requests in proportion to weight while
-    /// interleaving them smoothly rather than in bursts.
+    /// Returns `(lease, cookie_value)` — `cookie_value` is the backend
+    /// index the caller should set in the `__proxy_sticky` cookie.
     #[must_use]
-    pub fn pick(&self) -> Option<BackendLease> {
+    pub fn pick_sticky(&self, sticky_cookie: Option<usize>) -> Option<(BackendLease, usize)> {
         let _guard = self.select_lock.lock().expect("select mutex poisoned");
 
+        // If caller has a sticky preference, try it first.
+        if let Some(idx) = sticky_cookie {
+            if let Some(preferred) = self.backends.get(idx) {
+                if preferred.is_eligible() {
+                    if let Some(lease) = preferred.try_reserve() {
+                        return Some((lease, idx));
+                    }
+                }
+            }
+        }
+
+        // Fall back to smooth weighted round-robin.
+        let (lease, idx) = self.pick_weighted_round_robin()?;
+        Some((lease, idx))
+    }
+
+    /// Legacy: pick without stickiness. Returns a lease but no cookie index.
+    #[must_use]
+    pub fn pick(&self) -> Option<BackendLease> {
+        self.pick_sticky(None).map(|(lease, _)| lease)
+    }
+
+    /// Smooth weighted round-robin over the eligible subset.
+    fn pick_weighted_round_robin(&self) -> Option<(BackendLease, usize)> {
         let mut total: i64 = 0;
-        let mut best: Option<&Arc<BackendRuntime>> = None;
+        let mut best_idx: Option<usize> = None;
         let mut best_weight = i64::MIN;
 
-        for backend in &self.backends {
+        for (i, backend) in self.backends.iter().enumerate() {
             if !backend.is_eligible() {
                 continue;
             }
@@ -217,21 +241,78 @@ impl ServiceRuntime {
             let updated = backend.current_weight.fetch_add(weight, Ordering::SeqCst) + weight;
             if updated > best_weight {
                 best_weight = updated;
-                best = Some(backend);
+                best_idx = Some(i);
             }
         }
 
-        let chosen = best?;
+        let idx = best_idx?;
+        let chosen = &self.backends[idx];
         chosen.current_weight.fetch_sub(total, Ordering::SeqCst);
 
-        // Reserve on the winner. If the reservation loses a capacity race (the
-        // last slot was taken between eligibility and reservation), fall back to
-        // any other backend that still has room.
         if let Some(lease) = chosen.try_reserve() {
-            return Some(lease);
+            return Some((lease, idx));
         }
-        self.backends
-            .iter()
-            .find_map(|b| if b.is_eligible() { b.try_reserve() } else { None })
+        self.backends.iter().enumerate().find_map(|(i, b)| {
+            if b.is_eligible() { b.try_reserve().map(|l| (l, i)) } else { None }
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    fn make_backend(url: &str, weight: u32) -> BackendTarget {
+        BackendTarget {
+            url: url.to_string(),
+            weight,
+            max_connections: 100,
+        }
+    }
+
+    fn make_service(backends: Vec<BackendTarget>) -> ServiceRuntime {
+        ServiceRuntime::new(ServiceConfig {
+            name: "test".to_string(),
+            host: "localhost".to_string(),
+            path_prefix: Some("/".to_string()),
+            backends,
+            health_check: None,
+        })
+    }
+
+    #[test]
+    fn sticky_pick_routes_to_preferred_backend() {
+        let svc = make_service(vec![
+            make_backend("http://a:8080", 1),
+            make_backend("http://b:8081", 1),
+        ]);
+        // Request backend index 1 repeatedly — should always get it.
+        for _ in 0..10 {
+            let (lease, idx) = svc.pick_sticky(Some(1)).expect("lease");
+            assert_eq!(idx, 1, "sticky pick should route to preferred backend");
+            assert_eq!(lease.backend().url(), "http://b:8081");
+        }
+    }
+
+    #[test]
+    fn sticky_falls_back_when_preferred_ineligible() {
+        let svc = make_service(vec![
+            make_backend("http://a:8080", 1),
+            make_backend("http://b:8081", 1),
+        ]);
+        // Mark backend 1 unhealthy — pick_sticky should fall back to 0.
+        svc.backends[1].set_healthy(false);
+        let (lease, idx) = svc.pick_sticky(Some(1)).expect("lease");
+        assert_eq!(idx, 0, "should fall back to healthy backend");
+        assert_eq!(lease.backend().url(), "http://a:8080");
+    }
+
+    #[test]
+    fn single_backend_returns_idx_zero() {
+        let svc = make_service(vec![make_backend("http://only:8080", 1)]);
+        let (lease, idx) = svc.pick_sticky(None).expect("lease");
+        assert_eq!(idx, 0);
+        assert_eq!(lease.backend().url(), "http://only:8080");
     }
 }
