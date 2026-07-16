@@ -1001,18 +1001,44 @@ impl<S: Read + Write> H2Connection<S> {
     ///
     /// Returns an error if the operation fails.
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
+        // A response is HEADERS followed by zero or more DATA frames, ended by
+        // END_STREAM. Accumulate the body across frames so the caller receives the
+        // complete response in a single `recv` — mirroring `send_request`, which
+        // sends the whole request (headers + body) in one call. A HEADERS frame
+        // that itself carries END_STREAM is a body-less response and returns
+        // immediately.
+        let mut pending: Option<(u32, H2Request, Vec<u8>)> = None;
         loop {
             let (head, payload) = self.read_frame()?;
 
             match head.kind {
                 Kind::Headers => {
                     let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
-
                     let decoded = self.hpack_dec.decode(&hf.header_block).map_err(proto_err)?;
-
-                    let response =
-                        self.build_request(&decoded, hf.flags & headers_flags::END_STREAM != 0);
-                    return Ok(Some((head.stream_id, response)));
+                    let end_stream = hf.flags & headers_flags::END_STREAM != 0;
+                    let response = self.build_request(&decoded, end_stream);
+                    if end_stream {
+                        return Ok(Some((head.stream_id, response)));
+                    }
+                    pending = Some((head.stream_id, response, Vec::new()));
+                }
+                Kind::Data => {
+                    let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
+                    let end_stream = df.flags & data_flags::END_STREAM != 0;
+                    if matches!(&pending, Some((sid, ..)) if *sid == head.stream_id) {
+                        if let Some((_, _, body)) = pending.as_mut() {
+                            body.extend_from_slice(&df.data);
+                        }
+                        if end_stream {
+                            let (sid, mut response, body) =
+                                pending.take().expect("pending checked above");
+                            if !body.is_empty() {
+                                response.body = Some(Bytes::from(body));
+                            }
+                            response.end_stream = true;
+                            return Ok(Some((sid, response)));
+                        }
+                    }
                 }
                 Kind::Settings => self.handle_settings(head, &payload)?,
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
