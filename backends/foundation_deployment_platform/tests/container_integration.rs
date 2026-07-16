@@ -2,8 +2,10 @@
 //! Run with: cargo test -p foundation_deployment_platform --test container_integration
 
 use std::sync::LazyLock;
+
+use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
-    ContainerConfig, ContainerGroup, ContainerHandle, DockerError,
+    ContainerConfig, ContainerGroup, ContainerHandle, DockerError, WaitFor,
 };
 
 /// Single-threaded tokio runtime for integration tests.
@@ -27,9 +29,12 @@ fn test_start_redis_container() {
         return;
     }
 
+    // The Docker client is valtron-based — a pool must be live for the exchange.
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let config = ContainerConfig::new("redis:7-alpine")
             .port(6379)
+            .wait(WaitFor::stdout("Ready to accept connections"))
             .stop_timeout_secs(5);
 
         let handle = ContainerHandle::start_async(config)
@@ -89,10 +94,12 @@ fn test_container_auto_cleanup_on_drop() {
         return;
     }
 
+    let _pool = initialize_pool(55, Some(4));
     RT.block_on(async {
         {
             let config = ContainerConfig::new("redis:7-alpine")
                 .port(6379)
+                .wait(WaitFor::stdout("Ready to accept connections"))
                 .stop_timeout_secs(2);
 
             let handle = ContainerHandle::start_async(config)
