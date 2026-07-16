@@ -153,10 +153,12 @@ impl ProxyServer {
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
-        // TLS: build acceptor and configure.
+        // TLS: select the cert manager (Static PEM or ACME provisioning),
+        // obtain the cert, and build the acceptor.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
         if use_tls {
-            let acceptor = tls::build_acceptor(&config.ssl)?;
+            let cert_manager = tls::build_cert_manager(&config, Arc::new(client.clone()))?;
+            let acceptor = tls::acceptor_from_cert_manager(cert_manager.as_ref())?;
             server_config = server_config.with_tls(acceptor);
 
             let redirect_shutdown = shutdown.clone();

@@ -28,10 +28,22 @@ bytes = "1"
 derive_more.workspace = true
 tracing.workspace = true
 chrono.workspace = true
+# ACME (F15): ES256 JWS signing + account JWK (pure-Rust RustCrypto, already in
+# the tree) and X.509 keypair/CSR generation. rcgen uses the `ring` backend
+# (also already present via rustls/boringtun) so no new C crypto library.
+p256 = { version = "0.13", features = ["ecdsa", "pem"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+# Drive the ACME provisioning future to completion at startup (its I/O is the
+# shared client's blocking send, so it resolves in a single poll).
+futures-lite = "2"
 
 [dev-dependencies]
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+# The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
+# `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.
+rustls-pki-types = "1"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 serial_test = "3"
 

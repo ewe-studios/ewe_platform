@@ -17,6 +17,28 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
 use std::time::Duration;
 
+/// Runtime hooks for ACME provisioning (Decision 18, F15).
+///
+/// Not part of the serialisable config: the DNS-01 setter is a callback (publish
+/// a TXT record for a domain), typically backed by `foundation_deployment_cloudflare`.
+#[derive(Clone)]
+pub struct AcmeRuntime {
+    /// Override the CA directory URL (defaults to Let's Encrypt production). A
+    /// private CA or a local test server (Pebble / the F15 mock) sets this.
+    pub directory_url: Option<String>,
+    /// Publish a DNS-01 TXT record: `(record_name, txt_value) -> Result`.
+    pub dns01_setter: crate::acme::Dns01Setter,
+}
+
+impl std::fmt::Debug for AcmeRuntime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AcmeRuntime")
+            .field("directory_url", &self.directory_url)
+            .field("dns01_setter", &"<callback>")
+            .finish()
+    }
+}
+
 /// Top-level proxy configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProxyConfig {
@@ -40,6 +62,11 @@ pub struct ProxyConfig {
     /// admin changes through so they survive a restart. `None` disables it.
     #[serde(default)]
     pub state_dir: Option<String>,
+    /// Programmatic ACME runtime hooks (Decision 18, F15) — the DNS-01 setter
+    /// and an optional directory-URL override. Required when the SSL provider is
+    /// `LetsEncrypt`. Not serialised — set it via the builder.
+    #[serde(skip)]
+    pub acme: Option<AcmeRuntime>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -60,6 +87,7 @@ impl ProxyConfig {
             services: Vec::new(),
             control_socket: None,
             state_dir: None,
+            acme: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -90,6 +118,19 @@ impl ProxyConfig {
     #[must_use]
     pub fn persist_to(mut self, dir: &str) -> Self {
         self.state_dir = Some(dir.to_string());
+        self
+    }
+
+    /// Attach the ACME runtime hooks (Decision 18, F15) — required when the SSL
+    /// provider is `LetsEncrypt`. `dns01_setter` publishes DNS-01 TXT records;
+    /// `directory_url` overrides the CA (defaults to Let's Encrypt production).
+    #[must_use]
+    pub fn acme(
+        mut self,
+        dns01_setter: crate::acme::Dns01Setter,
+        directory_url: Option<String>,
+    ) -> Self {
+        self.acme = Some(AcmeRuntime { directory_url, dns01_setter });
         self
     }
 

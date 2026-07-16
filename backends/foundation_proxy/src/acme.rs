@@ -26,8 +26,10 @@ use crate::config::ProxyError;
 
 // ── Constants ──────────────────────────────────────────────────────────
 
-const ACME_STAGING: &str = "https://acme-staging-v02.api.letsencrypt.org/directory";
-const ACME_PRODUCTION: &str = "https://acme-v02.api.letsencrypt.org/directory";
+/// Let's Encrypt staging directory URL (untrusted certs, high rate limits).
+pub const ACME_STAGING: &str = "https://acme-staging-v02.api.letsencrypt.org/directory";
+/// Let's Encrypt production directory URL.
+pub const ACME_PRODUCTION: &str = "https://acme-v02.api.letsencrypt.org/directory";
 
 /// DNS-01 challenge callback: (domain, token_value) → Result
 pub type Dns01Setter = Arc<dyn Fn(&str, &str) -> Result<(), String> + Send + Sync>;
@@ -188,6 +190,24 @@ impl AcmeClient {
         Self {
             client,
             directory_url: ACME_STAGING.to_string(),
+            key_id: None,
+            jwk: None,
+            signer: None,
+            dns_setter: None,
+            staging: true,
+        }
+    }
+
+    /// Create a client targeting an explicit directory URL (a private/enterprise
+    /// ACME CA, or a local test server such as Pebble / the mock in the F15
+    /// integration test).
+    pub fn with_directory(
+        client: Arc<NativeHttpClient<SystemDnsResolver>>,
+        directory_url: impl Into<String>,
+    ) -> Self {
+        Self {
+            client,
+            directory_url: directory_url.into(),
             key_id: None,
             jwk: None,
             signer: None,
