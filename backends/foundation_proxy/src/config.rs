@@ -29,6 +29,12 @@ pub struct ProxyConfig {
     pub bind_addr: Option<String>,
     #[serde(default)]
     pub services: Vec<ServiceConfig>,
+    /// Path to a Unix-domain control socket (Decision 20). When set,
+    /// `ProxyServer` binds it and serves the JSON-RPC admin commands
+    /// (`list`/`status`/`drain`/`pause`/`activate`). `None` disables the admin
+    /// interface.
+    #[serde(default)]
+    pub control_socket: Option<String>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -47,6 +53,7 @@ impl ProxyConfig {
             ssl: SslConfig::default(),
             bind_addr: None,
             services: Vec::new(),
+            control_socket: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -62,6 +69,13 @@ impl ProxyConfig {
     #[must_use]
     pub fn bind(mut self, addr: &str) -> Self {
         self.bind_addr = Some(addr.to_string());
+        self
+    }
+
+    /// Enable the Unix-domain control socket at `path` (Decision 20).
+    #[must_use]
+    pub fn control_socket(mut self, path: &str) -> Self {
+        self.control_socket = Some(path.to_string());
         self
     }
 

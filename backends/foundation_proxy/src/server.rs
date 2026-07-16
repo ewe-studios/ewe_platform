@@ -29,6 +29,7 @@ use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::http::NativeHttpClient;
 
 use crate::config::{ProxyConfig, ProxyError, SslProvider};
+use crate::control::ControlSocket;
 use crate::handler::ProxyHandler;
 use crate::h2_proxy::H2ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
@@ -47,6 +48,8 @@ pub struct ProxyServer {
     server_thread: Option<JoinHandle<()>>,
     health: Vec<HealthMonitor>,
     state: Arc<ProxyState>,
+    /// Unix-domain admin socket (Decision 20), present when the config enabled it.
+    control: Option<ControlSocket>,
 }
 
 impl std::fmt::Debug for ProxyServer {
@@ -171,7 +174,14 @@ impl ProxyServer {
             .map(|svc| spawn_service_probes(svc, client.clone(), shutdown.clone()))
             .collect();
 
-        tracing::info!(%local_addr, tls = use_tls, "proxy started");
+        // Unix-domain admin socket (Decision 20), if the config enabled it. It
+        // serves control commands against the shared state and stops when the
+        // shutdown signal fires.
+        let control = config.control_socket.as_ref().map(|path| {
+            ControlSocket::start(path.clone(), Arc::clone(&proxy_state), shutdown.clone())
+        });
+
+        tracing::info!(%local_addr, tls = use_tls, control = control.is_some(), "proxy started");
         Ok(Self {
             config,
             local_addr,
@@ -179,6 +189,7 @@ impl ProxyServer {
             server_thread: Some(server_thread),
             health,
             state: proxy_state,
+            control,
         })
     }
 
@@ -233,6 +244,9 @@ impl ProxyServer {
     /// their next checkpoint.
     pub fn shutdown(mut self) {
         self.shutdown.turn_on();
+        if let Some(control) = self.control.take() {
+            control.shutdown();
+        }
         if let Some(handle) = self.server_thread.take() {
             let _ = handle.join();
         }
@@ -245,6 +259,9 @@ impl ProxyServer {
 impl Drop for ProxyServer {
     fn drop(&mut self) {
         self.shutdown.turn_on();
+        if let Some(control) = self.control.take() {
+            control.shutdown();
+        }
         if let Some(handle) = self.server_thread.take() {
             let _ = handle.join();
         }
