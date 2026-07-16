@@ -19,6 +19,7 @@
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
+use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_sshkit::{Command, ConnectionPool, Host, Runner, Ssh2Backend};
 
@@ -60,6 +61,7 @@ fn test_all_strategies_against_real_container() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await

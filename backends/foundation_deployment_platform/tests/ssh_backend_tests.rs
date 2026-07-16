@@ -22,6 +22,7 @@
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
+use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_sshkit::Backend;
 use foundation_sshkit::{Command, ConnectionPool, Host, Ssh2Backend};
@@ -72,6 +73,7 @@ fn test_execute_success_captures_stdout() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await
@@ -102,6 +104,7 @@ fn test_execute_nonzero_exit_code() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await
@@ -128,6 +131,7 @@ fn test_execute_captures_stdout_and_stderr() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await
@@ -163,6 +167,7 @@ fn test_upload_then_download_round_trips_a_file() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await
@@ -218,6 +223,7 @@ fn test_execute_wrong_password_is_rejected() {
         tracing::warn!("SKIP: Docker not available");
         return;
     }
+    let _pool = initialize_pool(54, Some(4));
     RT.block_on(async {
         let handle = ContainerHandle::start_async(sshd_config())
             .await
