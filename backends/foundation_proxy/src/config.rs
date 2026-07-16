@@ -67,6 +67,11 @@ pub struct ProxyConfig {
     /// `LetsEncrypt`. Not serialised — set it via the builder.
     #[serde(skip)]
     pub acme: Option<AcmeRuntime>,
+    /// UDP address for the HTTP/3 (QUIC) front end (Decision 27, F19). When set
+    /// (and TLS is enabled), `ProxyServer` also serves H3 on this address using
+    /// the same certificate. Requires the `quic` feature. `None` disables H3.
+    #[serde(default)]
+    pub h3_bind: Option<String>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -88,6 +93,7 @@ impl ProxyConfig {
             control_socket: None,
             state_dir: None,
             acme: None,
+            h3_bind: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -118,6 +124,14 @@ impl ProxyConfig {
     #[must_use]
     pub fn persist_to(mut self, dir: &str) -> Self {
         self.state_dir = Some(dir.to_string());
+        self
+    }
+
+    /// Serve HTTP/3 (QUIC) on `addr` (UDP) as well (Decision 27, F19). Needs TLS
+    /// and the `quic` feature.
+    #[must_use]
+    pub fn h3_bind(mut self, addr: &str) -> Self {
+        self.h3_bind = Some(addr.to_string());
         self
     }
 

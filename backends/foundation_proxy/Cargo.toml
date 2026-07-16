@@ -51,6 +51,8 @@ serial_test = "3"
 default = []
 cloudflare = ["foundation_deployment_cloudflare"]
 docker-tests = []
+# HTTP/3 (QUIC) proxy front end (F19): enables the H3 serving layer and handler.
+quic = ["foundation_http/quic", "foundation_netio/quic"]
 
 [[test]]
 name = "proxy_integration_tests"
@@ -59,3 +61,9 @@ required-features = ["docker-tests"]
 
 [lints]
 workspace = true
+
+# HTTP/3 proxy end-to-end test (F19) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_integration_tests"
+path = "tests/h3_integration_tests.rs"
+required-features = ["quic"]

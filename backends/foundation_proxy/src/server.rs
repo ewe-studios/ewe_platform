@@ -51,6 +51,8 @@ pub struct ProxyServer {
     state: Arc<ProxyState>,
     /// Unix-domain admin socket (Decision 20), present when the config enabled it.
     control: Option<ControlSocket>,
+    /// The bound UDP address of the HTTP/3 front end, when enabled (F19).
+    h3_local_addr: Option<SocketAddr>,
 }
 
 impl std::fmt::Debug for ProxyServer {
@@ -154,17 +156,28 @@ impl ProxyServer {
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
         // TLS: select the cert manager (Static PEM or ACME provisioning),
-        // obtain the cert, and build the acceptor.
+        // obtain the cert once, and build the acceptor. The same cert also feeds
+        // the HTTP/3 (QUIC) front end when enabled.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
+        let mut h3_local_addr: Option<SocketAddr> = None;
         if use_tls {
             let cert_manager = tls::build_cert_manager(&config, Arc::new(client.clone()))?;
-            let acceptor = tls::acceptor_from_cert_manager(cert_manager.as_ref())?;
+            let cert_pair = cert_manager.get_cert()?;
+            let acceptor = tls::acceptor_from_pair(&cert_pair)?;
             server_config = server_config.with_tls(acceptor);
 
             let redirect_shutdown = shutdown.clone();
             _redirect_thread = Some(std::thread::spawn(move || {
                 ssl_redirect_loop(&redirect_shutdown);
             }));
+
+            // HTTP/3 (QUIC) front end (Decision 27, F19): serve H3 on the
+            // configured UDP address using the same certificate.
+            #[cfg(feature = "quic")]
+            if let Some(h3_addr) = &config.h3_bind {
+                h3_local_addr =
+                    Some(spawn_h3_server(h3_addr, &cert_pair, Arc::clone(&proxy_state), shutdown.clone())?);
+            }
         }
 
         let server_app = foundation_http::shared::app::ServerApp::both(h1_app, h2_app);
@@ -202,7 +215,14 @@ impl ProxyServer {
             health,
             state: proxy_state,
             control,
+            h3_local_addr,
         })
+    }
+
+    /// The bound UDP address of the HTTP/3 front end, if enabled (F19).
+    #[must_use]
+    pub fn h3_local_addr(&self) -> Option<SocketAddr> {
+        self.h3_local_addr
     }
 
     /// The address the front end is bound to.
@@ -352,6 +372,35 @@ fn extract_path(head: &str) -> &str {
         .next()
         .and_then(|line| line.split_whitespace().nth(1))
         .unwrap_or("/")
+}
+
+/// Build the H3 proxy app and start the QUIC/H3 front end on `h3_addr`, using
+/// the same TLS cert as the TCP listener (Decision 27, F19).
+#[cfg(feature = "quic")]
+fn spawn_h3_server(
+    h3_addr: &str,
+    cert_pair: &crate::tls::CertPair,
+    proxy_state: Arc<ProxyState>,
+    shutdown: Arc<OnSignal>,
+) -> Result<SocketAddr, ProxyError> {
+    let addr: SocketAddr = h3_addr
+        .parse()
+        .map_err(|e| ProxyError::Startup(format!("parse h3 bind {h3_addr}: {e}")))?;
+    let mut h3_app = foundation_http::shared::app::HttpApp::new_h3_serve();
+    h3_app.route_any_h3(
+        "/*",
+        Arc::new(crate::h3_proxy::H3ProxyHandler::new(proxy_state)),
+    );
+    let local = foundation_http::native::server::serve_h3(
+        addr,
+        &cert_pair.cert_chain,
+        &cert_pair.private_key,
+        Arc::new(h3_app),
+        shutdown,
+    )
+    .map_err(|e| ProxyError::Startup(format!("start h3 server: {e}")))?;
+    tracing::info!(%local, "proxy HTTP/3 front end started");
+    Ok(local)
 }
 
 /// Restore persisted backend drain/pause state onto the live services and record

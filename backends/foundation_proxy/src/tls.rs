@@ -245,8 +245,13 @@ pub fn build_cert_manager(
 
 /// Build an `Arc<SSLAcceptor>` from a cert manager's current cert pair.
 pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> Result<Arc<SSLAcceptor>, ProxyError> {
-    let pair = mgr.get_cert()?;
-    let acceptor = SSLAcceptor::from_pem(pair.cert_chain, pair.private_key.into())
+    acceptor_from_pair(&mgr.get_cert()?)
+}
+
+/// Build an `Arc<SSLAcceptor>` from an already-obtained cert pair. Useful when
+/// the same cert also feeds the HTTP/3 (QUIC) server.
+pub fn acceptor_from_pair(pair: &CertPair) -> Result<Arc<SSLAcceptor>, ProxyError> {
+    let acceptor = SSLAcceptor::from_pem(pair.cert_chain.clone(), pair.private_key.clone().into())
         .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
     Ok(Arc::new(acceptor))
 }
