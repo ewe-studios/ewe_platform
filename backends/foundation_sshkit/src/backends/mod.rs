@@ -13,9 +13,5 @@ pub trait Backend: Send + Sync {
 }
 
 pub mod ssh2;
-#[cfg(feature = "russh-backend")]
-pub mod russh;
 
 pub use ssh2::{ChannelStream, Dialer, Ssh2Backend};
-#[cfg(feature = "russh-backend")]
-pub use russh::RusshBackend;

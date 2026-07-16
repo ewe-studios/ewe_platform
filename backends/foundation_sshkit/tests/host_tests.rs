@@ -3,6 +3,18 @@
 use foundation_sshkit::Host;
 use std::path::PathBuf;
 
+/// The user `Host::parse` fills in when the spec has no `user@` — the current
+/// login user (`$USER`/`$LOGNAME`), falling back to `root`. Mirrors the crate's
+/// private `default_user()` so the assertion holds in any environment (a bare
+/// container has no `$USER` → `root`; a dev machine has one → that user).
+fn expected_default_user() -> String {
+    std::env::var("USER")
+        .ok()
+        .or_else(|| std::env::var("LOGNAME").ok())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "root".to_string())
+}
+
 #[test]
 fn test_parse_user_at_host() {
     let h = Host::parse("deploy@example.com");
@@ -20,9 +32,9 @@ fn test_parse_user_at_host_port() {
 }
 
 #[test]
-fn test_parse_host_only_defaults_to_root() {
+fn test_parse_host_only_defaults_to_current_user() {
     let h = Host::parse("server.local");
-    assert_eq!(h.user, "root");
+    assert_eq!(h.user, expected_default_user());
     assert_eq!(h.hostname, "server.local");
     assert_eq!(h.port, 22);
 }
@@ -30,7 +42,7 @@ fn test_parse_host_only_defaults_to_root() {
 #[test]
 fn test_parse_host_with_port_only() {
     let h = Host::parse("example.com:2222");
-    assert_eq!(h.user, "root");
+    assert_eq!(h.user, expected_default_user());
     assert_eq!(h.hostname, "example.com");
     assert_eq!(h.port, 2222);
 }
