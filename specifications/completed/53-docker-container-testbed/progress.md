@@ -83,7 +83,7 @@
 | 16 | Unix-socket control RPC | 20 | ✅ wired + verified |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified |
 | 18 | Zero-downtime deploy (drain) | 22 | ✅ wired |
-| 19 | HTTP/3 proxy | 27 | 🔴 not integrated (not compiled) |
+| 19 | HTTP/3 proxy | 27 | 🔴 needs H3 server layer (from-scratch) |
 
 ## Proxy → kamal-proxy parity (corrected)
 
@@ -91,7 +91,7 @@
 |---|---|
 | HTTP/1.1 reverse proxy | ✅ (server startable after ContextBag fix) |
 | HTTP/2 termination | ✅ verified end-to-end |
-| HTTP/3 (QUIC) termination | 🔴 not integrated |
+| HTTP/3 (QUIC) termination | 🔴 needs H3 server layer in foundation_http |
 | Let's Encrypt ACME | ✅ wired + verified (DNS-01 setter is a hook) |
 | Zero-downtime deploys (drain) | ✅ wired |
 | TCP/UDP health checks | ✅ |
@@ -106,16 +106,15 @@
 
 ## Test results (corrected)
 
-The previously reported "379 passed, 0 failed" is not reproducible: the platform
-suites did not compile under default features (fixed now), and the platform
-default build (`docker`+`wireguard`) still fails to **link** pending the
-russh-default work. Verified this session:
+The previously reported "379 passed, 0 failed" was not reproducible (the platform
+suites didn't compile/link). After this session's fixes:
 
 | Suite | Result |
 |-------|--------|
-| foundation_proxy (all binaries) | ✅ green after the fixes above |
-| foundation_deployment_platform (`--features docker`, non-Docker) | compiles + links; Docker-gated tests `#[ignore]` |
-| foundation_deployment_platform (default `docker`+`wireguard`) | 🔴 link failure (BoringSSL/OpenSSL) |
+| foundation_proxy (all binaries) | ✅ green (incl. new F14/F15/F16 e2e tests) |
+| foundation_sshkit | ✅ green (russh removed, host tests fixed) |
+| foundation_deployment_platform (default `docker`+`wireguard`) | ✅ compiles, links, and non-Docker tests pass (BoringSSL gated out) |
+| foundation_testbed | ✅ builds under default features |
 
 ## Remaining work (tracked)
 
