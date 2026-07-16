@@ -2,7 +2,11 @@
 //!
 //! # Quick Start (VM)
 //!
-//! ```no_run
+//! The VM surface (`config`, `qemu`, …) is gated behind the `vms` feature, so
+//! this example is `ignore`d in the default (Docker-only) build — build with
+//! `--features vms` to use it.
+//!
+//! ```ignore
 //! use foundation_deployment_platform::config::{get_profile, DisplayMode};
 //! use foundation_deployment_platform::qemu::QemuConfig;
 //!

@@ -21,8 +21,10 @@ pub mod shared;
 /// `compile_error!` line as each gap is fixed.
 pub mod completeness;
 
-/// Native-only glue: UDP transport and the tunnel driver task.
-#[cfg(not(target_family = "wasm"))]
+/// Native-only glue: UDP transport, the tunnel driver task, and the BoringSSL
+/// TLS-PSK bootstrap/mTLS. Gated behind `native-mesh` (default-on) so consumers
+/// needing only the pure-Rust key/seed types can build without BoringSSL.
+#[cfg(all(not(target_family = "wasm"), feature = "native-mesh"))]
 pub mod native;
 
 /// Browser/WASM build (spec-55, F07). Always compiled — types and state machines
