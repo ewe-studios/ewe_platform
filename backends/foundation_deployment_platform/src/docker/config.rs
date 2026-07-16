@@ -227,7 +227,8 @@ impl ContainerConfig {
         self
     }
 
-    /// Set a memory limit.
+    /// Set a memory limit, as a plain byte count or with a `k`/`m`/`g`/`t`
+    /// suffix (`"256m"`, `"1g"`) — the same forms `docker run --memory` takes.
     #[must_use]
     pub fn memory(mut self, mem: impl Into<String>) -> Self {
         self.memory = Some(mem.into());
@@ -285,4 +286,41 @@ impl ContainerConfig {
         self.labels.insert(key.into(), value.into());
         self
     }
+}
+
+/// Parses a `docker run --memory`-style size into bytes: a plain byte count, or
+/// a decimal with a `b`/`k`/`m`/`g`/`t` suffix (case-insensitive; `kb`/`mb`/…
+/// accepted too). Multipliers are binary (1k = 1024), matching Docker.
+///
+/// Returns `Err` with the offending input rather than a fallback, so a
+/// mistyped limit surfaces instead of silently running unlimited.
+pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
+    let text = input.trim().to_ascii_lowercase();
+    if text.is_empty() {
+        return Err("memory limit is empty".to_string());
+    }
+
+    let digits_end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
+    let (number, suffix) = text.split_at(digits_end);
+
+    let value: i64 = number
+        .parse()
+        .map_err(|_| format!("invalid memory limit {input:?}: expected a byte count like \"256m\""))?;
+
+    let multiplier: i64 = match suffix.trim_end_matches('b') {
+        "" => 1,
+        "k" => 1024,
+        "m" => 1024 * 1024,
+        "g" => 1024 * 1024 * 1024,
+        "t" => 1024_i64 * 1024 * 1024 * 1024,
+        _ => {
+            return Err(format!(
+                "invalid memory limit {input:?}: unknown unit {suffix:?} (use b, k, m, g, or t)"
+            ))
+        }
+    };
+
+    value
+        .checked_mul(multiplier)
+        .ok_or_else(|| format!("memory limit {input:?} overflows i64 bytes"))
 }

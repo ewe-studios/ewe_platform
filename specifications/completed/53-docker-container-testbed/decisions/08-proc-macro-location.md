@@ -106,20 +106,31 @@ A single import path, no need to know about `foundation_macros`.
     image = "redis:7",              // (required) Docker image name[:tag]
     name = "my-redis",              // (optional) container name; auto-generated if absent
     port = 6379,                    // (repeatable) container port → auto host port
-    port_mapped = (6379, 3030),     // (repeatable) explicit host:container mapping
+    port_mapped = (6379, 3030),     // (repeatable) (container_port, host_port)
+    port_udp = 5353,                // (repeatable) UDP container port → auto host port
     env = [("KEY", "VALUE"), ...],  // (optional) environment variables
     network = "testbed-net",        // (optional) Docker network name
     volume = ("/host/path", "/container/path"),  // (repeatable) bind mount
-    wait_port = 6379,               // wait for TCP port open
+    wait_port = 6379,               // wait for TCP port open (container-side port)
     wait_stdout = "Ready",          // wait for log message
     wait_http = "http://localhost:8080/health",  // wait for HTTP 200
     wait_timeout = 60,              // max wait seconds (default 30)
     memory = "512m",                // memory limit
     cpus = 2,                       // CPU limit
     always_pull = true,             // force image pull
+    required = true,                // no graceful skip when Docker is absent
     stop_timeout = 10,              // graceful stop timeout seconds (default 10)
 )]
 ```
+
+`wait_port` names the **container-side** port, not the host port: the wait
+resolves it through the container's port map, so a host port that was never
+mapped to a container port fails with "port N was not mapped".
+
+`memory` takes the `docker run --memory` spellings — a plain byte count, or a
+decimal with a `b`/`k`/`m`/`g`/`t` suffix (binary multipliers, so `1k` = 1024).
+An unparseable limit is a hard `InvalidConfig` error rather than a silent
+"no limit".
 
 ### Attribute parsing
 
@@ -140,8 +151,12 @@ runtime overhead for parsing.
 | `wait_stdout = "Ready"` | `WaitFor::Stdout { message: "Ready", timeout }` |
 | `wait_http = "http://..."` | `WaitFor::Http { url, expected_status: 200, timeout }` |
 | Multiple wait attrs | `WaitFor::Composite { strategies }` (AND semantic, in order) |
-| No wait attr, but `port` present | `WaitFor::Port { port: first_port, timeout }` (default) |
+| No wait attr, but `port`/`port_mapped` present | `WaitFor::Port { port: first_port, timeout }` (default) |
 | No wait attr, no port | `WaitFor::None` |
+
+`wait_timeout` applies to every strategy in the set (each variant carries its own
+`timeout` field), defaulting to 30s. Composite order is `wait_port`, then
+`wait_http`, then `wait_stdout`.
 
 ---
 
@@ -158,21 +173,29 @@ fn test_redis() { /* body */ }
 fn test_redis() {
     fn __docker_body_test_redis() { /* original body */ }
 
-    let __docker_guard = {
-        let __cfg = ::foundation_deployment_platform::docker::ContainerConfig::new("redis:7")
-            .port(6379)
-            .wait(::foundation_deployment_platform::docker::WaitFor::Port {
-                port: 6379,
-                timeout: ::core::time::Duration::from_secs(30),
-            });
-        match ::foundation_deployment_platform::docker::ContainerHandle::start(__cfg).await {
-            Ok(handle) => handle,
-            Err(e) if e.is_connection_error() => {
+    let __cfg = ::foundation_deployment_platform::docker::ContainerConfig::new("redis:7")
+        .port(6379)
+        .wait(::foundation_deployment_platform::docker::WaitFor::Port {
+            port: 6379,
+            timeout: ::core::time::Duration::from_secs(30),
+        });
+
+    // Sync fn: the async Docker work is driven through valtron. `Option` carries
+    // the skip decision out of the async block — a `return` inside it would only
+    // return from the block, and the handle has no `Default`.
+    let __docker_guard = ::foundation_core::valtron::block_on_future(async move {
+        match ::foundation_deployment_platform::docker::ContainerHandle::start_async(__cfg).await {
+            Ok(handle) => Some(handle),
+            Err(e) if e.current_context().is_connection_error() => {
                 ::tracing::warn!("SKIP: Docker not available ({e})");
-                return;  // test passes, main returns early
+                None
             }
             Err(e) => ::std::panic!("Failed to start Docker container: {e}"),
         }
+    });
+    let __docker_guard = match __docker_guard {
+        Some(handle) => handle,
+        None => return,  // test passes, main returns early
     };
 
     let __result = __docker_body_test_redis();
@@ -180,6 +203,11 @@ fn test_redis() {
     __result
 }
 ```
+
+The sync arm needs a live valtron pool, since the Docker client is valtron-based
+— hence the documented pairing with `#[valtron_test]`. With `required = true`
+the skip arm is omitted entirely, so a connection error falls through to the
+panic.
 
 ### Design notes
 
@@ -222,15 +250,25 @@ async fn test_redis() { /* body with .await */ }
 
 // Expands to (simplified):
 async fn test_redis() {
-    let __docker_guard = { /* same setup as sync */ };
-    let __result = { /* original async body */ }.await;
+    let __docker_guard = match ContainerHandle::start_async(__cfg).await {
+        Ok(handle) => handle,
+        Err(e) if e.current_context().is_connection_error() => {
+            ::tracing::warn!("SKIP: Docker not available ({e})");
+            return;
+        }
+        Err(e) => ::std::panic!("Failed to start Docker container: {e}"),
+    };
+    let __result = { /* original async body */ };
     ::core::mem::drop(__docker_guard);
     __result
 }
 ```
 
-The async case uses an inline `async { ... }.await` block. This preserves the
-function's async signature and `.await` semantics.
+The body is spliced in as a plain block, **not** wrapped in `async { … }.await`:
+the enclosing fn is already `async`, so `.await` inside the body compiles as-is,
+and `return` keeps meaning "return from this fn" (an `async` block would capture
+it). No `block_on_future` here — the caller's executor drives the Docker work.
+An early `return` from the body still stops the container, via the guard's Drop.
 
 ---
 
@@ -271,9 +309,16 @@ fn test_with_db_and_cache() {
 ```
 
 Each macro wraps the next, so containers are started/stopped in **nested LIFO
-order** (outermost starts first, outermost stops last). All containers are
-alive when the body runs. This is correct for testcontainers semantics — order
-of startup only matters for readiness, not for the body itself.
+order**. All containers are alive when the body runs, which is the property that
+matters — startup order only affects readiness, not the body.
+
+The nesting runs opposite to how the attributes read. Rust expands the *topmost*
+attribute first, and it re-emits the remaining attributes onto its generated fn;
+so the **lowest** `#[docker_container]` ends up outermost at runtime and starts
+its container **first**, while the topmost one starts last and stops first.
+Measured on the stacked test (`docker create`/`start` events): the bottom
+attribute's container is created and started before the top one's. Nothing
+should depend on this order — declare an explicit readiness `wait_*` instead.
 
 A future enhancement could support a single `#[docker_container]` with
 comma-separated specs, but stacking is simpler and already works with Rust's

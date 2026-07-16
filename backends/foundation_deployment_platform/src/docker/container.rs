@@ -9,7 +9,7 @@ use foundation_deployment_docker::generated::json::{
 use foundation_deployment_docker::DockerClient;
 use tracing::{info, warn};
 
-use crate::docker::config::ContainerConfig;
+use crate::docker::config::{parse_memory_bytes, ContainerConfig};
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
@@ -27,9 +27,18 @@ impl ContainerHandle {
         let docker = DockerClient::connect_with_defaults()
             .map_err(|e| docker_err(DockerError::Connection(format!("{e}"))))?;
 
+        // Validated up front: a bad memory limit is a config mistake, and
+        // failing here beats creating a container that silently ignores it.
+        let memory_bytes = match config.memory.as_deref() {
+            Some(mem) => Some(
+                parse_memory_bytes(mem).map_err(|e| docker_err(DockerError::InvalidConfig(e)))?,
+            ),
+            None => None,
+        };
+
         Self::ensure_image(&docker, &config.image, config.always_pull).await?;
 
-        let body = Self::build_body(&config);
+        let body = Self::build_body(&config, memory_bytes);
 
         let created = docker
             .create_container(&body, config.name.as_deref())
@@ -38,23 +47,56 @@ impl ContainerHandle {
 
         let container_id = created.id;
 
+        // Past this point the container exists in Docker, but no `ContainerHandle`
+        // owns it yet — so nothing would run Drop's teardown. Any failure from
+        // here on must remove it by hand, or a failed start (a port conflict, a
+        // readiness timeout) strands a container that keeps holding its ports and
+        // makes every later run fail the same way.
+        match Self::finish_start(&docker, &container_id, &config).await {
+            Ok(ports) => Ok(Self {
+                docker,
+                container_id,
+                container_name: config.name.clone(),
+                stop_timeout: config.stop_timeout,
+                ports,
+            }),
+            Err(e) => {
+                Self::discard(&docker, &container_id, config.stop_timeout).await;
+                Err(e)
+            }
+        }
+    }
+
+    /// Start → inspect ports → await readiness, for a container that already
+    /// exists. Split out of `start_async` so a single cleanup path covers every
+    /// way these steps can fail.
+    async fn finish_start(
+        docker: &DockerClient,
+        container_id: &str,
+        config: &ContainerConfig,
+    ) -> DockerResult<HashMap<String, u16>> {
         docker
-            .start_container(&container_id)
+            .start_container(container_id)
             .await
             .map_err(|e| docker_err(DockerError::ContainerStart(format!("{e}"))))?;
 
-        let ports = Self::resolve_ports(&docker, &container_id, &config).await?;
+        let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        // Apply wait strategy.
-        config.wait.apply(&docker, &container_id, &ports).await?;
+        config.wait.apply(docker, container_id, &ports).await?;
 
-        Ok(Self {
-            docker,
-            container_id,
-            container_name: config.name.clone(),
-            stop_timeout: config.stop_timeout,
-            ports,
-        })
+        Ok(ports)
+    }
+
+    /// Best-effort teardown of a container no handle owns. Errors are logged,
+    /// never propagated: the caller is already returning the real failure and
+    /// must not have it masked by a cleanup problem.
+    async fn discard(docker: &DockerClient, container_id: &str, stop_timeout: u64) {
+        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout as u32)).await {
+            warn!(container_id = %container_id, "start cleanup: failed to stop container: {e}");
+        }
+        if let Err(e) = docker.remove_container(container_id, true).await {
+            warn!(container_id = %container_id, "start cleanup: failed to remove container: {e}");
+        }
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
@@ -192,7 +234,7 @@ impl ContainerHandle {
     }
 
     /// Build a typed [`ContainerCreateBody`] from our `ContainerConfig` builder.
-    fn build_body(config: &ContainerConfig) -> ContainerCreateBody {
+    fn build_body(config: &ContainerConfig, memory_bytes: Option<i64>) -> ContainerCreateBody {
         let mut exposed_ports = serde_json::Map::new();
         let mut port_bindings = serde_json::Map::new();
 
@@ -257,7 +299,7 @@ impl ContainerHandle {
                 ..Default::default()
             },
             resources: Resources {
-                memory: config.memory.as_ref().and_then(|m| m.parse::<i64>().ok()),
+                memory: memory_bytes,
                 nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
                 devices: if config.devices.is_empty() {
                     None

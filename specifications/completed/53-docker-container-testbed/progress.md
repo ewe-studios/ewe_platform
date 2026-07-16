@@ -35,6 +35,47 @@
 - **Platform SSH tests didn't compile under default features** — three files
   import `foundation_sshkit` (vms-only) with no feature guard. Guarded.
 
+### F02 `#[docker_container]` — reopened and repaired (2026-07-16)
+
+Marked "code present", but **nothing in the workspace ever used the macro**, so
+it had never been expanded even once. It did not compile, and its grammar was a
+fraction of what decision 08 documents. Repaired and now proven end-to-end
+against a real daemon (`docker_macro_tests`, 3 tests: sync, stacked, async — each
+does a real Redis `PING`/`+PONG` over the mapped port, so "container is usable",
+not merely "start returned `Ok`").
+
+Codegen bugs (all fatal, all invisible without a call site):
+- Emitted `#vis #fn_name()` with **no `fn` keyword** → "missing `fn`" on any use.
+- Sync skip path returned `Default::default()`, requiring `ContainerHandle:
+  Default`, which does not exist → skip path could not compile. Now carries the
+  skip out of the async block as `Option`.
+- Async arm emitted `{ body }.await` — a block is not a future (the decision doc's
+  sketch had the same error). In an `async fn` the body needs no wrapping.
+
+Grammar gaps vs decision 08 (`port_mapped` and `env` were dead `let` bindings —
+declared non-`mut`, never assigned, so both were rejected as unknown keys):
+added `port_mapped`, `env`, `volume`, `wait_http`, `wait_timeout`, `always_pull`,
+`required`, `port_udp`, and multi-strategy composite waits.
+
+Runtime bugs found by finally exercising this path:
+- **Containers leaked on every failed start.** After `create_container`, no
+  `ContainerHandle` owns the container yet, so nothing ran Drop's teardown — a
+  failed start, port conflict, or readiness timeout stranded a container that
+  kept holding its host ports, making every later run fail with an opaque
+  `docker API error (status 500)`. `start_async` now removes it on any failure.
+- **`memory = "256m"` was silently ignored** — `parse::<i64>()` fails on the
+  suffixed form the spec documents and `.ok()` swallowed it, so the container ran
+  unlimited. Added `parse_memory_bytes` (docker `--memory` spellings, binary
+  multipliers); an unparseable limit is now an `InvalidConfig` error, never a
+  silent default. Verified applied: `HostConfig.Memory=268435456` on the live
+  container.
+
+Decision 08 was corrected to match reality: the sync generated-shape sketch
+(`block_on_future`, not `.await` in a sync fn), the async arm, `wait_port` being
+a container-side port, and the multi-container start order (the doc claimed
+"outermost starts first"; the *lowest* attribute is outermost at runtime and
+starts first — measured via `docker events`).
+
 ### Reopened — repair status
 | # | Feature | Status |
 |---|---------|--------|
@@ -54,7 +95,7 @@
 | # | Feature | Status |
 |---|---------|--------|
 | 01 | Runtime Library (`ContainerHandle`/`Config`/`DockerError`/`NetworkHandle`) | ✅ code present |
-| 02 | Proc Macro `#[docker_container]` | ✅ code present |
+| 02 | Proc Macro `#[docker_container]` | ✅ **fixed + verified e2e** (was "code present" but did not compile — see below) |
 | 03 | Networking & Volumes | ✅ code present |
 | 04 | Image Management | ✅ code present |
 | 05 | Wait Strategies | ✅ code present |

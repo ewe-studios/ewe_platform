@@ -20,7 +20,10 @@ pub mod wireguard;
 
 /// Re-export the spec-54 Docker client directly — the old bollard wrapper is gone.
 pub use foundation_deployment_docker::DockerClient;
-pub use config::{ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount, VolumeSource};
+pub use config::{
+    parse_memory_bytes, ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount,
+    VolumeSource,
+};
 pub use container::ContainerHandle;
 pub use error::{docker_err, DockerError, DockerResult};
 pub use group::ContainerGroup;
