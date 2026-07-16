@@ -395,7 +395,12 @@ fn build_connection(
 
 mod connection;
 mod h2_connection;
+#[cfg(feature = "quic")]
+mod h3_server;
 mod protocol_detect;
+
+#[cfg(feature = "quic")]
+pub use h3_server::serve_h3;
 
 use protocol_detect::ProtocolDetectHandler;
 

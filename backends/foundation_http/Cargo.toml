@@ -96,3 +96,9 @@ wasm-test = []
 
 [lints]
 workspace = true
+
+# HTTP/3 server integration test (F19) — real QUIC over loopback, quic-gated.
+[[test]]
+name = "http3_server_tests"
+path = "tests/http3_server_tests.rs"
+required-features = ["quic"]

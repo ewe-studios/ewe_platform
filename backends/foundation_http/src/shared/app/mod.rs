@@ -150,6 +150,45 @@ impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
 }
 
 // ---------------------------------------------------------------------------
+// Native H3Serve handlers (cfg-gated: non-wasm + quic)
+
+#[cfg(all(not(target_family = "wasm"), feature = "quic"))]
+impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
+    /// Create a new empty `HttpApp` for HTTP/3 handlers.
+    #[must_use]
+    pub fn new_h3_serve() -> Self {
+        Self {
+            ctx: Arc::new(ContextBag::new()),
+            router: Router::new(),
+            middleware: Vec::new(),
+        }
+    }
+
+    /// Register an `H3Serve` handler for a specific method and path. Like
+    /// `route_h2`, this takes the shared handler itself (an h3 handler serves
+    /// every request stream on every connection).
+    pub fn route_h3(
+        &mut self,
+        method: SimpleMethod,
+        path: &str,
+        handler: Arc<dyn crate::native::serve::H3Serve>,
+    ) -> &mut Self {
+        self.router.add_route(method, path, handler);
+        self
+    }
+
+    /// Register an `H3Serve` handler for all methods on a path.
+    pub fn route_any_h3(
+        &mut self,
+        path: &str,
+        handler: Arc<dyn crate::native::serve::H3Serve>,
+    ) -> &mut Self {
+        self.router.add_route_any(path, &handler);
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
 // ServeWriter handlers (available on all targets)
 
 impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
