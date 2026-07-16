@@ -40,7 +40,7 @@ futures-lite = "2"
 
 [dev-dependencies]
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.
 rustls-pki-types = "1"
