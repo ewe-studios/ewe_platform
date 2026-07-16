@@ -14,6 +14,11 @@
 //! libssh2 FFI, so they run on `spawn_blocking` while container lifecycle stays
 //! async on a shared tokio runtime.
 
+// `foundation_sshkit` (the `Ssh2Backend` under test) is only linked with the
+// `vms` feature; without this gate the file fails to compile under the crate's
+// default features and breaks `cargo test` for every consumer.
+#![cfg(feature = "vms")]
+
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 

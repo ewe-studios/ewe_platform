@@ -13,6 +13,10 @@
 //! are `#[ignore]` (need Docker). russh is natively async so calls run directly
 //! on the tokio runtime.
 
+// `foundation_sshkit`'s russh backend is only linked with the `vms` feature;
+// gate the file so it does not break `cargo test` under default features.
+#![cfg(feature = "vms")]
+
 use std::path::PathBuf;
 use std::sync::LazyLock;
 use std::time::Duration;

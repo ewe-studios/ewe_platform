@@ -111,12 +111,20 @@ All decisions documented in `decisions/`.
 
 ## Remaining work
 
+> **⚠️ Reopened by the 2026-07-16 completeness audit.** Several features marked
+> complete were not actually integrated (their modules exist and unit-test in
+> isolation but are never wired into the running system). See
+> [progress.md](progress.md) → "Audit findings" for evidence.
+
 | # | Item | Decision | Status |
 |---|------|----------|--------|
+| — | Make russh the default OpenSSL-free SSH backend; route all usage through traits | 13 | 🔴 In progress |
+| — | Replace `ssh2-config` host-config parsing (drops `git2/libssh2` OpenSSL pull) | 13 | 🔴 In progress |
+| F14 | Wire state persistence into `ProxyServer` | 21 | 🔴 Not integrated |
+| F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | 🔴 Not integrated |
+| F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | 🔴 Not integrated |
+| F19 | Integrate HTTP/3 (define `quic` feature + deps, fix handler, wire, test) | 27 | 🔴 Not compiled |
 | — | `foundation_deployment_docker` CI tests | — | 📋 Needs Docker-in-CI |
-
-All Docker and proxy decisions (01–29) are implemented. See
-[progress.md](progress.md) and [features/README.md](features/README.md).
 
 ## Plan
 

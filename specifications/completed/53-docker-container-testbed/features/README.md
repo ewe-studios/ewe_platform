@@ -1,6 +1,11 @@
-# Spec-53 Feature Set — Final (2026-07-16)
+# Spec-53 Feature Set (2026-07-16)
 
-All 19 features implemented, tested, and committed. No design-only stubs.
+> **⚠️ Completeness audit 2026-07-16.** The earlier "all 19 implemented, no
+> stubs" claim did not hold. The assembled proxy never ran (a `ContextBag` bug
+> panicked `ProxyServer::start`) and the platform test harness didn't compile
+> under default features, hiding that **F14, F15, F16, F19 are not integrated**
+> and the SSH backend is ssh2-coupled (OpenSSL). See [progress.md](../progress.md)
+> for the full corrected status. Status column below reflects reality.
 
 ## Phase 1: Docker Runtime (Part A)
 
@@ -30,16 +35,16 @@ All 19 features implemented, tested, and committed. No design-only stubs.
 
 ## Phase 4: Proxy Capabilities
 
-| # | Feature | Decision | Crate | Key files |
-|---|---------|----------|-------|-----------|
-| 12 | SSL redirect | 25 | foundation_proxy | server.rs (ssl_redirect_loop, 8 tests) |
-| 13 | Writer affinity | 23 | foundation_proxy | runtime.rs (pick_sticky), handler.rs (cookie) |
-| 14 | State persistence | 21 | foundation_proxy | persistence.rs (ProxyStateStore, 4 tests) |
-| 15 | ACME cert provisioning | 18 | foundation_proxy | acme.rs (full RFC 8555, DNS-01, 7 tests) |
-| 16 | Unix-socket RPC | 20 | foundation_proxy | control.rs (JSON-RPC, 7 commands, 4 tests) |
-| 17 | HTTP/2 proxy | 26 | foundation_proxy | h2_proxy.rs (streaming relay, 14 tests) |
-| 18 | Zero-downtime deploy | 22 | foundation_proxy | state.rs (draining), server.rs (drain_complete) |
-| 19 | HTTP/3 proxy | 27 | foundation_proxy | h3_proxy.rs (streaming relay, quic feature) |
+| # | Feature | Decision | Status | Key files |
+|---|---------|----------|--------|-----------|
+| 12 | SSL redirect | 25 | ✅ wired | server.rs (ssl_redirect_loop) |
+| 13 | Writer affinity | 23 | ✅ wired | runtime.rs (pick_sticky), handler.rs (cookie) |
+| 14 | State persistence | 21 | 🔴 not integrated | persistence.rs — `ProxyStateStore` never called by `ProxyServer` |
+| 15 | ACME cert provisioning | 18 | 🔴 not integrated | acme.rs — `AcmeClient` unused; no `AcmeCertManager` |
+| 16 | Unix-socket RPC | 20 | 🔴 not integrated | control.rs — `ControlSocket::start()` never called |
+| 17 | HTTP/2 proxy | 26 | ✅ fixed + verified | h2_proxy.rs (now forwards via shared client) |
+| 18 | Zero-downtime deploy | 22 | ✅ wired | state.rs (draining), server.rs (drain_complete) |
+| 19 | HTTP/3 proxy | 27 | 🔴 not integrated | h3_proxy.rs — gated on non-existent `quic` feature, not wired, 0 tests |
 
 ## Foundation reused (not rebuilt)
 
@@ -53,12 +58,10 @@ All 19 features implemented, tested, and committed. No design-only stubs.
 | State storage | foundation_db (FileStateStore, StateStore trait) |
 | ECDSA key crypto | sha2, base64 (workspace deps) |
 
-## Test results (2026-07-16)
+## Test results
 
-| Suite | Count |
-|-------|-------|
-| foundation_core valtron | 313 passed |
-| foundation_proxy lib | 42 passed |
-| foundation_sshkit (command + powershell) | 14 passed |
-| foundation_deployment_platform (wait_for) | 10 passed |
-| **Total** | **379 passed, 0 failed** |
+> The earlier "379 passed, 0 failed" is **not reproducible** — the platform
+> suites did not compile under default features (now fixed), and the platform
+> default build still fails to link (BoringSSL/OpenSSL) pending the russh-default
+> work. `foundation_proxy` is green after this session's fixes. See
+> [progress.md](../progress.md) → "Test results (corrected)".

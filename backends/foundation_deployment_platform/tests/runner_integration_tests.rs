@@ -12,6 +12,10 @@
 //! `spawn_blocking` while the container lifecycle stays on the shared tokio
 //! runtime.
 
+// `foundation_sshkit` is only linked with the `vms` feature; gate the file so it
+// does not break `cargo test` under the crate's default features.
+#![cfg(feature = "vms")]
+
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
