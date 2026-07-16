@@ -72,6 +72,11 @@ pub struct ProxyConfig {
     /// the same certificate. Requires the `quic` feature. `None` disables H3.
     #[serde(default)]
     pub h3_bind: Option<String>,
+    /// Address for the plain-HTTP → HTTPS redirect listener (Decision 25, F12).
+    /// Defaults to `0.0.0.0:80` when unset and TLS is enabled; tests override it
+    /// with an ephemeral port.
+    #[serde(default)]
+    pub redirect_bind: Option<String>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -94,6 +99,7 @@ impl ProxyConfig {
             state_dir: None,
             acme: None,
             h3_bind: None,
+            redirect_bind: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -132,6 +138,14 @@ impl ProxyConfig {
     #[must_use]
     pub fn h3_bind(mut self, addr: &str) -> Self {
         self.h3_bind = Some(addr.to_string());
+        self
+    }
+
+    /// Bind the plain-HTTP → HTTPS redirect listener at `addr` (Decision 25).
+    /// Defaults to `0.0.0.0:80`.
+    #[must_use]
+    pub fn redirect_bind(mut self, addr: &str) -> Self {
+        self.redirect_bind = Some(addr.to_string());
         self
     }
 

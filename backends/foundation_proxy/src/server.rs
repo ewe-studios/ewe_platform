@@ -53,6 +53,8 @@ pub struct ProxyServer {
     control: Option<ControlSocket>,
     /// The bound UDP address of the HTTP/3 front end, when enabled (F19).
     h3_local_addr: Option<SocketAddr>,
+    /// The bound address of the plain-HTTP → HTTPS redirect listener (F12).
+    redirect_local_addr: Option<SocketAddr>,
 }
 
 impl std::fmt::Debug for ProxyServer {
@@ -160,16 +162,27 @@ impl ProxyServer {
         // the HTTP/3 (QUIC) front end when enabled.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
         let mut h3_local_addr: Option<SocketAddr> = None;
+        let mut redirect_local_addr: Option<SocketAddr> = None;
         if use_tls {
             let cert_manager = tls::build_cert_manager(&config, Arc::new(client.clone()))?;
             let cert_pair = cert_manager.get_cert()?;
             let acceptor = tls::acceptor_from_pair(&cert_pair)?;
             server_config = server_config.with_tls(acceptor);
 
-            let redirect_shutdown = shutdown.clone();
-            _redirect_thread = Some(std::thread::spawn(move || {
-                ssl_redirect_loop(&redirect_shutdown);
-            }));
+            // Plain-HTTP → HTTPS redirect (Decision 25, F12). Pre-bind so the
+            // actual port is observable (tests use an ephemeral port); a bind
+            // failure (e.g. :80 without privileges) is non-fatal.
+            let redirect_addr = config.redirect_bind.as_deref().unwrap_or(REDIRECT_PORT);
+            match TcpListener::bind(redirect_addr) {
+                Ok(listener) => {
+                    redirect_local_addr = listener.local_addr().ok();
+                    let redirect_shutdown = shutdown.clone();
+                    _redirect_thread = Some(std::thread::spawn(move || {
+                        ssl_redirect_loop(listener, &redirect_shutdown);
+                    }));
+                }
+                Err(e) => tracing::warn!("SSL redirect: cannot bind {redirect_addr}: {e}"),
+            }
 
             // HTTP/3 (QUIC) front end (Decision 27, F19): serve H3 on the
             // configured UDP address using the same certificate.
@@ -216,6 +229,7 @@ impl ProxyServer {
             state: proxy_state,
             control,
             h3_local_addr,
+            redirect_local_addr,
         })
     }
 
@@ -223,6 +237,12 @@ impl ProxyServer {
     #[must_use]
     pub fn h3_local_addr(&self) -> Option<SocketAddr> {
         self.h3_local_addr
+    }
+
+    /// The bound address of the plain-HTTP → HTTPS redirect listener (F12).
+    #[must_use]
+    pub fn redirect_local_addr(&self) -> Option<SocketAddr> {
+        self.redirect_local_addr
     }
 
     /// The address the front end is bound to.
@@ -313,16 +333,9 @@ impl Drop for ProxyServer {
 /// and closes the connection.  No buffering, no keep-alive, no full HTTP parse.
 const REDIRECT_PORT: &str = "0.0.0.0:80";
 
-fn ssl_redirect_loop(shutdown: &Arc<OnSignal>) {
-    let listener = match TcpListener::bind(REDIRECT_PORT) {
-        Ok(l) => l,
-        Err(e) => {
-            tracing::warn!("SSL redirect: cannot bind {REDIRECT_PORT}: {e}");
-            return;
-        }
-    };
+fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<OnSignal>) {
     let _ = listener.set_nonblocking(true);
-    tracing::info!("SSL redirect listening on {REDIRECT_PORT}");
+    tracing::info!(addr = ?listener.local_addr(), "SSL redirect listening");
 
     let mut buf = [0u8; 4096];
     loop {
