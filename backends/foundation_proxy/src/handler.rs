@@ -19,6 +19,7 @@
 
 use std::io::Write;
 use std::sync::Arc;
+use std::time::Instant;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
@@ -61,6 +62,8 @@ impl Serve for ProxyHandler {
         req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
+        let start = std::time::Instant::now();
+
         // Decision 22: during draining, respond 503 so clients retry elsewhere.
         if self.state.is_draining() {
             tracing::info!("proxy draining — returning 503");
@@ -71,6 +74,8 @@ impl Serve for ProxyHandler {
 
         let host = header_first(&req, &SimpleHeader::HOST).unwrap_or_default();
         let path = req.request_url.url.clone();
+        let method = req.method.clone();
+        let user_agent = header_first(&req, &SimpleHeader::USER_AGENT).unwrap_or_default();
 
         let Some(service) = self.state.router().route(&host, &path) else {
             tracing::debug!(%host, %path, "no service matched host/path — 404");
@@ -107,10 +112,28 @@ impl Serve for ProxyHandler {
         let protocol = lease.backend().protocol();
         let io_mode = self.state.io_mode();
 
+        // Access log: method, host, path, status (filled by relay), duration.
+        let log_start = Instant::now();
+        let log_host = host.clone();
+        let log_path = path.clone();
+        let log_method = method.clone();
+        let log_ua = user_agent.clone();
+        let log_ip = client_ip.clone();
+
         // Relay on a dedicated thread; keep the pool worker free. The lease moves
         // into the thread so the in-flight count is held for the whole exchange.
         std::thread::spawn(move || {
             relay(conn, req, lease, &client_ip, &scheme, protocol, &client, sticky_header.as_ref(), io_mode);
+            let duration = log_start.elapsed();
+            tracing::info!(
+                method = %log_method,
+                host = %log_host,
+                path = %log_path,
+                client_ip = %log_ip,
+                user_agent = %log_ua,
+                duration_ms = duration.as_millis(),
+                "access"
+            );
         });
 
         ConnectionResult::Take

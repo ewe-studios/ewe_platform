@@ -261,3 +261,117 @@ fn extract_authority(url: &str) -> String {
         .unwrap_or(url);
     without.split('/').next().unwrap_or("localhost:80").to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn find_header_end_detects_crlfcrlf() {
+        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nbody";
+        let pos = find_header_end(data).expect("should find header end");
+        // verify the body starts after the header end marker
+        assert_eq!(&data[pos + 4..], b"body");
+    }
+
+    #[test]
+    fn find_header_end_no_match_returns_none() {
+        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n";
+        assert_eq!(find_header_end(data), None);
+    }
+
+    #[test]
+    fn parse_status_ok() {
+        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+        assert_eq!(parse_status_code(data), Some(200));
+    }
+
+    #[test]
+    fn parse_status_404() {
+        assert_eq!(parse_status_code(b"HTTP/1.1 404 Not Found\r\n\r\n"), Some(404));
+    }
+
+    #[test]
+    fn parse_status_bad_data() {
+        assert_eq!(parse_status_code(b"garbage"), None);
+    }
+
+    #[test]
+    fn parse_response_headers_extracts_correctly() {
+        let data = b"HTTP/1.1 200 OK\r\ncontent-type: text/html\r\nserver: nginx\r\n\r\n";
+        let h = parse_response_headers(data);
+        let ct_key = SimpleHeader::custom("content-type");
+        let ct = h.get(&ct_key).and_then(|v| v.first().cloned());
+        assert_eq!(ct, Some("text/html".to_string()));
+    }
+
+    #[test]
+    fn parse_response_headers_skips_status_line() {
+        let data = b"HTTP/1.1 200 OK\r\n\r\n";
+        let h = parse_response_headers(data);
+        assert!(h.is_empty());
+    }
+
+    #[test]
+    fn build_upstream_url_strips_trailing_slash() {
+        assert_eq!(
+            build_upstream_url("http://backend:8080/", "/api/health"),
+            "http://backend:8080/api/health"
+        );
+    }
+
+    #[test]
+    fn build_upstream_url_no_trailing_slash() {
+        assert_eq!(
+            build_upstream_url("http://backend:8080", "/api/health"),
+            "http://backend:8080/api/health"
+        );
+    }
+
+    #[test]
+    fn extract_authority_http() {
+        assert_eq!(
+            extract_authority("http://192.168.1.1:8080/path"),
+            "192.168.1.1:8080"
+        );
+    }
+
+    #[test]
+    fn extract_authority_https() {
+        assert_eq!(
+            extract_authority("https://example.com/api"),
+            "example.com"
+        );
+    }
+
+    #[test]
+    fn h2_status_404() {
+        let frame = h2_status(404, true);
+        match frame {
+            H2Frame::Headers { status, end_stream, .. } => {
+                assert_eq!(status, 404);
+                assert!(end_stream);
+            }
+            _ => panic!("expected Headers frame"),
+        }
+    }
+
+    #[test]
+    fn h2_status_503() {
+        let frame = h2_status(503, false);
+        match frame {
+            H2Frame::Headers { status, end_stream, .. } => {
+                assert_eq!(status, 503);
+                assert!(!end_stream);
+            }
+            _ => panic!("expected Headers frame"),
+        }
+    }
+
+    #[test]
+    fn chunk_size_parsing_decodes_hex() {
+        assert_eq!(usize::from_str_radix("1a", 16).unwrap(), 26);
+        assert_eq!(usize::from_str_radix("0", 16).unwrap(), 0);
+        assert_eq!(usize::from_str_radix("FF", 16).unwrap(), 255);
+    }
+}
