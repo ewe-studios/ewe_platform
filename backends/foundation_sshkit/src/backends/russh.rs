@@ -151,14 +151,33 @@ impl RusshBackend {
     }
 }
 
+/// Shared tokio runtime for the synchronous [`Backend`] methods.
+///
+/// WHY: `russh` is tokio-native — `client::connect` uses `tokio::net` and spawns
+/// the session task via `tokio::spawn`. Driving it with `futures_lite::block_on`
+/// panics ("there is no reactor running"), so the sync trait methods must run on
+/// a real tokio runtime. SSH here is control-plane/provisioning (infrequent), so
+/// one lazily-created current-thread runtime shared across calls is enough and
+/// keeps tokio confined to this backend rather than the data plane.
+fn russh_runtime() -> &'static tokio::runtime::Runtime {
+    use std::sync::OnceLock;
+    static RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    RT.get_or_init(|| {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("build tokio runtime for russh backend")
+    })
+}
+
 impl Backend for RusshBackend {
     fn execute(&self, host: &Host, cmd: &Command) -> Result<CommandResult, String> {
-        futures_lite::future::block_on(self.execute_async(host, cmd))
+        russh_runtime().block_on(self.execute_async(host, cmd))
     }
     fn upload(&self, host: &Host, local: &Path, remote: &Path) -> Result<(), String> {
-        futures_lite::future::block_on(self.upload_async(host, local, remote))
+        russh_runtime().block_on(self.upload_async(host, local, remote))
     }
     fn download(&self, host: &Host, remote: &Path, local: &Path) -> Result<(), String> {
-        futures_lite::future::block_on(self.download_async(host, remote, local))
+        russh_runtime().block_on(self.download_async(host, remote, local))
     }
 }

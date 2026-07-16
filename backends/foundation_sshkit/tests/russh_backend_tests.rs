@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 use std::time::Duration;
 
-use foundation_sshkit::{Command, Host, RusshBackend};
+use foundation_sshkit::{Backend, Command, Host, RusshBackend};
 
 static RT: LazyLock<tokio::runtime::Runtime> = LazyLock::new(|| {
     tokio::runtime::Builder::new_multi_thread()
@@ -79,4 +79,26 @@ fn test_russh_execute_connection_refused() {
             "error should originate from the connect step, got: {err:?}"
         );
     });
+}
+
+/// The **synchronous** `Backend::execute` path — what consumers call through
+/// `&dyn Backend`. It must run russh on its own tokio runtime and return an
+/// error on a closed port, NOT panic with "no reactor running" (regression:
+/// the sync impl previously used `futures_lite::block_on`, which has no tokio
+/// runtime, so `tokio::net`/`tokio::spawn` inside russh panicked).
+#[test]
+fn test_russh_sync_backend_execute_connection_refused() {
+    let Some(key) = generate_keypair() else {
+        tracing::warn!("SKIP: ssh-keygen not available");
+        return;
+    };
+    let backend = RusshBackend::default();
+    let host = russh_host(1, &key);
+    // No outer tokio runtime here — the backend must supply its own.
+    let result = backend.execute(&host, &Command::new("true"));
+    assert!(result.is_err(), "sync execute to a closed port must fail (not panic)");
+    assert!(
+        result.unwrap_err().contains("connect"),
+        "error should originate from the connect step",
+    );
 }
