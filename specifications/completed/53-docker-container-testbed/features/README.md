@@ -39,9 +39,9 @@
 |---|---------|----------|--------|-----------|
 | 12 | SSL redirect | 25 | ✅ wired | server.rs (ssl_redirect_loop) |
 | 13 | Writer affinity | 23 | ✅ wired | runtime.rs (pick_sticky), handler.rs (cookie) |
-| 14 | State persistence | 21 | 🔴 not integrated | persistence.rs — `ProxyStateStore` never called by `ProxyServer` |
+| 14 | State persistence | 21 | ✅ wired + verified | persistence.rs + `persist_to`; restore on start, write-through on admin change (`persistence_restart_tests`) |
 | 15 | ACME cert provisioning | 18 | 🔴 not integrated | acme.rs — `AcmeClient` unused; no `AcmeCertManager` |
-| 16 | Unix-socket RPC | 20 | 🔴 not integrated | control.rs — `ControlSocket::start()` never called |
+| 16 | Unix-socket RPC | 20 | ✅ wired + verified | control.rs + `control_socket`; started in `ProxyServer` (`control_socket_tests`) |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified | h2_proxy.rs (now forwards via shared client) |
 | 18 | Zero-downtime deploy | 22 | ✅ wired | state.rs (draining), server.rs (drain_complete) |
 | 19 | HTTP/3 proxy | 27 | 🔴 not integrated | h3_proxy.rs — gated on non-existent `quic` feature, not wired, 0 tests |

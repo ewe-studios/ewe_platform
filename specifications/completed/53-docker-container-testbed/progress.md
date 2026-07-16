@@ -35,12 +35,12 @@
 - **Platform SSH tests didn't compile under default features** — three files
   import `foundation_sshkit` (vms-only) with no feature guard. Guarded.
 
-### Reopened — not actually integrated
-| # | Feature | Reality |
-|---|---------|---------|
-| 🔴 F14 | State persistence | `ProxyStateStore` is never called by `ProxyServer` — no load on start, no save on change |
+### Reopened — repair status
+| # | Feature | Status |
+|---|---------|--------|
+| ✅ F14 | State persistence | **Fixed:** `ProxyConfig::persist_to(dir)`; `ProxyServer` restores backend drain/pause on start and writes admin changes through `ProxyState`'s store. E2E test `persistence_restart_tests` (drain → restart → still draining). |
+| ✅ F16 | Unix-socket control RPC | **Fixed:** `ProxyConfig::control_socket(path)`; `ControlSocket` started in `ProxyServer::start`, stopped on shutdown. E2E test `control_socket_tests` (status/list/drain over the socket). |
 | 🔴 F15 | ACME cert provisioning | `AcmeClient` is unused outside `acme.rs`; there is no `AcmeCertManager`, so ACME never provisions the proxy cert |
-| 🔴 F16 | Unix-socket control RPC | `ControlSocket::start()` is never called; the running proxy exposes no admin socket |
 | 🔴 F19 | HTTP/3 proxy | Entire `h3_proxy.rs` is gated on a **non-existent** `quic` feature (Cargo has only `default = []`); no QUIC deps; never wired (`ServerApp::both`, not `Any{…http3}`); 0 tests; same chunked-only bug |
 
 ### Resolved — dependency / backend defect
@@ -78,9 +78,9 @@
 |---|---------|----------|--------|
 | 12 | SSL redirect | 25 | ✅ wired |
 | 13 | Writer affinity (sticky cookie) | 23 | ✅ wired |
-| 14 | State persistence | 21 | 🔴 not integrated |
+| 14 | State persistence | 21 | ✅ wired + verified |
 | 15 | ACME cert provisioning | 18 | 🔴 not integrated |
-| 16 | Unix-socket control RPC | 20 | 🔴 not integrated |
+| 16 | Unix-socket control RPC | 20 | ✅ wired + verified |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified |
 | 18 | Zero-downtime deploy (drain) | 22 | ✅ wired |
 | 19 | HTTP/3 proxy | 27 | 🔴 not integrated (not compiled) |
@@ -97,8 +97,8 @@
 | TCP/UDP health checks | ✅ |
 | Weighted round-robin (smooth WRR) | ✅ |
 | Sticky sessions (cookie) | ✅ wired |
-| Unix-socket admin interface | 🔴 not wired |
-| State persistence (cross-restart) | 🔴 not wired |
+| Unix-socket admin interface | ✅ wired + verified |
+| State persistence (cross-restart) | ✅ wired + verified |
 | TCP/UDP passthrough | ✅ (standalone listeners) |
 | WebSocket upgrade relay | ✅ wired |
 | SSL redirect (80→443) | ✅ wired |
@@ -122,8 +122,8 @@ russh-default work. Verified this session:
 _SSH/BoringSSL link conflict — ✅ resolved (gated `boring` in wireguard; removed
 russh). Platform default suite green._
 
-1. 🔴 Wire F14 state persistence into `ProxyServer`.
-2. 🔴 Wire F16 unix-socket control RPC into `ProxyServer`.
+1. ✅ Wire F14 state persistence into `ProxyServer`. — done
+2. ✅ Wire F16 unix-socket control RPC into `ProxyServer`. — done
 3. 🔴 Wire F15 ACME cert provisioning into the TLS path (`AcmeCertManager`).
 4. 🔴 Integrate F19 HTTP/3 (define the `quic` feature + deps, fix the handler,
    wire via `ServerApp::Any`, add a test).

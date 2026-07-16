@@ -120,9 +120,9 @@ All decisions documented in `decisions/`.
 |---|------|----------|--------|
 | — | Make russh the default OpenSSL-free SSH backend; route all usage through traits | 13 | 🔴 In progress |
 | — | Replace `ssh2-config` host-config parsing (drops `git2/libssh2` OpenSSL pull) | 13 | 🔴 In progress |
-| F14 | Wire state persistence into `ProxyServer` | 21 | 🔴 Not integrated |
+| F14 | Wire state persistence into `ProxyServer` | 21 | ✅ Done |
 | F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | 🔴 Not integrated |
-| F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | 🔴 Not integrated |
+| F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | ✅ Done |
 | F19 | Integrate HTTP/3 (define `quic` feature + deps, fix handler, wire, test) | 27 | 🔴 Not compiled |
 | — | `foundation_deployment_docker` CI tests | — | 📋 Needs Docker-in-CI |
 
