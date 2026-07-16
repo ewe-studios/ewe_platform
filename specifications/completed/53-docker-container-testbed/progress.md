@@ -60,9 +60,11 @@
 | 05 | Wait Strategies | ✅ code present |
 | — | Bollard → `foundation_deployment_docker` migration | ✅ (no bollard dep) |
 
-> Part A Docker-backed tests are `#[ignore]` (need a Docker daemon) and were not
-> executed in this audit; "code present" means the types and non-Docker paths
-> exist and compile, not that the container round-trips were re-verified here.
+> Part A Docker-backed tests are `#[ignore]` (need a Docker daemon). With Docker
+> up they now **pass end-to-end**: `container_integration` (ContainerHandle
+> lifecycle, WaitFor readiness, Drop cleanup — F01/F03/F04/F05) and
+> `ssh_backend_tests` + `runner_integration_tests` (ssh2 execute/upload/download/
+> auth, Runner strategies — F09) all green against real containers.
 
 ## Platform consolidation (Part B) — implemented, with the testbed defect fixed
 
@@ -89,19 +91,19 @@
 
 | Capability | Status |
 |---|---|
-| HTTP/1.1 reverse proxy | ✅ (server startable after ContextBag fix) |
+| HTTP/1.1 reverse proxy | ✅ e2e (Docker integration suite) |
 | HTTP/2 termination | ✅ verified end-to-end |
 | HTTP/3 (QUIC) termination | ✅ built + verified (foundation_http H3 server) |
 | Let's Encrypt ACME | ✅ wired + verified (DNS-01 setter is a hook) |
 | Zero-downtime deploys (drain) | ✅ wired |
-| TCP/UDP health checks | ✅ |
-| Weighted round-robin (smooth WRR) | ✅ |
-| Sticky sessions (cookie) | ✅ wired |
+| TCP/UDP health checks | ✅ e2e (Docker health eject/readmit) |
+| Weighted round-robin (smooth WRR) | ✅ e2e (Docker round-robin) |
+| Sticky sessions (cookie) | ✅ e2e (proxy_features) |
 | Unix-socket admin interface | ✅ wired + verified |
 | State persistence (cross-restart) | ✅ wired + verified |
-| TCP/UDP passthrough | ✅ (standalone listeners) |
-| WebSocket upgrade relay | ✅ wired |
-| SSL redirect (80→443) | ✅ wired |
+| TCP/UDP passthrough | ✅ e2e (Docker passthrough + completion_splice) |
+| WebSocket upgrade relay | ✅ e2e (proxy_features) |
+| SSL redirect (80→443) | ✅ e2e (proxy_features) |
 | Structured access logging | ✅ |
 
 ## Test results (corrected)
@@ -111,9 +113,12 @@ suites didn't compile/link). After this session's fixes:
 
 | Suite | Result |
 |-------|--------|
-| foundation_proxy (all binaries) | ✅ green (incl. new F14/F15/F16 e2e tests) |
-| foundation_sshkit | ✅ green (russh removed, host tests fixed) |
-| foundation_deployment_platform (default `docker`+`wireguard`) | ✅ compiles, links, and non-Docker tests pass (BoringSSL gated out) |
+| foundation_proxy (default) | ✅ all green (F14/F15/F16 + SSL-redirect/sticky/drain/WebSocket e2e) |
+| foundation_proxy (`--features quic`) | ✅ H3 server + H3 proxy e2e |
+| foundation_proxy (`--features docker-tests`) | ✅ 9/9 real reverse-proxy e2e (forward, WRR, routing, 503, XFF, passthrough, health) |
+| foundation_http (`--features quic`) | ✅ H3 server e2e (QUIC client ↔ echo) |
+| foundation_deployment_platform (Docker: container + ssh + runner) | ✅ Part A F01-F05/F09 e2e |
+| foundation_sshkit | ✅ green (russh removed) |
 | foundation_testbed | ✅ builds under default features |
 
 ## Remaining work (tracked)
