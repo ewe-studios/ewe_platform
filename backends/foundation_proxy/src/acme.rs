@@ -13,6 +13,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
+use foundation_netio::shared::client::body_reader::{collect_bytes_from_send_safe, collect_strings_from_send_safe};
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
 };
@@ -257,7 +258,8 @@ impl AcmeClient {
         Ok(account_url)
     }
 
-    /// Place an order for the given domains. Returns the authorization URLs.
+    /// Place an order for the given domains.
+    /// Returns `(finalize_url, authorization_urls)`.
     pub async fn place_order(
         &self,
         domains: &[String],
@@ -286,11 +288,11 @@ impl AcmeClient {
         let signed = self.sign_jws(&jws)?;
         let resp = self.post_json(&dir.new_order, &signed, true).await?;
 
-        let order_url = resp
+        let finalize_url = resp
             .get("finalize")
             .and_then(|f| f.as_str())
-            .map(|_| dir.new_order.clone())
-            .unwrap_or_default();
+            .map(String::from)
+            .ok_or_else(|| "no finalize URL in order response".to_string())?;
 
         let authorizations: Vec<String> = resp
             .get("authorizations")
@@ -298,7 +300,7 @@ impl AcmeClient {
             .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
             .unwrap_or_default();
 
-        Ok((order_url, authorizations))
+        Ok((finalize_url, authorizations))
     }
 
     /// Fetch an authorization and return its DNS-01 challenge.
@@ -371,16 +373,20 @@ impl AcmeClient {
     }
 
     /// Full automated flow: order → challenge → validate → finalize → download.
+    ///
+    /// `csr_der` is a DER-encoded PKCS#10 certificate signing request.
+    /// Returns `(certificate_pem, raw_cert_bytes)`.
     pub async fn provision(
         &self,
         domains: &[String],
         email: &str,
-    ) -> Result<(String, String), String> {
+        csr_der: &[u8],
+    ) -> Result<(String, Vec<u8>), String> {
         // 1. Create account
         let _account_url = self.create_account(email).await?;
 
-        // 2. Place order
-        let (_order_url, authorizations) = self.place_order(domains).await?;
+        // 2. Place order — capture finalize_url from first call.
+        let (finalize_url, authorizations) = self.place_order(domains).await?;
 
         // 3. Solve DNS-01 challenges.
         let thumbprint = Self::account_thumbprint(
@@ -393,20 +399,49 @@ impl AcmeClient {
             let dns_value = Self::dns01_value(&challenge.token, &thumbprint);
             let domain = self.get_authorization_domain(auth_url).await?;
 
-            // Set _acme-challenge TXT record
             let record_name = format!("_acme-challenge.{domain}");
             dns(&record_name, &dns_value)?;
-
-            // Small delay for DNS propagation
             std::thread::sleep(std::time::Duration::from_secs(5));
-
-            // Tell ACME to validate
             self.respond_to_challenge(&challenge.url).await?;
         }
 
-        // 4. Generate CSR and finalize (caller provides CSR)
-        // For now, return the order_url so the caller can finalize with their CSR.
-        Err("CSR generation deferred to caller".to_string())
+        // 4. Finalize order with CSR.
+        let cert_url = self.finalize_order(&finalize_url, csr_der).await?;
+
+        // 5. Download certificate (raw bytes).
+        let nonce = self.fetch_nonce_nopost().await?;
+        let jws = build_jws(&cert_url, &nonce, "", self.key_id.as_deref(), None);
+        let signed = self.sign_jws(&jws)?;
+        let raw_cert = self.post_json_raw(&cert_url, &signed).await?;
+
+        // 6. Also get the cert as text (for PEM output).
+        let cert_pem = String::from_utf8(raw_cert.clone())
+            .unwrap_or_else(|_| "certificate downloaded".to_string());
+
+        Ok((cert_pem, raw_cert))
+    }
+
+    /// Post JSON and return raw bytes (for certificate download).
+    async fn post_json_raw(
+        &self,
+        url: &str,
+        body: &Value,
+    ) -> Result<Vec<u8>, String> {
+        let json = serde_json::to_vec(body).map_err(|e| format!("serialize: {e}"))?;
+        let mut headers = SimpleHeaders::new();
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/jose+json".to_string()]);
+
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::POST, url)
+            .map_err(|e| format!("build POST {url}: {e}"))?
+            .headers(headers)
+            .body(SendSafeBody::Bytes(json));
+
+        let request = self.client.request(builder)
+            .map_err(|e| format!("request {url}: {e}"))?;
+        let response = request.send()
+            .map_err(|e| format!("send {url}: {e}"))?;
+        let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
+        Ok(collect_bytes_from_send_safe(resp_body))
     }
 
     /// Compute the DNS-01 TXT record value.
@@ -432,14 +467,22 @@ impl AcmeClient {
     }
 
     async fn fetch_nonce(&self, new_nonce_url: &str) -> Result<String, String> {
-        // HEAD request to get Replay-Nonce header.
-        // For simplicity, use GET to newNonce endpoint.
-        let resp_body = self.get_json(new_nonce_url).await?;
-        // The nonce is returned in the Replay-Nonce header, not the body.
-        // Our HTTP client may not expose response headers this way.
-        // Fallback: use a placeholder that works for the initial request.
-        // In production, implement proper HEAD request with header extraction.
-        Ok("initial-nonce".to_string())
+        // RFC 8555 §7.2: HEAD to newNonce endpoint, nonce in Replay-Nonce header.
+        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::HEAD, new_nonce_url)
+            .map_err(|e| format!("build HEAD {new_nonce_url}: {e}"))?;
+
+        let request = self.client.request(builder)
+            .map_err(|e| format!("request nonce {new_nonce_url}: {e}"))?;
+        let response = request.send()
+            .map_err(|e| format!("send nonce request: {e}"))?;
+        let (_status, headers, _body, _pool, _conn) = response.into_parts();
+
+        let nonce_key = SimpleHeader::custom("replay-nonce");
+        headers
+            .get(&nonce_key)
+            .and_then(|vals| vals.first())
+            .cloned()
+            .ok_or_else(|| format!("no replay-nonce header from {new_nonce_url}"))
     }
 
     async fn fetch_nonce_nopost(&self) -> Result<String, String> {
@@ -456,13 +499,9 @@ impl AcmeClient {
         let response = request.send()
             .map_err(|e| format!("send {url}: {e}"))?;
         let (_status, _headers, body, _pool, _conn) = response.into_parts();
-
-        match body {
-            SendSafeBody::Bytes(b) => {
-                serde_json::from_slice(&b).map_err(|e| format!("parse JSON from {url}: {e}"))
-            }
-            _ => Err("no body in ACME response".to_string()),
-        }
+        let text = collect_strings_from_send_safe(body)
+            .map_err(|e| format!("read body from {url}: {e}"))?;
+        serde_json::from_str(&text).map_err(|e| format!("parse JSON from {url}: {e}"))
     }
 
     async fn post_json(&self, url: &str, body: &Value, _expect_json: bool) -> Result<Value, String> {
@@ -480,13 +519,9 @@ impl AcmeClient {
         let response = request.send()
             .map_err(|e| format!("send {url}: {e}"))?;
         let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
-
-        match resp_body {
-            SendSafeBody::Bytes(b) => {
-                serde_json::from_slice(&b).map_err(|e| format!("parse JSON from {url}: {e}"))
-            }
-            _ => Ok(serde_json::json!({})),
-        }
+        let text = collect_strings_from_send_safe(resp_body)
+            .map_err(|e| format!("read body from {url}: {e}"))?;
+        Ok(serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({})))
     }
 
     async fn post_json_typed<T: serde::de::DeserializeOwned>(
@@ -509,13 +544,9 @@ impl AcmeClient {
         let response = request.send()
             .map_err(|e| format!("send {url}: {e}"))?;
         let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
-
-        match resp_body {
-            SendSafeBody::Bytes(b) => {
-                serde_json::from_slice(&b).map_err(|e| format!("parse JSON: {e}"))
-            }
-            _ => Err("no body".to_string()),
-        }
+        let text = collect_strings_from_send_safe(resp_body)
+            .map_err(|e| format!("read body from {url}: {e}"))?;
+        serde_json::from_str(&text).map_err(|e| format!("parse JSON: {e}"))
     }
 
     async fn get_authorization_domain(&self, auth_url: &str) -> Result<String, String> {
