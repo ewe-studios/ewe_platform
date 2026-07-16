@@ -173,7 +173,7 @@ impl NativeAPI {
 The route handler assigns profiles in the `RouteDecision`:
 
 ```rust
-session.route("/app/*", RouteDecision::local_wasm()
+session.route("/app/*", RouteDecision::webview_app()
     .with_profile(Profile::App));
 
 session.route("/remote/content/*", RouteDecision::remote_fetch()

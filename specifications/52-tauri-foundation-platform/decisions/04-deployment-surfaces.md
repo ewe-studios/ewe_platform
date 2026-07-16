@@ -144,7 +144,7 @@ Only the native binary needs app-store review.
 ```rust
 #[platform_entrypoint(webview)]
 fn main(session: PlatformSession) {
-    session.route("/app/*", RouteDecision::local_wasm());
+    session.route("/app/*", RouteDecision::webview_app());
     session.route("/remote/*", RouteDecision::remote_fetch());
     session.register_capability::<CameraCapability>();
     session.register_capability::<BiometricCapability>();
@@ -471,7 +471,7 @@ decides per-route:
 #[platform_entrypoint(webview)]
 fn main(session: PlatformSession) {
     // Surface 1: App shell runs locally as WASM
-    session.route("/app/*", RouteDecision::local_wasm()
+    session.route("/app/*", RouteDecision::webview_app()
         .with_profile(Profile::App));
 
     // Surface 2: Performance-critical data path uses native static lib
@@ -498,7 +498,7 @@ Composition patterns:
 
 - **Surfaces 1 + 4:** Some routes handled locally by WASM, others streamed
   from remote. The route handler decides per-route.
-  `session.route("/app/*", local_wasm()); session.route("/cloud/*",
+  `session.route("/app/*", webview_app()); session.route("/cloud/*",
   remote_fetch())`.
 
 - **Surfaces 4 + 5:** Remote routes cached automatically. When offline, the
@@ -596,7 +596,7 @@ fn main(session: PlatformSession) {
     // Full access to Tauri primitives through the session.
     // Can register routes, capabilities, database connections.
     // The shell calls this at startup, before the WebView is created.
-    session.route("/app/*", RouteDecision::local_wasm());
+    session.route("/app/*", RouteDecision::webview_app());
     session.register_capability::<CameraCapability>();
 }
 ```

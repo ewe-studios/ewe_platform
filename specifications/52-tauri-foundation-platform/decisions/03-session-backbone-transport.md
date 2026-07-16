@@ -23,7 +23,7 @@ scheme, registered with Tauri's `UriSchemeProtocol`.
 4. [All transport lanes](#all-transport-lanes)
 5. [Protocol selection per response](#protocol-selection-per-response)
 6. [The `ewe://` custom protocol](#the-ewe-custom-protocol)
-7. [Arrow IPC vs Columnar v1](#arrow-ipc-vs-columnar-v1-protocol-positioning)
+7. [Arrow vs Columnar v1](#arrow-vs-columnar-v1-protocol-positioning)
 8. [How it spans both crates](#how-it-spans-both-crates)
 9. [Native UI integration tiers](#native-ui-integration-tiers)
 10. [What Tauri already provides vs what we build](#what-tauri-already-provides-vs-what-we-build)
@@ -74,7 +74,7 @@ handlers in registration order; first claim wins:
 // Route handlers — claim navigation intents
 session.register_handler(MyAppRouter::new(db, auth));
 session.on_navigate(|intent, session| { ... });
-session.route("/app/*", RouteDecision::local_wasm());
+session.route("/app/*", RouteDecision::webview_app());
 
 // Capability handlers — claim capability requests
 session.register_capability::<CameraCapability>();
@@ -196,7 +196,13 @@ want.
 - Custom binary batch instructions (DomOps)
 - Columnar v1 (wasm-loop, no-std, TypedArray-friendly DOM operation batches)
 - JSON DOM operation representation
-- Real Apache Arrow IPC (for structured data payloads, not UI ops)
+- Arrow — raw RecordBatch binary. Single batch: Arrow's in-memory columnar
+  layout cast to `&[u8]`. For request/response data payloads. The default
+  Arrow protocol for most use cases.
+- ArrowIpc — the Arrow IPC streaming format (Schema + DictionaryBatch +
+  RecordBatch messages with continuation markers, EOS indicator). For
+  multi-batch data streams where the schema may change or multiple batches
+  are sent over a single connection.
 - HTML fragments (for server-rendered markup)
 - Event payloads and function-call ABI frames
 
@@ -207,7 +213,7 @@ want.
 - Tauri custom protocol — resource lane for bundled/cached/generated/remote
   assets served through the session backbone
 - Native shell IPC — zero-copy data lane for same-process Rust↔native
-  communication (Arrow IPC delivered as shared-memory `ArrayBuffer`)
+  communication (Arrow RecordBatch bytes delivered as shared-memory `ArrayBuffer`)
 - Local embedded server — WebSocket/HTTP lane when the Rust backend runs as a
   standalone process on the device
 - SSE/WebSocket to remote servers — standard web streaming for server-driven
@@ -229,9 +235,28 @@ user chooses which to use per route/component.
 ### Tauri command IPC — control lane
 
 Small typed request/response. Used for: capability calls (auth, file picker,
-camera), sync triggers, app metadata queries, permission checks.
+camera), sync triggers, app metadata queries, permission checks. Also supports
+Arrow binary payloads via `InvokeBody::Raw` on desktop and iOS (not Android).
 
-**Tauri primitive used:** `tauri::command` invoke. JSON/MessagePack serialized.
+**Tauri primitive used:** `tauri::command` invoke. Tauri's `InvokeBody` enum
+(`ipc/mod.rs:59`) supports both `Json(JsonValue)` AND `Raw(Vec<u8>)`. On
+desktop and iOS, Arrow RecordBatch binary can be sent directly as a `Raw`
+payload — no base64 wrapping needed. On Android, `Raw` is unsupported; the
+platform falls back to the custom protocol lane for Arrow data on Android.
+
+**When to use Arrow in the command lane vs other lanes:**
+
+| Platform | Command IPC (Raw) | Custom protocol lane | Native shell IPC |
+|---|---|---|---|
+| Desktop | ✅ Arrow binary as `Raw(Vec<u8>)` | ✅ Streaming binary response | ✅ Same-process zero-copy |
+| iOS | ✅ Arrow binary as `Raw(Vec<u8>)` | ✅ Streaming binary response | ✅ Same-process zero-copy |
+| Android | ❌ `Raw` unsupported (fall back to custom protocol) | ✅ Streaming binary response | ✅ Same-process zero-copy |
+
+The command lane is still best for small control messages (where JSON overhead
+is negligible), but it is NOT limited to JSON — binary Arrow payloads work
+everywhere except Android. For streaming or Android, use the custom protocol
+lane. For same-process, the native shell IPC lane is zero-copy and always
+available.
 
 **How it works:**
 1. WASM-side code calls `session.invoke("capability_name", payload)`.
@@ -283,31 +308,44 @@ remote-proxied content all flow through this lane.
 
 ### Native shell IPC — zero-copy data lane
 
-For same-process Rust↔native communication. Used when the user's code is
-compiled as a static library and runs in the same process as the platform
-shell. Arrow IPC delivered as shared-memory `ArrayBuffer`.
+For same-process communication between the shell and user code — whether that
+code is native Rust compiled as a static library OR user WASM running in an
+embedded wasmtime/wasmi runtime. From the platform's perspective, both paths
+are identical: the shell makes a local call, gets back a pointer + length to
+Arrow RecordBatch bytes, and delivers them.
 
-**How it works:**
-1. The user's Rust code (compiled as `.a`/`.so`) allocates an Arrow
-   `RecordBatch` in process memory.
-2. Returns a pointer + length to the shell.
+**Two paths, same transport:**
+
+| Path | What runs | How bytes are generated | Zero-copy? |
+|---|---|---|---|
+| **Native static library** | User Rust code compiled as `.a`/`.so` | Rust allocates `RecordBatch` in process heap, returns `(ptr, len)` | Yes — pointer write, no memory copy |
+| **WASM in wasmtime/wasmi** | User WASM module loaded by the shell's embedded WASM runtime | WASM allocates `RecordBatch` in WASM linear memory; the shell reads the bytes directly from the WASM memory buffer | Yes — WASM linear memory is a contiguous `Vec<u8>` in the host process |
+
+Both paths deliver Arrow RecordBatch binary. The platform does not need to
+know which path generated the bytes — `RouteSource::IpcShell` covers both
+(see [decision 02](02-route-policy-model.md)).
+
+**How it works (both paths):**
+1. User code (native or WASM) allocates an Arrow `RecordBatch`.
+2. Shell calls into the user code (function call for native, WASM exported
+   function for wasmtime) and gets back a pointer + length.
 3. The shell writes the bytes into the WebView's buffer via the custom
    protocol lane as an `ArrayBuffer`.
 4. Arrow JS (or the WASM runtime) reads the `ArrayBuffer` directly.
 
 **Characteristics:**
-- True zero-copy in same-process configurations (static library + shell).
+- True zero-copy in both native and WASM paths (same process, no sandbox).
 - On mobile (WebView in separate OS process): copy-minimized binary transfer.
 - Arrow's columnar memory layout means the wire format IS the in-memory
-  format.
-- A 10MB table crosses the Rust→Swift boundary in microseconds — the cost of
-  a pointer write, not a memory copy.
+  format — cast the `RecordBatch` to `&[u8]`, done. No serialization.
+- A 10MB table crosses the boundary in microseconds — the cost of a pointer
+  write, not a memory copy.
 
 **Copy behavior, ordered by cost:**
-1. **WASM memory as shared buffer** — native Rust writes into WASM linear
-   memory; JS reads from the same `ArrayBuffer`. Closest to true zero-copy.
-2. **Custom protocol + binary response** — Rust serves Arrow IPC bytes over
-   Tauri custom protocol. Single copy (Rust buffer → fetch buffer).
+1. **WASM linear memory as shared buffer** — native code or shell reads
+   directly from WASM linear memory (same process). No copy at all.
+2. **Custom protocol + binary response** — Rust serves Arrow RecordBatch
+   bytes over Tauri custom protocol. Single copy (Rust buffer → fetch buffer).
    Recommended default for data payloads.
 3. **postMessage + transferable ArrayBuffer** — ownership transfer where
    supported. Platform-dependent.
@@ -376,10 +414,10 @@ The response protocol is determined by, in priority order:
 
 1. **Route handler's `RouteDecision.protocol`** — the user explicitly chooses.
 2. **`proto` query parameter** — the WebView requests a specific format
-   (e.g. `?proto=arrow-ipc`).
+   (e.g. `?proto=arrow`).
 3. **Backend's native format** — whatever the backend (WASM, native, server)
-   produces. If the backend emits Arrow IPC, that's what gets delivered.
-4. **Platform default** — columnar v1 for DomOps, Arrow IPC for data.
+   produces. If the backend emits Arrow RecordBatch binary, that's what gets delivered.
+4. **Platform default** — columnar v1 for DomOps, Arrow binary for data.
 
 ```rust
 fn select_protocol(
@@ -398,7 +436,8 @@ Response `Content-Type` headers:
 | Protocol | Content-Type |
 |---|---|
 | Columnar v1 (DomOps) | `application/primal-columnar` |
-| Arrow IPC | `application/primal-arrow` or `application/vnd.apache.arrow.stream` |
+| Arrow | `application/primal-arrow` (raw RecordBatch binary — single batch, no streaming headers) |
+| ArrowIpc | `application/vnd.apache.arrow.stream` (Arrow IPC streaming format: Schema + DictionaryBatch + RecordBatch messages, EOS marker) |
 | JSON | `application/primal-json` |
 | HTML fragment | `text/html; charset=utf-8` |
 | Custom binary | `application/primal-binary` |
@@ -452,7 +491,7 @@ app.webview_on_all(|webview_builder| {
 ### Protocol routing pipeline
 
 ```
-Browser/WebView requests:  ewe://localhost/app/items?proto=arrow-ipc
+Browser/WebView requests:  ewe://localhost/app/items?proto=arrow
                                     │
                                     ▼
 Tauri intercepts ──→ UriSchemeProtocol handler fires
@@ -460,21 +499,21 @@ Tauri intercepts ──→ UriSchemeProtocol handler fires
                                     ▼
 Platform parses URI:
   ├── scheme:   ewe
-  ├── transport: default (IPC via Tauri command lane)
+  ├── transport: default (custom protocol)
   ├── route:    /app/items
-  ├── protocol hint: arrow-ipc (from query param)
+  ├── protocol hint: arrow (from query param)
   └── method:   GET
                                     │
                                     ▼
 Session backbone resolves route:
   ├── Route handler chain returns RouteDecision
   ├── Cache policy checked (serve from cache? fetch fresh?)
-  └── Backend queried (local WASM, IPC to native shell, remote server)
+  └── Backend queried (WebviewApp, IPC to native shell, remote server)
                                     │
                                     ▼
 Platform encodes response:
   ├── Protocol selected (from RouteDecision or query hint)
-  ├── Content encoded (Arrow IPC, columnar, JSON, HTML)
+  ├── Content encoded (Arrow binary, columnar, JSON, HTML)
   └── HTTP response built with correct Content-Type
                                     │
                                     ▼
@@ -499,7 +538,7 @@ ewe+http://localhost/{route}?{params}
 | Sub-scheme | `+ipc`, `+ws`, `+http` | Transport hint (defaults to Tauri command IPC for control, custom protocol binary response for data). |
 | Host | `localhost` | Always `localhost` — the protocol is local within Tauri's WebView. |
 | Route | `/app/items` | App route. Mapped through the session's route handler chain. |
-| `proto` param | `?proto=arrow-ipc` | Protocol preference hint (columnar, arrow-ipc, json, html). The backend can override. |
+| `proto` param | `?proto=arrow` | Protocol preference hint (columnar, arrow, json, html). The backend can override. |
 | `cache` param | `?cache=stale-while-revalidate` | Cache policy hint. The session's cache policy takes precedence. |
 | `action` param | `?action=write` | Indicates a mutation (POST/PUT/DELETE semantics over the protocol). |
 
@@ -535,7 +574,7 @@ For large payloads or live streams, the custom protocol handler supports:
    `foundation_wasm_ui` plugs in directly — the WS connection is a
    `FrameTransport`.
 
-3. **ArrayBuffer delivery** — binary responses (Arrow IPC, columnar) are
+3. **ArrayBuffer delivery** — binary responses (Arrow binary, columnar) are
    delivered as `ArrayBuffer` in the WebView. Arrow JS reads them directly
    without parsing. Single copy (Rust buffer → WebView buffer).
 
@@ -590,9 +629,18 @@ fn handle_route_request(
             foundation_wasm_ui::encode_columnar(&ops),
             "application/primal-columnar",
         ),
-        Protocol::ArrowIpc => (
-            foundation_wasm_ui::encode_arrow_ipc(&ops),
+        Protocol::Arrow => (
+            // Raw RecordBatch binary — single batch, no streaming headers.
+            // Cast the RecordBatch to &[u8] and send.
+            foundation_wasm_ui::encode_arrow(&ops),
             "application/primal-arrow",
+        ),
+        Protocol::ArrowIpc => (
+            // Arrow IPC streaming format: Schema + DictionaryBatch +
+            // RecordBatch messages, continuation markers, EOS indicator.
+            // For multi-batch data streams.
+            foundation_wasm_ui::encode_arrow_ipc(&ops),
+            "application/vnd.apache.arrow.stream",
         ),
         Protocol::Json => (
             foundation_wasm_ui::encode_json(&ops),
@@ -624,43 +672,63 @@ fn handle_route_request(
   from the decision chain. Complex content negotiation (Accept headers, etc.)
   can be added later if needed.
 
-### Arrow IPC vs Columnar v1: protocol positioning
+### Arrow vs Columnar v1: protocol positioning
 
-Arrow IPC is for **structured data payloads**, NOT for UI DOM operations. The
-existing `foundation_wasm_ui` protocols handle UI operations. Arrow is used
+**TODO**: The ui can use arrow or columnvar v1 - dont be pedantic, and honestly the platform should not care about this, it takes it and delivers.
+
+Arrow protocols are for **structured data payloads**, NOT for UI DOM operations.
+The existing `foundation_wasm_ui` protocols handle UI operations. Arrow is used
 for data sets and analytics-style payloads where its columnar layout and
 zero-copy guarantees add real value.
 
-**What Arrow is for:**
+**Two Arrow protocol variants:**
+
+| Variant | Wire format | Content-Type | When to use |
+|---|---|---|---|
+| `Arrow` | Raw RecordBatch binary — columnar bytes cast to `&[u8]`. No metadata, no framing. Single batch. | `application/primal-arrow` | The default. Request/response with a single RecordBatch. Zero-copy: the in-memory layout IS the wire format. |
+| `ArrowIpc` | Arrow IPC streaming format — Schema message → DictionaryBatch messages → RecordBatch messages → EOS marker. Each message is prefixed with a 4-byte continuation indicator. | `application/vnd.apache.arrow.stream` | Multi-batch streams over a single connection (SSE, WebSocket, streaming HTTP). When the schema may change between batches. Interoperable with Arrow Flight, pyarrow, etc. |
+
+**When to use which:**
+
+| Use case | Protocol |
+|---|---|
+| Single query result (e.g. "get users where age > 30") | `Arrow` — one RecordBatch, raw bytes |
+| Stream of analytics results (e.g. live dashboard updates) | `ArrowIpc` — streaming format, may include schema changes |
+| Native↔native communication in same process | `Arrow` — zero-copy, just the bytes |
+| Export to external tools (pyarrow, pandas) | `ArrowIpc` — standard streaming format they understand |
+| Capability response with data payload | `Arrow` — single batch, fits in `InvokeBody::Raw` |
+
+**What Arrow is for (both variants):**
 - Large structured data payloads (analytics, tables, sync logs).
 - High-throughput Rust↔native communication (same process, shared memory).
-- Data delivered to the WebView via custom protocol as binary `ArrayBuffer`
-  for Arrow JS to parse directly.
+- Data delivered to the WebView as binary `ArrayBuffer` for direct reading.
 
 **What Arrow is NOT for:**
-- UI DOM operations — those use the existing `DomOp` / columnar v1 / custom
-  binary / JSON / HTML fragment protocols from `foundation_wasm_ui`.
-- Every efficient batch operation — spec 39 corrected the naming:
-  **columnar v1** is the wasm-loop, no-std, TypedArray-friendly layout for
-  DOM operation batches. Real Apache Arrow IPC is for the data layer.
+- UI DOM operations — those use columnar v1 (wasm-loop, no-std,
+  TypedArray-friendly DOM operation batches from `foundation_wasm_ui`).
+- Small control messages — those are JSON over Tauri command IPC.
+- HTML fragments — those are text/html responses.
 
 **Terminology distinction:**
 - **Columnar v1** — wasm-loop, no-std, typed-array-friendly layout used for
   efficient DOM operation batches. Owned by `foundation_wasm_ui`.
-- **Arrow IPC** — real Apache Arrow IPC, owned by `foundation_arrow`, used
-  where a std-capable Arrow path is appropriate (data sets, analytics,
-  native↔native communication).
+- **Arrow** — raw RecordBatch binary, owned by `foundation_arrow`. Single
+  batch, no streaming metadata. The default for data payloads.
+- **ArrowIpc** — Arrow IPC streaming format, owned by `foundation_arrow`.
+  Multi-batch, schema-capable, interoperable with the Apache Arrow ecosystem.
 
 **Zero-copy directions:**
 
 | Direction | Mechanism | Zero-copy? |
 |---|---|---|
-| Rust ↔ Native platform (same process) | Arrow wire format IS in-memory format. Pointer write, not memory copy. | Yes |
-| Rust → WebView (cross-process on mobile) | Custom protocol binary response. Single copy (Rust buffer → fetch buffer). | Copy-minimized |
+| Rust ↔ Native platform (same process) | `Arrow`: cast RecordBatch to bytes, no serialization. | Yes |
+| Rust → WebView (cross-process on mobile) | `Arrow` or `ArrowIpc` over custom protocol binary response. Single copy (Rust buffer → fetch buffer). | Copy-minimized |
 | Native shell + WASM (same process) | WASM linear memory directly readable by native code. | Yes |
+| Multi-batch stream (remote server) | `ArrowIpc` over SSE/WebSocket. Standard framing. | Network cost plus one decode. |
 
 This distinction is why `ProtocolHint` in `RouteDecision` separates
-`Columnar` from `ArrowIpc` — they serve different purposes and are routed
+`Columnar`, `Arrow`, and `ArrowIpc` — they serve different purposes and are
+routed through different encoders.
 through different encoders.
 
 ---

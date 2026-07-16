@@ -166,7 +166,7 @@ They are needed by both the web side (`foundation_wasm_ui`) and the native side
 | `NavigationIntent` | `{ url, method, source, referrer }`. The input to a route handler. Pure data — the session creates it from intercepted events. |
 | `CapabilityRequest` | `{ id, page_identity, capability_name, action, payload, permissions }`. A request from the web side for a native capability. |
 | `CapabilityResponse` | `{ id, page_identity, status, payload_or_error }`. The result. Delivered scoped to the requesting page. |
-| `Protocol` enum | `Columnar \| ArrowIpc \| Json \| Html \| CustomBinary`. Already partially in `foundation_ui_traits` via `ProtocolEncoder`. Extended with all protocol variants. |
+| `Protocol` enum | `Columnar \| Arrow \| ArrowIpc \| Json \| Html \| CustomBinary`. `Arrow` = raw RecordBatch binary (single batch, no streaming metadata). `ArrowIpc` = Arrow IPC streaming format (multi-batch, Schema + RecordBatch messages + EOS, interoperable with pyarrow/Flight). Already partially in `foundation_ui_traits` via `ProtocolEncoder`. Extended with all protocol variants. |
 | `Profile` enum | `App \| TrustedRemote \| UntrustedRemote \| Auth \| Devtools`. The WebView profile taxonomy. Needed by both the session (gating access) and the UI runtime (CSP, origin policy). |
 | `CachePolicy` enum | `CacheFirst \| NetworkFirst \| OnlineOnly \| LocalOnly \| StaleWhileRevalidate`. Pure enum, no cache implementation. |
 | `Presentation` enum | `Morph \| Push \| Modal \| Replace \| External \| Root`. How navigation is presented. The session decides; the platform executes. |
@@ -230,7 +230,7 @@ platform's capability registry wraps this for per-route, profile-gated access.
 
 ### `foundation_arrow` (existing)
 
-Apache Arrow IPC encoding/decoding. Used by the platform for structured data
+Arrow RecordBatch binary encoding/decoding. Used by the platform for structured data
 payloads over the native shell IPC lane and the custom protocol lane.
 
 ### `foundation_http` (existing)
