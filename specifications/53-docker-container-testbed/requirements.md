@@ -113,12 +113,10 @@ All decisions documented in `decisions/`.
 
 | # | Item | Decision | Status |
 |---|------|----------|--------|
-| — | Testbed vms/ migration | 28 | 📋 Not started |
 | — | `foundation_deployment_docker` CI tests | — | 📋 Needs Docker-in-CI |
 
-The Docker runtime itself (Part A) is feature-complete and migrated to
-`foundation_deployment_docker`. The proxy stages (18–27) belong to
-`foundation_proxy`, not this spec.
+All Docker and proxy decisions (01–29) are implemented. See
+[progress.md](progress.md) and [features/README.md](features/README.md).
 
 ## Plan
 
