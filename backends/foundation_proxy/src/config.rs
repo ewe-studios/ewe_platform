@@ -35,6 +35,11 @@ pub struct ProxyConfig {
     /// interface.
     #[serde(default)]
     pub control_socket: Option<String>,
+    /// Directory for persisted proxy state (Decision 21, F14). When set,
+    /// `ProxyServer` restores backend drain/pause state on start and writes
+    /// admin changes through so they survive a restart. `None` disables it.
+    #[serde(default)]
+    pub state_dir: Option<String>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -54,6 +59,7 @@ impl ProxyConfig {
             bind_addr: None,
             services: Vec::new(),
             control_socket: None,
+            state_dir: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -76,6 +82,14 @@ impl ProxyConfig {
     #[must_use]
     pub fn control_socket(mut self, path: &str) -> Self {
         self.control_socket = Some(path.to_string());
+        self
+    }
+
+    /// Enable state persistence under `dir` (Decision 21). Backend drain/pause
+    /// state is restored on start and written through on admin changes.
+    #[must_use]
+    pub fn persist_to(mut self, dir: &str) -> Self {
+        self.state_dir = Some(dir.to_string());
         self
     }
 

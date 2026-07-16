@@ -13,7 +13,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use foundation_iogate::ServerIo;
 
+use crate::config::BackendState;
 use crate::forward::SharedHttpClient;
+use crate::persistence::ProxyStateStore;
 use crate::router::Router;
 
 /// Immutable-after-startup proxy state shared by every request handler.
@@ -27,6 +29,10 @@ pub struct ProxyState {
     /// responds 503 to signal the client to retry elsewhere (zero-downtime deploy,
     /// Decision 22).
     draining: AtomicBool,
+    /// Optional persistence store (Decision 21, F14). When present, admin state
+    /// changes (drain/pause/activate) are written through so they survive a
+    /// restart. `None` disables persistence.
+    store: Option<Arc<ProxyStateStore>>,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -56,6 +62,25 @@ impl ProxyState {
             scheme: scheme.into(),
             io_mode,
             draining: AtomicBool::new(false),
+            store: None,
+        }
+    }
+
+    /// Attach a persistence store (Decision 21). Admin state changes are then
+    /// written through so drain/pause survive a restart.
+    #[must_use]
+    pub fn with_store(mut self, store: Arc<ProxyStateStore>) -> Self {
+        self.store = Some(store);
+        self
+    }
+
+    /// Persist a backend's state change, if a store is attached. Best-effort:
+    /// a persistence failure is logged, never propagated to the admin caller.
+    pub fn persist_backend_state(&self, service: &str, url: &str, state: BackendState) {
+        if let Some(store) = &self.store {
+            if let Err(e) = store.save_backend_state(service, url, &state.to_string()) {
+                tracing::warn!(%service, %url, "failed to persist backend state: {e}");
+            }
         }
     }
 

@@ -224,6 +224,9 @@ fn dispatch(req: &Request, state: &ProxyState) -> (bool, Option<String>, Option<
                 for b in svc.backends() {
                     if b.url() == backend_url {
                         b.set_state(target_state);
+                        // Persist the change so it survives a restart (F14, no-op
+                        // when no store is attached).
+                        state.persist_backend_state(service_name, backend_url, target_state);
                         found = true;
                         break;
                     }

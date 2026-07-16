@@ -28,11 +28,12 @@ use foundation_netio::http::HttpConnectionPool;
 use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::http::NativeHttpClient;
 
-use crate::config::{ProxyConfig, ProxyError, SslProvider};
+use crate::config::{BackendState, ProxyConfig, ProxyError, SslProvider};
 use crate::control::ControlSocket;
 use crate::handler::ProxyHandler;
 use crate::h2_proxy::H2ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
+use crate::persistence::{PersistedProxyState, ProxyStateStore};
 use crate::router::Router;
 use crate::runtime::ServiceRuntime;
 use crate::state::ProxyState;
@@ -120,13 +121,22 @@ impl ProxyServer {
         // `Arc`), then pull the single shared `Arc<ProxyState>` back out of the bag
         // so the H2 handler, health probes, and this handle all reference the same
         // instance (shared drain flag and in-flight counts).
+        // State persistence (Decision 21, F14): restore backend drain/pause state
+        // from a previous run, and attach the store so admin changes are written
+        // through. `None` state_dir disables persistence entirely.
+        let store: Option<Arc<ProxyStateStore>> = config.state_dir.as_ref().map(|dir| {
+            Arc::new(ProxyStateStore::new(std::path::Path::new(dir), &config.domain))
+        });
+        if let Some(store) = &store {
+            restore_persisted_state(store, &services, &config);
+        }
+
         let mut h1_app = HttpApp::new_serve();
-        h1_app.context().store(ProxyState::new(
-            router,
-            client.clone(),
-            "http",
-            config.io_mode,
-        ));
+        let mut proxy_state_value = ProxyState::new(router, client.clone(), "http", config.io_mode);
+        if let Some(store) = &store {
+            proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
+        }
+        h1_app.context().store(proxy_state_value);
         let proxy_state = h1_app
             .context()
             .get::<ProxyState>()
@@ -340,6 +350,59 @@ fn extract_path(head: &str) -> &str {
         .next()
         .and_then(|line| line.split_whitespace().nth(1))
         .unwrap_or("/")
+}
+
+/// Restore persisted backend drain/pause state onto the live services and record
+/// the current config hash (Decision 21, F14). Best-effort — a load/save failure
+/// is logged and startup proceeds with default (Active) backend states.
+fn restore_persisted_state(
+    store: &ProxyStateStore,
+    services: &[Arc<ServiceRuntime>],
+    config: &ProxyConfig,
+) {
+    let mut persisted = match store.load() {
+        Ok(Some(p)) => {
+            apply_backend_states(services, &p);
+            p
+        }
+        Ok(None) => PersistedProxyState::default(),
+        Err(e) => {
+            tracing::warn!("failed to load persisted proxy state: {e}");
+            return;
+        }
+    };
+    // Record the current config hash so a later run can detect topology changes.
+    persisted.config_hash = Some(ProxyStateStore::compute_config_hash(config));
+    if let Err(e) = store.save(&persisted) {
+        tracing::warn!("failed to persist proxy state on start: {e}");
+    }
+}
+
+/// Apply persisted per-backend states to the matching live backends. The key is
+/// `"{service}/{url}"`, exactly as [`ProxyStateStore::save_backend_state`] writes
+/// it, so no ambiguous path-splitting is needed — we rebuild the key and look up.
+fn apply_backend_states(services: &[Arc<ServiceRuntime>], persisted: &PersistedProxyState) {
+    for svc in services {
+        let name = &svc.config().name;
+        for backend in svc.backends() {
+            let key = format!("{name}/{}", backend.url());
+            if let Some(state) = persisted.backend_states.get(&key).and_then(|s| parse_backend_state(s)) {
+                backend.set_state(state);
+                tracing::info!(service = %name, url = %backend.url(), state = %state, "restored backend state");
+            }
+        }
+    }
+}
+
+/// Parse a persisted backend-state string (written via `BackendState`'s
+/// `Display`, e.g. `"draining"`) back into a [`BackendState`].
+fn parse_backend_state(s: &str) -> Option<BackendState> {
+    match s.to_ascii_lowercase().as_str() {
+        "active" => Some(BackendState::Active),
+        "draining" => Some(BackendState::Draining),
+        "paused" => Some(BackendState::Paused),
+        _ => None,
+    }
 }
 
 #[cfg(test)]
