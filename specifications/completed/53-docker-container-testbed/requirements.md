@@ -121,9 +121,9 @@ All decisions documented in `decisions/`.
 | — | Platform BoringSSL/OpenSSL link conflict (gate `boring` in wireguard) | 13 | ✅ Done |
 | — | SSH backend: removed russh; ssh2 is the sole backend | 13 | ✅ Done |
 | F14 | Wire state persistence into `ProxyServer` | 21 | ✅ Done |
-| F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | 🔴 Not integrated |
+| F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | ✅ Done |
 | F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | ✅ Done |
-| F19 | Integrate HTTP/3 (define `quic` feature + deps, fix handler, wire, test) | 27 | 🔴 Not compiled |
+| F19 | Build HTTP/3 serving layer in foundation_http (from scratch) + fix handler + wire | 27 | 🔴 Deferred (large) |
 | — | `foundation_deployment_docker` CI tests | — | 📋 Needs Docker-in-CI |
 
 ## Plan

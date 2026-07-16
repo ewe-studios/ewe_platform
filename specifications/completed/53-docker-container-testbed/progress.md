@@ -40,8 +40,8 @@
 |---|---------|--------|
 | ✅ F14 | State persistence | **Fixed:** `ProxyConfig::persist_to(dir)`; `ProxyServer` restores backend drain/pause on start and writes admin changes through `ProxyState`'s store. E2E test `persistence_restart_tests` (drain → restart → still draining). |
 | ✅ F16 | Unix-socket control RPC | **Fixed:** `ProxyConfig::control_socket(path)`; `ControlSocket` started in `ProxyServer::start`, stopped on shutdown. E2E test `control_socket_tests` (status/list/drain over the socket). |
-| 🔴 F15 | ACME cert provisioning | `AcmeClient` is unused outside `acme.rs`; there is no `AcmeCertManager`, so ACME never provisions the proxy cert |
-| 🔴 F19 | HTTP/3 proxy | Entire `h3_proxy.rs` is gated on a **non-existent** `quic` feature (Cargo has only `default = []`); no QUIC deps; never wired (`ServerApp::both`, not `Any{…http3}`); 0 tests; same chunked-only bug |
+| ✅ F15 | ACME cert provisioning | **Fixed:** `AcmeCertManager` (P-256 account key/JWS + rcgen CSR) drives the full `AcmeClient` flow; `tls::build_cert_manager` selects it for the `LetsEncrypt` provider; `ProxyConfig::acme(dns01_setter, directory_url)`. E2E test `acme_provisioning_tests` against a real mock ACME CA that signs the CSR → provisioned cert+key build a real `SSLAcceptor`. |
+| 🔴 F19 | HTTP/3 proxy | **Larger than a wire-up.** `foundation_http` has the `H3Serve` trait + `ServerApp::Http3/Any` variants but **no H3 serving layer** — no QUIC/UDP listener, no endpoint pump, no H3 connection handler (`server/mod.rs` never consumes the http3 app). Integrating F19 means *building* the QUIC/H3 server (netio has the substrate: `QuicDriver`, `H3Connection`, `server_config_from_pem`), then fixing `h3_proxy.rs` (same chunked-only bug as H2) and wiring `ServerApp::Any`. A from-scratch feature comparable to the H2 server (F47), not a module wire-up. Deferred pending scope decision. |
 
 ### Resolved — dependency / backend defect
 | Item | Resolution |
@@ -79,7 +79,7 @@
 | 12 | SSL redirect | 25 | ✅ wired |
 | 13 | Writer affinity (sticky cookie) | 23 | ✅ wired |
 | 14 | State persistence | 21 | ✅ wired + verified |
-| 15 | ACME cert provisioning | 18 | 🔴 not integrated |
+| 15 | ACME cert provisioning | 18 | ✅ wired + verified |
 | 16 | Unix-socket control RPC | 20 | ✅ wired + verified |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified |
 | 18 | Zero-downtime deploy (drain) | 22 | ✅ wired |
@@ -92,7 +92,7 @@
 | HTTP/1.1 reverse proxy | ✅ (server startable after ContextBag fix) |
 | HTTP/2 termination | ✅ verified end-to-end |
 | HTTP/3 (QUIC) termination | 🔴 not integrated |
-| Let's Encrypt ACME (DNS-01) | 🔴 protocol code only, not wired |
+| Let's Encrypt ACME | ✅ wired + verified (DNS-01 setter is a hook) |
 | Zero-downtime deploys (drain) | ✅ wired |
 | TCP/UDP health checks | ✅ |
 | Weighted round-robin (smooth WRR) | ✅ |
@@ -124,9 +124,10 @@ russh). Platform default suite green._
 
 1. ✅ Wire F14 state persistence into `ProxyServer`. — done
 2. ✅ Wire F16 unix-socket control RPC into `ProxyServer`. — done
-3. 🔴 Wire F15 ACME cert provisioning into the TLS path (`AcmeCertManager`).
-4. 🔴 Integrate F19 HTTP/3 (define the `quic` feature + deps, fix the handler,
-   wire via `ServerApp::Any`, add a test).
+3. ✅ Wire F15 ACME cert provisioning into the TLS path (`AcmeCertManager`). — done
+4. 🔴 Integrate F19 HTTP/3 — requires **building** the QUIC/H3 serving layer in
+   `foundation_http` (from-scratch, comparable to the H2 server), then fixing
+   `h3_proxy.rs` and wiring `ServerApp::Any`. Deferred pending scope decision.
 
 ## Related specs
 
