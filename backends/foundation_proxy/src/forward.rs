@@ -101,7 +101,10 @@ pub fn strip_hop_by_hop(headers: &SimpleHeaders) -> SimpleHeaders {
 
 /// Build the request headers to send upstream: hop-by-hop stripped, then
 /// `X-Forwarded-For` appended and `X-Forwarded-Proto`/`-Host` set.
-fn forward_request_headers(
+///
+/// Shared with the HTTP/2 forward path ([`crate::h2_proxy`]) so both front-end
+/// protocols apply an identical hop-by-hop and forwarding-header policy.
+pub(crate) fn forward_request_headers(
     original: &SimpleHeaders,
     client_ip: &str,
     scheme: &str,
@@ -141,7 +144,7 @@ fn forward_request_headers(
 }
 
 /// Join a backend base URL with the request path+query.
-fn upstream_url(backend_url: &str, path: &str) -> String {
+pub(crate) fn upstream_url(backend_url: &str, path: &str) -> String {
     let base = backend_url.strip_suffix('/').unwrap_or(backend_url);
     if path.starts_with('/') {
         format!("{base}{path}")

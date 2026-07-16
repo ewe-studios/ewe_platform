@@ -30,6 +30,7 @@ use foundation_netio::http::NativeHttpClient;
 
 use crate::config::{ProxyConfig, ProxyError, SslProvider};
 use crate::handler::ProxyHandler;
+use crate::h2_proxy::H2ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::router::Router;
 use crate::runtime::ServiceRuntime;
@@ -109,22 +110,34 @@ impl ProxyServer {
             .local_addr()
             .map_err(|e| ProxyError::Startup(format!("local_addr: {e}")))?;
 
-        // Build the HTTP app: store proxy state, then register the catch-all
-        // handler (its factory reads the state out of the bag at registration).
-        // Read the Arc back so `ProxyServer` shares the exact state the handler
-        // sees, for control/inspection.
-        let mut app = HttpApp::new_serve();
-        app.context()
-            .store(ProxyState::new(router, client.clone(), "http", config.io_mode));
-        let state = app
+        // Build the HTTP/1.1 handler app: store proxy state, register catch-all.
+        // The `ContextBag` wraps the stored value in its own `Arc` and keys it by
+        // `TypeId::of::<ProxyState>()`, which is exactly what `ProxyHandler::create`
+        // looks up via `get::<ProxyState>()`. Store the value (not a pre-made
+        // `Arc`), then pull the single shared `Arc<ProxyState>` back out of the bag
+        // so the H2 handler, health probes, and this handle all reference the same
+        // instance (shared drain flag and in-flight counts).
+        let mut h1_app = HttpApp::new_serve();
+        h1_app.context().store(ProxyState::new(
+            router,
+            client.clone(),
+            "http",
+            config.io_mode,
+        ));
+        let proxy_state = h1_app
             .context()
             .get::<ProxyState>()
-            .expect("ProxyState was just stored");
-        app.route_any::<ProxyHandler>("/*");
+            .expect("ProxyState was just stored in the context bag");
+        h1_app.route_any::<ProxyHandler>("/*");
+
+        // Build the HTTP/2 handler app: share the same ProxyState.
+        let mut h2_app = foundation_http::shared::app::HttpApp::new_h2_serve();
+        let h2_handler: Arc<dyn foundation_http::native::serve::H2Serve> =
+            Arc::new(H2ProxyHandler::new(Arc::clone(&proxy_state)));
+        h2_app.route_any_h2("/*", h2_handler);
 
         let shutdown = Arc::new(OnSignal::new());
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
-        // The accept path uses the same I/O mode as the dialed upstream legs (F50).
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
         // TLS: build acceptor and configure.
@@ -133,14 +146,14 @@ impl ProxyServer {
             let acceptor = tls::build_acceptor(&config.ssl)?;
             server_config = server_config.with_tls(acceptor);
 
-            // SSL redirect: spawn a plain-HTTP listener on :80 that 301s to https.
             let redirect_shutdown = shutdown.clone();
             _redirect_thread = Some(std::thread::spawn(move || {
                 ssl_redirect_loop(&redirect_shutdown);
             }));
         }
 
-        let server = HttpServer::with_config(app, &bind_addr, server_config);
+        let server_app = foundation_http::shared::app::ServerApp::both(h1_app, h2_app);
+        let server = HttpServer::from_app_with_config(server_app, &bind_addr, server_config);
 
         // Serve on a dedicated thread with the pre-bound listener.
         let serve_shutdown = shutdown.clone();
@@ -165,7 +178,7 @@ impl ProxyServer {
             shutdown,
             server_thread: Some(server_thread),
             health,
-            state,
+            state: proxy_state,
         })
     }
 

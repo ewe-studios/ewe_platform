@@ -1,26 +1,46 @@
-//! HTTP/2 proxy — terminates H2 from clients, forwards to backends.
+//! HTTP/2 proxy — terminates H2 from clients, forwards to backends over HTTP/1.1.
 //!
-//! foundation_netio has the full H2 stack. The proxy terminates H2 on the
-//! frontend and forwards via HTTP/1.1 to backends. Body chunks from H2 DATA
-//! frames are written to the upstream using chunked transfer encoding.
-//! Response chunks are read via chunked transfer decoding and encoded as
-//! H2 DATA frames on the response pipe. No O(stream) buffering.
+//! WHY: `foundation_netio` already owns a complete HTTP/1.1 client — request
+//! rendering, response parsing for every body framing (`Content-Length`,
+//! chunked, and connection-close), and upstream connection pooling. The proxy
+//! must not re-implement any of that. This module only bridges the two protocol
+//! shapes: an H2 request header + body pipe becomes a `NativeHttpClient` request,
+//! and the client's response becomes H2 response frames. It is the exact same
+//! forwarding stack the HTTP/1.1 handler ([`crate::forward`]) uses.
+//!
+//! HOW: Routing and backend selection run on the valtron worker (cheap, async).
+//! The upstream exchange itself is blocking (the shared client drives its own
+//! I/O to completion), so it runs on a dedicated OS thread — one per stream —
+//! keeping the worker pool free, exactly as the HTTP/1.1 handler does. The
+//! request body streams in through a pushable body fed from the H2 DATA pipe; the
+//! response body streams out through the response pipe as H2 DATA frames. No
+//! whole-message buffering, no hand-rolled framing.
 
-use std::io::{self, Read, Write};
-use std::net::TcpStream;
-use std::pin::Pin;
+use std::io;
 use std::sync::Arc;
+use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{PipeReceiver, PipeSender, TryRecvError};
+use foundation_core::valtron::{PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError};
+use foundation_netio::http::ClientRequestBuilder;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleHeaders, SimpleMethod,
+use foundation_netio::shared::client::body_reader::{
+    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
+use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::{pushable_request_body, SimpleHeader, SimpleMethod};
+
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::shared::context::ContextBag;
 
+use crate::forward::{forward_request_headers, strip_hop_by_hop, upstream_url, SharedHttpClient};
+use crate::runtime::BackendLease;
 use crate::state::ProxyState;
+
+/// How long a full pipe / empty pipe is polled before retrying on the blocking
+/// forward path. Small enough to add negligible latency, large enough to avoid a
+/// hot spin while the concurrent connection task drains the other end.
+const POLL_BACKOFF: Duration = Duration::from_millis(1);
 
 pub struct H2ProxyHandler {
     state: Arc<ProxyState>,
@@ -44,200 +64,216 @@ impl H2Serve for H2ProxyHandler {
         let host = header.authority.clone();
         let path = header.url.url.clone();
         let method = header.method.clone();
-        let scheme = header.scheme.clone();
+        let orig_headers = header.headers.clone();
         let client_ip = header
             .connection
             .peer_addr
             .as_ref()
             .map(|a| a.ip().to_string())
             .unwrap_or_else(|| "unknown".to_string());
+        let scheme = self.state.scheme().to_string();
+        let client = self.state.client().clone();
         let state = self.state.clone();
 
         Box::pin(async move {
+            // `PipeSender::send` is a future — dropping it (a bare `let _ = tx.send(..)`)
+            // sends nothing and the client waits forever, so await these.
             let Some(service) = state.router().route(&host, &path) else {
-                let _ = tx.send(h2_status(404, true));
+                let _ = tx.send(h2_status(404, true)).await;
                 return Ok(());
             };
-            let Some((_lease, _idx)) = service.pick_sticky(None) else {
-                let _ = tx.send(h2_status(503, true));
+            let Some((lease, _idx)) = service.pick_sticky(None) else {
+                let _ = tx.send(h2_status(503, true)).await;
                 return Ok(());
             };
 
-            let backend_url = _lease.backend().url().to_string();
-            let upstream_url = build_upstream_url(&backend_url, &path);
-            let authority = extract_authority(&backend_url);
-
-            // Open TCP to backend, send request line + headers.
-            let mut upstream = match TcpStream::connect(&authority) {
-                Ok(s) => s,
-                Err(e) => {
-                    let _ = tx.send(h2_status(502, true));
-                    tracing::warn!(%upstream_url, "H2 connect failed: {e}");
-                    return Ok(());
-                }
-            };
-            upstream.set_read_timeout(Some(std::time::Duration::from_secs(120))).ok();
-
-            // Write request head.
-            let _ = write!(upstream, "{} {} HTTP/1.1\r\n", method, upstream_url);
-            let _ = write!(upstream, "Host: {}\r\n", host);
-            let _ = write!(upstream, "X-Forwarded-For: {}\r\n", client_ip);
-            let _ = write!(upstream, "X-Forwarded-Proto: {}\r\n", scheme);
-            let _ = write!(upstream, "X-Forwarded-Host: {}\r\n", host);
-            let _ = write!(upstream, "Connection: close\r\n");
-            let _ = write!(upstream, "Transfer-Encoding: chunked\r\n");
-            let _ = write!(upstream, "\r\n");
-            let _ = upstream.flush();
-
-            // Write body chunks from H2 pipe to upstream chunked body on a
-            // dedicated thread (blocking I/O).
-            let mut body_writer = upstream.try_clone().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-            let body_done = Arc::new(std::sync::atomic::AtomicBool::new(false));
-            let body_done_w = body_done.clone();
+            // The upstream exchange blocks (the shared client drives its own I/O),
+            // so run it off the worker pool on a dedicated thread. The lease moves
+            // in so the backend's in-flight count is held for the whole exchange.
+            // The future returns immediately: the response flows back through `tx`,
+            // which the h2 connection task drains and writes to the socket.
             std::thread::spawn(move || {
-                loop {
-                    match body.try_recv() {
-                        Ok(H2IncomingFrame::Data(bytes)) => {
-                            let _ = write!(body_writer, "{:x}\r\n", bytes.len());
-                            let _ = body_writer.write_all(&bytes);
-                            let _ = body_writer.write_all(b"\r\n");
-                            let _ = body_writer.flush();
-                        }
-                        Ok(H2IncomingFrame::Reset(_)) => break,
-                        Err(TryRecvError::Empty) => {
-                            std::thread::sleep(std::time::Duration::from_millis(1));
-                        }
-                        Err(TryRecvError::Closed) => break,
-                    }
-                    if body_done_w.load(std::sync::atomic::Ordering::Relaxed) {
-                        break;
-                    }
-                }
-                let _ = body_writer.write_all(b"0\r\n\r\n");
-                let _ = body_writer.flush();
+                forward_upstream(
+                    lease, method, host, path, orig_headers, client_ip, scheme, client, body, &tx,
+                );
             });
-
-            // Read response from upstream, parse HTTP/1.1 → H2 frames.
-            let result = read_upstream_response(&mut upstream, &tx);
-            body_done.store(true, std::sync::atomic::Ordering::Relaxed);
-            result
+            Ok(())
         })
     }
 }
 
-/// Read an HTTP/1.1 response from upstream, encode as H2 frames on tx.
-/// Uses a single `buffer: Vec<u8>` to accumulate data, avoiding borrow conflicts.
-fn read_upstream_response(
-    upstream: &mut TcpStream,
+/// Forward one H2 stream to its backend over HTTP/1.1 via the shared client and
+/// relay the response back as H2 frames. Runs on a dedicated OS thread.
+#[allow(clippy::too_many_arguments)]
+fn forward_upstream(
+    lease: BackendLease,
+    method: SimpleMethod,
+    host: String,
+    path: String,
+    orig_headers: foundation_netio::shared::http::SimpleHeaders,
+    client_ip: String,
+    scheme: String,
+    client: SharedHttpClient,
+    body: PipeReceiver<H2IncomingFrame>,
     tx: &PipeSender<H2Frame>,
-) -> io::Result<()> {
-    let mut read_buf = [0u8; 8192];
-    let mut buffer: Vec<u8> = Vec::new();  // single accumulation buffer
-    let mut headers_sent = false;
-    let mut chunk_size: Option<usize> = None;
+) {
+    let url = upstream_url(lease.backend().url(), &path);
 
-    loop {
-        let n = match upstream.read(&mut read_buf) {
-            Ok(0) => return Ok(()),
-            Ok(n) => n,
-            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                std::thread::sleep(std::time::Duration::from_millis(5));
-                continue;
-            }
-            Err(e) => return Err(e),
-        };
-        buffer.extend_from_slice(&read_buf[..n]);
+    // Hop-by-hop stripped + forwarding headers added, identical to the H1 path.
+    // The H2 `:authority` becomes the upstream `Host`.
+    let mut headers = forward_request_headers(&orig_headers, &client_ip, &scheme);
+    headers.insert(SimpleHeader::HOST, vec![host]);
 
-        if !headers_sent {
-            if let Some(body_pos) = find_header_end(&buffer) {
-                // Extract header bytes, parse, then drain the parsed portion.
-                let status = parse_status_code(&buffer[..body_pos]).unwrap_or(502);
-                let resp_headers = parse_response_headers(&buffer[..body_pos]);
-
-                let mut h2_hdrs: Vec<(Bytes, Bytes)> = Vec::new();
-                for (name, values) in resp_headers.iter() {
-                    let nb = Bytes::from(name.to_string().into_bytes());
-                    for v in values {
-                        h2_hdrs.push((nb.clone(), Bytes::from(v.clone().into_bytes())));
-                    }
-                }
-
-                // Drain: keep only body bytes after \r\n\r\n.
-                buffer.drain(..body_pos + 4);
-                headers_sent = true;
-
-                let has_body = !buffer.is_empty();
-                let _ = tx.send(H2Frame::Headers {
-                    status: status as u16,
-                    headers: h2_hdrs,
-                    end_stream: !has_body,
-                });
-                if !has_body {
-                    return Ok(());
-                }
-            }
-        } else {
-            // Chunked transfer decoding from `buffer`.
-            loop {
-                if let Some(size) = chunk_size {
-                    if buffer.len() >= size + 2 {
-                        let payload = buffer[..size].to_vec();
-                        buffer.drain(..size + 2);
-                        chunk_size = None;
-                        if payload.is_empty() {
-                            return Ok(());
+    // Stream the request body: H2 DATA frames feed a pushable body that the
+    // client pulls as it renders the request. A dedicated feeder thread keeps the
+    // producer (this pipe) and the consumer (the client's request renderer)
+    // running concurrently.
+    let (pushable, body_stream) = pushable_request_body();
+    let feeder = std::thread::spawn(move || {
+        loop {
+            match body.try_recv() {
+                Ok(H2IncomingFrame::Data(bytes)) => {
+                    let mut chunk = bytes;
+                    loop {
+                        match pushable.try_push(chunk) {
+                            Ok(()) => break,
+                            Err(TrySendError::Full(returned)) => {
+                                chunk = returned;
+                                std::thread::sleep(POLL_BACKOFF);
+                            }
+                            Err(TrySendError::Closed(_)) => return,
                         }
-                        let _ = tx.send(H2Frame::Data {
-                            payload: Bytes::from(payload),
-                            end_stream: false,
-                        });
-                    } else {
-                        break;
                     }
-                } else if let Some(line_end) = buffer.iter().position(|&b| b == b'\n') {
-                    let hex_str = String::from_utf8_lossy(&buffer[..line_end]);
-                    let size = usize::from_str_radix(hex_str.trim(), 16).unwrap_or(0);
-                    buffer.drain(..line_end + 1);
-                    if size == 0 {
-                        let _ = tx.send(H2Frame::Data {
-                            payload: Bytes::new(),
-                            end_stream: true,
-                        });
-                        return Ok(());
-                    }
-                    chunk_size = Some(size);
-                } else {
-                    break;
                 }
+                Ok(H2IncomingFrame::Reset(_)) => break,
+                Err(TryRecvError::Empty) => std::thread::sleep(POLL_BACKOFF),
+                Err(TryRecvError::Closed) => break,
             }
         }
-    }
-}
+        pushable.close();
+    });
 
-fn find_header_end(data: &[u8]) -> Option<usize> {
-    data.windows(4).position(|w| w == b"\r\n\r\n")
-}
-
-fn parse_status_code(header_bytes: &[u8]) -> Option<u16> {
-    let line = std::str::from_utf8(header_bytes).ok()?.lines().next()?;
-    line.split_whitespace().nth(1)?.parse().ok()
-}
-
-fn parse_response_headers(header_bytes: &[u8]) -> SimpleHeaders {
-    let mut h = SimpleHeaders::new();
-    let text = match std::str::from_utf8(header_bytes) {
-        Ok(t) => t,
-        Err(_) => return h,
+    let builder = match ClientRequestBuilder::<SystemDnsResolver>::new(method, &url) {
+        Ok(b) => b.headers(headers).body(body_stream),
+        Err(e) => {
+            tracing::warn!(%url, "H2 build upstream request failed: {e}");
+            let _ = blocking_send(tx, h2_status(502, true));
+            let _ = feeder.join();
+            return;
+        }
     };
-    for line in text.lines().skip(1) {
-        if let Some((name, value)) = line.split_once(':') {
-            let key = SimpleHeader::custom(name.trim());
-            h.entry(key).or_insert_with(Vec::new).push(value.trim().to_string());
+
+    let response = match client.request(builder).and_then(|req| req.send()) {
+        Ok(resp) => resp,
+        Err(e) => {
+            tracing::warn!(%url, "H2 upstream request failed: {e}");
+            let _ = blocking_send(tx, h2_status(502, true));
+            let _ = feeder.join();
+            return;
+        }
+    };
+
+    let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
+
+    // Response HEADERS: strip hop-by-hop, then hand every value to the encoder,
+    // which adds `:status` from the numeric code.
+    let out_headers = strip_hop_by_hop(&resp_headers);
+    let mut h2_hdrs: Vec<(Bytes, Bytes)> = Vec::new();
+    for (name, values) in out_headers.iter() {
+        let nb = Bytes::from(name.to_string().into_bytes());
+        for v in values {
+            h2_hdrs.push((nb.clone(), Bytes::from(v.clone().into_bytes())));
         }
     }
-    h
+    let code = u16::try_from(Into::<usize>::into(status)).unwrap_or(502);
+    if blocking_send(
+        tx,
+        H2Frame::Headers {
+            status: code,
+            headers: h2_hdrs,
+            end_stream: false,
+        },
+    )
+    .is_err()
+    {
+        let _ = feeder.join();
+        return;
+    }
+
+    // Response body → H2 DATA frames, chunk at a time.
+    let mut chunks = SendSafeBodyBytesIterator::new(resp_body);
+    loop {
+        match chunks.next() {
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                if bytes.is_empty() {
+                    continue;
+                }
+                if blocking_send(
+                    tx,
+                    H2Frame::Data {
+                        payload: bytes,
+                        end_stream: false,
+                    },
+                )
+                .is_err()
+                {
+                    let _ = feeder.join();
+                    return;
+                }
+            }
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                tracing::warn!(%url, "H2 upstream body stream error: {e}");
+                break;
+            }
+            // Honour an explicit delay hint; every other non-data signal
+            // (`Ignore`/`Wait`/`Init`/…) is transient "no data yet" — back off.
+            Some(Stream::Delayed(d)) => std::thread::sleep(d),
+            Some(_) => std::thread::sleep(POLL_BACKOFF),
+            None => break,
+        }
+    }
+
+    // Terminate the response stream with an empty END_STREAM DATA frame.
+    let _ = blocking_send(
+        tx,
+        H2Frame::Data {
+            payload: Bytes::new(),
+            end_stream: true,
+        },
+    );
+
+    // Return the upstream socket to the pool for reuse (drain residue first),
+    // mirroring the H1 forward path.
+    if let (Some(pool), Some(mut stream)) = (pool, conn) {
+        stream.drain_stream();
+        pool.return_to_pool(stream);
+    }
+
+    let _ = feeder.join();
+    drop(lease);
 }
 
+/// Push one response frame into the pipe from the blocking forward thread.
+///
+/// `PipeSender::send` is async and cannot be awaited here, so use `try_send` and
+/// park the thread briefly while the bounded pipe is full — the h2 connection
+/// task drains `resp_rx` concurrently, so a full pipe is always transient.
+/// Returns `Err(())` once the receiver is gone (the client stream closed).
+fn blocking_send(tx: &PipeSender<H2Frame>, frame: H2Frame) -> Result<(), ()> {
+    let mut item = frame;
+    loop {
+        match tx.try_send(item) {
+            Ok(()) => return Ok(()),
+            Err(TrySendError::Full(returned)) => {
+                item = returned;
+                std::thread::sleep(POLL_BACKOFF);
+            }
+            Err(TrySendError::Closed(_)) => return Err(()),
+        }
+    }
+}
+
+/// A status-only response frame (no headers, optionally ending the stream).
 fn h2_status(code: u16, end_stream: bool) -> H2Frame {
     H2Frame::Headers {
         status: code,
@@ -246,108 +282,13 @@ fn h2_status(code: u16, end_stream: bool) -> H2Frame {
     }
 }
 
-fn build_upstream_url(backend_url: &str, path: &str) -> String {
-    if backend_url.ends_with('/') {
-        format!("{}{path}", &backend_url[..backend_url.len() - 1])
-    } else {
-        format!("{backend_url}{path}")
-    }
-}
-
-fn extract_authority(url: &str) -> String {
-    let without = url
-        .strip_prefix("http://")
-        .or_else(|| url.strip_prefix("https://"))
-        .unwrap_or(url);
-    without.split('/').next().unwrap_or("localhost:80").to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn find_header_end_detects_crlfcrlf() {
-        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nbody";
-        let pos = find_header_end(data).expect("should find header end");
-        // verify the body starts after the header end marker
-        assert_eq!(&data[pos + 4..], b"body");
-    }
-
-    #[test]
-    fn find_header_end_no_match_returns_none() {
-        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n";
-        assert_eq!(find_header_end(data), None);
-    }
-
-    #[test]
-    fn parse_status_ok() {
-        let data = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
-        assert_eq!(parse_status_code(data), Some(200));
-    }
-
-    #[test]
-    fn parse_status_404() {
-        assert_eq!(parse_status_code(b"HTTP/1.1 404 Not Found\r\n\r\n"), Some(404));
-    }
-
-    #[test]
-    fn parse_status_bad_data() {
-        assert_eq!(parse_status_code(b"garbage"), None);
-    }
-
-    #[test]
-    fn parse_response_headers_extracts_correctly() {
-        let data = b"HTTP/1.1 200 OK\r\ncontent-type: text/html\r\nserver: nginx\r\n\r\n";
-        let h = parse_response_headers(data);
-        let ct_key = SimpleHeader::custom("content-type");
-        let ct = h.get(&ct_key).and_then(|v| v.first().cloned());
-        assert_eq!(ct, Some("text/html".to_string()));
-    }
-
-    #[test]
-    fn parse_response_headers_skips_status_line() {
-        let data = b"HTTP/1.1 200 OK\r\n\r\n";
-        let h = parse_response_headers(data);
-        assert!(h.is_empty());
-    }
-
-    #[test]
-    fn build_upstream_url_strips_trailing_slash() {
-        assert_eq!(
-            build_upstream_url("http://backend:8080/", "/api/health"),
-            "http://backend:8080/api/health"
-        );
-    }
-
-    #[test]
-    fn build_upstream_url_no_trailing_slash() {
-        assert_eq!(
-            build_upstream_url("http://backend:8080", "/api/health"),
-            "http://backend:8080/api/health"
-        );
-    }
-
-    #[test]
-    fn extract_authority_http() {
-        assert_eq!(
-            extract_authority("http://192.168.1.1:8080/path"),
-            "192.168.1.1:8080"
-        );
-    }
-
-    #[test]
-    fn extract_authority_https() {
-        assert_eq!(
-            extract_authority("https://example.com/api"),
-            "example.com"
-        );
-    }
-
-    #[test]
     fn h2_status_404() {
-        let frame = h2_status(404, true);
-        match frame {
+        match h2_status(404, true) {
             H2Frame::Headers { status, end_stream, .. } => {
                 assert_eq!(status, 404);
                 assert!(end_stream);
@@ -358,20 +299,12 @@ mod tests {
 
     #[test]
     fn h2_status_503() {
-        let frame = h2_status(503, false);
-        match frame {
+        match h2_status(503, false) {
             H2Frame::Headers { status, end_stream, .. } => {
                 assert_eq!(status, 503);
                 assert!(!end_stream);
             }
             _ => panic!("expected Headers frame"),
         }
-    }
-
-    #[test]
-    fn chunk_size_parsing_decodes_hex() {
-        assert_eq!(usize::from_str_radix("1a", 16).unwrap(), 26);
-        assert_eq!(usize::from_str_radix("0", 16).unwrap(), 0);
-        assert_eq!(usize::from_str_radix("FF", 16).unwrap(), 255);
     }
 }

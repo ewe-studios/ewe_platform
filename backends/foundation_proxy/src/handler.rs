@@ -184,7 +184,6 @@ fn relay(
                 // The upstream was unreachable or misbehaved: never close silently,
                 // answer a well-formed 502 so the client sees a real response.
                 tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");
-                let _ = std::fs::write("/tmp/claude-1000/-home-darkvoid-Boxxed--dev-ewe-platform/964581c8-12f5-46a2-b31a-24a5ee839229/scratchpad/fwd_err.txt", format!("url={} err={e}", backend.url()));
                 let _ = respond::text(&mut conn, 502, "Bad Gateway");
                 let _ = conn.flush();
             }
