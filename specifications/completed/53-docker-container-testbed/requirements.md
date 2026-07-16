@@ -118,8 +118,8 @@ All decisions documented in `decisions/`.
 
 | # | Item | Decision | Status |
 |---|------|----------|--------|
-| — | Make russh the default OpenSSL-free SSH backend; route all usage through traits | 13 | 🔴 In progress |
-| — | Replace `ssh2-config` host-config parsing (drops `git2/libssh2` OpenSSL pull) | 13 | 🔴 In progress |
+| — | Platform BoringSSL/OpenSSL link conflict (gate `boring` in wireguard) | 13 | ✅ Done |
+| — | SSH backend: removed russh; ssh2 is the sole backend | 13 | ✅ Done |
 | F14 | Wire state persistence into `ProxyServer` | 21 | ✅ Done |
 | F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | 🔴 Not integrated |
 | F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | ✅ Done |
