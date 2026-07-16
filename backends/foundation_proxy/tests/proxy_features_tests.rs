@@ -231,3 +231,101 @@ fn ssl_redirect_301_to_https() {
 
     proxy.shutdown();
 }
+
+// ── WebSocket / Upgrade relay ────────────────────────────────────────────
+
+/// A backend that completes a `101 Switching Protocols` handshake and then
+/// echoes every byte — a stand-in for a WebSocket server. Exercises the proxy's
+/// upgrade path (`forward_upgrade` + `splice_bidirectional`).
+fn start_ws_echo_backend() -> (u16, Backend) {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind ws backend");
+    listener.set_nonblocking(true).ok();
+    let port = listener.local_addr().unwrap().port();
+    let stop = Arc::new(AtomicBool::new(false));
+    let thread_stop = Arc::clone(&stop);
+    std::thread::spawn(move || {
+        while !thread_stop.load(Ordering::SeqCst) {
+            match listener.accept() {
+                Ok((sock, _)) => {
+                    std::thread::spawn(move || {
+                        let mut sock = sock;
+                        sock.set_read_timeout(Some(Duration::from_secs(5))).ok();
+                        // Read the (proxied) upgrade request head.
+                        let mut buf = [0u8; 4096];
+                        let _ = sock.read(&mut buf);
+                        let resp = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n";
+                        if sock.write_all(resp.as_bytes()).is_err() {
+                            return;
+                        }
+                        let _ = sock.flush();
+                        // Post-upgrade: echo raw frames.
+                        loop {
+                            match sock.read(&mut buf) {
+                                Ok(0) | Err(_) => break,
+                                Ok(n) => {
+                                    if sock.write_all(&buf[..n]).is_err() {
+                                        break;
+                                    }
+                                    let _ = sock.flush();
+                                }
+                            }
+                        }
+                    });
+                }
+                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    std::thread::sleep(Duration::from_millis(5));
+                }
+                Err(_) => break,
+            }
+        }
+    });
+    (port, Backend { stop })
+}
+
+#[test]
+fn websocket_upgrade_relays_and_tunnels_bytes() {
+    let _guard = initialize_pool(64, Some(12));
+    let (pa, _a) = start_ws_echo_backend();
+
+    let svc = ServiceConfig::new("ws", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
+    let proxy = ProxyServer::start(
+        ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
+    )
+    .expect("start proxy");
+    let addr = proxy.local_addr();
+    std::thread::sleep(Duration::from_millis(200));
+
+    let mut stream = TcpStream::connect(addr).expect("connect proxy");
+    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+
+    // Send a WebSocket upgrade request.
+    let req = "GET /ws HTTP/1.1\r\nHost: test.local\r\nUpgrade: websocket\r\n\
+               Connection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\
+               Sec-WebSocket-Version: 13\r\n\r\n";
+    stream.write_all(req.as_bytes()).expect("write upgrade");
+    stream.flush().ok();
+
+    // Read the 101 response head.
+    let mut head = Vec::new();
+    let mut byte = [0u8; 1];
+    while !head.windows(4).any(|w| w == b"\r\n\r\n") {
+        match stream.read(&mut byte) {
+            Ok(1) => head.push(byte[0]),
+            _ => break,
+        }
+    }
+    let head_str = String::from_utf8_lossy(&head);
+    assert!(
+        head_str.starts_with("HTTP/1.1 101"),
+        "proxy must relay the 101 Switching Protocols, got: {head_str:?}"
+    );
+
+    // Post-upgrade the connection is an opaque tunnel — send bytes, get the echo.
+    stream.write_all(b"hello-websocket").expect("write frame");
+    stream.flush().ok();
+    let mut echo = vec![0u8; 15];
+    stream.read_exact(&mut echo).expect("read echo");
+    assert_eq!(&echo, b"hello-websocket", "bytes tunnel through the upgrade splice");
+
+    proxy.shutdown();
+}
