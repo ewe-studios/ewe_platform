@@ -43,11 +43,11 @@
 | 🔴 F16 | Unix-socket control RPC | `ControlSocket::start()` is never called; the running proxy exposes no admin socket |
 | 🔴 F19 | HTTP/3 proxy | Entire `h3_proxy.rs` is gated on a **non-existent** `quic` feature (Cargo has only `default = []`); no QUIC deps; never wired (`ServerApp::both`, not `Any{…http3}`); 0 tests; same chunked-only bug |
 
-### Reopened — dependency / backend defect
-| Item | Reality |
-|------|---------|
-| 🔴 SSH backend grounding | `russh` implements the `Backend` trait but is not "as grounded as ssh2": the Docker-over-SSH transport (`Dialer`/`ChannelStream`), the connection pool (`ssh2::Session`), `powershell` (`&ssh2::Session`), the platform `ssh` module, and host-config parsing (`ssh2-config` → `git2/libssh2`) all bind to ssh2 concretely. `ssh2` + `ssh2-config` are hard deps → OpenSSL is always linked. **Decision: make russh the default OpenSSL-free backend; abstract all ssh2 sites behind traits.** |
-| 🔴 Platform default build link failure | `docker`+`wireguard` (default) fails to **link**: `ssh2`/libssh2 needs OpenSSL 3 symbols; `foundation_wireguard`→`boring` provides BoringSSL, which lacks them. Resolved by the russh-default work above. |
+### Resolved — dependency / backend defect
+| Item | Resolution |
+|------|------------|
+| ✅ Platform default build link failure | `docker`+`wireguard` (default) failed to **link**: `ssh2`/libssh2 needs OpenSSL 3 symbols; `foundation_wireguard`→`boring` provides BoringSSL, which lacks them (two incompatible libcryptos in one binary). Investigation showed `boring` is used only by wireguard's `native/{bootstrap,mtls}.rs`, and the platform needs only the pure-Rust key/seed types. **Fixed:** gated `boring` behind a default-on `native-mesh` feature in `foundation_wireguard` and made the platform depend with `default-features = false` → no BoringSSL in the platform binary → ssh2/OpenSSL links. Platform default suite now green. |
+| ✅ SSH backend | `russh` was a half-wired alternative `Backend` (its sync trait path panicked — tokio-only, never caught because tests were Docker-`#[ignore]`). With the link conflict resolved by gating boring, russh was **removed entirely**; ssh2 (libssh2) is the sole backend. Also fixed two environment-coupled `host_tests` (default user is `$USER`/`$LOGNAME`, not hardcoded `root`). |
 
 ## Docker runtime (Part A) — implemented
 
@@ -119,15 +119,13 @@ russh-default work. Verified this session:
 
 ## Remaining work (tracked)
 
-1. 🔴 Make russh the default OpenSSL-free SSH backend; route **all** usage through
-   traits (no direct `ssh2::` calls outside the gated ssh2 backend); resolve the
-   platform link failure.
-2. 🔴 Replace `ssh2-config` host-config parsing (pure-Rust or our own) to drop the
-   `git2/libssh2` OpenSSL pull.
-3. 🔴 Wire F14 state persistence into `ProxyServer`.
-4. 🔴 Wire F16 unix-socket control RPC into `ProxyServer`.
-5. 🔴 Wire F15 ACME cert provisioning into the TLS path (`AcmeCertManager`).
-6. 🔴 Integrate F19 HTTP/3 (define the `quic` feature + deps, fix the handler,
+_SSH/BoringSSL link conflict — ✅ resolved (gated `boring` in wireguard; removed
+russh). Platform default suite green._
+
+1. 🔴 Wire F14 state persistence into `ProxyServer`.
+2. 🔴 Wire F16 unix-socket control RPC into `ProxyServer`.
+3. 🔴 Wire F15 ACME cert provisioning into the TLS path (`AcmeCertManager`).
+4. 🔴 Integrate F19 HTTP/3 (define the `quic` feature + deps, fix the handler,
    wire via `ServerApp::Any`, add a test).
 
 ## Related specs
