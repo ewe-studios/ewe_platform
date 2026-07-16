@@ -44,7 +44,7 @@
 | 16 | Unix-socket RPC | 20 | ✅ wired + verified | control.rs + `control_socket`; started in `ProxyServer` (`control_socket_tests`) |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified | h2_proxy.rs (now forwards via shared client) |
 | 18 | Zero-downtime deploy | 22 | ✅ wired | state.rs (draining), server.rs (drain_complete) |
-| 19 | HTTP/3 proxy | 27 | 🔴 needs H3 server layer | foundation_http has no QUIC/H3 serving layer; F19 = build it (from scratch) + fix `h3_proxy.rs` + wire `ServerApp::Any` |
+| 19 | HTTP/3 proxy | 27 | ✅ built + verified | built the foundation_http H3 server layer (`serve_h3`), fixed `h3_proxy.rs`, wired `h3_bind`; e2e `http3_server_tests` + `h3_integration_tests` |
 
 ## Foundation reused (not rebuilt)
 

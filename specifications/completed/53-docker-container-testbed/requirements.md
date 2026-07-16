@@ -123,7 +123,7 @@ All decisions documented in `decisions/`.
 | F14 | Wire state persistence into `ProxyServer` | 21 | ✅ Done |
 | F15 | Wire ACME provisioning into TLS path (`AcmeCertManager`) | 18 | ✅ Done |
 | F16 | Wire unix-socket control RPC into `ProxyServer` | 20 | ✅ Done |
-| F19 | Build HTTP/3 serving layer in foundation_http (from scratch) + fix handler + wire | 27 | 🔴 Deferred (large) |
+| F19 | Build HTTP/3 serving layer in foundation_http + fix handler + wire | 27 | ✅ Done |
 | — | `foundation_deployment_docker` CI tests | — | 📋 Needs Docker-in-CI |
 
 ## Plan
