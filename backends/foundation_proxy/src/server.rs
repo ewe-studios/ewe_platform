@@ -19,7 +19,7 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 use std::thread::JoinHandle;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use foundation_core::synca::OnSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};

@@ -21,8 +21,8 @@ use std::io::Write;
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::{RawStream, SocketAddr as NetcapSocketAddr};
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest};
+use foundation_netio::netcap::RawStream;
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
@@ -105,11 +105,12 @@ impl Serve for ProxyHandler {
         let scheme = self.state.scheme().to_string();
         let client = self.state.client().clone();
         let protocol = lease.backend().protocol();
+        let io_mode = self.state.io_mode();
 
         // Relay on a dedicated thread; keep the pool worker free. The lease moves
         // into the thread so the in-flight count is held for the whole exchange.
         std::thread::spawn(move || {
-            relay(conn, req, lease, &client_ip, &scheme, protocol, &client, sticky_header.as_ref());
+            relay(conn, req, lease, &client_ip, &scheme, protocol, &client, sticky_header.as_ref(), io_mode);
         });
 
         ConnectionResult::Take
@@ -126,6 +127,7 @@ fn relay(
     protocol: BackendProtocol,
     client: &crate::forward::SharedHttpClient,
     sticky_header: Option<&foundation_netio::shared::http::SimpleHeaders>,
+    io_mode: foundation_iogate::ServerIo,
 ) {
     let backend = Arc::clone(lease.backend());
     let mut conn = conn;
@@ -152,7 +154,7 @@ fn relay(
         BackendProtocol::Http | BackendProtocol::Https => {
             if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
-                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme) {
+                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
                 }
             } else if let Err(e) = forward_http_with_headers(&mut conn, &backend, req, client_ip, scheme, client, sticky_header) {
@@ -204,10 +206,9 @@ fn extract_sticky_cookie(req: &SimpleIncomingRequest) -> Option<usize> {
 
 /// Best-effort client IP from the connection's peer address.
 fn client_ip(req: &SimpleIncomingRequest) -> String {
-    match &req.connection.peer_addr {
-        Some(NetcapSocketAddr::Tcp(addr)) => addr.ip().to_string(),
-        #[cfg(unix)]
-        Some(NetcapSocketAddr::Unix(_)) => "unix".to_string(),
-        None => "unknown".to_string(),
-    }
+    req.connection
+        .peer_addr
+        .as_ref()
+        .map(|a| a.ip().to_string())
+        .unwrap_or_else(|| "unknown".to_string())
 }

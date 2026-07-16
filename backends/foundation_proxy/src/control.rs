@@ -82,13 +82,14 @@ impl ControlSocket {
             let _ = std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600));
         }
 
+        let path_for_thread = socket_path.clone();
         let thread = thread::spawn(move || {
             let _ = listener.set_nonblocking(true);
-            tracing::info!(path = %socket_path, "control socket listening");
+            tracing::info!(path = %path_for_thread, "control socket listening");
 
             loop {
                 if shutdown.probe() {
-                    let _ = std::fs::remove_file(&socket_path);
+                    let _ = std::fs::remove_file(&path_for_thread);
                     return;
                 }
 
@@ -106,7 +107,7 @@ impl ControlSocket {
                     }
                 }
             }
-            let _ = std::fs::remove_file(&socket_path);
+            let _ = std::fs::remove_file(&path_for_thread);
         });
 
         Self { socket_path, thread }

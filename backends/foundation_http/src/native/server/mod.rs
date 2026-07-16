@@ -554,7 +554,7 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(listener, &shutdown, move |conn, addr| {
+        self.serve_loop(&listener, &shutdown, move |conn, addr| {
             let tcp = match conn {
                 foundation_netio::netcap::Connection::Tcp(t) => t,
                 _ => return Err("expected TCP connection for TLS".to_string()),

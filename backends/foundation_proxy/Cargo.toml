@@ -24,6 +24,7 @@ serde_json.workspace = true
 toml.workspace = true
 sha2 = "0.10"
 base64 = "0.22"
+bytes = "1"
 derive_more.workspace = true
 tracing.workspace = true
 chrono.workspace = true

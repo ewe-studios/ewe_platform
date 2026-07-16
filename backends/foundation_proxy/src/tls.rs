@@ -90,27 +90,16 @@ pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError
                 .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
             Ok(Arc::new(acceptor))
         }
-        SslProvider::LetsEncrypt { domains, email, staging } => {
-            // Build an ACME client (DNS-01 challenge via Cloudflare).
-            // The signing callback is provided by the operator (key is
-            // stored externally — we don't bake key material into the proxy).
-            // For now, return a descriptive error that tells the operator
-            // what's needed. Full automation requires a JWS signer callback.
-            // TODO: accept signer callback from ProxyConfig or environment.
+        SslProvider::LetsEncrypt { email } => {
             Err(ProxyError::Ssl(format!(
-                "Let's Encrypt ACME configured for {:?} ({}), staging={}. \
+                "Let's Encrypt ACME configured for {email}. \
                  Set ACME_SIGNER_KEY_PATH to your account private key (PEM) \
-                 or ACME_SIGNER_CMD to a JWS-signing subprocess.",
-                domains, email, staging,
+                 or ACME_SIGNER_CMD to a JWS-signing subprocess."
             )))
         }
-        SslProvider::Cloudflare { zone_id, email } => {
-            // Cloudflare Origin CA certs are obtained via the Cloudflare API.
-            // Requires `foundation_deployment_cloudflare::CloudflareClient`.
-            // This path is used for internal/testbed deployments where
-            // Cloudflare manages DNS and provides edge certificates.
+        SslProvider::Cloudflare { zone_id } => {
             Err(ProxyError::Ssl(format!(
-                "Cloudflare Origin CA configured for zone {zone_id} ({email}). \
+                "Cloudflare Origin CA configured for zone {zone_id}. \
                  Use the cloudflare API to provision an Origin CA certificate \
                  and configure it via the Static provider."
             )))
