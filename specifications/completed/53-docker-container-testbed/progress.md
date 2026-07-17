@@ -116,6 +116,83 @@ ports, are each independently reachable via `address()`, and start in the order
 written); plus four `foundation_macros` trybuild compile-fail cases — missing
 parameter, unknown attribute key, stacked attributes, and duplicate `as` key.
 
+### F03 networking & volumes — reopened and repaired (2026-07-17)
+
+Marked "code present", and progress.md claimed `container_integration` covered
+F01/**F03**/**F04**/F05 end-to-end. It did not: that suite has three test
+functions, touches no networks, no volumes and no image builds, and imported
+`ContainerGroup` without using it. `NetworkHandle` had **no consumer and no test
+anywhere in the workspace** — only its `mod.rs` re-export.
+
+Not just untested — materially incomplete against decision 10, with five silent
+drops (each now fixed and covered by `network_volume_integration`, 4 e2e tests):
+
+- `ContainerConfig::network_alias()` pushed to a field **nothing ever read** —
+  aliases never reached Docker. Now sent via `networking_config` at create time.
+- Named volumes were **filtered out of `Binds` entirely** (mapped to `None`), so
+  `named_volume()` silently wrote to the container's own layer.
+- `read_only` was ignored — the bind string never got its `:ro`, so a read-only
+  mount was silently writable. Added `volume_read_only()`.
+- `create_or_find(.., subnet)` ignored `subnet` (`_subnet`), which decision 10
+  requires be honoured. Now passed through as an IPAM config.
+- A container naming a network that did not exist **failed to start**; decision
+  10 step 1 says the network is created first. `start_async` now `create_or_find`s it.
+
+`NetworkHandle` was reshaped to decision 10's API (holds its own client so Drop
+can work, `connect(container_id, aliases)`, `remove_on_drop`).
+
+Found in the client while wiring it: `network_connect` ignored aliases despite its
+doc promising endpoint config, and **`network_inspect` returned a struct with no
+fields** — serde accepted the daemon's JSON and discarded all of it, so callers
+learned nothing. Its test only asserted the call succeeded, which is all an empty
+struct allows. Now decodes into `Network`.
+
+**And two data-corruption bugs in `foundation_netio`'s chunked parser**, which is
+why the volume tests kept reading empty logs (details in
+`specifications/11-foundation-deployment/features/05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md`
+→ "Update 2026-07-17"):
+
+- It **stripped every CR byte from every chunked body**. Docker log frames put the
+  payload length in the header, so a 13-byte log line carries a literal `0x0D`;
+  stripping it desynced the frame and logs came back empty. Wire-proven: dockerd
+  sent 21 bytes, the client returned 20.
+- After the chunk-size line it ran `eat_crlf` + `eat_newlines`, both looping until
+  a non-CR/LF byte, where RFC 7230 §4.1 allows **exactly one** terminator — so data
+  starting with CR/LF was eaten as framing and `read_exact` pulled the delimiter in
+  as content. Same defect the April GCP fix removed from `eat_escaped_crlf`, in the
+  two eaters it left behind.
+
+### F04 image management — ported off the CLI (2026-07-17)
+
+`DockerFileConfig::build_once` shelled out to `docker build` — needs the CLI on
+`PATH`, no structured errors, and bypasses the bollard-free client decision 01
+exists for. `DockerFileConfig` had no consumer and no test, so it never showed.
+
+The native path did not work either: `image_build` sent **no body**, but `/build`
+takes the context as a tar stream — so it could not build anything — and it threw
+the response away (`Ok(Vec::new())`), hiding that the daemon reports **build
+failures inside a 200**.
+
+Now (decision 05, "How the build runs"): `ContextTar` packs the context (dir,
+inline Dockerfile, or both), `image_build` streams it and parses the progress for
+errors (`DockerError::BuildFailed` → platform `ImageBuild`), and
+`DockerFileConfig::backend(..)` selects `Classic` (dockerd `POST /build`, default)
+or `BuildKit(addr)` (buildkitd `Solve`, `dockerfile.v0`, behind the `buildkit`
+feature).
+
+`buildkit` collided with the BoringSSL/OpenSSL conflict again — it reaches
+BoringSSL via `jwt-simple`→`foundation_auth`→`foundation_connectrpc`, while
+`foundation_deployment_docker`'s `docker` feature pulled `foundation_sshkit`
+(libssh2/OpenSSL) unconditionally. The SSH transport now lives behind its own
+`ssh` feature, so `docker + buildkit` links.
+
+Coverage: `foundation_deployment_docker::image_build_integration_tests` (4 e2e:
+inline build, context files uploaded and COPY-able, build args, and a failing
+build surfacing as an error) and `foundation_deployment_platform::image_build_integration`
+(6: builds a runnable image and reads back what the Dockerfile made, context +
+args, `was_cached` on the second call, failing build, untagged rejected, plus 2
+BuildKit-backend tests against a real buildkitd — skipped when none is reachable).
+
 ### Reopened — repair status
 | # | Feature | Status |
 |---|---------|--------|
@@ -136,8 +213,8 @@ parameter, unknown attribute key, stacked attributes, and duplicate `as` key.
 |---|---------|--------|
 | 01 | Runtime Library (`ContainerHandle`/`Config`/`DockerError`/`NetworkHandle`) | ✅ code present |
 | 02 | Proc Macro `#[docker_container]` | ✅ **fixed + verified e2e** (was "code present" but did not compile — see below) |
-| 03 | Networking & Volumes | ✅ code present |
-| 04 | Image Management | ✅ code present |
+| 03 | Networking & Volumes | ✅ **fixed + verified e2e** (was "code present"; `NetworkHandle` was dead, 5 options silently dropped — see below) |
+| 04 | Image Management | ✅ **ported off the CLI + verified e2e** (was "code present"; `build_once` shelled out to `docker build` — see below) |
 | 05 | Wait Strategies | ✅ code present |
 | — | Bollard → `foundation_deployment_docker` migration | ✅ (no bollard dep) |
 

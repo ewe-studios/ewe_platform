@@ -80,6 +80,11 @@ wireguard = ["dep:foundation_wireguard"]
 # Docker runtime only (default)
 docker = ["foundation_deployment_docker/docker"]
 
+# Build images through a standalone buildkitd (BuildBackend::BuildKit).
+# Off by default: it pulls in the gRPC/BuildKit stack, and the classic
+# POST /build backend needs nothing beyond dockerd.
+buildkit = ["foundation_deployment_docker/buildkit"]
+
 # All providers
 all-providers = ["vms", "docker"]
 

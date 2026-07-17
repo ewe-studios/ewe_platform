@@ -1,21 +1,33 @@
 # Spec-53 Feature Set (2026-07-16)
 
-> **⚠️ Completeness audit 2026-07-16.** The earlier "all 19 implemented, no
-> stubs" claim did not hold. The assembled proxy never ran (a `ContextBag` bug
-> panicked `ProxyServer::start`) and the platform test harness didn't compile
-> under default features, hiding that **F14, F15, F16, F19 are not integrated**
-> and the SSH backend is ssh2-coupled (OpenSSL). See [progress.md](../progress.md)
-> for the full corrected status. Status column below reflects reality.
+> **⚠️ Completeness audit 2026-07-16, extended 2026-07-17.** The earlier "all 19
+> implemented, no stubs" claim did not hold. The assembled proxy never ran (a
+> `ContextBag` bug panicked `ProxyServer::start`) and the platform test harness
+> didn't compile under default features, hiding that F14, F15, F16 and F19 were
+> not integrated.
+>
+> **All four are now fixed and verified** (see the Phase 4 table below), the
+> BoringSSL/OpenSSL link conflict is resolved (`boring` gated behind
+> `foundation_wireguard`'s `native-mesh`; russh removed, ssh2 the sole backend),
+> and the platform suites build and run.
+>
+> **Part A did not survive the same scrutiny.** F02, F03 and F04 were all marked
+> "code present" while having no consumer and no test anywhere in the workspace —
+> so none of them worked: the `#[docker_container]` macro did not compile,
+> `NetworkHandle` was dead code with five silently-dropped options, and
+> `build_once` shelled out to the `docker` CLI over a native `image_build` that
+> sent no request body. All three are now repaired and proven end-to-end against
+> a real daemon. See [progress.md](../progress.md) for the full corrected status.
 
 ## Phase 1: Docker Runtime (Part A)
 
-| # | Feature | Crate | Key files |
-|---|---------|-------|-----------|
-| 01 | Runtime Library | foundation_deployment_platform | container.rs, config.rs, error.rs |
-| 02 | Proc Macro | foundation_macros | docker_container.rs |
-| 03 | Networking & Volumes | foundation_deployment_platform | network.rs |
-| 04 | Image Management | foundation_deployment_platform | image.rs |
-| 05 | Wait Strategies | foundation_deployment_platform | wait_for.rs |
+| # | Feature | Crate | Status | Key files |
+|---|---------|-------|--------|-----------|
+| 01 | Runtime Library | foundation_deployment_platform | ✅ e2e (`container_integration`) | container.rs, config.rs, error.rs |
+| 02 | Proc Macro | foundation_macros | ✅ **fixed + e2e** (`docker_macro_tests`) — did not compile | docker_container.rs |
+| 03 | Networking & Volumes | foundation_deployment_platform | ✅ **fixed + e2e** (`network_volume_integration`) — was dead code | network.rs |
+| 04 | Image Management | foundation_deployment_platform | ✅ **ported off the CLI + e2e** (`image_build_integration`) | image.rs |
+| 05 | Wait Strategies | foundation_deployment_platform | ✅ e2e (`container_integration`) | wait_for.rs |
 
 ## Phase 2: Client Migration
 
@@ -60,8 +72,11 @@
 
 ## Test results
 
-> The earlier "379 passed, 0 failed" is **not reproducible** — the platform
-> suites did not compile under default features (now fixed), and the platform
-> default build still fails to link (BoringSSL/OpenSSL) pending the russh-default
-> work. `foundation_proxy` is green after this session's fixes. See
-> [progress.md](../progress.md) → "Test results (corrected)".
+> The earlier "379 passed, 0 failed" was **not reproducible** — the platform
+> suites did not compile under default features. Since fixed: the default build
+> links (BoringSSL/OpenSSL resolved by gating `boring` behind
+> `foundation_wireguard`'s `native-mesh`; russh removed), and platform,
+> `foundation_proxy`, `foundation_deployment_docker` and `foundation_netio` are
+> all green, including the Docker-gated suites. Note `buildkit` and `ssh` are
+> mutually exclusive features for the same libcrypto reason — see decision 05.
+> See [progress.md](../progress.md) → "Test results (corrected)".

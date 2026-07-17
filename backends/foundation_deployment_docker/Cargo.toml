@@ -1,6 +1,8 @@
 [dependencies]
 base85rs = "0.1"
 bytes = "1"
+# Build contexts for `POST /build`: the daemon takes the context as a tar stream.
+tar = { version = "0.4", optional = true }
 sha2 = "0.10"
 futures-lite = "2"
 
@@ -118,6 +120,7 @@ buildkit = [
 default = []
 integration-tests = []
 docker = [
+    "dep:tar",
     "docker_ping",
     "docker_archive",
     "docker_attach",
@@ -179,8 +182,16 @@ docker = [
     "docker_volumes",
     "docker_wait",
     "docker_ws",
-    "dep:foundation_sshkit",
 ]
+
+# `ssh://` Docker host support (DockerClient::connect_ssh).
+#
+# Separate from `docker` because it links libssh2/OpenSSL, which cannot coexist
+# in one binary with the BoringSSL that `buildkit` pulls in (via jwt-simple ->
+# foundation_auth -> foundation_connectrpc): two libcryptos, one set of EVP_*
+# symbols, and the link fails. Enable it when you need an ssh:// daemon; leave it
+# off to use `buildkit`.
+ssh = ["dep:foundation_sshkit"]
 docker_all = [
     "docker_archive",
     "docker_attach",

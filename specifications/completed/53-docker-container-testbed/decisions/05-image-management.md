@@ -1,6 +1,7 @@
 # 05 — Image Management
 
 **Date:** 2026-07-10
+**Updated:** 2026-07-17 — build backends (see [How the build runs](#how-the-build-runs))
 **Status:** Resolved
 
 ## Decision
@@ -15,6 +16,59 @@ postgres:16, redis:7) used directly with no build step.
 
 Image resolution follows a priority chain: environment variable override →
 local Docker cache → registry pull → `DockerfileConfig` build → error.
+
+---
+
+## How the build runs
+
+**Decided 2026-07-17.** Builds go through the API clients, never the `docker`
+CLI. `build_once` used to shell out to `docker build`, which needs the CLI on
+`PATH`, reports failures only as scraped stderr, and sidesteps the bollard-free
+client this spec exists for (decision 01). It also had no consumer and no test,
+so none of that surfaced.
+
+`DockerFileConfig::backend(..)` picks the builder:
+
+| Backend | Runs on | Image lands in | Needs |
+|---|---|---|---|
+| `BuildBackend::Classic` *(default)* | dockerd's builder, `POST /build` | **dockerd's** store — `ContainerConfig::new(tag)` can run it immediately | nothing beyond dockerd |
+| `BuildBackend::BuildKit(addr)` | a standalone `buildkitd`, gRPC `Solve` with the `dockerfile.v0` frontend | **buildkitd's** store — *not* visible to `docker run` unless exported/pushed | `buildkit` feature + a reachable buildkitd |
+
+Classic is the default because the common case is "build an image, then run a
+container from it", and only dockerd's builder puts the image where dockerd can
+see it.
+
+### Classic: the context is the request body
+
+`POST /build` takes the build context — Dockerfile plus everything `COPY`/`ADD`
+touches — as a **tar stream in the body**. The daemon cannot read the caller's
+disk. `foundation_deployment_docker`'s `ContextTar` builds that stream
+(`from_dir`, `from_inline_dockerfile`, `from_dir_with_dockerfile`); an inline
+Dockerfile is written into the tar, so it never needs to exist on disk.
+
+The daemon reports **build failures inside a 200 response** — a `{"error": …}`
+object part-way down the progress stream — so the stream is parsed and a failure
+becomes `DockerError::BuildFailed` (platform: `DockerError::ImageBuild`). A client
+that ignores the body reports success for a build that produced nothing.
+
+### BuildKit: context over a session
+
+buildkitd pulls the context from us over a session (FileSync), so `SessionServer`
+is started first and its id goes in `SolveRequest.Session`. Build args become
+`build-arg:<k>` frontend attrs; the exporter is `image` with `name=<tag>`; the
+digest comes back in `SolveResponse.ExporterResponse["containerimage.digest"]`.
+
+### `buildkit` and `ssh` cannot be combined
+
+The `buildkit` feature reaches BoringSSL (`jwt-simple` → `foundation_auth` →
+`foundation_connectrpc`), while `ssh://` Docker hosts reach libssh2/OpenSSL. Two
+libcryptos in one binary means duplicate `EVP_*` symbols and a link failure — the
+same conflict decision 16's `native-mesh` gating solved for `foundation_wireguard`.
+So `foundation_deployment_docker`'s SSH transport moved out of the `docker`
+feature into its own `ssh` feature (it was pulling `foundation_sshkit`
+unconditionally). `DockerClient::connect_ssh` and `client::ssh` need `ssh`; with
+it off, an `ssh://` `DOCKER_HOST` returns an error naming the feature rather than
+"unrecognized transport".
 
 ## Table of Contents
 

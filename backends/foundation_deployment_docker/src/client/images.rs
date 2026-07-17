@@ -9,14 +9,51 @@
 //!
 //! HOW: Each method constructs the generated Args struct, calls the matching
 //! `*_request` function, and returns the parsed response body. Streaming
-//! endpoints (build, push, pull, load) return raw `Vec<u8>` for now.
+//! endpoints (push, pull, load) return raw `Vec<u8>` for now; `build` parses its
+//! stream, since the daemon reports build failures inside a 200 response.
 
+/// What to build, and how (`POST /build` query parameters).
+///
+/// The build **context** is passed separately as a [`ContextTar`] — it is the
+/// request body, not a parameter.
+#[derive(Debug, Clone, Default)]
+pub struct ImageBuildOptions {
+    /// `name:tag` to apply to the built image.
+    pub tag: Option<String>,
+    /// Path of the Dockerfile *within the context* (default: `Dockerfile`).
+    pub dockerfile: Option<String>,
+    /// `ARG` values for the build.
+    pub build_args: Vec<(String, String)>,
+    /// Labels to set on the built image.
+    pub labels: Vec<(String, String)>,
+    /// Target platform, e.g. `linux/amd64`.
+    pub platform: Option<String>,
+    /// Stage to stop at, for a multi-stage Dockerfile.
+    pub target: Option<String>,
+    /// Ignore the build cache.
+    pub no_cache: bool,
+    /// Always attempt to pull a newer base image.
+    pub pull: bool,
+}
+
+/// The result of a successful build.
+#[derive(Debug, Clone, Default)]
+pub struct ImageBuildOutcome {
+    /// The build log, as the daemon streamed it (`Step 1/3 : FROM …`).
+    pub logs: String,
+    /// The built image's id, when the daemon reported one.
+    pub image_id: Option<String>,
+}
+
+use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
+use crate::client::build_context::ContextTar;
+use crate::streaming::decoder::JsonLineDecoder;
 use crate::DockerClient;
 use crate::error::DockerError;
-use crate::generated::build::{image_build_request, ImageBuildArgs};
+use crate::generated::shared::ApiError;
 use crate::generated::commit::{image_commit_request, ContainerConfig, ImageCommitArgs};
 use crate::generated::create::{image_create_request, ImageCreateArgs};
 use crate::generated::history::{image_history_request, ImageHistoryArgs};
@@ -228,68 +265,119 @@ impl DockerClient {
 
     /// Build an image from a Dockerfile (`POST /build`).
     ///
-    /// This is a streaming endpoint; returns raw bytes for now.
+    /// WHY: `context` is the build context as a tar stream — the daemon cannot
+    /// read the caller's disk, so the Dockerfile and everything `COPY`/`ADD`
+    /// touches must be uploaded with the request. Use [`ContextTar`] to make one.
+    ///
+    /// WHAT: Returns the build's progress log. The daemon reports **build
+    /// failures inside a 200 response** (a `{"error": …}` object part-way down
+    /// the stream), so the stream is parsed and such a failure is surfaced as
+    /// [`DockerError::BuildFailed`] rather than looking like success.
+    ///
+    /// HOW: Sent directly rather than via the generated `image_build_request`,
+    /// which sets query parameters but **no body** (so `/build` had no context to
+    /// build and every call failed or hung) and discarded the response.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
-    #[allow(clippy::too_many_arguments)]
+    /// Returns [`DockerError`] on transport failure, non-2xx status, or a build
+    /// error reported in the stream.
     pub async fn image_build(
         &self,
-        dockerfile: Option<&str>,
-        t: Option<&str>,
-        extrahosts: Option<&str>,
-        remote: Option<&str>,
-        q: Option<bool>,
-        nocache: Option<bool>,
-        cachefrom: Option<&str>,
-        pull: Option<bool>,
-        rm: Option<bool>,
-        forcerm: Option<bool>,
-        memory: Option<&str>,
-        memswap: Option<&str>,
-        cpushares: Option<&str>,
-        cpusetcpus: Option<&str>,
-        cpuperiod: Option<&str>,
-        cpuquota: Option<&str>,
-        buildargs: Option<&str>,
-        shmsize: Option<&str>,
-        squash: Option<bool>,
-        labels: Option<&str>,
-        networkmode: Option<&str>,
-        platform: Option<&str>,
-        target: Option<&str>,
-        outputs: Option<&str>,
-    ) -> Result<Vec<u8>, DockerError> {
-        let args = ImageBuildArgs {
-            dockerfile: dockerfile.map(str::to_string),
-            t: t.map(str::to_string),
-            extrahosts: extrahosts.map(str::to_string),
-            remote: remote.map(str::to_string),
-            q: q.map(|v| v.to_string()),
-            nocache: nocache.map(|v| v.to_string()),
-            cachefrom: cachefrom.map(str::to_string),
-            pull: pull.map(|v| v.to_string()),
-            rm: rm.map(|v| v.to_string()),
-            forcerm: forcerm.map(|v| v.to_string()),
-            memory: memory.map(str::to_string),
-            memswap: memswap.map(str::to_string),
-            cpushares: cpushares.map(str::to_string),
-            cpusetcpus: cpusetcpus.map(str::to_string),
-            cpuperiod: cpuperiod.map(str::to_string),
-            cpuquota: cpuquota.map(str::to_string),
-            buildargs: buildargs.map(str::to_string),
-            shmsize: shmsize.map(str::to_string),
-            squash: squash.map(|v| v.to_string()),
-            labels: labels.map(str::to_string),
-            networkmode: networkmode.map(str::to_string),
-            platform: platform.map(str::to_string),
-            target: target.map(str::to_string),
-            outputs: outputs.map(str::to_string),
-            version: None,
-        };
-        image_build_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
-        Ok(Vec::new())
+        context: &ContextTar,
+        opts: &ImageBuildOptions,
+    ) -> Result<ImageBuildOutcome, DockerError> {
+        let endpoint_url = format!("{}/build", self.base_url());
+        let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+        builder = builder.query("dockerfile", opts.dockerfile.as_deref());
+        builder = builder.query("t", opts.tag.as_deref());
+        builder = builder.query("target", opts.target.as_deref());
+        builder = builder.query("platform", opts.platform.as_deref());
+        builder = builder.query("nocache", Some(opts.no_cache.to_string()).as_deref());
+        builder = builder.query("pull", Some(opts.pull.to_string()).as_deref());
+        // Always clean up intermediate containers; leaving them is never what a
+        // caller wants and they are invisible to the returned handle.
+        builder = builder.query("rm", Some("true"));
+
+        if !opts.build_args.is_empty() {
+            let map: std::collections::HashMap<&str, &str> = opts
+                .build_args
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
+            let encoded = serde_json::to_string(&map)
+                .map_err(|e| DockerError::JsonParse(format!("buildargs: {e}")))?;
+            builder = builder.query("buildargs", Some(encoded).as_deref());
+        }
+        if !opts.labels.is_empty() {
+            let map: std::collections::HashMap<&str, &str> = opts
+                .labels
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
+            let encoded = serde_json::to_string(&map)
+                .map_err(|e| DockerError::JsonParse(format!("labels: {e}")))?;
+            builder = builder.query("labels", Some(encoded).as_deref());
+        }
+
+        // `body_bytes` sets Content-Length; the daemon needs the tar content type.
+        builder = builder.body_bytes(context.as_bytes().to_vec());
+        builder.set_header(SimpleHeader::CONTENT_TYPE, "application/x-tar");
+
+        let response = self
+            .http()
+            .send_async(builder.build())
+            .await
+            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
+
+        let status: usize = response.get_status().into();
+        let headers = response.get_headers_ref().clone();
+        if !(200..300).contains(&status) {
+            return Err(ApiError::HttpStatus {
+                code: status as u16,
+                headers,
+                body: None,
+            }
+            .into());
+        }
+
+        let body = collect_bytes_from_send_safe(response.take_body());
+        Self::parse_build_stream(&body)
+    }
+
+    /// Read the `/build` progress stream: collect the log, pick out the built
+    /// image id, and fail on a reported build error.
+    fn parse_build_stream(body: &[u8]) -> Result<ImageBuildOutcome, DockerError> {
+        let mut decoder = JsonLineDecoder::new();
+        decoder.feed(body);
+
+        let mut logs = String::new();
+        let mut image_id = None;
+
+        while let Some(line) = decoder.decode() {
+            let Ok(value) = serde_json::from_slice::<serde_json::Value>(&line) else {
+                continue;
+            };
+
+            if let Some(err) = value.get("error").and_then(serde_json::Value::as_str) {
+                return Err(DockerError::BuildFailed(err.to_string()));
+            }
+            if let Some(text) = value.get("stream").and_then(serde_json::Value::as_str) {
+                logs.push_str(text);
+            }
+            // The final `aux` object carries the built image's id.
+            if let Some(id) = value
+                .get("aux")
+                .and_then(|aux| aux.get("ID"))
+                .and_then(serde_json::Value::as_str)
+            {
+                image_id = Some(id.to_string());
+            }
+        }
+
+        Ok(ImageBuildOutcome { logs, image_id })
     }
 
     /// Push an image to a registry (`POST /images/{name}/push`).

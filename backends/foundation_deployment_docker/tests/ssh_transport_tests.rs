@@ -16,7 +16,7 @@
 //!
 //! Skips cleanly when the host is unset or unreachable.
 
-#![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
+#![cfg(all(unix, feature = "docker", feature = "ssh", feature = "integration-tests"))]
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;

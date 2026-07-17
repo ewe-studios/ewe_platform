@@ -36,6 +36,12 @@ pub enum DockerError {
     #[display("docker JSON parse error: {_0}")]
     JsonParse(String),
 
+    /// An image build failed. The daemon reports these **inside a 200 response**
+    /// — a `{"error": …}` object part-way down the progress stream — so this is
+    /// not an [`DockerError::Api`] status failure.
+    #[display("docker build failed: {_0}")]
+    BuildFailed(String),
+
     /// The Docker daemon socket could not be resolved or is unavailable.
     #[display("docker unavailable: {_0}")]
     Unavailable(String),
