@@ -44,6 +44,9 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
+    /// Capability registry — registered at startup, invoked at runtime.
+    capability_registry: crate::capability::CapabilityRegistry,
+
     /// Session identity — generated once at app launch, never changes.
     session_id: SessionId,
 
@@ -76,6 +79,7 @@ impl PlatformSession {
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
+            capability_registry: crate::capability::CapabilityRegistry::new(),
             session_id,
             visit_counter: AtomicU64::new(0),
             active_page: RwLock::new(None),

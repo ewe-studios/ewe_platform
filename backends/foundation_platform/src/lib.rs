@@ -5,6 +5,7 @@
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 mod builder;
+mod capability;
 pub mod ewe;
 pub mod pattern;
 pub mod profiles;
@@ -16,6 +17,7 @@ mod types;
 pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
 pub use builder::PlatformBuilder;
+pub use capability::{Capability, CapabilityRegistry};
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler};
