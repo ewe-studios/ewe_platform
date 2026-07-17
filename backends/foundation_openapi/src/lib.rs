@@ -32,6 +32,7 @@ pub mod classifier;
 pub mod endpoint;
 pub mod extractor;
 pub mod normalizer;
+pub mod prune;
 pub mod selection;
 pub mod spec;
 pub mod transform;
@@ -51,6 +52,9 @@ pub use extractor::EndpointExtractor;
 pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,
     PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
+};
+pub use prune::{
+    component_count, dangling_refs, prune_to_selection, unreachable_components, PruneStats,
 };
 pub use selection::{glob_match, operations_of, Selection};
 pub use transform::{

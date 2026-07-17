@@ -86,6 +86,35 @@ impl Selection {
     /// Does this selection include `operation`, found at `path`?
     #[must_use]
     pub fn includes(&self, path: &str, operation: &Operation) -> bool {
+        self.matches(
+            path,
+            operation.tags.as_deref(),
+            operation.operation_id.as_deref(),
+        )
+    }
+
+    /// [`Self::includes`] against a raw JSON operation.
+    ///
+    /// The pruner works on `serde_json::Value` rather than the typed spec: refs
+    /// point into `components/{schemas,responses,parameters,headers,…}` and only
+    /// `schemas` is modelled, so walking the JSON is both simpler and complete.
+    #[must_use]
+    pub fn includes_value(&self, path: &str, operation: &serde_json::Value) -> bool {
+        if self.is_all() {
+            return true;
+        }
+        let tags: Option<Vec<String>> = operation.get("tags").and_then(|t| t.as_array()).map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(ToString::to_string))
+                .collect()
+        });
+        let op_id = operation.get("operationId").and_then(|v| v.as_str());
+        self.matches(path, tags.as_deref(), op_id)
+    }
+
+    /// The one place the rule lives: a path glob, a tag, or an operation id —
+    /// ORed, because they are three ways of naming the same thing.
+    fn matches(&self, path: &str, tags: Option<&[String]>, operation_id: Option<&str>) -> bool {
         if self.is_all() {
             return true;
         }
@@ -94,14 +123,14 @@ impl Selection {
             return true;
         }
 
-        if let Some(op_tags) = &operation.tags {
+        if let Some(op_tags) = tags {
             if op_tags.iter().any(|t| self.tags.contains(t)) {
                 return true;
             }
         }
 
-        if let Some(id) = &operation.operation_id {
-            if self.operations.contains(id) {
+        if let Some(id) = operation_id {
+            if self.operations.iter().any(|o| o == id) {
                 return true;
             }
         }
