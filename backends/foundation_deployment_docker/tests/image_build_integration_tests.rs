@@ -170,6 +170,9 @@ async fn a_failing_build_is_an_error_not_a_success() {
             &ImageBuildOptions {
                 tag: Some(t.clone()),
                 no_cache: true,
+                // Nothing here will inspect the failed layer, so do not leave a
+                // dead intermediate container behind for every run.
+                force_rm: true,
                 ..Default::default()
             },
         )

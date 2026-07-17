@@ -171,6 +171,11 @@ impl DockerFileConfig {
                     tag: Some(self.tag.clone()),
                     build_args: self.build_args.clone(),
                     platform: self.platform.clone(),
+                    // A failed build's intermediate container is kept by default
+                    // (it is how `docker build` lets you inspect the failure).
+                    // Nothing here hands that container back, so it would just
+                    // accumulate one dead container per failed build.
+                    force_rm: true,
                     ..Default::default()
                 },
             )

@@ -34,6 +34,13 @@ pub struct ImageBuildOptions {
     pub no_cache: bool,
     /// Always attempt to pull a newer base image.
     pub pull: bool,
+    /// Also remove intermediate containers when the build **fails**.
+    ///
+    /// Intermediates from a successful build are always removed. A failed one is
+    /// kept by default (matching `docker build`), since it is the only way to
+    /// inspect what went wrong — at the cost of a leftover container per failure.
+    /// Set this when nothing will go looking, e.g. in tests.
+    pub force_rm: bool,
 }
 
 /// The result of a successful build.
@@ -297,9 +304,12 @@ impl DockerClient {
         builder = builder.query("platform", opts.platform.as_deref());
         builder = builder.query("nocache", Some(opts.no_cache.to_string()).as_deref());
         builder = builder.query("pull", Some(opts.pull.to_string()).as_deref());
-        // Always clean up intermediate containers; leaving them is never what a
-        // caller wants and they are invisible to the returned handle.
+        // Remove intermediate containers from a successful build; `forcerm` also
+        // removes them when it fails (see `ImageBuildOptions::force_rm`).
         builder = builder.query("rm", Some("true"));
+        if opts.force_rm {
+            builder = builder.query("forcerm", Some("true"));
+        }
 
         if !opts.build_args.is_empty() {
             let map: std::collections::HashMap<&str, &str> = opts
