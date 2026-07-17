@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F12-mvp-integration"
 this_file: "specifications/52-tauri-foundation-platform/features/F12-mvp-integration/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-17
 

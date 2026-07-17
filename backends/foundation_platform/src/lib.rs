@@ -7,6 +7,7 @@
 mod builder;
 mod cache;
 mod capability;
+pub mod codegen;
 mod mutation;
 pub mod stack;
 pub mod ewe;

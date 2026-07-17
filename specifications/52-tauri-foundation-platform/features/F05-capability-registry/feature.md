@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F05-capability-registry"
 this_file: "specifications/52-tauri-foundation-platform/features/F05-capability-registry/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: 2026-07-17
 
