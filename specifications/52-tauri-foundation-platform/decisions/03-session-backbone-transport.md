@@ -23,7 +23,7 @@ scheme, registered with Tauri's `UriSchemeProtocol`.
 4. [All transport lanes](#all-transport-lanes)
 5. [Protocol selection per response](#protocol-selection-per-response)
 6. [The `ewe://` custom protocol](#the-ewe-custom-protocol)
-7. [Arrow vs Columnar v1](#arrow-vs-columnar-v1-protocol-positioning)
+7. [Protocol variants](#protocol-variants)
 8. [How it spans both crates](#how-it-spans-both-crates)
 9. [Native UI integration tiers](#native-ui-integration-tiers)
 10. [What Tauri already provides vs what we build](#what-tauri-already-provides-vs-what-we-build)
@@ -672,64 +672,52 @@ fn handle_route_request(
   from the decision chain. Complex content negotiation (Accept headers, etc.)
   can be added later if needed.
 
-### Arrow vs Columnar v1: protocol positioning
+### Protocol variants
 
-**TODO**: The ui can use arrow or columnvar v1 - dont be pedantic, and honestly the platform should not care about this, it takes it and delivers.
+The platform does NOT dictate or interpret content format. That is
+`foundation_wasm_ui`'s domain. The platform's job: take bytes from the
+backend, attach the right Content-Type header, and deliver them to the
+WebView. The `foundation-wasm-ui.js` bootstrap script receives the bytes,
+reads the Content-Type, and dispatches to the correct rendering pipeline
+(DomOp decoder, Arrow RecordBatch reader, HTML parser, etc.).
 
-Arrow protocols are for **structured data payloads**, NOT for UI DOM operations.
-The existing `foundation_wasm_ui` protocols handle UI operations. Arrow is used
-for data sets and analytics-style payloads where its columnar layout and
-zero-copy guarantees add real value.
+**Why the `Protocol` enum exists at all in the platform layer:**
 
-**Two Arrow protocol variants:**
+The route handler needs a vocabulary to express protocol preferences
+(`ProtocolHint`), the URL can carry a `?proto=` query param, and the HTTP
+response needs a Content-Type header. The enum is a shared dictionary. It
+does NOT encode platform-level assumptions about what each protocol is "for."
 
-| Variant | Wire format | Content-Type | When to use |
-|---|---|---|---|
-| `Arrow` | Raw RecordBatch binary — columnar bytes cast to `&[u8]`. No metadata, no framing. Single batch. | `application/primal-arrow` | The default. Request/response with a single RecordBatch. Zero-copy: the in-memory layout IS the wire format. |
-| `ArrowIpc` | Arrow IPC streaming format — Schema message → DictionaryBatch messages → RecordBatch messages → EOS marker. Each message is prefixed with a 4-byte continuation indicator. | `application/vnd.apache.arrow.stream` | Multi-batch streams over a single connection (SSE, WebSocket, streaming HTTP). When the schema may change between batches. Interoperable with Arrow Flight, pyarrow, etc. |
+**Protocol → Content-Type mapping:**
 
-**When to use which:**
-
-| Use case | Protocol |
+| Variant | Content-Type |
 |---|---|
-| Single query result (e.g. "get users where age > 30") | `Arrow` — one RecordBatch, raw bytes |
-| Stream of analytics results (e.g. live dashboard updates) | `ArrowIpc` — streaming format, may include schema changes |
-| Native↔native communication in same process | `Arrow` — zero-copy, just the bytes |
-| Export to external tools (pyarrow, pandas) | `ArrowIpc` — standard streaming format they understand |
-| Capability response with data payload | `Arrow` — single batch, fits in `InvokeBody::Raw` |
+| `Columnar` | `application/primal-columnar` |
+| `Arrow` | `application/primal-arrow` |
+| `ArrowIpc` | `application/vnd.apache.arrow.stream` |
+| `Json` | `application/primal-json` |
+| `Html` | `text/html; charset=utf-8` |
+| `CustomBinary` | `application/primal-binary` |
 
-**What Arrow is for (both variants):**
-- Large structured data payloads (analytics, tables, sync logs).
-- High-throughput Rust↔native communication (same process, shared memory).
-- Data delivered to the WebView as binary `ArrayBuffer` for direct reading.
+**Arrow variants (for the record):**
 
-**What Arrow is NOT for:**
-- UI DOM operations — those use columnar v1 (wasm-loop, no-std,
-  TypedArray-friendly DOM operation batches from `foundation_wasm_ui`).
-- Small control messages — those are JSON over Tauri command IPC.
-- HTML fragments — those are text/html responses.
+- **`Arrow`** — raw RecordBatch binary. Single batch: cast the RecordBatch to
+  `&[u8]`, send. The in-memory layout IS the wire format — zero-copy in
+  same-process configs.
+- **`ArrowIpc`** — Arrow IPC streaming format. Schema + DictionaryBatch +
+  RecordBatch messages with continuation markers and EOS indicator. For
+  multi-batch streams and external interop (pyarrow, Flight).
 
-**Terminology distinction:**
-- **Columnar v1** — wasm-loop, no-std, typed-array-friendly layout used for
-  efficient DOM operation batches. Owned by `foundation_wasm_ui`.
-- **Arrow** — raw RecordBatch binary, owned by `foundation_arrow`. Single
-  batch, no streaming metadata. The default for data payloads.
-- **ArrowIpc** — Arrow IPC streaming format, owned by `foundation_arrow`.
-  Multi-batch, schema-capable, interoperable with the Apache Arrow ecosystem.
+**Zero-copy notes:**
 
-**Zero-copy directions:**
+| Direction | Mechanism |
+|---|---|
+| Rust ↔ Native (same process) | RecordBatch → `&[u8]`, no serialization. True zero-copy. |
+| Rust → WebView (cross-process) | Custom protocol binary response. One copy (buffer → fetch buffer). |
+| Native shell + WASM (same process) | WASM linear memory read directly by host. No copy. |
 
-| Direction | Mechanism | Zero-copy? |
-|---|---|---|
-| Rust ↔ Native platform (same process) | `Arrow`: cast RecordBatch to bytes, no serialization. | Yes |
-| Rust → WebView (cross-process on mobile) | `Arrow` or `ArrowIpc` over custom protocol binary response. Single copy (Rust buffer → fetch buffer). | Copy-minimized |
-| Native shell + WASM (same process) | WASM linear memory directly readable by native code. | Yes |
-| Multi-batch stream (remote server) | `ArrowIpc` over SSE/WebSocket. Standard framing. | Network cost plus one decode. |
-
-This distinction is why `ProtocolHint` in `RouteDecision` separates
-`Columnar`, `Arrow`, and `ArrowIpc` — they serve different purposes and are
-routed through different encoders.
-through different encoders.
+The platform provides the transport; the `foundation_wasm_ui` runtime decides
+what to do with the bytes it receives.
 
 ---
 
@@ -910,7 +898,8 @@ Verified against source (`manager/mod.rs`, `manager/webview.rs`, `webview/mod.rs
 - `ewe://` custom protocol adapter — this document
 - WebView stack manager — [decision 21](10-multi-webview-stack.md)
 - WebView profiles — [decision 14](06-webview-profiles.md)
-- Background sync — [decision 05](05-offline-and-sync.md)
+- Background workers — [decision 11](11-background-workers.md)
+- Mutation queue — [decision 12](12-mutation-queue-and-conflict.md)
 
 ---
 

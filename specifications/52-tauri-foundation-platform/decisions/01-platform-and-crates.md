@@ -50,8 +50,12 @@ replace or circumvent Tauri — it extends Tauri's lifecycle with:
 - **WebView stack manager** — multi-WebView native-stack simulation with
   screenshot swap and background preload
   ([decision 10](10-multi-webview-stack.md)).
-- **Offline and sync** — cache tiers, mutation queue, background sync
+- **Offline and cache** — cache tiers, per-route policies
   ([decision 05](05-offline-and-sync.md)).
+- **Background workers** — foreground/background execution, OS constraints
+  ([decision 11](11-background-workers.md)).
+- **Mutation queue** — offline mutation queue, replay, conflict resolution
+  ([decision 12](12-mutation-queue-and-conflict.md)).
 
 Tauri provides the raw primitives (window management, WebView creation, IPC
 bridge, event bus, plugin system). `foundation_platform` builds the

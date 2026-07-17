@@ -15,19 +15,21 @@ This specification defines the creation of a new `foundation_platform` crate to 
 - Ensure seamless integration with WASM UI.
 
 ## Status
-**Phase: Implementation-ready.** Architecture resolved across 10 decisions. Four foundation documents capture the research. Skeleton crate exists (`backends/foundation_platform/`). Implementation begins.
+**Phase: Implementation-ready.** Architecture resolved across 12 decisions. Four foundation documents capture the research. Skeleton crate exists (`backends/foundation_platform/`). Implementation begins.
 
-## Decisions (all resolved, 2026-07-04)
+## Decisions (all resolved, 2026-07-04, updated 2026-07-17)
 1. **[Platform architecture and crate boundaries](decisions/01-platform-and-crates.md)** — `foundation_platform` owns Tauri integration; shared types in `foundation_ui_traits`.
-2. **[Route policy model](decisions/02-route-policy-model.md)** — `RouteHandler` trait + `NavigationIntent`/`RouteDecision` structs; three API surfaces (per-route closures, handler structs, DSL macro).
+2. **[Route policy model](decisions/02-route-policy-model.md)** — `RouteHandler` trait + `NavigationIntent`/`RouteDecision` structs; three API surfaces.
 3. **[Session backbone and transport lanes](decisions/03-session-backbone-transport.md)** — Platform session spans WASM UI + native side; `ewe://` custom protocol; 7 transport lanes.
-4. **[Deployment surfaces](decisions/04-deployment-surfaces.md)** — 5 modes: bundled WASM, server-rendered, DomOp stream, hybrid, cached offline replay.
-5. **[Offline and sync](decisions/05-offline-and-sync.md)** — Cache tiers, mutation queue, background sync lifecycle.
+4. **[Deployment surfaces](decisions/04-deployment-surfaces.md)** — 5 deployment modes + entrypoint annotations + code generation pipeline.
+5. **[Offline model and cache tiers](decisions/05-offline-and-sync.md)** — Two-tier offline: local WASM execution + rendered page caching. Per-route cache policies.
 6. **[WebView profiles](decisions/06-webview-profiles.md)** — Trust boundaries gating platform service access per route.
 7. **[Native capability contract](decisions/07-native-capability-contract.md)** — Typed, permissioned, route-scoped capability registry.
 8. **[Security model](decisions/08-security-model.md)** — Capability mediation layer + red team approach.
 9. **[Testing strategy](decisions/09-testing-strategy.md)** — Macro-driven test harness; browser + device coverage.
 10. **[Multi-WebView stack](decisions/10-multi-webview-stack.md)** — Screenshot-swap + background preload for native-stack simulation.
+11. **[Background workers](decisions/11-background-workers.md)** — `#[platform_worker]` and `#[platform_service]` — foreground/background execution, OS constraints, in-process services.
+12. **[Mutation queue and conflict resolution](decisions/12-mutation-queue-and-conflict.md)** — Offline mutation queue, idempotent replay, version vectors, conflict strategies.
 
 ## Foundations
 - [`basecamp-hotwire-native.md`](foundations/basecamp-hotwire-native.md) — What we learned from Basecamp's Hotwire Native sources.
@@ -36,7 +38,7 @@ This specification defines the creation of a new `foundation_platform` crate to 
 - [`platform-synthesis.md`](foundations/platform-synthesis.md) — Synthesis: what `foundation_platform` should be.
 
 ## Plan
-1. ~~Outline initial decisions.~~ ✅ 10 resolved.
+1. ~~Outline initial decisions.~~ ✅ 12 resolved.
 2. ~~Create predocs/00-plan.md.~~ ✅
 3. ~~Explore Basecamp Hotwire Native sources.~~ ✅
 4. ~~Explore Tauri sources.~~ ✅
