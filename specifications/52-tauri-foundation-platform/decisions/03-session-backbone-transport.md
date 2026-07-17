@@ -166,6 +166,22 @@ event sourcing — as additional tools layered on top of the platform. A native
 integrated system for state and sync may come later; for now the focus is
 getting the core platform correct.
 
+**Platform provides mechanisms, app provides policy.** The platform gives you
+storage, transport, and routing. The app decides what to do with them:
+
+| Layer | Platform (mechanism) | App (policy) |
+|---|---|---|
+| **Cache** | SQLite storage, `CachePolicy` enum, `invalidate()` triggers | Which routes to cache, when to invalidate, what's stale |
+| **Mutation queue** | SQLite schema, `enqueue()`/`replay()`, UUID generation, replay triggers on connectivity change | What mutations are valid offline, conflict resolution strategy per mutation type |
+| **Conflict detection** | Version vectors, timestamp comparison, LWW default | Custom conflict resolution per mutation type (`#[mutation_conflict]`) |
+| **Routing** | `RouteHandler` trait, `NavigationIntent`, handler chain execution | What routes exist, which backends handle them, what profiles/caps apply |
+| **Transports** | All 7 lanes pre-wired, protocol selection, Content-Type headers | Which transport to use per route (implied by `RouteSource`) |
+
+The platform is infrastructure. The app is logic. The platform doesn't tell you
+how to resolve conflicts — it gives you primitives and executes your resolver.
+The platform doesn't decide what's cacheable — it gives you storage and
+applies your cache policy per route.
+
 **Communication model:**
 
 `foundation_wasm_ui` only dictates how changes are **streamed to the frontend
@@ -459,14 +475,14 @@ The platform registers `ewe://` as a custom URI scheme with Tauri's
 backbone, encodes the response in the selected protocol, and returns an HTTP
 response with appropriate headers.
 
-Sub-schemes differentiate transport purpose: `ewe://`, `ewe+ipc://`,
-`ewe+ws://`, `ewe+http://`.
+There is one scheme: `ewe://`. No sub-schemes. The transport is implied by
+`RouteSource` — the session selects it automatically from the `RouteDecision`.
 
 ### Why `ewe://`
 
 `platform://` is too generic — it doesn't identify the project. `ewe://` is
-specific to the ewe platform. Sub-schemes follow the `scheme+transport`
-convention for explicit transport selection.
+specific to the ewe platform. One scheme, one registration, transport implied
+by the route.
 
 ### Tauri integration
 
@@ -535,38 +551,33 @@ WebView receives response ──→ foundation-wasm-ui runtime renders
 
 ```
 ewe://localhost/{route}?{params}
-ewe+ipc://localhost/{route}?{params}
-ewe+ws://localhost/{route}?{params}
-ewe+http://localhost/{route}?{params}
 ```
 
 | Component | Example | Meaning |
 |---|---|---|
-| Scheme | `ewe` | Platform custom protocol. All ewe traffic. |
-| Sub-scheme | `+ipc`, `+ws`, `+http` | Transport hint (defaults to Tauri command IPC for control, custom protocol binary response for data). |
+| Scheme | `ewe` | Platform custom protocol. Registered once with Tauri's `UriSchemeProtocol`. All app traffic uses `ewe://`. |
 | Host | `localhost` | Always `localhost` — the protocol is local within Tauri's WebView. |
 | Route | `/app/items` | App route. Mapped through the session's route handler chain. |
 | `proto` param | `?proto=arrow` | Protocol preference hint (columnar, arrow, json, html). The backend can override. |
 | `cache` param | `?cache=stale-while-revalidate` | Cache policy hint. The session's cache policy takes precedence. |
 | `action` param | `?action=write` | Indicates a mutation (POST/PUT/DELETE semantics over the protocol). |
 
+There is ONE custom protocol scheme: `ewe://`. No sub-schemes. The transport
+is implied by `RouteSource` (see the [transport selection
+table](02-route-policy-model.md#how-source-drives-protocol-and-transport-selection)
+in decision 02) — `WebviewApp` uses no transport, `IpcShell` uses Tauri
+command IPC, `RemoteServer` uses HTTP/SSE/WebSocket as appropriate. The URL
+is always `ewe://localhost/{route}`. The session selects the transport
+automatically from the `RouteDecision`.
+
 ### Transport modes
 
-| Scheme | Transport | Use case |
+| Transport | Tauri primitive used | RouteSource that triggers it |
 |---|---|---|
-| `ewe://` | Tauri command IPC + custom protocol | Default. Control messages over IPC, data over binary custom protocol response. |
-| `ewe+ipc://` | Tauri command IPC explicitly | Small structured request/response. Capability calls, metadata queries. |
-| `ewe+ws://` | WebSocket (through custom protocol upgrade or direct WS) | Bidirectional streaming. Live DomOps, collaborative editing, real-time sync. |
-| `ewe+http://` | HTTP fetch (through custom protocol or dev server proxy) | Server-rendered HTML, RESTful API calls, standard web semantics. |
-
-The platform automatically selects the right Tauri primitive for each transport:
-
-| Transport | Tauri primitive used |
-|---|---|
-| `ewe://` (default) | `UriSchemeProtocol` handler → binary response with typed Content-Type |
-| `ewe+ipc://` | `tauri::command` invoke — JSON/MessagePack serialized |
-| `ewe+ws://` | WebView `WebSocket` to local or remote endpoint, mediated by shell |
-| `ewe+http://` | `UriSchemeProtocol` → proxies to dev server or fetches from remote, returns response |
+| Custom protocol binary response | `UriSchemeProtocol` handler → binary response with typed Content-Type | `RemoteServer`, `IpcShell` (data payloads) |
+| Tauri command IPC | `tauri::command` invoke — JSON/MessagePack serialized | `IpcShell` (control messages) |
+| WebSocket | WebView `WebSocket` to local or remote endpoint, mediated by shell | `RemoteServer` (streaming) |
+| HTTP fetch | `UriSchemeProtocol` → proxies to dev server or fetches from remote | `RemoteServer` |
 
 ### Binary streaming
 
@@ -576,9 +587,9 @@ For large payloads or live streams, the custom protocol handler supports:
    streaming body. The platform writes chunks as they arrive from the backend.
    The WebView receives them progressively.
 
-2. **WebSocket upgrade** — for `ewe+ws://`, the custom protocol handler
-   detects the WebSocket upgrade request and hands the connection to the
-   platform's WS handler. The `Broadcaster` / `FrameTransport` model from
+2. **WebSocket upgrade** — when the route source is `RemoteServer` and the
+   backend initiates a WebSocket connection, the platform's WS handler
+   establishes it. The `Broadcaster` / `FrameTransport` model from
    `foundation_wasm_ui` plugs in directly — the WS connection is a
    `FrameTransport`.
 
@@ -591,9 +602,9 @@ For large payloads or live streams, the custom protocol handler supports:
 - **`ewe://` is a trusted scheme.** Only the platform registers it. Remote
   content cannot register custom `ewe://` handlers. The `untrustedRemote`
   WebView profile blocks all `ewe://` access.
-- **Route-scoped access.** A capability request on `ewe+ipc://app/remote/items`
-  is scoped to the `/app/remote/items` route. It cannot access resources
-  belonging to `/app/local/settings`.
+- **Route-scoped access.** A capability request from `/app/remote/items` is
+  scoped to that route. It cannot access resources belonging to
+  `/app/local/settings`.
 - **No filesystem exposure.** The handler does not map URIs to filesystem
   paths. It maps URIs to session routes. The session resolves the route; the
   backend provides the content. No `../../../etc/passwd` attack surface.

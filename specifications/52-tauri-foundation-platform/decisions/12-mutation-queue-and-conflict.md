@@ -104,7 +104,6 @@ fn resolve_order_conflict(
     server: &Mutation,
     context: &ConflictContext,
 ) -> ConflictResolution {
-    // User-defined: merge, choose one, ask the user, etc.
     if local.payload.priority > server.payload.priority {
         ConflictResolution::UseLocal
     } else {
@@ -114,10 +113,17 @@ fn resolve_order_conflict(
 ```
 
 Common resolution patterns:
-- **Merge** — combine fields from both mutations (e.g., add item to list).
+- **Merge** — combine fields from both mutations.
 - **Server wins** — discard local, accept server state.
 - **Local wins** — re-apply local mutation on top of server state.
-- **Ask user** — present conflict to user for resolution (delayed, requires UI).
+- **Ask user** — flag for UI resolution, don't block replay.
+
+**Post-MVP.** Conflict resolver routing, client-side race handling, and the
+"ask user" UX flow are deferred. For MVP, LWW (last-write-wins) with
+timestamp comparison covers the common case. The full resolution model
+(registrered resolvers by mutation type, `#[mutation_conflict]` dispatch,
+in-background user resolution) is specified here but implementation is
+post-MVP.
 
 ---
 

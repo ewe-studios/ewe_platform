@@ -356,6 +356,13 @@ enum ViewKind {
     /// on desktop. The native view receives data through the IPC shell
     /// lane or capability bridge. The view component is registered
     /// with the platform's native view registry (see below).
+    ///
+    /// **Post-MVP.** Native view support requires the Swift/Kotlin build
+    /// pipeline and Tauri escape-hatch integration (run_on_main_thread,
+    /// run_on_android_context). The enum variant exists now so the type
+    /// system doesn't change later, but the native view registry and
+    /// instantiation code ship after the WebView rendering path is stable.
+    /// MVP renders everything in WebViews.
     Native,
 }
 ```
@@ -828,19 +835,23 @@ drives protocol and transport selection](#how-source-drives-protocol-and-transpo
 ### Step 7: Content encoding and transport
 
 The platform encodes the backend's output in the selected protocol and
-delivers it through the appropriate transport lane:
+delivers it through the appropriate transport lane. All app traffic uses
+`ewe://` (single scheme, registered once with Tauri's `UriSchemeProtocol`).
+The transport is implied by `RouteSource` — the session selects automatically:
 
-- **`ewe://` (default):** Tauri custom protocol — binary response with typed
-  `Content-Type`. The `UriSchemeProtocol` handler parses the URI, routes
-  through the session, encodes the response, and responds.
-- **`ewe+ipc://`:** Tauri command IPC — JSON for control messages, or Arrow
-  binary via `InvokeBody::Raw(Vec<u8>)` (desktop+iOS only, not Android).
-  Control lane for typed request/response. For streaming data or Android
-  Arrow payloads, use the custom protocol lane.
-- **`ewe+ws://`:** WebSocket — bidirectional streaming for live DomOps,
-  collaborative editing, real-time sync.
-- **`ewe+http://`:** HTTP fetch — standard web semantics, proxies to dev
-  server or remote.
+- **Custom protocol (default):** Binary response with typed `Content-Type`.
+  Used for `RemoteServer` and `IpcShell` data payloads. The
+  `UriSchemeProtocol` handler parses the URI, routes through the session,
+  encodes the response, and responds.
+- **Tauri command IPC:** JSON for control messages, or Arrow binary via
+  `InvokeBody::Raw(Vec<u8>)` (desktop+iOS only, not Android). Used for
+  `IpcShell` control requests. For streaming data or Android Arrow payloads,
+  use the custom protocol lane.
+- **WebSocket:** Bidirectional streaming for live DomOps, collaborative
+  editing, real-time sync. Used when `RemoteServer` backends initiate WS
+  connections.
+- **HTTP fetch:** Standard web semantics, proxies to dev server or remote.
+  Used for `RemoteServer` request/response patterns.
 
 ### Step 8: View instantiation
 
@@ -1228,8 +1239,7 @@ manually pick a transport — the `RouteSource` implies it:
 - `WebviewApp` → in-memory channel (no transport needed).
 - `IpcShell` → Tauri command IPC + shared memory for data.
 - `RemoteServer` → the session opens the best available transport for the URL
-  scheme: `ewe://` = custom protocol, `ewe+ws://` = WebSocket, `ewe+http://`
-  = HTTP fetch, `https://` = direct HTTP fetch.
+  `ewe://` = custom protocol (all app traffic), `https://` = direct HTTP fetch.
 
 Full transport lane definitions, Tauri integration points, and protocol
 selection priority are in [decision 03](03-session-backbone-transport.md).

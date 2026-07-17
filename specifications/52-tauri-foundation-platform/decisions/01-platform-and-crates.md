@@ -121,7 +121,9 @@ window/webview/plugin/event state — the session just coordinates them.
                                                         + depends on foundation_nativeapis
                                                         + depends on foundation_arrow
                                                         + depends on foundation_signals
-                                                        + depends on foundation_macros)
+                                                        + depends on foundation_macros
+                                                        + depends on foundation_wasmtime
+                                                        + depends on foundation_packager)
 
 foundation_platform's Cargo.toml:
   [dependencies]
@@ -134,6 +136,8 @@ foundation_platform's Cargo.toml:
   foundation_arrow = { path = "../foundation_arrow" }
   foundation_signals = { path = "../foundation_signals" }
   foundation_macros = { path = "../foundation_macros" }
+  foundation_wasmtime = { path = "../foundation_wasmtime" }
+  foundation_packager = { path = "../foundation_packager" }
 ```
 
 `foundation_ui_traits` remains dependency-free — pure types, no I/O, no Tauri,
@@ -250,6 +254,21 @@ in companion `*_macros` crates. Platform entrypoint macros
 (`#[platform_worker]`, `#[platform_capability]`, etc.) live here.
 `#[platform_bin]` is a source parser (not a proc macro) and lives in
 `foundation_platform`'s build pipeline.
+
+### `foundation_wasmtime` (new, decision 13)
+
+Wraps the wasmtime WASM runtime. Provides `WasmtimeBuilder` for loading and
+instantiating `#[wasm_app]` WASM modules inside the native shell. Manages
+Engine, Linker, Store, and Instance lifecycle. Generated wrapper code in
+`src/generated/` produces builders that use this crate.
+
+### `foundation_packager` (existing)
+
+PackageDirectorate and template rendering. Provides `EmbeddableDirectory`
+(trait implemented by `#[derive(EmbedDirectoryAs)]`), `PackageDirectorate`
+(file enumeration + content access), and `PackageGenerator` (project
+scaffolding from templates). Used by generated `src/generated/` wrappers
+for WASM byte loading via `read_utf8_for()`.
 
 ---
 

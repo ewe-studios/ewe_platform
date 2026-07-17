@@ -152,9 +152,14 @@ Certificate pinning for the app's backend prevents MITM even with a compromised 
 **Attack 8: Physical device access — attacker reads the local SQLite database.**
 
 Mitigation: `foundation_db` supports encryption at rest (SQLCipher via Turso/
-libsql). The platform enables encryption by default for cached content and
-local databases. The encryption key is stored in the platform's secure storage
-(iOS Keychain, Android Keystore), which requires biometric auth to access.
+libsql). The platform can encrypt cached content and local databases. The
+encryption key is stored in the platform's secure storage (iOS Keychain,
+Android Keystore). Encryption is opt-in per app — the app's `#[platform_bin]`
+enables it via `session.enable_storage_encryption()`.
+
+Not every app needs biometric-protected local storage. A weather app with
+public data doesn't need encryption; a banking app with financial data does.
+The platform provides the capability; the app decides whether to use it.
 
 ### What we do NOT protect against (out of scope)
 
