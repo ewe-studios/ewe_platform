@@ -9,7 +9,13 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
+# Host platform
 tauri = { version = "2.11.5", features = [] }
+
+# Shared types (dependency-free, compiles for wasm32)
+foundation_ui_traits = { path = "../foundation_ui_traits" }
+
+# Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }
 
