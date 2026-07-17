@@ -74,6 +74,10 @@ Added three new integration tests for non-standard line endings:
 1. **`test_lf_only_line_endings`** - Tests LF-only (`\n`) instead of standard CRLF
 2. **`test_mixed_line_endings`** - Tests mixed CRLF and LF across chunks
 3. **`test_double_lf_line_endings`** - Tests double-LF (`\n\n`) terminators
+   — *replaced 2026-07-17* by `test_lf_framing_keeps_leading_lf_in_data`:
+   `<size>\n\n<data>` is not a framing any server sends, and accepting it is
+   indistinguishable from `<size>\n` + data that begins with LF, so it cost
+   binary correctness for a case that does not occur.
 
 All tests pass, confirming the parser handles both standard and non-standard line endings correctly.
 
@@ -82,6 +86,70 @@ All tests pass, confirming the parser handles both standard and non-standard lin
 - `backends/foundation_core/src/wire/simple_http/impls.rs` - Fixed chunk parser
 - `backends/foundation_core/tests/chunked_encoding.rs` - Added tests
 - `backends/foundation_core/src/io/ioutils/mod.rs` - Removed debug tracing
+
+> **Follow-up 2026-07-17:** this fix was right but incomplete — see
+> *"2026-07-17: the rest of the greedy chunk-header eaters"* below.
+
+---
+
+## 2026-07-17: the rest of the greedy chunk-header eaters
+
+### What this entry is for
+
+If you are here because **GCP Discovery JSON has stray CR bytes**: the
+parser-level CR strip that used to hide that is **gone**, on purpose. Read
+[`CR_BYTE_INVESTIGATION.md`](./CR_BYTE_INVESTIGATION.md) → *"Update 2026-07-17"*
+before adding anything. Short version: re-test first (the CRs may have been our
+own bug), and if they are real, strip them **in the GCP fetch layer** where the
+body is known to be JSON — never in `foundation_netio`'s chunked parser, which
+cannot know a `0x0D` from a length byte.
+
+### The April fix caught one of three
+
+The April entry above removed `eat_escaped_crlf` from the chunk header parser
+because it "consumed legitimate JSON content". Correct — but two eaters of the
+same shape were left in place:
+
+```rust
+Self::eat_space(pointer.clone())?;
+Self::eat_crlf(pointer.clone())?;      // ← loops until a non-CR/LF byte
+Self::eat_newlines(pointer.clone())?;  // ← same
+```
+
+RFC 7230 §4.1 is `chunk-size [ chunk-ext ] CRLF chunk-data CRLF` — **exactly one**
+terminator after the header. Looping past it eats the first bytes of the chunk
+*data* whenever that data starts with CR or LF, after which `read_exact(size)`
+runs late and pulls the framing delimiter in as content. A chunk carrying
+`"\rstart"` came back as `"start\r"`.
+
+That is very likely where GCP's "stray CRs" came from: a chunk boundary landing
+mid-word plus a leaked delimiter byte yields exactly the reported
+`cor\rresponding` / `PART\rIAL`. Curl saw zero CRs from the same endpoint.
+
+**Fixed:** the parser now consumes exactly one terminator (CRLF, or a bare LF for
+LF-only servers) and returns chunk data untouched.
+
+### Why it surfaced now
+
+Docker's log stream (`application/vnd.docker.multiplexed-stream`) frames each
+write as `[stream, 0,0,0, size_be32] + payload`. A **13-byte** log line puts a
+literal `0x0D` in the size field — which the CR strip deleted, desyncing the
+frame so container logs came back empty. That broke spec-53's F03 volume tests
+and would have broken any image build/pull stream too.
+
+### The rule
+
+The transport moves bytes; it does not clean them. Only the layer that knows the
+payload's format (this provider, for its JSON) can decide a byte is noise.
+
+### Files Changed
+
+- `backends/foundation_netio/src/shared/http/impls.rs` — removed the CR strip;
+  chunk-header terminator consumption is now exactly one CRLF/LF
+- `backends/foundation_netio/tests/simple_http/chunked_tests.rs`,
+  `chunked_encoding.rs` — tests inverted to assert byte-exact round-tripping
+- `backends/foundation_netio/tests/simple_http/gcp_chunked_expected.bin` —
+  regenerated to the 171 bytes the capture carries (was 162, CR-stripped)
 
 ---
 

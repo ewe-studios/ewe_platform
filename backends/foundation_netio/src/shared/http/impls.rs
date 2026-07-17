@@ -5615,6 +5615,11 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
                             // If a *text* payload from some server really does carry
                             // stray CRs, that is for the caller parsing that text to
                             // deal with, not for the transport to guess at.
+                            //
+                            // Full story, and where a GCP-side fix belongs instead:
+                            // specifications/11-foundation-deployment/features/
+                            //   05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md
+                            //   ("Update 2026-07-17")
                             tracing::trace!(
                                 "ChunkState::Chunk::DataRead: len={:?}",
                                 chunk_data.len(),
