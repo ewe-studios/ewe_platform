@@ -107,7 +107,9 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # ── Developer user ───────────────────────────────────────────────────────────
-RUN useradd -m -s /bin/bash "${DEV_USER}" \
+# Create kvm group matching host GID for /dev/kvm passthrough
+RUN groupadd -f -g 990 kvm \
+    && useradd -m -s /bin/bash "${DEV_USER}" \
     && groupadd -f docker \
     && usermod -aG docker "${DEV_USER}" \
     && usermod -aG kvm "${DEV_USER}" \
