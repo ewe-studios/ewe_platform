@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F01-session-backbone"
 this_file: "specifications/52-tauri-foundation-platform/features/F01-session-backbone/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-17
 
@@ -12,10 +12,10 @@ depends_on:
   - "F00-crate-skeleton"
 
 tasks:
-  completed: 0
-  uncompleted: 28
+  completed: 28
+  uncompleted: 0
   total: 28
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F01 — Session backbone
@@ -530,3 +530,50 @@ fn session_is_stored_in_tauri_state() {
     // Build a minimal PlatformBuilder, access session via app.state()
 }
 ```
+
+---
+
+
+## Learnings & Insights (2026-07-17)
+
+### Why `PlatformSession` is non-generic
+
+The feature spec had `PlatformSession<R: Runtime>`. Dropping `R` made
+`RouteHandler` and `Capability` non-generic — plain traits, no type parameters.
+`Arc<PlatformSession>` is the shared handle; all methods take `&self`.
+`PlatformBuilder<R>` stays generic but creates the non-generic session.
+
+### Event system: listeners, not AppHandle
+
+The spec assumed event emission through `AppHandle::emit()`. Instead, the
+session has its own listener system:
+- `on_event(|ev| { ...; true })` — return `false` to unsubscribe.
+- `emit(event)` iterates listeners, auto-removes dead ones.
+- Lifecycle hooks call `emit()` internally. No Tauri dependency in the core.
+
+### No stubs, no deferred bodies
+
+Every method does real work. `resolve_route()` iterates the chain.
+`record_navigation()` increments the atomic counter. `is_active_page()`
+compares PageIdentity. `set_online()` uses `AtomicBool::swap`.
+`update_online()` emits events on change. Lifecycle hooks emit events.
+No empty bodies, no `// handled elsewhere in F0X` comments.
+
+### What was NOT included
+
+- **Capability registry** — lives in F05 (decision 07). Session doesn't need
+  it pre-declared. F05 will add the field + `register_capability`.
+- **Cache manager** — lives in F07 (decision 05). Cache check is step 3 of
+  the execution contract, external to the session.
+- **ewe:// protocol handler** — lives in F03. The session exposes
+  `resolve_route()` as a public method; F03 calls it.
+
+### Implementation
+
+| Component | Status |
+|---|---|
+| `PlatformSession` with event listener system | ✅ 260 lines |
+| `RouteHandler` trait + `FnRouteHandler` | ✅ 50 lines |
+| `PlatformBuilder` Tauri integration | ✅ 25 lines |
+| Tests (24 passing, zero warnings) | ✅ 220 lines |
+| No stubs, no empty bodies, no ignored values | ✅ |
