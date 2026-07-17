@@ -1,4 +1,4 @@
-# Spec 57 Progress: foundation_keychain (+ foundation_auth social login)
+# Spec 57 Progress: foundation-social-and-keychain
 
 ## Status: Spec Written, Awaiting Implementation
 

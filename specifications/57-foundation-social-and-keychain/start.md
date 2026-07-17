@@ -1,4 +1,4 @@
-# 57: foundation_keychain (+ foundation_auth social login)
+# 57: foundation-social-and-keychain
 
 Identity federation + portable Bitwarden-compatible keychain + credential provisioning, all on `foundation_auth` and `foundation_db`.
 

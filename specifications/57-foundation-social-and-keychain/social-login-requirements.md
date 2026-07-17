@@ -22,7 +22,7 @@ builds_on:
   - "specifications/completed/38-foundation-auth-server"
 related_specs:
   - "specifications/completed/38-foundation-auth-server"
-  - "specifications/57-foundation-keychain"
+  - "specifications/57-foundation-social-and-keychain"
 tasks:
   completed: 0
   uncompleted: 0

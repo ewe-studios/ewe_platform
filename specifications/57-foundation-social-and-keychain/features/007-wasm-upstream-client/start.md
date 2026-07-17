@@ -1,6 +1,6 @@
 ---
 feature: "07-wasm-upstream-client"
-spec: "57-foundation-keychain"
+spec: "57-foundation-social-and-keychain"
 depends: "03-oauth-upstream-client"
 status: "pending"
 ---

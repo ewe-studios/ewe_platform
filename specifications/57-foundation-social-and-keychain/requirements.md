@@ -1,4 +1,4 @@
-# Spec 57: foundation_keychain (+ foundation_auth social login)
+# Spec 57: foundation-social-and-keychain
 
 ## Scope
 
