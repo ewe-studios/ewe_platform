@@ -1,7 +1,7 @@
 ---
 feature: "01-provider-model"
-spec: "58-foundation-auth-social-login"
-depends: "decisions/01-identity-broker-pattern.md"
+spec: "57-foundation-keychain"
+depends: "decisions/00-identity-broker-pattern.md"
 status: "ready"
 ---
 

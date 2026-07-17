@@ -1,31 +1,54 @@
-# Spec 57 Progress: foundation_keychain
+# Spec 57 Progress: foundation_keychain (+ foundation_auth social login)
 
 ## Status: Spec Written, Awaiting Implementation
 
-Spec rewritten 2026-07-18. All decisions resolved. Features scoped.
+Merged spec-58 (foundation_auth social login) into spec-57 on 2026-07-18 — both
+touch `foundation_auth` + `foundation_db`. Social login is phase 0 (features
+001–007), keychain is phase 1 (features 008–012). Phase 0 lands first so the
+auth surface is complete before the vault builds on it.
 
-**Foundation reuse (no custom traits):**
-- `foundation_db`: `QueryStore`, `AsyncQueryStore`, `KeyValueStore`, `AsyncKeyValueStore`, `BlobStore`, `AsyncBlobStore`, `RateLimiterStore`, `StorageProvider`, `DataValue`, `SqlRow`, `StorageItemStream`, `AsyncStorageItemStream`, `StorageBackend`, `SchemaMigration`, `AuthStore`, `AsyncAuthStore`
-- `foundation_auth`: `JwtVerifier`, `JwtSigningKey`, `JwtManager`, `VerifiedClaims`, `TOTPSecret`, `BackupCodeSet`, `TwoFactorChallenge`, `require_auth`, `extract_bearer_token`, `AuthContext`, `AsyncCredentialStore`, `D1CredentialStore`, `UserService`, `TokenService`, `SessionService`, `IdpServer`, `pbkdf2::{pbkdf2_derive, pbkdf2_verify, SERVER_PASSWORD_ITERATIONS}`
-- `foundation_cronjobs`: `CronScheduler`, `CronJob`, `JobConfig`, `JobState` (new crate, valtron-based with foundation_db persistence)
-- `foundation_deployment_cloudflare::workers`: Durable Objects, WebSocket, Env bindings, RequestContext (new module, feature-gated)
-- `foundation_http`: native HTTP server (F47-complete)
-- `foundation_netio`: native WebSocket server (F51-complete)
+## Implementation Order
+
+**Phase 0 — foundation_auth social login (do first):**
+1. 001 provider model + CRUD → 002 migrations → 003 upstream client
+2. 004 social login flow → 005 user provisioning
+3. 006 provider discovery + admin API → 007 wasm client
+
+**Phase 1 — foundation_keychain (builds on phase 0):**
+4. 008 core types + domain → 009 Cloudflare / 010 native (parallel) → 011 tests+Docker
+5. 012 SSH key provisioning + app registry
 
 ## Feature Progress
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| F00: Core types + portable domain logic | Not started | Error, util, models, SignalR, auth adapters, DB models, query functions, API handlers |
-| F01: Cloudflare backend | Not started | foundation_deployment_cloudflare::workers + foundation_db WASM backends + foundation_auth |
-| F02: Native backend | Not started | foundation_http + foundation_netio WS + foundation_cronjobs + foundation_auth |
-| F03: Integration tests + Docker | Not started | Shared test suite, crypto compat, Dockerfile, docker-compose, bw CLI e2e |
+| Feature | Phase | Status |
+|---------|-------|--------|
+| 001: Provider model + CRUD | 0 | Not started |
+| 002: Provider migrations | 0 | Not started |
+| 003: Upstream OIDC/OAuth2 client | 0 | Not started |
+| 004: Social login flow | 0 | Not started |
+| 005: User provisioning | 0 | Not started |
+| 006: Provider discovery + admin API | 0 | Not started |
+| 007: WASM upstream client | 0 | Not started |
+| 008: Core types + portable domain logic | 1 | Not started |
+| 009: Cloudflare backend | 1 | Not started |
+| 010: Native backend | 1 | Not started |
+| 011: Integration tests + Docker | 1 | Not started |
+| 012: SSH key provisioning + app registry | 1 | Not started |
+
+## Foundation Reuse (no custom traits)
+
+- `foundation_db`: `QueryStore`, `AsyncQueryStore`, `KeyValueStore`, `BlobStore`, `RateLimiterStore`, `StorageProvider`, `SchemaMigration`, `AuthStore`
+- `foundation_auth`: `JwtSigningKey`, `TOTPSecret`, `require_auth`, `AsyncCredentialStore`, `IdpServer`, `UserService`, `TokenService`, `password_hash::{pbkdf2, argon2id}`, + new social-login: `ProviderService`, `UpstreamOidcClient`, `ProviderBackend`, `ProvisioningService`
+- `foundation_cronjobs`: `CronScheduler` (new crate)
+- `foundation_deployment_cloudflare::workers`: DO + WebSocket transport + Env (new module)
+- `foundation_http`, `foundation_netio`: native HTTP + WebSocket
 
 ## Key Design Decisions
 
-1. **No custom storage traits** — foundation_db's traits used directly
-2. **No reinvented auth** — foundation_auth for JWT/TOTP/PBKDF2/middleware/credential-stores
-3. **No tokio** — valtron handles all async execution and cron scheduling
-4. **Target gates, not feature gates** — `cfg(target_family = "wasm")` decides backend
-5. **Workers runtime in foundation_deployment_cloudflare** — DO + WS + Env as reusable module
-6. **Cron in foundation_cronjobs** — valtron + foundation_db persistence, shared across crates
+1. Social login lands first (phase 0) — completes the auth surface
+2. Identity broker — IdP always mints its own JWTs, upstream providers are auth sources only
+3. No custom storage traits — foundation_db directly
+4. No reinvented auth — foundation_auth for JWT/TOTP/PBKDF2/Argon2id/middleware
+5. No tokio — valtron for all async + cron
+6. Target gates, not feature gates
+7. age scrypt passphrase for SSH key at-rest (native+WASM)

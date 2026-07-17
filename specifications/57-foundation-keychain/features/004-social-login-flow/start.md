@@ -1,6 +1,6 @@
 ---
 feature: "04-social-login-flow"
-spec: "58-foundation-auth-social-login"
+spec: "57-foundation-keychain"
 depends: "01-provider-model, 02-provider-migrations, 03-oauth-upstream-client"
 status: "pending"
 ---

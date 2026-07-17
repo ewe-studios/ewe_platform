@@ -1,13 +1,30 @@
-# Spec 57: foundation_keychain
+# Spec 57: foundation_keychain (+ foundation_auth social login)
+
+## Scope
+
+This spec merges two closely-coupled bodies of work that touch the same crates
+(`foundation_auth`, `foundation_db`):
+
+- **Phase 0 (features 001–007): foundation_auth social login / upstream IdP federation.**
+  Adds identity brokering to the existing IdP server — Google/GitHub/Facebook/Apple
+  login, user provisioning, account linking, admin provider management. This lands
+  **first** because the keychain builds on `foundation_auth`, and the auth surface
+  should be complete before the vault layers on top. See `social-login-requirements.md`
+  for the full detail and `decisions/00-identity-broker-pattern.md` for the design.
+
+- **Phase 1 (features 008–012): foundation_keychain.** The Bitwarden-compatible vault +
+  SSH key provisioning, built on the now-complete `foundation_auth` and `foundation_db`.
 
 ## Problem
 
 Users need a central, self-hosted keychain service that:
 
-1. **Stores encrypted secrets** with zero-knowledge encryption
-2. **Serves Bitwarden-compatible clients** (web, extension, desktop, mobile, CLI) without patches
-3. **Runs anywhere**: Cloudflare Workers (WASM), Docker, VPS — same code, different backends
-4. **Uses our foundations**: `foundation_db` (storage), `foundation_auth` (JWT/TOTP/middleware/IdpServer), `foundation_http` (native HTTP), `foundation_netio` (WebSocket)
+1. **Federates identity** — one IdP that apps authenticate against, with social login (Google, GitHub, etc.) as upstream sources (phase 0)
+2. **Stores encrypted secrets** with zero-knowledge encryption
+3. **Serves Bitwarden-compatible clients** (web, extension, desktop, mobile, CLI) without patches
+4. **Provisions credentials** — apps register and request SSH keys via API
+5. **Runs anywhere**: Cloudflare Workers (WASM), Docker, VPS — same code, different backends
+6. **Uses our foundations**: `foundation_db` (storage), `foundation_auth` (JWT/TOTP/middleware/IdpServer/social-login), `foundation_http` (native HTTP), `foundation_netio` (WebSocket)
 
 Source: `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/orangevault` — 45 Rust files, 14 API modules, 16 SQL tables, 13 Vitest integration tests, ~150 route handlers.
 
