@@ -19,6 +19,8 @@
 //! spec is a build-time concern, and this is the spec-processing library
 //! (spec-56 decision 05).
 
+use std::collections::BTreeSet;
+
 use serde_json::{Map, Value};
 
 /// Ensure the spec has a `servers` array with at least one entry.
@@ -68,6 +70,21 @@ pub fn normalize_nullable_types(schema: &mut Value) {
     }
 }
 
+/// A property key, turned into a name fragment that is safe to concatenate.
+///
+/// **Why this is not `key[..1].to_uppercase() + &key[1..]`:** a property key is
+/// arbitrary text, and a component's name is a JSON-pointer segment. Cloudflare
+/// has properties keyed `application/json` — pasted in raw, that yields
+/// `…ResponseContentApplication/json`, whose `$ref` **cannot resolve**: the `/`
+/// reads as a pointer separator, so the schema is written but every reference to
+/// it dangles. 61 of them, caught by `dangling_refs` on Cloudflare's real spec.
+///
+/// Uppercasing byte 0 also panics outright on a key whose first character is
+/// multi-byte.
+fn nested_suffix(key: &str) -> String {
+    crate::api_catalog::to_pascal_case_from_any(key)
+}
+
 /// Extract inline object schemas from a property map into `components/schemas`.
 ///
 /// Walks `properties` recursively. When it finds a property with `"type": "object"`
@@ -76,10 +93,8 @@ pub fn normalize_nullable_types(schema: &mut Value) {
 ///
 /// For array properties whose `items` contain an inline object, extracts similarly.
 ///
-/// # Panics
-///
-/// Panics if a key collected from the map is no longer present when accessed
-/// (which should never happen in normal usage since we iterate over a snapshot of keys).
+/// Names go through [`nested_suffix`], so a property keyed with a slash, a dash or
+/// a space still yields a component name that a `$ref` can resolve.
 pub fn extract_inline_schemas(
     properties: &mut Map<String, Value>,
     parent_name: &str,
@@ -88,7 +103,7 @@ pub fn extract_inline_schemas(
     let keys: Vec<String> = properties.keys().cloned().collect();
     for key in keys {
         let prop = properties.get_mut(&key).unwrap();
-        let nested_name = format!("{}{}{}", parent_name, key[..1].to_uppercase(), &key[1..]);
+        let nested_name = format!("{parent_name}{}", nested_suffix(&key));
 
         // Nested object with inline properties
         let is_inline_object = prop.get("properties").is_some()
@@ -355,6 +370,24 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     let mut stats = CanonicalizeStats::default();
     let mut hoisted: Map<String, Value> = Map::new();
 
+    // Names the vendor has already spent, indexed the way the *generator* sees
+    // them. This is not paranoia: Cloudflare bundles `vectorize_index_info_response`
+    // and has an operation `vectorize-index-info`, whose response we would name
+    // `VectorizeIndexInfoResponse` — the same Rust type. The field referencing the
+    // vendor's schema then renders as its own parent, which surfaces as
+    // "recursive type has infinite size" and is really two schemas fighting over
+    // one name. Raw keys alone miss it: the two collide only after pascal-casing.
+    let reserved: BTreeSet<String> = spec
+        .pointer("/components/schemas")
+        .and_then(Value::as_object)
+        .map(|schemas| {
+            schemas
+                .keys()
+                .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
+                .collect()
+        })
+        .unwrap_or_default();
+
     let Some(paths) = spec.get_mut("paths").and_then(Value::as_object_mut) else {
         return stats;
     };
@@ -375,7 +408,7 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
                 .and_then(Value::as_object_mut)
                 .and_then(first_media_schema_mut)
             {
-                hoist(schema, &format!("{base}Request"), &mut hoisted, &mut stats);
+                hoist(schema, &format!("{base}Request"), &mut hoisted, &reserved, &mut stats);
             }
 
             if let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) {
@@ -396,7 +429,7 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
                         .and_then(Value::as_object_mut)
                         .and_then(first_media_schema_mut)
                     {
-                        hoist(schema, &name, &mut hoisted, &mut stats);
+                        hoist(schema, &name, &mut hoisted, &reserved, &mut stats);
                     }
                 }
             }
@@ -425,7 +458,13 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
 
 /// Replace `schema` with a `$ref` to `name`, parking the schema itself in
 /// `hoisted` — recursing into its properties so nested objects get names too.
-fn hoist(schema: &mut Value, name: &str, hoisted: &mut Map<String, Value>, stats: &mut CanonicalizeStats) {
+fn hoist(
+    schema: &mut Value,
+    name: &str,
+    hoisted: &mut Map<String, Value>,
+    reserved: &BTreeSet<String>,
+    stats: &mut CanonicalizeStats,
+) {
     if !is_inline_object(schema) {
         return; // already a $ref, or free-form — nothing to name
     }
@@ -433,7 +472,7 @@ fn hoist(schema: &mut Value, name: &str, hoisted: &mut Map<String, Value>, stats
     // An array of inline objects: name the *item*, keep the array inline.
     if schema.get("type").and_then(Value::as_str) == Some("array") {
         if let Some(items) = schema.get_mut("items") {
-            hoist(items, &format!("{name}Item"), hoisted, stats);
+            hoist(items, &format!("{name}Item"), hoisted, reserved, stats);
         }
         return;
     }
@@ -447,7 +486,7 @@ fn hoist(schema: &mut Value, name: &str, hoisted: &mut Map<String, Value>, stats
         extract_inline_schemas(props, name, hoisted);
     }
 
-    let final_name = unique_name(name, &taken, hoisted, stats);
+    let final_name = unique_name(name, &taken, hoisted, reserved, stats);
     hoisted.insert(final_name.clone(), taken);
     *schema = serde_json::json!({ "$ref": format!("#/components/schemas/{final_name}") });
     stats.hoisted += 1;
@@ -459,27 +498,37 @@ fn unique_name(
     name: &str,
     schema: &Value,
     hoisted: &Map<String, Value>,
+    reserved: &BTreeSet<String>,
     stats: &mut CanonicalizeStats,
 ) -> String {
-    match hoisted.get(name) {
-        None => name.to_string(),
-        Some(existing) if existing == schema => name.to_string(),
-        Some(_) => {
-            for n in 2..1000 {
-                let candidate = format!("{name}{n}");
-                match hoisted.get(&candidate) {
-                    None => {
-                        stats.renamed += 1;
-                        return candidate;
-                    }
-                    Some(existing) if existing == schema => return candidate,
-                    Some(_) => {}
+    for n in 0..1000 {
+        let candidate = if n == 0 {
+            name.to_string()
+        } else {
+            format!("{name}{}", n + 1)
+        };
+
+        // A name the vendor already owns is never ours to take — not even when
+        // the schemas look identical. Two component keys that pascal-case to one
+        // type name mean the generator emits the struct twice.
+        if reserved.contains(&crate::api_catalog::to_pascal_case_from_any(&candidate)) {
+            continue;
+        }
+        match hoisted.get(&candidate) {
+            // Free.
+            None => {
+                if n > 0 {
+                    stats.renamed += 1;
                 }
+                return candidate;
             }
-            stats.renamed += 1;
-            format!("{name}Dedup")
+            // The same shape twice is one type — sharing the name is correct.
+            Some(existing) if existing == schema => return candidate,
+            Some(_) => {}
         }
     }
+    stats.renamed += 1;
+    format!("{name}Dedup")
 }
 
 /// The type-name stem for an operation.

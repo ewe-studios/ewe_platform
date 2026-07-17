@@ -320,3 +320,85 @@ fn the_real_linode_declaration() {
         Err(PipelineError::SpecVersionMismatch { .. })
     ));
 }
+
+// ── whose broken ref is it? ──────────────────────────────────────────────────
+
+#[test]
+fn a_vendors_own_dangling_ref_is_reported_not_fatal() {
+    // Cloudflare's spec references 57 schemas it never bundles. Refusing to
+    // generate over the vendor's bug would mean we cannot support them at all —
+    // and the old path generated it fine (those fields come out untyped).
+    let dir = tmpdir("vendor-dangling");
+    let path = dir.join("raw.json");
+    std::fs::write(
+        &path,
+        serde_json::to_string(&json!({
+            "openapi": "3.0.1",
+            "info": { "title": "Sloppy", "version": "1.0.0" },
+            "servers": [{ "url": "https://x" }],
+            "paths": { "/a": { "post": {
+                "operationId": "post-a",
+                // One ref the vendor bundles, one they forgot — the shape
+                // Cloudflare actually ships.
+                "requestBody": { "content": { "application/json": {
+                    "schema": { "$ref": "#/components/schemas/Present" } } } },
+                "responses": { "200": { "content": { "application/json": {
+                    "schema": { "$ref": "#/components/schemas/NeverBundled" } } } } }
+            }}},
+            "components": { "schemas": {
+                "Present": { "type": "object", "properties": { "x": { "type": "string" } } }
+            }}
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+
+    let resolved = Pipeline::new("sloppy", &path)
+        .resolve()
+        .expect("a vendor's own dangling ref must not stop generation");
+
+    // It is still dangling — we did not invent a schema to paper over it.
+    assert_eq!(
+        foundation_openapi::dangling_refs(&resolved),
+        vec!["#/components/schemas/NeverBundled".to_string()]
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn a_ref_we_break_ourselves_is_fatal() {
+    // The invariant that is ours to hold: a ref that resolved in the vendor's
+    // document must still resolve in ours. This is what a pruning bug looks like.
+    let dir = tmpdir("we-broke-it");
+    let path = dir.join("raw.json");
+    std::fs::write(
+        &path,
+        serde_json::to_string(&json!({
+            "openapi": "3.0.1",
+            "info": { "title": "Fine", "version": "1.0.0" },
+            "servers": [{ "url": "https://x" }],
+            "paths": { "/a": { "get": {
+                "operationId": "get-a",
+                "responses": { "200": { "content": { "application/json": {
+                    "schema": { "$ref": "#/components/schemas/Thing" } } } } }
+            }}},
+            "components": { "schemas": {
+                "Thing": { "type": "object", "properties": {
+                    "other": { "$ref": "#/components/schemas/Other" } } },
+                "Other": { "type": "object", "properties": { "x": { "type": "string" } } }
+            }}
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+
+    // Nothing dangles in the source, and nothing must dangle after we prune: the
+    // closure has to follow Thing -> Other.
+    let resolved = Pipeline::new("fine", &path).resolve().expect("resolves");
+    assert_eq!(foundation_openapi::dangling_refs(&resolved), Vec::<String>::new());
+    assert!(
+        resolved["components"]["schemas"]["Other"].is_object(),
+        "a transitively-referenced schema survives pruning"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}

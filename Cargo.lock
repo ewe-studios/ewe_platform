@@ -4278,6 +4278,7 @@ dependencies = [
  "foundation_openapi",
  "serde",
  "serde_json",
+ "sha2",
  "syn 2.0.114",
  "tempfile",
  "toml 0.9.8",

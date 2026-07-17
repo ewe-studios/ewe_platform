@@ -77,6 +77,37 @@ fn escape_rust_keyword(ident: &str) -> String {
 
 /// Escape a Rust keyword for use in a struct field name.
 /// `r#self` and `r#Self` are NOT valid field names in Rust, so we rename instead.
+/// A property key, turned into a field name Rust will accept.
+///
+/// **Why not `escape_field_keyword(to_snake_case(key))`, which is what this was:**
+/// that handles keywords and casing but assumes the key is otherwise already an
+/// identifier. Vendors do not cooperate — Cloudflare keys properties `13335` (an
+/// ASN), `*` and `$metadata`; Linode uses `+and`/`+gt` for filter operators;
+/// DigitalOcean has `pg_partman_bgw.interval`. Those went straight into the
+/// output as `pub 13335: …`, which does not parse.
+///
+/// The wire name is preserved regardless: the caller emits `#[serde(rename)]`
+/// whenever the field name differs from the property name, which is exactly when
+/// this function changed something.
+///
+/// Names that are already valid pass through untouched, so this does not churn
+/// any provider's committed output.
+fn field_ident(prop_name: &str) -> String {
+    let snake = to_snake_case(&sanitize_identifier(prop_name));
+    // A key made entirely of punctuation sanitises to nothing — Cloudflare has a
+    // property literally named `*`, which produced `pub : Type`.
+    if snake.is_empty() {
+        return "field".to_string();
+    }
+    // No identifier may start with a digit (Cloudflare keys properties by ASN).
+    let snake = if snake.starts_with(|c: char| c.is_ascii_digit()) {
+        format!("field_{snake}")
+    } else {
+        snake
+    };
+    escape_field_keyword(&snake)
+}
+
 fn escape_field_keyword(ident: &str) -> String {
     if ident == "self" {
         "_self".to_string()
@@ -1170,7 +1201,7 @@ impl UnifiedGenerator {
                 if let Some(props) = &member.properties {
                     for (k, v) in props {
                         // Deduplicate by snake_case field name to avoid duplicates like "Version" and "version"
-                        let field_name = escape_field_keyword(&to_snake_case(k));
+                        let field_name = field_ident(k);
                         all_properties.insert(field_name, (k.clone(), v.clone()));
                     }
                 }
@@ -1206,7 +1237,7 @@ impl UnifiedGenerator {
             let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
 
             for (prop_name, prop_schema) in properties {
-                let field_name = escape_field_keyword(&to_snake_case(prop_name));
+                let field_name = field_ident(prop_name);
                 // Skip if we already generated this field (handles "Version" vs "version" duplicates)
                 if generated_fields.contains_key(&field_name) {
                     continue;
@@ -1721,5 +1752,42 @@ impl UnifiedGenerator {
         fs::write(generated_dir.join("mod.rs"), out)?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::field_ident;
+
+    /// `field_ident` is private, so this lives here rather than in `tests/`.
+    ///
+    /// Every input below is a real property key from a vendor's spec, and each one
+    /// used to be emitted verbatim into a struct definition.
+    #[test]
+    fn a_property_key_becomes_a_field_name_rust_accepts() {
+        // Cloudflare keys properties by ASN, and by a bare `*`.
+        assert_eq!(field_ident("13335"), "field_13335");
+        assert_eq!(field_ident("*"), "field", "punctuation sanitises to nothing");
+        // Leading punctuation sanitises to `_`, which to_snake_case then drops —
+        // the wire name is kept by the caller's #[serde(rename)].
+        assert_eq!(field_ident("$metadata"), "metadata");
+        // Linode's filter operators.
+        assert_eq!(field_ident("+gt"), "gt");
+        // DigitalOcean's Postgres settings.
+        assert_eq!(field_ident("pg_partman_bgw.interval"), "pg_partman_bgw_interval");
+        // Keywords still take the raw-identifier form the generator has always used.
+        assert_eq!(field_ident("type"), "r#type");
+        assert_eq!(field_ident("self"), "_self");
+    }
+
+    #[test]
+    fn a_valid_key_is_left_exactly_alone() {
+        // The guarantee that keeps every provider's committed output from moving:
+        // this function only changes names that were already broken.
+        for name in ["account_id", "zone", "result_info", "id"] {
+            assert_eq!(field_ident(name), name);
+        }
+        // Casing conversion is unchanged.
+        assert_eq!(field_ident("ApiVersion"), "api_version");
     }
 }

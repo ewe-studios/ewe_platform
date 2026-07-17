@@ -26,6 +26,7 @@
 //! crates.io consumer needing an unpublished spec and writing into a read-only
 //! registry directory (spec-56 decision 05 / feature 00 §5).
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use serde_json::Value;
@@ -67,8 +68,15 @@ pub enum PipelineError {
     },
     /// The transformed spec is still not canonical — a transform did not do its job.
     NotCanonical(Vec<crate::transform::NotCanonical>),
-    /// Pruning left a `$ref` pointing at something it removed.
-    DanglingRefs(Vec<String>),
+    /// Our own transforms left a `$ref` pointing at something that is not there.
+    ///
+    /// Only refs **we** broke — a vendor shipping a spec that references a schema
+    /// it never bundles is their bug, not a reason to refuse to generate
+    /// (Cloudflare ships 57 such refs). Those are reported, not fatal.
+    DanglingRefs {
+        /// Refs that resolved in the vendor's document and do not resolve in ours.
+        introduced: Vec<String>,
+    },
     /// `check` found the committed output no longer matches the declaration.
     Stale {
         /// What differs.
@@ -104,9 +112,13 @@ impl std::fmt::Display for PipelineError {
                 }
                 Ok(())
             }
-            Self::DanglingRefs(refs) => {
-                write!(f, "pruning left {} dangling $ref(s): {:?}", refs.len(), &refs[..refs.len().min(5)])
-            }
+            Self::DanglingRefs { introduced } => write!(
+                f,
+                "our transforms left {} $ref(s) unresolvable — they resolved in the vendor's \
+                 document and do not resolve in ours: {:?}",
+                introduced.len(),
+                &introduced[..introduced.len().min(5)]
+            ),
             Self::Stale { detail } => write!(f, "generated output is stale: {detail}"),
         }
     }
@@ -211,6 +223,13 @@ impl Pipeline {
 
         self.verify_spec_version(&spec)?;
 
+        // What was already broken before we touched it. A vendor's spec can
+        // reference a schema it never bundles (Cloudflare: 57), and refusing to
+        // generate over their bug would mean we simply cannot support them. The
+        // invariant we can hold is narrower and is the one that matters: *we* must
+        // not break a ref that used to resolve.
+        let inherited: BTreeSet<String> = crate::prune::dangling_refs(&spec).into_iter().collect();
+
         // 1. select — before anything else, so the stages below only ever touch
         //    the handful of paths we keep.
         crate::prune::prune_to_selection(&mut spec, &self.selection);
@@ -228,9 +247,22 @@ impl Pipeline {
 
         crate::transform::validate_canonical(&spec).map_err(PipelineError::NotCanonical)?;
 
-        let dangling = crate::prune::dangling_refs(&spec);
-        if !dangling.is_empty() {
-            return Err(PipelineError::DanglingRefs(dangling));
+        let introduced: Vec<String> = crate::prune::dangling_refs(&spec)
+            .into_iter()
+            .filter(|r| !inherited.contains(r))
+            .collect();
+        if !introduced.is_empty() {
+            return Err(PipelineError::DanglingRefs { introduced });
+        }
+        if !inherited.is_empty() {
+            // Not fatal, but never silent: these generate as untyped blobs, and
+            // someone should know whose fault that is.
+            tracing::warn!(
+                provider = %self.provider,
+                count = inherited.len(),
+                sample = ?inherited.iter().take(3).collect::<Vec<_>>(),
+                "spec references schemas it does not define; those fields generate untyped"
+            );
         }
 
         Ok(spec)

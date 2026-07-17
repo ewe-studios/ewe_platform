@@ -525,3 +525,156 @@ fn strip_doc_only_is_idempotent() {
     strip_doc_only(&mut spec);
     assert_eq!(spec, once);
 }
+
+// ── component names must be resolvable pointers ──────────────────────────────
+
+#[test]
+fn a_property_key_with_a_slash_still_yields_a_resolvable_ref() {
+    // Cloudflare's real bug: a property keyed `application/json` produced the
+    // component `…ContentApplication/json`, whose $ref cannot resolve — the slash
+    // reads as a JSON-pointer separator. The schema is written and every
+    // reference to it dangles.
+    let mut props = json!({
+        "content": { "type": "object", "properties": {
+            "application/json": { "type": "object", "properties": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } } } }
+    })
+    .as_object()
+    .unwrap()
+    .clone();
+    let mut schemas = serde_json::Map::new();
+
+    extract_inline_schemas(&mut props, "Resp", &mut schemas);
+
+    for name in schemas.keys() {
+        assert!(
+            !name.contains('/'),
+            "a component name is a pointer segment: {name}"
+        );
+    }
+    assert!(
+        schemas.contains_key("RespContentApplicationJson"),
+        "got {:?}",
+        schemas.keys().collect::<Vec<_>>()
+    );
+
+    // The invariant that actually matters: every ref resolves.
+    let spec = json!({ "paths": { "/a": { "get": { "responses": { "200": {
+        "content": { "application/json": { "schema": { "type": "object", "properties": props } } } } } } } },
+        "components": { "schemas": schemas } });
+    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+}
+
+#[test]
+fn a_property_key_starting_with_a_multibyte_char_does_not_panic() {
+    // The old name builder uppercased byte 0 and sliced from byte 1 — which
+    // panics outright on a non-ASCII key rather than producing a bad name.
+    let mut props = json!({ "é_field": { "type": "object", "properties": { "x": { "type": "string" } } } })
+        .as_object()
+        .unwrap()
+        .clone();
+    let mut schemas = serde_json::Map::new();
+    extract_inline_schemas(&mut props, "T", &mut schemas);
+    assert_eq!(schemas.len(), 1, "it named something rather than panicking");
+}
+
+/// Cloudflare's real 19 MB spec — the document that exposed the slash bug.
+///
+/// Skips if the artefact is absent.
+#[test]
+fn canonicalising_the_real_cloudflare_spec_leaves_every_hoisted_ref_resolvable() {
+    const SPEC: &str = "../../artefacts/cloud_providers/cloudflare/openapi.json";
+    if !std::path::Path::new(SPEC).exists() {
+        eprintln!("SKIP: cloudflare artefact not present");
+        return;
+    }
+    let mut spec: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(SPEC).unwrap()).unwrap();
+
+    let before = foundation_openapi::dangling_refs(&spec);
+    let stats = foundation_openapi::canonicalize_operations(&mut spec);
+    let after = foundation_openapi::dangling_refs(&spec);
+
+    // Canonicalising must not *introduce* a dangling ref. Cloudflare ships one of
+    // its own (`abuse-reports_CSAMReport`, referenced once and declared nowhere),
+    // so the assertion is "no new ones", not "none".
+    let introduced: Vec<&String> = after.iter().filter(|r| !before.contains(r)).collect();
+    assert!(
+        introduced.is_empty(),
+        "hoisting {} schemas introduced {} unresolvable refs: {:?}",
+        stats.hoisted,
+        introduced.len(),
+        &introduced[..introduced.len().min(5)]
+    );
+    eprintln!(
+        "  cloudflare: hoisted {} (renamed {}), vendor's own dangling refs: {}",
+        stats.hoisted,
+        stats.renamed,
+        before.len()
+    );
+}
+
+#[test]
+fn hoisting_never_takes_a_name_the_vendor_already_owns() {
+    // Cloudflare's real collision: the spec bundles `vectorize_index_info_response`
+    // AND has an operation `vectorize-index-info`, whose response we would name
+    // `VectorizeIndexInfoResponse` — the same Rust type after pascal-casing. The
+    // field referencing the vendor's schema then renders as its own parent, which
+    // the compiler reports as "recursive type has infinite size". It is really two
+    // different schemas fighting over one name, and silently picking a winner
+    // would be worse than the error.
+    let mut spec = json!({
+        "paths": { "/info": { "get": {
+            "operationId": "vectorize-index-info",
+            "responses": { "200": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": {
+                    "result": { "$ref": "#/components/schemas/vectorize_index_info_response" } } } } } } }
+        }}},
+        "components": { "schemas": {
+            "vectorize_index_info_response": { "type": "object", "properties": { "dimensions": { "type": "integer" } } }
+        }}
+    });
+
+    let stats = foundation_openapi::canonicalize_operations(&mut spec);
+
+    // The hoisted response had to take a different name.
+    let schemas = spec["components"]["schemas"].as_object().unwrap();
+    assert!(
+        schemas.contains_key("VectorizeIndexInfoResponse2"),
+        "the hoisted response stepped aside; got {:?}",
+        schemas.keys().collect::<Vec<_>>()
+    );
+    assert_eq!(stats.renamed, 1, "and it counted as a rename");
+
+    // The vendor's schema is untouched, and the operation points at ours.
+    assert!(schemas.contains_key("vectorize_index_info_response"));
+    assert_eq!(
+        spec["paths"]["/info"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+            ["$ref"],
+        "#/components/schemas/VectorizeIndexInfoResponse2"
+    );
+    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+}
+
+#[test]
+fn an_identical_shape_hoisted_twice_shares_one_name() {
+    // The flip side: renaming must not be indiscriminate. The same shape under two
+    // operations is one type, and two names for it would emit the struct twice.
+    let mut spec = json!({
+        "paths": {
+            "/a": { "get": { "operationId": "op-a", "responses": { "200": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } } } } } },
+            "/b": { "get": { "operationId": "op-a", "responses": { "200": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } } } } } }
+        },
+        "components": { "schemas": {} }
+    });
+
+    let stats = foundation_openapi::canonicalize_operations(&mut spec);
+    assert_eq!(stats.renamed, 0, "the same shape twice is one type");
+    assert_eq!(
+        spec["components"]["schemas"].as_object().unwrap().len(),
+        1,
+        "one struct, not two"
+    );
+}

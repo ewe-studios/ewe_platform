@@ -301,6 +301,80 @@ flatPath key, and had been red for ~3 months.
 **Fixed** by keying on `v1/{+name}` and recording *why* in the test, so the next
 person does not "fix" it back. `foundation_openapi` is now 10/10 green.
 
+### 7. Wiring the selection into `generate` — **done 2026-07-17**
+
+`Pipeline` could cut Linode's 334 paths to 3 from the day it was written, and
+**nothing called it**. `genapi generate` still read the whole spec and handed it
+to `UnifiedGenerator`, so every path came out the other side. Code present with no
+consumer does not work — the same signal that condemned F14/F15/F16/F19 in
+spec-53.
+
+`foundation_codegentools::generate()` is now the one declaration (§4's shape), and
+the CLI routes through it, so a selection means the same thing from a build script
+and from the command line. The generator is never *shown* the paths we did not
+ask for, which is the only place the selection cannot be forgotten.
+
+```
+genapi generate <provider> --include-path /servers --include-tag Servers \
+                           --spec-version 1.0.0 --api-version v1 [--check]
+```
+
+Measured: Linode's real spec, 334 paths → 3, 50 schemas, 4 files.
+
+#### What running it against a real committed tree found
+
+`--check` against Cloudflare's 45 committed files reported all 44 differing, which
+exposed **four real bugs** — none of which any fixture had caught, because the
+fixtures were written by the same person as the code:
+
+| Bug | Symptom | Cause |
+|---|---|---|
+| Slash in a hoisted name | 61 unresolvable `$ref`s | a property keyed `application/json` became `…ContentApplication/json`; a component name is a **JSON-pointer segment**, so the `/` splits it |
+| `sanitize_identifier` was a blocklist | `pub struct Rules*ContentSignal` | fourteen punctuation marks were listed; vendors use `*`, `$metadata`, `+gt`, `1.1.1.1`, `pg_partman_bgw.interval` |
+| Field names never sanitised | `pub 13335: …`, `pub : …` | the generator used `escape_field_keyword(to_snake_case(k))` — keywords and casing only. `sanitize_field_name`, which does the right thing, existed with **zero callers** |
+| Hoisting could take a name the vendor owns | `recursive type has infinite size` | Cloudflare bundles `vectorize_index_info_response` *and* has operation `vectorize-index-info`; both pascal-case to one Rust type, so a field rendered as its own parent. `unique_name` only checked other **hoisted** names |
+
+The last one is the one to remember: it presents as a compiler error about
+recursion and is really **two different schemas fighting over one name**. Silently
+picking a winner would have been worse than the error.
+
+All four are fixed and pinned by tests that use the real vendor keys. Canonicalising
+Cloudflare's 19 MB spec now hoists 3090 schemas and introduces **zero** unresolvable
+refs (it ships 57 of its own — see below).
+
+#### Whose broken `$ref` is it — **resolved**
+
+`resolve()` used to reject **any** dangling ref. Cloudflare's spec references 57
+schemas it never bundles (`abuse-reports_CSAMReport`, …), so that rule meant we
+simply could not generate a provider we already ship. The invariant is now the
+narrower one that is actually ours to hold: **a ref that resolved in the vendor's
+document must still resolve in ours**. Theirs are reported via `tracing::warn` —
+never silent, since those fields generate untyped — but not fatal.
+
+### 8. Regenerating the existing providers — **OPEN, needs the owner**
+
+Routing the CLI through `Pipeline` means every provider now gets canonicalised,
+which the old path never did. For the VPS crates (01–03) that is the whole point.
+For **Cloudflare, which is already committed**, it is a decision:
+
+- **The generated code is better and it compiles.** 6214 → 9945 structs, and
+  **1349 → 2241 typed responses** — the 3090 inline schemas that made 1224 of its
+  2442 fns return `serde_json::Value` become named types.
+- **But it breaks Cloudflare's hand-written wrappers.** 9 call sites in
+  `dns_ops.rs` and `provider_client.rs` fail to compile: request fns gained a
+  typed body parameter they did not have. The generated tree is clean; the
+  hand-written code was built against the untyped API.
+
+So regenerating Cloudflare (and auditing docker/stripe/supabase/neon/planetscale/
+fly_io/prisma_postgres the same way) is **its own deliberate task**, not a side
+effect of wiring the selection. Until it is done, `genapi generate cloudflare`
+produces something different from what is committed — `genapi generate cloudflare
+--check` reports exactly that, which is how anyone will find out.
+
+**Recommendation:** take it. The typed-response gain is the payoff feature 00 was
+written for, and the 9 call sites are a morning's work. It just should not ride
+along inside a commit about selection.
+
 ## Verification
 
 All local — no network, no accounts:
@@ -328,7 +402,8 @@ All local — no network, no accounts:
 
 ## Acceptance criteria
 
-- [ ] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it
+- [x] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it — `crate_dir()` writes to `<crate>/src/generated/`, and `--output-dir` now actually works (it was accepted, shadowed, and ignored)
+- [ ] **Existing providers regenerated under canonicalisation** (§8) — needs the owner's call; Cloudflare's generated code improves and compiles, its 9 hand-written call sites do not
 - [x] One declaration, two verbs: `check()` (fails aloud on stale output or a moved spec) and `write()`
 - [x] `write()` is not called from a build script of a publishable crate — `check()` is the build.rs/CI verb, and never writes
 - [x] `api_version` pinned into the client; callers never pass it (`Pipeline::api_version`)
@@ -339,10 +414,10 @@ All local — no network, no accounts:
 - [x] Canonicalisation stage (§0) — transforms moved to `foundation_openapi::transform`; `canonicalize_operations` hoists every inline operation schema to `components/schemas` + `$ref`; `validate_canonical` proves the result
 - [x] A bundled spec (Linode/Hetzner) yields **named** request/response types — measured: Linode 1042 inline → 0, Hetzner 633 → 0, both canonical
 - [x] `genapi normalize <provider>` CLI + the provider→normalizer→raw registry (decision 05) — all three vendored under `artefacts/cloud_providers/raw/` and normalizing clean
-- [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
+- [x] `include_paths` (with globs) and `include_tags` honoured **at generation time** — the CLI and build.rs both route through `generate()`, which hands the generator the *resolved* spec (§7); Linode 334 → 3 measured end-to-end
 - [x] Transitive schema closure emitted — nothing missing (`dangling_refs` empty), nothing extra (`unreachable_components` empty)
 - [x] `allOf`/`oneOf`/`anyOf`, recursive schemas, `discriminator.mapping`, and `components/{parameters,responses,headers}` refs handled — walking raw JSON follows them all, so **no model extension was needed**
-- [ ] build.rs-callable API on `foundation_codegentools`
+- [x] build.rs-callable API on `foundation_codegentools` — `generate().provider(…).spec(…).include_paths(…).crate_dir(…)` with `check()`/`write()`; `check()` proven to touch neither `src/` nor `Cargo.toml`
 - [x] An unselected operation's types are **provably absent** from the output
 - [x] Linode's endpoints resolve from the 9.3 MB spec into a bounded surface — **334 paths → 3, 50 schemas**
 - [ ] Existing providers (cloudflare, docker, stripe, …) regenerate unchanged, or their diffs are reviewed deliberately — **not yet done**: `normalize` currently registers only the three new providers
