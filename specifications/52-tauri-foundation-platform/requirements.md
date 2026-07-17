@@ -15,7 +15,7 @@ This specification defines the creation of a new `foundation_platform` crate to 
 - Ensure seamless integration with WASM UI.
 
 ## Status
-**Phase: Implementation-ready.** Architecture resolved across 13 decisions. Four foundation documents capture the research. Skeleton crate exists (`backends/foundation_platform/`). Implementation begins.
+**Phase: Implementation-ready.** Architecture resolved across 14 decisions. Four foundation documents capture the research. Skeleton crate exists (`backends/foundation_platform/`). Implementation begins.
 
 ## Decisions (all resolved, 2026-07-04, updated 2026-07-17)
 1. **[Platform architecture and crate boundaries](decisions/01-platform-and-crates.md)** — `foundation_platform` owns Tauri integration; shared types in `foundation_ui_traits`.
@@ -26,11 +26,12 @@ This specification defines the creation of a new `foundation_platform` crate to 
 6. **[WebView profiles](decisions/06-webview-profiles.md)** — Trust boundaries gating platform service access per route.
 7. **[Native capability contract](decisions/07-native-capability-contract.md)** — Typed, permissioned, route-scoped capability registry.
 8. **[Security model](decisions/08-security-model.md)** — Capability mediation layer + red team approach.
-9. **[Testing strategy](decisions/09-testing-strategy.md)** — Macro-driven test harness; browser + device coverage.
+9. **[Testing strategy](decisions/09-testing-strategy.md)** — Macro-driven test harness; browser + device + Docker-based cross-platform coverage.
 10. **[Multi-WebView stack](decisions/10-multi-webview-stack.md)** — Screenshot-swap + background preload for native-stack simulation.
 11. **[Background workers](decisions/11-background-workers.md)** — `#[platform_worker]` and `#[platform_service]` — foreground/background execution, OS constraints, in-process services.
 12. **[Mutation queue and conflict resolution](decisions/12-mutation-queue-and-conflict.md)** — Offline mutation queue, idempotent replay, version vectors, conflict strategies.
 13. **[`#[wasm_app]` entrypoint and `foundation_wasmtime`](decisions/13-wasm-app-entrypoint.md)** — build.rs pipeline, code gen, generated wrappers, `WasmtimeBuilder`, `PackageDirectorate`, session registry, auto-routing, project template.
+14. **[Docker-based test environments](decisions/14-docker-test-environments.md)** — dockurr images (linux/android/windows) with VNC, `TestEnvironmentBuilder` API, `#[platform_test(docker)]` macro variant, CI pipeline with image caching.
 
 ## Foundations
 - [`basecamp-hotwire-native.md`](foundations/basecamp-hotwire-native.md) — What we learned from Basecamp's Hotwire Native sources.
@@ -66,6 +67,7 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F10 | Testing harness (`#[platform_test]`) | High | F01 |
 | F11 | Entrypoint annotations + build pipeline | Medium | F00, F01 |
 | F12 | MVP integration + demo app | Critical | F09–F11 |
+| F13 | Docker-based test environments | High | F10 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
