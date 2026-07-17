@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Platform Demo</title></head>
+<body>
+  <h1>Foundation Platform Demo</h1>
+  <div id="status">Initializing...</div>
+  <div id="routes">
+    <h2>Routes</h2>
+    <ul>
+      <li><a href="ewe://localhost/app/home">/app/home</a> — WebviewApp (local WASM)</li>
+      <li><a href="ewe://localhost/remote/dashboard">/remote/dashboard</a> — Remote fetch</li>
+      <li><a href="ewe://localhost/cached/data">/cached/data</a> — CacheFirst</li>
+      <li><a href="ewe://localhost/auth/login">/auth/login</a> — Auth profile</li>
+    </ul>
+  </div>
+  <div id="log"></div>
+  <script>
+    document.getElementById('status').textContent = 'Platform session active.';
+    document.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const url = a.getAttribute('href');
+        document.getElementById('log').textContent = 'Navigating to: ' + url;
+        window.location.href = url;
+      });
+    });
+  </script>
+</body>
+</html>

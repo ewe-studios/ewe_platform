@@ -6,6 +6,7 @@ members = [
   # "crates/*",
   "backends/*",
   "infrastructure/*",
+  "examples/platform_demo",
   "tests",  # Workspace integration tests
   "benches", # Workspace benchmarks
 ]
