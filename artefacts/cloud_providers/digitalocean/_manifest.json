@@ -1,0 +1,21 @@
+{
+  "canonical_sha256": "34b8aa0072502e67c52ad8ee9cdc7e82c4811f49b91d328200df9ec62e66047d",
+  "hoisted": 58,
+  "normalized_at": "1784275736",
+  "openapi": "3.0.0",
+  "provider": "digitalocean",
+  "raw": "artefacts/cloud_providers/raw/digitalocean.json",
+  "raw_sha256": "036428062dde3fb4a7442111da44d0e19ddf216256af5acdcd29e32e590e1922",
+  "renamed": 0,
+  "schemas": 954,
+  "source": "https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+  "spec_files": [
+    "digitalocean/openapi.json"
+  ],
+  "spec_version": "2.0",
+  "transforms": [
+    "strip_doc_only",
+    "ensure_servers",
+    "canonicalize_operations"
+  ]
+}

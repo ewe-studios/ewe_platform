@@ -107,10 +107,40 @@ neither crate depended on the other.
 > *"We could add a `artefacts/cloud_providers/raw` for the raw ones."*
 
 ```
-artefacts/cloud_providers/raw/<provider>.json        # exactly what the vendor published
+artefacts/cloud_providers/raw/<provider>.json        # the vendor's document, documentation stripped
 artefacts/cloud_providers/<provider>/openapi.json    # canonical — what genapi generates from
 artefacts/cloud_providers/<provider>/_manifest.json  # provenance + the pins
 ```
+
+#### Amendment (2026-07-17): "raw" is the vendor's document **minus documentation**
+
+The first draft said `raw/` holds *exactly* what the vendor published. Committing
+it proved that impossible, for a reason worth recording:
+
+**GitHub's push protection rejected the commit** — DigitalOcean's spec embeds
+**Slack webhook URLs** (11 of them) in `example` values and `x-codeSamples`
+snippets. They are the vendor's own documentation placeholders next to their
+fictional `sammy@digitalocean.com`, not live secrets. But the push is blocked all
+the same.
+
+The options were: click "allow this secret" on every vendored spec forever, or
+stop vendoring documentation we never read. We do not read it — **nothing in the
+generator touches `example`, `examples` or `x-codeSamples`** — and it is **34% of
+DigitalOcean's spec**. A repository that trains people to wave through secret
+warnings is worse off than one that carries no examples it never uses.
+
+So `strip_doc_only` runs at vendoring time and again in `normalize` (idempotent),
+and `raw/` means *the vendor's structural document*. `description` and `summary`
+survive — they become doc comments.
+
+Every property `raw/` was chosen for still holds: normalization is deterministic
+and offline, a transform bug is fixable without re-fetching, and the diff between
+`raw/` and the artefact is still exactly what our transforms did. What is lost is
+byte-fidelity of examples — recoverable from the `source` URL if ever needed.
+
+Note the same strings sit in **cloudflare's artefact, committed 2026-04-09** and
+unscanned because it predates the rule. Worth stripping when that artefact is next
+regenerated.
 
 This is what makes normalization **reproducible and offline**: the input is
 committed, so re-running a transform is deterministic, a transform bug is fixable

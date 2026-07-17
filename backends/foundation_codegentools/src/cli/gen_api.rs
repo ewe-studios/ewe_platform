@@ -562,6 +562,7 @@ pub fn command() -> clap::Command {
         .about("Unified generator - generates types, clients, and providers from OpenAPI specs")
         .subcommand_required(true)
         .arg_required_else_help(true)
+        .subcommand(crate::cli::normalize::command())
         .subcommand(
                 clap::Command::new("generate")
                     .about("Generate all artifacts (types, clients, providers) from OpenAPI specs")
@@ -651,6 +652,10 @@ pub fn command() -> clap::Command {
 /// Run the `gen_api` command.
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     match matches.subcommand() {
+        // raw spec -> canonical artefact (spec-56 decision 05). Runs before
+        // `generate`, which assumes canonical input — so a generation bug and a
+        // normalization bug are never the same bug.
+        Some(("normalize", sub_matches)) => crate::cli::normalize::run(sub_matches),
         Some(("analyze", sub_matches)) => {
             let provider = sub_matches.get_one::<String>("provider").unwrap();
             let spec_path = sub_matches.get_one::<String>("spec").unwrap();

@@ -474,3 +474,54 @@ fn select_then_canonicalize_keeps_the_surface_small() {
         stats.hoisted
     );
 }
+
+// ── strip_doc_only ───────────────────────────────────────────────────────────
+
+#[test]
+fn strips_documentation_that_generates_nothing_and_keeps_what_does() {
+    use foundation_openapi::strip_doc_only;
+
+    let mut spec = json!({
+        "paths": { "/a": { "get": {
+            "summary": "keep me",
+            "description": "keep me too — I become a doc comment",
+            "x-codeSamples": [{ "lang": "curl", "source": "curl -d url=https://hooks.slack.com/services/T00/B00/XXX" }],
+            "responses": { "200": { "content": { "application/json": {
+                "schema": { "type": "object",
+                            "example": { "url": "https://hooks.slack.com/services/T00/B00/XXX" },
+                            "properties": { "url": { "type": "string", "example": "https://hooks.slack.com/services/T00/B00/XXX" } } } } } } }
+        }}},
+        "components": { "examples": { "Sample": { "value": "gone" } } }
+    });
+
+    strip_doc_only(&mut spec);
+
+    let out = serde_json::to_string(&spec).unwrap();
+    // The reason this exists: vendor doc placeholders trip secret scanning on an
+    // artefact we have to commit.
+    assert!(!out.contains("hooks.slack.com"), "every doc placeholder is gone");
+    assert!(!out.contains("x-codeSamples"));
+    assert!(!out.contains("\"example\""));
+
+    // …but the parts that generate code survive.
+    assert_eq!(spec["paths"]["/a"]["get"]["summary"], "keep me");
+    assert!(spec["paths"]["/a"]["get"]["description"].is_string(), "becomes a doc comment");
+    assert_eq!(
+        spec["paths"]["/a"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+            ["properties"]["url"]["type"],
+        "string",
+        "the property itself stays — only its example went"
+    );
+}
+
+#[test]
+fn strip_doc_only_is_idempotent() {
+    use foundation_openapi::strip_doc_only;
+    // It runs at vendoring time and again in `normalize`; the second must be a
+    // no-op or the artefact would not be reproducible.
+    let mut spec = json!({ "paths": { "/a": { "get": { "example": "x", "summary": "s" } } } });
+    strip_doc_only(&mut spec);
+    let once = spec.clone();
+    strip_doc_only(&mut spec);
+    assert_eq!(spec, once);
+}

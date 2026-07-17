@@ -61,7 +61,7 @@ pub use prune::{
 pub use selection::{glob_match, operations_of, Selection};
 pub use transform::{
     canonicalize_operations, ensure_servers, extract_inline_schemas, normalize_nullable_types,
-    path_to_type_name, validate_canonical, CanonicalizeStats, NotCanonical,
+    path_to_type_name, strip_doc_only, validate_canonical, CanonicalizeStats, NotCanonical,
 };
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;

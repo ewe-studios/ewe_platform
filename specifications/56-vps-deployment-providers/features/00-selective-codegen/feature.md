@@ -329,20 +329,21 @@ All local — no network, no accounts:
 ## Acceptance criteria
 
 - [ ] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it
-- [ ] One declaration, two verbs: `check()` (fails aloud on stale output or a moved spec) and `write()` (regenerates `src/generated/`)
-- [ ] `write()` is not called from a build script of a publishable crate — `check()` is the build.rs/CI verb
-- [ ] `api_version` pinned into the client; callers never pass it
-- [ ] `spec_version` validated against the spec's `info.version` — **generation fails on a mismatch**, naming both versions
-- [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
+- [x] One declaration, two verbs: `check()` (fails aloud on stale output or a moved spec) and `write()`
+- [x] `write()` is not called from a build script of a publishable crate — `check()` is the build.rs/CI verb, and never writes
+- [x] `api_version` pinned into the client; callers never pass it (`Pipeline::api_version`)
+- [x] `spec_version` validated against the spec's `info.version` — **fails on a mismatch**, naming both versions, in `resolve()` **and** `check()`
+- [x] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
 - [x] `foundation_openapi`'s suite is green before building on it (§6) — 2 stale GCP tests fixed 2026-07-17
 - [x] Selection (§1) — `Selection` with path globs/tags/operationIds; 11 tests incl. Linode's real 334→3
 - [x] Canonicalisation stage (§0) — transforms moved to `foundation_openapi::transform`; `canonicalize_operations` hoists every inline operation schema to `components/schemas` + `$ref`; `validate_canonical` proves the result
 - [x] A bundled spec (Linode/Hetzner) yields **named** request/response types — measured: Linode 1042 inline → 0, Hetzner 633 → 0, both canonical
-- [ ] `genapi normalize <provider>` CLI + the provider→normalizer→raw registry (decision 05)
+- [x] `genapi normalize <provider>` CLI + the provider→normalizer→raw registry (decision 05) — all three vendored under `artefacts/cloud_providers/raw/` and normalizing clean
 - [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
-- [ ] Transitive schema closure emitted — nothing missing, nothing extra
-- [ ] `allOf`/`oneOf`/`anyOf`, recursive schemas, and `components/{parameters,responses}` refs handled
+- [x] Transitive schema closure emitted — nothing missing (`dangling_refs` empty), nothing extra (`unreachable_components` empty)
+- [x] `allOf`/`oneOf`/`anyOf`, recursive schemas, `discriminator.mapping`, and `components/{parameters,responses,headers}` refs handled — walking raw JSON follows them all, so **no model extension was needed**
 - [ ] build.rs-callable API on `foundation_codegentools`
-- [ ] An unselected operation's types are **provably absent** from the output
-- [ ] Linode's 6 endpoints generate from the 9.3 MB spec into a bounded surface
-- [ ] Existing providers (cloudflare, docker, stripe, …) regenerate unchanged, or their diffs are reviewed deliberately
+- [x] An unselected operation's types are **provably absent** from the output
+- [x] Linode's endpoints resolve from the 9.3 MB spec into a bounded surface — **334 paths → 3, 50 schemas**
+- [ ] Existing providers (cloudflare, docker, stripe, …) regenerate unchanged, or their diffs are reviewed deliberately — **not yet done**: `normalize` currently registers only the three new providers
+- [ ] Wire `Pipeline` into `genapi generate` so the selection actually drives code generation — **the remaining gap**: the stages exist and are proven, but `generate` still consumes a whole spec

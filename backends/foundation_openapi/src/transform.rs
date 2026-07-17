@@ -503,3 +503,50 @@ fn operation_type_base(op: &Map<String, Value>, path: &str, method: &str) -> Str
 fn first_media_schema_mut(content: &mut Map<String, Value>) -> Option<&mut Value> {
     content.values_mut().find_map(|m| m.get_mut("schema"))
 }
+
+/// Fields that document an API but generate nothing.
+///
+/// `description` and `summary` are **not** here — they become doc comments.
+const DOC_ONLY_FIELDS: &[&str] = &[
+    // Schema/media-type examples.
+    "example",
+    "examples",
+    // Vendor code samples embedded in the spec (DigitalOcean ships curl/Go/Ruby
+    // snippets under this).
+    "x-codeSamples",
+    "x-code-samples",
+];
+
+/// Strip fields that only document the API, leaving what generates code.
+///
+/// WHY: two reasons, one of which is not obvious.
+///
+/// 1. **Weight.** They are 34% of DigitalOcean's spec — 2.3 MB → 1.6 MB — and
+///    nothing in the generator reads them.
+/// 2. **They carry credential-shaped strings.** DigitalOcean's spec embeds Slack
+///    webhook URLs in `example` values and `x-codeSamples` snippets (11 of them).
+///    They are the vendor's own documentation placeholders, not live secrets — but
+///    committing the artefact trips GitHub's push protection, and a repository that
+///    trains people to click "allow this secret" is worse off than one that does
+///    not carry examples it never uses.
+///
+/// `description` and `summary` survive: they become doc comments on the generated
+/// types.
+pub fn strip_doc_only(spec: &mut Value) {
+    match spec {
+        Value::Object(map) => {
+            for field in DOC_ONLY_FIELDS {
+                map.remove(*field);
+            }
+            for value in map.values_mut() {
+                strip_doc_only(value);
+            }
+        }
+        Value::Array(items) => {
+            for value in items {
+                strip_doc_only(value);
+            }
+        }
+        _ => {}
+    }
+}
