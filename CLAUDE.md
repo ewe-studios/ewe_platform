@@ -20,6 +20,7 @@ The primary configuration file for all AI agents (including Claude) has been mov
 
 1. **Load `AGENTS.md`** - This is the central configuration file containing all agent rules and guidelines
 2. **Follow all instructions** in `.agents/AGENTS.md`.
+3. **How to work**: stuff should not be left stubbed till another feature, if you are working on it now then its dependencies should have been met else we need to properly update the feature to ensure that. Dont ignore errors, dont ignore return values that are important either
 
 ---
 
