@@ -5,6 +5,7 @@
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 mod builder;
+pub mod pattern;
 mod route;
 mod route_handler;
 mod session;

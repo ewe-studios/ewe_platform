@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F02-route-handler"
 this_file: "specifications/52-tauri-foundation-platform/features/F02-route-handler/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-17
 
@@ -616,3 +616,51 @@ fn handler_chain_respects_registration_order() {
 cargo test --package foundation_platform -- pattern
 cargo test --package foundation_platform -- route_handler
 ```
+
+---
+
+## Learnings & Insights (2026-07-17)
+
+### Pattern matching: recursive with backtracking
+
+The `**` wildcard requires backtracking — it can match zero, one, or many
+segments, so we try each possibility and see which leads to a complete match.
+`*` and literal segments are straightforward: consume one segment and recurse.
+
+### Pattern validation
+
+`**` must be the last segment (no `/app/**/detail`) and at most one `**` allowed.
+Partially-wildcarded segments like `file*` or `*.html` are rejected — only
+`*` and `**` are valid wildcard segments. All validation happens at
+construction time (not match time), so invalid patterns panic at registration,
+not at runtime.
+
+### URL path extraction
+
+Bare paths (`/app/items`), ewe:// URLs, and https:// URLs all extract correctly.
+Query strings are stripped. The function is simple enough to test exhaustively.
+
+### session.route() + session.on_navigate()
+
+The convenience methods on PlatformSession wrap PatternRouter and FnRouteHandler
+respectively. Each call creates a single-pattern router and registers it as
+a handler in the chain. First-registered first-matched semantics are preserved
+— each `session.route()` call is a separate handler in the chain.
+
+### PatternRouter as RouteHandler
+
+PatternRouter implements RouteHandler directly, so it composes with trait impls
+and closure handlers in the same handler chain. The `RouteHandler::resolve`
+method on PatternRouter calls `resolve_intent()` which extracts the path and
+matches against registered patterns.
+
+### Implementation
+
+| Component | Status | Tests |
+|---|---|---|
+| `Pattern` struct + segment matching | ✅ | 16 |
+| `PatternRouter` + RouteHandler impl | ✅ | 4 |
+| `extract_path` URL extraction | ✅ | 3 |
+| `session.route()` convenience | ✅ | — |
+| `session.on_navigate()` convenience | ✅ | — |
+| Total passing | 46 (37 lib + 7 integ + 2 doc) | |

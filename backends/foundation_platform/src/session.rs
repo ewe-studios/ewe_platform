@@ -114,6 +114,31 @@ impl PlatformSession {
         self.default_decision_for(intent)
     }
 
+    /// Register a pattern-based route handler.
+    /// Convenience wrapper: creates a single-pattern `PatternRouter`,
+    /// registers it as a handler in the chain.
+    ///
+    /// Pattern syntax: `*` matches one path segment, `**` matches any depth.
+    /// First-registered first-matched.
+    ///
+    /// # Panics
+    /// Panics if the pattern string is invalid.
+    pub fn route(&self, pattern: &str, decision: RouteDecision) {
+        let mut router = crate::pattern::PatternRouter::new();
+        router.route(pattern, decision);
+        self.register_handler(router);
+    }
+
+    /// Register a closure-based route handler.
+    /// Convenience wrapper around `FnRouteHandler` + `register_handler`.
+    pub fn on_navigate(
+        &self,
+        f: impl Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision>
+            + Send + Sync + 'static,
+    ) {
+        self.register_handler(super::route_handler::FnRouteHandler::new(f));
+    }
+
     fn default_decision_for(&self, _intent: &NavigationIntent) -> RouteDecision {
         super::route::remote_fetch()
             .with_profile(Profile::UntrustedRemote)
