@@ -1,7 +1,7 @@
 # 02 — Credentials from the environment
 
 **Date:** 2026-07-17
-**Status:** **Resolved** (2026-07-17, owner) — one open item: the `DIGITALOCEAN_ACCESS_TOKEN` alias (§1)
+**Status:** **Resolved** (2026-07-17, owner)
 
 ## The question
 
@@ -26,30 +26,46 @@ already deploys to these providers has the vendor name exported for
 a workspace that wants a different token can pin one without disturbing the
 environment every other tool reads.
 
-| Provider | Override (wins) | Vendor-native | Used by |
-|---|---|---|---|
-| Hetzner | `EWE_HCLOUD_TOKEN` | `HCLOUD_TOKEN` | `hcloud`, terraform |
-| DigitalOcean | `EWE_DIGITALOCEAN_TOKEN` | `DIGITALOCEAN_TOKEN` | `doctl`, terraform |
-| Linode | `EWE_LINODE_TOKEN` | `LINODE_TOKEN` | `linode-cli`, terraform |
+**The `EWE_` prefix is mechanical, not a new name.** Each provider declares the
+vendor spelling(s) its ecosystem uses; the override for each is literally
+`EWE_` + that name. Strip the prefix and you are back at the vendor's variable —
+so there is no third spelling to invent, remember, or get wrong:
 
-Precedence is strictly `EWE_*` → vendor-native. When **neither** is set,
-`from_env()` errors **naming both** names it looked for — a "credentials not
-found" that does not say what it looked for is a scavenger hunt.
+```rust
+// the provider declares only what the vendor uses:
+const VENDOR_VARS: &[&str] = &["DIGITALOCEAN_TOKEN", "DIGITALOCEAN_ACCESS_TOKEN"];
 
-**Open — `DIGITALOCEAN_ACCESS_TOKEN`.** DO's ecosystem uses two names in the
-wild: `DIGITALOCEAN_TOKEN` (doctl, terraform) and `DIGITALOCEAN_ACCESS_TOKEN`
-(also common, and what some CI images export). Do we accept it as a third
-fallback?
+// resolution is derived from it — overrides first, then vendor-native:
+//   EWE_DIGITALOCEAN_TOKEN
+//   EWE_DIGITALOCEAN_ACCESS_TOKEN
+//   DIGITALOCEAN_TOKEN
+//   DIGITALOCEAN_ACCESS_TOKEN
+```
 
-| | For | Against |
+| Provider | Vendor spelling(s) it declares | Used by |
 |---|---|---|
-| **Accept it** | someone whose environment already has it just works, which is the whole point of vendor-native names | DO alone then has three names; the "two names, in order" rule stops being uniform, and the not-found error has to list three |
-| **Leave it out** | one rule, every provider: `EWE_*` → vendor-native | a user with only `DIGITALOCEAN_ACCESS_TOKEN` set gets "not found" while a token sits right there in the environment — the exact confusion vendor-native names exist to avoid |
+| Hetzner | `HCLOUD_TOKEN` | `hcloud`, terraform |
+| DigitalOcean | `DIGITALOCEAN_TOKEN`, `DIGITALOCEAN_ACCESS_TOKEN` | `doctl`, terraform (both spellings are live in the wild) |
+| Linode | `LINODE_TOKEN` | `linode-cli`, terraform |
 
-Recommendation: **accept it**, ordered `EWE_DIGITALOCEAN_TOKEN` →
-`DIGITALOCEAN_TOKEN` → `DIGITALOCEAN_ACCESS_TOKEN`, with the not-found error
-naming all three. The rule stays "the EWE override wins, then whatever the vendor's
-tooling uses" — DO just happens to use two.
+**Precedence: every `EWE_*` before every vendor-native.** An override says "use
+*this* token for this workspace", and that intent should beat any vendor variable
+lying around in the environment — not just its own twin. Within each tier, the
+declared order wins.
+
+When **none** are set, `from_env()` errors **naming every name it looked for** —
+a "credentials not found" that does not say what it looked for is a scavenger
+hunt.
+
+This is also what settles DO's two spellings: they are not a special case, just a
+provider that declares two. Someone with only `DIGITALOCEAN_ACCESS_TOKEN`
+exported works out of the box, and their override is `EWE_DIGITALOCEAN_ACCESS_TOKEN`
+— derived, not invented.
+
+An earlier draft here proposed a *fixed* `EWE_DIGITALOCEAN_TOKEN` alongside an
+optional `DIGITALOCEAN_ACCESS_TOKEN` fallback — which quietly invented a third
+spelling whose relationship to the vendor's names was arbitrary. Deriving the
+override from each declared name removes the question instead of answering it.
 
 ### 2. Absent or empty token — **resolved: fail loudly**
 
@@ -96,12 +112,12 @@ mutating the process environment, which is global and would race under
 
 ## Resolved — summary
 
-1. **Names:** `EWE_<VENDOR>_TOKEN` wins, else the vendor-native name.
+1. **Names:** a provider declares the vendor spelling(s) it uses; the override is
+   `EWE_` + that name, derived. All `EWE_*` are tried before all vendor-native.
 2. **Absent:** `from_env()` errors immediately, naming both.
 3. **Rejected:** 401 gets its own variant.
 4. **Leakage:** never in `Debug`, logs, or errors (audit Cloudflare too).
 5. **Constructors:** `from_env()` + `new(token)` + `with_client(http, token)`.
 
-**Still to answer:** whether DO also accepts `DIGITALOCEAN_ACCESS_TOKEN` as a
-third fallback (§1). Recommendation: yes, ordered after `DIGITALOCEAN_TOKEN`, with
-the not-found error naming all three.
+Nothing outstanding. DO's two spellings are not a special case — it simply
+declares two vendor names, and the `EWE_` override is derived from each.
