@@ -247,6 +247,7 @@ pub enum ReplayError {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests replay order, status transitions, idempotency—private queue internals.
 #[cfg(test)]
 mod tests {
     use super::*;

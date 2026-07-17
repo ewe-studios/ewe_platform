@@ -279,6 +279,7 @@ pub fn extract_path(url: &str) -> String {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests PatternSegment matching algorithm, recursive backtracking, URL extraction—private parser internals.
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -164,6 +164,7 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests 5-layer defense ordering, profile_satisfies ranking, registry lookup—private gate internals.
 #[cfg(test)]
 mod tests {
     use super::*;

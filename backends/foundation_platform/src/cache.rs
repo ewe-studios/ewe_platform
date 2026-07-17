@@ -189,6 +189,7 @@ impl PlatformSession {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests CachePolicy enforcement, profile scoping, offline behavior—public API, kept inline for convenience.
 #[cfg(test)]
 mod tests {
     use super::*;

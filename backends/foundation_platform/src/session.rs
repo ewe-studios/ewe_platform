@@ -302,6 +302,7 @@ impl PlatformSession {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests handler chain internals, closure state capture, event listener lifecycle—private algorithm details.
 #[cfg(test)]
 mod tests {
     use super::*;

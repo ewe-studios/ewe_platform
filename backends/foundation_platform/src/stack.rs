@@ -310,6 +310,7 @@ impl WebViewStack {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests WebViewStack push/pop/morph navigation, screenshot lifecycle—public API, kept inline for convenience.
 #[cfg(test)]
 mod tests {
     use super::*;

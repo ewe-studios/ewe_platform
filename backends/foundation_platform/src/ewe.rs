@@ -204,6 +204,7 @@ pub fn transport_for_source(source: RouteSource) -> Transport {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests EweUrl parsing, protocol detection bytes, query hint mapping—private URL parser internals.
 #[cfg(test)]
 mod tests {
     use super::*;

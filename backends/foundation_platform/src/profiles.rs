@@ -124,6 +124,7 @@ pub fn default_profile_for_source(source: RouteSource) -> Profile {
 
 // ── Tests ────────────────────────────────────────────────────────────
 
+// NOTE: Tests kept inline because: Tests ProfileGate check() matrix, Service/Access enums—public API, kept inline for convenience.
 #[cfg(test)]
 mod tests {
     use super::*;
