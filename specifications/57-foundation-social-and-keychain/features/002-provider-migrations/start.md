@@ -69,4 +69,25 @@ CREATE INDEX IF NOT EXISTS idx_user_provider_links_email ON user_provider_links(
 
 ---
 
-_Created: 2026-07-17_
+## ✅ Status: COMPLETE (2026-07-18)
+
+### What shipped
+
+- `backends/foundation_db/src/core/schema/sql/024_create_upstream_providers.sql`
+- `backends/foundation_db/src/core/schema/sql/025_create_user_provider_links.sql`
+- Both registered in `foundation_db/src/core/schema/migrations.rs` (`MIGRATIONS` static)
+- `client_secret_ciphertext` is `BLOB` storing `nonce || ciphertext` (see F001 ProviderCrypto)
+
+### Tests (all green, real Turso DB — no mocks)
+
+- `tests/schema_migrations.rs`: `test_migrations_defined` (count 22→24), `test_social_login_migrations_present`
+- `tests/turso_storage_tests.rs::test_social_login_tables_functional`: real INSERT/SELECT round-trip on both tables, verifies the unique `(provider_id, upstream_subject)` index rejects duplicates, and the account-linking lookup returns the correct user.
+
+### Learnings / insights
+
+- **Migration 023 (vectors) is NOT in the `MIGRATIONS` registry** — it's registered/gated elsewhere. New migrations append after `022`, so we used `024`/`025` (the spec's chosen numbers) and they slot in after 022 without gaps in the registry. The numeric id is just a string label; ordering in the `MIGRATIONS` slice is what matters, not contiguity.
+- **`init_schema()` on TursoStorage runs the whole `MIGRATIONS` set** via `MigrationRunner`; each migration is `IF NOT EXISTS` + tracked in `_migrations`, so re-running is idempotent. Integration tests just call `TursoStorage::new(url).init_schema()`.
+- **`test_migrations_defined` hard-codes the count** — adding migrations requires bumping it (22→24). Left it as a count assertion (rather than removing) because it's a cheap guard against accidental migration loss.
+- **Unique index on `(provider_id, upstream_subject)`** (not just a plain index as the original SQL sketch had) — this enforces D05's "one upstream identity → one local user" invariant at the DB level, verified by the duplicate-insert-rejected test.
+
+_Created: 2026-07-17 · Completed: 2026-07-18_

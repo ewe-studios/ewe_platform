@@ -126,6 +126,16 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Add r2_key column for R2 blob offload",
         sql: include_str!("sql/022_add_documents_r2_key.sql"),
     },
+    Migration {
+        id: "024_create_upstream_providers",
+        name: "Create upstream identity providers table for social login",
+        sql: include_str!("sql/024_create_upstream_providers.sql"),
+    },
+    Migration {
+        id: "025_create_user_provider_links",
+        name: "Create user-provider links table for account linking",
+        sql: include_str!("sql/025_create_user_provider_links.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
