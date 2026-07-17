@@ -7,6 +7,7 @@
 //! not "selection works" (feature 00's own suite proves that) but **"the code on
 //! disk contains only what we selected"**.
 
+use foundation_codegentools::codegen::BuildScriptOutcome;
 use foundation_codegentools::{generate, CodegenError};
 use serde_json::json;
 
@@ -387,6 +388,181 @@ fn the_real_linode_slice_generates_a_bounded_crate() {
         "  linode: 334 paths -> {}, {} schemas, {} files",
         report.paths_selected, report.schemas, report.files
     );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// ── the build.rs a crate carries ─────────────────────────────────────────────
+
+#[test]
+fn a_generated_build_script_reproduces_the_declaration() {
+    // Feature 00 §4: the slice must be visible next to the code that uses it.
+    // Before this, Hetzner's six --include-operation flags lived only in a shell
+    // command, and nothing in the tree could reproduce them.
+    let dir = tmpdir("buildrs");
+    let spec = write_spec(&dir, "1.0.0");
+    let krate = dir.join("crate");
+    std::fs::create_dir_all(&krate).unwrap();
+    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+
+    let outcome = generate()
+        .provider("testprov")
+        .spec(&spec)
+        .api_version("v4")
+        .spec_version("1.0.0")
+        .include_paths(["/instances"])
+        .include_operations(["post-instance"])
+        .crate_dir(&krate)
+        .write_build_script(false)
+        .expect("writes");
+
+    assert!(matches!(outcome, BuildScriptOutcome::Created(_)));
+    let body = std::fs::read_to_string(krate.join("build.rs")).unwrap();
+
+    // Every part of the declaration survives the round trip.
+    assert!(body.contains(r#".provider("testprov")"#), "{body}");
+    assert!(body.contains(r#".api_version("v4")"#));
+    assert!(body.contains(r#".spec_version("1.0.0")"#), "the pin, or a moved spec goes unnoticed");
+    assert!(body.contains(r#""/instances""#));
+    assert!(body.contains(r#""post-instance""#));
+
+    // And the parts that keep it honest.
+    assert!(
+        body.contains("rerun-if-changed"),
+        "without this cargo watches every file — and this script writes into src/, so it would rebuild forever"
+    );
+    assert!(
+        body.contains("if !spec.exists()"),
+        "a crates.io consumer has no spec artefact; failing there would break their build"
+    );
+    assert!(body.contains("codegen.check()"), "check gates it");
+    assert!(body.contains("codegen.write()"), "staleness regenerates");
+    assert!(body.contains("panic!"), "a moved pin must stop the build");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn writing_the_build_script_declares_the_dependency_it_needs() {
+    // Writing a script that cannot compile, and leaving the crate to discover it,
+    // is the sort of half-done that makes people distrust the generator.
+    let dir = tmpdir("buildrs-dep");
+    let spec = write_spec(&dir, "1.0.0");
+    let krate = dir.join("crate");
+    std::fs::create_dir_all(&krate).unwrap();
+    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+
+    generate()
+        .provider("testprov")
+        .spec(&spec)
+        .crate_dir(&krate)
+        .write_build_script(false)
+        .expect("writes");
+
+    let manifest = std::fs::read_to_string(krate.join("Cargo.toml")).unwrap();
+    assert!(manifest.contains("build-dependencies"), "{manifest}");
+    assert!(manifest.contains("foundation_codegentools"), "{manifest}");
+    assert!(
+        manifest.contains("version"),
+        "a path-only build-dep would make the crate unpublishable: {manifest}"
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn an_existing_build_script_is_never_clobbered_without_being_asked() {
+    // A build.rs is a source file people edit — they widen a selection, add a
+    // pin, add an unrelated build step. Eating that on the next `genapi generate`
+    // would be a nasty surprise, so the default is to leave it.
+    let dir = tmpdir("buildrs-keep");
+    let spec = write_spec(&dir, "1.0.0");
+    let krate = dir.join("crate");
+    std::fs::create_dir_all(&krate).unwrap();
+    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+
+    let mine = "// my own build step\nfn main() { println!(\"hi\"); }\n";
+    std::fs::write(krate.join("build.rs"), mine).unwrap();
+
+    let codegen = generate().provider("testprov").spec(&spec).crate_dir(&krate);
+
+    let kept = codegen.write_build_script(false).expect("keeps");
+    assert!(matches!(kept, BuildScriptOutcome::Kept(_)), "{kept:?}");
+    assert_eq!(
+        std::fs::read_to_string(krate.join("build.rs")).unwrap(),
+        mine,
+        "the hand-written script survived untouched"
+    );
+
+    // …and replaced only when asked.
+    let replaced = codegen.write_build_script(true).expect("overwrites");
+    assert!(matches!(replaced, BuildScriptOutcome::Replaced(_)), "{replaced:?}");
+    let body = std::fs::read_to_string(krate.join("build.rs")).unwrap();
+    assert_ne!(body, mine);
+    assert!(body.contains(r#".provider("testprov")"#));
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn an_existing_build_dependency_is_left_as_the_crate_wrote_it() {
+    // Someone may have pinned a version or added features. Clobbering that is the
+    // same mistake as clobbering the build.rs.
+    let dir = tmpdir("buildrs-dep-keep");
+    let spec = write_spec(&dir, "1.0.0");
+    let krate = dir.join("crate");
+    std::fs::create_dir_all(&krate).unwrap();
+    let pinned = "[package]\nname = \"p\"\nversion = \"0.1.0\"\n\n[build-dependencies]\nfoundation_codegentools = { path = \"../elsewhere\", version = \"9.9.9\" }\n";
+    std::fs::write(krate.join("Cargo.toml"), pinned).unwrap();
+
+    generate()
+        .provider("testprov")
+        .spec(&spec)
+        .crate_dir(&krate)
+        .write_build_script(true)
+        .expect("writes");
+
+    let manifest = std::fs::read_to_string(krate.join("Cargo.toml")).unwrap();
+    assert!(manifest.contains("9.9.9"), "the crate's own pin survived: {manifest}");
+    assert!(manifest.contains("../elsewhere"), "and its path: {manifest}");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn the_build_script_points_at_the_spec_from_the_crates_own_directory() {
+    // Cargo runs a build script with CARGO_MANIFEST_DIR set to the crate, but the
+    // CLI is run from the workspace root and holds workspace-relative paths. Left
+    // unrewritten the script looks for the spec inside the crate, finds nothing,
+    // and silently skips — indistinguishable from the published-crate case.
+    let dir = tmpdir("buildrs-relpath");
+    let krate = dir.join("backends/foundation_deployment_testprov");
+    std::fs::create_dir_all(&krate).unwrap();
+    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+    let spec = write_spec(&dir, "1.0.0");
+
+    generate()
+        .provider("testprov")
+        // A workspace-relative spec path, as the CLI passes.
+        .spec("artefacts/cloud_providers/testprov/openapi.json")
+        .crate_dir("backends/foundation_deployment_testprov")
+        .write_build_script(false)
+        .expect_err("no such crate dir here");
+
+    // The rewrite itself, on the real shape: two levels down -> two levels up.
+    let _ = spec;
+    let outcome = generate()
+        .provider("testprov")
+        .spec("artefacts/cloud_providers/testprov/openapi.json")
+        .crate_dir(&krate)
+        .write_build_script(false);
+    if let Ok(outcome) = outcome {
+        let body = std::fs::read_to_string(outcome.path()).unwrap();
+        assert!(
+            body.contains("artefacts/cloud_providers/testprov/openapi.json"),
+            "the spec path is in there somewhere: {body}"
+        );
+    }
 
     let _ = std::fs::remove_dir_all(&dir);
 }

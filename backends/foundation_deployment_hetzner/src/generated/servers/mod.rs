@@ -21,56 +21,81 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CreateServerResponseServerLocation` type.
+/// `CreateServerResponseServerIso` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerLocation {
-    /// city property.
-    pub city: String,
-    /// country property.
-    pub country: String,
+pub struct CreateServerResponseServerIso {
+    /// architecture property.
+    pub architecture: String,
+    /// deprecation property.
+    pub deprecation: CreateServerResponseServerIsoDeprecation,
     /// description property.
     pub description: String,
     /// id property.
     pub id: i64,
-    /// latitude property.
-    pub latitude: f64,
-    /// longitude property.
-    pub longitude: f64,
     /// name property.
     pub name: String,
-    /// network_zone property.
-    pub network_zone: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
 }
 
-/// `ListServersResponseServersItemServerTypePricesItemPriceHourly` type.
+/// `CreateServerResponseServerServerType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypePricesItemPriceHourly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `ListServersResponseServersItemPublicNetIpv4` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPublicNetIpv4 {
-    /// blocked property.
-    pub blocked: bool,
-    /// dns_ptr property.
-    pub dns_ptr: String,
+pub struct CreateServerResponseServerServerType {
+    /// architecture property.
+    pub architecture: String,
+    /// category property.
+    pub category: Option<String>,
+    /// cores property.
+    pub cores: f64,
+    /// cpu_type property.
+    pub cpu_type: String,
+    /// deprecated property.
+    pub deprecated: bool,
+    /// deprecation property.
+    pub deprecation: Option<CreateServerResponseServerServerTypeDeprecation>,
+    /// description property.
+    pub description: String,
+    /// disk property.
+    pub disk: f64,
     /// id property.
-    pub id: Option<i64>,
-    /// ip property.
-    pub ip: String,
+    pub id: i64,
+    /// locations property.
+    pub locations: Vec<CreateServerResponseServerServerTypeLocationsItem>,
+    /// memory property.
+    pub memory: f64,
+    /// name property.
+    pub name: String,
+    /// prices property.
+    pub prices: Vec<CreateServerResponseServerServerTypePricesItem>,
+    /// storage_type property.
+    pub storage_type: String,
 }
 
-/// `GetServerResponseServerServerTypePricesItemPriceHourly` type.
+/// `ListServersResponseServersItemImageCreatedFrom` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypePricesItemPriceHourly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
+pub struct ListServersResponseServersItemImageCreatedFrom {
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+}
+
+/// `DeleteServerResponseActionResourcesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteServerResponseActionResourcesItem {
+    /// id property.
+    pub id: i64,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `ListServersResponseMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseMeta {
+    /// pagination property.
+    pub pagination: ListServersResponseMetaPagination,
 }
 
 /// `ListServersResponseServersItemIso` type.
@@ -91,413 +116,13 @@ pub struct ListServersResponseServersItemIso {
     pub r#type: String,
 }
 
-/// `CreateServerResponseServerIso` type.
+/// `ListServersResponseServersItemServerTypeDeprecation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerIso {
-    /// architecture property.
-    pub architecture: String,
-    /// deprecation property.
-    pub deprecation: CreateServerResponseServerIsoDeprecation,
-    /// description property.
-    pub description: String,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `ListServersResponseServersItemPublicNet` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPublicNet {
-    /// firewalls property.
-    pub firewalls: Option<Vec<ListServersResponseServersItemPublicNetFirewallsItem>>,
-    /// floating_ips property.
-    pub floating_ips: Vec<i64>,
-    /// ipv4 property.
-    pub ipv4: ListServersResponseServersItemPublicNetIpv4,
-    /// ipv6 property.
-    pub ipv6: ListServersResponseServersItemPublicNetIpv6,
-}
-
-/// `GetServerResponseServerLocation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerLocation {
-    /// city property.
-    pub city: String,
-    /// country property.
-    pub country: String,
-    /// description property.
-    pub description: String,
-    /// id property.
-    pub id: i64,
-    /// latitude property.
-    pub latitude: f64,
-    /// longitude property.
-    pub longitude: f64,
-    /// name property.
-    pub name: String,
-    /// network_zone property.
-    pub network_zone: String,
-}
-
-/// `ListServersResponseServersItemImage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemImage {
-    /// architecture property.
-    pub architecture: String,
-    /// bound_to property.
-    pub bound_to: i64,
-    /// created property.
-    pub created: String,
-    /// created_from property.
-    pub created_from: ListServersResponseServersItemImageCreatedFrom,
-    /// deleted property.
-    pub deleted: String,
-    /// deprecated property.
-    pub deprecated: String,
-    /// description property.
-    pub description: String,
-    /// disk_size property.
-    pub disk_size: f64,
-    /// id property.
-    pub id: i64,
-    /// image_size property.
-    pub image_size: f64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// os_flavor property.
-    pub os_flavor: String,
-    /// os_version property.
-    pub os_version: String,
-    /// protection property.
-    pub protection: ListServersResponseServersItemImageProtection,
-    /// rapid_deploy property.
-    pub rapid_deploy: Option<bool>,
-    /// status property.
-    pub status: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `GetServerResponseServerPrivateNetItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPrivateNetItem {
-    /// alias_ips property.
-    pub alias_ips: Option<Vec<String>>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// mac_address property.
-    pub mac_address: Option<String>,
-    /// network property.
-    pub network: Option<i64>,
-}
-
-/// `GetServerResponseServerServerTypeDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypeDeprecation {
+pub struct ListServersResponseServersItemServerTypeDeprecation {
     /// announced property.
     pub announced: String,
     /// unavailable_after property.
     pub unavailable_after: String,
-}
-
-/// `GetServerResponseServerImageProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerImageProtection {
-    /// delete property.
-    pub delete: bool,
-}
-
-/// `ListServersResponseServersItemPublicNetIpv6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPublicNetIpv6 {
-    /// blocked property.
-    pub blocked: bool,
-    /// dns_ptr property.
-    pub dns_ptr: Vec<ListServersResponseServersItemPublicNetIpv6DnsPtrItem>,
-    /// id property.
-    pub id: Option<i64>,
-    /// ip property.
-    pub ip: String,
-}
-
-/// `ListServersResponseServersItemServerTypeLocationsItemDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypeLocationsItemDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `CreateServerResponseServerImage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerImage {
-    /// architecture property.
-    pub architecture: String,
-    /// bound_to property.
-    pub bound_to: i64,
-    /// created property.
-    pub created: String,
-    /// created_from property.
-    pub created_from: CreateServerResponseServerImageCreatedFrom,
-    /// deleted property.
-    pub deleted: String,
-    /// deprecated property.
-    pub deprecated: String,
-    /// description property.
-    pub description: String,
-    /// disk_size property.
-    pub disk_size: f64,
-    /// id property.
-    pub id: i64,
-    /// image_size property.
-    pub image_size: f64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// os_flavor property.
-    pub os_flavor: String,
-    /// os_version property.
-    pub os_version: String,
-    /// protection property.
-    pub protection: CreateServerResponseServerImageProtection,
-    /// rapid_deploy property.
-    pub rapid_deploy: Option<bool>,
-    /// status property.
-    pub status: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `CreateServerResponseServerServerTypePricesItemPricePerTbTraffic` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypePricesItemPricePerTbTraffic {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `GetServerResponseServerImage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerImage {
-    /// architecture property.
-    pub architecture: String,
-    /// bound_to property.
-    pub bound_to: i64,
-    /// created property.
-    pub created: String,
-    /// created_from property.
-    pub created_from: GetServerResponseServerImageCreatedFrom,
-    /// deleted property.
-    pub deleted: String,
-    /// deprecated property.
-    pub deprecated: String,
-    /// description property.
-    pub description: String,
-    /// disk_size property.
-    pub disk_size: f64,
-    /// id property.
-    pub id: i64,
-    /// image_size property.
-    pub image_size: f64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// os_flavor property.
-    pub os_flavor: String,
-    /// os_version property.
-    pub os_version: String,
-    /// protection property.
-    pub protection: GetServerResponseServerImageProtection,
-    /// rapid_deploy property.
-    pub rapid_deploy: Option<bool>,
-    /// status property.
-    pub status: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `GetServerResponseServerServerTypeLocationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypeLocationsItem {
-    /// available property.
-    pub available: bool,
-    /// deprecation property.
-    pub deprecation: GetServerResponseServerServerTypeLocationsItemDeprecation,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// recommended property.
-    pub recommended: bool,
-}
-
-/// `GetServerResponseServerServerTypeLocationsItemDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypeLocationsItemDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `CreateServerResponseServerIsoDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerIsoDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `GetServerResponseServerServerTypePricesItemPriceMonthly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypePricesItemPriceMonthly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `CreateServerResponseAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseAction {
-    /// command property.
-    pub command: String,
-    /// error property.
-    pub error: CreateServerResponseActionError,
-    /// finished property.
-    pub finished: String,
-    /// id property.
-    pub id: i64,
-    /// progress property.
-    pub progress: i64,
-    /// resources property.
-    pub resources: Vec<CreateServerResponseActionResourcesItem>,
-    /// started property.
-    pub started: String,
-    /// status property.
-    pub status: String,
-}
-
-/// `GetServerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponse {
-    /// server property.
-    pub server: Option<GetServerResponseServer>,
-}
-
-/// `GetServerResponseServerImageCreatedFrom` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerImageCreatedFrom {
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-}
-
-/// `GetServerResponseServerPublicNetIpv4` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPublicNetIpv4 {
-    /// blocked property.
-    pub blocked: bool,
-    /// dns_ptr property.
-    pub dns_ptr: String,
-    /// id property.
-    pub id: Option<i64>,
-    /// ip property.
-    pub ip: String,
-}
-
-/// `ListServersResponseServersItemServerTypePricesItemPriceMonthly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypePricesItemPriceMonthly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `CreateServerResponseServerServerTypeDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypeDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `ListServersResponseServersItemServerTypePricesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypePricesItem {
-    /// included_traffic property.
-    pub included_traffic: i64,
-    /// location property.
-    pub location: String,
-    /// price_hourly property.
-    pub price_hourly: ListServersResponseServersItemServerTypePricesItemPriceHourly,
-    /// price_monthly property.
-    pub price_monthly: ListServersResponseServersItemServerTypePricesItemPriceMonthly,
-    /// price_per_tb_traffic property.
-    pub price_per_tb_traffic: ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic,
-}
-
-/// `CreateServerResponseServerServerTypePricesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypePricesItem {
-    /// included_traffic property.
-    pub included_traffic: i64,
-    /// location property.
-    pub location: String,
-    /// price_hourly property.
-    pub price_hourly: CreateServerResponseServerServerTypePricesItemPriceHourly,
-    /// price_monthly property.
-    pub price_monthly: CreateServerResponseServerServerTypePricesItemPriceMonthly,
-    /// price_per_tb_traffic property.
-    pub price_per_tb_traffic: CreateServerResponseServerServerTypePricesItemPricePerTbTraffic,
-}
-
-/// `ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `ListServersResponseServersItemServerTypeLocationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypeLocationsItem {
-    /// available property.
-    pub available: bool,
-    /// deprecation property.
-    pub deprecation: ListServersResponseServersItemServerTypeLocationsItemDeprecation,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// recommended property.
-    pub recommended: bool,
-}
-
-/// `CreateServerRequestFirewallsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerRequestFirewallsItem {
-    /// firewall property.
-    pub firewall: i64,
 }
 
 /// `CreateServerResponseServerImageCreatedFrom` type.
@@ -518,41 +143,22 @@ pub struct DeleteServerResponseActionError {
     pub message: String,
 }
 
-/// `GetServerResponseServerPublicNet` type.
+/// `GetServerResponseServerPrivateNetItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPublicNet {
-    /// firewalls property.
-    pub firewalls: Option<Vec<GetServerResponseServerPublicNetFirewallsItem>>,
-    /// floating_ips property.
-    pub floating_ips: Vec<i64>,
-    /// ipv4 property.
-    pub ipv4: GetServerResponseServerPublicNetIpv4,
-    /// ipv6 property.
-    pub ipv6: GetServerResponseServerPublicNetIpv6,
+pub struct GetServerResponseServerPrivateNetItem {
+    /// alias_ips property.
+    pub alias_ips: Option<Vec<String>>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// mac_address property.
+    pub mac_address: Option<String>,
+    /// network property.
+    pub network: Option<i64>,
 }
 
-/// `CreateServerResponseNextActionsItemResourcesItem` type.
+/// `CreateServerResponseServerPlacementGroup` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseNextActionsItemResourcesItem {
-    /// id property.
-    pub id: i64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `CreateServerResponseNextActionsItemError` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseNextActionsItemError {
-    /// code property.
-    pub code: String,
-    /// message property.
-    pub message: String,
-}
-
-/// `GetServerResponseServerPlacementGroup` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPlacementGroup {
+pub struct CreateServerResponseServerPlacementGroup {
     /// created property.
     pub created: String,
     /// id property.
@@ -566,6 +172,57 @@ pub struct GetServerResponseServerPlacementGroup {
     /// type property.
     #[serde(rename = "type")]
     pub r#type: String,
+}
+
+/// `GetServerResponseServerProtection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerProtection {
+    /// delete property.
+    pub delete: bool,
+    /// rebuild property.
+    pub rebuild: bool,
+}
+
+/// `CreateServerResponseServerProtection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerProtection {
+    /// delete property.
+    pub delete: bool,
+    /// rebuild property.
+    pub rebuild: bool,
+}
+
+/// `GetServerResponseServerServerType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerType {
+    /// architecture property.
+    pub architecture: String,
+    /// category property.
+    pub category: Option<String>,
+    /// cores property.
+    pub cores: f64,
+    /// cpu_type property.
+    pub cpu_type: String,
+    /// deprecated property.
+    pub deprecated: bool,
+    /// deprecation property.
+    pub deprecation: Option<GetServerResponseServerServerTypeDeprecation>,
+    /// description property.
+    pub description: String,
+    /// disk property.
+    pub disk: f64,
+    /// id property.
+    pub id: i64,
+    /// locations property.
+    pub locations: Vec<GetServerResponseServerServerTypeLocationsItem>,
+    /// memory property.
+    pub memory: f64,
+    /// name property.
+    pub name: String,
+    /// prices property.
+    pub prices: Vec<GetServerResponseServerServerTypePricesItem>,
+    /// storage_type property.
+    pub storage_type: String,
 }
 
 /// `CreateServerRequest` type.
@@ -601,13 +258,391 @@ pub struct CreateServerRequest {
     pub volumes: Option<Vec<i64>>,
 }
 
-/// `CreateServerResponseServerPublicNetFirewallsItem` type.
+/// `CreateServerResponseServerLocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPublicNetFirewallsItem {
+pub struct CreateServerResponseServerLocation {
+    /// city property.
+    pub city: String,
+    /// country property.
+    pub country: String,
+    /// description property.
+    pub description: String,
+    /// id property.
+    pub id: i64,
+    /// latitude property.
+    pub latitude: f64,
+    /// longitude property.
+    pub longitude: f64,
+    /// name property.
+    pub name: String,
+    /// network_zone property.
+    pub network_zone: String,
+}
+
+/// `GetServerResponseServerImageCreatedFrom` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerImageCreatedFrom {
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+}
+
+/// `ListServersResponseServersItemServerType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerType {
+    /// architecture property.
+    pub architecture: String,
+    /// category property.
+    pub category: Option<String>,
+    /// cores property.
+    pub cores: f64,
+    /// cpu_type property.
+    pub cpu_type: String,
+    /// deprecated property.
+    pub deprecated: bool,
+    /// deprecation property.
+    pub deprecation: Option<ListServersResponseServersItemServerTypeDeprecation>,
+    /// description property.
+    pub description: String,
+    /// disk property.
+    pub disk: f64,
+    /// id property.
+    pub id: i64,
+    /// locations property.
+    pub locations: Vec<ListServersResponseServersItemServerTypeLocationsItem>,
+    /// memory property.
+    pub memory: f64,
+    /// name property.
+    pub name: String,
+    /// prices property.
+    pub prices: Vec<ListServersResponseServersItemServerTypePricesItem>,
+    /// storage_type property.
+    pub storage_type: String,
+}
+
+/// `GetServerResponseServerPublicNetIpv6` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPublicNetIpv6 {
+    /// blocked property.
+    pub blocked: bool,
+    /// dns_ptr property.
+    pub dns_ptr: Vec<GetServerResponseServerPublicNetIpv6DnsPtrItem>,
+    /// id property.
+    pub id: Option<i64>,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `GetServerResponseServerPlacementGroup` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPlacementGroup {
+    /// created property.
+    pub created: String,
+    /// id property.
+    pub id: i64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// servers property.
+    pub servers: Vec<i64>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `GetServerResponseServerServerTypePricesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypePricesItem {
+    /// included_traffic property.
+    pub included_traffic: i64,
+    /// location property.
+    pub location: String,
+    /// price_hourly property.
+    pub price_hourly: GetServerResponseServerServerTypePricesItemPriceHourly,
+    /// price_monthly property.
+    pub price_monthly: GetServerResponseServerServerTypePricesItemPriceMonthly,
+    /// price_per_tb_traffic property.
+    pub price_per_tb_traffic: GetServerResponseServerServerTypePricesItemPricePerTbTraffic,
+}
+
+/// `ListServersResponseServersItemPublicNetFirewallsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPublicNetFirewallsItem {
     /// id property.
     pub id: Option<i64>,
     /// status property.
     pub status: Option<String>,
+}
+
+/// `CreateServerResponseServerPrivateNetItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPrivateNetItem {
+    /// alias_ips property.
+    pub alias_ips: Option<Vec<String>>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// mac_address property.
+    pub mac_address: Option<String>,
+    /// network property.
+    pub network: Option<i64>,
+}
+
+/// `CreateServerResponseAction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseAction {
+    /// command property.
+    pub command: String,
+    /// error property.
+    pub error: CreateServerResponseActionError,
+    /// finished property.
+    pub finished: String,
+    /// id property.
+    pub id: i64,
+    /// progress property.
+    pub progress: i64,
+    /// resources property.
+    pub resources: Vec<CreateServerResponseActionResourcesItem>,
+    /// started property.
+    pub started: String,
+    /// status property.
+    pub status: String,
+}
+
+/// `CreateServerResponseServerServerTypePricesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerServerTypePricesItem {
+    /// included_traffic property.
+    pub included_traffic: i64,
+    /// location property.
+    pub location: String,
+    /// price_hourly property.
+    pub price_hourly: CreateServerResponseServerServerTypePricesItemPriceHourly,
+    /// price_monthly property.
+    pub price_monthly: CreateServerResponseServerServerTypePricesItemPriceMonthly,
+    /// price_per_tb_traffic property.
+    pub price_per_tb_traffic: CreateServerResponseServerServerTypePricesItemPricePerTbTraffic,
+}
+
+/// `CreateServerResponseServerPublicNetIpv4` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPublicNetIpv4 {
+    /// blocked property.
+    pub blocked: bool,
+    /// dns_ptr property.
+    pub dns_ptr: String,
+    /// id property.
+    pub id: Option<i64>,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `CreateServerResponseServerServerTypePricesItemPricePerTbTraffic` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerServerTypePricesItemPricePerTbTraffic {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `ListServersResponseServersItemPublicNet` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPublicNet {
+    /// firewalls property.
+    pub firewalls: Option<Vec<ListServersResponseServersItemPublicNetFirewallsItem>>,
+    /// floating_ips property.
+    pub floating_ips: Vec<i64>,
+    /// ipv4 property.
+    pub ipv4: ListServersResponseServersItemPublicNetIpv4,
+    /// ipv6 property.
+    pub ipv6: ListServersResponseServersItemPublicNetIpv6,
+}
+
+/// `CreateServerResponseNextActionsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseNextActionsItem {
+    /// command property.
+    pub command: String,
+    /// error property.
+    pub error: CreateServerResponseNextActionsItemError,
+    /// finished property.
+    pub finished: String,
+    /// id property.
+    pub id: i64,
+    /// progress property.
+    pub progress: i64,
+    /// resources property.
+    pub resources: Vec<CreateServerResponseNextActionsItemResourcesItem>,
+    /// started property.
+    pub started: String,
+    /// status property.
+    pub status: String,
+}
+
+/// `ListServersResponseServersItemPrivateNetItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPrivateNetItem {
+    /// alias_ips property.
+    pub alias_ips: Option<Vec<String>>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// mac_address property.
+    pub mac_address: Option<String>,
+    /// network property.
+    pub network: Option<i64>,
+}
+
+/// `ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `ListServersResponseServersItemIsoDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemIsoDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
+}
+
+/// `GetServerResponseServerPublicNetIpv4` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPublicNetIpv4 {
+    /// blocked property.
+    pub blocked: bool,
+    /// dns_ptr property.
+    pub dns_ptr: String,
+    /// id property.
+    pub id: Option<i64>,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `CreateServerResponseServerIsoDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerIsoDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
+}
+
+/// `CreateServerResponseServerPublicNetIpv6` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPublicNetIpv6 {
+    /// blocked property.
+    pub blocked: bool,
+    /// dns_ptr property.
+    pub dns_ptr: Vec<CreateServerResponseServerPublicNetIpv6DnsPtrItem>,
+    /// id property.
+    pub id: Option<i64>,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `DeleteServerResponseAction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteServerResponseAction {
+    /// command property.
+    pub command: String,
+    /// error property.
+    pub error: DeleteServerResponseActionError,
+    /// finished property.
+    pub finished: String,
+    /// id property.
+    pub id: i64,
+    /// progress property.
+    pub progress: i64,
+    /// resources property.
+    pub resources: Vec<DeleteServerResponseActionResourcesItem>,
+    /// started property.
+    pub started: String,
+    /// status property.
+    pub status: String,
+}
+
+/// `CreateServerResponseActionResourcesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseActionResourcesItem {
+    /// id property.
+    pub id: i64,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `ListServersResponseServersItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItem {
+    /// backup_window property.
+    pub backup_window: String,
+    /// created property.
+    pub created: String,
+    /// id property.
+    pub id: i64,
+    /// image property.
+    pub image: ListServersResponseServersItemImage,
+    /// included_traffic property.
+    pub included_traffic: i64,
+    /// ingoing_traffic property.
+    pub ingoing_traffic: i64,
+    /// iso property.
+    pub iso: ListServersResponseServersItemIso,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// load_balancers property.
+    pub load_balancers: Option<Vec<i64>>,
+    /// location property.
+    pub location: ListServersResponseServersItemLocation,
+    /// locked property.
+    pub locked: bool,
+    /// name property.
+    pub name: String,
+    /// outgoing_traffic property.
+    pub outgoing_traffic: i64,
+    /// placement_group property.
+    pub placement_group: Option<ListServersResponseServersItemPlacementGroup>,
+    /// primary_disk_size property.
+    pub primary_disk_size: f64,
+    /// private_net property.
+    pub private_net: Vec<ListServersResponseServersItemPrivateNetItem>,
+    /// protection property.
+    pub protection: ListServersResponseServersItemProtection,
+    /// public_net property.
+    pub public_net: ListServersResponseServersItemPublicNet,
+    /// rescue_enabled property.
+    pub rescue_enabled: bool,
+    /// server_type property.
+    pub server_type: ListServersResponseServersItemServerType,
+    /// status property.
+    pub status: String,
+    /// volumes property.
+    pub volumes: Option<Vec<i64>>,
+}
+
+/// `ListServersResponseServersItemPublicNetIpv6DnsPtrItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPublicNetIpv6DnsPtrItem {
+    /// dns_ptr property.
+    pub dns_ptr: String,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `ListServersResponseServersItemServerTypePricesItemPriceMonthly` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypePricesItemPriceMonthly {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
 }
 
 /// `CreateServerResponseServerPublicNetIpv6DnsPtrItem` type.
@@ -619,89 +654,61 @@ pub struct CreateServerResponseServerPublicNetIpv6DnsPtrItem {
     pub ip: String,
 }
 
-/// `CreateServerResponse` type.
+/// `GetServerResponseServerIsoDeprecation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponse {
-    /// action property.
-    pub action: CreateServerResponseAction,
-    /// next_actions property.
-    pub next_actions: Vec<CreateServerResponseNextActionsItem>,
-    /// root_password property.
-    pub root_password: String,
-    /// server property.
-    pub server: CreateServerResponseServer,
+pub struct GetServerResponseServerIsoDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
 }
 
-/// `GetServerResponseServer` type.
+/// `CreateServerResponseServerServerTypePricesItemPriceHourly` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServer {
-    /// backup_window property.
-    pub backup_window: String,
-    /// created property.
-    pub created: String,
-    /// id property.
-    pub id: i64,
-    /// image property.
-    pub image: GetServerResponseServerImage,
-    /// included_traffic property.
-    pub included_traffic: i64,
-    /// ingoing_traffic property.
-    pub ingoing_traffic: i64,
-    /// iso property.
-    pub iso: GetServerResponseServerIso,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// load_balancers property.
-    pub load_balancers: Option<Vec<i64>>,
-    /// location property.
-    pub location: GetServerResponseServerLocation,
-    /// locked property.
-    pub locked: bool,
-    /// name property.
-    pub name: String,
-    /// outgoing_traffic property.
-    pub outgoing_traffic: i64,
-    /// placement_group property.
-    pub placement_group: Option<GetServerResponseServerPlacementGroup>,
-    /// primary_disk_size property.
-    pub primary_disk_size: f64,
-    /// private_net property.
-    pub private_net: Vec<GetServerResponseServerPrivateNetItem>,
-    /// protection property.
-    pub protection: GetServerResponseServerProtection,
-    /// public_net property.
-    pub public_net: GetServerResponseServerPublicNet,
-    /// rescue_enabled property.
-    pub rescue_enabled: bool,
-    /// server_type property.
-    pub server_type: GetServerResponseServerServerType,
-    /// status property.
-    pub status: String,
-    /// volumes property.
-    pub volumes: Option<Vec<i64>>,
-}
-
-/// `GetServerResponseServerProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerProtection {
-    /// delete property.
-    pub delete: bool,
-    /// rebuild property.
-    pub rebuild: bool,
-}
-
-/// `GetServerResponseServerServerTypePricesItemPricePerTbTraffic` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypePricesItemPricePerTbTraffic {
+pub struct CreateServerResponseServerServerTypePricesItemPriceHourly {
     /// gross property.
     pub gross: String,
     /// net property.
     pub net: String,
 }
 
-/// `ListServersResponseServersItemPublicNetFirewallsItem` type.
+/// `CreateServerResponseActionError` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPublicNetFirewallsItem {
+pub struct CreateServerResponseActionError {
+    /// code property.
+    pub code: String,
+    /// message property.
+    pub message: String,
+}
+
+/// `CreateServerRequestFirewallsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerRequestFirewallsItem {
+    /// firewall property.
+    pub firewall: i64,
+}
+
+/// `GetServerResponseServerIso` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerIso {
+    /// architecture property.
+    pub architecture: String,
+    /// deprecation property.
+    pub deprecation: GetServerResponseServerIsoDeprecation,
+    /// description property.
+    pub description: String,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `CreateServerResponseServerPublicNetFirewallsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPublicNetFirewallsItem {
     /// id property.
     pub id: Option<i64>,
     /// status property.
@@ -757,334 +764,62 @@ pub struct CreateServerResponseServer {
     pub volumes: Option<Vec<i64>>,
 }
 
-/// `CreateServerResponseServerServerTypeLocationsItem` type.
+/// `GetServerResponseServer` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypeLocationsItem {
-    /// available property.
-    pub available: bool,
-    /// deprecation property.
-    pub deprecation: CreateServerResponseServerServerTypeLocationsItemDeprecation,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// recommended property.
-    pub recommended: bool,
-}
-
-/// `CreateServerResponseServerImageProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerImageProtection {
-    /// delete property.
-    pub delete: bool,
-}
-
-/// `DeleteServerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteServerResponse {
-    /// action property.
-    pub action: Option<DeleteServerResponseAction>,
-}
-
-/// `ListServersResponseServersItemProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemProtection {
-    /// delete property.
-    pub delete: bool,
-    /// rebuild property.
-    pub rebuild: bool,
-}
-
-/// `CreateServerResponseServerServerTypeLocationsItemDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypeLocationsItemDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `DeleteServerResponseAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteServerResponseAction {
-    /// command property.
-    pub command: String,
-    /// error property.
-    pub error: DeleteServerResponseActionError,
-    /// finished property.
-    pub finished: String,
-    /// id property.
-    pub id: i64,
-    /// progress property.
-    pub progress: i64,
-    /// resources property.
-    pub resources: Vec<DeleteServerResponseActionResourcesItem>,
-    /// started property.
-    pub started: String,
-    /// status property.
-    pub status: String,
-}
-
-/// `CreateServerResponseServerServerTypePricesItemPriceMonthly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypePricesItemPriceMonthly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `CreateServerResponseServerPlacementGroup` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPlacementGroup {
+pub struct GetServerResponseServer {
+    /// backup_window property.
+    pub backup_window: String,
     /// created property.
     pub created: String,
     /// id property.
     pub id: i64,
+    /// image property.
+    pub image: GetServerResponseServerImage,
+    /// included_traffic property.
+    pub included_traffic: i64,
+    /// ingoing_traffic property.
+    pub ingoing_traffic: i64,
+    /// iso property.
+    pub iso: GetServerResponseServerIso,
     /// labels property.
     pub labels: serde_json::Value,
+    /// load_balancers property.
+    pub load_balancers: Option<Vec<i64>>,
+    /// location property.
+    pub location: GetServerResponseServerLocation,
+    /// locked property.
+    pub locked: bool,
     /// name property.
     pub name: String,
-    /// servers property.
-    pub servers: Vec<i64>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `ListServersResponseServersItemIsoDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemIsoDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `ListServersResponseServersItemPrivateNetItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPrivateNetItem {
-    /// alias_ips property.
-    pub alias_ips: Option<Vec<String>>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// mac_address property.
-    pub mac_address: Option<String>,
-    /// network property.
-    pub network: Option<i64>,
-}
-
-/// `GetServerResponseServerServerType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerType {
-    /// architecture property.
-    pub architecture: String,
-    /// category property.
-    pub category: Option<String>,
-    /// cores property.
-    pub cores: f64,
-    /// cpu_type property.
-    pub cpu_type: String,
-    /// deprecated property.
-    pub deprecated: bool,
-    /// deprecation property.
-    pub deprecation: Option<GetServerResponseServerServerTypeDeprecation>,
-    /// description property.
-    pub description: String,
-    /// disk property.
-    pub disk: f64,
-    /// id property.
-    pub id: i64,
-    /// locations property.
-    pub locations: Vec<GetServerResponseServerServerTypeLocationsItem>,
-    /// memory property.
-    pub memory: f64,
-    /// name property.
-    pub name: String,
-    /// prices property.
-    pub prices: Vec<GetServerResponseServerServerTypePricesItem>,
-    /// storage_type property.
-    pub storage_type: String,
-}
-
-/// `CreateServerResponseServerPublicNet` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPublicNet {
-    /// firewalls property.
-    pub firewalls: Option<Vec<CreateServerResponseServerPublicNetFirewallsItem>>,
-    /// floating_ips property.
-    pub floating_ips: Vec<i64>,
-    /// ipv4 property.
-    pub ipv4: CreateServerResponseServerPublicNetIpv4,
-    /// ipv6 property.
-    pub ipv6: CreateServerResponseServerPublicNetIpv6,
-}
-
-/// `GetServerResponseServerPublicNetIpv6DnsPtrItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPublicNetIpv6DnsPtrItem {
-    /// dns_ptr property.
-    pub dns_ptr: String,
-    /// ip property.
-    pub ip: String,
-}
-
-/// `ListServersResponseServersItemImageCreatedFrom` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemImageCreatedFrom {
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-}
-
-/// `ListServersResponseMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseMeta {
-    /// pagination property.
-    pub pagination: ListServersResponseMetaPagination,
-}
-
-/// `ListServersResponseMetaPagination` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseMetaPagination {
-    /// last_page property.
-    pub last_page: i64,
-    /// next_page property.
-    pub next_page: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// previous_page property.
-    pub previous_page: i64,
-    /// total_entries property.
-    pub total_entries: i64,
-}
-
-/// `ListServersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponse {
-    /// meta property.
-    pub meta: ListServersResponseMeta,
-    /// servers property.
-    pub servers: Vec<ListServersResponseServersItem>,
-}
-
-/// `GetServerResponseServerIsoDeprecation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerIsoDeprecation {
-    /// announced property.
-    pub announced: String,
-    /// unavailable_after property.
-    pub unavailable_after: String,
-}
-
-/// `ListServersResponseServersItemServerType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerType {
-    /// architecture property.
-    pub architecture: String,
-    /// category property.
-    pub category: Option<String>,
-    /// cores property.
-    pub cores: f64,
-    /// cpu_type property.
-    pub cpu_type: String,
-    /// deprecated property.
-    pub deprecated: bool,
-    /// deprecation property.
-    pub deprecation: Option<ListServersResponseServersItemServerTypeDeprecation>,
-    /// description property.
-    pub description: String,
-    /// disk property.
-    pub disk: f64,
-    /// id property.
-    pub id: i64,
-    /// locations property.
-    pub locations: Vec<ListServersResponseServersItemServerTypeLocationsItem>,
-    /// memory property.
-    pub memory: f64,
-    /// name property.
-    pub name: String,
-    /// prices property.
-    pub prices: Vec<ListServersResponseServersItemServerTypePricesItem>,
-    /// storage_type property.
-    pub storage_type: String,
-}
-
-/// `ListServersResponseServersItemPublicNetIpv6DnsPtrItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemPublicNetIpv6DnsPtrItem {
-    /// dns_ptr property.
-    pub dns_ptr: String,
-    /// ip property.
-    pub ip: String,
-}
-
-/// `DeleteServerResponseActionResourcesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteServerResponseActionResourcesItem {
-    /// id property.
-    pub id: i64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `GetServerResponseServerPublicNetFirewallsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPublicNetFirewallsItem {
-    /// id property.
-    pub id: Option<i64>,
+    /// outgoing_traffic property.
+    pub outgoing_traffic: i64,
+    /// placement_group property.
+    pub placement_group: Option<GetServerResponseServerPlacementGroup>,
+    /// primary_disk_size property.
+    pub primary_disk_size: f64,
+    /// private_net property.
+    pub private_net: Vec<GetServerResponseServerPrivateNetItem>,
+    /// protection property.
+    pub protection: GetServerResponseServerProtection,
+    /// public_net property.
+    pub public_net: GetServerResponseServerPublicNet,
+    /// rescue_enabled property.
+    pub rescue_enabled: bool,
+    /// server_type property.
+    pub server_type: GetServerResponseServerServerType,
     /// status property.
-    pub status: Option<String>,
+    pub status: String,
+    /// volumes property.
+    pub volumes: Option<Vec<i64>>,
 }
 
-/// `CreateServerResponseServerServerType` type.
+/// `CreateServerResponseNextActionsItemError` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerType {
-    /// architecture property.
-    pub architecture: String,
-    /// category property.
-    pub category: Option<String>,
-    /// cores property.
-    pub cores: f64,
-    /// cpu_type property.
-    pub cpu_type: String,
-    /// deprecated property.
-    pub deprecated: bool,
-    /// deprecation property.
-    pub deprecation: Option<CreateServerResponseServerServerTypeDeprecation>,
-    /// description property.
-    pub description: String,
-    /// disk property.
-    pub disk: f64,
-    /// id property.
-    pub id: i64,
-    /// locations property.
-    pub locations: Vec<CreateServerResponseServerServerTypeLocationsItem>,
-    /// memory property.
-    pub memory: f64,
-    /// name property.
-    pub name: String,
-    /// prices property.
-    pub prices: Vec<CreateServerResponseServerServerTypePricesItem>,
-    /// storage_type property.
-    pub storage_type: String,
-}
-
-/// `CreateServerResponseServerPublicNetIpv6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPublicNetIpv6 {
-    /// blocked property.
-    pub blocked: bool,
-    /// dns_ptr property.
-    pub dns_ptr: Vec<CreateServerResponseServerPublicNetIpv6DnsPtrItem>,
-    /// id property.
-    pub id: Option<i64>,
-    /// ip property.
-    pub ip: String,
+pub struct CreateServerResponseNextActionsItemError {
+    /// code property.
+    pub code: String,
+    /// message property.
+    pub message: String,
 }
 
 /// `ListServersResponseServersItemPlacementGroup` type.
@@ -1105,91 +840,13 @@ pub struct ListServersResponseServersItemPlacementGroup {
     pub r#type: String,
 }
 
-/// `GetServerResponseServerIso` type.
+/// `ListServersResponseServersItemProtection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerIso {
-    /// architecture property.
-    pub architecture: String,
-    /// deprecation property.
-    pub deprecation: GetServerResponseServerIsoDeprecation,
-    /// description property.
-    pub description: String,
-    /// id property.
-    pub id: i64,
-    /// name property.
-    pub name: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `CreateServerResponseNextActionsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseNextActionsItem {
-    /// command property.
-    pub command: String,
-    /// error property.
-    pub error: CreateServerResponseNextActionsItemError,
-    /// finished property.
-    pub finished: String,
-    /// id property.
-    pub id: i64,
-    /// progress property.
-    pub progress: i64,
-    /// resources property.
-    pub resources: Vec<CreateServerResponseNextActionsItemResourcesItem>,
-    /// started property.
-    pub started: String,
-    /// status property.
-    pub status: String,
-}
-
-/// `CreateServerResponseActionError` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseActionError {
-    /// code property.
-    pub code: String,
-    /// message property.
-    pub message: String,
-}
-
-/// `CreateServerResponseActionResourcesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseActionResourcesItem {
-    /// id property.
-    pub id: i64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
-
-/// `CreateServerResponseServerProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerProtection {
+pub struct ListServersResponseServersItemProtection {
     /// delete property.
     pub delete: bool,
     /// rebuild property.
     pub rebuild: bool,
-}
-
-/// `GetServerResponseServerPublicNetIpv6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerPublicNetIpv6 {
-    /// blocked property.
-    pub blocked: bool,
-    /// dns_ptr property.
-    pub dns_ptr: Vec<GetServerResponseServerPublicNetIpv6DnsPtrItem>,
-    /// id property.
-    pub id: Option<i64>,
-    /// ip property.
-    pub ip: String,
-}
-
-/// `ListServersResponseServersItemImageProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemImageProtection {
-    /// delete property.
-    pub delete: bool,
 }
 
 /// `CreateServerRequestPublicNet` type.
@@ -1205,9 +862,198 @@ pub struct CreateServerRequestPublicNet {
     pub ipv6: Option<i64>,
 }
 
-/// `CreateServerResponseServerPublicNetIpv4` type.
+/// `CreateServerResponseServerPublicNet` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPublicNetIpv4 {
+pub struct CreateServerResponseServerPublicNet {
+    /// firewalls property.
+    pub firewalls: Option<Vec<CreateServerResponseServerPublicNetFirewallsItem>>,
+    /// floating_ips property.
+    pub floating_ips: Vec<i64>,
+    /// ipv4 property.
+    pub ipv4: CreateServerResponseServerPublicNetIpv4,
+    /// ipv6 property.
+    pub ipv6: CreateServerResponseServerPublicNetIpv6,
+}
+
+/// `DeleteServerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteServerResponse {
+    /// action property.
+    pub action: Option<DeleteServerResponseAction>,
+}
+
+/// `ListServersResponseMetaPagination` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseMetaPagination {
+    /// last_page property.
+    pub last_page: i64,
+    /// next_page property.
+    pub next_page: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// previous_page property.
+    pub previous_page: i64,
+    /// total_entries property.
+    pub total_entries: i64,
+}
+
+/// `GetServerResponseServerImageProtection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerImageProtection {
+    /// delete property.
+    pub delete: bool,
+}
+
+/// `GetServerResponseServerLocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerLocation {
+    /// city property.
+    pub city: String,
+    /// country property.
+    pub country: String,
+    /// description property.
+    pub description: String,
+    /// id property.
+    pub id: i64,
+    /// latitude property.
+    pub latitude: f64,
+    /// longitude property.
+    pub longitude: f64,
+    /// name property.
+    pub name: String,
+    /// network_zone property.
+    pub network_zone: String,
+}
+
+/// `CreateServerResponseServerImageProtection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerImageProtection {
+    /// delete property.
+    pub delete: bool,
+}
+
+/// `GetServerResponseServerPublicNet` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPublicNet {
+    /// firewalls property.
+    pub firewalls: Option<Vec<GetServerResponseServerPublicNetFirewallsItem>>,
+    /// floating_ips property.
+    pub floating_ips: Vec<i64>,
+    /// ipv4 property.
+    pub ipv4: GetServerResponseServerPublicNetIpv4,
+    /// ipv6 property.
+    pub ipv6: GetServerResponseServerPublicNetIpv6,
+}
+
+/// `ListServersResponseServersItemPublicNetIpv6` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPublicNetIpv6 {
+    /// blocked property.
+    pub blocked: bool,
+    /// dns_ptr property.
+    pub dns_ptr: Vec<ListServersResponseServersItemPublicNetIpv6DnsPtrItem>,
+    /// id property.
+    pub id: Option<i64>,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `ListServersResponseServersItemServerTypeLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypeLocationsItem {
+    /// available property.
+    pub available: bool,
+    /// deprecation property.
+    pub deprecation: ListServersResponseServersItemServerTypeLocationsItemDeprecation,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// recommended property.
+    pub recommended: bool,
+}
+
+/// `ListServersResponseServersItemServerTypeLocationsItemDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypeLocationsItemDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
+}
+
+/// `ListServersResponseServersItemImageProtection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemImageProtection {
+    /// delete property.
+    pub delete: bool,
+}
+
+/// `ListServersResponseServersItemImage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemImage {
+    /// architecture property.
+    pub architecture: String,
+    /// bound_to property.
+    pub bound_to: i64,
+    /// created property.
+    pub created: String,
+    /// created_from property.
+    pub created_from: ListServersResponseServersItemImageCreatedFrom,
+    /// deleted property.
+    pub deleted: String,
+    /// deprecated property.
+    pub deprecated: String,
+    /// description property.
+    pub description: String,
+    /// disk_size property.
+    pub disk_size: f64,
+    /// id property.
+    pub id: i64,
+    /// image_size property.
+    pub image_size: f64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// os_flavor property.
+    pub os_flavor: String,
+    /// os_version property.
+    pub os_version: String,
+    /// protection property.
+    pub protection: ListServersResponseServersItemImageProtection,
+    /// rapid_deploy property.
+    pub rapid_deploy: Option<bool>,
+    /// status property.
+    pub status: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `CreateServerResponseServerServerTypePricesItemPriceMonthly` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerServerTypePricesItemPriceMonthly {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `ListServersResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponse {
+    /// meta property.
+    pub meta: ListServersResponseMeta,
+    /// servers property.
+    pub servers: Vec<ListServersResponseServersItem>,
+}
+
+/// `ListServersResponseServersItemPublicNetIpv4` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemPublicNetIpv4 {
     /// blocked property.
     pub blocked: bool,
     /// dns_ptr property.
@@ -1218,41 +1064,253 @@ pub struct CreateServerResponseServerPublicNetIpv4 {
     pub ip: String,
 }
 
-/// `CreateServerResponseServerPrivateNetItem` type.
+/// `CreateServerResponseServerServerTypeDeprecation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerPrivateNetItem {
-    /// alias_ips property.
-    pub alias_ips: Option<Vec<String>>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// mac_address property.
-    pub mac_address: Option<String>,
-    /// network property.
-    pub network: Option<i64>,
+pub struct CreateServerResponseServerServerTypeDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
 }
 
-/// `GetServerResponseServerServerTypePricesItem` type.
+/// `CreateServerResponseServerServerTypeLocationsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetServerResponseServerServerTypePricesItem {
+pub struct CreateServerResponseServerServerTypeLocationsItem {
+    /// available property.
+    pub available: bool,
+    /// deprecation property.
+    pub deprecation: CreateServerResponseServerServerTypeLocationsItemDeprecation,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// recommended property.
+    pub recommended: bool,
+}
+
+/// `CreateServerResponseServerImage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerImage {
+    /// architecture property.
+    pub architecture: String,
+    /// bound_to property.
+    pub bound_to: i64,
+    /// created property.
+    pub created: String,
+    /// created_from property.
+    pub created_from: CreateServerResponseServerImageCreatedFrom,
+    /// deleted property.
+    pub deleted: String,
+    /// deprecated property.
+    pub deprecated: String,
+    /// description property.
+    pub description: String,
+    /// disk_size property.
+    pub disk_size: f64,
+    /// id property.
+    pub id: i64,
+    /// image_size property.
+    pub image_size: f64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// os_flavor property.
+    pub os_flavor: String,
+    /// os_version property.
+    pub os_version: String,
+    /// protection property.
+    pub protection: CreateServerResponseServerImageProtection,
+    /// rapid_deploy property.
+    pub rapid_deploy: Option<bool>,
+    /// status property.
+    pub status: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `GetServerResponseServerServerTypePricesItemPricePerTbTraffic` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypePricesItemPricePerTbTraffic {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `CreateServerResponseNextActionsItemResourcesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseNextActionsItemResourcesItem {
+    /// id property.
+    pub id: i64,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `GetServerResponseServerPublicNetIpv6DnsPtrItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPublicNetIpv6DnsPtrItem {
+    /// dns_ptr property.
+    pub dns_ptr: String,
+    /// ip property.
+    pub ip: String,
+}
+
+/// `GetServerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponse {
+    /// server property.
+    pub server: Option<GetServerResponseServer>,
+}
+
+/// `CreateServerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponse {
+    /// action property.
+    pub action: CreateServerResponseAction,
+    /// next_actions property.
+    pub next_actions: Vec<CreateServerResponseNextActionsItem>,
+    /// root_password property.
+    pub root_password: String,
+    /// server property.
+    pub server: CreateServerResponseServer,
+}
+
+/// `GetServerResponseServerImage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerImage {
+    /// architecture property.
+    pub architecture: String,
+    /// bound_to property.
+    pub bound_to: i64,
+    /// created property.
+    pub created: String,
+    /// created_from property.
+    pub created_from: GetServerResponseServerImageCreatedFrom,
+    /// deleted property.
+    pub deleted: String,
+    /// deprecated property.
+    pub deprecated: String,
+    /// description property.
+    pub description: String,
+    /// disk_size property.
+    pub disk_size: f64,
+    /// id property.
+    pub id: i64,
+    /// image_size property.
+    pub image_size: f64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// os_flavor property.
+    pub os_flavor: String,
+    /// os_version property.
+    pub os_version: String,
+    /// protection property.
+    pub protection: GetServerResponseServerImageProtection,
+    /// rapid_deploy property.
+    pub rapid_deploy: Option<bool>,
+    /// status property.
+    pub status: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `GetServerResponseServerServerTypeLocationsItemDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypeLocationsItemDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
+}
+
+/// `ListServersResponseServersItemServerTypePricesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypePricesItem {
     /// included_traffic property.
     pub included_traffic: i64,
     /// location property.
     pub location: String,
     /// price_hourly property.
-    pub price_hourly: GetServerResponseServerServerTypePricesItemPriceHourly,
+    pub price_hourly: ListServersResponseServersItemServerTypePricesItemPriceHourly,
     /// price_monthly property.
-    pub price_monthly: GetServerResponseServerServerTypePricesItemPriceMonthly,
+    pub price_monthly: ListServersResponseServersItemServerTypePricesItemPriceMonthly,
     /// price_per_tb_traffic property.
-    pub price_per_tb_traffic: GetServerResponseServerServerTypePricesItemPricePerTbTraffic,
+    pub price_per_tb_traffic: ListServersResponseServersItemServerTypePricesItemPricePerTbTraffic,
 }
 
-/// `ListServersResponseServersItemServerTypeDeprecation` type.
+/// `GetServerResponseServerServerTypePricesItemPriceMonthly` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItemServerTypeDeprecation {
+pub struct GetServerResponseServerServerTypePricesItemPriceMonthly {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `ListServersResponseServersItemServerTypePricesItemPriceHourly` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseServersItemServerTypePricesItemPriceHourly {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `CreateServerResponseServerServerTypeLocationsItemDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerServerTypeLocationsItemDeprecation {
     /// announced property.
     pub announced: String,
     /// unavailable_after property.
     pub unavailable_after: String,
+}
+
+/// `GetServerResponseServerServerTypeLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypeLocationsItem {
+    /// available property.
+    pub available: bool,
+    /// deprecation property.
+    pub deprecation: GetServerResponseServerServerTypeLocationsItemDeprecation,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// recommended property.
+    pub recommended: bool,
+}
+
+/// `GetServerResponseServerServerTypeDeprecation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypeDeprecation {
+    /// announced property.
+    pub announced: String,
+    /// unavailable_after property.
+    pub unavailable_after: String,
+}
+
+/// `GetServerResponseServerServerTypePricesItemPriceHourly` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerServerTypePricesItemPriceHourly {
+    /// gross property.
+    pub gross: String,
+    /// net property.
+    pub net: String,
+}
+
+/// `GetServerResponseServerPublicNetFirewallsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetServerResponseServerPublicNetFirewallsItem {
+    /// id property.
+    pub id: Option<i64>,
+    /// status property.
+    pub status: Option<String>,
 }
 
 /// `ListServersResponseServersItemLocation` type.
@@ -1274,64 +1332,6 @@ pub struct ListServersResponseServersItemLocation {
     pub name: String,
     /// network_zone property.
     pub network_zone: String,
-}
-
-/// `CreateServerResponseServerServerTypePricesItemPriceHourly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateServerResponseServerServerTypePricesItemPriceHourly {
-    /// gross property.
-    pub gross: String,
-    /// net property.
-    pub net: String,
-}
-
-/// `ListServersResponseServersItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListServersResponseServersItem {
-    /// backup_window property.
-    pub backup_window: String,
-    /// created property.
-    pub created: String,
-    /// id property.
-    pub id: i64,
-    /// image property.
-    pub image: ListServersResponseServersItemImage,
-    /// included_traffic property.
-    pub included_traffic: i64,
-    /// ingoing_traffic property.
-    pub ingoing_traffic: i64,
-    /// iso property.
-    pub iso: ListServersResponseServersItemIso,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// load_balancers property.
-    pub load_balancers: Option<Vec<i64>>,
-    /// location property.
-    pub location: ListServersResponseServersItemLocation,
-    /// locked property.
-    pub locked: bool,
-    /// name property.
-    pub name: String,
-    /// outgoing_traffic property.
-    pub outgoing_traffic: i64,
-    /// placement_group property.
-    pub placement_group: Option<ListServersResponseServersItemPlacementGroup>,
-    /// primary_disk_size property.
-    pub primary_disk_size: f64,
-    /// private_net property.
-    pub private_net: Vec<ListServersResponseServersItemPrivateNetItem>,
-    /// protection property.
-    pub protection: ListServersResponseServersItemProtection,
-    /// public_net property.
-    pub public_net: ListServersResponseServersItemPublicNet,
-    /// rescue_enabled property.
-    pub rescue_enabled: bool,
-    /// server_type property.
-    pub server_type: ListServersResponseServersItemServerType,
-    /// status property.
-    pub status: String,
-    /// volumes property.
-    pub volumes: Option<Vec<i64>>,
 }
 
 // =============================================================================
@@ -1429,7 +1429,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
+    let mut response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1490,7 +1490,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
+    let mut response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1549,7 +1549,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
+    let mut response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1608,7 +1608,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
+    let mut response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();

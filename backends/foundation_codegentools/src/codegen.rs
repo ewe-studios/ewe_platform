@@ -522,3 +522,314 @@ fn walk(root: &Path, dir: &Path, out: &mut BTreeMap<String, String>) -> Result<(
     }
     Ok(())
 }
+
+// ── the build script a provider crate carries ────────────────────────────────
+
+/// What [`Codegen::write_build_script`] did.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BuildScriptOutcome {
+    /// Written — the crate had none.
+    Created(PathBuf),
+    /// Overwritten, because the caller asked.
+    Replaced(PathBuf),
+    /// Left alone: one exists and `overwrite` was not set.
+    Kept(PathBuf),
+}
+
+impl BuildScriptOutcome {
+    /// Where the script is, whatever happened to it.
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        match self {
+            Self::Created(p) | Self::Replaced(p) | Self::Kept(p) => p,
+        }
+    }
+}
+
+impl Codegen {
+    /// Write a `build.rs` carrying this declaration into the crate.
+    ///
+    /// **Why the generator emits this at all:** feature 00 §4 — the slice a crate
+    /// generates should be visible *next to the code that uses it*, not buried in
+    /// someone's shell history. Before this, Hetzner's six `--include-operation`
+    /// flags existed only in a doc comment, and nothing could reproduce them.
+    ///
+    /// **Why it does not clobber:** a `build.rs` is a source file people edit —
+    /// they widen a selection, add a pin, add an unrelated build step. Silently
+    /// replacing it on the next `genapi generate` would eat that. Same rule the
+    /// generator already applies to a provider's `mod.rs`. Pass `overwrite` to
+    /// replace it deliberately (`genapi generate <p> --buildrs-overwrite`).
+    ///
+    /// # Errors
+    /// [`CodegenError::Incomplete`] without a `crate_dir`/`provider`/`spec`, or
+    /// [`CodegenError::Io`] if the write fails.
+    pub fn write_build_script(&self, overwrite: bool) -> Result<BuildScriptOutcome, CodegenError> {
+        let crate_dir = self
+            .crate_dir
+            .clone()
+            .ok_or(CodegenError::Incomplete { missing: "crate_dir" })?;
+        let target = crate_dir.join("build.rs");
+
+        if target.exists() && !overwrite {
+            return Ok(BuildScriptOutcome::Kept(target));
+        }
+
+        let body = self.render_build_script(&crate_dir)?;
+        std::fs::create_dir_all(&crate_dir).map_err(|source| CodegenError::Io {
+            path: crate_dir.clone(),
+            source,
+        })?;
+        // The script cannot compile without us. Writing it and leaving the crate
+        // to discover that is the sort of half-done that makes people distrust
+        // the generator.
+        ensure_build_dependency(&crate_dir)?;
+        let existed = target.exists();
+        std::fs::write(&target, body).map_err(|source| CodegenError::Io {
+            path: target.clone(),
+            source,
+        })?;
+
+        Ok(if existed {
+            BuildScriptOutcome::Replaced(target)
+        } else {
+            BuildScriptOutcome::Created(target)
+        })
+    }
+
+    /// The `build.rs` source for this declaration.
+    fn render_build_script(&self, crate_dir: &Path) -> Result<String, CodegenError> {
+        use std::fmt::Write as _;
+
+        let provider = self
+            .provider
+            .as_deref()
+            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let spec = self
+            .spec
+            .as_ref()
+            .ok_or(CodegenError::Incomplete { missing: "spec" })?;
+        let spec_from_crate = relative_to(crate_dir, spec);
+
+        let mut out = String::new();
+        writeln!(out, "//! Keeps `src/generated/` honest against the vendor's spec.").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(
+            out,
+            "//! **WHY:** this file *is* the declaration of what this crate generates — the"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "//! slice, and the versions it was generated from. Keeping it here rather than in"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "//! the generator means the surface is visible next to the code that uses it, and"
+        )
+        .unwrap();
+        writeln!(out, "//! anyone can reproduce it (spec-56 feature 00 §4).").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(out, "//! **WHAT:** verifies the pins still hold, and regenerates when the").unwrap();
+        writeln!(out, "//! committed output no longer matches this declaration.").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(out, "//! **HOW:** the three outcomes are deliberately different:").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(out, "//! | `check()` says | meaning | what happens |").unwrap();
+        writeln!(out, "//! |---|---|---|").unwrap();
+        writeln!(out, "//! | `Ok` | output is current | nothing |").unwrap();
+        writeln!(out, "//! | `Stale` | the declaration moved | **regenerate** |").unwrap();
+        writeln!(
+            out,
+            "//! | anything else | the spec moved under the pin, or is unreadable | **fail the build** |"
+        )
+        .unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(
+            out,
+            "//! A moved spec is fatal on purpose: regenerating against a document that changed"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "//! would rewrite this crate's types with nobody choosing to. Bump `spec_version`,"
+        )
+        .unwrap();
+        writeln!(out, "//! rebuild, and read the diff.").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(
+            out,
+            "//! Regenerate by hand with:  cargo run --bin genapi --features cli -- generate {provider}"
+        )
+        .unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "use std::path::Path;").unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "fn main() {{").unwrap();
+        writeln!(
+            out,
+            "    let manifest = std::env::var(\"CARGO_MANIFEST_DIR\").expect(\"CARGO_MANIFEST_DIR\");"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "    let spec = Path::new(&manifest).join({:?});",
+            spec_from_crate
+        )
+        .unwrap();
+        writeln!(out).unwrap();
+        writeln!(
+            out,
+            "    // The spec artefact is not published to crates.io, so a consumer building"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "    // this crate from the registry has no spec to check against — and the"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "    // committed `src/generated/` is exactly what they should be compiling anyway."
+        )
+        .unwrap();
+        writeln!(out, "    // Nothing to do, and failing here would break their build.").unwrap();
+        writeln!(out, "    if !spec.exists() {{").unwrap();
+        writeln!(out, "        return;").unwrap();
+        writeln!(out, "    }}").unwrap();
+        writeln!(out).unwrap();
+        writeln!(
+            out,
+            "    // Rerun only when the spec or this declaration changes. Without these, cargo"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "    // watches every file in the package — and since this script writes into"
+        )
+        .unwrap();
+        writeln!(out, "    // `src/`, that would rebuild forever.").unwrap();
+        writeln!(out, "    println!(\"cargo:rerun-if-changed={{}}\", spec.display());").unwrap();
+        writeln!(out, "    println!(\"cargo:rerun-if-changed=build.rs\");").unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "    let codegen = foundation_codegentools::generate()").unwrap();
+        writeln!(out, "        .provider({provider:?})").unwrap();
+        writeln!(out, "        .spec(&spec)").unwrap();
+        if let Some(v) = &self.api_version {
+            writeln!(out, "        .api_version({v:?})").unwrap();
+        }
+        if let Some(v) = &self.spec_version {
+            writeln!(out, "        .spec_version({v:?})").unwrap();
+        }
+        if let Some(url) = &self.base_url {
+            writeln!(out, "        .base_url({url:?})").unwrap();
+        }
+        for (method, values) in [
+            ("include_paths", self.selection.selected_path_patterns()),
+            ("include_tags", self.selection.selected_tags()),
+            ("include_operations", self.selection.selected_operations()),
+        ] {
+            if !values.is_empty() {
+                writeln!(out, "        .{method}([").unwrap();
+                for v in values {
+                    writeln!(out, "            {v:?},").unwrap();
+                }
+                writeln!(out, "        ])").unwrap();
+            }
+        }
+        writeln!(out, "        .crate_dir(&manifest);").unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "    match codegen.check() {{").unwrap();
+        writeln!(out, "        // Already what this declaration produces.").unwrap();
+        writeln!(out, "        Ok(()) => {{}}").unwrap();
+        writeln!(out, "        // The selection or the spec's shape moved — regenerate.").unwrap();
+        writeln!(
+            out,
+            "        Err(foundation_codegentools::CodegenError::Stale {{ .. }}) => {{"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "            codegen.write().expect(\"regenerate {provider}'s API surface\");"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "            println!(\"cargo:warning=regenerated {provider}'s src/generated/ from {{}}\", spec.display());"
+        )
+        .unwrap();
+        writeln!(out, "        }}").unwrap();
+        writeln!(
+            out,
+            "        // A moved pin, an unreadable spec, a spec that will not canonicalise."
+        )
+        .unwrap();
+        writeln!(out, "        Err(e) => panic!(\"{{e}}\"),").unwrap();
+        writeln!(out, "    }}").unwrap();
+        writeln!(out, "}}").unwrap();
+
+        Ok(out)
+    }
+}
+
+/// Add `foundation_codegentools` to the crate's `[build-dependencies]`.
+///
+/// Idempotent: an existing entry is left exactly as the crate wrote it — someone
+/// may have pinned a version or added features, and clobbering that would be the
+/// same mistake as clobbering the `build.rs` itself.
+fn ensure_build_dependency(crate_dir: &Path) -> Result<(), CodegenError> {
+    let manifest_path = crate_dir.join("Cargo.toml");
+    let raw = std::fs::read_to_string(&manifest_path).map_err(|source| CodegenError::Io {
+        path: manifest_path.clone(),
+        source,
+    })?;
+    let mut manifest: toml_edit::DocumentMut = raw.parse().map_err(|e| CodegenError::Io {
+        path: manifest_path.clone(),
+        source: std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{e}")),
+    })?;
+
+    let deps = manifest["build-dependencies"].or_insert(toml_edit::table());
+    if deps.get(BUILD_DEP).is_some() {
+        return Ok(());
+    }
+
+    // A path for building in-repo, a version so the crate stays publishable.
+    let mut entry = toml_edit::InlineTable::new();
+    entry.insert("path", format!("../{BUILD_DEP}").into());
+    entry.insert("version", BUILD_DEP_VERSION.into());
+    deps[BUILD_DEP] = toml_edit::value(entry);
+
+    std::fs::write(&manifest_path, manifest.to_string()).map_err(|source| CodegenError::Io {
+        path: manifest_path,
+        source,
+    })
+}
+
+/// The crate a generated `build.rs` calls into.
+const BUILD_DEP: &str = "foundation_codegentools";
+
+/// Kept in step with this crate's own `version` — a generated manifest entry that
+/// names a version we do not publish would break `cargo package` for every
+/// provider at once.
+const BUILD_DEP_VERSION: &str = "0.1.0";
+
+/// `spec`, expressed relative to `crate_dir`.
+///
+/// The CLI is run from the workspace root, so it holds paths like
+/// `artefacts/cloud_providers/hetzner/openapi.json`. Cargo runs a build script
+/// with `CARGO_MANIFEST_DIR` set to the *crate*, so the path has to be rewritten
+/// or the script looks for the spec inside the crate and silently finds nothing —
+/// which reads exactly like the published-crate case and skips.
+fn relative_to(crate_dir: &Path, spec: &Path) -> String {
+    if spec.is_absolute() {
+        return spec.to_string_lossy().into_owned();
+    }
+    // Both are workspace-relative: climb out of the crate, then descend.
+    let up = crate_dir.components().count();
+    let mut out = PathBuf::new();
+    for _ in 0..up {
+        out.push("..");
+    }
+    out.push(spec);
+    out.to_string_lossy().into_owned()
+}

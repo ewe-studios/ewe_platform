@@ -44,7 +44,7 @@ const VENDOR_VARS: &[&str] = &["DIGITALOCEAN_TOKEN", "DIGITALOCEAN_ACCESS_TOKEN"
 
 | Provider | Vendor spelling(s) it declares | Used by |
 |---|---|---|
-| Hetzner | `HCLOUD_TOKEN` | `hcloud`, terraform |
+| Hetzner | `HCLOUD_TOKEN`, `HETZNER_API_TOKEN` | `hcloud` + terraform; **lego** (see the amendment below) |
 | DigitalOcean | `DIGITALOCEAN_TOKEN`, `DIGITALOCEAN_ACCESS_TOKEN` | `doctl`, terraform (both spellings are live in the wild) |
 | Linode | `LINODE_TOKEN` | `linode-cli`, terraform |
 
@@ -109,6 +109,43 @@ with their own secret store, and `with_client(http, token)` injects the transpor
 This also keeps the mock-server tests honest: they **inject** a token rather than
 mutating the process environment, which is global and would race under
 `--test-threads`.
+
+### Amendment (2026-07-17): Hetzner declares **two** spellings, and two it must not
+
+Prompted by the owner having `HETZNER_API_TOKEN` exported. The first draft assumed
+`HCLOUD_TOKEN` was the only Hetzner spelling. It is not — and the correction was
+worth making because **guessing here means picking up a credential for the wrong
+product**.
+
+Verified against each tool's source rather than from memory (an earlier claim here
+was recalled, and wrong):
+
+| Variable | Read by | Endpoint it authenticates against | Declared? |
+|---|---|---|---|
+| `HCLOUD_TOKEN` | `hcloud` CLI (`"HCLOUD_" + ToUpper("token")`), Terraform/OpenTofu (`EnvDefaultFunc("HCLOUD_TOKEN", nil)`) | `api.hetzner.cloud` | **yes**, first |
+| `HETZNER_API_TOKEN` | `lego` — the ACME library behind Traefik and much of cert-manager (`hetznerv1`) | **`api.hetzner.cloud/v1`** — the same endpoint we call | **yes** |
+| `HETZNER_API_KEY` / `HETZNER_TOKEN` | `lego` (`legacy`, which lego itself deprecates) | `dns.hetzner.com` — the **DNS** API | **no** |
+| `TF_VAR_hcloud_token` | a Terraform config that declared `variable "hcloud_token"` | — | **no** |
+
+**Why the DNS variables are excluded.** Hetzner DNS is a different product with
+different tokens. Reading one would send a DNS token to the Cloud API, earn a 401,
+and have us report "check your token" — when the truth is "that token is for
+another Hetzner product". That is exactly the confusion §3's `Unauthorized`
+variant exists to prevent, so admitting the variable would undo it. lego draws the
+same line: it deprecates its DNS-API path in favour of the Cloud API.
+
+**Why `TF_VAR_hcloud_token` is excluded.** `TF_VAR_*` is *Terraform's* namespace,
+not Hetzner's: `TF_VAR_x` sets whatever input variable a config declared as
+`variable "x"`. The suffix is the config author's choice, so honouring this one
+spelling would serve one popular style and silently miss `variable "token"`.
+
+Nothing about the mechanism changed — this is §1 working as designed. A provider
+declares the vendor spellings its ecosystem uses; DigitalOcean already declared
+two for the same reason. Hetzner's resolution order is now:
+
+```
+EWE_HCLOUD_TOKEN  →  EWE_HETZNER_API_TOKEN  →  HCLOUD_TOKEN  →  HETZNER_API_TOKEN
+```
 
 ## Resolved — summary
 

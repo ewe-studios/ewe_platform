@@ -21,6 +21,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
     ("hetzner", "backends/foundation_deployment_hetzner"),
+    ("digitalocean", "backends/foundation_deployment_digitalocean"),
     ("docker", "backends/foundation_deployment_docker"),
     ("stripe", "backends/foundation_deployment_stripe"),
     ("supabase", "backends/foundation_deployment_supabase"),
@@ -653,6 +654,12 @@ pub fn command() -> clap::Command {
                             .long("check")
                             .help("Fail if the committed output is not what this run would generate. Writes nothing")
                             .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("buildrs-overwrite")
+                            .long("buildrs-overwrite")
+                            .help("Replace the crate's build.rs. Without this, an existing one is left alone — it is a source file people edit")
+                            .action(clap::ArgAction::SetTrue),
                     ),
             )
             .subcommand(
@@ -789,6 +796,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let spec_version = sub_matches.get_one::<String>("spec-version").cloned();
             let api_version = sub_matches.get_one::<String>("api-version").cloned();
             let check_only = sub_matches.get_flag("check");
+            let buildrs_overwrite = sub_matches.get_flag("buildrs-overwrite");
 
             let options = AnalysisOptions {
                 min_group_size,
@@ -992,6 +1000,30 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     "    Generated: {} ({} paths, {} schemas, {} files)",
                     gen_provider, report.paths_selected, report.schemas, report.files
                 );
+
+                // The declaration, written next to the code it describes
+                // (feature 00 §4). Split-out crates only: a monolith provider has
+                // no crate of its own to carry one.
+                if is_split {
+                    let build_rs = codegen
+                        .clone()
+                        .crate_dir(crate_root.clone())
+                        .write_build_script(buildrs_overwrite)?;
+                    match &build_rs {
+                        crate::codegen::BuildScriptOutcome::Created(p) => {
+                            println!("    Wrote {}", p.display());
+                        }
+                        crate::codegen::BuildScriptOutcome::Replaced(p) => {
+                            println!("    Replaced {} (--buildrs-overwrite)", p.display());
+                        }
+                        crate::codegen::BuildScriptOutcome::Kept(p) => {
+                            println!(
+                                "    Kept {} — pass --buildrs-overwrite to replace it",
+                                p.display()
+                            );
+                        }
+                    }
+                }
 
                 // Track which sub-provider was regenerated
                 regenerated.insert(safe_api_name);

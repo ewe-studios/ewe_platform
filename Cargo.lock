@@ -4466,6 +4466,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_deployment_digitalocean"
+version = "0.1.0"
+dependencies = [
+ "base85rs",
+ "chrono",
+ "derive_more",
+ "foundation_codegentools",
+ "foundation_core",
+ "foundation_db",
+ "foundation_deployment",
+ "foundation_macros",
+ "foundation_netio",
+ "foundation_testing",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_deployment_docker"
 version = "0.1.0"
 dependencies = [
@@ -4505,6 +4525,7 @@ dependencies = [
  "base85rs",
  "chrono",
  "derive_more",
+ "foundation_codegentools",
  "foundation_core",
  "foundation_db",
  "foundation_deployment",

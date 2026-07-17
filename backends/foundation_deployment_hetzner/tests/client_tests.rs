@@ -16,7 +16,18 @@ use foundation_deployment_hetzner::{HetznerClient, HetznerError};
 fn the_override_is_the_vendor_name_with_a_prefix() {
     // The point of decision 02 §1: strip EWE_ and you are back at the vendor's
     // variable. There is no third spelling to invent, remember, or get wrong.
-    assert_eq!(VENDOR_VARS, &["HCLOUD_TOKEN"], "what hcloud and terraform read");
+    //
+    // Both entries are **Hetzner Cloud** API tokens, verified against each tool's
+    // source: `hcloud`/Terraform read HCLOUD_TOKEN, and lego reads
+    // HETZNER_API_TOKEN for `api.hetzner.cloud/v1` — the same endpoint we call.
+    // Deliberately absent: HETZNER_API_KEY/HETZNER_TOKEN (the *DNS* API, a
+    // different product) and TF_VAR_hcloud_token (Terraform's namespace, where
+    // the suffix is the config author's choice).
+    assert_eq!(
+        VENDOR_VARS,
+        &["HCLOUD_TOKEN", "HETZNER_API_TOKEN"],
+        "the Cloud-API spellings that are live in the wild"
+    );
     for var in credential_vars() {
         let stripped = var.strip_prefix("EWE_").unwrap_or(&var);
         assert!(
@@ -41,7 +52,15 @@ fn every_override_is_tried_before_every_vendor_name() {
         last_override < first_vendor,
         "all EWE_* must precede all vendor-native, got {vars:?}"
     );
-    assert_eq!(vars, vec!["EWE_HCLOUD_TOKEN", "HCLOUD_TOKEN"]);
+    assert_eq!(
+        vars,
+        vec![
+            "EWE_HCLOUD_TOKEN",
+            "EWE_HETZNER_API_TOKEN",
+            "HCLOUD_TOKEN",
+            "HETZNER_API_TOKEN",
+        ]
+    );
 }
 
 // ── the absent case ──────────────────────────────────────────────────────────
@@ -49,13 +68,32 @@ fn every_override_is_tried_before_every_vendor_name() {
 #[test]
 fn no_token_names_every_variable_it_looked_for() {
     // A "credentials not found" that does not say what it looked for is a
-    // scavenger hunt (decision 02 §2).
+    // scavenger hunt (decision 02 §2) — and with four names it is a long one.
     let err = HetznerError::NoCredentials {
         looked_for: credential_vars(),
     };
     let msg = err.to_string();
-    assert!(msg.contains("EWE_HCLOUD_TOKEN"), "{msg}");
-    assert!(msg.contains("HCLOUD_TOKEN"), "{msg}");
+    for expected in credential_vars() {
+        assert!(msg.contains(&expected), "{expected} missing from: {msg}");
+    }
+}
+
+#[test]
+fn the_dns_api_variables_are_not_read() {
+    // The trap: Hetzner's DNS API (dns.hetzner.com) is a different product with
+    // different tokens. Reading one would send a DNS token to the Cloud API, earn
+    // a 401, and have us report "check your token" when the truth is "that token
+    // is for another product". lego deprecates its own DNS-API path for the same
+    // reason.
+    //
+    // TF_VAR_hcloud_token is out for a different reason: TF_VAR_* is Terraform's
+    // namespace, and the suffix is whatever a config author named their variable.
+    for never in ["HETZNER_API_KEY", "HETZNER_TOKEN", "TF_VAR_hcloud_token"] {
+        assert!(
+            !credential_vars().iter().any(|v| v == never),
+            "{never} must not be read"
+        );
+    }
 }
 
 #[test]

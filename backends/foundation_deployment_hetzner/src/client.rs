@@ -19,15 +19,37 @@ use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 use crate::types::HetznerError;
 
-/// The environment variable Hetzner's own ecosystem uses.
+/// The environment variables Hetzner Cloud's ecosystem uses, in precedence order.
 ///
-/// `hcloud` and terraform's provider both read this, so anyone already deploying
-/// to Hetzner needs no setup from us.
+/// Both are **Hetzner Cloud API** tokens — verified against each tool's source
+/// (2026-07-17), because guessing here means picking up a credential for the
+/// wrong product:
 ///
-/// The override is **derived**, not invented: `EWE_` + this name. Strip the prefix
-/// and you are back at the vendor's variable, so there is no third spelling to
-/// remember (decision 02 §1).
-pub const VENDOR_VARS: &[&str] = &["HCLOUD_TOKEN"];
+/// | Variable | Read by | Endpoint it authenticates against |
+/// |---|---|---|
+/// | `HCLOUD_TOKEN` | the official `hcloud` CLI, the Terraform/OpenTofu provider | `api.hetzner.cloud` |
+/// | `HETZNER_API_TOKEN` | `lego` (the ACME library behind Traefik and much of cert-manager) | `api.hetzner.cloud/v1` |
+///
+/// `HCLOUD_TOKEN` is first because it is Hetzner's own tooling: `hcloud` derives
+/// it as `"HCLOUD_" + ToUpper(option name)` where the option is `token`, and the
+/// Terraform provider declares `EnvDefaultFunc("HCLOUD_TOKEN", nil)`.
+///
+/// **Two Hetzner variables we deliberately do not read:**
+///
+/// - `HETZNER_API_KEY` / `HETZNER_TOKEN` — the **DNS** API (`dns.hetzner.com`),
+///   a different product with different tokens. lego marks its DNS-API path
+///   deprecated in favour of the Cloud API for exactly this reason. Reading one
+///   would send a DNS token to the Cloud API, earn a 401, and have us report
+///   "check your token" when the truth is "that token is for another product".
+/// - `TF_VAR_hcloud_token` — that is **Terraform's** namespace, not Hetzner's:
+///   `TF_VAR_x` sets whatever input variable a config declared as `variable "x"`.
+///   The suffix is the config author's choice, so honouring this one spelling
+///   would serve one popular style and miss `variable "token"` entirely.
+///
+/// The override for each is **derived**, not invented: `EWE_` + the name. Strip
+/// the prefix and you are back at the vendor's variable, so there is no third
+/// spelling to remember (decision 02 §1).
+pub const VENDOR_VARS: &[&str] = &["HCLOUD_TOKEN", "HETZNER_API_TOKEN"];
 
 /// Hetzner's API version, fixed into the client.
 ///
@@ -79,7 +101,9 @@ impl std::fmt::Debug for HetznerClient {
 impl HetznerClient {
     /// Read the token from the environment.
     ///
-    /// Tries `EWE_HCLOUD_TOKEN`, then `HCLOUD_TOKEN`.
+    /// Tries, in order: `EWE_HCLOUD_TOKEN`, `EWE_HETZNER_API_TOKEN`,
+    /// `HCLOUD_TOKEN`, `HETZNER_API_TOKEN` — every override before any
+    /// vendor-native name (decision 02 §1).
     ///
     /// # Errors
     /// [`HetznerError::NoCredentials`] when none is set **or all are empty**,

@@ -45,6 +45,14 @@ workspace = true
 [dependencies.tracing]
 workspace = true
 
+[dev-dependencies.foundation_db]
+path = "../foundation_db"
+version = "0.0.1"
+
+[dev-dependencies.foundation_deployment]
+path = "../foundation_deployment"
+version = "0.0.1"
+
 [dev-dependencies.foundation_netio]
 path = "../foundation_netio"
 version = "0.0.1"
@@ -54,20 +62,20 @@ path = "../foundation_testing"
 version = "0.0.1"
 
 [features]
-default = ["hetzner"]
-hetzner = [
-    "hetzner_servers",
-    "hetzner_ssh_keys",
+default = ["digitalocean"]
+digitalocean = [
+    "digitalocean_droplets",
+    "digitalocean_keys",
 ]
-hetzner_servers = []
-hetzner_ssh_keys = []
+digitalocean_droplets = []
+digitalocean_keys = []
 
 [lints]
 workspace = true
 
 [package]
-description = "Hetzner Cloud API v1 client — VPS provisioning and SSH keys"
-name = "foundation_deployment_hetzner"
+description = "DigitalOcean API v2 client — droplet provisioning and SSH keys"
+name = "foundation_deployment_digitalocean"
 version = "0.1.0"
 
 [package.authors]

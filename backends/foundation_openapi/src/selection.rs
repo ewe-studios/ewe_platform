@@ -38,6 +38,28 @@ impl Selection {
         Self::default()
     }
 
+    /// The path patterns this selection carries.
+    ///
+    /// Readers exist so a declaration can be *rendered back out* — a generated
+    /// `build.rs` has to reproduce the selection it was generated with, or the
+    /// build script and the CLI would disagree about what the crate contains.
+    #[must_use]
+    pub fn selected_path_patterns(&self) -> &[String] {
+        &self.paths
+    }
+
+    /// The tags this selection carries.
+    #[must_use]
+    pub fn selected_tags(&self) -> &[String] {
+        &self.tags
+    }
+
+    /// The `operationId`s this selection carries.
+    #[must_use]
+    pub fn selected_operations(&self) -> &[String] {
+        &self.operations
+    }
+
     /// Include operations whose path matches any of `patterns`.
     ///
     /// Patterns are exact, or globs with `*` (one path segment) and `**` (any
