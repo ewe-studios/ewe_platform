@@ -28,6 +28,20 @@ pub struct SshKeyFingerprint {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `SshKeyId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SshKeyId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SshKeyName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SshKeyName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `SshKeys` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SshKeys {
@@ -39,20 +53,6 @@ pub struct SshKeys {
     pub name: SshKeyName,
     /// public_key property.
     pub public_key: String,
-}
-
-/// `SshKeyName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SshKeyName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SshKeyId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SshKeyId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================
@@ -117,7 +117,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -176,7 +176,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();

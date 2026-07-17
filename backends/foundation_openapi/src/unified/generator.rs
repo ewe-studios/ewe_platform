@@ -145,7 +145,7 @@ fn rename_std_type_conflict(type_name: &str) -> String {
 /// Adds extracted type names to the all_types set.
 fn extract_type_names_from_generic(
     type_str: &str,
-    all_types: &mut std::collections::HashSet<String>,
+    all_types: &mut std::collections::BTreeSet<String>,
 ) {
     // Skip invalid types
     if type_str == "()" || type_str == "serde_json::Value" {
@@ -184,7 +184,7 @@ fn extract_type_names_from_generic(
 /// Adds found type names (in PascalCase) to seen_types and types_to_process.
 fn collect_referenced_type_names(
     schema: &crate::spec::Schema,
-    seen_types: &mut std::collections::HashSet<String>,
+    seen_types: &mut std::collections::BTreeSet<String>,
     types_to_process: &mut Vec<String>,
 ) {
     // Check for direct $ref
@@ -915,7 +915,14 @@ impl UnifiedGenerator {
         // But organized per-endpoint for readability
 
         // First pass: collect all unique types from endpoint response/request types
-        let mut all_types: std::collections::HashSet<String> = HashSet::new();
+        // BTreeSet, not HashSet: this set's iteration order IS the order types are
+        // emitted into the file (below). Rust seeds a HashSet's hasher randomly
+        // per process, so a HashSet here meant two runs of the same command
+        // produced the same types in a different order — which made `check()`
+        // report Stale forever, had every build regenerate, and churned 833 lines
+        // of diff for nothing. Generated code that is committed must be a pure
+        // function of its inputs.
+        let mut all_types: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
         for ep in &group.endpoints {
             if let Some(rt) = &ep.response_type {
@@ -1612,7 +1619,10 @@ impl UnifiedGenerator {
         // that lives only in some group module — an `E0425 cannot find type` in the
         // shared module itself. The convergence mirrors the per-group collection.
         let shared_types_to_emit: Vec<String> = {
-            let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+            // BTreeSet to match `collect_referenced_type_names`, which must not
+            // hand back a randomly-ordered set — see `all_types` below. Here it is
+            // belt-and-braces: `extras` is sorted before it is appended anyway.
+            let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             let mut to_process: Vec<String> = analysis.shared_resources.clone();
             for t in &analysis.shared_resources {
                 seen.insert(t.clone());

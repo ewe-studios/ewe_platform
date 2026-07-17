@@ -566,3 +566,61 @@ fn the_build_script_points_at_the_spec_from_the_crates_own_directory() {
 
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ── determinism ──────────────────────────────────────────────────────────────
+
+#[test]
+fn generating_twice_produces_byte_identical_output() {
+    // Generated code is COMMITTED, so it must be a pure function of its inputs.
+    //
+    // It was not: the generator collected type names into a `HashSet`, and then
+    // iterated that set to decide the order types are emitted. Rust seeds a
+    // HashSet's hasher randomly per process, so two runs of the same command
+    // emitted the same types in a different order — 833 lines of diff churn for
+    // nothing, `check()` reporting Stale forever, and a build.rs that regenerated
+    // on every run. Nothing failed; the output was just never the same twice.
+    let dir = tmpdir("deterministic");
+    let spec = write_spec(&dir, "1.0.0");
+
+    let render = |n: usize| {
+        let krate = dir.join(format!("crate{n}"));
+        generate()
+            .provider("testprov")
+            .spec(&spec)
+            .crate_dir(&krate)
+            .write()
+            .expect("generates");
+        generated_source(&krate)
+    };
+
+    let first = render(1);
+    let second = render(2);
+    let third = render(3);
+
+    assert_eq!(first, second, "two runs of the same declaration must agree");
+    assert_eq!(second, third, "and keep agreeing");
+    assert!(!first.is_empty(), "…about something");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn check_stays_green_across_runs() {
+    // The consequence that bit us: non-deterministic output makes `check()`
+    // permanently Stale, so a build.rs regenerates on every build and CI can
+    // never be clean.
+    let dir = tmpdir("check-stable");
+    let spec = write_spec(&dir, "1.0.0");
+    let krate = dir.join("crate");
+
+    let codegen = generate().provider("testprov").spec(&spec).crate_dir(&krate);
+    codegen.write().expect("writes");
+
+    for attempt in 0..3 {
+        codegen
+            .check()
+            .unwrap_or_else(|e| panic!("check {attempt} should be clean after a write: {e}"));
+    }
+
+    let _ = std::fs::remove_dir_all(&dir);
+}

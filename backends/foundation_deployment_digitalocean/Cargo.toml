@@ -67,6 +67,10 @@ digitalocean = [
     "digitalocean_droplets",
     "digitalocean_keys",
 ]
+digitalocean_all = [
+    "digitalocean_droplets",
+    "digitalocean_keys",
+]
 digitalocean_droplets = []
 digitalocean_keys = []
 
