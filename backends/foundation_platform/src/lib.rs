@@ -7,10 +7,13 @@
 mod builder;
 pub mod ewe;
 pub mod pattern;
+pub mod profiles;
 mod route;
 mod route_handler;
 mod session;
 mod types;
+
+pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
 pub use builder::PlatformBuilder;
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
