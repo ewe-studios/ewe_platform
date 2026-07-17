@@ -220,6 +220,14 @@ struct RouteDecision {
     /// the view factory by this ID in the native view registry.
     native_view_id: Option<String>,
 
+    /// Identifies which IPC target to talk to. Only meaningful when
+    /// source is IpcShell. The session looks up this name in the
+    /// wasm_app registry (for wasmtime-hosted WASM) or dispatches to the
+    /// default native shell if None. Can also be set implicitly by
+    /// route path auto-resolution (/{name}/* routes auto-resolve to the
+    /// wasm_app with that name).
+    target: Option<String>,
+
     /// Native capabilities allowed on this route (per-route allowlisting).
     capabilities: Vec<CapabilityId>,
 }
@@ -270,7 +278,8 @@ Convenience constructors:
 
 ```rust
 RouteDecision::webview_app()   // RouteSource::WebviewApp
-RouteDecision::ipc_shell()     // RouteSource::IpcShell
+RouteDecision::ipc_shell()     // RouteSource::IpcShell, target=default native shell
+RouteDecision::ipc_shell_with("name") // RouteSource::IpcShell, target="name"
 RouteDecision::remote_fetch()  // RouteSource::RemoteServer
 ```
 

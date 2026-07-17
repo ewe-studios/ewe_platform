@@ -280,8 +280,32 @@ Browser navigates to /business_logic/dashboard
 Users can also resolve routes explicitly:
 
 ```rust
-session.route("/custom/business/*", RouteDecision::ipc_shell());
+// Explicitly target a registered wasm_app:
+session.route("/custom/business/*",
+    RouteDecision::ipc_shell_with("business_logic"));
+
+// Or use the implicit auto-resolution via route path:
+// "/business_logic/*" → automatically dispatches to "business_logic" instance
 ```
+
+The session resolves the target from context. When a route resolves to
+`IpcShell`, the session checks in order:
+
+1. **Route path auto-resolution** — if the route path starts with a segment
+   matching a registered wasm_app name (e.g. `/business_logic/dashboard`),
+   the session looks up `business_logic` in the wasm_app registry and
+   dispatches to that instance.
+
+2. **Explicit target** — the `RouteDecision` can carry an optional target:
+   `RouteDecision::ipc_shell().with_target("business_logic")`. This
+   overrides path-based resolution.
+
+3. **Native fallback** — if no wasm_app name matches, the session dispatches
+   to the native `#[platform_bin]` shell via the existing command IPC lane.
+
+The registry lookup is a `HashMap<String, WasmtimeInstance>` on the session
+(see the Session registry section above). The session doesn't need to "know"
+who it's talking to — it looks up the name and calls into the instance.
 
 Auto-routing is a convenience, not a constraint. Explicit route handlers
 always take priority over auto-routing.
