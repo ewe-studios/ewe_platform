@@ -322,3 +322,184 @@ fn is_inline_object(schema: &Value) -> bool {
     }
     false
 }
+
+// ── canonicalisation ─────────────────────────────────────────────────────────
+
+/// What [`canonicalize_operations`] did.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CanonicalizeStats {
+    /// Inline operation schemas hoisted into `components/schemas`.
+    pub hoisted: usize,
+    /// Names that collided and were suffixed to stay unique.
+    pub renamed: usize,
+}
+
+/// Hoist every inline operation schema into `components/schemas`, leaving a
+/// `$ref` behind.
+///
+/// WHY: the extractor names a response's type from its `ref_path`, so an inline
+/// schema generates as an anonymous blob (`serde_json::Value`). Measured
+/// 2026-07-17: Linode has 1042 inline operation schemas, Hetzner 633 — and even
+/// Cloudflare, which is generated today, has 3090 (1224 of its 2442 generated
+/// request fns return `serde_json::Value` or `()`).
+///
+/// WHAT: request bodies and every response, per operation. Nested inline objects
+/// inside a hoisted schema are handled by [`extract_inline_schemas`].
+///
+/// HOW: names come from the operation's `operationId` (unique per operation by
+/// definition) — `post-linode-instance` → `PostLinodeInstanceRequest` /
+/// `PostLinodeInstanceResponse`. Without one, the path and method are used;
+/// `path_to_type_name` alone would collide, since it strips parameters and would
+/// give `/instances` and `/instances/{id}` the same name.
+pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
+    let mut stats = CanonicalizeStats::default();
+    let mut hoisted: Map<String, Value> = Map::new();
+
+    let Some(paths) = spec.get_mut("paths").and_then(Value::as_object_mut) else {
+        return stats;
+    };
+
+    for (path, item) in paths.iter_mut() {
+        let Some(item) = item.as_object_mut() else { continue };
+        for (method, op) in item.iter_mut() {
+            if !is_http_method(method) {
+                continue;
+            }
+            let Some(op) = op.as_object_mut() else { continue };
+
+            let base = operation_type_base(op, path, method);
+
+            if let Some(schema) = op
+                .get_mut("requestBody")
+                .and_then(|b| b.get_mut("content"))
+                .and_then(Value::as_object_mut)
+                .and_then(first_media_schema_mut)
+            {
+                hoist(schema, &format!("{base}Request"), &mut hoisted, &mut stats);
+            }
+
+            if let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) {
+                // Deterministic order, and the first success gets the plain name.
+                let statuses: Vec<String> = responses.keys().cloned().collect();
+                let mut plain_taken = false;
+                for status in statuses {
+                    let is_success = status.starts_with('2');
+                    let name = if is_success && !plain_taken {
+                        plain_taken = true;
+                        format!("{base}Response")
+                    } else {
+                        format!("{base}{status}Response")
+                    };
+                    if let Some(schema) = responses
+                        .get_mut(&status)
+                        .and_then(|r| r.get_mut("content"))
+                        .and_then(Value::as_object_mut)
+                        .and_then(first_media_schema_mut)
+                    {
+                        hoist(schema, &name, &mut hoisted, &mut stats);
+                    }
+                }
+            }
+        }
+    }
+
+    if !hoisted.is_empty() {
+        let schemas = spec
+            .as_object_mut()
+            .expect("spec is an object")
+            .entry("components")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .expect("components is an object")
+            .entry("schemas")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .expect("schemas is an object");
+        for (name, schema) in hoisted {
+            schemas.insert(name, schema);
+        }
+    }
+
+    stats
+}
+
+/// Replace `schema` with a `$ref` to `name`, parking the schema itself in
+/// `hoisted` — recursing into its properties so nested objects get names too.
+fn hoist(schema: &mut Value, name: &str, hoisted: &mut Map<String, Value>, stats: &mut CanonicalizeStats) {
+    if !is_inline_object(schema) {
+        return; // already a $ref, or free-form — nothing to name
+    }
+
+    // An array of inline objects: name the *item*, keep the array inline.
+    if schema.get("type").and_then(Value::as_str) == Some("array") {
+        if let Some(items) = schema.get_mut("items") {
+            hoist(items, &format!("{name}Item"), hoisted, stats);
+        }
+        return;
+    }
+
+    let mut taken = schema.take();
+    normalize_nullable_types(&mut taken);
+    if taken.get("type").is_none() {
+        taken["type"] = Value::String("object".to_string());
+    }
+    if let Some(props) = taken.get_mut("properties").and_then(Value::as_object_mut) {
+        extract_inline_schemas(props, name, hoisted);
+    }
+
+    let final_name = unique_name(name, &taken, hoisted, stats);
+    hoisted.insert(final_name.clone(), taken);
+    *schema = serde_json::json!({ "$ref": format!("#/components/schemas/{final_name}") });
+    stats.hoisted += 1;
+}
+
+/// A name nothing else has taken — unless the taker is byte-identical, in which
+/// case sharing it is correct (the same shape twice is one type).
+fn unique_name(
+    name: &str,
+    schema: &Value,
+    hoisted: &Map<String, Value>,
+    stats: &mut CanonicalizeStats,
+) -> String {
+    match hoisted.get(name) {
+        None => name.to_string(),
+        Some(existing) if existing == schema => name.to_string(),
+        Some(_) => {
+            for n in 2..1000 {
+                let candidate = format!("{name}{n}");
+                match hoisted.get(&candidate) {
+                    None => {
+                        stats.renamed += 1;
+                        return candidate;
+                    }
+                    Some(existing) if existing == schema => return candidate,
+                    Some(_) => {}
+                }
+            }
+            stats.renamed += 1;
+            format!("{name}Dedup")
+        }
+    }
+}
+
+/// The type-name stem for an operation.
+fn operation_type_base(op: &Map<String, Value>, path: &str, method: &str) -> String {
+    if let Some(id) = op.get("operationId").and_then(Value::as_str) {
+        if !id.is_empty() {
+            return crate::api_catalog::to_pascal_case_from_any(id);
+        }
+    }
+    // No operationId: path alone collides (it strips parameters), so add the method.
+    let mut base = path_to_type_name(path);
+    let lowered = method.to_lowercase();
+    let mut chars = lowered.chars();
+    if let Some(c) = chars.next() {
+        base.push_str(&c.to_uppercase().to_string());
+        base.extend(chars);
+    }
+    base
+}
+
+fn first_media_schema_mut(content: &mut Map<String, Value>) -> Option<&mut Value> {
+    content.values_mut().find_map(|m| m.get_mut("schema"))
+}

@@ -51,7 +51,20 @@ reviewed. Closing that gap is this feature.
 
 ## Scope
 
-### 0. Canonicalise the spec first (the transform stage)
+### 0. Canonicalise the spec first (the transform stage) — **built 2026-07-17**
+
+> **Status:** `foundation_openapi::transform` now does this.
+> `canonicalize_operations` hoists every inline operation schema (request body and
+> each response) into `components/schemas`, leaving a `$ref`; names come from the
+> `operationId` (`post-linode-instance` → `PostLinodeInstanceRequest` /
+> `…Response`), falling back to path+method — `path_to_type_name` alone collides,
+> since it strips parameters and gives `/instances` and `/instances/{id}` the same
+> name. Identical shapes share a name rather than duplicating; genuine clashes get
+> suffixed. Measured on the real specs: **Linode 1042 inline → 0, Hetzner 633 → 0,
+> Cloudflare 3090 → 0 — all three canonical, zero renames.**
+>
+> Still to build: the `genapi normalize <provider>` command and the
+> provider→normalizer→raw registry (decision 05).
 
 Owner (2026-07-17): *"Always good if needed to add spec transformation like we did
 for cloudflare or others to make their spec standard OpenAPI spec where needed."*
@@ -323,8 +336,9 @@ All local — no network, no accounts:
 - [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
 - [x] `foundation_openapi`'s suite is green before building on it (§6) — 2 stale GCP tests fixed 2026-07-17
 - [x] Selection (§1) — `Selection` with path globs/tags/operationIds; 11 tests incl. Linode's real 334→3
-- [ ] Canonicalisation stage wired (§0): `extract_inline_schemas` + `normalize_nullable_types` + `ensure_servers` composed per provider — they exist, tested, and unused today
-- [ ] A bundled spec (Linode/Hetzner) yields **named** request/response types, not `serde_json::Value`
+- [x] Canonicalisation stage (§0) — transforms moved to `foundation_openapi::transform`; `canonicalize_operations` hoists every inline operation schema to `components/schemas` + `$ref`; `validate_canonical` proves the result
+- [x] A bundled spec (Linode/Hetzner) yields **named** request/response types — measured: Linode 1042 inline → 0, Hetzner 633 → 0, both canonical
+- [ ] `genapi normalize <provider>` CLI + the provider→normalizer→raw registry (decision 05)
 - [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
 - [ ] Transitive schema closure emitted — nothing missing, nothing extra
 - [ ] `allOf`/`oneOf`/`anyOf`, recursive schemas, and `components/{parameters,responses}` refs handled
