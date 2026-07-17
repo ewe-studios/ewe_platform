@@ -5,6 +5,7 @@
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 mod builder;
+pub mod ewe;
 pub mod pattern;
 mod route;
 mod route_handler;
@@ -12,6 +13,7 @@ mod session;
 mod types;
 
 pub use builder::PlatformBuilder;
+pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler};
 pub use session::PlatformSession;

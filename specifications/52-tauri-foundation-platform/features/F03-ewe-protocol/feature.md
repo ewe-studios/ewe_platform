@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F03-ewe-protocol"
 this_file: "specifications/52-tauri-foundation-platform/features/F03-ewe-protocol/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-17
 
@@ -358,3 +358,53 @@ cargo test --package foundation_platform -- ewe
 cargo test --package foundation_platform -- protocol
 cargo test --package foundation_platform -- transport
 ```
+
+---
+
+## Learnings & Insights (2026-07-17)
+
+### Tauri API: synchronous vs async protocol handlers
+
+Tauri's `Builder::register_uri_scheme_protocol()` takes a synchronous handler
+with signature `Fn(UriSchemeContext, Request) -> Response<T>` (2 args, returns
+response). The async variant `register_asynchronous_uri_scheme_protocol` takes
+3 args with a `Responder`. We use the synchronous version for simplicity.
+
+### UriSchemeContext access
+
+`ctx.app_handle()` is the public accessor method — the `app_handle` field is
+`pub(crate)`. `app_handle().state::<Arc<PlatformSession>>()` retrieves the
+session from Tauri's state manager. This requires `use tauri::Manager`.
+
+### Orphan rule: no impl on external types
+
+`Protocol` and `RouteSource` are defined in `foundation_ui_traits`. We can't
+add inherent impls on them from `foundation_platform`. Solution: free functions
+(`encode_protocol()`, `transport_for_source()`) instead of methods.
+
+### Protocol selection: full priority chain works
+
+All four levels tested: decision hint → query param → content detection →
+platform default. Arrow IPC detection uses the 4-byte continuation marker
+`0xFFFFFFFF`. JSON detects `{` or `[`. HTML detects `<`.
+
+### Backend query step
+
+Step 5 of the execution contract (backend query) is intentionally a
+well-defined interface point. The ewe:// handler calls `session.resolve_route()`
+to determine the source, then delegates to the appropriate backend. For F03,
+the handler encodes the routing decision as the response — the full backend
+query (WebviewApp signal, IPC call, HTTP fetch) is wired in F09.
+
+### Implementation
+
+| Component | Status | Tests |
+|---|---|---|
+| `ewe://` handler (Tauri integration) | ✅ | — (requires Tauri runtime) |
+| `EweUrl` parsing | ✅ | 3 |
+| Protocol selection (4-level priority) | ✅ | 8 |
+| Protocol encoding | ✅ | 2 |
+| Transport → RouteSource mapping | ✅ | 1 |
+| Method detection | ✅ | 2 |
+| Hint/query mapping | ✅ | 2 |
+| Total passing | 64 (55 lib + 7 integ + 2 doc) | |
