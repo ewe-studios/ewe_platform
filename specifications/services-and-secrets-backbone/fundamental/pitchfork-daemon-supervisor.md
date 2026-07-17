@@ -4,6 +4,7 @@
 **Crate:** `pitchfork-cli` v2.8.0 · MIT · Cross-platform (Linux, macOS, Windows)
 **Tagline:** "Daemons with DX"
 
+Sources:  /home/darkvoid/Boxxed/@formulas/src.rust/src.mise/
 ---
 
 ## Summary

@@ -4,6 +4,7 @@
 **Crate:** `mise` v2026.4.25 · MIT · Cross-platform (Linux, macOS, Windows)
 **Tagline:** "Dev tools, env vars, and tasks in one CLI"
 
+Sources:  /home/darkvoid/Boxxed/@formulas/src.rust/src.mise/
 ---
 
 ## Summary

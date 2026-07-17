@@ -4,6 +4,7 @@
 **Crate:** `ecdysis` v1.1.1 · Apache-2.0 · Linux-focused (tested on Debian Bullseye/Bookworm/Trixie)
 **Inspired by:** Cloudflare's Go library [tableflip](https://github.com/cloudflare/tableflip)
 
+Sources:  /home/darkvoid/Boxxed/@formulas/src.rust/src.mise/
 ---
 
 ## Summary

@@ -4,6 +4,7 @@
 **Crate:** `fnox` v1.23.0 · MIT · Cross-platform (Linux, macOS, Windows)
 **Tagline:** "Fort Knox for your secrets"
 
+Sources:  /home/darkvoid/Boxxed/@formulas/src.rust/src.mise/
 ---
 
 ## Summary
