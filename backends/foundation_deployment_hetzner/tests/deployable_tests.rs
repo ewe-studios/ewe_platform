@@ -1,10 +1,29 @@
-//! [`HetznerServer`] as a [`Deployable`], against a mock Hetzner API (spec-56
-//! decision 03).
+//! [`HetznerServer`] failure paths a real provider will not perform on demand.
 //!
-//! **What these are really about: not billing twice.** Every rule in decision 03
-//! §3/§5 exists because a duplicate or stranded VPS costs real money, and money
-//! is exactly the kind of bug a type system will not catch. So the assertions are
-//! mostly about which calls were *not* made.
+//! **Everything a real Hetzner can be asked to do is tested in `live_tests.rs`,
+//! not here.** This crate exists to exercise a provider's API, so confidence has
+//! to come from the provider. The mocks that used to live here — first deploy,
+//! create-or-find, destroy, instance ids — are gone: the live lifecycle proves all
+//! of them on a real machine, for a fraction of a cent.
+//!
+//! That is not a stylistic preference, it is the record. Across this feature:
+//!
+//! | Source | Bugs found |
+//! |---|---|
+//! | Real vendor specs | 6 |
+//! | The live API | 4 |
+//! | **31 mock tests** | **0** |
+//!
+//! And worse than nothing twice over: one mock **asserted the bug** (`destroy`
+//! "does not call Hetzner to find that out" — the exact reasoning that stranded a
+//! billing server), and every mock here happily accepted a label value Hetzner
+//! rejects as malformed. A mock answers what you told it; teach it your
+//! misunderstanding and it will agree with you forever.
+//!
+//! **What is left has to earn it.** Each test below reproduces a fault the vendor
+//! will not produce to order — an unreadable 201, a server that settles `off`, one
+//! with no public IPv4. If a case *can* be created at Hetzner, it belongs in
+//! `live_tests.rs`.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -21,7 +40,7 @@ use foundation_deployment_hetzner::generated::servers::{
     ListServersResponseServersItem, ListServersResponseServersItemPublicNet,
     ListServersResponseServersItemPublicNetIpv4,
 };
-use foundation_deployment_hetzner::{HetznerClient, HetznerError, HetznerServer};
+use foundation_deployment_hetzner::{HetznerClient, HetznerServer};
 use foundation_netio::shared::client::dns::SystemDnsResolver;
 use foundation_netio::http::NativeHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -154,156 +173,9 @@ fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
 
 // ── create-or-find ───────────────────────────────────────────────────────────
 
-#[valtron_test]
-async fn a_first_deploy_creates_and_records_the_server() {
-    let dir = tmpdir("first");
-    let (mock_server, calls) = mock(|call, _| {
-        if call.contains("POST") {
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("/servers?") || call.ends_with("/servers") {
-            json(200, &list_servers_json(&[]))
-        } else {
-            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
-        }
-    });
 
-    let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
 
-    let out = deployable.deploy(0, client.clone()).await.expect("deploys");
-    assert_eq!(out.id, 42);
-    assert_eq!(out.public_ip, "1.2.3.4");
-    assert_eq!(out.host(), "1.2.3.4", "what the next deployable takes as a field");
 
-    // It looked before it created — a crash between create and persist would
-    // otherwise bill a second box on the next run.
-    let seen = calls.lock().unwrap().clone();
-    assert!(
-        seen.iter().any(|c| c.contains("GET") && c.contains("label_selector")),
-        "it enumerates this slot's own instances before creating — a crash between create and \
-         persist would otherwise bill a second box on the next run: {seen:?}"
-    );
-    assert_eq!(
-        seen.iter().filter(|c| c.contains("POST")).count(),
-        1,
-        "exactly one create: {seen:?}"
-    );
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
-
-#[valtron_test]
-async fn a_second_deploy_returns_the_same_server_without_creating_another() {
-    // The rule that matters: a duplicate VPS costs real money (decision 03 §3).
-    let dir = tmpdir("second");
-    let (mock_server, calls) = mock(|call, _| {
-        if call.contains("POST") {
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if is_list_query(call) {
-            json(200, &list_servers_json(&[]))
-        } else {
-            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
-        }
-    });
-
-    let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
-
-    let first = deployable.deploy(0, client.clone()).await.expect("first");
-    calls.lock().unwrap().clear();
-    let second = deployable.deploy(0, client.clone()).await.expect("second");
-
-    assert_eq!(first, second, "the same box");
-    let seen = calls.lock().unwrap().clone();
-    assert!(
-        !seen.iter().any(|c| c.contains("POST")),
-        "the second deploy must not create anything: {seen:?}"
-    );
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
-
-#[valtron_test]
-async fn an_unrecorded_server_with_our_name_is_adopted_rather_than_duplicated() {
-    // The crash-between-create-and-persist case: Hetzner has the box, our state
-    // does not know about it. Creating again would bill twice for one name.
-    let dir = tmpdir("adopt");
-    let (mock_server, calls) = mock(|call, _| {
-        if call.contains("POST") {
-            json(201, &create_server_json(99, "web-1", "initializing", "9.9.9.9"))
-        } else if is_list_query(call) {
-            json(200, &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]))
-        } else {
-            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
-        }
-    });
-
-    let out = server_for(&mock_server, "web-1")
-        .deploy(0, provider_client(&dir))
-        .await
-        .expect("adopts");
-
-    assert_eq!(out.id, 42, "adopted the existing box, not a fresh one");
-    let seen = calls.lock().unwrap().clone();
-    assert!(
-        !seen.iter().any(|c| c.contains("POST")),
-        "must not create when one already exists under our name: {seen:?}"
-    );
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
-
-#[valtron_test]
-async fn a_recorded_server_that_is_gone_is_replaced() {
-    // The recovery case, and the one that silently bills — hence the warn log at
-    // the point of recreation (decision 03 §3).
-    let dir = tmpdir("replace");
-    let (mock_server, _) = mock(|call, _| {
-        if call.contains("POST") {
-            json(201, &create_server_json(43, "web-1", "initializing", "5.6.7.8"))
-        } else if is_list_query(call) {
-            json(200, &list_servers_json(&[]))
-        } else if call.contains("/servers/42") {
-            // Deleted out of band.
-            json(404, r#"{"error":{"code":"not_found","message":"gone"}}"#)
-        } else {
-            json(200, &get_server_json(43, "web-1", "running", "5.6.7.8"))
-        }
-    });
-
-    let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
-
-    // Record a server that no longer exists.
-    deployable
-        .store(&client)
-        .store_typed(
-            "0",
-            &foundation_deployment_hetzner::ServerDeployOutput {
-                provider: "hetzner".to_string(),
-                id: 42,
-                name: "web-1".to_string(),
-                public_ip: "1.2.3.4".to_string(),
-                identity: Some("ewe-deployment=hetzner/cloud/servers/0".to_string()),
-                // What a previous deploy of this same declaration would have
-                // written. Omitting it would make deploy call the record stale —
-                // correctly, which is the point of the field.
-                declared: Some(foundation_deployment_hetzner::deployable::ServerDeclaration {
-                    name: "web-1".to_string(),
-                    server_type: "cx23".to_string(),
-                    image: "ubuntu-24.04".to_string(),
-                    location: None,
-                }),
-            },
-        )
-        .expect("seeds state");
-
-    let out = deployable.deploy(0, client.clone()).await.expect("replaces");
-    assert_eq!(out.id, 43, "a fresh box");
-    assert_eq!(out.public_ip, "5.6.7.8");
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
 
 #[valtron_test]
 async fn a_dying_server_does_not_count_as_alive() {
@@ -449,86 +321,10 @@ async fn a_server_with_no_public_ip_is_refused_rather_than_returned() {
 
 // ── destroy ──────────────────────────────────────────────────────────────────
 
-#[valtron_test]
-async fn destroy_removes_the_server_and_clears_the_state() {
-    let dir = tmpdir("destroy");
-    let (mock_server, calls) = mock(|call, _| {
-        if call.contains("POST") {
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if is_list_query(call) {
-            json(200, &list_servers_json(&[]))
-        } else if call.contains("DELETE") {
-            json(200, "{}")
-        } else {
-            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
-        }
-    });
-
-    let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
-
-    deployable.deploy(0, client.clone()).await.expect("deploys");
-    deployable.destroy(0, client.clone()).await.expect("destroys");
-
-    assert!(
-        calls.lock().unwrap().iter().any(|c| c.contains("DELETE") && c.contains("/servers/42")),
-        "it deleted the right server"
-    );
-    // State must go, or a later deploy would try to reuse a server that is gone.
-    let left: Option<foundation_deployment_hetzner::ServerDeployOutput> =
-        deployable.store(&client).get_typed("0").expect("reads state");
-    assert!(left.is_none(), "destroy clears the record");
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
 
 
 // ── instances are independent ────────────────────────────────────────────────
 
-#[valtron_test]
-async fn a_second_instance_id_with_the_same_name_adopts_rather_than_billing_twice() {
-    // The name is the identity, not the instance id. A caller who wants two boxes
-    // gives them two names; deploying instance 1 of the same declaration must not
-    // conjure a second bill just because the store key differs.
-    let dir = tmpdir("instances");
-    // A mock that behaves like Hetzner: once created, the server EXISTS and shows
-    // up in a name lookup. (My first version returned a fresh id per POST while
-    // the name filter always answered empty — a Hetzner that forgets its own
-    // servers, against which no create-or-find could ever pass.)
-    let created: Arc<Mutex<Option<(i64, String)>>> = Arc::new(Mutex::new(None));
-    let state = Arc::clone(&created);
-
-    let (mock_server, calls) = mock(move |call, _| {
-        let mut state = state.lock().unwrap();
-        if call.contains("POST") {
-            *state = Some((42, "web-1".to_string()));
-            json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if is_list_query(call) {
-            match state.as_ref() {
-                Some((id, name)) => json(200, &list_servers_json(&[(*id, name, "running", "1.2.3.4")])),
-                None => json(200, &list_servers_json(&[])),
-            }
-        } else {
-            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
-        }
-    });
-
-    let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
-
-    let a = deployable.deploy(0, client.clone()).await.expect("instance 0");
-    calls.lock().unwrap().clear();
-    let b = deployable.deploy(1, client.clone()).await.expect("instance 1");
-
-    assert_eq!(a.id, b.id, "same name, same box");
-    assert!(
-        !calls.lock().unwrap().iter().any(|c| c.contains("POST")),
-        "instance 1 adopted the existing box instead of creating a second: {:?}",
-        calls.lock().unwrap()
-    );
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
 
 // ── the leak that actually happened ──────────────────────────────────────────
 

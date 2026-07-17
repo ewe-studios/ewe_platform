@@ -4453,6 +4453,7 @@ dependencies = [
  "base85rs",
  "chrono",
  "derive_more",
+ "foundation_codegentools",
  "foundation_core",
  "foundation_deployment",
  "foundation_errstacks",

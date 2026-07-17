@@ -1,12 +1,29 @@
-//! `server_ops` against a mock Hetzner API (spec-56 F01).
+//! `server_ops` cases a real Hetzner will not perform on demand (spec-56 F01).
 //!
-//! **Why a mock and not a fixture:** the interesting behaviour is in what we
-//! *send* and how we react to what comes back — the create body, the poll loop,
-//! the 401/429 mapping. A serde round-trip proves none of that.
+//! **Anything Hetzner can actually be asked to do lives in `live_tests.rs`.** The
+//! 401, the 404, the name filter, reading an IP out of `public_net` — all of those
+//! were mocked here and are now asserted against the real API, where they are true
+//! rather than agreed-to. This crate's whole purpose is exercising a provider's
+//! API; confidence has to come from the provider.
 //!
-//! No account, no network beyond loopback. The live path stays unverified until
-//! someone runs it with a real `HCLOUD_TOKEN` — that is called out in the
-//! feature, and mock evidence is not "it works".
+//! What earns a place here is a fault the vendor will not produce to order:
+//!
+//! - a **429 with a chosen `RateLimit-Reset`** — waiting for a real rate limit
+//!   means 3600 requests, which is abuse, not testing;
+//! - an **unparseable error body**, and Hetzner's `error.code` mapping;
+//! - **`await_running`'s poll loop**, driven through `initializing → running` and
+//!   `off` on demand — a real server takes ~20s and cannot be made to fail to
+//!   build on request;
+//! - **`ensure_ssh_key`'s duplicate handling**, including the "Hetzner says
+//!   duplicate but the key is not there" conflict, which is not reproducible live;
+//! - **what we send** — the create body and the bearer header. A live create
+//!   proves the server appears; only capturing the request proves `user_data`
+//!   reached it, and dropping that silently would produce an unhardened box.
+//!
+//! Fixtures are built from the generated types rather than hand-written JSON:
+//! Hetzner's server object has 20 required fields and these tests care about four,
+//! so spelling out the rest means a fixture that breaks on every regeneration for
+//! reasons unrelated to what is being tested.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -250,20 +267,6 @@ async fn create_server_sends_the_token_as_a_bearer() {
 
 // ── the error mapping ────────────────────────────────────────────────────────
 
-#[valtron_test]
-async fn a_401_is_unauthorized_not_a_generic_failure() {
-    // "Your token is wrong" and "the network is down" want different responses
-    // from the caller (decision 02 §3).
-    let server = TestHttpServer::with_response(|_| {
-        json_response(401, r#"{"error":{"code":"unauthorized","message":"unable to authenticate"}}"#)
-    });
-
-    let err = client_for(&server)
-        .list_servers(None)
-        .await
-        .expect_err("401");
-    assert_eq!(err, HetznerError::Unauthorized, "got {err}");
-}
 
 #[valtron_test]
 async fn a_429_carries_how_long_to_wait() {
@@ -343,65 +346,9 @@ async fn an_unparseable_error_body_is_reported_rather_than_discarded() {
 
 // ── get / list / delete ──────────────────────────────────────────────────────
 
-#[valtron_test]
-async fn get_server_reads_the_ip_out_of_public_net() {
-    // The field that was an opaque blob until the resolve_schema_key fix.
-    let server = TestHttpServer::with_response(|_| {
-        HttpResponse::ok(
-            format!(r#"{{"server":{}}}"#, server_json(42, "web-1", "running", "1.2.3.4")).as_bytes(),
-        )
-    });
 
-    let found = client_for(&server)
-        .get_server(42)
-        .await
-        .expect("gets")
-        .expect("exists");
-    assert_eq!(found.public_ipv4.as_deref(), Some("1.2.3.4"));
-    assert_eq!(found.status, ServerStatus::Running);
-}
 
-#[valtron_test]
-async fn a_missing_server_is_none_rather_than_an_error() {
-    // A 404 here is an answer, not a failure — destroy relies on being able to ask.
-    let server = TestHttpServer::with_response(|_| {
-        json_response(404, r#"{"error":{"code":"not_found","message":"nope"}}"#)
-    });
-    assert_eq!(client_for(&server).get_server(42).await.expect("asks"), None);
-}
 
-#[valtron_test]
-async fn find_server_by_name_filters_at_hetzner_not_locally() {
-    // A local filter over an unpaginated list would miss servers past page 1.
-    let query = Arc::new(Mutex::new(String::new()));
-    let captured = Arc::clone(&query);
-
-    let server = TestHttpServer::with_response(move |req| {
-        *captured.lock().unwrap() = req.path.to_string();
-        HttpResponse::ok(servers_list_json(&[(42, "web-1", "running", "1.2.3.4")]).as_bytes())
-    });
-
-    let found = client_for(&server)
-        .find_server_by_name("web-1")
-        .await
-        .expect("looks up");
-    assert_eq!(found.map(|s| s.id), Some(42));
-    assert!(
-        query.lock().unwrap().contains("name=web-1"),
-        "the filter goes to Hetzner: {}",
-        query.lock().unwrap()
-    );
-}
-
-#[valtron_test]
-async fn deleting_a_server_that_is_already_gone_succeeds() {
-    // Idempotent: the caller's goal — "this server does not exist" — already
-    // holds. Failing would strand state pointing at nothing.
-    let server = TestHttpServer::with_response(|_| {
-        json_response(404, r#"{"error":{"code":"not_found","message":"gone"}}"#)
-    });
-    client_for(&server).delete_server(42).await.expect("already gone is fine");
-}
 
 // ── await_running ────────────────────────────────────────────────────────────
 
