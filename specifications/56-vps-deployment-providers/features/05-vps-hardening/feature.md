@@ -100,6 +100,7 @@ Without it, the 03:00 security reboot brings the box back with every service dow
 - [ ] Every assertion in the table above is a test against the local sshd fixture
 - [ ] The Docker-past-the-firewall case is explicitly asserted
 - [ ] A failed verification fails `deploy` and does not leave a billing instance
+- [ ] Bantimes are short and `fail2ban_ignore` is honoured — a self-ban should be waited out, not need a console trip (though the vendor console is always the backstop)
 - [ ] Idempotent: re-running hardening on a hardened box is a no-op
 - [ ] `ssh_port` (default 2222) is one policy field, rendered into sshd, both firewall layers, the verifier and the host output — never hard-coded
 - [ ] `fail2ban_ignore` (IPs / CIDRs / hostnames) renders into `ignoreip`, loopback always retained; asserted by failing auth from an ignored source and confirming no ban

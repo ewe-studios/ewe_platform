@@ -89,8 +89,18 @@ field).
   ```
 
   Firewalls follow the same order: open 2222 *before* dropping 22, in both layers.
-  Get it backwards and the box is unreachable — recoverable only via the vendor's
-  console, and `destroy` (decision 03) is what saves the bill.
+
+  **If it goes wrong, there is a way back.** All three vendors give the account
+  holder a **web console** (and rescue mode) — Hetzner, DigitalOcean and Linode
+  alike — so a box we have locked ourselves out of is fixed by hand in a browser,
+  not lost. That is the backstop, and it means the switchover order is about
+  *automation not needing a human*, not about avoiding a catastrophe. Worth doing
+  properly; not worth being paranoid about.
+
+  Note too that a lockout *during* `deploy` is mostly moot: decision 03 destroys
+  the box on partial failure by default, so there is nothing to rescue and nothing
+  billing. The console matters for a box that deployed fine and locked us out
+  later — a drifted config, or fail2ban catching our own address.
 
   **3. It is worth saying what this is not.** Moving the port does not stop an
   attacker who scans; it stops noise. The boundary is still key-only auth.
@@ -233,15 +243,18 @@ dropping it lets the box ban itself.
 
 Two things it obliges:
 
-- **do not let it lock us out.** A flapping deploy key or a retrying CI runner can
-  trip the sshd jail against *our own* address, and the box is then unreachable
-  until the bantime expires — on a machine that is billing. Put the deployer's
-  source in `fail2ban_ignore` where it is known and stable, and keep bantimes
-  short. Where the source is **not** stable (CI runners on rotating egress IPs, a
-  laptop on hotel wifi), a static list does not help: that is what
-  **`ignorecommand`** is for — an external command handed the IP, returning true to
-  ignore — if we ever need it. Do not pretend a static list covers a dynamic
-  source.
+- **try not to let it lock us out.** A flapping deploy key or a retrying CI runner
+  can trip the sshd jail against *our own* address, and SSH is then shut until the
+  bantime expires. Put the deployer's source in `fail2ban_ignore` where it is known
+  and stable, and keep bantimes short. Where the source is **not** stable (CI
+  runners on rotating egress IPs, a laptop on hotel wifi), a static list does not
+  help — that is what **`ignorecommand`** is for (an external command handed the IP,
+  returning true to ignore). Do not pretend a static list covers a dynamic source.
+
+  This is an inconvenience, not a disaster: the vendor's **web console** reaches
+  the box regardless of sshd or fail2ban, so a self-ban is unbanned by hand
+  (`fail2ban-client unban <ip>`) or waited out. Short bantimes make waiting the
+  cheaper option.
 - it is one more daemon to install and verify, so the verifier asserts it is
   running **and that `ignoreip` contains what the policy asked for** (§verified).
 
