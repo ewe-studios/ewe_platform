@@ -1,27 +1,23 @@
-//! Platform Demo — minimal Tauri app exercising foundation_platform.
+//! Platform Demo — minimal foundation_platform app.
+//!
+//! Proves: PlatformBuilder boots, session created, routes registered,
+//! ewe:// protocol handler intercepts navigations.
 
 use foundation_platform::*;
-use tauri::Manager;
 
 fn main() {
     PlatformBuilder::new()
-        .register_ewe_protocol()
-        .setup(|app| {
-            let session = PlatformSession::new();
-
-            session.route("/app/*", webview_app().with_profile(Profile::App));
-            session.route("/remote/*", remote_fetch()
-                .with_profile(Profile::TrustedRemote)
-                .with_cache_policy(CachePolicy::NetworkFirst));
-            session.route("/cached/*", remote_fetch()
-                .with_profile(Profile::TrustedRemote)
-                .with_cache_policy(CachePolicy::CacheFirst));
-            session.route("/auth/*", remote_fetch()
-                .with_profile(Profile::Auth));
-
+        .route("/app/*", webview_app().with_profile(Profile::App))
+        .route("/remote/*", remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst))
+        .route("/cached/*", remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::CacheFirst))
+        .route("/auth/*", remote_fetch()
+            .with_profile(Profile::Auth))
+        .setup(|session| {
             println!("=== Platform Demo === Session: {:?}", session.session_id());
-            app.manage(session);
-            Ok(())
         })
         .build(tauri::generate_context!())
         .expect("failed to build Platform Demo")

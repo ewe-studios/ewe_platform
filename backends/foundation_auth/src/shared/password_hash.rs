@@ -34,12 +34,13 @@ pub const PBKDF2_SERVER_ITERATIONS: u32 = 100_000;
 /// Native: sync via `pbkdf2` crate. WASM: async via Web Crypto.
 #[cfg(not(target_family = "wasm"))]
 pub fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_len: u32) -> Pbkdf2Key {
-    use hmac::Hmac;
     use pbkdf2::pbkdf2_hmac;
     use sha2::Sha256;
 
+    // `pbkdf2_hmac::<D>` takes the *hash* (Sha256) and wraps it in HMAC
+    // internally — passing `Hmac<Sha256>` here is a type error.
     let mut output = vec![0u8; key_len as usize];
-    pbkdf2_hmac::<Hmac<Sha256>>(password, salt, iterations, &mut output);
+    pbkdf2_hmac::<Sha256>(password, salt, iterations, &mut output);
     Pbkdf2Key(Zeroizing::new(output))
 }
 
@@ -118,7 +119,7 @@ pub struct Argon2idKey(Zeroizing<Vec<u8>>);
 #[cfg(not(target_family = "wasm"))]
 impl Argon2idKey {
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
-    pub fn into_bytes(self) -> Vec<u8> { self.0.into() }
+    pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
 /// Derive a key using Argon2id (native only).
@@ -166,7 +167,7 @@ pub struct PasswordKey(Zeroizing<Vec<u8>>);
 
 impl PasswordKey {
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
-    pub fn into_bytes(self) -> Vec<u8> { self.0.into() }
+    pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
 /// PBKDF2 key (wraps the zeroized bytes).
@@ -174,7 +175,7 @@ pub struct Pbkdf2Key(Zeroizing<Vec<u8>>);
 
 impl Pbkdf2Key {
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
-    pub fn into_bytes(self) -> Vec<u8> { self.0.into() }
+    pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
 /// Constant-time byte comparison to prevent timing attacks.

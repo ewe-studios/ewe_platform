@@ -984,7 +984,7 @@ impl AsyncHandlerStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl foundation_db::AsyncPasskeyStore for AsyncHandlerStorage {
     async fn store_passkey_async(&self, passkey: &foundation_db::StoredPasskey) -> Result<(), String> {
         let our_pk = stored_to_passkey(passkey);
@@ -1024,7 +1024,7 @@ impl foundation_db::AsyncPasskeyStore for AsyncHandlerStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl foundation_db::AsyncTosStore for AsyncHandlerStorage {
     async fn store_tos_acceptance_async(&self, acceptance: &foundation_db::StoredTosAcceptance) -> Result<(), String> {
         let our_ta = stored_to_tos(acceptance);
@@ -1046,7 +1046,7 @@ impl foundation_db::AsyncTosStore for AsyncHandlerStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl foundation_db::AsyncAuthStore for AsyncHandlerStorage {
     async fn find_user_by_email_async(&self, email: &str) -> StorageResult<Option<(String, bool)>> {
         find_user_by_email_async(self.query_store.as_ref(), email)

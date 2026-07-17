@@ -1,19 +1,16 @@
 //! PlatformBuilder — wraps `tauri::Builder`, exposes foundation_platform API.
 //!
-//! User code never touches Tauri directly. Routes and capabilities registered
-//! on the builder are auto-wired into the session at startup.
+//! User code never touches Tauri directly. Routes are registered on the builder
+//! and auto-wired into the PlatformSession at startup.
 //!
 //! ```ignore
 //! PlatformBuilder::new()
 //!     .route("/app/*", webview_app())
 //!     .route("/remote/*", remote_fetch())
 //!     .build(tauri::generate_context!())
-//!     .unwrap()
-//!     .run(|_handle, event| { ... });
 //! ```
 
-use std::sync::Arc;
-use tauri::{App, Context};
+use tauri::{App, Context, Manager};
 
 use crate::ewe;
 use crate::session::PlatformSession;
@@ -42,7 +39,7 @@ impl PlatformBuilder {
         }
     }
 
-    /// Register a route pattern. Stored until build(), then wired into
+    /// Register a route pattern. Stored until `build()`, then wired into
     /// the PlatformSession during Tauri's setup hook.
     pub fn route(mut self, pattern: &str, decision: foundation_ui_traits::RouteDecision) -> Self {
         self.routes.push(RouteEntry {
@@ -52,26 +49,22 @@ impl PlatformBuilder {
         self
     }
 
-    /// Set a custom Tauri setup hook. Called AFTER the session is created
-    /// and routes are registered. Use for capabilities, custom commands, etc.
+    /// Set a user setup hook. Called AFTER the session is created and
+    /// routes are registered. Use for capability registration, custom init.
+    ///
+    /// Signature takes `&PlatformSession` — the session is already booted.
+    /// Errors are logged; the app still starts.
     pub fn setup<F>(mut self, f: F) -> Self
     where
-        F: Fn(&PlatformSession) -> Result<(), Box<dyn std::error::Error>> + Send + Sync + 'static,
+        F: Fn(&PlatformSession) + Send + Sync + 'static,
     {
         let routes = std::mem::take(&mut self.routes);
         self.inner = self.inner.setup(move |app| {
-            // 1. Create session
             let session = PlatformSession::new();
-
-            // 2. Register routes
             for entry in &routes {
                 session.route(&entry.pattern, entry.decision.clone());
             }
-
-            // 3. Run user setup
-            f(&session)?;
-
-            // 4. Store session in Tauri state
+            f(&session);
             app.manage(session);
             Ok(())
         });
@@ -79,19 +72,18 @@ impl PlatformBuilder {
     }
 
     /// Consume the builder and produce a Tauri `App`.
-    /// If no explicit setup() was called, creates a default setup that
-    /// just registers the routes.
+    ///
+    /// If `setup()` was NOT called, routes are wired into a default setup
+    /// hook automatically. The ewe:// protocol is always registered.
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         // If user didn't call setup(), wire routes into a default setup
         if self.routes.is_empty() {
-            // No routes, no setup — just build
             self.inner = self.inner.setup(|app| {
                 let session = PlatformSession::new();
                 app.manage(session);
                 Ok(())
             });
         } else {
-            // Routes registered without explicit setup — wire them automatically
             let routes = std::mem::take(&mut self.routes);
             self.inner = self.inner.setup(move |app| {
                 let session = PlatformSession::new();
@@ -103,9 +95,8 @@ impl PlatformBuilder {
             });
         }
 
-        // Register ewe:// custom protocol
+        // Always register ewe:// custom protocol
         self.inner = ewe::register_ewe_protocol(self.inner);
-
         self.inner.build(context)
     }
 
