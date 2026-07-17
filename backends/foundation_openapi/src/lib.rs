@@ -32,6 +32,7 @@ pub mod classifier;
 pub mod endpoint;
 pub mod extractor;
 pub mod normalizer;
+pub mod pipeline;
 pub mod prune;
 pub mod selection;
 pub mod spec;
@@ -53,6 +54,7 @@ pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,
     PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
 };
+pub use pipeline::{Pipeline, PipelineError};
 pub use prune::{
     component_count, dangling_refs, prune_to_selection, unreachable_components, PruneStats,
 };
