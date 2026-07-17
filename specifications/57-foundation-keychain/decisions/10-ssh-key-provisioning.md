@@ -21,7 +21,7 @@ Body: { "name": "my-service", "description": "..." }
 → 200 { "app_id": "...", "secret": "...", "created_at": "..." }
 ```
 
-The secret is a one-time response — it's hashed (Argon2id) for storage. If lost, the app must be recreated.
+The secret is a one-time response — it's hashed (Argon2id via `foundation_auth::password_hash`) for storage. If lost, the app must be recreated.
 
 ### Credential Provisioning
 
@@ -42,9 +42,24 @@ DELETE /api/credentials/ssh-keys/:id
 → 204
 ```
 
-### Storage
+### At-Rest Encryption — age (both native and WASM)
 
-SSH keys are stored encrypted at rest. The encryption key is derived from a master key (env var) using the `age` crate (decision 08 — deferred but revisited here). Alternatively, for Cloudflare Workers, keys can be stored in KV encrypted with a key derived from a secret.
+Private keys are encrypted before storage using the `age` crate in **passphrase (scrypt) mode**. The passphrase is `KEYCHAIN_MASTER_KEY` (an env var / secret). age's `scrypt::Recipient` derives the symmetric encryption key from the passphrase — no separate keypair to manage.
+
+```rust
+use age::scrypt;
+
+// Encrypt (on key creation):
+let recipient = scrypt::Recipient::new(master_secret.into());
+let encrypted = age::encrypt(&recipient, private_key_bytes)?;
+store.private_key_encrypted = base64_encode(&encrypted);
+
+// Decrypt (on retrieval):
+let identity = scrypt::Identity::new(master_secret.into());
+let private_key_bytes = age::decrypt(&identity, &base64_decode(&stored.private_key_encrypted)?)?;
+```
+
+age compiles to both `x86_64` (native) and `wasm32-unknown-unknown` (Cloudflare Workers). On WASM, the `web-sys` feature calibrates the scrypt work factor. Same code, both backends — no backend-specific encryption.
 
 ### Key Types
 
@@ -55,14 +70,15 @@ SSH keys are stored encrypted at rest. The encryption key is derived from a mast
 ### Security Model
 
 - App secret is the sole credential — treat it like a password
-- Keys are encrypted at rest (age or AES-GCM)
+- Private keys encrypted at rest with age (scrypt passphrase from `KEYCHAIN_MASTER_KEY`)
 - Keys are only returned on creation or explicit retrieval — never in list responses
 - Audit log records all key creation/retrieval/deletion events
-- Optional TTL on keys (auto-delete after expiry)
+- Optional TTL on keys (auto-delete after expiry via cron)
 
 ## Consequences
 
 - Adds a new API surface beyond the Bitwarden-compatible vault
-- Requires the `ssh_key` crate dependency (pure Rust, WASM-compatible)
-- At-rest encryption needed for stored private keys (decision 08 becomes relevant)
+- Dependencies: `ssh_key` (key generation) + `age` (at-rest encryption) — both WASM-compatible
+- One `KEYCHAIN_MASTER_KEY` secret drives at-rest encryption — no keypair management
 - App registration is a one-time secret — lost secrets require app recreation
+- Same encryption code on native and Workers — age passphrase mode works on both

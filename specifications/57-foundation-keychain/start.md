@@ -27,7 +27,7 @@ Extracts OrangeVault's Bitwarden-compatible vault API into a portable crate. Add
 | 05 | Jobs — foundation_cronjobs (valtron + foundation_db persistence) | Resolved |
 | 06 | Auth — foundation_auth for JWT/TOTP/middleware; keychain adapts | Resolved |
 | 07 | Blob — foundation_db BlobStore (R2Wasm, filesystem) | Resolved |
-| 08 | age encryption — for SSH key at-rest encryption | Resolved |
+| 08 | age encryption (scrypt passphrase) — SSH key at-rest, native+WASM | Resolved |
 | 09 | Workers runtime — foundation_deployment_cloudflare::workers | Resolved |
 | 10 | SSH key provisioning — app registry + credential API | Resolved |
 

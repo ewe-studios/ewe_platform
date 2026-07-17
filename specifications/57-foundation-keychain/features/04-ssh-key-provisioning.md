@@ -86,17 +86,21 @@ fn generate_ed25519(comment: &str) -> (PrivateKey, PublicKey) {
 }
 ```
 
-### 4. At-Rest Encryption
+### 4. At-Rest Encryption — age (both backends)
 
-Private keys are encrypted before storage using `foundation_auth::password_hash` or the `age` crate (decision 08). The encryption key is derived from a `KEYCHAIN_MASTER_KEY` env var.
+Private keys are encrypted before storage using the `age` crate in **passphrase (scrypt) mode**. The passphrase is `KEYCHAIN_MASTER_KEY` (env var / secret) — age derives the symmetric key from it, no keypair to manage. Same code on native and Workers (age compiles to wasm32).
 
 ```rust
+use age::scrypt;
+
 // On creation:
-let encrypted = age_encrypt(&master_key, &private_key.to_bytes())?;
+let recipient = scrypt::Recipient::new(master_secret.clone().into());
+let encrypted = age::encrypt(&recipient, &private_key.to_bytes()?)?;
 store.private_key_encrypted = base64_encode(&encrypted);
 
 // On retrieval:
-let private_key_bytes = age_decrypt(&master_key, &base64_decode(&stored.private_key_encrypted)?)?;
+let identity = scrypt::Identity::new(master_secret.clone().into());
+let private_key_bytes = age::decrypt(&identity, &base64_decode(&stored.private_key_encrypted)?)?;
 let private_key = PrivateKey::from_bytes(&private_key_bytes)?;
 ```
 
