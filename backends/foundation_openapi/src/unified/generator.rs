@@ -110,12 +110,40 @@ fn field_ident(prop_name: &str) -> String {
 
 /// Whether the vendor says this field's value may be `null`.
 ///
-/// Covers both spellings: OpenAPI 3.0's `nullable: true`, and 3.1's
-/// `"type": ["integer", "null"]` — which `normalize_nullable_types` rewrites into
-/// the former, but which is checked here too so the generator is correct against a
-/// spec that skipped that transform.
-fn is_nullable(schema: &crate::spec::Schema) -> bool {
-    schema.nullable == Some(true)
+/// **Follows `$ref`, and must.** Nullability lives on the *schema*, and hoisting
+/// moves the schema. Hetzner declares
+/// `"deprecation": { "type": ["object","null"], "properties": {…} }` — a required,
+/// nullable, inline object. `normalize_nullable_types` records `nullable: true` on
+/// it, then `extract_inline_schemas` lifts the whole thing into
+/// `components/schemas` and leaves the property as a bare `$ref` that says nothing
+/// about null. Checking only the property generated
+/// `pub deprecation: …IsoDeprecation`, and the first real `create_server` died with
+/// `invalid type: null, expected struct …IsoDeprecation` — after Hetzner had
+/// already built the machine.
+///
+/// Bounded rather than recursive: a `$ref` to a `$ref` is already unusual, and a
+/// cycle here would hang the generator rather than fail it.
+fn is_nullable(
+    schema: &crate::spec::Schema,
+    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+) -> bool {
+    let mut current = schema;
+    for _ in 0..8 {
+        if current.nullable == Some(true) {
+            return true;
+        }
+        let Some(ref_path) = &current.ref_path else {
+            return false;
+        };
+        let name = ref_path
+            .trim_start_matches("#/components/schemas/")
+            .trim_start_matches("#/schemas/");
+        match UnifiedGenerator::resolve_schema_key(name, schemas) {
+            Some(target) => current = target,
+            None => return false,
+        }
+    }
+    false
 }
 
 fn escape_field_keyword(ident: &str) -> String {
@@ -1236,7 +1264,7 @@ impl UnifiedGenerator {
                 // null. A field can be both — Hetzner's pagination `next_page`
                 // is always there and is null on the last page. Only a field
                 // that is required AND not nullable can be a bare T.
-                let is_required = required.contains(prop_name) && !is_nullable(prop_schema);
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name
@@ -1270,7 +1298,7 @@ impl UnifiedGenerator {
                 let rust_type = maybe_box_type(&rust_type, recursive_types);
                 // See the allOf branch above: required means "the key is there",
                 // nullable means "the value may be null". Both can hold.
-                let is_required = required.contains(prop_name) && !is_nullable(prop_schema);
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name

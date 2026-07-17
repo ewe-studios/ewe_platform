@@ -92,7 +92,12 @@ impl HetznerServer {
         Self {
             client,
             name: name.into(),
-            server_type: "cx22".to_string(),
+            // Verified against the live API 2026-07-17. Hetzner retires server
+            // types (`cx22`, this default until today, no longer exists), so a
+            // stale default here is a create that fails at the vendor. The error
+            // is clear when it happens — `invalid_input` naming the type — but
+            // prefer to check this when regenerating.
+            server_type: "cx23".to_string(),
             image: "ubuntu-24.04".to_string(),
             location: None,
             ssh_keys: Vec::new(),

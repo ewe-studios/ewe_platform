@@ -93,7 +93,7 @@ pub struct CreateServerResponseAction {
     /// command property.
     pub command: String,
     /// error property.
-    pub error: CreateServerResponseActionError,
+    pub error: Option<CreateServerResponseActionError>,
     /// finished property.
     pub finished: Option<String>,
     /// id property.
@@ -133,7 +133,7 @@ pub struct CreateServerResponseNextActionsItem {
     /// command property.
     pub command: String,
     /// error property.
-    pub error: CreateServerResponseNextActionsItemError,
+    pub error: Option<CreateServerResponseNextActionsItemError>,
     /// finished property.
     pub finished: Option<String>,
     /// id property.
@@ -177,13 +177,13 @@ pub struct CreateServerResponseServer {
     /// id property.
     pub id: i64,
     /// image property.
-    pub image: CreateServerResponseServerImage,
+    pub image: Option<CreateServerResponseServerImage>,
     /// included_traffic property.
     pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
     pub ingoing_traffic: Option<i64>,
     /// iso property.
-    pub iso: CreateServerResponseServerIso,
+    pub iso: Option<CreateServerResponseServerIso>,
     /// labels property.
     pub labels: serde_json::Value,
     /// load_balancers property.
@@ -226,7 +226,7 @@ pub struct CreateServerResponseServerImage {
     /// created property.
     pub created: String,
     /// created_from property.
-    pub created_from: CreateServerResponseServerImageCreatedFrom,
+    pub created_from: Option<CreateServerResponseServerImageCreatedFrom>,
     /// deleted property.
     pub deleted: Option<String>,
     /// deprecated property.
@@ -280,7 +280,7 @@ pub struct CreateServerResponseServerIso {
     /// architecture property.
     pub architecture: Option<String>,
     /// deprecation property.
-    pub deprecation: CreateServerResponseServerIsoDeprecation,
+    pub deprecation: Option<CreateServerResponseServerIsoDeprecation>,
     /// description property.
     pub description: String,
     /// id property.
@@ -370,9 +370,9 @@ pub struct CreateServerResponseServerPublicNet {
     /// floating_ips property.
     pub floating_ips: Vec<i64>,
     /// ipv4 property.
-    pub ipv4: CreateServerResponseServerPublicNetIpv4,
+    pub ipv4: Option<CreateServerResponseServerPublicNetIpv4>,
     /// ipv6 property.
-    pub ipv6: CreateServerResponseServerPublicNetIpv6,
+    pub ipv6: Option<CreateServerResponseServerPublicNetIpv6>,
 }
 
 /// `CreateServerResponseServerPublicNetFirewallsItem` type.
@@ -467,7 +467,7 @@ pub struct CreateServerResponseServerServerTypeLocationsItem {
     /// available property.
     pub available: bool,
     /// deprecation property.
-    pub deprecation: CreateServerResponseServerServerTypeLocationsItemDeprecation,
+    pub deprecation: Option<CreateServerResponseServerServerTypeLocationsItemDeprecation>,
     /// id property.
     pub id: i64,
     /// name property.
@@ -540,7 +540,7 @@ pub struct DeleteServerResponseAction {
     /// command property.
     pub command: String,
     /// error property.
-    pub error: DeleteServerResponseActionError,
+    pub error: Option<DeleteServerResponseActionError>,
     /// finished property.
     pub finished: Option<String>,
     /// id property.
@@ -591,13 +591,13 @@ pub struct GetServerResponseServer {
     /// id property.
     pub id: i64,
     /// image property.
-    pub image: GetServerResponseServerImage,
+    pub image: Option<GetServerResponseServerImage>,
     /// included_traffic property.
     pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
     pub ingoing_traffic: Option<i64>,
     /// iso property.
-    pub iso: GetServerResponseServerIso,
+    pub iso: Option<GetServerResponseServerIso>,
     /// labels property.
     pub labels: serde_json::Value,
     /// load_balancers property.
@@ -640,7 +640,7 @@ pub struct GetServerResponseServerImage {
     /// created property.
     pub created: String,
     /// created_from property.
-    pub created_from: GetServerResponseServerImageCreatedFrom,
+    pub created_from: Option<GetServerResponseServerImageCreatedFrom>,
     /// deleted property.
     pub deleted: Option<String>,
     /// deprecated property.
@@ -694,7 +694,7 @@ pub struct GetServerResponseServerIso {
     /// architecture property.
     pub architecture: Option<String>,
     /// deprecation property.
-    pub deprecation: GetServerResponseServerIsoDeprecation,
+    pub deprecation: Option<GetServerResponseServerIsoDeprecation>,
     /// description property.
     pub description: String,
     /// id property.
@@ -784,9 +784,9 @@ pub struct GetServerResponseServerPublicNet {
     /// floating_ips property.
     pub floating_ips: Vec<i64>,
     /// ipv4 property.
-    pub ipv4: GetServerResponseServerPublicNetIpv4,
+    pub ipv4: Option<GetServerResponseServerPublicNetIpv4>,
     /// ipv6 property.
-    pub ipv6: GetServerResponseServerPublicNetIpv6,
+    pub ipv6: Option<GetServerResponseServerPublicNetIpv6>,
 }
 
 /// `GetServerResponseServerPublicNetFirewallsItem` type.
@@ -881,7 +881,7 @@ pub struct GetServerResponseServerServerTypeLocationsItem {
     /// available property.
     pub available: bool,
     /// deprecation property.
-    pub deprecation: GetServerResponseServerServerTypeLocationsItemDeprecation,
+    pub deprecation: Option<GetServerResponseServerServerTypeLocationsItemDeprecation>,
     /// id property.
     pub id: i64,
     /// name property.
@@ -984,13 +984,13 @@ pub struct ListServersResponseServersItem {
     /// id property.
     pub id: i64,
     /// image property.
-    pub image: ListServersResponseServersItemImage,
+    pub image: Option<ListServersResponseServersItemImage>,
     /// included_traffic property.
     pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
     pub ingoing_traffic: Option<i64>,
     /// iso property.
-    pub iso: ListServersResponseServersItemIso,
+    pub iso: Option<ListServersResponseServersItemIso>,
     /// labels property.
     pub labels: serde_json::Value,
     /// load_balancers property.
@@ -1033,7 +1033,7 @@ pub struct ListServersResponseServersItemImage {
     /// created property.
     pub created: String,
     /// created_from property.
-    pub created_from: ListServersResponseServersItemImageCreatedFrom,
+    pub created_from: Option<ListServersResponseServersItemImageCreatedFrom>,
     /// deleted property.
     pub deleted: Option<String>,
     /// deprecated property.
@@ -1087,7 +1087,7 @@ pub struct ListServersResponseServersItemIso {
     /// architecture property.
     pub architecture: Option<String>,
     /// deprecation property.
-    pub deprecation: ListServersResponseServersItemIsoDeprecation,
+    pub deprecation: Option<ListServersResponseServersItemIsoDeprecation>,
     /// description property.
     pub description: String,
     /// id property.
@@ -1177,9 +1177,9 @@ pub struct ListServersResponseServersItemPublicNet {
     /// floating_ips property.
     pub floating_ips: Vec<i64>,
     /// ipv4 property.
-    pub ipv4: ListServersResponseServersItemPublicNetIpv4,
+    pub ipv4: Option<ListServersResponseServersItemPublicNetIpv4>,
     /// ipv6 property.
-    pub ipv6: ListServersResponseServersItemPublicNetIpv6,
+    pub ipv6: Option<ListServersResponseServersItemPublicNetIpv6>,
 }
 
 /// `ListServersResponseServersItemPublicNetFirewallsItem` type.
@@ -1274,7 +1274,7 @@ pub struct ListServersResponseServersItemServerTypeLocationsItem {
     /// available property.
     pub available: bool,
     /// deprecation property.
-    pub deprecation: ListServersResponseServersItemServerTypeLocationsItemDeprecation,
+    pub deprecation: Option<ListServersResponseServersItemServerTypeLocationsItemDeprecation>,
     /// id property.
     pub id: i64,
     /// name property.

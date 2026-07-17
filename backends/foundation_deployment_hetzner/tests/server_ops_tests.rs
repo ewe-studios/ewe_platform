@@ -35,10 +35,10 @@ fn server_json(id: i64, name: &str, status: &str, ip: &str) -> String {
         name: name.to_string(),
         status: status.to_string(),
         public_net: GetServerResponseServerPublicNet {
-            ipv4: GetServerResponseServerPublicNetIpv4 {
+            ipv4: Some(GetServerResponseServerPublicNetIpv4 {
                 ip: ip.to_string(),
                 ..Default::default()
-            },
+            }),
             ..Default::default()
         },
         ..Default::default()
@@ -82,10 +82,10 @@ fn create_response_json(id: i64, name: &str, status: &str, ip: &str) -> String {
             name: name.to_string(),
             status: status.to_string(),
             public_net: CreateServerResponseServerPublicNet {
-                ipv4: CreateServerResponseServerPublicNetIpv4 {
+                ipv4: Some(CreateServerResponseServerPublicNetIpv4 {
                     ip: ip.to_string(),
                     ..Default::default()
-                },
+                }),
                 ..Default::default()
             },
             ..Default::default()
@@ -149,10 +149,10 @@ fn servers_list_json(servers: &[(i64, &str, &str, &str)]) -> String {
                 name: (*name).to_string(),
                 status: (*status).to_string(),
                 public_net: ListServersResponseServersItemPublicNet {
-                    ipv4: ListServersResponseServersItemPublicNetIpv4 {
+                    ipv4: Some(ListServersResponseServersItemPublicNetIpv4 {
                         ip: (*ip).to_string(),
                         ..Default::default()
-                    },
+                    }),
                     ..Default::default()
                 },
                 ..Default::default()

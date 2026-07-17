@@ -171,7 +171,15 @@ impl HetznerClient {
             id: server.id,
             name: server.name.clone(),
             status: parse_status(&server.status),
-            public_ipv4: non_empty(&server.public_net.ipv4.ip),
+            // `ipv4` is nullable: Hetzner returns null for a server created
+            // without a public IPv4. `Server.public_ipv4` has always modelled
+            // that; the generated type only started admitting it once `nullable`
+            // was honoured.
+            public_ipv4: server
+                .public_net
+                .ipv4
+                .as_ref()
+                .and_then(|v4| non_empty(&v4.ip)),
         })
     }
 
@@ -204,7 +212,11 @@ impl HetznerClient {
             id: server.id,
             name: server.name.clone(),
             status: parse_status(&server.status),
-            public_ipv4: non_empty(&server.public_net.ipv4.ip),
+            public_ipv4: server
+                .public_net
+                .ipv4
+                .as_ref()
+                .and_then(|v4| non_empty(&v4.ip)),
         }))
     }
 
@@ -238,7 +250,11 @@ impl HetznerClient {
                 id: server.id,
                 name: server.name.clone(),
                 status: parse_status(&server.status),
-                public_ipv4: non_empty(&server.public_net.ipv4.ip),
+                public_ipv4: server
+                    .public_net
+                    .ipv4
+                    .as_ref()
+                    .and_then(|v4| non_empty(&v4.ip)),
             })
             .collect())
     }

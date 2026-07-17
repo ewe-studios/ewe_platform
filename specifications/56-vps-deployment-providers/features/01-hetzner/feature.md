@@ -97,8 +97,40 @@ hardening-before-first-boot possible on this provider.
       --test live_tests -- --ignored --nocapture
   ```
 
-  All 5 pass. **The first one found a bug within seconds** — see below. That is
-  the whole argument for running them.
+  All **6** pass, including a **create/destroy round-trip that bills real money**
+  (`deploy_then_destroy_a_real_server`, ~€0.0104/hr on a `cx23` for ~20s). It
+  proves on a real machine what the mocks only assert: a second `deploy` returns
+  the same id and **does not bill a second server**.
+
+  **The first one found a bug within seconds**, and the round-trip found three
+  more — see below. That is the whole argument for running them.
+
+#### Teardown for a billing resource cannot be keyed on our own state
+
+The first run of the round-trip **leaked a live server while reporting success**.
+Worth writing down, because the failure is not obvious:
+
+1. Hetzner **created** the server and returned 201.
+2. Our client **failed to parse that 201** (the nullable-`$ref` bug below).
+3. So `create_server` returned `Err` — and **we never learned the server's id**.
+4. `deploy`'s own unwind (decision 03 §5) could not fire: it deletes `created.id`,
+   and `created` never existed.
+5. `destroy` read the state store, found nothing recorded, and correctly returned
+   `Ok(())` — *"nothing to destroy"*.
+6. The test printed **"destroyed"**. The machine ran on, billing.
+
+**The vendor is the authority on what exists, not our state store.** Teardown now
+asks Hetzner by name and deletes whatever is standing, regardless of what `destroy`
+reported — and `sweep_leftovers` runs *before* each test, so a run killed between
+create and destroy is bounded by the next run rather than unbounded.
+
+The general shape: *the vendor created it; we just cannot name it.* Any resource
+that bills needs a teardown that does not depend on having successfully observed
+the creation.
+
+The test also holds no `assert!`/`unwrap` between create and destroy — every check
+collects into a `Result` inspected *after* teardown, because a panic there unwinds
+straight past the cleanup.
 
 - **(historical) Live path: unverified until someone runs it with a real `HCLOUD_TOKEN`.**
   Say so in the feature's status — do not mark it complete on mock evidence.
@@ -154,9 +186,17 @@ Hetzner returns `null` for it **when you create a server with SSH keys** — whi
 exactly what this feature does. `create_server` would have panicked on its first
 real call.
 
+#### The round-trip found three more, all in one call
+
+| Bug | Why a mock could never see it |
+|---|---|
+| **nullable `$ref`** — `deprecation` is a *required, nullable, inline object*. `normalize_nullable_types` recorded `nullable: true`, then hoisting moved the schema into `components` and left the property a bare `$ref` carrying nothing. `is_nullable` now follows the ref | `create_server` died on the real 201 with `invalid type: null, expected struct …Deprecation` — **after Hetzner had built the machine** |
+| **`public_net.ipv4` is nullable** — a server can have no public IPv4. Our hand-written `server_ops` did `.ipv4.ip` | the fix surfaced it as a compile error; `Server.public_ipv4: Option<String>` had modelled it correctly all along |
+| **`cx22` no longer exists** — it was `HetznerServer::new`'s default | a mock accepts any server type you tell it to |
+
 ### What building it taught us
 
-Four bugs, none of which a fixture would have caught, all fixed:
+Six bugs, none of which a fixture would have caught, all fixed:
 
 | Where | Bug |
 |---|---|
