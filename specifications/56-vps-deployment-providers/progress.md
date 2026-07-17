@@ -31,18 +31,18 @@ DigitalOcean, Hetzner, Linode — with credentials from the environment and
 | 03 | [`foundation_deployment_linode`](features/03-linode/feature.md) | 1 | not started — spec found (owner-supplied, validated) |
 | 04 | [Cloud-init + SSH bootstrap](features/04-cloud-init-and-ssh-bootstrap/feature.md) | 2 | not started |
 | 05 | [VPS hardening](features/05-vps-hardening/feature.md) | 2 | not started |
-| 06 | [`VpsDeployment` (shared Deployable)](features/06-vps-deployable/feature.md) | 2 | not started |
+| 06 | [Composed deployables (VPS + hardening + bootstrap)](features/06-composed-deployables/feature.md) | 2 | not started |
 | 07 | [TLS termination proof + Cloudflare provider](features/07-tls-termination-and-cloudflare/feature.md) | 4 | not started |
 
 ## Decisions
 
-01 is resolved. The rest are open, and nothing should be built until they are —
-each one changes the code.
+01 and 02 are resolved. 03 and 04 are open, and nothing should be built until
+they are — each one changes the code.
 
 | # | Decision | The question |
 |---|---|---|
 | 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three via selective generation ([feature 00](features/00-selective-codegen/feature.md)); output stays a checked-in `src/generated/` per crate with hand-written code outside it; API version pinned + spec revision validated; RPC (if ever needed) goes through `foundation_connectrpc`. |
-| 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | Variable names (`HCLOUD_TOKEN`/`DIGITALOCEAN_TOKEN`/`LINODE_TOKEN`?), an `EWE_` override, and failing loudly when absent. |
+| 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | ✅ **Resolved** — `EWE_<VENDOR>_TOKEN` wins over the vendor-native name; `from_env()` errors naming both; 401 gets its own variant; token never in `Debug`/logs/errors; `new(token)`/`with_client` stay for tests + secret stores. |
 | 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, create-or-find, and destroy-on-partial-failure (a stranded VPS bills). |
 | 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely; cloud-init vs post-boot SSH; and how to stop **Docker publishing past the host firewall**. |
 

@@ -140,36 +140,42 @@ regenerated with the `genapi` CLI). Hand-written domain logic and wrappers live
 So the output location is not `OUT_DIR`. Diffs stay reviewable, `git grep` finds
 the code, and a build needs no spec artefact.
 
-#### The mechanic still to settle: can build.rs write there?
+#### Two verbs, and the caller picks — **resolved** (owner, 2026-07-17)
 
-The owner also asked for "a build.rs format that these crates can have that calls
-into our codegen and indicate what part of the API specs we want generated". A
-build.rs that *writes into `src/generated/`* has a real constraint behind it:
+*"Just add the ability to call check as well as write, then users can do checks
+and fail aloud, and if it matches then they can call write() to write it to the
+generated directory."*
 
-**These crates are publishable** — none set `publish = false`. If build.rs
-regenerated `src/generated/` at build time, a downstream consumer building from
-crates.io would need the spec artefact (which is not published) and would be
-writing into the registry's read-only source directory. Cargo's own rule is that
-build scripts write only to `OUT_DIR`; violating it also risks `cargo package
---verify` seeing a dirty tree.
+The builder exposes **both** terminal operations over one declaration; the crate
+decides its policy rather than the generator imposing one:
 
-Two ways to honour both asks:
+| Verb | Does | Fails when |
+|---|---|---|
+| `check()` | compares what *would* be generated against the committed `src/generated/`, and validates the pinned `spec_version` against the spec's `info.version` | the output is stale, or the spec has moved under the pin — **loudly, naming both versions** |
+| `write()` | generates into `src/generated/` | the spec is missing or the pin does not match |
 
-- **A — build.rs declares, and generates only in-workspace.** The slice lives in
-  `build.rs` next to the code that uses it; generation runs when the spec artefact
-  is present (a workspace checkout) and **skips silently** when it is not (a
-  consumer building from crates.io, who just compiles the committed output).
-  Needs `cargo:rerun-if-changed` on the spec + manifest, and a content-compare so
-  an unchanged regeneration does not churn mtimes and re-trigger builds.
-- **B — build.rs declares and *verifies*; the CLI generates.** `genapi generate
-  <provider>` reads the same declaration and writes `src/generated/`; build.rs
-  only fails when the committed output is stale against the manifest. Closest to
-  today's pattern (cloudflare has no build.rs at all), and it never writes to
-  `src/`.
+```rust
+let codegen = foundation_codegentools::generate()
+    .provider("hetzner")
+    .spec("artefacts/cloud_providers/hetzner/openapi.json")
+    .api_version("v1")
+    .spec_version("1.0.0")
+    .include_paths(["/servers", "/servers/{id}", "/ssh_keys"]);
 
-**Recommendation: B**, with the staleness check behind CI rather than every
-developer build. It gives the declaration-next-to-the-crate that A does, without
-a build script that writes into a published crate's source tree.
+codegen.check()?;   // fail aloud if the committed output is stale
+codegen.write()?;   // or regenerate it
+```
+
+So a build.rs can `check()` (never touching `src/`), the `genapi` CLI can
+`write()`, and a developer can do either — one declaration, no duplication.
+
+**The caveat that constrains where `write()` is called from:** these crates are
+publishable (none set `publish = false`). A build script that calls `write()`
+would have a crates.io consumer needing the spec artefact — which is not
+published — and writing into the registry's read-only source directory; cargo's
+rule is that build scripts write only to `OUT_DIR`, and `cargo package --verify`
+may see a dirty tree. So `write()` belongs in the CLI or an explicit developer
+step; `check()` is what a build.rs (or CI) should call.
 
 ## Verification
 
@@ -194,7 +200,8 @@ All local — no network, no accounts:
 ## Acceptance criteria
 
 - [ ] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it
-- [ ] build.rs mechanic settled (A: generate in-workspace only, or B: declare + verify, CLI generates) — it must not write into `src/` for a published consumer
+- [ ] One declaration, two verbs: `check()` (fails aloud on stale output or a moved spec) and `write()` (regenerates `src/generated/`)
+- [ ] `write()` is not called from a build script of a publishable crate — `check()` is the build.rs/CI verb
 - [ ] `api_version` pinned into the client; callers never pass it
 - [ ] `spec_version` validated against the spec's `info.version` — **generation fails on a mismatch**, naming both versions
 - [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff

@@ -53,7 +53,7 @@ sequencing that machinery, plus one API client.
 4. **Provider: create/destroy the VM** — now three crates of their own:
    [Hetzner](../01-hetzner/feature.md), [DigitalOcean](../02-digitalocean/feature.md),
    [Linode](../03-linode/feature.md), behind the shared
-   [`VpsDeployment`](../06-vps-deployable/feature.md).
+   [`VpsDeployment`](../06-composed-deployables/feature.md).
 5. **Service exposure** — `foundation_proxy` in front, TLS per decision 18.
 
 ## Constraints to respect

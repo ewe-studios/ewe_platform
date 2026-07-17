@@ -13,7 +13,7 @@ moved_from: "spec-53 final completeness review (2026-07-17)"
 
 > **Moved here from spec-53**, whose final review surfaced these two gaps against
 > its decisions 18 and 24. Spec-53 is done; these are pending, and a VPS fronting
-> HTTPS ([feature 06](../06-vps-deployable/feature.md)) depends on both — so they
+> HTTPS ([feature 06](../06-composed-deployables/feature.md)) depends on both — so they
 > live here.
 
 ## What spec-53's final review found (2026-07-17)
