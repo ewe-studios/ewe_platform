@@ -13,8 +13,8 @@ depends_on:
 
 tasks:
   completed: 0
-  uncompleted: 4
-  total: 4
+  uncompleted: 8
+  total: 8
   completion_percentage: 0%
 ---
 
@@ -22,143 +22,62 @@ tasks:
 
 ## Overview
 
-Implement the offline mutation queue with last-write-wins (LWW) conflict
-resolution. Mutations enqueued locally in SQLite when offline, replayed in
-order when connectivity returns. MVP uses LWW (timestamp comparison, server
-wins ties). Custom conflict resolvers are post-MVP.
+Implement offline mutation queue with last-write-wins default. Mutations
+enqueued in SQLite when offline, replayed in FIFO order on connectivity
+restore. UUID-based idempotency. Custom conflict resolvers are post-MVP.
 
-[Decision 12](../decisions/12-mutation-queue-and-conflict.md) defines the full
-model. MVP ships LWW default only.
+[Decision 12](../decisions/12-mutation-queue-and-conflict.md). MVP = LWW only.
 
-## Dependencies
+---
 
-Depends on:
-- `F01-session-backbone` — Queue lives on the session, replay on connectivity
-
-Required by:
-- `F09-walking-skeleton` — Offline mutation in end-to-end test
-
-## Requirements
-
-### 1. `MutationQueue`
+## Part A — MutationQueue
 
 ```rust
 // foundation_platform/src/mutation.rs
 
-pub struct MutationQueue {
-    db: foundation_db::Database,
+pub struct MutationQueue { db: foundation_db::Database }
+
+pub struct Mutation {
+    pub id: Uuid,
+    pub created_at: i64,
+    pub mutation_type: String,
+    pub payload: serde_json::Value,
+    pub status: MutationStatus,
 }
 
-struct Mutation {
-    id: Uuid,           // Idempotency key
-    created_at: DateTime<Utc>,
-    mutation_type: String,  // e.g., "order_update", "item_delete"
-    payload: serde_json::Value,
-    status: MutationStatus,
-}
+pub enum MutationStatus { Pending, Applied, Conflict(String), Failed(String) }
 
-enum MutationStatus {
-    Pending,
-    Applied(Uuid),
-    Conflict(String),
-    Failed(String),
-    RequiresUserResolution,  // post-MVP
-}
-```
-
-### 2. Enqueue
-
-```rust
 impl MutationQueue {
-    pub async fn enqueue(&self, mutation: Mutation) -> Result<()> {
-        mutation.validate_local()?;
-        self.db.insert("mutations", &mutation).await
-    }
+    pub async fn enqueue(&self, m: Mutation) -> Result<()> { ... }
+    pub async fn replay(&self, session: &PlatformSession) -> Result<ReplayResult> { ... }
 }
 ```
 
-### 3. Replay (LWW)
+### A.2 — Replay triggers
 
 ```rust
-impl MutationQueue {
-    pub async fn replay(&self, session: &PlatformSession) -> Result<ReplayResult> {
-        let pending = self.db.query(
-            "SELECT * FROM mutations WHERE status = 'pending' ORDER BY created_at"
-        ).await?;
-
-        let mut results = Vec::new();
-        for mutation in pending {
-            let result = session.remote()
-                .post("/api/mutations", &mutation).await;
-
-            match result {
-                Ok(_) => {
-                    self.db.update_status(&mutation.id, MutationStatus::Applied).await?;
-                    results.push(ReplayStatus::Applied(mutation.id));
-                }
-                Err(e) if e.is_conflict() => {
-                    // MVP: LWW — server response wins
-                    self.db.update_status(&mutation.id, MutationStatus::Conflict(
-                        e.server_state.clone()
-                    )).await?;
-                    results.push(ReplayStatus::Conflict(mutation.id, e.server_state));
-                }
-                Err(e) => {
-                    self.db.update_status(&mutation.id, MutationStatus::Failed(e.to_string())).await?;
-                    results.push(ReplayStatus::Failed(mutation.id, e.to_string()));
-                    break; // stop on non-retryable error
-                }
-            }
-        }
-        Ok(ReplayResult { results })
-    }
-}
-```
-
-### 4. Replay triggers
-
-Replay fires on connectivity restore:
-
-```rust
-// In PlatformSession:
 session.on_connectivity_change(|session, online| {
-    if online {
-        let queue = session.mutation_queue();
-        tokio::spawn(async move {
-            queue.replay(&session).await;
-        });
-    }
+    if online { tokio::spawn(async { session.mutation_queue().replay(&session).await; }); }
 });
 ```
 
-### 5. Idempotency
+### A.3 — Replay lifecycle
 
-Every mutation carries a UUID. Server deduplicates by UUID. The platform
-generates UUIDs — the user doesn't need to.
+```
+Offline → mutations enqueued (UUID + created_at + validated locally)
+Reconnected → worker replays FIFO → server deduplicates by UUID
+  Success → deleted from queue
+  Conflict → LWW (server wins, mutation flagged)
+  Non-retryable error → replay stops
+```
 
-## Tasks
+### A.4 — Idempotency
 
-### Queue storage
-- [ ] Create `src/mutation.rs` with `MutationQueue` struct
-- [ ] Create SQLite schema for mutations table
-- [ ] Implement `enqueue()` with local validation
-- [ ] Implement `replay()` with LWW conflict resolution
-- [ ] Test: mutation enqueued, replayed on connectivity restore
+Each mutation carries a UUID. Server deduplicates. Platform generates UUIDs.
 
-### Replay triggers
-- [ ] Wire replay to connectivity change events
-- [ ] Test: offline mutations replay when connectivity returns
+---
 
-### Idempotency
-- [ ] UUID generation per mutation
-- [ ] Server-side dedup contract documented
-
-### Durability
-- [ ] SQLite WAL for crash-safe queue storage
-- [ ] Test: mutations survive app kill
-
-## Verification Commands
-
+## Verification
 ```bash
 cargo test --package foundation_platform -- mutation
 ```

@@ -13,8 +13,8 @@ depends_on:
 
 tasks:
   completed: 0
-  uncompleted: 10
-  total: 10
+  uncompleted: 28
+  total: 28
   completion_percentage: 0%
 ---
 
@@ -22,200 +22,511 @@ tasks:
 
 ## Overview
 
-Implement the `PlatformSession` — the central coordination bus that spans both
+Implement `PlatformSession<R>` — the central coordination bus that spans both
 `foundation_wasm_ui` (web side) and `foundation_platform` (native side).
-Subsystems register with the session; the session routes navigation intents,
-capability requests, and cache lookups through the handler chain.
+Everything plugs into it as a peer. No subsystem talks directly to another
+without the session knowing.
 
-[Decision 03](../decisions/03-session-backbone-transport.md) defines the
-session backbone architecture.
+[Decision 03](../decisions/03-session-backbone-transport.md) defines the full
+session backbone architecture. The subsections below implement each part of
+that decision.
 
 ## Dependencies
 
 Depends on:
-- `F00-crate-skeleton` — Uses `NavigationIntent`, `RouteDecision`, `RouteHandler`, `PlatformBuilder`
+- `F00-crate-skeleton` — Uses all types from `foundation_ui_traits`, `PlatformBuilder`
 
 Required by:
 - `F02-route-handler` — Handlers register with the session
 - `F03-ewe-protocol` — Custom protocol handler routes through session
 - Every subsequent feature
 
-## Requirements
+---
 
-### 1. `PlatformSession` struct
+## Part A — `PlatformSession` struct
+
+### A.1 — Core struct
 
 ```rust
 // foundation_platform/src/session.rs
 
 pub struct PlatformSession<R: Runtime> {
-    /// Tauri app handle for window/webview/plugin access
+    /// Tauri app handle for window/webview/plugin access.
+    /// The session coordinates Tauri primitives; it doesn't own them.
     app_handle: AppHandle<R>,
 
-    /// Route handler chain — iterated in registration order, first match wins
-    route_handlers: Vec<Box<dyn RouteHandler>>,
+    /// Route handler chain — iterated in registration order, first match wins.
+    /// Each handler decides: claim this navigation (Some(decision)) or pass (None).
+    route_handlers: RwLock<Vec<Box<dyn RouteHandler>>>,
 
-    /// Capability registry — capability name → handler
-    capability_registry: HashMap<String, Box<dyn Capability>>,
+    /// Capability registry — capability name → registered handler.
+    /// Populated at startup, checked at runtime for every capability invocation.
+    capability_registry: RwLock<HashMap<String, Box<dyn Capability>>>,
 
-    /// Cache handle (SQLite, indexed by route)
+    /// Cache manager — SQLite-backed, indexed by route, profile-scoped.
+    /// Initialized at session startup, used by the cache check step in navigation.
     cache: CacheManager,
 
-    /// Session identity
+    /// Session identity — generated once at app launch, never changes.
+    /// Used for page identity scoping and stale-message guards.
     session_id: SessionId,
 
-    /// Active page tracking
-    active_page: Mutex<Option<PageIdentity>>,
+    /// Monotonically incrementing visit counter.
+    /// Incremented on every navigation. PageIdentity.visit_id uses this.
+    visit_counter: AtomicU64,
 
-    /// Connectivity state
+    /// The currently active page. None until the first navigation.
+    /// Stale-page guard checks this before delivering capability results.
+    active_page: RwLock<Option<PageIdentity>>,
+
+    /// Connectivity state. Updated by OS lifecycle events.
     online: AtomicBool,
 }
 ```
 
-### 2. Handler chain registration
+**Design notes from [decision 03](../decisions/03-session-backbone-transport.md):**
+
+- `route_handlers` uses `RwLock<Vec<Box<dyn RouteHandler>>>` because:
+  handlers register at startup (write), iterate on every navigation (read).
+  Read-heavy workload — `RwLock` is correct.
+- `capability_registry` is a `HashMap<String, Box<dyn Capability>>` keyed
+  by capability name. Lookup is `O(1)`, called on every capability invocation.
+- `session_id` is a `u64` generated from `std::time::UNIX_EPOCH` at init.
+  It's opaque to user code — used only for scoping.
+- `visit_counter` uses `AtomicU64` for lock-free increment on every
+  navigation. No contention — only the session thread increments it.
+
+### A.2 — Initialization
 
 ```rust
 impl<R: Runtime> PlatformSession<R> {
-    /// Register a route handler. Handlers are checked in registration order.
-    pub fn register_handler(&self, handler: impl RouteHandler) { ... }
+    /// Initialize the session. Called once from `PlatformBuilder`'s setup hook.
+    /// Pre-wires all subsystems: transport lanes, capability registry,
+    /// cache database, route handlers (user-registered after this call).
+    pub fn initialize(app_handle: AppHandle<R>) -> Self {
+        let session_id = SessionId(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64,
+        );
 
-    /// Resolve a navigation intent through the handler chain.
-    /// Returns the first Some(decision) or the platform default.
-    pub fn resolve_route(&self, intent: &NavigationIntent) -> RouteDecision { ... }
+        Self {
+            app_handle,
+            route_handlers: RwLock::new(Vec::new()),
+            capability_registry: RwLock::new(HashMap::new()),
+            cache: CacheManager::new(":memory:"), // or file path from config
+            session_id,
+            visit_counter: AtomicU64::new(0),
+            active_page: RwLock::new(None),
+            online: AtomicBool::new(true),
+        }
+    }
 }
 ```
 
-### 3. Navigation interception
-
-The session hooks into Tauri's `on_navigation` callback:
+### A.3 — Wiring into PlatformBuilder
 
 ```rust
-// In PlatformBuilder setup:
-builder.on_navigation(|url| {
-    let intent = NavigationIntent {
-        url: url.clone(),
-        method: Method::Get,
-        source: IntentSource::LinkClick,
-        referrer: session.active_page().map(|p| p.route),
-    };
-    let decision = session.resolve_route(&intent);
-    // false = allow, true = handled by session
-    session.execute_decision(&decision)
+// foundation_platform/src/builder.rs — add to PlatformBuilder::setup()
+
+impl<R: Runtime> PlatformBuilder<R> {
+    pub fn with_session_setup(mut self) -> Self {
+        self.inner = self.inner.setup(|app| {
+            let session = PlatformSession::initialize(app.handle().clone());
+            // Store session in Tauri's state manager for retrieval by commands
+            app.manage(session);
+            Ok(())
+        });
+        self
+    }
+}
+```
+
+Tauri's `app.manage()` stores the session in `StateManager` — a type-indexed
+`TypeId → Pin<Box<dyn Any>>` map. Any `#[tauri::command]` can retrieve it via
+`State<PlatformSession<R>>`. This is how capability handlers, custom protocol
+handlers, and route handlers access the session.
+
+---
+
+## Part B — Handler chain registration
+
+From [decision 03](../decisions/03-session-backbone-transport.md#handler-chain-registration):
+
+### B.1 — Route handler registration
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Register a route handler. Handlers are checked in registration order
+    /// on every navigation. First `Some(decision)` wins. `None` falls through.
+    ///
+    /// Thread-safe: can be called from setup or from within a handler.
+    pub fn register_handler(&self, handler: impl RouteHandler) {
+        self.route_handlers.write().unwrap().push(Box::new(handler));
+    }
+}
+```
+
+### B.2 — Navigation resolution
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Resolve a navigation intent through the handler chain.
+    /// Returns the first `Some(decision)` or the platform default.
+    ///
+    /// This is step 2 of the 9-step execution contract from decision 02.
+    pub fn resolve_route(&self, intent: &NavigationIntent) -> RouteDecision {
+        let handlers = self.route_handlers.read().unwrap();
+        for handler in handlers.iter() {
+            if let Some(decision) = handler.resolve(intent, self) {
+                return decision;
+            }
+        }
+
+        // No handler claimed it — platform default.
+        self.default_decision_for(intent)
+    }
+
+    /// Platform default for unhandled navigation intents.
+    fn default_decision_for(&self, intent: &NavigationIntent) -> RouteDecision {
+        // External URLs → system browser
+        if intent.url.starts_with("http://") || intent.url.starts_with("https://") {
+            return webview_app() // FIXME: should be external, but External is Presentation
+                .with_presentation(Presentation::External);
+        }
+
+        // ewe:// URLs with no handler → UntrustedRemote sandbox
+        remote_fetch()
+            .with_profile(Profile::UntrustedRemote)
+            .with_cache_policy(CachePolicy::OnlineOnly)
+    }
+}
+```
+
+### B.3 — Capability handler registration
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Register a capability handler.
+    pub fn register_capability<C: Capability>(&self, capability: C) {
+        self.capability_registry
+            .write()
+            .unwrap()
+            .insert(capability.id().0.clone(), Box::new(capability));
+    }
+}
+```
+
+---
+
+## Part C — Navigation interception
+
+From [decision 03](../decisions/03-session-backbone-transport.md#handler-chain-execution-on-navigation):
+
+### C.1 — on_navigation hook
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Called from Tauri's `on_navigation` callback on every link click,
+    /// form submit, or redirect inside the WebView.
+    ///
+    /// Returns `true` if the session handled the navigation (the platform
+    /// takes over rendering). Returns `false` to allow the WebView to
+    /// handle it natively.
+    pub fn intercept_navigation(&self, url: &Url) -> bool {
+        let intent = NavigationIntent {
+            url: url.to_string(),
+            method: Method::Get, // TODO: detect POST from form submit
+            source: IntentSource::LinkClick,
+            referrer: self.active_page.read().unwrap()
+                .as_ref()
+                .map(|p| p.route.clone()),
+        };
+
+        let decision = self.resolve_route(&intent);
+
+        // If the decision is External, let the OS handle it.
+        if decision.presentation == Presentation::External {
+            // open::that(url) on desktop, UIApplication on iOS, Intent on Android
+            return false; // don't intercept — let the system handle it
+        }
+
+        // Session handles the navigation.
+        self.execute_decision(&decision, &intent);
+        true // intercepted — WebView should not navigate
+    }
+}
+```
+
+### C.2 — Wiring into Tauri
+
+```rust
+// In PlatformBuilder::setup():
+self.inner = self.inner.setup(|app| {
+    let session = PlatformSession::initialize(app.handle().clone());
+
+    // Register the on_navigation callback on the main WebView window.
+    // In Tauri, this is per-WebViewWindow, registered at build time.
+    // We register a session-aware closure that delegates to intercept_navigation.
+
+    app.manage(session);
+    Ok(())
 });
 ```
 
-### 4. Session lifecycle
-
-From [decision 03](../decisions/03-session-backbone-transport.md) section "Session lifecycle":
-
-```
-App launch → Tauri boots
-  → setup() hook fires
-    → PlatformSession::initialize()
-      → Transport lanes pre-wired
-      → Capability registry populated
-      → Cache database opened
-      → Route handlers registered
-      → WebView created, foundation-wasm-ui.js injected
-      → User's main() called with session handle
-        → Rendering loop begins
-```
+The `on_navigation` callback in Tauri is registered on `WebviewWindowBuilder`:
 
 ```rust
-impl<R: Runtime> PlatformSession<R> {
-    pub fn initialize(app_handle: AppHandle<R>) -> Self { ... }
-    pub fn on_suspend(&self) { ... }   // emit "background" event
-    pub fn on_resume(&self) { ... }    // emit "foreground" event
-    pub fn on_shutdown(&self) { ... }  // flush cache, close transports
+WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+    .on_navigation(|url| {
+        let session = app.state::<PlatformSession<Wry>>();
+        session.intercept_navigation(url)
+    })
+    .build()?;
+```
+
+---
+
+## Part D — Session lifecycle
+
+From [decision 03](../decisions/03-session-backbone-transport.md#session-lifecycle):
+
+### D.1 — Lifecycle events
+
+```rust
+/// Events the session emits at lifecycle transitions.
+/// Subsystems listen for these to react.
+pub enum SessionEvent {
+    /// App entered background (mobile: didEnterBackground).
+    /// Subsystems should: cache screenshots, release idle WebView pool,
+    /// pause non-critical transports.
+    Background,
+
+    /// App entered foreground (mobile: willEnterForeground).
+    /// Subsystems should: validate stale content, re-warm WebView pool,
+    /// reconnect transports.
+    Foreground,
+
+    /// App is shutting down (RunEvent::Exit).
+    /// Subsystems should: persist state, flush cache, close connections.
+    Shutdown,
+
+    /// Connectivity changed.
+    Online(bool),
 }
 ```
 
-### 5. Subsystem peer model
-
-Each subsystem gets a reference to the session. They communicate through it,
-not directly:
-
-```
-Cache subsystem → session.cache().get(route)  → session routes through rendering lane
-Capability     → session.invoke("camera", ...) → session routes to handler → response
-Navigation     → session.on_navigate(url)       → session runs handler chain → decides
-```
-
-### 6. Session events
+### D.2 — Lifecycle methods
 
 ```rust
-// Events the session emits:
-session.emit("navigated", &NavigatedEvent { ... });
-session.emit("online", &());
-session.emit("offline", &());
-session.emit("background", &());
-session.emit("foreground", &());
-session.emit("shutdown", &());
+impl<R: Runtime> PlatformSession<R> {
+    /// Called when the app enters background.
+    /// Emits `Background` event, releases idle resources.
+    pub fn on_suspend(&self) {
+        self.emit_lifecycle_event(SessionEvent::Background);
+    }
+
+    /// Called when the app enters foreground.
+    /// Emits `Foreground` event, re-validates active content.
+    pub fn on_resume(&self) {
+        self.emit_lifecycle_event(SessionEvent::Foreground);
+    }
+
+    /// Called on app shutdown.
+    /// Emits `Shutdown` event, flushes cache, closes connections.
+    pub fn on_shutdown(&self) {
+        self.emit_lifecycle_event(SessionEvent::Shutdown);
+        self.cache.flush();
+    }
+
+    /// Update connectivity state.
+    pub fn set_online(&self, online: bool) {
+        let was_online = self.online.swap(online, Ordering::SeqCst);
+        if was_online != online {
+            self.emit_lifecycle_event(SessionEvent::Online(online));
+        }
+    }
+}
 ```
 
-## Architecture
+### D.3 — Event emission
 
-```
-PlatformBuilder::new()
-  → tauri::Builder::default()
-  → .setup(|app| {
-        session = PlatformSession::initialize(app.handle());
-        // user's #[platform_bin] main(session) called here
-    })
-```
-
-```
-Navigation flow:
-  WebView link click
-    → on_navigation(url)
-    → NavigationIntent constructed
-    → session.resolve_route(&intent)
-      → iterate route_handlers[]
-        → handler.resolve(&intent, &session)
-        → Some(decision) → return
-    → session.execute_decision(&decision)
-      → cache check → presentation → backend query → render
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Emit a lifecycle event through Tauri's event system.
+    /// Subsystems listen via `app.listen()` or `session.on_event()`.
+    fn emit_lifecycle_event(&self, event: SessionEvent) {
+        let event_name = match &event {
+            SessionEvent::Background => "platform:background",
+            SessionEvent::Foreground => "platform:foreground",
+            SessionEvent::Shutdown => "platform:shutdown",
+            SessionEvent::Online(true) => "platform:online",
+            SessionEvent::Online(false) => "platform:offline",
+        };
+        let _ = self.app_handle.emit(event_name, ());
+    }
+}
 ```
 
-## Tasks
+---
 
-### PlatformSession
-- [ ] Create `src/session.rs` with `PlatformSession<R>` struct
-- [ ] Store `AppHandle<R>`, handler chain vec, capability registry map
-- [ ] Initialize cache manager with SQLite
-- [ ] Generate `SessionId` at initialization
+## Part E — Subsystem peer model
 
-### Handler chain registration
-- [ ] Implement `register_handler()` — push to handlers vec
-- [ ] Implement `resolve_route()` — iterate handlers, return first match
-- [ ] Implement platform default for unmatched routes (external browser)
-- [ ] Implement `execute_decision()` stub — dispatches based on RouteSource
-- [ ] Test: register 3 handlers, verify first-match-wins ordering
+From [decision 03](../decisions/03-session-backbone-transport.md#subsystem-peer-model):
 
-### Navigation interception
-- [ ] Wire `on_navigation` callback in PlatformBuilder setup
-- [ ] Construct `NavigationIntent` from intercepted URL
-- [ ] Route through session.resolve_route()
-- [ ] Return false to allow navigation, or handle via execute_decision
+```
+Cache subsystem ──→ "I have cached content for /route"
+                    Session ──→ routes through rendering lane → DOM
 
-### Session lifecycle
-- [ ] Implement `initialize()` — create all subsystems
-- [ ] Implement `on_suspend()` / `on_resume()` — event emission
-- [ ] Implement `on_shutdown()` — flush cache, close connections
-- [ ] Test: full lifecycle (init → navigate → shutdown)
+Native capability ──→ "biometric auth result"
+                    Session ──→ scoped delivery to correct route/page → WebView
 
-### Session events
-- [ ] Define standard session event types
-- [ ] Implement `emit()` wrapping Tauri's event system
-- [ ] Add page-identity scoping for targeted delivery
+WebView action ──→ "user clicked link"
+                  Session → route handler chain → decide → execute
+```
 
-### Connectivity tracking
-- [ ] Track online/offline state via Tauri or OS APIs
-- [ ] Emit `online`/`offline` events on transitions
-- [ ] Test: toggle connectivity, verify events fire
+### E.1 — Session as message bus
 
-## Verification Commands
+Every subsystem holds a reference to `PlatformSession<R>`. They communicate
+THROUGH the session, not directly. The session:
 
+1. **Routes capability requests** — from WebView (via Tauri command IPC) to
+   the registered capability handler, and back.
+2. **Routes navigation intents** — from Tauri's `on_navigation` callback
+   through the handler chain to a `RouteDecision`.
+3. **Routes cache lookups** — from the execution contract step 3 (cache check)
+   through the `CacheManager`.
+4. **Scopes responses** — `PageIdentity` attached to every response ensures
+   results are delivered to the correct page.
+
+### E.2 — Page identity tracking
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    /// Increment the visit counter and update the active page.
+    /// Called after every navigation.
+    pub fn record_navigation(&self, route: &str) -> PageIdentity {
+        let visit_id = self.visit_counter.fetch_add(1, Ordering::SeqCst);
+        let identity = PageIdentity {
+            session_id: self.session_id,
+            route: route.to_string(),
+            visit_id,
+        };
+        *self.active_page.write().unwrap() = Some(identity.clone());
+        identity
+    }
+
+    /// Check if a capability request is from the currently active page.
+    /// Stale-page guard: requests from navigated-away pages are dropped.
+    pub fn is_active_page(&self, page: &PageIdentity) -> bool {
+        self.active_page.read().unwrap()
+            .as_ref()
+            .map_or(false, |active| active == page)
+    }
+}
+```
+
+---
+
+## Part F — Session API surface summary
+
+From [decision 03](../decisions/03-session-backbone-transport.md#what-tauri-already-provides-vs-what-we-build):
+
+```rust
+impl<R: Runtime> PlatformSession<R> {
+    // ── Lifecycle ─────────────────────────────────────────────────────
+    pub fn initialize(app_handle: AppHandle<R>) -> Self;
+    pub fn on_suspend(&self);
+    pub fn on_resume(&self);
+    pub fn on_shutdown(&self);
+    pub fn set_online(&self, online: bool);
+
+    // ── Route handlers ────────────────────────────────────────────────
+    pub fn register_handler(&self, handler: impl RouteHandler);
+    pub fn resolve_route(&self, intent: &NavigationIntent) -> RouteDecision;
+    pub fn intercept_navigation(&self, url: &Url) -> bool;
+
+    // ── Capability handlers ───────────────────────────────────────────
+    pub fn register_capability<C: Capability>(&self, capability: C);
+    pub fn invoke_capability(&self, request: &CapabilityRequest) -> CapabilityResponse;
+
+    // ── Page identity ─────────────────────────────────────────────────
+    pub fn record_navigation(&self, route: &str) -> PageIdentity;
+    pub fn is_active_page(&self, page: &PageIdentity) -> bool;
+    pub fn active_page(&self) -> Option<PageIdentity>;
+
+    // ── Cache ─────────────────────────────────────────────────────────
+    pub fn cache(&self) -> &CacheManager;
+
+    // ── App handle ────────────────────────────────────────────────────
+    pub fn app_handle(&self) -> &AppHandle<R>;
+}
+```
+
+---
+
+## Verification
+
+### Unit tests
 ```bash
-cargo check --package foundation_platform
 cargo test --package foundation_platform -- session
+```
+
+### Integration test: session lifecycle
+```rust
+#[test]
+fn session_initializes_with_valid_state() {
+    // Setup: create a minimal Tauri app context
+    // Call: PlatformSession::initialize(app_handle)
+    // Assert: session_id is non-zero, visit_counter is 0, online is true
+}
+
+#[test]
+fn handler_chain_resolves_first_match() {
+    // Setup: register handler A that matches /app/* → webview_app()
+    //        register handler B that matches /app/* → remote_fetch()
+    // Call: resolve_route(NavigationIntent { url: "/app/items", .. })
+    // Assert: returns webview_app() (handler A won, handler B never checked)
+}
+
+#[test]
+fn handler_chain_falls_through_to_default() {
+    // Setup: register handler that returns None for /remote/*
+    // Call: resolve_route(NavigationIntent { url: "/remote/dashboard", .. })
+    // Assert: returns platform default (UntrustedRemote + OnlineOnly)
+}
+
+#[test]
+fn visit_counter_increments_on_navigation() {
+    // Call: record_navigation("/app/home")
+    // Call: record_navigation("/app/items")
+    // Assert: visit_id increments, active_page updates
+}
+
+#[test]
+fn stale_page_guard_rejects_old_requests() {
+    // Setup: navigate to /app/home → page_identity with visit_id=1
+    //        navigate to /app/items → active_page now visit_id=2
+    // Call: is_active_page(&page_identity_from_visit_1)
+    // Assert: false (page is stale)
+}
+```
+
+### Test: lifecycle events fire
+```rust
+#[test]
+fn suspend_emits_background_event() { ... }
+#[test]
+fn resume_emits_foreground_event() { ... }
+#[test]
+fn connectivity_change_emits_online_offline() { ... }
+```
+
+### Test: Tauri integration
+```rust
+#[tauri::test]
+fn session_is_stored_in_tauri_state() {
+    // Build a minimal PlatformBuilder, access session via app.state()
+}
 ```

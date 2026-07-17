@@ -14,8 +14,8 @@ depends_on:
 
 tasks:
   completed: 0
-  uncompleted: 7
-  total: 7
+  uncompleted: 14
+  total: 14
   completion_percentage: 0%
 ---
 
@@ -23,37 +23,23 @@ tasks:
 
 ## Overview
 
-Implement the typed, permissioned, route-scoped capability registry.
-Capabilities are registered at build time, invoked through the session
-backbone at runtime, and gated by WebView profiles.
+Implement `Capability` trait, `#[platform_capability]` proc macro, and
+capability registry on `PlatformSession`. Capabilities are registered at
+build time and invoked at runtime through the session backbone with
+profile gating, per-route allowlisting, and stale-page guards.
 
-[Decision 07](../decisions/07-native-capability-contract.md) defines the
-`Capability` trait, `#[platform_capability]` proc macro, and registry.
+[Decision 07](../decisions/07-native-capability-contract.md).
 
-## Dependencies
+---
 
-Depends on:
-- `F01-session-backbone` — Registry lives on the session
-- `F04-webview-profiles` — Capabilities are profile-gated
-
-Required by:
-- `F08-walking-skeleton` — Capability calls in end-to-end tests
-
-## Requirements
-
-### 1. `Capability` trait
+## Part A — `Capability` trait
 
 ```rust
 // foundation_platform/src/capability.rs
 
 pub trait Capability: Send + Sync + 'static {
-    /// The capability's unique identifier (e.g., "camera", "biometric_auth")
-    fn id(&self) -> CapabilityId;
-
-    /// The minimum profile required to invoke this capability
+    fn id(&self) -> &CapabilityId;
     fn min_profile(&self) -> Profile;
-
-    /// Execute the capability with the given action and payload
     fn execute(
         &self,
         session: &PlatformSession,
@@ -63,108 +49,62 @@ pub trait Capability: Send + Sync + 'static {
 }
 ```
 
-### 2. `#[platform_capability]` proc macro
-
-Sugar for implementing the trait:
-
-```rust
-#[platform_capability(
-    permissions = ["camera", "microphone"],
-    profile = Profile::TrustedRemote
-)]
-struct MediaCapture {
-    #[native(ios = "MediaCaptureIOS", android = "MediaCaptureAndroid")]
-    native_impl: NativeBinding,
-}
-```
-
-Expands to:
-- `impl Capability for MediaCapture`
-- Registration code for the capability registry
-
-### 3. Capability registry on PlatformSession
+### A.2 — Registry
 
 ```rust
 impl<R: Runtime> PlatformSession<R> {
-    /// Register a capability handler
     pub fn register_capability<C: Capability>(&self, capability: C) {
-        self.capability_registry.insert(capability.id(), Box::new(capability));
+        self.capability_registry.write().unwrap()
+            .insert(capability.id().0.clone(), Box::new(capability));
     }
 
-    /// Invoke a capability — checks profile, route allowlist, OS permissions
-    pub fn invoke_capability(
-        &self,
-        request: &CapabilityRequest,
-    ) -> CapabilityResponse {
-        // 1. Profile-level gate
-        let profile = self.active_profile();
-        let capability = self.capability_registry.get(&request.capability)?;
-        if profile < capability.min_profile() {
-            return CapabilityResponse::denied("profile too low");
+    pub fn invoke_capability(&self, request: &CapabilityRequest) -> CapabilityResponse {
+        // 1. Stale-page guard
+        if !self.is_active_page(&request.page_identity) {
+            return CapabilityResponse { id: request.id.clone(), page_identity: request.page_identity.clone(), status: Err("stale page".into()) };
         }
-
-        // 2. Per-route allowlist gate
-        let route_decision = self.current_route_decision();
-        if !route_decision.capabilities.contains(&capability.id()) {
-            return CapabilityResponse::denied("not allowed on this route");
+        // 2. Look up handler
+        let registry = self.capability_registry.read().unwrap();
+        let handler = match registry.get(&request.capability) {
+            Some(h) => h,
+            None => return CapabilityResponse { id: request.id.clone(), page_identity: request.page_identity.clone(), status: Err(format!("unknown: {}", request.capability)) },
+        };
+        // 3. Profile gate
+        if let Err(e) = self.profile_gate().check(Service::NativeApi, Access::Execute) {
+            return CapabilityResponse { id: request.id.clone(), page_identity: request.page_identity.clone(), status: Err(e.to_string()) };
         }
-
-        // 3. Execute
-        capability.execute(self, &request.action, request.payload.clone())
+        // 4. Per-route allowlist gate
+        let route = self.current_route_decision();
+        if let Some(decision) = route {
+            if !decision.capabilities.is_empty() && !decision.capabilities.contains(handler.id()) {
+                return CapabilityResponse { id: request.id.clone(), page_identity: request.page_identity.clone(), status: Err("not allowed on this route".into()) };
+            }
+        }
+        // 5. Execute
+        CapabilityResponse { id: request.id.clone(), page_identity: request.page_identity.clone(), status: handler.execute(self, &request.action, request.payload.clone()) }
     }
 }
 ```
 
-### 4. Capability request/response flow
+### A.3 — `#[platform_capability]` proc macro
 
-```
-WebView capability request
-  → CapabilityRequest { id, page_identity, capability, action, payload }
-    → Session backbone routes to registered handler
-      → Handler executes (pure Rust, Tauri plugin, or native bridge)
-        → CapabilityResponse { id, page_identity, status, payload_or_error }
-          → Session delivers to the WebView scoped to the requesting page
-            → foundation_wasm_ui runtime receives as structured event/signal
-              → UI updates
+```rust
+// foundation_macros — expands to impl Capability + registration code
+#[platform_capability(permissions = ["camera"], profile = Profile::TrustedRemote)]
+struct CameraCapability { ... }
 ```
 
-### 5. Safety guards
+### A.4 — 5-layer defense
 
-- **Stale-page guard:** `CapabilityRequest` carries `PageIdentity`. Session
-  verifies the requesting page is still active before delivering response.
-- **OS permission mediation:** Even if platform allows, OS may deny.
-- **Per-route allowlisting:** `RouteDecision.capabilities` lists allowed caps.
+1. Profile-level gate — is this profile allowed to use native APIs?
+2. Capability registration gate — is the capability registered?
+3. Per-route allowlist — is it in `RouteDecision.capabilities`?
+4. OS permission gate — has the user granted the OS permission?
+5. Stale-page guard — is the requesting page still active?
 
-## Tasks
+---
 
-### Capability trait
-- [ ] Define `Capability` trait with `id()`, `min_profile()`, `execute()`
-- [ ] Define `CapabilityId` newtype
-- [ ] Define `CapabilityError` type
-
-### Proc macro
-- [ ] Implement `#[platform_capability]` proc macro in foundation_macros
-- [ ] Generate `impl Capability` from annotated struct
-- [ ] Support `#[native(ios = "...", android = "...")]` for native bridges
-- [ ] Support `#[mock(impl = "...")]` for test mocks
-
-### Registry
-- [ ] Add `capability_registry: HashMap<CapabilityId, Box<dyn Capability>>` to session
-- [ ] Implement `register_capability()` and `invoke_capability()`
-- [ ] Implement profile-level gate check
-- [ ] Implement per-route allowlist gate check
-- [ ] Implement stale-page guard
-
-### Wire format
-- [ ] Capability requests use `CapabilityRequest`/`CapabilityResponse` from foundation_ui_traits
-- [ ] Responses scoped to requesting page identity
-- [ ] Test: request from navigated-away page is dropped
-
-### Native bridge stub (post-MVP surface)
-- [ ] Define `NativeBinding` type for platform-specific implementations
-- [ ] Document Swift/Kotlin bridge interface (implementation post-MVP)
-
-## Verification Commands
+## Verification
 
 ```bash
 cargo test --package foundation_platform -- capability

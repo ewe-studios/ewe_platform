@@ -13,8 +13,8 @@ depends_on:
 
 tasks:
   completed: 0
-  uncompleted: 5
-  total: 5
+  uncompleted: 12
+  total: 12
   completion_percentage: 0%
 ---
 
@@ -22,147 +22,171 @@ tasks:
 
 ## Overview
 
-Implement five WebView profiles that gate access to platform services at
-runtime. Profiles are assigned per-route in `RouteDecision.profile` and
-enforced by the session backbone. Every platform service call checks the
-active profile before executing.
+Implement runtime enforcement of five WebView profiles that gate access to
+platform services. Profiles are assigned per-route in `RouteDecision.profile`
+and enforced by `ProfileGate::check(service, access)`. Every platform service
+call checks the active profile before executing.
 
-[Decision 06](../decisions/06-webview-profiles.md) defines the profile
-taxonomy and access gates.
+[Decision 06](../decisions/06-webview-profiles.md) defines the full profile
+taxonomy and per-service access matrix.
 
-## Dependencies
+---
 
-Depends on:
-- `F00-crate-skeleton` — Uses `Profile` enum from `foundation_ui_traits`
+## Part A — ProfileGate
 
-Required by:
-- `F05-capability-registry` — Capabilities are profile-gated
-- `F08-walking-skeleton` — Profiles enforced at runtime
-
-## Requirements
-
-### 1. Profile taxonomy
-
-Five profiles from [decision 06](../decisions/06-webview-profiles.md):
-
-```rust
-enum Profile {
-    App,              // Bundled local WASM — full platform access
-    TrustedRemote,    // App's own backend, authenticated — scoped access
-    UntrustedRemote,  // Third-party content — sandboxed, no platform access
-    Auth,             // Login screens, OAuth flows — elevated isolation
-    Devtools,         // Debug panels — full access, stripped in production
-}
-```
-
-### 2. Access gate enforcement
-
-Every platform service checks the profile before executing:
+### A.1 — Service and Access enums
 
 ```rust
 // foundation_platform/src/profiles.rs
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Service {
+    Database,
+    Auth,
+    NativeApi,
+    Http,
+    Arrow,
+    Signals,
+    TauriCommand,
+    TauriEvent,
+    CustomProtocol,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Access {
+    Read,
+    Write,
+    Execute,
+}
+```
+
+### A.2 — ProfileGate::check()
+
+```rust
 pub struct ProfileGate {
-    current_profile: Profile,
+    profile: Profile,
 }
 
 impl ProfileGate {
+    pub fn new(profile: Profile) -> Self {
+        Self { profile }
+    }
+
     pub fn check(&self, service: Service, access: Access) -> Result<(), ProfileError> {
-        match (self.current_profile, service, access) {
-            // App: everything allowed
-            (Profile::App, _, _) => Ok(()),
+        use Access::*;
+        use Profile::*;
+        use Service::*;
 
-            // TrustedRemote: read-only DB, allowed capabilities, allowed origins
-            (Profile::TrustedRemote, Service::Database, Access::Read) => Ok(()),
-            (Profile::TrustedRemote, Service::Database, Access::Write) => {
-                Err(ProfileError::AccessDenied)
-            }
-            (Profile::TrustedRemote, Service::NativeAPI, _) => {
-                // Per-route capability allowlist checked separately
-                Ok(())
-            }
+        match self.profile {
+            App => Ok(()), // everything allowed
 
-            // UntrustedRemote: nothing except same-origin fetch
-            (Profile::UntrustedRemote, Service::Http, Access::Read) => {
-                // Same-origin only — enforced at call site
-                Ok(())
-            }
-            (Profile::UntrustedRemote, _, _) => Err(ProfileError::AccessDenied),
+            TrustedRemote => match (service, access) {
+                (Database, Read) => Ok(()),
+                (Database, Write) => Err(ProfileError::AccessDenied),
+                (Auth, Read) => Ok(()),
+                (NativeApi, Execute) => Ok(()), // per-route allowlist checked separately
+                (Http, Read) => Ok(()), // allowed origins checked at call site
+                (Arrow, Read) => Ok(()),
+                (Signals, Read) => Ok(()),
+                (TauriCommand, Execute) => Ok(()), // allowlisted subset
+                _ => Err(ProfileError::AccessDenied),
+            },
 
-            // Auth: login/logout/refresh only
-            (Profile::Auth, Service::Auth, _) => Ok(()),
-            (Profile::Auth, Service::NativeAPI, Access::Biometric) => Ok(()),
-            (Profile::Auth, _, _) => Err(ProfileError::AccessDenied),
+            UntrustedRemote => match (service, access) {
+                (Http, Read) => Ok(()), // same-origin only, enforced at call site
+                _ => Err(ProfileError::AccessDenied),
+            },
 
-            // Devtools: everything, debug only
-            (Profile::Devtools, _, _) => {
+            Auth => match (service, access) {
+                (Auth, _) => Ok(()),
+                (NativeApi, Execute) => Ok(()), // biometric only
+                (Http, Read) => Ok(()), // auth provider origin only
+                _ => Err(ProfileError::AccessDenied),
+            },
+
+            Devtools => {
                 #[cfg(debug_assertions)] { Ok(()) }
                 #[cfg(not(debug_assertions))] { Err(ProfileError::StrippedInProduction) }
             }
         }
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum ProfileError {
+    #[error("access denied for profile")]
+    AccessDenied,
+    #[error("devtools profile stripped in production")]
+    StrippedInProduction,
+}
 ```
 
-### 3. Profile assignment
-
-Route handlers assign profiles:
+### A.3 — Integration with platform services
 
 ```rust
-session.route("/app/*", RouteDecision::webview_app()
-    .with_profile(Profile::App));
+impl DatabaseHandle {
+    pub fn query(&self, session: &PlatformSession, sql: &str) -> Result<Rows> {
+        session.profile_gate().check(Service::Database, Access::Read)?;
+        self.inner.query(sql)
+    }
+}
 
-session.route("/remote/content/*", RouteDecision::remote_fetch()
-    .with_profile(Profile::TrustedRemote)
-    .with_allowed_capabilities(&[CapabilityId::camera]));
-
-session.route("/remote/embed/*", RouteDecision::remote_fetch()
-    .with_profile(Profile::UntrustedRemote));
+impl AuthManager {
+    pub fn get_token(&self, session: &PlatformSession) -> Result<AuthToken> {
+        session.profile_gate().check(Service::Auth, Access::Read)?;
+        self.inner.get_scoped_token(&session.route_identity())
+    }
+}
 ```
 
-### 4. Default profile assignment
+---
 
-| Route source | Default profile |
-|---|---|
-| Bundled WASM / local content | `App` |
-| Remote, same origin as configured backend | `TrustedRemote` |
-| Remote, different origin | `UntrustedRemote` |
-| Auth path (`/auth/*` or configured) | `Auth` |
+## Part B — Profile assignment
 
-### 5. Cross-profile isolation
+### B.1 — Default profile by RouteSource
 
-- Separate cookie jars per profile
-- Separate LocalStorage/SessionStorage per profile
-- Capability requests carry profile identity
-- Content from different profiles renders in separate WebView contexts
+```rust
+impl RouteSource {
+    pub fn default_profile(&self) -> Profile {
+        match self {
+            RouteSource::WebviewApp => Profile::App,
+            RouteSource::IpcShell => Profile::TrustedRemote,
+            RouteSource::RemoteServer => Profile::TrustedRemote,
+        }
+    }
+}
+```
 
-## Tasks
+### B.2 — `RouteDecision` with profile
 
-### Profile gate
-- [ ] Implement `ProfileGate` struct with `check()` method
-- [ ] Define `Service` enum (Database, Auth, NativeAPI, Http, Arrow, Signals)
-- [ ] Define `Access` enum (Read, Write, Execute)
-- [ ] Implement full access matrix for all 5 profiles
-- [ ] Test: App profile → all services allowed
-- [ ] Test: UntrustedRemote → all services denied
-- [ ] Test: TrustedRemote → DB read allowed, DB write denied
+```rust
+impl PlatformSession<R> {
+    /// Get the active profile for the current route.
+    /// If the route decision has an explicit profile, use it.
+    /// Otherwise, fall back to the default for the route source.
+    pub fn active_profile(&self) -> Profile {
+        self.current_route_decision()
+            .map(|d| d.profile)
+            .unwrap_or(Profile::UntrustedRemote) // safest default
+    }
 
-### Profile assignment
-- [ ] Add `with_profile()` builder to `RouteDecision`
-- [ ] Implement default profile assignment by RouteSource
-- [ ] Test: route without explicit profile gets correct default
+    pub fn profile_gate(&self) -> ProfileGate {
+        ProfileGate::new(self.active_profile())
+    }
+}
+```
 
-### Cross-profile isolation
-- [ ] Implement separate cookie jars per profile (via Tauri WebView contexts)
-- [ ] Tag capability requests with profile identity
-- [ ] Profile-gate cache lookups (untrustedRemote can't read app cache)
+---
 
-### Production stripping
-- [ ] Gate `Devtools` profile behind `#[cfg(debug_assertions)]`
-- [ ] Test: devtools routes are inaccessible in release builds
-
-## Verification Commands
+## Verification
 
 ```bash
 cargo test --package foundation_platform -- profiles
 ```
+
+Tests:
+- App profile → all services allowed
+- UntrustedRemote → all services denied except same-origin HTTP
+- TrustedRemote → DB read allowed, DB write denied
+- Auth → only Auth + biometric NativeApi allowed
+- Devtools → full access in debug, stripped in release
