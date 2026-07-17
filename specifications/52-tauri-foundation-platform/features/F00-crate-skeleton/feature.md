@@ -4,17 +4,17 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F00-crate-skeleton"
 this_file: "specifications/52-tauri-foundation-platform/features/F00-crate-skeleton/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-17
 
 depends_on: []
 
 tasks:
-  completed: 0
-  uncompleted: 22
+  completed: 22
+  uncompleted: 0
   total: 22
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F00 — Crate scaffold and all shared types
