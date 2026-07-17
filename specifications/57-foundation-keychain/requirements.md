@@ -135,16 +135,12 @@ foundation_keychain/
 │   │       ├── sync.rs
 │   │       ├── two_factor.rs
 │   │       └── web.rs
-│   ├── cloudflare/               # WASM backend (gated: feature = "backend-cloudflare")
-│   │   ├── mod.rs
-│   │   └── crypto.rs             # Web Crypto → PBKDF2/RSA/SHA256 (maps onto foundation_auth JwtSigningKey interface)
-│   ├── native/                   # Native backend (gated: feature = "backend-native")
-│   │   ├── mod.rs
-│   │   └── crypto.rs             # foundation_auth JwtSigningKey → PBKDF2 via native crypto
-│   └── server/                   # Server bootstrap (gated per backend)
-│       ├── mod.rs
-│       ├── cloudflare.rs         # #[event(fetch)] + workers-rs Router wired to api/
-│       └── native.rs             # foundation_http server wired to api/
+│   ├── server/                   # Target-gated: wasm → Workers, native → foundation_http
+│   │   ├── cloudflare.rs         # #[cfg(target_family = "wasm")] #[event(fetch)] + workers-rs Router
+│   │   └── native.rs             # #[cfg(not(target_family = "wasm"))] foundation_http + tokio
+│   └── notifications/            # Target-gated transport
+│       ├── cloudflare.rs         # #[cfg(target_family = "wasm")] Durable Object
+│       └── native.rs             # #[cfg(not(target_family = "wasm"))] foundation_netio WebSocket
 ├── tests/
 │   └── integration/
 │       ├── auth.test.rs
@@ -157,16 +153,13 @@ foundation_keychain/
 
 ## Cargo.toml
 
+No `backend-*` features. Target gates handle everything:
+
 ```toml
 [package]
 name = "foundation_keychain"
 version = "0.1.0"
 edition = "2024"
-
-[features]
-default = []
-backend-cloudflare = ["dep:worker", "dep:worker-macros", "dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_auth/wasm-bindgen-session", "foundation_db/wasm-bindgen-storage"]
-backend-native = ["dep:foundation_http", "dep:foundation_db", "dep:foundation_auth", "dep:tokio", "foundation_auth/server"]
 
 [dependencies]
 # Core (always)
@@ -182,29 +175,34 @@ tracing = "0.1"
 async-trait = "0.1"
 futures-lite = "2"
 
-# foundation_db for ALL storage (QueryStore, KeyValueStore, BlobStore, RateLimiterStore, StorageProvider)
-foundation_db = { path = "../foundation_db", features = [] }
+# foundation_db for ALL storage (QueryStore, KeyValueStore, BlobStore, RateLimiterStore)
+foundation_db = { path = "../foundation_db" }
 
-# foundation_auth for JWT, TOTP, middleware, credential stores
+# foundation_auth for JWT, TOTP, PBKDF2, middleware, credential stores
 foundation_auth = { path = "../foundation_auth" }
 
-# foundation_http for native HTTP server
-foundation_http = { path = "../foundation_http", optional = true }
+# WASM deps (Cloudflare Workers)
+[target.'cfg(target_family = "wasm")'.dependencies]
+worker = { version = "0.8", features = ["d1"] }
+worker-macros = "0.8"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Crypto", "SubtleCrypto"] }
+js-sys = "0.3"
+foundation_db = { path = "../foundation_db", features = ["wasm-bindgen-storage"] }
+foundation_auth = { path = "../foundation_auth", features = ["wasm-bindgen-session", "wasm-pbkdf2"] }
 
-# foundation_netio for native WebSocket notifications
-foundation_netio = { path = "../foundation_netio", optional = true }
-
-# Cloudflare backend (wasm32-unknown-unknown)
-worker = { version = "0.8", features = ["d1"], optional = true }
-worker-macros = { version = "0.8", optional = true }
-wasm-bindgen = { version = "0.2", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
-web-sys = { version = "0.3", features = ["Crypto", "SubtleCrypto"], optional = true }
-js-sys = { version = "0.3", optional = true }
-
-# Native backend
-tokio = { version = "1", features = ["full"], optional = true }
+# Native deps (Docker/VPS)
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_http = { path = "../foundation_http" }
+foundation_netio = { path = "../foundation_netio" }
+foundation_auth = { path = "../foundation_auth", features = ["server"] }
+tokio = { version = "1", features = ["full"] }
 ```
+
+Build for the target, get the right backend. No feature flags needed:
+- `cargo build --target wasm32-unknown-unknown` → Workers
+- `cargo build` → native
 
 ## Backend Selection
 

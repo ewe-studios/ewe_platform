@@ -90,7 +90,10 @@ pub enum UpdateType {
 
 ### 4. Auth Adapters (Bitwarden-specific over foundation_auth)
 
-**`core/auth/bitwarden_claims.rs`** — Map Bitwarden claims onto `foundation_auth::shared::jwt::VerifiedClaims`:
+All crypto comes from `foundation_auth` — no crypto code in keychain:
+- `foundation_auth::shared::jwt::JwtSigningKey` — JWT signing/verification
+- `foundation_auth::shared::pbkdf2::{pbkdf2_derive, pbkdf2_verify, SERVER_PASSWORD_ITERATIONS}` — password verification
+- `foundation_auth::shared::two_factor::TOTPSecret` — TOTP generation/verification
 ```rust
 /// Bitwarden-specific claims added to the JWT's `custom` map.
 pub struct BitwardenClaims<'a> {
