@@ -4506,6 +4506,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "foundation_core",
+ "foundation_db",
  "foundation_deployment",
  "foundation_macros",
  "foundation_netio",

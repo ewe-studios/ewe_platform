@@ -8,6 +8,10 @@ workspace = true
 [dependencies.derive_more]
 workspace = true
 
+[dependencies.foundation_db]
+path = "../foundation_db"
+version = "0.0.1"
+
 [dependencies.foundation_core]
 path = "../foundation_core"
 version = "0.0.3"

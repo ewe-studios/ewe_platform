@@ -23,10 +23,12 @@
 //! republish fails loudly rather than silently changing our types.
 
 pub mod client;
+pub mod deployable;
 pub mod server_ops;
 pub mod types;
 // The generated API surface — six of Hetzner's 151 endpoints.
 pub mod generated;
 
 pub use client::{HetznerClient, API_VERSION, VENDOR_VARS};
+pub use deployable::{HetznerServer, ServerDeployOutput};
 pub use types::{CreateServerRequest, HetznerError, Server, ServerStatus, SshKey};
