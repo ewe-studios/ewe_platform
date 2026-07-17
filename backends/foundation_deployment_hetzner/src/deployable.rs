@@ -617,7 +617,6 @@ impl Deployable for HetznerServer {
 #[cfg(test)]
 mod tests {
     use super::{label_value, HetznerServer, IDENTITY_LABEL};
-    use foundation_deployment::traits::Deployable;
 
     /// `label_value` is private; this belongs here rather than in `tests/`.
     #[test]

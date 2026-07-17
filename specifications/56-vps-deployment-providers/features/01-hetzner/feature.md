@@ -105,6 +105,31 @@ hardening-before-first-boot possible on this provider.
   **The first one found a bug within seconds**, and the round-trip found three
   more — see below. That is the whole argument for running them.
 
+#### Where confidence comes from — **resolved** (owner, 2026-07-17)
+
+> *"for something like this, we should have confidence by integration tests, since
+> it's actually exercising the API of a provider which is the whole point of the
+> crate."*
+
+So the rule for every provider crate in this spec:
+
+| Test kind | What belongs there |
+|---|---|
+| **live** (`live_tests.rs`) | anything the vendor **can be asked to do** — create, destroy, create-or-find, 401, 404, enumeration. `#[ignore]`d, skips without a token |
+| **mock** | only faults the vendor **will not produce on demand**: an unreadable 201, a 429 with a chosen reset, a server that settles `off`, `await_running`'s poll loop, what we *send* |
+| **unit** | pure functions — credential order, the label grammar |
+
+**11 mock tests were deleted** as duplicative: first deploy, create-or-find,
+destroy, instance ids, the 401, the 404, the name filter, reading an IP out of
+`public_net`. The live lifecycle proves every one of them on a real machine for a
+fraction of a cent. Balance now: **7 live, 17 mock (all fault-injection), 6 unit**.
+
+**One test, one server, one create per run.** Three tests each creating their own
+box is indistinguishable from abuse on someone's real account (owner: *"stop
+spamming hetzner with so many create then delete requests, it will trip alerts"*).
+The orphan case needs no second machine either — deleting the state file
+reproduces exactly what an unreadable create leaves behind.
+
 #### Mocks earned nothing here — the score, honestly
 
 | Source | Bugs found |

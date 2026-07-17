@@ -134,51 +134,7 @@ fn ssh_keys_json(keys: &[(i64, &str, &str)]) -> String {
     serde_json::to_string(&response).expect("a generated type serializes")
 }
 
-/// A single-ssh-key (create) response.
-fn ssh_key_json(id: i64, name: &str, fingerprint: &str) -> String {
-    use foundation_deployment_hetzner::generated::ssh_keys::{
-        CreateSshKeyResponse, CreateSshKeyResponseSshKey,
-    };
 
-    let response = CreateSshKeyResponse {
-        ssh_key: CreateSshKeyResponseSshKey {
-            id,
-            name: name.to_string(),
-            fingerprint: fingerprint.to_string(),
-            ..Default::default()
-        },
-    };
-    serde_json::to_string(&response).expect("a generated type serializes")
-}
-
-/// A list-servers response.
-fn servers_list_json(servers: &[(i64, &str, &str, &str)]) -> String {
-    use foundation_deployment_hetzner::generated::servers::{
-        ListServersResponse, ListServersResponseServersItem,
-        ListServersResponseServersItemPublicNet, ListServersResponseServersItemPublicNetIpv4,
-    };
-
-    let response = ListServersResponse {
-        servers: servers
-            .iter()
-            .map(|(id, name, status, ip)| ListServersResponseServersItem {
-                id: *id,
-                name: (*name).to_string(),
-                status: (*status).to_string(),
-                public_net: ListServersResponseServersItemPublicNet {
-                    ipv4: Some(ListServersResponseServersItemPublicNetIpv4 {
-                        ip: (*ip).to_string(),
-                        ..Default::default()
-                    }),
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .collect(),
-        ..Default::default()
-    };
-    serde_json::to_string(&response).expect("a generated type serializes")
-}
 
 fn client_for(server: &TestHttpServer) -> HetznerClient {
     // Inject the token rather than exporting it: std::env is process-global and
