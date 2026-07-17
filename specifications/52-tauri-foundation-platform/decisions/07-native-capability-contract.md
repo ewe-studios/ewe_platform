@@ -1,4 +1,4 @@
-# 18 — Native capability contract: Rust API for declaring and registering capabilities
+# 07 — Native capability contract: Rust API for declaring and registering capabilities
 
 **Date:** 2026-07-04
 **Status:** Resolved
@@ -84,7 +84,7 @@ struct Camera { ... }
 | **Share sheet** | Native share dialog | Native bridge. |
 | **Secure storage** | Keychain, Keystore | Tauri plugin + native bridge for advanced cases. |
 | **Deep links** | URL scheme handling | Platform shell owns; routes through session backbone. |
-| **Background tasks** | Periodic fetch, sync | `#[platform_worker]` + OS-specific APIs. |
+| **Background tasks** | Periodic fetch, sync | `#[platform_worker]` ([decision 04](04-deployment-surfaces.md), [decision 11](11-background-workers.md)) + OS-specific APIs. Background data sync uses the mutation queue ([decision 12](12-mutation-queue-and-conflict.md)). |
 | **App controls** | Window management, menus, dock icon | Tauri primitives (no capability abstraction needed). |
 | **Platform sensors** | Accelerometer, gyroscope, GPS | Tauri plugin or native bridge. |
 

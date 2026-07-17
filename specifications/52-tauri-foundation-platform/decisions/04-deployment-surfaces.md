@@ -274,7 +274,7 @@ in the same process.
 ```
 User native code (.a/.so)
   │ FFI (direct function calls)
-  │ Arrow IPC (pointer + length, same address space)
+  │ Arrow binary (pointer + length, same address space)
   ▼
 Native shell (same process)
   │ Tauri AppHandle
@@ -456,7 +456,7 @@ This surface is the closest analogue to Basecamp's Hotwire Native model:
 server-rendered HTML, Turbo-powered navigation, native shell wraps the web
 content. Our model extends it with:
 - Protocol choice (DomOps, Arrow, HTML — not just HTML)
-- Route-level granularity (some routes remote, some local WASM, some cached)
+- Route-level granularity (some routes WebviewApp, some ipc_shell, some cached)
 - Auth token isolation (tokens never in JS context)
 - Transport lane abstraction (HTTP, SSE, WS — not just page loads)
 
@@ -716,7 +716,8 @@ fn backend_service(req: PlatformRequest, session: PlatformSession) -> PlatformRe
 ```
 
 The shell starts an in-process router. Full details in
-[decision 12](12-in-process-services.md).
+[Platform-side annotations](#platform-side-annotations-generated-for-the-native-shell) above.
+For long-running foreground services, see [decision 11](11-background-workers.md).
 
 ### Code generation pipeline
 

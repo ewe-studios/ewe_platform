@@ -195,7 +195,8 @@ These types are Tauri-specific or platform-implementation-specific:
 | `UriSchemeProtocol` adapter | Tauri-specific `ewe://` transport layer. |
 | `PlatformBuilder` | Wraps `tauri::Builder`, registers hooks, protocols, commands. |
 | `PlatformBundleGenerator` | Build tool that targets Tauri's packaging pipeline. |
-| Proc macros | `#[platform_bin]`, `#[platform_worker]`, `#[platform_service]`, `#[platform_capability]`. Generate platform-specific entrypoints. |
+| Source parser | `#[platform_bin]` — source scanner (like `CrateScanner`) that discovers all annotations in the user's crate and triggers code generation. NOT a proc macro. |
+| Proc macros | `#[platform_worker]`, `#[platform_service]`, `#[platform_capability]`. Generate platform-specific entrypoints. |
 | Tauri command wrappers, event adapters, plugin integrations | All platform implementation. |
 
 ---
@@ -245,8 +246,10 @@ for remote fetch, SSE, and WebSocket connections.
 ### `foundation_macros` (existing)
 
 All proc macros and derive macros. Per project convention, macros go here, not
-in companion `*_macros` crates. The platform's entrypoint macros
-(`#[platform_bin]`, etc.) live here.
+in companion `*_macros` crates. Platform entrypoint macros
+(`#[platform_worker]`, `#[platform_capability]`, etc.) live here.
+`#[platform_bin]` is a source parser (not a proc macro) and lives in
+`foundation_platform`'s build pipeline.
 
 ---
 

@@ -1,4 +1,4 @@
-# 19 — Remote UI security: capability mediation layer + red team
+# 08 — Remote UI security: capability mediation layer + red team
 
 **Date:** 2026-07-04
 **Status:** Resolved

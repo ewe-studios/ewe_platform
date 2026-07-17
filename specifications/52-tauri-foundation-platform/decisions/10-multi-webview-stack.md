@@ -1,4 +1,4 @@
-# 21 — Multi-WebView native-stack simulation: screenshot-swap + background preload
+# 10 — Multi-WebView native-stack simulation: screenshot-swap + background preload
 
 **Date:** 2026-07-04
 **Status:** Resolved
@@ -12,8 +12,10 @@ against `Session.swift`, `Visit.swift`, `ColdBootVisit.swift`,
 `JavaScriptVisit.swift`), but extended for Tauri's multi-WebView capabilities
 and the platform's multi-protocol rendering model.
 
-This is v1. The session backbone is designed for multiple WebView contexts from
-the start. Single-WebView is the default; multi-WebView is always available.
+This is v1. The session backbone is designed to support both single-WebView
+(shared) and multi-WebView (pooled) models through the `ScreenSlot` abstraction.
+Single-WebView is the v1 default; multi-WebView is desktop+unstable only
+(`Window::add_child` is gated behind `#[cfg(all(desktop, feature = "unstable"))]`).
 
 ### What Basecamp does (what we learn from)
 
@@ -397,11 +399,11 @@ session.on_navigate(|intent, session| {
 
 | Aspect | Basecamp | foundation_platform |
 |---|---|---|
-| WebViews | 1 per Session (shared) | Multiple child WebViews (pool + preload + active) |
+| WebViews | 1 per Session (shared) | v1: single shared WebView + screenshots (Basecamp model). Multi-WebView pool is desktop+unstable only. |
 | Screenshot lifecycle | Manual (`cacheSnapshot`, `clearSnapshotCache`) | Automatic (captured on deactivation, evicted on memory pressure) |
-| Preloading | No (loads on demand) | Yes (predictive + explicit) |
-| Pooling | No (single WebView reused by moving) | Yes (WebView pool with TTL and size limits) |
+| Preloading | No (loads on demand) | Yes — screenshots give instant back navigation, like Basecamp. WebView preloading (background load of next screen) is desktop+unstable only. |
+| Pooling | No (single WebView reused by moving) | v1: single shared WebView (like Basecamp). Pool of child WebViews is desktop+unstable only. |
 | Stale detection | Manual (`markContentAsStale`, `markSnapshotCacheAsStale`) | Automatic (page identity change, server invalidation event) |
 | Platform | UIKit/Android fragments | Tauri (cross-platform, single Rust API) |
-| Multi-window | UINavigationController manages stack | Tauri `WebviewWindow` + child WebViews |
-| Render modes | HTML only (Turbo) | Any protocol (HTML, DomOps, Arrow IPC) through rendering lane |
+| Multi-window | UINavigationController manages stack | Tauri `WebviewWindow` + `ScreenSlot` (WebView or native view per slot) |
+| View kind | HTML only (Turbo) | `WebView` (any protocol — HTML, DomOps, Arrow/ArrowIpc) or `Native` (SwiftUI/Jetpack Compose) through the rendering lane |

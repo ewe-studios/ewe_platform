@@ -1,4 +1,4 @@
-# 14 — WebView profiles: trust boundaries and platform service access
+# 06 — WebView profiles: trust boundaries and platform service access
 
 **Date:** 2026-07-04
 **Status:** Resolved
@@ -31,7 +31,7 @@ handler and enforced by the platform at runtime.
 | `foundation_auth` | Full — `AuthManager`, credential store, token management, session credentials. |
 | `foundation_nativeapis` | Full — IPC channels, native watchers, platform APIs. All Tauri plugins. |
 | `foundation_http` | Full — custom protocol, fetch, SSE, WebSocket. All origins controlled by route policy. |
-| `foundation_arrow` | Full — Arrow IPC encode/decode, zero-copy data lanes. |
+| `foundation_arrow` | Full — Arrow/ArrowIpc encode/decode, zero-copy data lanes. |
 | `foundation_signals` | Full — reactive signals, template expansion. |
 | Tauri commands | All registered commands accessible. |
 | Tauri events | Full emit/listen. |
@@ -48,7 +48,7 @@ handler and enforced by the platform at runtime.
 | `foundation_auth` | Can request auth-protected resources. Cannot access raw credential store. Token attachment handled by shell, not by remote content. |
 | `foundation_nativeapis` | Selected capabilities only — those explicitly allowed by local policy. No IPC channel creation. |
 | `foundation_http` | Can fetch from allowed origins (configured per-route). SSE/WS to the app's own backend. Custom protocol read-only. |
-| `foundation_arrow` | Can receive Arrow IPC (read). Cannot initiate Arrow encode/decode through native lanes. |
+| `foundation_arrow` | Can receive Arrow/ArrowIpc (read). Cannot initiate encode/decode through native lanes. |
 | `foundation_signals` | Can receive signal updates from the backend. Cannot create new signal graphs. |
 | Tauri commands | Allowlisted subset — only commands explicitly permitted for this route. |
 | Tauri events | Can listen for scoped events (this route's updates). Cannot emit to other routes. |

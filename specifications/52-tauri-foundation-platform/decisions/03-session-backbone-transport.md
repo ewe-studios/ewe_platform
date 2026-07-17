@@ -739,7 +739,7 @@ provide.
 
 **Both sides are peers.** The web-side session and native-side session are the
 same coordination graph. A user action on the web side flows into the session;
-the session decides (local WASM, cached replay, IPC, remote fetch, native
+the session decides (WebviewApp, cached replay, IPC, remote fetch, native
 stack push); the result flows back through the rendering lane.
 
 ### What the shell owns

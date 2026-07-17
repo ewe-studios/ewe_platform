@@ -144,9 +144,14 @@ Online (reconnected)
   └── Non-retryable error → replay stops, error surfaced
 ```
 
-Replay is triggered by connectivity restore events from the session backbone.
+Replay is triggered by connectivity restore events from the session backbone
+([decision 03](03-session-backbone-transport.md)).
 The worker ([decision 11](11-background-workers.md)) handles the actual replay
 execution — the queue is passive storage; the worker is the active driver.
+
+Queue storage uses `foundation_db`'s SQLite backend with WAL journaling — the
+same database infrastructure used by the cache ([decision 05](05-offline-and-sync.md)).
+Durability is inherent: SQLite WAL survives app kill.
 
 ---
 

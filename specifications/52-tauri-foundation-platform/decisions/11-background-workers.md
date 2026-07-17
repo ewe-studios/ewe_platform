@@ -12,7 +12,8 @@ differ. `#[platform_service]` provides longer-running in-process services where
 the platform allows it (Android foreground services, desktop daemons).
 
 This was split from [decision 05](05-offline-and-sync.md) — offline cache
-tiers are a separate concern.
+tiers are a separate concern. Workers drive mutation queue replay; see
+[decision 12](12-mutation-queue-and-conflict.md) for the queue itself.
 
 ## Table of Contents
 

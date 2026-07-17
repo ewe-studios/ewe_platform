@@ -1,4 +1,4 @@
-# 20 — Testing strategy: macro-driven test harness, browser + device coverage
+# 09 — Testing strategy: macro-driven test harness, browser + device coverage
 
 **Date:** 2026-07-04
 **Status:** Resolved
@@ -141,7 +141,7 @@ impl PlatformTestSession {
 a real browser. This is fast — like a unit test. It covers:
 
 - Route handler chain execution (in-process session)
-- Protocol encoding/decoding (DomOps, Arrow IPC, JSON, HTML through the
+- Protocol encoding/decoding (DomOps, Arrow/ArrowIpc, JSON, HTML through the
   `UriSchemeProtocol` handler)
 - Cache store/retrieve/invalidate (in-process SQLite)
 - Capability registry and permission checks (without actual device hardware)
@@ -210,6 +210,8 @@ platform tests.
 | Session lifecycle | 100% state transition | In-process |
 | Stale-page guards | 100% edge case | In-process |
 | Custom protocol pipeline | 100% request/response | In-process |
+| Mutation queue | 100% branch | In-process |
+| Background workers | Key scenarios | In-process |
 | DOM rendering | Key scenarios | Browser |
 | JS runtime behavior | Key scenarios | Browser |
 | Mobile lifecycle | Key scenarios | Android/iOS |

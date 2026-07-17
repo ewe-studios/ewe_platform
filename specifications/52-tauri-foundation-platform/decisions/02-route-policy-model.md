@@ -106,7 +106,7 @@ impl RouteHandler for MyAppRouter {
         let user = self.auth.current_user(session)?;
 
         if intent.url.path().starts_with("/app/") {
-            // Local WASM renders the app shell.
+            // WebviewApp renders the app shell.
             Some(RouteDecision::webview_app()
                 .with_profile(Profile::App))
         } else if intent.url.path().starts_with("/remote/") {
@@ -410,7 +410,7 @@ session.route("/app/feed/*", RouteDecision::remote_fetch()
 
 session.route("/app/camera/*", RouteDecision::webview_app()
     .with_view_kind(ViewKind::WebView));
-    // → Local WASM module runs in the WebView. Platform bootstraps
+    // → WASM module runs in the WebView. Platform bootstraps
     //   the WASM runtime and steps back.
 ```
 
@@ -873,7 +873,7 @@ selection](#how-viewkind-drives-rendering-surface-selection).
 Concrete example of the full chain:
 
 ```
-1. User clicks <a href="/remote/dashboard"> in a local WASM screen.
+1. User clicks <a href="/remote/dashboard"> in a WebviewApp screen.
 
 2. Tauri's on_navigation() fires.
    → Session constructs NavigationIntent {
@@ -1056,7 +1056,7 @@ Use for: login → main app transition, deep link that resets the app state,
 ### `WebView` (default)
 
 The platform creates or reuses a WebView for this route. This is the default for
-all `RouteSource` variants — local WASM, IPC shell responses, and remote
+all `RouteSource` variants — WebviewApp, IPC shell responses, and remote
 content all flow through a WebView unless explicitly marked as `Native`.
 
 **What the platform does:**
