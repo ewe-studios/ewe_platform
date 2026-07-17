@@ -79,15 +79,23 @@ session.route("/app/*", RouteDecision::webview_app());
 // Capability handlers — claim capability requests
 session.register_capability::<CameraCapability>();
 session.register_capability::<BiometricCapability>();
-
-// Cache — the session checks cache before querying backends
-session.cache().register();
-
-// Transport lanes — the session routes through them
-session.register_transport(Transport::CustomProtocol);
-session.register_transport(Transport::Ipc);
-session.register_transport(Transport::RemoteFetch);
 ```
+
+**Transport lanes are NOT user-registered.** They are pre-wired by the shell
+at `PlatformSession::initialize()` — all 7 lanes are always available. The
+route handler doesn't pick transports; `RouteSource` implies the transport
+automatically (see the [How source drives protocol and transport
+selection](02-route-policy-model.md#how-source-drives-protocol-and-transport-selection)
+table in decision 02):
+
+| RouteSource | Session automatically uses |
+|---|---|
+| `WebviewApp` | No transport — signals the in-WebView code directly |
+| `IpcShell` | Tauri command IPC (control) + native shell IPC (data) |
+| `RemoteServer` | Best available: custom protocol, HTTP, SSE, or WebSocket |
+
+The user never calls `session.register_transport()`. The cache is also
+pre-wired — initialized when the session boots, not registered by user code.
 
 ### Handler chain execution on navigation
 
