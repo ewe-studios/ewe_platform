@@ -100,13 +100,13 @@ impl Supervisor {
                     watcher: foundation_nativeapis::native_watcher()?,
                     mode: WatchMode::Auto,
                 };
-                let (tx, mut rx) = tokio::sync::mpsc::channel(100);
+                let (tx, mut rx) = foundation_core::valtron::sync::mpsc::channel(100);
                 watcher.watch(tx).await?;
 
                 // Watch → restart loop.
                 let supervisor = self.clone();
                 let daemon_id = id.clone();
-                tokio::spawn(async move {
+                valtron::spawn(async move {
                     while let Some(_event) = rx.recv().await {
                         tracing::info!(daemon = %daemon_id, "file change detected, restarting");
                         let _ = supervisor.restart_daemon(&daemon_id).await;
@@ -163,10 +163,10 @@ impl Supervisor {
 
     async fn spawn_cron_task(&self, cron: CronSchedule) {
         let supervisor = self.clone();
-        tokio::spawn(async move {
+        valtron::spawn(async move {
             for datetime in cron.schedule.upcoming(chrono::Utc).take(1) {
                 let delay = datetime - chrono::Utc::now();
-                tokio::time::sleep(delay.to_std().unwrap()).await;
+                foundation_core::valtron::time::sleep(delay.to_std().unwrap()).await;
 
                 let should_restart = match cron.retrigger {
                     CronRetrigger::IfStopped => {

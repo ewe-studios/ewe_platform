@@ -65,13 +65,14 @@ impl DaemonSupervisorTask {
         supervisor.install_background().await?;
 
         // Run until stop signal.
-        tokio::select! {
-            _ = stop.wait() => {
+        use futures::{select, FutureExt};
+        select! {
+            _ = stop.wait().fuse() => {
                 tracing::info!("stop signal received, shutting down supervisor");
                 supervisor.shutdown().await?;
                 Ok(())
             }
-            result = supervisor.run_event_loop() => {
+            result = supervisor.run_event_loop().fuse() => {
                 result
             }
         }
@@ -93,11 +94,12 @@ impl Supervisor {
 
         // Spawn the signal task in valtron.
         let stop = self.shutdown_rx.clone();
-        tokio::spawn(async move {
+        valtron::spawn(async move {
             let mut stream = signal_bus.subscribe();
             loop {
-                tokio::select! {
-                    event = stream.recv() => {
+                use futures::{select, FutureExt};
+                select! {
+                    event = stream.recv().fuse() => {
                         if let Some(event) = event {
                             tracing::info!(?event.kind, "signal received");
                             match event.kind {
@@ -111,13 +113,13 @@ impl Supervisor {
                             }
                         }
                     }
-                    _ = stop.changed() => break,
+                    _ = stop.changed().fuse() => break,
                 }
             }
         });
 
         // Spawn the signal task (reads from OS).
-        tokio::spawn(async move {
+        valtron::spawn(async move {
             signal_task.run().await;
         });
 

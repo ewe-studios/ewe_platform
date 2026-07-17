@@ -71,9 +71,9 @@ pub struct ResourceMonitor {
 impl ResourceMonitor {
     /// Run the monitoring loop.
     pub async fn run(&self, supervisor: &Supervisor) {
-        let mut interval = tokio::time::interval(self.check_interval);
+        let interval = std::time::Duration::from_secs(10);
         loop {
-            interval.tick().await;
+            foundation_core::valtron::time::sleep(interval).await;
             self.check_all(supervisor).await;
         }
     }

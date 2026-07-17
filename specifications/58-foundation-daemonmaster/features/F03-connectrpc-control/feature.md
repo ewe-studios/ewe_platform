@@ -180,13 +180,13 @@ impl DaemonRpcServer {
             std::fs::remove_file(&self.socket_path)?;
         }
 
-        let listener = tokio::net::UnixListener::bind(&self.socket_path)?;
+        let listener = async_io::UnixListener::bind(&self.socket_path)?;
         tracing::info!(path = ?self.socket_path, "Daemon RPC server listening");
 
         loop {
             let (stream, _) = listener.accept().await?;
             let router = self.router();
-            tokio::spawn(async move {
+            valtron::spawn(async move {
                 // Serve ConnectRPC over the Unix stream.
                 // Uses Connect protocol (binary or JSON) over Unix socket.
                 if let Err(e) = router.serve_unix_stream(stream).await {

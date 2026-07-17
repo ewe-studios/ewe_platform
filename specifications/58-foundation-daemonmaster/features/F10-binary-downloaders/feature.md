@@ -270,7 +270,7 @@ impl Downloader for CratesIoBinary {
         // Crates.io doesn't host prebuilt binaries — we use `cargo install`
         // as the download mechanism. For crates that publish prebuilt binaries
         // (e.g. via GitHub releases), use GitHubRelease instead.
-        let output = tokio::process::Command::new("cargo")
+        let output = std::process::Command::new("cargo")
             .args([
                 "install",
                 &self.crate_name,
@@ -278,8 +278,7 @@ impl Downloader for CratesIoBinary {
                 "--root",
             ])
             .arg(dest_dir)
-            .output()
-            .await?;
+            .output()?;
 
         if !output.status.success() {
             return Err(DownloadError::NotFound(

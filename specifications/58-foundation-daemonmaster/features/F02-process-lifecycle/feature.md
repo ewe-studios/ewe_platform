@@ -37,7 +37,7 @@ Builds on F01's config and dependency graph.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use foundation_core::valtron::sync::{Mutex, WatchSender, WatchReceiver, OneshotSender};
 
 /// Central supervisor — manages all daemon child processes.
 ///
@@ -48,8 +48,8 @@ pub struct Supervisor {
     /// Managed daemons keyed by DaemonId.
     daemons: Mutex<BTreeMap<DaemonId, ManagedDaemon>>,
     /// Shutdown signal — when fired, supervisor stops all daemons.
-    shutdown_tx: tokio::sync::watch::Sender<bool>,
-    shutdown_rx: tokio::sync::watch::Receiver<bool>,
+    shutdown_tx: WatchSender<bool>,
+    shutdown_rx: WatchReceiver<bool>,
 }
 
 /// A daemon under supervision.
@@ -61,9 +61,9 @@ pub struct ManagedDaemon {
     pub restart_count: u32,
     pub last_start: Option<std::time::Instant>,
     /// Child process handle (for wait + signal).
-    pub child: Option<tokio::process::Child>,
-    /// Readiness future — resolves when ready or timed out.
-    pub ready_tx: Option<tokio::sync::oneshot::Sender<()>>,
+    pub child: Option<std::process::Child>,
+    /// Readiness channel — fires when ready.
+    pub ready_tx: Option<OneshotSender<()>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,7 +106,7 @@ impl Supervisor {
         let def = self.config.daemons.get(id.name.as_str())
             .ok_or(SpawnError::NotFound(id.clone()))?;
 
-        let mut cmd = tokio::process::Command::new(&def.run[0]);
+        let mut cmd = std::process::Command::new(&def.run[0]);
         cmd.args(&def.run[1..]);
 
         // Working directory.
@@ -154,10 +154,10 @@ impl Supervisor {
 
         // Spawn stdout/stderr readers for readiness + log streaming.
         if let Some(stdout) = stdout {
-            tokio::spawn(Self::read_stream(id.clone(), stdout, StreamKind::Stdout));
+            valtron::spawn(Self::read_stream(id.clone(), stdout, StreamKind::Stdout));
         }
         if let Some(stderr) = stderr {
-            tokio::spawn(Self::read_stream(id.clone(), stderr, StreamKind::Stderr));
+            valtron::spawn(Self::read_stream(id.clone(), stderr, StreamKind::Stderr));
         }
 
         Ok(())
@@ -169,21 +169,21 @@ impl Supervisor {
 
 ## Part C — Readiness detection (5 strategies)
 
-All strategies funnel into a `oneshot::Sender<()>` — when fired, the daemon is Ready.
+All strategies funnel into a `OneshotSender<()>` — when fired, the daemon is Ready.
 
 ```rust
 // foundation_nativeapis/src/daemon/process.rs
 
-use tokio::sync::mpsc;
+use foundation_core::valtron::sync::{mpsc, OneshotSender, OneshotReceiver};
 
 /// Readiness notifier — pushed to by stream readers.
 pub struct ReadinessNotifier {
-    tx: tokio::sync::oneshot::Sender<()>,
+    tx: OneshotSender<()>,
 }
 
 impl ReadinessNotifier {
-    pub fn new() -> (Self, tokio::sync::oneshot::Receiver<()>) {
-        let (tx, rx) = tokio::sync::oneshot::channel();
+    pub fn new() -> (Self, OneshotReceiver<()>) {
+        let (tx, rx) = foundation_core::valtron::sync::oneshot();
         (ReadinessNotifier { tx }, rx)
     }
 
@@ -217,18 +217,20 @@ impl ReadinessStrategy {
         output_rx: mpsc::Receiver<OutputLine>,
         timeout: std::time::Duration,
     ) -> Result<(), ReadinessTimeout> {
+        use futures::{select, FutureExt};
+        use foundation_core::valtron::time::sleep;
+
         match self {
             Self::Immediate => { notifier.mark_ready(); Ok(()) }
             Self::Delay(d) => {
-                tokio::select! {
-                    _ = tokio::time::sleep(*d) => { notifier.mark_ready(); Ok(()) }
-                    _ = tokio::time::sleep(timeout) => Err(ReadinessTimeout),
+                select! {
+                    _ = sleep(*d).fuse() => { notifier.mark_ready(); Ok(()) },
+                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
                 }
             }
             Self::Output(pattern) => {
-                // Watch stdout/stderr for regex match.
                 let mut output_rx = output_rx;
-                tokio::select! {
+                select! {
                     _ = async {
                         while let Some(line) = output_rx.recv().await {
                             if pattern.is_match(&line.text) {
@@ -236,57 +238,56 @@ impl ReadinessStrategy {
                                 return;
                             }
                         }
-                    } => Ok(()),
-                    _ = tokio::time::sleep(timeout) => Err(ReadinessTimeout),
+                    }.fuse() => Ok(()),
+                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
                 }
             }
             Self::Http(url) => {
-                // Simple HTTP GET loop.
                 let client = reqwest::Client::new();
                 loop {
-                    tokio::select! {
-                        _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => {
+                    select! {
+                        _ = sleep(std::time::Duration::from_secs(1)).fuse() => {
                             if let Ok(resp) = client.get(url).send().await {
                                 if resp.status().is_success() {
                                     notifier.mark_ready();
                                     return Ok(());
                                 }
                             }
-                        }
-                        _ = tokio::time::sleep(timeout) => return Err(ReadinessTimeout),
+                        },
+                        _ = sleep(timeout).fuse() => return Err(ReadinessTimeout),
                     }
                 }
             }
             Self::Port(port) => {
-                tokio::select! {
+                select! {
                     _ = async {
                         loop {
-                            if tokio::net::TcpStream::connect(("127.0.0.1", *port)).await.is_ok() {
+                            if std::net::TcpStream::connect(("127.0.0.1", *port)).is_ok() {
                                 notifier.mark_ready();
                                 return;
                             }
-                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            sleep(std::time::Duration::from_millis(100)).await;
                         }
-                    } => Ok(()),
-                    _ = tokio::time::sleep(timeout) => Err(ReadinessTimeout),
+                    }.fuse() => Ok(()),
+                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
                 }
             }
             Self::Cmd(args) => {
-                tokio::select! {
+                select! {
                     r = async {
                         loop {
-                            let status = tokio::process::Command::new(&args[0])
-                                .args(&args[1..]).status().await;
+                            let status = std::process::Command::new(&args[0])
+                                .args(&args[1..]).status();
                             if let Ok(s) = status {
                                 if s.success() {
                                     notifier.mark_ready();
                                     return;
                                 }
                             }
-                            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                            sleep(std::time::Duration::from_secs(1)).await;
                         }
-                    } => r,
-                    _ = tokio::time::sleep(timeout) => Err(ReadinessTimeout),
+                    }.fuse() => r,
+                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
                 }
             }
         }
@@ -311,15 +312,22 @@ impl Supervisor {
     /// Read a process stream, feed lines to readiness notifier and log buffer.
     async fn read_stream(
         id: DaemonId,
-        stream: tokio::process::ChildStdout, // or ChildStderr
+        stream: std::process::ChildStdout,
         kind: StreamKind,
     ) {
-        use tokio::io::AsyncBufReadExt;
-        let mut reader = tokio::io::BufReader::new(stream).lines();
-        while let Ok(Some(line)) = reader.next_line().await {
-            // Log lines are stored for RPC streaming (F03).
-            // If readiness is Output-based, the notifier checks here.
-            tracing::info!(daemon = %id, stream = ?kind, "{line}");
+        use std::io::BufRead;
+        let reader = std::io::BufReader::new(stream);
+        for line in reader.lines() {
+            match line {
+                Ok(line) => {
+                    // Log lines are stored for RPC streaming (F03).
+                    tracing::info!(daemon = %id, stream = ?kind, "{line}");
+                }
+                Err(e) => {
+                    tracing::warn!(daemon = %id, "stream read error: {e}");
+                    break;
+                }
+            }
         }
     }
 }
@@ -349,7 +357,7 @@ impl Supervisor {
 
         // Phase 2: Fast poll (10ms intervals for ~100ms).
         for _ in 0..10 {
-            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            foundation_core::valtron::time::sleep(std::time::Duration::from_millis(10)).await;
             if !Self::process_alive(pid) {
                 managed.status = DaemonStatus::Stopped;
                 managed.child = None;
@@ -360,7 +368,7 @@ impl Supervisor {
         // Phase 3: Slow poll (50ms intervals) for remainder of timeout.
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(timeout);
         while std::time::Instant::now() < deadline {
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            foundation_core::valtron::time::sleep(std::time::Duration::from_millis(50)).await;
             if !Self::process_alive(pid) {
                 managed.status = DaemonStatus::Stopped;
                 managed.child = None;
@@ -376,7 +384,7 @@ impl Supervisor {
         )?;
 
         // Brief wait for SIGKILL to take effect.
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        foundation_core::valtron::time::sleep(std::time::Duration::from_millis(100)).await;
 
         managed.status = DaemonStatus::Stopped;
         managed.child = None;
@@ -420,7 +428,7 @@ impl Supervisor {
         if let Some(managed) = managed {
             // Wait for child to exit.
             if let Some(mut child) = managed.child {
-                let exit_status = child.wait().await;
+                let exit_status = child.wait();
                 tracing::info!(daemon = %id, ?exit_status, "daemon exited");
 
                 // Update status.
@@ -442,7 +450,9 @@ impl Supervisor {
                             30,
                         );
                         tracing::info!(daemon = %id, "restarting in {}s", backoff);
-                        tokio::time::sleep(std::time::Duration::from_secs(backoff)).await;
+                        foundation_core::valtron::time::sleep(
+                            std::time::Duration::from_secs(backoff),
+                        ).await;
 
                         let mut daemons = self.daemons.lock().await;
                         if let Some(m) = daemons.get_mut(&id) {

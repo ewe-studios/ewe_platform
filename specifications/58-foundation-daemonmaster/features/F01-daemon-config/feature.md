@@ -108,6 +108,18 @@ impl DaemonDef {
     pub fn env(mut self, key: &str, value: &str) -> Self {
         self.env.insert(key.into(), value.into()); self
     }
+
+    /// Require that `key` is already set in the process environment.
+    /// Fails at boot time if the variable is not present.
+    /// Useful for secrets/credentials that must be injected externally
+    /// (CI secrets, vault, env files) rather than hardcoded.
+    pub fn must_env(mut self, key: &str) -> Self {
+        let value = std::env::var(key)
+            .unwrap_or_else(|_| panic!("required env var {key} is not set"));
+        self.env.insert(key.into(), value);
+        self
+    }
+
     pub fn cwd(mut self, p: PathBuf) -> Self { self.cwd = Some(p); self }
     pub fn watch(mut self, patterns: &[&str]) -> Self {
         self.watch = patterns.iter().map(|s| s.to_string()).collect(); self
@@ -230,7 +242,7 @@ impl Drop for DaemonGroup {
         // Best-effort reverse-order teardown.
         // Actual cleanup happens via supervisor.shutdown().
         let supervisor = self.supervisor.clone();
-        tokio::spawn(async move {
+        valtron::spawn(async move {
             let _ = supervisor.shutdown().await;
         });
     }
@@ -264,79 +276,242 @@ Users have three ways to define daemons, all backed by `DaemonDef`:
 
 | Path | Mechanism | Use case |
 |------|-----------|----------|
-| **Proc macro** | `#[daemon_process(...)]` on `fn main()` or test | Binary always owns these daemons, starts at boot |
+| **Proc macro** | `#[daemon_process({ ... }, { ... })]` on `fn main()` or test | Binary always owns these daemons, starts at boot |
 | **Builder API** | `DaemonGroup::boot(vec![...])` | Tests, dynamic config, programmatic startup |
 | **TOML config** | `daemon.toml` file | Project-level config, ops deployment |
 
-### C.1 — Proc macro (binary always-owns pattern)
+### C.1 — Proc macro attribute (binary always-owns pattern)
 
-A binary declares what it always wants running. At startup, the macro expansion
-automatically boots all declared daemons and passes the `DaemonGroup` to the
-function. The binary owns the daemons for its entire lifetime.
+A single `#[daemon_process]` invocation declares every daemon via `{...}` blocks,
+comma-separated. One invocation = one `DaemonGroup`. Stacking is rejected at
+compile time. The function MUST take `&DaemonGroup` or `DaemonGroup` as its
+first parameter (same constraint as `#[docker_container]`).
 
 ```rust
-// In foundation_macros/src/daemon.rs (proc_macro_attribute)
+// In foundation_macros/src/daemon_process.rs (proc_macro_attribute)
+//
+// Pattern matches #[docker_container]: single invocation, {...} per daemon,
+// hand-rolled parser (syn::Meta rejects `as` keyword), duplicate key = compile error,
+// stacking = compile error, fn must take DaemonGroup.
 
-/// Apply to `fn main()` or any entry function. Each attribute defines one daemon.
-/// Multiple attributes stack — all daemons start before the function body runs.
-/// The function MUST take `&DaemonGroup` or `DaemonGroup` as its first parameter.
-///
 /// # Example
 /// ```rust
-/// #[daemon_process(name = "api", run = ["./target/release/api-server"],
-///     readiness = "port(3000)", depends = ["db"])]
-/// #[daemon_process(name = "db", run = ["postgres", "-D", "/var/lib/postgres/data"],
-///     readiness = "port(5432)")]
-/// #[daemon_process(name = "redis", run = ["redis-server"],
-///     readiness = "port(6379)")]
+/// #[daemon_process(
+///     { name = "db", run = ["postgres", "-D", "/var/lib/postgres/data"],
+///       readiness_port = 5432,
+///       must_env = ["POSTGRES_PASSWORD", "POSTGRES_DB"] },
+///     { name = "redis", run = ["redis-server"],
+///       readiness_port = 6379 },
+///     { name = "api", run = ["./target/release/api-server"],
+///       depends = ["db", "redis"],
+///       readiness_http = "http://localhost:3000/health",
+///       env = [("LOG_LEVEL", "info")] },
+/// )]
 /// fn main(group: &DaemonGroup) {
-///     // All 3 daemons are running.
+///     // POSTGRES_PASSWORD and POSTGRES_DB were validated from the environment
+///     // before any daemon was started. LOG_LEVEL was set explicitly to "info".
 ///     let db = group.daemon("db").unwrap();
 ///     println!("DB PID: {:?}", db.pid());
-///
-///     // Run your app...
 /// }
 /// ```
 ///
-/// The macro expands to wrap the function body in a `DaemonGroup::boot()` call.
+/// The macro expands to: build DaemonDef[] → DaemonGroup::boot() → call user fn.
 ```
 
-**Macro expansion:**
+**Macro expansion** (async fn — executor-agnostic):
 
 ```rust
-// What #[daemon_process] expands to (simplified):
+// What #[daemon_process] expands to on an `async fn` (simplified):
+//
+// The macro does NOT introduce an executor — it generates an async fn that
+// awaits DaemonGroup::boot(), and the caller's executor drives it.
+// This means the user can run it under valtron, tokio, async-std, or any other.
 
-fn main() {
-    // 1. Build daemon definitions from macro attributes.
+async fn main() {
+    // 1. Build daemon definitions from the {...} blocks (in declaration order).
     let definitions = vec![
-        DaemonDef::new("api", vec!["./target/release/api-server".into()])
-            .depends(&["db"])
-            .readiness(ReadinessConfig::Port(3000)),
         DaemonDef::new("db", vec!["postgres".into(), "-D".into(), "/var/lib/postgres/data".into()])
             .readiness(ReadinessConfig::Port(5432)),
         DaemonDef::new("redis", vec!["redis-server".into()])
             .readiness(ReadinessConfig::Port(6379)),
+        DaemonDef::new("api", vec!["./target/release/api-server".into()])
+            .depends(&["db", "redis"])
+            .readiness(ReadinessConfig::Http("http://localhost:3000/health".into())),
     ];
 
-    // 2. Boot all daemons (dependency-ordered).
-    let group = tokio::runtime::Runtime::new().unwrap()
-        .block_on(async {
-            DaemonGroup::boot(definitions).await.unwrap()
-        });
+    // 2. Boot all daemons (dependency-ordered) — this is async, caller's executor drives it.
+    let group = DaemonGroup::boot(definitions).await.unwrap();
 
-    // 3. Call the original function with the group.
+    // 3. Bind the group to the name the body declared.
+    // 4. Call the original function body.
     original_main(&group);
 
-    // 4. Group drops on function exit → all daemons stopped.
+    // 5. Group drops on function exit → all daemons stopped (reverse order).
 }
 ```
 
-**Stacking rules** (same as `#[docker_container]`):
-- Multiple `#[daemon_process(...)]` attributes on one fn = multi-daemon group
-- All daemons defined in ONE set of stacked attributes on the same fn
-- Stacking on multiple fns = compile error (daemons must be defined together)
-- Fn **must** take `&DaemonGroup` or `DaemonGroup` — zero-arg fn is a compile error
-- Lookup by `name` key (the `name = "..."` in the attribute), NOT by fn name
+**Stacking rules** (matches `#[docker_container]` exactly):
+- One invocation declares every daemon via `{...}` blocks
+- Stacking `#[daemon_process(...)]` on the same fn = compile error:
+  `"#[daemon_process] cannot be stacked: declare every daemon in one invocation,
+  one `{ ... }` block each"`
+- Fn **must** take exactly one parameter (`group: &DaemonGroup` or `_: DaemonGroup`) —
+  zero-arg fn = compile error
+- Lookup by `name` key (`name = "..."` in the block), NOT by fn name
+- Duplicate `name` within one invocation = compile error
+
+**Parser** — hand-rolled (not `syn::Meta`) because `as`, `run`, `depends` etc. are
+not all valid Meta paths. Peeking for keyword tokens (`Token![as]`, `Token![run]`)
+gives better error spans.
+
+```rust
+// foundation_macros/src/daemon_process.rs
+
+struct Attr {
+    defs: Vec<DaemonDef>,
+}
+
+impl Parse for Attr {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut defs = Vec::new();
+
+        if input.peek(syn::token::Brace) {
+            while !input.is_empty() {
+                let content;
+                syn::braced!(content in input);
+                defs.push(content.parse::<DaemonDefAttr>()?);
+                if input.is_empty() { break; }
+                input.parse::<Token![,]>()?;
+            }
+        } else {
+            // Shorthand: bare key=value for a single daemon.
+            defs.push(input.parse::<DaemonDefAttr>()?);
+        }
+
+        if defs.is_empty() {
+            return Err(syn::Error::new(
+                proc_macro2::Span::call_site(),
+                "#[daemon_process] needs at least one daemon definition",
+            ));
+        }
+
+        // Duplicate name detection at compile time.
+        let mut seen: HashMap<&str, ()> = HashMap::new();
+        for def in &defs {
+            if seen.insert(def.name.as_str(), ()).is_some() {
+                return Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "duplicate daemon name {:?}: each `name = \"...\"` must be unique \
+                         within one #[daemon_process]",
+                        def.name
+                    ),
+                ));
+            }
+        }
+
+        Ok(Attr { defs })
+    }
+}
+```
+
+**Macro expansion** (sync fn — wraps in async, caller provides executor):
+
+```rust
+// For sync fns applied with #[daemon_process], the macro generates an inner
+// async function that bootstraps the daemons, then wraps it so a sync caller
+// can use their executor of choice (valtron::block_on_future, etc.).
+
+#[daemon_process({ name = "db", run = ["postgres"] })]
+fn my_app(group: &DaemonGroup) {
+    // body
+}
+
+// Expands to:
+fn my_app() {
+    async fn __daemon_boot_my_app(group: &DaemonGroup) {
+        // original body
+    }
+
+    // The caller uses their own executor to drive this:
+    //   valtron::block_on_future(my_app())
+    //   or any other executor.
+    //
+    // The macro itself does NOT spawn — it just restructures the fn to be
+    // async and boot daemons before the body. The caller's executor runs it.
+}
+```
+
+**The `daemons!{}` macro is also executor-agnostic** — it's a `macro_rules!` that
+generates a `Vec<DaemonDef>`. No async, no executor, no runtime dependency.
+
+### C.1b — `daemons!{}` declarative macro (inline anywhere)
+
+A declarative macro that builds a `Vec<DaemonDef>` inline — usable inside any
+function, not just as an attribute on `fn main()`:
+
+```rust
+// foundation_macros/src/lib.rs — declarative macro (macro_rules!)
+
+/// Build a Vec<DaemonDef> inline. Same {...} block syntax as #[daemon_process].
+///
+/// # Example
+/// ```rust
+/// async fn boot_my_services() {
+///     let definitions = daemons! {
+///         { name = "db", run = ["postgres", "-D", "/var/lib/pg"],
+///           readiness_port = 5432 },
+///         { name = "redis", run = ["redis-server"],
+///           readiness_port = 6379 },
+///         { name = "api", run = ["./api-server"],
+///           depends = ["db", "redis"],
+///           readiness_http = "http://localhost:3000/health" },
+///     };
+///
+///     let group = DaemonGroup::boot(definitions).await.unwrap();
+///     // ...
+/// }
+/// ```
+///
+/// Also usable from TOML-loaded or programmatically-built configs:
+/// ```rust
+/// let defs = daemons! {
+///     { name = "worker", run = ["./worker"],
+///       readiness_port = 8080,
+///       memory_limit = "1GB" },
+/// };
+/// // Can merge with other DaemonDef sources:
+/// let mut all = load_from_toml()?;
+/// all.extend(defs);
+/// ```
+```
+
+Expansion:
+
+```rust
+// daemons!{ { name = "db", run = ["postgres"], readiness_port = 5432 } }
+// expands to:
+vec![
+    DaemonDef::new("db", vec!["postgres".into()])
+        .readiness(ReadinessConfig::Port(5432)),
+]
+```
+
+The same `{...}` block syntax as `#[daemon_process]` — each block maps to a
+`DaemonDef::new(...)` builder chain. Supports all `DaemonDef` fields:
+- `name = "..."` — required
+- `run = ["binary", "arg1", ...]` — required
+- `depends = ["dep1", "dep2"]`
+- `readiness_port = N` / `readiness_http = "url"` / `readiness_delay = N`
+  / `readiness_output = "regex"` / `readiness_cmd = ["cmd", "args"]`
+- `env = [("KEY", "VALUE")]` — explicit key-value pairs
+- `must_env = ["KEY1", "KEY2"]` — read from process env, fail if missing
+- `cwd = "/path"`
+- `watch = ["src/**/*.rs"]`
+- `memory_limit = "500MB"` / `cpu_limit = 80`
+- `restart = true/false` / `max_restarts = 5`
+- `stop_timeout = 10`
+- `boot_start = true`
 
 ### C.2 — Builder API (programmatic)
 
@@ -345,13 +520,15 @@ fn main() {
 async fn test_app_with_db_and_cache() {
     let group = DaemonGroup::boot(vec![
         DaemonDef::new("db", vec!["postgres".into()])
-            .env("POSTGRES_PASSWORD", "test")
-            .env("POSTGRES_DB", "app_test")
+            .must_env("POSTGRES_PASSWORD")     // must exist in process env
+            .must_env("POSTGRES_DB")           // must exist in process env
             .readiness(ReadinessConfig::Port(5432)),
         DaemonDef::new("cache", vec!["redis-server".into()])
             .readiness(ReadinessConfig::Port(6379)),
         DaemonDef::new("api", vec!["./target/release/api-server".into()])
             .depends(&["db", "cache"])
+            .env("LOG_LEVEL", "info")          // explicit value
+            .must_env("API_SECRET_KEY")        // from vault/CI
             .readiness(ReadinessConfig::Http("http://localhost:3000/health".into()))
             .memory_limit("500MB"),
     ]).await.expect("Failed to boot daemons");
