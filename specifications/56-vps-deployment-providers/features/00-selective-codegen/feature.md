@@ -260,6 +260,34 @@ rule is that build scripts write only to `OUT_DIR`, and `cargo package --verify`
 may see a dirty tree. So `write()` belongs in the CLI or an explicit developer
 step; `check()` is what a build.rs (or CI) should call.
 
+### 6. Leave `foundation_openapi` green — **done 2026-07-17**
+
+This feature works inside `foundation_openapi`, and its suite was **red on arrival**:
+`integration_spec_processing` had 2 failures (`processes_gcp_abusiveexperiencereport_spec`,
+`gcp_endpoint_extracted_with_full_structure`), verified pre-existing by stashing this
+work. Building selective codegen on top of a red suite means never knowing which
+failures are yours.
+
+**Diagnosis — the tests were stale, not the code.** They looked the endpoint up by
+GCP Discovery's `flatPath` (`v1/sites/{sitesId}`) while the extractor keys by
+`path` (`v1/{+name}`). The fixture settles which is right:
+
+| | value | in `parameters`? |
+|---|---|---|
+| `path` | `v1/{+name}` | **yes** — `parameterOrder: ["name"]`, `parameters: ["name"]` |
+| `flatPath` | `v1/sites/{sitesId}` | **no** — `sitesId` is declared nowhere |
+
+GCP v2 APIs use resource-name expansion: one `{+name}` holds the whole resource
+path. Generating from `flatPath` would emit a client with an **unbound `sitesId`
+path param**. So the extractor is correct — and deliberately so
+(commit `4b1f62fc5`, 2026-04-21, "fix GCP generation"), with the reasoning in a
+comment. The tests were only half-updated then: they already asserted
+`path_params == ["name"]` (the `path` semantics) while still looking up the
+flatPath key, and had been red for ~3 months.
+
+**Fixed** by keying on `v1/{+name}` and recording *why* in the test, so the next
+person does not "fix" it back. `foundation_openapi` is now 10/10 green.
+
 ## Verification
 
 All local — no network, no accounts:
@@ -293,6 +321,8 @@ All local — no network, no accounts:
 - [ ] `api_version` pinned into the client; callers never pass it
 - [ ] `spec_version` validated against the spec's `info.version` — **generation fails on a mismatch**, naming both versions
 - [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
+- [x] `foundation_openapi`'s suite is green before building on it (§6) — 2 stale GCP tests fixed 2026-07-17
+- [x] Selection (§1) — `Selection` with path globs/tags/operationIds; 11 tests incl. Linode's real 334→3
 - [ ] Canonicalisation stage wired (§0): `extract_inline_schemas` + `normalize_nullable_types` + `ensure_servers` composed per provider — they exist, tested, and unused today
 - [ ] A bundled spec (Linode/Hetzner) yields **named** request/response types, not `serde_json::Value`
 - [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
