@@ -268,7 +268,43 @@ impl Deployable for HetznerServer {
             }
 
             // 3. Create.
-            let created = hetzner.create_server(&request).await?;
+            //
+            // A failure here is AMBIGUOUS: Hetzner may have built the machine and
+            // failed us on the way back — a decode error, a dropped connection, a
+            // timeout. The unwind below cannot help, because it deletes
+            // `created.id` and we never got one. So ask by name before giving up;
+            // otherwise the caller gets an error and a bill.
+            let created = match hetzner.create_server(&request).await {
+                Ok(created) => created,
+                Err(e) => {
+                    match hetzner.find_server_by_name(&name).await {
+                        Ok(Some(orphan)) => {
+                            tracing::warn!(
+                                id = orphan.id,
+                                %name,
+                                error = %e,
+                                "create failed but Hetzner has the server — the request \
+                                 succeeded and the response did not. Destroying it."
+                            );
+                            if let Err(cleanup) = hetzner.delete_server(orphan.id).await {
+                                tracing::error!(
+                                    id = orphan.id,
+                                    error = %cleanup,
+                                    "could not destroy it — IT IS STILL BILLING"
+                                );
+                            }
+                        }
+                        Ok(None) => {} // genuinely not created
+                        Err(lookup) => tracing::error!(
+                            %name,
+                            error = %lookup,
+                            "create failed AND we cannot check whether a server exists under \
+                             this name — check the console; one may be billing"
+                        ),
+                    }
+                    return Err(e);
+                }
+            };
 
             // Everything past this point owns a billing instance. A failure that
             // leaves it running is the mirror of spec-53's stranded container,
@@ -328,19 +364,41 @@ impl Deployable for HetznerServer {
                 .get_typed(&key)
                 .map_err(|e| HetznerError::Transport(format!("load deploy state: {e}")))?;
 
-            // Nothing recorded is not a failure: destroy promises the server does
-            // not exist, and it does not. Erroring would make teardown in a
-            // `finally` unusable.
-            let Some(recorded) = recorded else {
-                tracing::debug!(%name, instance_id, "no recorded server; nothing to destroy");
+            if let Some(recorded) = recorded {
+                hetzner.delete_server(recorded.id).await?;
+                store
+                    .remove(&key)
+                    .map_err(|e| HetznerError::Transport(format!("clear deploy state: {e}")))?;
+                tracing::debug!(id = recorded.id, %name, "destroyed");
                 return Ok(());
-            };
+            }
 
-            hetzner.delete_server(recorded.id).await?;
-            store
-                .remove(&key)
-                .map_err(|e| HetznerError::Transport(format!("clear deploy state: {e}")))?;
-            tracing::debug!(id = recorded.id, %name, "destroyed");
+            // Nothing recorded — which is NOT the same as nothing to destroy.
+            //
+            // A create whose response we failed to parse leaves a server we never
+            // learned the id of: the vendor built the machine, our decode failed,
+            // and `deploy` returned an error having recorded nothing. Bailing out
+            // here on the strength of an empty store is how a live server gets
+            // stranded while `destroy` reports success — observed 2026-07-17,
+            // billing the whole time.
+            //
+            // We do not need the store to find it. The name is the identity, and
+            // it is right here on `self` — the same lookup `deploy` uses to avoid
+            // billing twice.
+            if let Some(orphan) = hetzner.find_server_by_name(&name).await? {
+                tracing::warn!(
+                    id = orphan.id,
+                    %name,
+                    "no recorded server, but Hetzner has one under this name — deleting it. \
+                     This usually means a create succeeded and we failed to read the response."
+                );
+                hetzner.delete_server(orphan.id).await?;
+                return Ok(());
+            }
+
+            // Now it is genuinely absent, which is what destroy promises. Not an
+            // error: erroring would make teardown in a `finally` unusable.
+            tracing::debug!(%name, instance_id, "nothing recorded and nothing at Hetzner");
             Ok(())
         })
     }

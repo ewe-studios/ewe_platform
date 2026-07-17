@@ -21,7 +21,7 @@ use foundation_deployment_hetzner::generated::servers::{
     ListServersResponseServersItem, ListServersResponseServersItemPublicNet,
     ListServersResponseServersItemPublicNetIpv4,
 };
-use foundation_deployment_hetzner::{HetznerClient, HetznerServer};
+use foundation_deployment_hetzner::{HetznerClient, HetznerError, HetznerServer};
 use foundation_netio::shared::client::dns::SystemDnsResolver;
 use foundation_netio::http::NativeHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
@@ -449,24 +449,6 @@ async fn destroy_removes_the_server_and_clears_the_state() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[valtron_test]
-async fn destroying_something_that_was_never_deployed_is_not_an_error() {
-    // Teardown in a `finally` must be usable — erroring here would make every
-    // failed test noisier for no reason.
-    let dir = tmpdir("destroy-none");
-    let (mock_server, calls) = mock(|_, _| json(200, "{}"));
-
-    server_for(&mock_server, "web-1")
-        .destroy(0, provider_client(&dir))
-        .await
-        .expect("nothing to destroy is fine");
-    assert!(
-        calls.lock().unwrap().is_empty(),
-        "and it does not call Hetzner to find that out"
-    );
-
-    let _ = std::fs::remove_dir_all(&dir);
-}
 
 // ── instances are independent ────────────────────────────────────────────────
 
@@ -510,6 +492,56 @@ async fn a_second_instance_id_with_the_same_name_adopts_rather_than_billing_twic
         !calls.lock().unwrap().iter().any(|c| c.contains("POST")),
         "instance 1 adopted the existing box instead of creating a second: {:?}",
         calls.lock().unwrap()
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// ── the leak that actually happened ──────────────────────────────────────────
+
+
+
+#[valtron_test]
+async fn a_create_whose_response_we_cannot_read_does_not_leave_a_bill() {
+    // The exact failure: Hetzner returns 201 and builds the machine, our decode
+    // fails. `deploy`'s ordinary unwind cannot fire — it deletes `created.id`,
+    // and we never got an id. So the create path asks by name before giving up.
+    let dir = tmpdir("create-unreadable");
+    let deleted: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let log = Arc::clone(&deleted);
+    let created = Arc::new(Mutex::new(false));
+    let state = Arc::clone(&created);
+
+    let (mock_server, _) = mock(move |call, _| {
+        if call.contains("POST") {
+            // 201: the server EXISTS from here on. The body is garbage we cannot
+            // parse, so we never learn its id.
+            *state.lock().unwrap() = true;
+            json(201, r#"{"server":"this is not a server object"}"#)
+        } else if call.contains("DELETE") {
+            log.lock().unwrap().push(call.to_string());
+            json(200, "{}")
+        } else if call.contains("name=web-1") {
+            if *state.lock().unwrap() {
+                json(200, &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]))
+            } else {
+                json(200, &list_servers_json(&[]))
+            }
+        } else {
+            json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
+        }
+    });
+
+    let err = server_for(&mock_server, "web-1")
+        .deploy(0, provider_client(&dir))
+        .await
+        .expect_err("the response was unreadable");
+    assert!(matches!(err, HetznerError::Decode(_)), "got {err:?}");
+
+    assert!(
+        deleted.lock().unwrap().iter().any(|c| c.contains("/servers/42")),
+        "a create we could not read still created a server — it must be destroyed, not left billing: {:?}",
+        deleted.lock().unwrap()
     );
 
     let _ = std::fs::remove_dir_all(&dir);

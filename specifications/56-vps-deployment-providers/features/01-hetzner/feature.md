@@ -105,6 +105,25 @@ hardening-before-first-boot possible on this provider.
   **The first one found a bug within seconds**, and the round-trip found three
   more — see below. That is the whole argument for running them.
 
+#### Mocks earned nothing here — the score, honestly
+
+| Source | Bugs found |
+|---|---|
+| Real vendor specs | 6 |
+| Real transport / the live API | **4** |
+| **31 mock tests** | **0** |
+
+Not one. And one mock test **asserted the bug outright** — `destroy` "does not call
+Hetzner to find that out" was the exact reasoning that stranded a billing server.
+A mock answers what you told it; teaching it a misunderstanding turns that
+misunderstanding into a green check forever.
+
+**So: prefer the live test wherever the vendor can be put in the state for real**
+(owner, 2026-07-17). Hetzner costs a fraction of a cent and answers in 20 seconds.
+The mock's remaining job is the narrow set of faults a vendor cannot be *asked* for
+— an unparseable 201, a 429 with a specific reset header — and even those are worth
+suspecting.
+
 #### Teardown for a billing resource cannot be keyed on our own state
 
 The first run of the round-trip **leaked a live server while reporting success**.
@@ -119,10 +138,21 @@ Worth writing down, because the failure is not obvious:
    `Ok(())` — *"nothing to destroy"*.
 6. The test printed **"destroyed"**. The machine ran on, billing.
 
-**The vendor is the authority on what exists, not our state store.** Teardown now
-asks Hetzner by name and deletes whatever is standing, regardless of what `destroy`
-reported — and `sweep_leftovers` runs *before* each test, so a run killed between
-create and destroy is bounded by the next run rather than unbounded.
+**The vendor is the authority on what exists, not our state store.** And the fix
+belongs in the **deployable**, not the test — a first attempt swept the leak up in
+the test, which fixed nothing for an actual user hitting the same parse failure:
+
+- **`destroy` falls back to the name.** It never needed the store: `self.name` is
+  right there, and the name *is* the identity — the same lookup `deploy` already
+  uses to avoid billing twice. An empty store means "we have no record", **not**
+  "nothing exists".
+- **`deploy` treats a create failure as ambiguous.** A decode error, a dropped
+  connection or a timeout after `POST /servers` may well mean Hetzner built the
+  machine and failed us on the way back. The ordinary unwind cannot help — it
+  deletes `created.id`, and there is no id. So it asks by name before giving up.
+
+`sweep_leftovers` still runs *before* each live test, for the one case nothing
+in-process can catch: a run killed (`^C`) between create and destroy.
 
 The general shape: *the vendor created it; we just cannot name it.* Any resource
 that bills needs a teardown that does not depend on having successfully observed
