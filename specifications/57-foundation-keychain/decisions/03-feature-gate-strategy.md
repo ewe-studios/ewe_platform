@@ -2,7 +2,7 @@
 
 ## Problem
 
-The keychain has platform-specific code: Cloudflare Workers needs `#[event(fetch)]`, `worker::Router`, Durable Objects, and Web Crypto; native needs `foundation_http`, `foundation_netio` WebSocket, and tokio. How to gate it?
+The keychain has platform-specific code: Cloudflare Workers needs `#[event(fetch)]`, `worker::Router`, Durable Objects, and Web Crypto; native needs `foundation_http`, `foundation_netio` WebSocket, and valtron. How to gate it?
 
 1. **Mutually exclusive features** (`backend-cloudflare` vs `backend-native`) — explicit but redundant
 2. **Target gates** (`cfg(target_family = "wasm")`) — automatic, no user choice needed
@@ -42,7 +42,6 @@ wasm-bindgen-futures = "0.4"
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http" }
 foundation_netio = { path = "../foundation_netio" }
-tokio = { version = "1", features = ["full"] }
 ```
 
 No `backend-*` features. Build for the target, get the right backend.

@@ -1,35 +1,23 @@
-# Decision 05: Native Job Scheduler — tokio-cron-scheduler
+# Decision 05: Native Job Scheduler — valtron-based
 
 ## Problem
 
-The keychain needs scheduled jobs (purge expired sends, trash cleanup, etc.):
+The keychain needs scheduled jobs (purge expired sends, trash cleanup). Cloudflare uses Workers cron triggers. Native needs an equivalent.
 
-1. **tokio-cron-scheduler** — cron-compatible, tokio-native
-2. **clockwork** — newer, less battle-tested
+1. **tokio-cron-scheduler** — cron-compatible but requires tokio runtime (not used in this workspace)
+2. **valtron-based timer** — uses the workspace's existing executor
 3. **Custom timer** — simple but reinvents cron parsing
 
 ## Analysis
 
-- **tokio-cron-scheduler**: Mature, cron-syntax compatible, integrates with tokio runtime. 500+ GitHub stars, actively maintained. Supports the exact cron expressions the Cloudflare backend uses (`0 */6 * * *`, `0 0 * * *`).
-- **clockwork**: Less mature. No clear advantage.
-- **Custom timer**: Would need cron parsing, timezone handling, error recovery. Not worth it.
+The workspace uses valtron for all async execution. Pulling in `tokio-cron-scheduler` would add a second runtime for one use case. The cron parsing logic (`"0 */6 * * *"`) is trivial — a small cron parser on top of valtron's `Delayed` parking is straightforward.
 
-## Decision: tokio-cron-scheduler
+## Decision: valtron-based cron scheduler
 
-The native backend uses `tokio-cron-scheduler` to run the same cron jobs the Cloudflare backend runs via Workers cron triggers. The job implementations are identical — only the scheduling mechanism differs.
-
-### Job Schedule
-
-| Cron Expression | Job | Frequency |
-|----------------|-----|-----------|
-| `0 */6 * * *` | Purge expired sends + R2/filesystem cleanup | Every 6 hours |
-| `0 0 * * *` | Purge trashed ciphers (30+ days) | Daily at midnight |
-| `0 */12 * * *` | Purge expired auth requests + old login attempts | Every 12 hours |
-| `0 1 * * *` | Emergency access timeout processing | Daily at 1am |
-| `0 2 * * *` | Event log cleanup | Daily at 2am |
+A simple valtron task that parses cron expressions, computes the next fire time, and parks via `Delayed` until then. No tokio dependency. Same cron expressions as the Cloudflare backend (`0 */6 * * *`, `0 0 * * *`).
 
 ## Consequences
 
-- tokio-cron-scheduler adds one dependency to the native backend
-- Job implementations are shared (portable functions that take `&dyn KeychainStore`)
-- Cloudflare backend uses Workers cron triggers; native uses tokio-cron-scheduler
+- No tokio dependency in the workspace
+- Consistent with how all other foundation crates schedule work
+- Job implementations are portable functions that take `&dyn QueryStore` + `&dyn BlobStore` — identical between Cloudflare cron triggers and native valtron timer

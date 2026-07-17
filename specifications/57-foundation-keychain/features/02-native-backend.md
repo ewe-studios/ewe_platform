@@ -29,8 +29,8 @@ pub async fn run_server(config: KeychainConfig) -> Result<(), AppError> {
     let server = foundation_http::Server::new(config.listen_addr)?;
     server.register_routes(&ctx).await?;
 
-    // Start cron scheduler
-    let scheduler = Scheduler::new();
+    // Start cron scheduler (valtron-based)
+    let scheduler = valtron::CronScheduler::new();
     scheduler.add("0 */6 * * *", || purge_expired_sends(&ctx.db, &ctx.blob)).await?;
     scheduler.add("0 0 * * *", || purge_trashed_ciphers(&ctx.db)).await?;
 

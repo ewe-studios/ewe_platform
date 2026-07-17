@@ -23,7 +23,7 @@ Extracts OrangeVault's Bitwarden-compatible vault API into a portable crate. Zer
 | 02 | Storage — foundation_db traits only (no custom traits) | Resolved |
 | 03 | Feature gates — mutually exclusive (backend-cloudflare / backend-native) | Resolved |
 | 04 | Notifications — foundation_netio WebSocket (native), DO (Cloudflare) | Resolved |
-| 05 | Jobs — tokio-cron-scheduler (native), cron triggers (Cloudflare) | Resolved |
+| 05 | Jobs — valtron-based cron scheduler (native), cron triggers (Cloudflare) | Resolved |
 | 06 | Auth — foundation_auth for JWT/TOTP/middleware; keychain adapts | Resolved |
 | 07 | Blob — foundation_db BlobStore (R2Wasm native, filesystem native) | Resolved |
 

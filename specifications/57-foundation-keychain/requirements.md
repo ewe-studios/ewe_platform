@@ -137,7 +137,7 @@ foundation_keychain/
 │   │       └── web.rs
 │   ├── server/                   # Target-gated: wasm → Workers, native → foundation_http
 │   │   ├── cloudflare.rs         # #[cfg(target_family = "wasm")] #[event(fetch)] + workers-rs Router
-│   │   └── native.rs             # #[cfg(not(target_family = "wasm"))] foundation_http + tokio
+│   │   └── native.rs             # #[cfg(not(target_family = "wasm"))] foundation_http + valtron
 │   └── notifications/            # Target-gated transport
 │       ├── cloudflare.rs         # #[cfg(target_family = "wasm")] Durable Object
 │       └── native.rs             # #[cfg(not(target_family = "wasm"))] foundation_netio WebSocket
@@ -197,7 +197,6 @@ foundation_auth = { path = "../foundation_auth", features = ["wasm-bindgen-sessi
 foundation_http = { path = "../foundation_http" }
 foundation_netio = { path = "../foundation_netio" }
 foundation_auth = { path = "../foundation_auth", features = ["server"] }
-tokio = { version = "1", features = ["full"] }
 ```
 
 Build for the target, get the right backend. No feature flags needed:
