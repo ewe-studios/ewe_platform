@@ -181,7 +181,9 @@ impl PlatformSession {
         decision: &RouteDecision,
         intent: &NavigationIntent,
     ) -> (Vec<u8>, String) {
-        // Step 3: Cache check
+        // Step 3: Cache check — serves cached content when policy allows.
+        // StaleWhileRevalidate: serve cache immediately, caller spawns background
+        // revalidation via cache.needs_revalidation() if needed.
         let route = crate::pattern::extract_path(&intent.url);
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
