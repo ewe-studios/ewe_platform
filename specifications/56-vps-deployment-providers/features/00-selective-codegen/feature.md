@@ -51,6 +51,54 @@ reviewed. Closing that gap is this feature.
 
 ## Scope
 
+### 0. Canonicalise the spec first (the transform stage)
+
+Owner (2026-07-17): *"Always good if needed to add spec transformation like we did
+for cloudflare or others to make their spec standard OpenAPI spec where needed."*
+
+This is not optional for two of our three, and the machinery already exists —
+unwired.
+
+`foundation_deployment::providers::standard::normalize` states the contract:
+
+> *"The type and client generators expect a canonical OpenAPI 3.x structure:
+> schemas in `components/schemas`, a `servers` array with at least one entry, and
+> **`$ref` pointers instead of inline schemas**. Not all provider specs arrive in
+> this form."*
+
+It ships `ensure_servers`, `normalize_nullable_types` (3.1 nullable arrays),
+`extract_inline_schemas` (hoists inline objects into `components/schemas` and
+replaces them with `$ref`, recursively, arrays included) and `path_to_type_name`.
+All are tested — and **nothing calls them**: `fetch_standard_spec` does not, and
+the doc's "providers compose them in their `fetch.rs`" never happened (the GCP
+fetch path that would have was since deleted).
+
+**Why this is load-bearing here:** Linode and Hetzner are *fully bundled* — zero
+`$ref`s, every schema inlined. Our extractor derives a response's type name **from
+its `ref_path`** (`ResponseType::Generated`), so a bundled spec yields no named
+types at all. Without hoisting, Linode's six endpoints generate nothing usable.
+That is why the pipeline canonicalises before it analyses.
+
+Per-provider quirks the transform stage should absorb:
+
+| Provider | Quirk | Transform |
+|---|---|---|
+| Linode | fully bundled; `/{apiVersion}/…` paths | hoist inline → `$ref`; pin `apiVersion` (decision 01) so it is not a per-call argument |
+| Hetzner | fully bundled; OpenAPI **3.1.2** (nullable arrays) | hoist inline → `$ref`; `normalize_nullable_types` |
+| DigitalOcean | ref-heavy, incl. `components/{responses,parameters,headers}` | none for refs; needs `Components` extended (§2) |
+
+### Pipeline order
+
+```
+fetch/vendor  ->  canonicalise (§0)  ->  select (§1)  ->  closure (§2)  ->  generate
+```
+
+Select **before** hoisting, so we only canonicalise the six paths we keep rather
+than all 334 — and the closure then has little left to prune. But the closure is
+still required even for Linode: its 77 pre-existing `components/schemas` are
+referenced by nothing (0 `$ref`s in the whole document), so without a reachability
+prune they would all be emitted for six endpoints.
+
 ### 1. An allowlist honoured at generation time
 
 Select by **path** and by **tag**:
@@ -64,17 +112,52 @@ Select by **path** and by **tag**:
 
 Everything not selected is not emitted.
 
-### 2. The transitive schema closure — the actual work
+### 2. The transitive schema closure
 
 Including `POST /servers` pulls its request body and responses, which pull their
-`$ref`s, which pull theirs. The generator must walk refs from each selected
-operation and emit **exactly the reachable set**. Get this wrong in either
-direction and the feature fails: too little and it does not compile; too much and
-we are back to 9.3 MB of types.
+`$ref`s, which pull theirs. Emit **exactly the reachable set**: too little and it
+does not compile; too much and we are back where we started.
 
-Watch for: `allOf`/`oneOf`/`anyOf` composition, recursive schemas (a type that
-refs itself), shared error envelopes, and `$ref`s into `components/parameters` and
-`components/responses`, not just `components/schemas`.
+#### What the three specs actually look like (measured 2026-07-17)
+
+This was worth checking before building, because it redirects the work:
+
+| Spec | Size | `$ref` count | Style |
+|---|---|---|---|
+| **Linode** | 9.3 MB | **0** | **fully bundled** — every schema inlined into its operation |
+| **Hetzner** | 3.4 MB | **0** | **bundled**; its only `#/components/schemas/` strings (35) are inside **discriminator `mapping`** blocks |
+| **DigitalOcean** | 3.1 MB | **7814** | **ref-heavy**: `responses` 3758, `schemas` 1796, `headers` 1372, `parameters` 833, `examples` 105, `links` 8 |
+
+So:
+
+- **Selection by path is the primary win for all three** — and for Linode and
+  Hetzner it is the *entire* win. Their schemas travel inline with the operation,
+  so dropping an unselected path drops its schemas with it. 334 paths → 6.
+- **The closure walk is load-bearing for DigitalOcean only.** That is also the one
+  that needs the most from it (see below).
+- **Discriminator `mapping` is a ref site.** Hetzner's only refs live there. A
+  closure that walks `$ref` but not `mapping` would emit a schema whose
+  discriminator points at a type we dropped — broken output from a spec that looks
+  ref-free. Easy to miss; the fixture must cover it.
+
+#### The gap DigitalOcean exposes
+
+`foundation_openapi::spec::Components` **only parses `schemas`**:
+
+```rust
+pub struct Components { pub schemas: BTreeMap<String, Schema> }
+```
+
+DO refs into `components/responses` (3758), `components/headers` (1372) and
+`components/parameters` (833) — none of which the model can represent, so those
+refs cannot resolve today. Feature 00 has to extend `Components` before DO's
+closure can be correct. (Nothing has noticed because nothing has generated DO.)
+
+#### Still to handle
+
+`allOf`/`oneOf`/`anyOf` composition, recursive schemas (a type that refs itself),
+shared error envelopes, and — per above — `discriminator.mapping` and refs into
+`components/{responses,parameters,headers}`.
 
 ### 3. Pin the API version, validate the spec revision — **resolved** (owner, 2026-07-17)
 
@@ -189,6 +272,11 @@ All local — no network, no accounts:
 - **The real payoff, measured** — generate the six Linode endpoints from the real
   9.3 MB spec and assert the output is a small, bounded set of types. This is the
   test that would have caught "we generated all 334 paths anyway".
+- **A discriminator's `mapping` targets survive** — the Hetzner case: a bundled
+  spec whose only refs are in `mapping`, where dropping a mapped schema yields
+  output that references a type we never emitted.
+- **DO's `components/{responses,parameters,headers}` refs resolve** — currently
+  unrepresentable in `Components`.
 - **Glob/tag selection** — selecting by tag pulls the tag's operations; selecting
   by path pulls just that path.
 - **Version pinning** — a spec whose `info.version` differs from the pinned
@@ -205,6 +293,8 @@ All local — no network, no accounts:
 - [ ] `api_version` pinned into the client; callers never pass it
 - [ ] `spec_version` validated against the spec's `info.version` — **generation fails on a mismatch**, naming both versions
 - [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
+- [ ] Canonicalisation stage wired (§0): `extract_inline_schemas` + `normalize_nullable_types` + `ensure_servers` composed per provider — they exist, tested, and unused today
+- [ ] A bundled spec (Linode/Hetzner) yields **named** request/response types, not `serde_json::Value`
 - [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
 - [ ] Transitive schema closure emitted — nothing missing, nothing extra
 - [ ] `allOf`/`oneOf`/`anyOf`, recursive schemas, and `components/{parameters,responses}` refs handled

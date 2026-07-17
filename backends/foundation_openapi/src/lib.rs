@@ -32,6 +32,7 @@ pub mod classifier;
 pub mod endpoint;
 pub mod extractor;
 pub mod normalizer;
+pub mod selection;
 pub mod spec;
 pub mod type_resolver;
 pub mod unified;
@@ -50,6 +51,7 @@ pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,
     PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
 };
+pub use selection::{glob_match, operations_of, Selection};
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;
 
