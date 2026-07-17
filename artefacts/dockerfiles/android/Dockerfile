@@ -107,12 +107,12 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # ── Developer user ───────────────────────────────────────────────────────────
-# Create kvm group matching host GID for /dev/kvm passthrough
-RUN groupadd -f -g 990 kvm \
-    && useradd -m -s /bin/bash "${DEV_USER}" \
+# Developer user. kvm group for /dev/kvm passthrough may have been
+# created by qemu-kvm package above — adjust GID to match host (990).
+RUN useradd -m -s /bin/bash "${DEV_USER}" \
     && groupadd -f docker \
     && usermod -aG docker "${DEV_USER}" \
-    && usermod -aG kvm "${DEV_USER}" \
+    && (groupmod -g 990 kvm 2>/dev/null; usermod -aG kvm "${DEV_USER}" || true) \
     && echo "${DEV_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DEV_USER}
 
 EXPOSE 22 5901 6081 5037 5554 5555
