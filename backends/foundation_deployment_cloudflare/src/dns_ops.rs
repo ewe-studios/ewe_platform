@@ -58,6 +58,7 @@ impl crate::client::CloudflareClient {
         let response = dns_records_for_a_zone_list_dns_records_request(
             self.http(),
             &args,
+            self.base_url(),
             Some(auth_mod(&self.token())),
         )
         .await
@@ -85,7 +86,7 @@ impl crate::client::CloudflareClient {
                 body,
             };
             dns_records_for_a_zone_update_dns_record_request(
-                self.http(), &args, Some(auth_mod(&self.token())),
+                self.http(), &args, self.base_url(), Some(auth_mod(&self.token())),
             )
             .await
             .map_err(map_api_error)?;
@@ -97,7 +98,7 @@ impl crate::client::CloudflareClient {
             };
             let response: ApiResponse<DnsRecordsDnsResponseSingle> =
                 dns_records_for_a_zone_create_dns_record_request(
-                    self.http(), &args, Some(auth_mod(&self.token())),
+                    self.http(), &args, self.base_url(), Some(auth_mod(&self.token())),
                 )
                 .await
                 .map_err(map_api_error)?;
@@ -118,6 +119,7 @@ impl crate::client::CloudflareClient {
         dns_records_for_a_zone_delete_dns_record_request(
             self.http(),
             &args,
+            self.base_url(),
             Some(auth_mod(&self.token())),
         )
         .await
@@ -137,7 +139,7 @@ impl crate::client::CloudflareClient {
     pub async fn find_zone(&self, _domain: &str) -> Result<bool, CloudflareError> {
         use crate::generated::zones::{zones_0_get_request, Zones0GetArgs};
         let args = Zones0GetArgs { zone_id: self.zone_id().to_string() };
-        match zones_0_get_request(self.http(), &args, Some(auth_mod(&self.token()))).await {
+        match zones_0_get_request(self.http(), &args, self.base_url(), Some(auth_mod(&self.token()))).await {
             Ok(_) => Ok(true),
             Err(ApiError::HttpStatus { code: 404, .. }) => Ok(false),
             Err(e) => Err(map_api_error(e)),

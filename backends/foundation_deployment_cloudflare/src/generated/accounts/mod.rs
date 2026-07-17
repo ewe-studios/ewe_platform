@@ -17,14 +17,14 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::IamApiResponseSingleId;
-use super::shared::IamApiResponseSingle;
-use super::shared::TunnelApiResponseCommon;
-use super::shared::IamResultInfo;
+use super::shared::IamApiResponseCollection;
 use super::shared::IamApiResponseCommon;
+use super::shared::IamApiResponseSingle;
 use super::shared::IamCommonComponentsSchemasIdentifier;
+use super::shared::IamResultInfo;
+use super::shared::TunnelApiResponseCommon;
 use super::shared::TunnelCreatedAt;
 use super::shared::TunnelDeletedAt;
-use super::shared::IamApiResponseCollection;
 
 use super::shared::ApiResponse;
 
@@ -32,18 +32,89 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MagicVisibilityPcapsPcapsTimeLimitSampled` type.
+/// `IamAccount` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsTimeLimitSampled {
+pub struct IamAccount {
+    /// created_on property.
+    pub created_on: Option<String>,
+    /// id property.
+    pub id: IamCommonComponentsSchemasIdentifier,
+    /// managed_by property.
+    pub managed_by: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// name property.
+    pub name: String,
+    /// settings property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: IamAccountType,
+}
+
+/// `IamAccountType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamAccountType {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TunnelMessages` type.
+/// `IamComponentsSchemasAccount` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelMessages {
+pub struct IamComponentsSchemasAccount {
+}
+
+/// `IamCreateAccount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamCreateAccount {
+    /// name property.
+    pub name: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<IamAccountType>,
+    /// unit property.
+    pub unit: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `IamResponseCollectionAccounts` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamResponseCollectionAccounts {
+    /// `result` property.
+    pub result: Option<Vec<IamAccount>>,
+}
+
+/// `IamResponseSingleAccount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamResponseSingleAccount {
+    /// `result` property.
+    pub result: Option<IamAccount>,
+}
+
+/// `IamSchemasMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamSchemasMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<MagicVisibilityPcapsResultInfo>,
+}
+
+/// `MagicVisibilityPcapsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
 }
 
 /// `MagicVisibilityPcapsApiResponseSingle` type.
@@ -53,25 +124,283 @@ pub struct MagicVisibilityPcapsApiResponseSingle {
     pub result: Option<serde_json::Value>,
 }
 
-/// `TunnelTunnelId` type.
+/// `MagicVisibilityPcapsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelId {
+pub struct MagicVisibilityPcapsMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TunnelClientId` type.
+/// `MagicVisibilityPcapsPcapsByteLimit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelClientId {
+pub struct MagicVisibilityPcapsPcapsByteLimit {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TunnelConfigSrc` type.
+/// `MagicVisibilityPcapsPcapsCollectionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConfigSrc {
+pub struct MagicVisibilityPcapsPcapsCollectionResponse {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+}
+
+/// `MagicVisibilityPcapsPcapsColoName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsColoName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsDestinationConf` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsDestinationConf {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsErrorMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsErrorMessage {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsFilterV1` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsFilterV1 {
+    /// destination_address property.
+    pub destination_address: Option<String>,
+    /// destination_port property.
+    pub destination_port: Option<f64>,
+    /// protocol property.
+    pub protocol: Option<f64>,
+    /// source_address property.
+    pub source_address: Option<String>,
+    /// source_port property.
+    pub source_port: Option<f64>,
+}
+
+/// `MagicVisibilityPcapsPcapsId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsOffsetTime` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsOffsetTime {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsPacketLimit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsPacketLimit {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsPacketsCaptured` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsPacketsCaptured {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsRequestFull` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsRequestFull {
+    /// byte_limit property.
+    pub byte_limit: Option<MagicVisibilityPcapsPcapsByteLimit>,
+    /// colo_name property.
+    pub colo_name: MagicVisibilityPcapsPcapsColoName,
+    /// destination_conf property.
+    pub destination_conf: MagicVisibilityPcapsPcapsDestinationConf,
+    /// filter_v1 property.
+    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
+    /// packet_limit property.
+    pub packet_limit: Option<MagicVisibilityPcapsPcapsPacketLimit>,
+    /// system property.
+    pub system: MagicVisibilityPcapsPcapsSystem,
+    /// time_limit property.
+    pub time_limit: MagicVisibilityPcapsPcapsTimeLimitFull,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: MagicVisibilityPcapsPcapsType,
+}
+
+/// `MagicVisibilityPcapsPcapsRequestPcap` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsRequestPcap {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsRequestSimple` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsRequestSimple {
+    /// filter_v1 property.
+    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
+    /// offset_time property.
+    pub offset_time: Option<MagicVisibilityPcapsPcapsOffsetTime>,
+    /// packet_limit property.
+    pub packet_limit: MagicVisibilityPcapsPcapsPacketLimit,
+    /// system property.
+    pub system: MagicVisibilityPcapsPcapsSystem,
+    /// time_limit property.
+    pub time_limit: MagicVisibilityPcapsPcapsTimeLimitSampled,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: MagicVisibilityPcapsPcapsType,
+}
+
+/// `MagicVisibilityPcapsPcapsResponseFull` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsResponseFull {
+    /// byte_limit property.
+    pub byte_limit: Option<MagicVisibilityPcapsPcapsByteLimit>,
+    /// colo_name property.
+    pub colo_name: Option<MagicVisibilityPcapsPcapsColoName>,
+    /// destination_conf property.
+    pub destination_conf: Option<MagicVisibilityPcapsPcapsDestinationConf>,
+    /// error_message property.
+    pub error_message: Option<MagicVisibilityPcapsPcapsErrorMessage>,
+    /// filter_v1 property.
+    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
+    /// id property.
+    pub id: Option<MagicVisibilityPcapsPcapsId>,
+    /// packets_captured property.
+    pub packets_captured: Option<MagicVisibilityPcapsPcapsPacketsCaptured>,
+    /// status property.
+    pub status: Option<MagicVisibilityPcapsPcapsStatus>,
+    /// stop_requested property.
+    pub stop_requested: Option<MagicVisibilityPcapsPcapsStopRequested>,
+    /// submitted property.
+    pub submitted: Option<MagicVisibilityPcapsPcapsSubmitted>,
+    /// system property.
+    pub system: Option<MagicVisibilityPcapsPcapsSystem>,
+    /// time_limit property.
+    pub time_limit: Option<MagicVisibilityPcapsPcapsTimeLimitFull>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<MagicVisibilityPcapsPcapsType>,
+}
+
+/// `MagicVisibilityPcapsPcapsResponseSimple` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsResponseSimple {
+    /// filter_v1 property.
+    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
+    /// id property.
+    pub id: Option<MagicVisibilityPcapsPcapsId>,
+    /// offset_time property.
+    pub offset_time: Option<MagicVisibilityPcapsPcapsOffsetTime>,
+    /// status property.
+    pub status: Option<MagicVisibilityPcapsPcapsStatus>,
+    /// submitted property.
+    pub submitted: Option<MagicVisibilityPcapsPcapsSubmitted>,
+    /// system property.
+    pub system: Option<MagicVisibilityPcapsPcapsSystem>,
+    /// time_limit property.
+    pub time_limit: Option<MagicVisibilityPcapsPcapsTimeLimitSampled>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<MagicVisibilityPcapsPcapsType>,
+}
+
+/// `MagicVisibilityPcapsPcapsSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsSingleResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsStopRequested` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsStopRequested {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsSubmitted` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsSubmitted {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsSystem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsSystem {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsTimeLimitFull` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsTimeLimitFull {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsTimeLimitSampled` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsTimeLimitSampled {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `StringType` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StringType {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelAccountId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelAccountId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
 }
 
 /// `TunnelCfdTunnel` type.
@@ -105,6 +434,159 @@ pub struct TunnelCfdTunnel {
     pub tun_type: Option<TunnelTunnelType>,
 }
 
+/// `TunnelClientId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelClientId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelColoName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelColoName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelConfigSrc` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelConfigSrc {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelConnectionId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelConnectionId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelConnectionsDeprecated` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelConnectionsDeprecated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelConnsActiveAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelConnsActiveAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelConnsInactiveAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelConnsInactiveAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelIsPendingReconnect` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelIsPendingReconnect {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelMetadata {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelRemoteConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelRemoteConfig {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `TunnelSchemasConnection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelSchemasConnection {
+    /// client_id property.
+    pub client_id: Option<TunnelClientId>,
+    /// client_version property.
+    pub client_version: Option<TunnelVersion>,
+    /// colo_name property.
+    pub colo_name: Option<TunnelColoName>,
+    /// id property.
+    pub id: Option<TunnelConnectionId>,
+    /// is_pending_reconnect property.
+    pub is_pending_reconnect: Option<TunnelIsPendingReconnect>,
+    /// opened_at property.
+    pub opened_at: Option<String>,
+    /// origin_ip property.
+    pub origin_ip: Option<serde_json::Value>,
+    /// uuid property.
+    pub uuid: Option<TunnelConnectionId>,
+}
+
+/// `TunnelStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelTunnelId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelTunnelId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelTunnelName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelTunnelName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelTunnelResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelTunnelResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+}
+
+/// `TunnelTunnelType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelTunnelType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelVersion {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `TunnelWarpConnectorTunnel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelWarpConnectorTunnel {
@@ -132,480 +614,1136 @@ pub struct TunnelWarpConnectorTunnel {
     pub tun_type: Option<TunnelTunnelType>,
 }
 
-/// `TunnelConnectionsDeprecated` type.
+/// `WorBatchCreateWorkflowInstanceRequestItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConnectionsDeprecated {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorBatchCreateWorkflowInstanceRequestItem {
+    /// instance_id property.
+    pub instance_id: Option<String>,
+    /// instance_retention property.
+    pub instance_retention: Option<WorBatchCreateWorkflowInstanceRequestItemInstanceRetention>,
+    /// params property.
+    pub params: Option<serde_json::Value>,
 }
 
-/// `TunnelRemoteConfig` type.
+/// `WorBatchCreateWorkflowInstanceRequestItemInstanceRetention` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelRemoteConfig {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorBatchCreateWorkflowInstanceRequestItemInstanceRetention {
+    /// error_retention property.
+    pub error_retention: Option<serde_json::Value>,
+    /// success_retention property.
+    pub success_retention: Option<serde_json::Value>,
 }
 
-/// `IamSchemasMessages` type.
+/// `WorBatchCreateWorkflowInstanceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamSchemasMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsTimeLimitFull` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsTimeLimitFull {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelMetadata {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelTunnelName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsFilterV1` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsFilterV1 {
-    /// destination_address property.
-    pub destination_address: Option<String>,
-    /// destination_port property.
-    pub destination_port: Option<f64>,
-    /// protocol property.
-    pub protocol: Option<f64>,
-    /// source_address property.
-    pub source_address: Option<String>,
-    /// source_port property.
-    pub source_port: Option<f64>,
-}
-
-/// `IamAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamAccount {
-    /// created_on property.
-    pub created_on: Option<String>,
-    /// id property.
-    pub id: IamCommonComponentsSchemasIdentifier,
-    /// managed_by property.
-    pub managed_by: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// name property.
-    pub name: String,
-    /// settings property.
-    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// type property.
-    pub r#type: IamAccountType,
-}
-
-/// `TunnelVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelConnsActiveAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConnsActiveAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsByteLimit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsByteLimit {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsPacketsCaptured` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsPacketsCaptured {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<MagicVisibilityPcapsResultInfo>,
-}
-
-/// `MagicVisibilityPcapsPcapsSystem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsSystem {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelColoName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelColoName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsPacketLimit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsPacketLimit {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelConnsInactiveAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConnsInactiveAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IamResponseSingleAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamResponseSingleAccount {
-    /// `result` property.
-    pub result: Option<IamAccount>,
-}
-
-/// `TunnelSchemasConnection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSchemasConnection {
-    /// client_id property.
-    pub client_id: Option<TunnelClientId>,
-    /// client_version property.
-    pub client_version: Option<TunnelVersion>,
-    /// colo_name property.
-    pub colo_name: Option<TunnelColoName>,
-    /// id property.
-    pub id: Option<TunnelConnectionId>,
-    /// is_pending_reconnect property.
-    pub is_pending_reconnect: Option<TunnelIsPendingReconnect>,
-    /// opened_at property.
-    pub opened_at: Option<String>,
-    /// origin_ip property.
-    pub origin_ip: Option<serde_json::Value>,
-    /// uuid property.
-    pub uuid: Option<TunnelConnectionId>,
-}
-
-/// `MagicVisibilityPcapsPcapsSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsSingleResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsApiResponseCommon {
+pub struct WorBatchCreateWorkflowInstanceResponse {
     /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    pub errors: Vec<WorBatchCreateWorkflowInstanceResponseErrorsItem>,
     /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    pub messages: Vec<WorBatchCreateWorkflowInstanceResponseMessagesItem>,
     /// result property.
-    pub result: serde_json::Value,
+    pub result: Vec<WorBatchCreateWorkflowInstanceResponseResultItem>,
+    /// result_info property.
+    pub result_info: Option<WorBatchCreateWorkflowInstanceResponseResultInfo>,
     /// success property.
     pub success: bool,
 }
 
-/// `TunnelConnectionId` type.
+/// `WorBatchCreateWorkflowInstanceResponseErrorsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConnectionId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorBatchCreateWorkflowInstanceResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
 }
 
-/// `TunnelResultInfo` type.
+/// `WorBatchCreateWorkflowInstanceResponseMessagesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelResultInfo {
+pub struct WorBatchCreateWorkflowInstanceResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorBatchCreateWorkflowInstanceResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchCreateWorkflowInstanceResponseResultInfo {
     /// count property.
-    pub count: Option<f64>,
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
     /// page property.
     pub page: Option<f64>,
     /// per_page property.
-    pub per_page: Option<f64>,
+    pub per_page: f64,
     /// total_count property.
-    pub total_count: Option<f64>,
+    pub total_count: f64,
 }
 
-/// `TunnelTunnelType` type.
+/// `WorBatchCreateWorkflowInstanceResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsDestinationConf` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsDestinationConf {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<TunnelResultInfo>,
-}
-
-/// `MagicVisibilityPcapsPcapsRequestSimple` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsRequestSimple {
-    /// filter_v1 property.
-    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
-    /// offset_time property.
-    pub offset_time: Option<MagicVisibilityPcapsPcapsOffsetTime>,
-    /// packet_limit property.
-    pub packet_limit: MagicVisibilityPcapsPcapsPacketLimit,
-    /// system property.
-    pub system: MagicVisibilityPcapsPcapsSystem,
-    /// time_limit property.
-    pub time_limit: MagicVisibilityPcapsPcapsTimeLimitSampled,
-    /// type property.
-    pub r#type: MagicVisibilityPcapsPcapsType,
-}
-
-/// `MagicVisibilityPcapsPcapsRequestFull` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsRequestFull {
-    /// byte_limit property.
-    pub byte_limit: Option<MagicVisibilityPcapsPcapsByteLimit>,
-    /// colo_name property.
-    pub colo_name: MagicVisibilityPcapsPcapsColoName,
-    /// destination_conf property.
-    pub destination_conf: MagicVisibilityPcapsPcapsDestinationConf,
-    /// filter_v1 property.
-    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
-    /// packet_limit property.
-    pub packet_limit: Option<MagicVisibilityPcapsPcapsPacketLimit>,
-    /// system property.
-    pub system: MagicVisibilityPcapsPcapsSystem,
-    /// time_limit property.
-    pub time_limit: MagicVisibilityPcapsPcapsTimeLimitFull,
-    /// type property.
-    pub r#type: MagicVisibilityPcapsPcapsType,
-}
-
-/// `MagicVisibilityPcapsResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `MagicVisibilityPcapsPcapsType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsOffsetTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsOffsetTime {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsRequestPcap` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsRequestPcap {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsCollectionResponse {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-}
-
-/// `MagicVisibilityPcapsPcapsId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsErrorMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsErrorMessage {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsPcapsResponseSimple` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsResponseSimple {
-    /// filter_v1 property.
-    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
+pub struct WorBatchCreateWorkflowInstanceResponseResultItem {
     /// id property.
-    pub id: Option<MagicVisibilityPcapsPcapsId>,
-    /// offset_time property.
-    pub offset_time: Option<MagicVisibilityPcapsPcapsOffsetTime>,
+    pub id: String,
     /// status property.
-    pub status: Option<MagicVisibilityPcapsPcapsStatus>,
-    /// submitted property.
-    pub submitted: Option<MagicVisibilityPcapsPcapsSubmitted>,
-    /// system property.
-    pub system: Option<MagicVisibilityPcapsPcapsSystem>,
-    /// time_limit property.
-    pub time_limit: Option<MagicVisibilityPcapsPcapsTimeLimitSampled>,
-    /// type property.
-    pub r#type: Option<MagicVisibilityPcapsPcapsType>,
+    pub status: String,
+    /// version_id property.
+    pub version_id: String,
+    /// workflow_id property.
+    pub workflow_id: String,
 }
 
-/// `IamCreateAccount` type.
+/// `WorBatchTerminateWorkflowInstancesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamCreateAccount {
+pub struct WorBatchTerminateWorkflowInstancesResponse {
+    /// errors property.
+    pub errors: Vec<WorBatchTerminateWorkflowInstancesResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorBatchTerminateWorkflowInstancesResponseMessagesItem>,
+    /// result property.
+    pub result: WorBatchTerminateWorkflowInstancesResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorBatchTerminateWorkflowInstancesResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorBatchTerminateWorkflowInstancesResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchTerminateWorkflowInstancesResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorBatchTerminateWorkflowInstancesResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchTerminateWorkflowInstancesResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorBatchTerminateWorkflowInstancesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchTerminateWorkflowInstancesResponseResult {
+    /// instancesTerminated property.
+    #[serde(rename = "instancesTerminated")]
+    pub instances_terminated: f64,
+    /// status property.
+    pub status: String,
+}
+
+/// `WorBatchTerminateWorkflowInstancesResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchTerminateWorkflowInstancesResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorChangeStatusWorkflowInstanceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceRequest {
+    /// status property.
+    pub status: String,
+}
+
+/// `WorChangeStatusWorkflowInstanceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceResponse {
+    /// errors property.
+    pub errors: Vec<WorChangeStatusWorkflowInstanceResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorChangeStatusWorkflowInstanceResponseMessagesItem>,
+    /// result property.
+    pub result: WorChangeStatusWorkflowInstanceResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorChangeStatusWorkflowInstanceResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorChangeStatusWorkflowInstanceResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorChangeStatusWorkflowInstanceResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorChangeStatusWorkflowInstanceResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceResponseResult {
+    /// status property.
+    pub status: String,
+    /// timestamp property.
+    pub timestamp: String,
+}
+
+/// `WorChangeStatusWorkflowInstanceResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorChangeStatusWorkflowInstanceResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorCreateNewWorkflowInstanceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceRequest {
+    /// instance_id property.
+    pub instance_id: Option<String>,
+    /// instance_retention property.
+    pub instance_retention: Option<WorCreateNewWorkflowInstanceRequestInstanceRetention>,
+    /// params property.
+    pub params: Option<serde_json::Value>,
+}
+
+/// `WorCreateNewWorkflowInstanceRequestInstanceRetention` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceRequestInstanceRetention {
+    /// error_retention property.
+    pub error_retention: Option<serde_json::Value>,
+    /// success_retention property.
+    pub success_retention: Option<serde_json::Value>,
+}
+
+/// `WorCreateNewWorkflowInstanceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceResponse {
+    /// errors property.
+    pub errors: Vec<WorCreateNewWorkflowInstanceResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorCreateNewWorkflowInstanceResponseMessagesItem>,
+    /// result property.
+    pub result: WorCreateNewWorkflowInstanceResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorCreateNewWorkflowInstanceResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorCreateNewWorkflowInstanceResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorCreateNewWorkflowInstanceResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorCreateNewWorkflowInstanceResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceResponseResult {
+    /// id property.
+    pub id: String,
+    /// status property.
+    pub status: String,
+    /// version_id property.
+    pub version_id: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorCreateNewWorkflowInstanceResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateNewWorkflowInstanceResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorCreateOrModifyWorkflowRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowRequest {
+    /// class_name property.
+    pub class_name: String,
+    /// limits property.
+    pub limits: Option<WorCreateOrModifyWorkflowRequestLimits>,
+    /// script_name property.
+    pub script_name: String,
+}
+
+/// `WorCreateOrModifyWorkflowRequestLimits` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowRequestLimits {
+    /// steps property.
+    pub steps: Option<i64>,
+}
+
+/// `WorCreateOrModifyWorkflowResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowResponse {
+    /// errors property.
+    pub errors: Vec<WorCreateOrModifyWorkflowResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorCreateOrModifyWorkflowResponseMessagesItem>,
+    /// result property.
+    pub result: WorCreateOrModifyWorkflowResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorCreateOrModifyWorkflowResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorCreateOrModifyWorkflowResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorCreateOrModifyWorkflowResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorCreateOrModifyWorkflowResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorCreateOrModifyWorkflowResponseResult {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// id property.
+    pub id: String,
+    /// is_deleted property.
+    pub is_deleted: f64,
+    /// modified_on property.
+    pub modified_on: String,
     /// name property.
     pub name: String,
-    /// type property.
-    pub r#type: Option<IamAccountType>,
-    /// unit property.
-    pub unit: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// script_name property.
+    pub script_name: String,
+    /// terminator_running property.
+    pub terminator_running: f64,
+    /// triggered_on property.
+    pub triggered_on: String,
+    /// version_id property.
+    pub version_id: String,
 }
 
-/// `MagicVisibilityPcapsPcapsResponseFull` type.
+/// `WorCreateOrModifyWorkflowResponseResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsResponseFull {
-    /// byte_limit property.
-    pub byte_limit: Option<MagicVisibilityPcapsPcapsByteLimit>,
-    /// colo_name property.
-    pub colo_name: Option<MagicVisibilityPcapsPcapsColoName>,
-    /// destination_conf property.
-    pub destination_conf: Option<MagicVisibilityPcapsPcapsDestinationConf>,
-    /// error_message property.
-    pub error_message: Option<MagicVisibilityPcapsPcapsErrorMessage>,
-    /// filter_v1 property.
-    pub filter_v1: Option<MagicVisibilityPcapsPcapsFilterV1>,
-    /// id property.
-    pub id: Option<MagicVisibilityPcapsPcapsId>,
-    /// packets_captured property.
-    pub packets_captured: Option<MagicVisibilityPcapsPcapsPacketsCaptured>,
+pub struct WorCreateOrModifyWorkflowResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorDeleteWorkflowResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDeleteWorkflowResponse {
+    /// errors property.
+    pub errors: Vec<WorDeleteWorkflowResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorDeleteWorkflowResponseMessagesItem>,
+    /// result property.
+    pub result: WorDeleteWorkflowResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorDeleteWorkflowResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorDeleteWorkflowResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDeleteWorkflowResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDeleteWorkflowResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDeleteWorkflowResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDeleteWorkflowResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDeleteWorkflowResponseResult {
     /// status property.
-    pub status: Option<MagicVisibilityPcapsPcapsStatus>,
-    /// stop_requested property.
-    pub stop_requested: Option<MagicVisibilityPcapsPcapsStopRequested>,
-    /// submitted property.
-    pub submitted: Option<MagicVisibilityPcapsPcapsSubmitted>,
-    /// system property.
-    pub system: Option<MagicVisibilityPcapsPcapsSystem>,
-    /// time_limit property.
-    pub time_limit: Option<MagicVisibilityPcapsPcapsTimeLimitFull>,
-    /// type property.
-    pub r#type: Option<MagicVisibilityPcapsPcapsType>,
+    pub status: String,
+    /// success property.
+    pub success: bool,
 }
 
-/// `TunnelStatus` type.
+/// `WorDeleteWorkflowResponseResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDeleteWorkflowResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
 }
 
-/// `MagicVisibilityPcapsPcapsColoName` type.
+/// `WorDescribeWorkflowInstanceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsColoName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowInstanceResponse {
+    /// errors property.
+    pub errors: Vec<WorDescribeWorkflowInstanceResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorDescribeWorkflowInstanceResponseMessagesItem>,
+    /// result property.
+    pub result: WorDescribeWorkflowInstanceResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorDescribeWorkflowInstanceResponseResultInfo>,
+    /// success property.
+    pub success: bool,
 }
 
-/// `MagicVisibilityPcapsMessages` type.
+/// `WorDescribeWorkflowInstanceResponseErrorsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowInstanceResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
 }
 
-/// `IamAccountType` type.
+/// `WorDescribeWorkflowInstanceResponseMessagesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamAccountType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowInstanceResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
 }
 
-/// `TunnelTunnelResponseCollection` type.
+/// `WorDescribeWorkflowInstanceResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
+pub struct WorDescribeWorkflowInstanceResponseResult {
+    /// end property.
+    pub end: String,
+    /// error property.
+    pub error: WorDescribeWorkflowInstanceResponseResultError,
+    /// output property.
+    pub output: serde_json::Value,
+    /// params property.
+    pub params: serde_json::Value,
+    /// queued property.
+    pub queued: String,
+    /// start property.
+    pub start: String,
+    /// status property.
+    pub status: String,
+    /// step_count property.
+    pub step_count: i64,
+    /// steps property.
+    pub steps: Vec<serde_json::Value>,
+    /// success property.
+    pub success: bool,
+    /// trigger property.
+    pub trigger: WorDescribeWorkflowInstanceResponseResultTrigger,
+    /// versionId property.
+    #[serde(rename = "versionId")]
+    pub version_id: String,
 }
 
-/// `TunnelAccountId` type.
+/// `WorDescribeWorkflowInstanceResponseResultError` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelAccountId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowInstanceResponseResultError {
+    /// message property.
+    pub message: String,
+    /// name property.
+    pub name: String,
 }
 
-/// `MagicVisibilityPcapsPcapsSubmitted` type.
+/// `WorDescribeWorkflowInstanceResponseResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsSubmitted {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowInstanceResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
 }
 
-/// `IamResponseCollectionAccounts` type.
+/// `WorDescribeWorkflowInstanceResponseResultTrigger` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamResponseCollectionAccounts {
-    /// `result` property.
-    pub result: Option<Vec<IamAccount>>,
+pub struct WorDescribeWorkflowInstanceResponseResultTrigger {
+    /// source property.
+    pub source: String,
 }
 
-/// `IamComponentsSchemasAccount` type.
+/// `WorDescribeWorkflowVersionsDagResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamComponentsSchemasAccount {
+pub struct WorDescribeWorkflowVersionsDagResponse {
+    /// errors property.
+    pub errors: Vec<WorDescribeWorkflowVersionsDagResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorDescribeWorkflowVersionsDagResponseMessagesItem>,
+    /// result property.
+    pub result: WorDescribeWorkflowVersionsDagResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorDescribeWorkflowVersionsDagResponseResultInfo>,
+    /// success property.
+    pub success: bool,
 }
 
-/// `TunnelIsPendingReconnect` type.
+/// `WorDescribeWorkflowVersionsDagResponseErrorsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelIsPendingReconnect {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowVersionsDagResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
 }
 
-/// `MagicVisibilityPcapsPcapsStopRequested` type.
+/// `WorDescribeWorkflowVersionsDagResponseMessagesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsStopRequested {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowVersionsDagResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
 }
 
-/// `StringType` response type.
+/// `WorDescribeWorkflowVersionsDagResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StringType {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct WorDescribeWorkflowVersionsDagResponseResult {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// dag property.
+    pub dag: serde_json::Value,
+    /// id property.
+    pub id: String,
+    /// modified_on property.
+    pub modified_on: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorDescribeWorkflowVersionsDagResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsDagResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponse {
+    /// errors property.
+    pub errors: Vec<WorDescribeWorkflowVersionsGraphResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorDescribeWorkflowVersionsGraphResponseMessagesItem>,
+    /// result property.
+    pub result: WorDescribeWorkflowVersionsGraphResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorDescribeWorkflowVersionsGraphResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseResult {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// graph property.
+    pub graph: WorDescribeWorkflowVersionsGraphResponseResultGraph,
+    /// id property.
+    pub id: String,
+    /// modified_on property.
+    pub modified_on: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseResultGraph` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseResultGraph {
+    /// version property.
+    pub version: f64,
+    /// workflow property.
+    pub workflow: WorDescribeWorkflowVersionsGraphResponseResultGraphWorkflow,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseResultGraphWorkflow` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseResultGraphWorkflow {
+    /// class_name property.
+    pub class_name: String,
+    /// functions property.
+    pub functions: serde_json::Value,
+    /// nodes property.
+    pub nodes: Vec<serde_json::Value>,
+    /// payload property.
+    pub payload: Option<serde_json::Value>,
+}
+
+/// `WorDescribeWorkflowVersionsGraphResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsGraphResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorDescribeWorkflowVersionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponse {
+    /// errors property.
+    pub errors: Vec<WorDescribeWorkflowVersionsResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorDescribeWorkflowVersionsResponseMessagesItem>,
+    /// result property.
+    pub result: WorDescribeWorkflowVersionsResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorDescribeWorkflowVersionsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorDescribeWorkflowVersionsResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDescribeWorkflowVersionsResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorDescribeWorkflowVersionsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponseResult {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// has_dag property.
+    pub has_dag: bool,
+    /// id property.
+    pub id: String,
+    /// limits property.
+    pub limits: Option<WorDescribeWorkflowVersionsResponseResultLimits>,
+    /// modified_on property.
+    pub modified_on: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorDescribeWorkflowVersionsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorDescribeWorkflowVersionsResponseResultLimits` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorDescribeWorkflowVersionsResponseResultLimits {
+    /// steps property.
+    pub steps: Option<i64>,
+}
+
+/// `WorGetWorkflowDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponse {
+    /// errors property.
+    pub errors: Vec<WorGetWorkflowDetailsResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorGetWorkflowDetailsResponseMessagesItem>,
+    /// result property.
+    pub result: WorGetWorkflowDetailsResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorGetWorkflowDetailsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorGetWorkflowDetailsResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorGetWorkflowDetailsResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorGetWorkflowDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseResult {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// id property.
+    pub id: String,
+    /// instances property.
+    pub instances: WorGetWorkflowDetailsResponseResultInstances,
+    /// modified_on property.
+    pub modified_on: String,
+    /// name property.
+    pub name: String,
+    /// script_name property.
+    pub script_name: String,
+    /// triggered_on property.
+    pub triggered_on: String,
+}
+
+/// `WorGetWorkflowDetailsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorGetWorkflowDetailsResponseResultInstances` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseResultInstances {
+    /// complete property.
+    pub complete: Option<f64>,
+    /// errored property.
+    pub errored: Option<f64>,
+    /// paused property.
+    pub paused: Option<f64>,
+    /// queued property.
+    pub queued: Option<f64>,
+    /// running property.
+    pub running: Option<f64>,
+    /// terminated property.
+    pub terminated: Option<f64>,
+    /// waiting property.
+    pub waiting: Option<f64>,
+    /// waitingForPause property.
+    #[serde(rename = "waitingForPause")]
+    pub waiting_for_pause: Option<f64>,
+}
+
+/// `WorListWorkflowInstancesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowInstancesResponse {
+    /// errors property.
+    pub errors: Vec<WorListWorkflowInstancesResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorListWorkflowInstancesResponseMessagesItem>,
+    /// result property.
+    pub result: Vec<WorListWorkflowInstancesResponseResultItem>,
+    /// result_info property.
+    pub result_info: Option<WorListWorkflowInstancesResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorListWorkflowInstancesResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowInstancesResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowInstancesResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowInstancesResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowInstancesResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowInstancesResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorListWorkflowInstancesResponseResultItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowInstancesResponseResultItem {
+    /// created_on property.
+    pub created_on: String,
+    /// ended_on property.
+    pub ended_on: String,
+    /// id property.
+    pub id: String,
+    /// modified_on property.
+    pub modified_on: String,
+    /// started_on property.
+    pub started_on: String,
+    /// status property.
+    pub status: String,
+    /// version_id property.
+    pub version_id: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorListWorkflowVersionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponse {
+    /// errors property.
+    pub errors: Vec<WorListWorkflowVersionsResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorListWorkflowVersionsResponseMessagesItem>,
+    /// result property.
+    pub result: Vec<WorListWorkflowVersionsResponseResultItem>,
+    /// result_info property.
+    pub result_info: Option<WorListWorkflowVersionsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorListWorkflowVersionsResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowVersionsResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowVersionsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorListWorkflowVersionsResponseResultItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponseResultItem {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// has_dag property.
+    pub has_dag: bool,
+    /// id property.
+    pub id: String,
+    /// limits property.
+    pub limits: Option<WorListWorkflowVersionsResponseResultItemLimits>,
+    /// modified_on property.
+    pub modified_on: String,
+    /// workflow_id property.
+    pub workflow_id: String,
+}
+
+/// `WorListWorkflowVersionsResponseResultItemLimits` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowVersionsResponseResultItemLimits {
+    /// steps property.
+    pub steps: Option<i64>,
+}
+
+/// `WorListWorkflowsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponse {
+    /// errors property.
+    pub errors: Vec<WorListWorkflowsResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorListWorkflowsResponseMessagesItem>,
+    /// result property.
+    pub result: Vec<WorListWorkflowsResponseResultItem>,
+    /// result_info property.
+    pub result_info: Option<WorListWorkflowsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorListWorkflowsResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowsResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorListWorkflowsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `WorListWorkflowsResponseResultItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponseResultItem {
+    /// class_name property.
+    pub class_name: String,
+    /// created_on property.
+    pub created_on: String,
+    /// id property.
+    pub id: String,
+    /// instances property.
+    pub instances: WorListWorkflowsResponseResultItemInstances,
+    /// modified_on property.
+    pub modified_on: String,
+    /// name property.
+    pub name: String,
+    /// script_name property.
+    pub script_name: String,
+    /// triggered_on property.
+    pub triggered_on: String,
+}
+
+/// `WorListWorkflowsResponseResultItemInstances` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorListWorkflowsResponseResultItemInstances {
+    /// complete property.
+    pub complete: Option<f64>,
+    /// errored property.
+    pub errored: Option<f64>,
+    /// paused property.
+    pub paused: Option<f64>,
+    /// queued property.
+    pub queued: Option<f64>,
+    /// running property.
+    pub running: Option<f64>,
+    /// terminated property.
+    pub terminated: Option<f64>,
+    /// waiting property.
+    pub waiting: Option<f64>,
+    /// waitingForPause property.
+    #[serde(rename = "waitingForPause")]
+    pub waiting_for_pause: Option<f64>,
+}
+
+/// `WorStatusTerminateWorkflowInstancesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorStatusTerminateWorkflowInstancesResponse {
+    /// errors property.
+    pub errors: Vec<WorStatusTerminateWorkflowInstancesResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorStatusTerminateWorkflowInstancesResponseMessagesItem>,
+    /// result property.
+    pub result: WorStatusTerminateWorkflowInstancesResponseResult,
+    /// result_info property.
+    pub result_info: Option<WorStatusTerminateWorkflowInstancesResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorStatusTerminateWorkflowInstancesResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorStatusTerminateWorkflowInstancesResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorStatusTerminateWorkflowInstancesResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorStatusTerminateWorkflowInstancesResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorStatusTerminateWorkflowInstancesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorStatusTerminateWorkflowInstancesResponseResult {
+    /// status property.
+    pub status: String,
+}
+
+/// `WorStatusTerminateWorkflowInstancesResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorStatusTerminateWorkflowInstancesResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
 }
 
 // =============================================================================
@@ -758,6 +1896,8 @@ pub struct WorCreateOrModifyWorkflowArgs {
     pub workflow_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: WorCreateOrModifyWorkflowRequest,
 }
 
 /// Arguments for [`wor-delete-workflow_request`].
@@ -799,6 +1939,8 @@ pub struct WorCreateNewWorkflowInstanceArgs {
     pub workflow_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: WorCreateNewWorkflowInstanceRequest,
 }
 
 /// Arguments for [`wor-batch-create-workflow-instance_request`].
@@ -809,7 +1951,7 @@ pub struct WorBatchCreateWorkflowInstanceArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
-    pub body: Vec<serde_json::Value>,
+    pub body: Vec<WorBatchCreateWorkflowInstanceRequestItem>,
 }
 
 /// Arguments for [`wor-batch-terminate-workflow-instances_request`].
@@ -856,6 +1998,8 @@ pub struct WorChangeStatusWorkflowInstanceArgs {
     pub instance_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: WorChangeStatusWorkflowInstanceRequest,
 }
 
 /// Arguments for [`wor-list-workflow-versions_request`].
@@ -933,14 +2077,15 @@ pub struct WorDescribeWorkflowVersionsGraphArgs {
 pub async fn accounts_list_accounts_request<F>(
     client: DynNetClient,
     args: &AccountsListAccountsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamResponseCollectionAccounts>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts",
+    let path = format!("/accounts",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -960,7 +2105,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamResponseCollectionAccounts = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -992,14 +2140,15 @@ where
 pub async fn account_creation_request<F>(
     client: DynNetClient,
     args: &AccountCreationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamResponseSingleAccount>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts",
+    let path = format!("/accounts",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1017,7 +2166,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamResponseSingleAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1049,15 +2201,16 @@ where
 pub async fn accounts_account_details_request<F>(
     client: DynNetClient,
     args: &AccountsAccountDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamResponseSingleAccount>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}",
+    let path = format!("/accounts/{}",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1072,7 +2225,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamResponseSingleAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1104,15 +2260,16 @@ where
 pub async fn accounts_update_account_request<F>(
     client: DynNetClient,
     args: &AccountsUpdateAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamResponseSingleAccount>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}",
+    let path = format!("/accounts/{}",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1130,7 +2287,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamResponseSingleAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1162,15 +2322,16 @@ where
 pub async fn account_deletion_request<F>(
     client: DynNetClient,
     args: &AccountDeletionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamApiResponseSingleId>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}",
+    let path = format!("/accounts/{}",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1185,7 +2346,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamApiResponseSingleId = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1217,15 +2381,16 @@ where
 pub async fn magic_pcap_collection_list_packet_capture_requests_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionListPacketCaptureRequestsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsCollectionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps",
+    let path = format!("/accounts/{}/pcaps",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1240,7 +2405,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1272,15 +2440,16 @@ where
 pub async fn magic_pcap_collection_create_pcap_request_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionCreatePcapRequestArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps",
+    let path = format!("/accounts/{}/pcaps",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1298,7 +2467,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1330,16 +2502,17 @@ where
 pub async fn magic_pcap_collection_get_pcap_request_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionGetPcapRequestArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/{}",
+    let path = format!("/accounts/{}/pcaps/{}",
         args.account_id,
         args.pcap_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1354,7 +2527,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1386,16 +2562,17 @@ where
 pub async fn magic_pcap_collection_download_simple_pcap_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionDownloadSimplePcapArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/{}/download",
+    let path = format!("/accounts/{}/pcaps/{}/download",
         args.account_id,
         args.pcap_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1410,7 +2587,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -1440,16 +2620,17 @@ where
 pub async fn magic_pcap_collection_stop_full_pcap_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionStopFullPcapArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/{}/stop",
+    let path = format!("/accounts/{}/pcaps/{}/stop",
         args.account_id,
         args.pcap_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1464,7 +2645,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -1494,15 +2678,16 @@ where
 pub async fn cloudflare_tunnel_list_all_tunnels_request<F>(
     client: DynNetClient,
     args: &CloudflareTunnelListAllTunnelsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelTunnelResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tunnels",
+    let path = format!("/accounts/{}/tunnels",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1530,7 +2715,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1562,15 +2750,16 @@ where
 pub async fn wor_list_workflows_request<F>(
     client: DynNetClient,
     args: &WorListWorkflowsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorListWorkflowsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows",
+    let path = format!("/accounts/{}/workflows",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1589,9 +2778,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorListWorkflowsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1619,16 +2813,17 @@ where
 pub async fn wor_get_workflow_details_request<F>(
     client: DynNetClient,
     args: &WorGetWorkflowDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorGetWorkflowDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}",
+    let path = format!("/accounts/{}/workflows/{}",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1643,9 +2838,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorGetWorkflowDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1673,18 +2873,22 @@ where
 pub async fn wor_create_or_modify_workflow_request<F>(
     client: DynNetClient,
     args: &WorCreateOrModifyWorkflowArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorCreateOrModifyWorkflowResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}",
+    let path = format!("/accounts/{}/workflows/{}",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1697,9 +2901,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorCreateOrModifyWorkflowResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1727,16 +2936,17 @@ where
 pub async fn wor_delete_workflow_request<F>(
     client: DynNetClient,
     args: &WorDeleteWorkflowArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorDeleteWorkflowResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}",
+    let path = format!("/accounts/{}/workflows/{}",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1751,9 +2961,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorDeleteWorkflowResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1781,16 +2996,17 @@ where
 pub async fn wor_list_workflow_instances_request<F>(
     client: DynNetClient,
     args: &WorListWorkflowInstancesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorListWorkflowInstancesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances",
+    let path = format!("/accounts/{}/workflows/{}/instances",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1813,9 +3029,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorListWorkflowInstancesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1843,18 +3064,22 @@ where
 pub async fn wor_create_new_workflow_instance_request<F>(
     client: DynNetClient,
     args: &WorCreateNewWorkflowInstanceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorCreateNewWorkflowInstanceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances",
+    let path = format!("/accounts/{}/workflows/{}/instances",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1867,9 +3092,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorCreateNewWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1897,16 +3127,17 @@ where
 pub async fn wor_batch_create_workflow_instance_request<F>(
     client: DynNetClient,
     args: &WorBatchCreateWorkflowInstanceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorBatchCreateWorkflowInstanceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/batch",
+    let path = format!("/accounts/{}/workflows/{}/instances/batch",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1924,9 +3155,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorBatchCreateWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1954,16 +3190,17 @@ where
 pub async fn wor_batch_terminate_workflow_instances_request<F>(
     client: DynNetClient,
     args: &WorBatchTerminateWorkflowInstancesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorBatchTerminateWorkflowInstancesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/batch/terminate",
+    let path = format!("/accounts/{}/workflows/{}/instances/batch/terminate",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1981,9 +3218,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorBatchTerminateWorkflowInstancesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2011,16 +3253,17 @@ where
 pub async fn wor_status_terminate_workflow_instances_request<F>(
     client: DynNetClient,
     args: &WorStatusTerminateWorkflowInstancesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorStatusTerminateWorkflowInstancesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/terminate",
+    let path = format!("/accounts/{}/workflows/{}/instances/terminate",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2035,9 +3278,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorStatusTerminateWorkflowInstancesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2065,17 +3313,18 @@ where
 pub async fn wor_describe_workflow_instance_request<F>(
     client: DynNetClient,
     args: &WorDescribeWorkflowInstanceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorDescribeWorkflowInstanceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/{}",
+    let path = format!("/accounts/{}/workflows/{}/instances/{}",
         args.account_id,
         args.workflow_name,
         args.instance_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2093,9 +3342,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorDescribeWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2123,19 +3377,23 @@ where
 pub async fn wor_change_status_workflow_instance_request<F>(
     client: DynNetClient,
     args: &WorChangeStatusWorkflowInstanceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorChangeStatusWorkflowInstanceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/{}/status",
+    let path = format!("/accounts/{}/workflows/{}/instances/{}/status",
         args.account_id,
         args.workflow_name,
         args.instance_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2148,9 +3406,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorChangeStatusWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2178,16 +3441,17 @@ where
 pub async fn wor_list_workflow_versions_request<F>(
     client: DynNetClient,
     args: &WorListWorkflowVersionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorListWorkflowVersionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/versions",
+    let path = format!("/accounts/{}/workflows/{}/versions",
         args.account_id,
         args.workflow_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2205,9 +3469,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorListWorkflowVersionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2235,17 +3504,18 @@ where
 pub async fn wor_describe_workflow_versions_request<F>(
     client: DynNetClient,
     args: &WorDescribeWorkflowVersionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorDescribeWorkflowVersionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/versions/{}",
+    let path = format!("/accounts/{}/workflows/{}/versions/{}",
         args.account_id,
         args.workflow_name,
         args.version_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2260,9 +3530,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorDescribeWorkflowVersionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2290,17 +3565,18 @@ where
 pub async fn wor_describe_workflow_versions_dag_request<F>(
     client: DynNetClient,
     args: &WorDescribeWorkflowVersionsDagArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorDescribeWorkflowVersionsDagResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/versions/{}/dag",
+    let path = format!("/accounts/{}/workflows/{}/versions/{}/dag",
         args.account_id,
         args.workflow_name,
         args.version_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2315,9 +3591,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorDescribeWorkflowVersionsDagResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2345,17 +3626,18 @@ where
 pub async fn wor_describe_workflow_versions_graph_request<F>(
     client: DynNetClient,
     args: &WorDescribeWorkflowVersionsGraphArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorDescribeWorkflowVersionsGraphResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/versions/{}/graph",
+    let path = format!("/accounts/{}/workflows/{}/versions/{}/graph",
         args.account_id,
         args.workflow_name,
         args.version_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2370,8 +3652,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorDescribeWorkflowVersionsGraphResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

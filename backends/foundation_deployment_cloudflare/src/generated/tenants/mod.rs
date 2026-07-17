@@ -21,6 +21,114 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `OrganizationsApiAccount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiAccount {
+    /// created_on property.
+    pub created_on: String,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// settings property.
+    pub settings: std::collections::HashMap<String, serde_json::Value>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `OrganizationsApiTenant` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiTenant {
+    /// cdate property.
+    pub cdate: String,
+    /// customer_id property.
+    pub customer_id: Option<String>,
+    /// edate property.
+    pub edate: String,
+    /// tenant_contacts property.
+    pub tenant_contacts: std::collections::HashMap<String, serde_json::Value>,
+    /// tenant_labels property.
+    pub tenant_labels: Vec<String>,
+    /// tenant_metadata property.
+    pub tenant_metadata: std::collections::HashMap<String, serde_json::Value>,
+    /// tenant_name property.
+    pub tenant_name: String,
+    /// tenant_network property.
+    pub tenant_network: serde_json::Value,
+    /// tenant_status property.
+    pub tenant_status: String,
+    /// tenant_tag property.
+    pub tenant_tag: String,
+    /// tenant_type property.
+    pub tenant_type: String,
+    /// tenant_units property.
+    pub tenant_units: Vec<OrganizationsApiTenantUnit>,
+}
+
+/// `OrganizationsApiTenantUnit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiTenantUnit {
+    /// unit_memberships property.
+    pub unit_memberships: Vec<serde_json::Value>,
+    /// unit_metadata property.
+    pub unit_metadata: serde_json::Value,
+    /// unit_name property.
+    pub unit_name: String,
+    /// unit_status property.
+    pub unit_status: String,
+    /// unit_tag property.
+    pub unit_tag: String,
+}
+
+/// `OrganizationsApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiV4Message {
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
+}
+
+/// `TenantsListAccountsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TenantsListAccountsResponse {
+    /// errors property.
+    pub errors: Vec<serde_json::Value>,
+    /// messages property.
+    pub messages: Vec<OrganizationsApiV4Message>,
+    /// result property.
+    pub result: Vec<OrganizationsApiAccount>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `TenantsRetrieveTenantResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TenantsRetrieveTenantResponse {
+    /// errors property.
+    pub errors: Vec<serde_json::Value>,
+    /// messages property.
+    pub messages: Vec<OrganizationsApiV4Message>,
+    /// result property.
+    pub result: OrganizationsApiTenant,
+    /// success property.
+    pub success: bool,
+}
+
+/// `TenantsValidAccountTypesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TenantsValidAccountTypesResponse {
+    /// errors property.
+    pub errors: Vec<serde_json::Value>,
+    /// messages property.
+    pub messages: Vec<OrganizationsApiV4Message>,
+    /// result property.
+    pub result: Vec<String>,
+    /// success property.
+    pub success: bool,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -75,15 +183,16 @@ pub struct TenantsListAccountsArgs {
 pub async fn tenants_retrieve_tenant_request<F>(
     client: DynNetClient,
     args: &TenantsRetrieveTenantArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<TenantsRetrieveTenantResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/tenants/{}",
+    let path = format!("/tenants/{}",
         args.tenant_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -98,9 +207,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: TenantsRetrieveTenantResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -128,15 +242,16 @@ where
 pub async fn tenants_valid_account_types_request<F>(
     client: DynNetClient,
     args: &TenantsValidAccountTypesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<TenantsValidAccountTypesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/tenants/{}/account_types",
+    let path = format!("/tenants/{}/account_types",
         args.tenant_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -151,9 +266,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: TenantsValidAccountTypesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -181,15 +301,16 @@ where
 pub async fn tenants_list_accounts_request<F>(
     client: DynNetClient,
     args: &TenantsListAccountsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<TenantsListAccountsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/tenants/{}/accounts",
+    let path = format!("/tenants/{}/accounts",
         args.tenant_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -204,8 +325,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: TenantsListAccountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

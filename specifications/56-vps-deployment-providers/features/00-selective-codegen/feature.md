@@ -353,7 +353,7 @@ narrower one that is actually ours to hold: **a ref that resolved in the vendor'
 document must still resolve in ours**. Theirs are reported via `tracing::warn` —
 never silent, since those fields generate untyped — but not fatal.
 
-### 8. Regenerating the existing providers — **OPEN, needs the owner**
+### 8. Regenerating the existing providers — **DONE 2026-07-17** (owner: "generate 00 as you described")
 
 Routing the CLI through `Pipeline` means every provider now gets canonicalised,
 which the old path never did. For the VPS crates (01–03) that is the whole point.
@@ -370,15 +370,42 @@ For **Cloudflare, which is already committed**, it is a decision:
   typed body parameter they did not have. The generated tree is clean; the
   hand-written code was built against the untyped API.
 
-So regenerating Cloudflare (and auditing docker/stripe/supabase/neon/planetscale/
-fly_io/prisma_postgres the same way) is **its own deliberate task**, not a side
-effect of wiring the selection. Until it is done, `genapi generate cloudflare`
-produces something different from what is committed — `genapi generate cloudflare
---check` reports exactly that, which is how anyone will find out.
+#### What it actually cost, and what it found
 
-**Recommendation:** take it. The typed-response gain is the payoff feature 00 was
-written for, and the 9 call sites are a morning's work. It just should not ride
-along inside a commit about selection.
+Done. The estimate was roughly right on the payoff and **wrong about the cause**:
+
+| | committed | regenerated |
+|---|---|---|
+| structs | 6214 | **10348** |
+| typed responses | 1218 | **2234** |
+| **`ApiResponse<()>`** — body read off the socket and **discarded** | **1093** | **88** |
+| untyped `serde_json::Value` blobs | 131 | 120 |
+
+**1093 → 88.** A thousand Cloudflare endpoints were throwing their response body
+away. Not "returning a blob" — returning *nothing*.
+
+Only **5** call sites broke, not 9, and all in `dns_ops.rs`. But the reason was not
+canonicalisation at all:
+
+> `base_url: &str` entered the generator on **2026-07-13** (spec-54's configurable
+> base_url). Cloudflare's generated tree was last regenerated on **2026-07-12** —
+> the day before. **It had been stale for five days and nobody noticed**, because
+> nothing ever regenerated it.
+
+So this regeneration picked up five days of accumulated generator improvements
+Cloudflare had simply never received, on top of canonicalisation. That is the
+argument for the `build.rs` in §7 stated as evidence rather than as a prediction:
+drift is silent, and it accumulates, and "the committed code compiles" hides it.
+`CloudflareClient` gained `base_url`/`with_base_url` to match, which also makes it
+mockable for the first time.
+
+One bug of my own, caught here: the error-body fix (§7) emitted `let mut response`,
+but `take_body(self)` consumes the response and the error branch returns — so the
+binding never needed to be mutable. It cost **2442** "does not need to be mutable"
+warnings in Cloudflare alone. Now 0.
+
+**Still to audit the same way:** docker, stripe, supabase, neon, planetscale,
+fly_io, prisma_postgres. `genapi generate <p> --check` reports each one's drift.
 
 ## Verification
 
@@ -408,7 +435,7 @@ All local — no network, no accounts:
 ## Acceptance criteria
 
 - [x] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it — `crate_dir()` writes to `<crate>/src/generated/`, and `--output-dir` now actually works (it was accepted, shadowed, and ignored)
-- [ ] **Existing providers regenerated under canonicalisation** (§8) — needs the owner's call; Cloudflare's generated code improves and compiles, its 9 hand-written call sites do not
+- [x] **Existing providers regenerated under canonicalisation** (§8) — Cloudflare done 2026-07-17: 1093 → 88 discarded response bodies, 1218 → 2234 typed. 5 call sites fixed (`dns_ops.rs`), `CloudflareClient` gained `base_url`. docker/stripe/supabase/neon/planetscale/fly_io/prisma_postgres still to audit via `--check`
 - [x] One declaration, two verbs: `check()` (fails aloud on stale output or a moved spec) and `write()`
 - [x] `write()` is not called from a build script of a publishable crate — `check()` is the build.rs/CI verb, and never writes
 - [x] `api_version` pinned into the client; callers never pass it (`Pipeline::api_version`)

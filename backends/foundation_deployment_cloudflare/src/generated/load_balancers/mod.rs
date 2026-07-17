@@ -28,65 +28,64 @@ use super::shared::LoadBalancingSchemasIdResponse;
 use super::shared::LoadBalancingSchemasResponseCollection;
 use super::shared::LoadBalancingSchemasSingleResponse;
 use super::shared::MagicVisibilityMnmMnmConfigSingleResponse;
-use super::shared::LoadBalancingSchemasName;
+use super::shared::LoadBalancingAddress;
 use super::shared::LoadBalancingAllowInsecure;
-use super::shared::LoadBalancingApiResponseSingle;
-use super::shared::LoadBalancingDescription;
-use super::shared::LoadBalancingMonitorId;
-use super::shared::MagicVisibilityMnmMnmConfigRouterIp;
-use super::shared::LoadBalancingVirtualNetworkId;
-use super::shared::LoadBalancingOriginPort;
-use super::shared::LoadBalancingOriginHealth;
-use super::shared::MagicVisibilityMnmMnmConfigName;
-use super::shared::LoadBalancingProbeZone;
-use super::shared::LoadBalancingHost;
+use super::shared::LoadBalancingApiPaginatedResponseCollection;
 use super::shared::LoadBalancingApiResponseCommon;
-use super::shared::LoadBalancingResultInfo;
-use super::shared::LoadBalancingMonitorGroupId;
-use super::shared::LoadBalancingMonitorEditable;
+use super::shared::LoadBalancingApiResponseSingle;
 use super::shared::LoadBalancingConsecutiveDown;
-use super::shared::LoadBalancingSchemasDescription;
-use super::shared::LoadBalancingSchemasIdentifier;
-use super::shared::LoadBalancingLatitude;
-use super::shared::LoadBalancingType;
-use super::shared::LoadBalancingDisabledAt;
-use super::shared::LoadBalancingRetries;
-use super::shared::LoadBalancingTimestamp;
-use super::shared::MagicVisibilityMnmMnmConfigDefaultSampling;
-use super::shared::LoadBalancingLongitude;
-use super::shared::LoadBalancingOrigin;
-use super::shared::LoadBalancingExpectedBody;
-use super::shared::LoadBalancingIdentifier;
-use super::shared::LoadBalancingMonitor;
-use super::shared::LoadBalancingMethod;
-use super::shared::LoadBalancingTimeout;
-use super::shared::LoadBalancingSchemasEnabled;
-use super::shared::MagicVisibilityMnmMnmConfigWarpDevice;
-use super::shared::LoadBalancingEnabled;
-use super::shared::LoadBalancingMinimumOrigins;
-use super::shared::LoadBalancingExpectedCodes;
-use super::shared::LoadBalancingSchemasDisabledAt;
-use super::shared::LoadBalancingNotificationFilter;
 use super::shared::LoadBalancingConsecutiveUp;
-use super::shared::LoadBalancingOriginSteering;
+use super::shared::LoadBalancingDescription;
+use super::shared::LoadBalancingDisabledAt;
+use super::shared::LoadBalancingEnabled;
+use super::shared::LoadBalancingExpectedBody;
+use super::shared::LoadBalancingExpectedCodes;
+use super::shared::LoadBalancingFilterOptions;
+use super::shared::LoadBalancingFollowRedirects;
 use super::shared::LoadBalancingHeader;
+use super::shared::LoadBalancingIdentifier;
+use super::shared::LoadBalancingInterval;
+use super::shared::LoadBalancingLatitude;
+use super::shared::LoadBalancingLoadShedding;
+use super::shared::LoadBalancingLongitude;
+use super::shared::LoadBalancingMethod;
+use super::shared::LoadBalancingMinimumOrigins;
+use super::shared::LoadBalancingMonitor;
+use super::shared::LoadBalancingMonitorEditable;
+use super::shared::LoadBalancingMonitorGroupId;
+use super::shared::LoadBalancingMonitorId;
+use super::shared::LoadBalancingName;
+use super::shared::LoadBalancingNotificationEmail;
+use super::shared::LoadBalancingNotificationFilter;
+use super::shared::LoadBalancingOrigin;
+use super::shared::LoadBalancingOriginHealth;
+use super::shared::LoadBalancingOriginPort;
+use super::shared::LoadBalancingOriginSteering;
 use super::shared::LoadBalancingPath;
-use super::shared::LoadBalancingPreviewResult;
 use super::shared::LoadBalancingPool;
+use super::shared::LoadBalancingPort;
+use super::shared::LoadBalancingPreviewResult;
+use super::shared::LoadBalancingProbeZone;
+use super::shared::LoadBalancingResultInfo;
+use super::shared::LoadBalancingRetries;
+use super::shared::LoadBalancingSchemasDescription;
+use super::shared::LoadBalancingSchemasDisabledAt;
+use super::shared::LoadBalancingSchemasEnabled;
+use super::shared::LoadBalancingSchemasHeader;
+use super::shared::LoadBalancingSchemasIdentifier;
+use super::shared::LoadBalancingSchemasName;
+use super::shared::LoadBalancingTimeout;
+use super::shared::LoadBalancingTimestamp;
+use super::shared::LoadBalancingType;
+use super::shared::LoadBalancingVirtualNetworkId;
 use super::shared::LoadBalancingWeight;
 use super::shared::MagicVisibilityMnmApiResponseCommon;
-use super::shared::LoadBalancingPort;
-use super::shared::LoadBalancingNotificationEmail;
-use super::shared::LoadBalancingFilterOptions;
-use super::shared::MagicVisibilityMnmMnmConfig;
 use super::shared::MagicVisibilityMnmApiResponseSingle;
-use super::shared::LoadBalancingLoadShedding;
-use super::shared::LoadBalancingName;
-use super::shared::LoadBalancingSchemasHeader;
-use super::shared::LoadBalancingApiPaginatedResponseCollection;
-use super::shared::LoadBalancingAddress;
-use super::shared::LoadBalancingFollowRedirects;
-use super::shared::LoadBalancingInterval;
+use super::shared::MagicVisibilityMnmMnmConfig;
+use super::shared::MagicVisibilityMnmMnmConfigDefaultSampling;
+use super::shared::MagicVisibilityMnmMnmConfigName;
+use super::shared::MagicVisibilityMnmMnmConfigRouterIp;
+use super::shared::MagicVisibilityMnmMnmConfigWarpDevice;
 
 use super::shared::ApiResponse;
 
@@ -94,32 +93,142 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `LoadBalancingMonitorGroupSingleResponse` type.
+/// `AccountLoadBalancerMonitorsCreateMonitorRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorGroupSingleResponse {
-    /// `result` property.
-    pub result: Option<LoadBalancingMonitorGroup>,
+pub struct AccountLoadBalancerMonitorsCreateMonitorRequest {
 }
 
-/// `LoadBalancingNetworks` type.
+/// `AccountLoadBalancerMonitorsPatchMonitorRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingNetworks {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct AccountLoadBalancerMonitorsPatchMonitorRequest {
 }
 
-/// `LoadBalancingMessages` type.
+/// `AccountLoadBalancerMonitorsPreviewMonitorRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct AccountLoadBalancerMonitorsPreviewMonitorRequest {
 }
 
-/// `LoadBalancingMonitorGroupReferencesResponse` type.
+/// `AccountLoadBalancerMonitorsUpdateMonitorRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorGroupReferencesResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+pub struct AccountLoadBalancerMonitorsUpdateMonitorRequest {
+}
+
+/// `AccountLoadBalancerPoolsCreatePoolRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerPoolsCreatePoolRequest {
+    /// description property.
+    pub description: Option<LoadBalancingSchemasDescription>,
+    /// enabled property.
+    pub enabled: Option<LoadBalancingEnabled>,
+    /// latitude property.
+    pub latitude: Option<LoadBalancingLatitude>,
+    /// load_shedding property.
+    pub load_shedding: Option<LoadBalancingLoadShedding>,
+    /// longitude property.
+    pub longitude: Option<LoadBalancingLongitude>,
+    /// minimum_origins property.
+    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
+    /// monitor property.
+    pub monitor: Option<LoadBalancingMonitorId>,
+    /// monitor_group property.
+    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
+    /// name property.
+    pub name: LoadBalancingName,
+    /// notification_email property.
+    pub notification_email: Option<LoadBalancingNotificationEmail>,
+    /// notification_filter property.
+    pub notification_filter: Option<LoadBalancingNotificationFilter>,
+    /// origin_steering property.
+    pub origin_steering: Option<LoadBalancingOriginSteering>,
+    /// origins property.
+    pub origins: Vec<LoadBalancingOrigin>,
+}
+
+/// `AccountLoadBalancerPoolsPatchPoolRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerPoolsPatchPoolRequest {
+    /// check_regions property.
+    pub check_regions: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<LoadBalancingSchemasDescription>,
+    /// disabled_at property.
+    pub disabled_at: Option<LoadBalancingSchemasDisabledAt>,
+    /// enabled property.
+    pub enabled: Option<LoadBalancingEnabled>,
+    /// latitude property.
+    pub latitude: Option<LoadBalancingLatitude>,
+    /// load_shedding property.
+    pub load_shedding: Option<LoadBalancingLoadShedding>,
+    /// longitude property.
+    pub longitude: Option<LoadBalancingLongitude>,
+    /// minimum_origins property.
+    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
+    /// monitor property.
+    pub monitor: Option<LoadBalancingMonitorId>,
+    /// monitor_group property.
+    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
+    /// name property.
+    pub name: Option<LoadBalancingName>,
+    /// notification_email property.
+    pub notification_email: Option<LoadBalancingNotificationEmail>,
+    /// notification_filter property.
+    pub notification_filter: Option<LoadBalancingNotificationFilter>,
+    /// origin_steering property.
+    pub origin_steering: Option<LoadBalancingOriginSteering>,
+    /// origins property.
+    pub origins: Option<Vec<LoadBalancingOrigin>>,
+}
+
+/// `AccountLoadBalancerPoolsPatchPoolsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerPoolsPatchPoolsRequest {
+    /// notification_email property.
+    pub notification_email: Option<LoadBalancingPatchPoolsNotificationEmail>,
+}
+
+/// `AccountLoadBalancerPoolsPreviewPoolRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerPoolsPreviewPoolRequest {
+}
+
+/// `AccountLoadBalancerPoolsUpdatePoolRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerPoolsUpdatePoolRequest {
+    /// check_regions property.
+    pub check_regions: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<LoadBalancingSchemasDescription>,
+    /// disabled_at property.
+    pub disabled_at: Option<LoadBalancingSchemasDisabledAt>,
+    /// enabled property.
+    pub enabled: Option<LoadBalancingEnabled>,
+    /// latitude property.
+    pub latitude: Option<LoadBalancingLatitude>,
+    /// load_shedding property.
+    pub load_shedding: Option<LoadBalancingLoadShedding>,
+    /// longitude property.
+    pub longitude: Option<LoadBalancingLongitude>,
+    /// minimum_origins property.
+    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
+    /// monitor property.
+    pub monitor: Option<LoadBalancingMonitorId>,
+    /// monitor_group property.
+    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
+    /// name property.
+    pub name: LoadBalancingName,
+    /// notification_email property.
+    pub notification_email: Option<LoadBalancingNotificationEmail>,
+    /// notification_filter property.
+    pub notification_filter: Option<LoadBalancingNotificationFilter>,
+    /// origin_steering property.
+    pub origin_steering: Option<LoadBalancingOriginSteering>,
+    /// origins property.
+    pub origins: Vec<LoadBalancingOrigin>,
+}
+
+/// `AccountLoadBalancerSearchSearchResourcesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountLoadBalancerSearchSearchResourcesResponse {
 }
 
 /// `LoadBalancingCheckRegions` type.
@@ -129,25 +238,25 @@ pub struct LoadBalancingCheckRegions {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `MagicTransitMessages` type.
+/// `LoadBalancingComponentsSchemasSingleResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitMessages {
+pub struct LoadBalancingComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `LoadBalancingHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingHost {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `MagicVisibilityMnmMnmConfigRouterIps` type.
+/// `LoadBalancingMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMnmConfigRouterIps {
+pub struct LoadBalancingMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicTransitEndpointHealthCheckResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitEndpointHealthCheckResponse {
-    /// `id` property.
-    pub id: Option<MagicTransitUuid>,
 }
 
 /// `LoadBalancingMonitorGroup` type.
@@ -163,31 +272,6 @@ pub struct LoadBalancingMonitorGroup {
     pub members: Vec<LoadBalancingMonitorGroupMember>,
     /// updated_at property.
     pub updated_at: Option<String>,
-}
-
-/// `MagicVisibilityMnmMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicTransitApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `MagicVisibilityMnmMnmVpcFlowsSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
-    /// `result` property.
-    pub result: Option<MagicVisibilityMnmMnmVpcFlowsToken>,
 }
 
 /// `LoadBalancingMonitorGroupMember` type.
@@ -207,11 +291,11 @@ pub struct LoadBalancingMonitorGroupMember {
     pub updated_at: Option<String>,
 }
 
-/// `LoadBalancingComponentsSchemasSingleResponse` type.
+/// `LoadBalancingMonitorGroupReferencesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingComponentsSchemasSingleResponse {
+pub struct LoadBalancingMonitorGroupReferencesResponse {
     /// `result` property.
-    pub result: Option<serde_json::Value>,
+    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `LoadBalancingMonitorGroupResponseCollection` type.
@@ -221,6 +305,127 @@ pub struct LoadBalancingMonitorGroupResponseCollection {
     pub result: Option<Vec<LoadBalancingMonitorGroup>>,
     /// `result_info` property.
     pub result_info: Option<LoadBalancingResultInfo>,
+}
+
+/// `LoadBalancingMonitorGroupSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingMonitorGroupSingleResponse {
+    /// `result` property.
+    pub result: Option<LoadBalancingMonitorGroup>,
+}
+
+/// `LoadBalancingNetworks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingNetworks {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LoadBalancingOrigins` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingOrigins {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LoadBalancingPatchPoolsNotificationEmail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingPatchPoolsNotificationEmail {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LoadBalancingRegionComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingRegionComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `LoadBalancingResourceReference` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingResourceReference {
+    /// reference_type property.
+    pub reference_type: Option<String>,
+    /// references property.
+    pub references: Option<Vec<serde_json::Value>>,
+    /// resource_id property.
+    pub resource_id: Option<String>,
+    /// resource_name property.
+    pub resource_name: Option<String>,
+    /// resource_type property.
+    pub resource_type: Option<String>,
+}
+
+/// `LoadBalancingSearch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingSearch {
+    /// resources property.
+    pub resources: Option<Vec<LoadBalancingResourceReference>>,
+}
+
+/// `LoadBalancingSearchResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingSearchResult {
+    /// result property.
+    pub result: Option<LoadBalancingSearch>,
+}
+
+/// `MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest {
+    /// default_sampling property.
+    pub default_sampling: MagicVisibilityMnmMnmConfigDefaultSampling,
+    /// name property.
+    pub name: MagicVisibilityMnmMnmConfigName,
+    /// router_ips property.
+    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
+    /// warp_devices property.
+    pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
+}
+
+/// `MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsRequest {
+    /// default_sampling property.
+    pub default_sampling: Option<MagicVisibilityMnmMnmConfigDefaultSampling>,
+    /// name property.
+    pub name: Option<MagicVisibilityMnmMnmConfigName>,
+    /// router_ips property.
+    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
+    /// warp_devices property.
+    pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
+}
+
+/// `MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest {
+    /// default_sampling property.
+    pub default_sampling: MagicVisibilityMnmMnmConfigDefaultSampling,
+    /// name property.
+    pub name: MagicVisibilityMnmMnmConfigName,
+    /// router_ips property.
+    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
+    /// warp_devices property.
+    pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
+}
+
+/// `MagicTransitApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicTransitApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `MagicTransitCheckType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicTransitCheckType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicTransitEndpointHealthCheck` type.
@@ -234,9 +439,23 @@ pub struct MagicTransitEndpointHealthCheck {
     pub name: Option<String>,
 }
 
-/// `MagicVisibilityMnmMnmVpcFlowsToken` type.
+/// `MagicTransitEndpointHealthCheckResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMnmVpcFlowsToken {
+pub struct MagicTransitEndpointHealthCheckResponse {
+    /// `id` property.
+    pub id: Option<MagicTransitUuid>,
+}
+
+/// `MagicTransitEndpointHealthCheckResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicTransitEndpointHealthCheckResponseSingle {
+    /// `result` property.
+    pub result: Option<MagicTransitEndpointHealthCheckResponse>,
+}
+
+/// `MagicTransitMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicTransitMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -248,9 +467,16 @@ pub struct MagicTransitUuid {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `MagicTransitCheckType` type.
+/// `MagicVisibilityMnmMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitCheckType {
+pub struct MagicVisibilityMnmMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityMnmMnmConfigRouterIps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityMnmMnmConfigRouterIps {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -262,25 +488,18 @@ pub struct MagicVisibilityMnmMnmConfigWarpDevices {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `LoadBalancingOrigins` type.
+/// `MagicVisibilityMnmMnmVpcFlowsSingleResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingOrigins {
+pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
+    /// `result` property.
+    pub result: Option<MagicVisibilityMnmMnmVpcFlowsToken>,
+}
+
+/// `MagicVisibilityMnmMnmVpcFlowsToken` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityMnmMnmVpcFlowsToken {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `LoadBalancingRegionComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingRegionComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `MagicTransitEndpointHealthCheckResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitEndpointHealthCheckResponseSingle {
-    /// `result` property.
-    pub result: Option<MagicTransitEndpointHealthCheckResponse>,
 }
 
 // =============================================================================
@@ -409,6 +628,8 @@ pub struct AccountLoadBalancerMonitorsListMonitorsArgs {
 pub struct AccountLoadBalancerMonitorsCreateMonitorArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerMonitorsCreateMonitorRequest,
 }
 
 /// Arguments for [`account-load-balancer-monitors-monitor-details_request`].
@@ -427,6 +648,8 @@ pub struct AccountLoadBalancerMonitorsUpdateMonitorArgs {
     pub monitor_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerMonitorsUpdateMonitorRequest,
 }
 
 /// Arguments for [`account-load-balancer-monitors-patch-monitor_request`].
@@ -436,6 +659,8 @@ pub struct AccountLoadBalancerMonitorsPatchMonitorArgs {
     pub monitor_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerMonitorsPatchMonitorRequest,
 }
 
 /// Arguments for [`account-load-balancer-monitors-delete-monitor_request`].
@@ -454,6 +679,8 @@ pub struct AccountLoadBalancerMonitorsPreviewMonitorArgs {
     pub monitor_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerMonitorsPreviewMonitorRequest,
 }
 
 /// Arguments for [`account-load-balancer-monitors-list-monitor-references_request`].
@@ -479,6 +706,8 @@ pub struct AccountLoadBalancerPoolsListPoolsArgs {
 pub struct AccountLoadBalancerPoolsCreatePoolArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerPoolsCreatePoolRequest,
 }
 
 /// Arguments for [`account-load-balancer-pools-patch-pools_request`].
@@ -486,6 +715,8 @@ pub struct AccountLoadBalancerPoolsCreatePoolArgs {
 pub struct AccountLoadBalancerPoolsPatchPoolsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerPoolsPatchPoolsRequest,
 }
 
 /// Arguments for [`account-load-balancer-pools-pool-details_request`].
@@ -504,6 +735,8 @@ pub struct AccountLoadBalancerPoolsUpdatePoolArgs {
     pub pool_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerPoolsUpdatePoolRequest,
 }
 
 /// Arguments for [`account-load-balancer-pools-patch-pool_request`].
@@ -513,6 +746,8 @@ pub struct AccountLoadBalancerPoolsPatchPoolArgs {
     pub pool_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerPoolsPatchPoolRequest,
 }
 
 /// Arguments for [`account-load-balancer-pools-delete-pool_request`].
@@ -540,6 +775,8 @@ pub struct AccountLoadBalancerPoolsPreviewPoolArgs {
     pub pool_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountLoadBalancerPoolsPreviewPoolRequest,
 }
 
 /// Arguments for [`account-load-balancer-pools-list-pool-references_request`].
@@ -609,6 +846,8 @@ pub struct MagicNetworkMonitoringConfigurationListAccountConfigurationArgs {
 pub struct MagicNetworkMonitoringConfigurationCreateAccountConfigurationArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-update-an-entire-account-configuration_request`].
@@ -616,6 +855,8 @@ pub struct MagicNetworkMonitoringConfigurationCreateAccountConfigurationArgs {
 pub struct MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-update-account-configuration-fields_request`].
@@ -623,6 +864,8 @@ pub struct MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfiguration
 pub struct MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsRequest,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-delete-account-configuration_request`].
@@ -668,15 +911,16 @@ pub struct MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs {
 pub async fn diagnostics_endpoint_healthcheck_list_request<F>(
     client: DynNetClient,
     args: &DiagnosticsEndpointHealthcheckListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicTransitEndpointHealthCheckResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/diagnostics/endpoint-healthchecks",
+    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -691,7 +935,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -723,15 +970,16 @@ where
 pub async fn diagnostics_endpoint_healthcheck_create_request<F>(
     client: DynNetClient,
     args: &DiagnosticsEndpointHealthcheckCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicTransitEndpointHealthCheckResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/diagnostics/endpoint-healthchecks",
+    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -749,7 +997,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -781,16 +1032,17 @@ where
 pub async fn diagnostics_endpoint_healthcheck_get_request<F>(
     client: DynNetClient,
     args: &DiagnosticsEndpointHealthcheckGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicTransitEndpointHealthCheckResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
         args.account_id,
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -805,7 +1057,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -837,16 +1092,17 @@ where
 pub async fn diagnostics_endpoint_healthcheck_update_request<F>(
     client: DynNetClient,
     args: &DiagnosticsEndpointHealthcheckUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicTransitEndpointHealthCheckResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
         args.account_id,
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -864,7 +1120,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -896,16 +1155,17 @@ where
 pub async fn diagnostics_endpoint_healthcheck_delete_request<F>(
     client: DynNetClient,
     args: &DiagnosticsEndpointHealthcheckDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicTransitApiResponseCommon>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
         args.account_id,
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -920,7 +1180,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicTransitApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -952,15 +1215,16 @@ where
 pub async fn account_load_balancer_monitor_groups_list_monitor_groups_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -975,7 +1239,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1007,15 +1274,16 @@ where
 pub async fn account_load_balancer_monitor_groups_create_monitor_group_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1033,7 +1301,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1065,16 +1336,17 @@ where
 pub async fn account_load_balancer_monitor_groups_monitor_group_details_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsMonitorGroupDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups/{}",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
         args.account_id,
         args.monitor_group_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1089,7 +1361,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1121,16 +1396,17 @@ where
 pub async fn account_load_balancer_monitor_groups_update_monitor_group_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups/{}",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
         args.account_id,
         args.monitor_group_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1148,7 +1424,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1180,16 +1459,17 @@ where
 pub async fn account_load_balancer_monitor_groups_patch_monitor_group_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsPatchMonitorGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups/{}",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
         args.account_id,
         args.monitor_group_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1207,7 +1487,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1239,16 +1522,17 @@ where
 pub async fn account_load_balancer_monitor_groups_delete_monitor_group_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsDeleteMonitorGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups/{}",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
         args.account_id,
         args.monitor_group_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1263,7 +1547,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1295,16 +1582,17 @@ where
 pub async fn account_load_balancer_monitor_groups_list_monitor_group_references_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorGroupReferencesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitor_groups/{}/references",
+    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}/references",
         args.account_id,
         args.monitor_group_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1319,7 +1607,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorGroupReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1351,15 +1642,16 @@ where
 pub async fn account_load_balancer_monitors_list_monitors_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsListMonitorsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors",
+    let path = format!("/accounts/{}/load_balancers/monitors",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1374,7 +1666,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1406,17 +1701,21 @@ where
 pub async fn account_load_balancer_monitors_create_monitor_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsCreateMonitorArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors",
+    let path = format!("/accounts/{}/load_balancers/monitors",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1429,7 +1728,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1461,16 +1763,17 @@ where
 pub async fn account_load_balancer_monitors_monitor_details_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsMonitorDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1485,7 +1788,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1517,18 +1823,22 @@ where
 pub async fn account_load_balancer_monitors_update_monitor_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsUpdateMonitorArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1541,7 +1851,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1573,18 +1886,22 @@ where
 pub async fn account_load_balancer_monitors_patch_monitor_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsPatchMonitorArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1597,7 +1914,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1629,16 +1949,17 @@ where
 pub async fn account_load_balancer_monitors_delete_monitor_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsDeleteMonitorArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1653,7 +1974,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1685,18 +2009,22 @@ where
 pub async fn account_load_balancer_monitors_preview_monitor_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsPreviewMonitorArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingPreviewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}/preview",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}/preview",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1709,7 +2037,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1741,16 +2072,17 @@ where
 pub async fn account_load_balancer_monitors_list_monitor_references_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsListMonitorReferencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingMonitorReferencesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/monitors/{}/references",
+    let path = format!("/accounts/{}/load_balancers/monitors/{}/references",
         args.account_id,
         args.monitor_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1765,7 +2097,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingMonitorReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1797,15 +2132,16 @@ where
 pub async fn account_load_balancer_pools_list_pools_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsListPoolsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools",
+    let path = format!("/accounts/{}/load_balancers/pools",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1822,7 +2158,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1854,17 +2193,21 @@ where
 pub async fn account_load_balancer_pools_create_pool_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsCreatePoolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools",
+    let path = format!("/accounts/{}/load_balancers/pools",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1877,7 +2220,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1909,17 +2255,21 @@ where
 pub async fn account_load_balancer_pools_patch_pools_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsPatchPoolsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools",
+    let path = format!("/accounts/{}/load_balancers/pools",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1932,7 +2282,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1964,16 +2317,17 @@ where
 pub async fn account_load_balancer_pools_pool_details_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsPoolDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}",
+    let path = format!("/accounts/{}/load_balancers/pools/{}",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1988,7 +2342,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2020,18 +2377,22 @@ where
 pub async fn account_load_balancer_pools_update_pool_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsUpdatePoolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}",
+    let path = format!("/accounts/{}/load_balancers/pools/{}",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2044,7 +2405,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2076,18 +2440,22 @@ where
 pub async fn account_load_balancer_pools_patch_pool_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsPatchPoolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}",
+    let path = format!("/accounts/{}/load_balancers/pools/{}",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2100,7 +2468,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2132,16 +2503,17 @@ where
 pub async fn account_load_balancer_pools_delete_pool_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsDeletePoolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingSchemasIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}",
+    let path = format!("/accounts/{}/load_balancers/pools/{}",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2156,7 +2528,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2188,16 +2563,17 @@ where
 pub async fn account_load_balancer_pools_pool_health_details_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsPoolHealthDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingHealthDetails>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}/health",
+    let path = format!("/accounts/{}/load_balancers/pools/{}/health",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2212,7 +2588,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingHealthDetails = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2244,18 +2623,22 @@ where
 pub async fn account_load_balancer_pools_preview_pool_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsPreviewPoolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingPreviewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}/preview",
+    let path = format!("/accounts/{}/load_balancers/pools/{}/preview",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2268,7 +2651,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2300,16 +2686,17 @@ where
 pub async fn account_load_balancer_pools_list_pool_references_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerPoolsListPoolReferencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingPoolsReferencesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/pools/{}/references",
+    let path = format!("/accounts/{}/load_balancers/pools/{}/references",
         args.account_id,
         args.pool_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2324,7 +2711,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingPoolsReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2356,16 +2746,17 @@ where
 pub async fn account_load_balancer_monitors_preview_result_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerMonitorsPreviewResultArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingPreviewResultResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/preview/{}",
+    let path = format!("/accounts/{}/load_balancers/preview/{}",
         args.account_id,
         args.preview_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2380,7 +2771,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingPreviewResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2412,15 +2806,16 @@ where
 pub async fn load_balancer_regions_list_regions_request<F>(
     client: DynNetClient,
     args: &LoadBalancerRegionsListRegionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingRegionComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/regions",
+    let path = format!("/accounts/{}/load_balancers/regions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2439,7 +2834,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingRegionComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2471,16 +2869,17 @@ where
 pub async fn load_balancer_regions_get_region_request<F>(
     client: DynNetClient,
     args: &LoadBalancerRegionsGetRegionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LoadBalancingComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/regions/{}",
+    let path = format!("/accounts/{}/load_balancers/regions/{}",
         args.account_id,
         args.region_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2495,7 +2894,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LoadBalancingComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2527,15 +2929,16 @@ where
 pub async fn account_load_balancer_search_search_resources_request<F>(
     client: DynNetClient,
     args: &AccountLoadBalancerSearchSearchResourcesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<AccountLoadBalancerSearchSearchResourcesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/load_balancers/search",
+    let path = format!("/accounts/{}/load_balancers/search",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2555,9 +2958,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: AccountLoadBalancerSearchSearchResourcesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2585,15 +2993,16 @@ where
 pub async fn magic_network_monitoring_configuration_list_account_configuration_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationListAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmConfigSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/config",
+    let path = format!("/accounts/{}/mnm/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2608,7 +3017,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2640,17 +3052,21 @@ where
 pub async fn magic_network_monitoring_configuration_create_account_configuration_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationCreateAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmConfigSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/config",
+    let path = format!("/accounts/{}/mnm/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2663,7 +3079,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2695,17 +3114,21 @@ where
 pub async fn magic_network_monitoring_configuration_update_an_entire_account_configuration_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmConfigSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/config",
+    let path = format!("/accounts/{}/mnm/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2718,7 +3141,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2750,17 +3176,21 @@ where
 pub async fn magic_network_monitoring_configuration_update_account_configuration_fields_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmConfigSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/config",
+    let path = format!("/accounts/{}/mnm/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2773,7 +3203,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2805,15 +3238,16 @@ where
 pub async fn magic_network_monitoring_configuration_delete_account_configuration_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationDeleteAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmConfigSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/config",
+    let path = format!("/accounts/{}/mnm/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2828,7 +3262,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2860,15 +3297,16 @@ where
 pub async fn magic_network_monitoring_vpc_flows_generate_authentication_token_request<F>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityMnmMnmVpcFlowsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mnm/vpc-flows/token",
+    let path = format!("/accounts/{}/mnm/vpc-flows/token",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2883,7 +3321,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityMnmMnmVpcFlowsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

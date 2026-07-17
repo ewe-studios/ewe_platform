@@ -59,6 +59,10 @@ hetzner = [
     "hetzner_servers",
     "hetzner_ssh_keys",
 ]
+hetzner_all = [
+    "hetzner_servers",
+    "hetzner_ssh_keys",
+]
 hetzner_servers = []
 hetzner_ssh_keys = []
 

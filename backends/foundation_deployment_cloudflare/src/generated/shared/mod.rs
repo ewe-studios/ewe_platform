@@ -366,11 +366,19 @@ pub struct ObservatoryCountResponse {
     pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// Shared type: `OrganizationsApiProfile`.
+/// `OrganizationsApiProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiProfile {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// business_address property.
+    pub business_address: String,
+    /// business_email property.
+    pub business_email: String,
+    /// business_name property.
+    pub business_name: String,
+    /// business_phone property.
+    pub business_phone: String,
+    /// external_metadata property.
+    pub external_metadata: String,
 }
 
 /// `ResourceSharingShareResponseCollection` type.
@@ -387,11 +395,35 @@ pub struct ResourceTaggingTaggedResourceResponseSingle {
     pub result: Option<ResourceTaggingTaggedResourceObject>,
 }
 
-/// Shared type: `SecurityCenterValueCountsResponse`.
+/// `RulesetsRulesetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRulesetResponse {
+    /// `errors` property.
+    pub errors: Option<serde_json::Value>,
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+    /// `success` property.
+    pub success: Option<serde_json::Value>,
+}
+
+/// `RulesetsRulesetsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRulesetsResponse {
+    /// `errors` property.
+    pub errors: Option<serde_json::Value>,
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<RulesetsResultInfo>,
+    /// `success` property.
+    pub success: Option<serde_json::Value>,
+}
+
+/// `SecurityCenterValueCountsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecurityCenterValueCountsResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
 }
 
 /// `TunnelSubnetResponseSingle` type.
@@ -854,6 +886,7 @@ pub struct IamPolicyWithPermissionGroupsAndResources {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamRequestIp {
     /// in property.
+    #[serde(rename = "in")]
     pub r#in: Option<Vec<String>>,
     /// not_in property.
     pub not_in: Option<Vec<String>>,
@@ -1057,13 +1090,6 @@ pub struct LoadBalancingHeader {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Shared type: `LoadBalancingHost`.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingHost {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `LoadBalancingIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingIdentifier {
@@ -1164,6 +1190,7 @@ pub struct LoadBalancingMonitorEditable {
     /// timeout property.
     pub timeout: Option<LoadBalancingTimeout>,
     /// type property.
+    #[serde(rename = "type")]
     pub r#type: Option<LoadBalancingType>,
 }
 
@@ -1364,6 +1391,7 @@ pub struct LoadBalancingSchemasEnabled {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingSchemasHeader {
     /// Host property.
+    #[serde(rename = "Host")]
     pub host: Option<Vec<String>>,
 }
 
@@ -1569,6 +1597,7 @@ pub struct LogpushName {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LogpushOutputOptions {
     /// CVE-2021-44228 property.
+    #[serde(rename = "CVE-2021-44228")]
     pub cve_2021_44228: Option<bool>,
     /// batch_prefix property.
     pub batch_prefix: Option<String>,
@@ -1882,18 +1911,13 @@ pub struct ResourceSharingShareTargetType {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Shared type: `ResourceSharingV4Error`.
+/// `ResourceSharingV4Error` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingV4Error {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// Shared type: `ResourceSharingV4Errors`.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingV4Errors {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
 }
 
 /// `ResourceTaggingAccessApplicationId` type.
@@ -1953,6 +1977,7 @@ pub struct ResourceTaggingTaggedResourceObject {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccessApplication {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -1960,6 +1985,7 @@ pub struct ResourceTaggingTaggedResourceObjectAccessApplication {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccessApplicationPolicy {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -1984,6 +2010,7 @@ pub struct ResourceTaggingTaggedResourceObjectAccessApplicationPolicyBase {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccessGroup {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -1991,6 +2018,7 @@ pub struct ResourceTaggingTaggedResourceObjectAccessGroup {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccount {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2011,6 +2039,7 @@ pub struct ResourceTaggingTaggedResourceObjectAccountLevelBase {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAiGateway {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2018,6 +2047,7 @@ pub struct ResourceTaggingTaggedResourceObjectAiGateway {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAlertingPolicy {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2025,6 +2055,7 @@ pub struct ResourceTaggingTaggedResourceObjectAlertingPolicy {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAlertingWebhook {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2032,6 +2063,7 @@ pub struct ResourceTaggingTaggedResourceObjectAlertingWebhook {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectApiGatewayOperation {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2039,6 +2071,7 @@ pub struct ResourceTaggingTaggedResourceObjectApiGatewayOperation {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectCloudflaredTunnel {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2046,6 +2079,7 @@ pub struct ResourceTaggingTaggedResourceObjectCloudflaredTunnel {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectCustomCertificate {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2053,6 +2087,7 @@ pub struct ResourceTaggingTaggedResourceObjectCustomCertificate {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectCustomHostname {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2060,6 +2095,7 @@ pub struct ResourceTaggingTaggedResourceObjectCustomHostname {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectD1Database {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2067,6 +2103,7 @@ pub struct ResourceTaggingTaggedResourceObjectD1Database {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectDnsRecord {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2074,6 +2111,7 @@ pub struct ResourceTaggingTaggedResourceObjectDnsRecord {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectDurableObjectNamespace {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2081,6 +2119,7 @@ pub struct ResourceTaggingTaggedResourceObjectDurableObjectNamespace {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectGatewayList {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2088,6 +2127,7 @@ pub struct ResourceTaggingTaggedResourceObjectGatewayList {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectGatewayRule {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2095,6 +2135,7 @@ pub struct ResourceTaggingTaggedResourceObjectGatewayRule {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectImage {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2102,6 +2143,7 @@ pub struct ResourceTaggingTaggedResourceObjectImage {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectKvNamespace {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2109,6 +2151,7 @@ pub struct ResourceTaggingTaggedResourceObjectKvNamespace {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectManagedClientCertificate {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2116,6 +2159,7 @@ pub struct ResourceTaggingTaggedResourceObjectManagedClientCertificate {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectQueue {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2123,6 +2167,7 @@ pub struct ResourceTaggingTaggedResourceObjectQueue {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectR2Bucket {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2130,6 +2175,7 @@ pub struct ResourceTaggingTaggedResourceObjectR2Bucket {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectResourceShare {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2137,6 +2183,7 @@ pub struct ResourceTaggingTaggedResourceObjectResourceShare {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectStreamLiveInput {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2144,6 +2191,7 @@ pub struct ResourceTaggingTaggedResourceObjectStreamLiveInput {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectStreamVideo {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2151,6 +2199,7 @@ pub struct ResourceTaggingTaggedResourceObjectStreamVideo {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectWorker {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2158,6 +2207,7 @@ pub struct ResourceTaggingTaggedResourceObjectWorker {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectWorkerVersion {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2180,6 +2230,7 @@ pub struct ResourceTaggingTaggedResourceObjectWorkerVersionBase {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectZone {
     /// `type` property.
+    #[serde(rename = "type")]
     pub r#type: String,
 }
 
@@ -2215,6 +2266,77 @@ pub struct ResourceTaggingWorkerId {
 /// `ResourceTaggingZoneId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingZoneId {
+}
+
+/// `RulesetsMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsMessage {
+    /// code property.
+    pub code: Option<i64>,
+    /// message property.
+    pub message: String,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RulesetsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsResponse {
+    /// errors property.
+    pub errors: Vec<RulesetsMessage>,
+    /// messages property.
+    pub messages: Vec<RulesetsMessage>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RulesetsResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsResultInfo {
+    /// cursors property.
+    pub cursors: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RulesetsRuleset` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRuleset {
+    /// description property.
+    pub description: Option<String>,
+    /// id property.
+    pub id: serde_json::Value,
+    /// last_updated property.
+    pub last_updated: String,
+    /// name property.
+    pub name: Option<String>,
+    /// version property.
+    pub version: serde_json::Value,
+}
+
+/// `RulesetsRulesetKind` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRulesetKind {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RulesetsRulesetPhase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRulesetPhase {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecurityCenterApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecurityCenterApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
 }
 
 /// `TunnelApiResponseCommon` type.

@@ -1,3 +1,7 @@
+[build-dependencies.foundation_codegentools]
+path = "../foundation_codegentools"
+version = "0.1.0"
+
 [dependencies]
 base85rs = "0.1"
 sha2 = "0.10"

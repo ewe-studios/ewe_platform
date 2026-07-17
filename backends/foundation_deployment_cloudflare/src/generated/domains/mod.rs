@@ -21,15 +21,400 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TeamsDevicesFallbackDomain` type.
+/// `EmailSecurityApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomain {
-    /// description property.
-    pub description: Option<String>,
-    /// dns_server property.
-    pub dns_server: Option<Vec<TeamsDevicesIp>>,
-    /// suffix property.
-    pub suffix: String,
+pub struct EmailSecurityApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// messages property.
+    pub messages: Vec<EmailSecurityMessage>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailSecurityBatchSendingDomainRestrictionsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchSendingDomainRestrictionsRequest {
+    /// deletes property.
+    pub deletes: Vec<EmailSecurityBatchSendingDomainRestrictionsRequestDeletesItem>,
+}
+
+/// `EmailSecurityBatchSendingDomainRestrictionsRequestDeletesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchSendingDomainRestrictionsRequestDeletesItem {
+    /// id property.
+    pub id: i64,
+}
+
+/// `EmailSecurityBatchSendingDomainRestrictionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchSendingDomainRestrictionsResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityBatchTrustedDomainsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchTrustedDomainsRequest {
+    /// deletes property.
+    pub deletes: Vec<EmailSecurityBatchTrustedDomainsRequestDeletesItem>,
+    /// patches property.
+    pub patches: Vec<serde_json::Value>,
+    /// posts property.
+    pub posts: Vec<EmailSecurityCreateTrustedDomain>,
+    /// puts property.
+    pub puts: Vec<serde_json::Value>,
+}
+
+/// `EmailSecurityBatchTrustedDomainsRequestDeletesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchTrustedDomainsRequestDeletesItem {
+    /// id property.
+    pub id: i64,
+}
+
+/// `EmailSecurityBatchTrustedDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchTrustedDomainsResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityCreateTrustedDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateTrustedDomain {
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_recent property.
+    pub is_recent: bool,
+    /// is_regex property.
+    pub is_regex: bool,
+    /// is_similarity property.
+    pub is_similarity: bool,
+    /// pattern property.
+    pub pattern: String,
+}
+
+/// `EmailSecurityCreateTrustedDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateTrustedDomainRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityCreateTrustedDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateTrustedDomainResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityDeleteDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteDomainResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDeleteDomainsRequestItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteDomainsRequestItem {
+    /// id property.
+    pub id: i64,
+}
+
+/// `EmailSecurityDeleteDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteDomainsResponse {
+    /// `result` property.
+    pub result: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `EmailSecurityDeleteTrustedDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteTrustedDomainResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDeliveryMode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeliveryMode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDispositionLabel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDispositionLabel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDomain {
+    /// allowed_delivery_modes property.
+    pub allowed_delivery_modes: Vec<EmailSecurityDeliveryMode>,
+    /// authorization property.
+    pub authorization: Option<serde_json::Value>,
+    /// created_at property.
+    pub created_at: String,
+    /// dmarc_status property.
+    pub dmarc_status: Option<serde_json::Value>,
+    /// domain property.
+    pub domain: String,
+    /// drop_dispositions property.
+    pub drop_dispositions: Vec<EmailSecurityDispositionLabel>,
+    /// emails_processed property.
+    pub emails_processed: Option<serde_json::Value>,
+    /// folder property.
+    pub folder: Option<serde_json::Value>,
+    /// id property.
+    pub id: i64,
+    /// inbox_provider property.
+    pub inbox_provider: Option<serde_json::Value>,
+    /// integration_id property.
+    pub integration_id: Option<String>,
+    /// ip_restrictions property.
+    pub ip_restrictions: Vec<String>,
+    /// last_modified property.
+    pub last_modified: String,
+    /// lookback_hops property.
+    pub lookback_hops: i64,
+    /// o365_tenant_id property.
+    pub o365_tenant_id: Option<String>,
+    /// regions property.
+    pub regions: Vec<String>,
+    /// require_tls_inbound property.
+    pub require_tls_inbound: Option<bool>,
+    /// require_tls_outbound property.
+    pub require_tls_outbound: Option<bool>,
+    /// spf_status property.
+    pub spf_status: Option<serde_json::Value>,
+    /// transport property.
+    pub transport: String,
+}
+
+/// `EmailSecurityGetDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetDomainResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetTrustedDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetTrustedDomainResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityListDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityListDomainsResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityDomain>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityListTrustedDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityListTrustedDomainsResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityTrustedDomain>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityMessage {
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSecurityResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityResultInfo {
+    /// count property.
+    pub count: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// total_count property.
+    pub total_count: i64,
+}
+
+/// `EmailSecurityTrustedDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityTrustedDomain {
+    /// `comments` property.
+    pub comments: Option<String>,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: i64,
+    /// `is_recent` property.
+    pub is_recent: bool,
+    /// `is_regex` property.
+    pub is_regex: bool,
+    /// `is_similarity` property.
+    pub is_similarity: bool,
+    /// `last_modified` property.
+    pub last_modified: String,
+    /// `pattern` property.
+    pub pattern: String,
+}
+
+/// `EmailSecurityTrustedDomainId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityTrustedDomainId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityUpdateDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateDomainRequest {
+    /// allowed_delivery_modes property.
+    pub allowed_delivery_modes: Option<Vec<EmailSecurityDeliveryMode>>,
+    /// domain property.
+    pub domain: Option<String>,
+    /// drop_dispositions property.
+    pub drop_dispositions: Option<Vec<EmailSecurityDispositionLabel>>,
+    /// folder property.
+    pub folder: Option<serde_json::Value>,
+    /// integration_id property.
+    pub integration_id: Option<String>,
+    /// ip_restrictions property.
+    pub ip_restrictions: Vec<String>,
+    /// lookback_hops property.
+    pub lookback_hops: Option<i64>,
+    /// regions property.
+    pub regions: Option<Vec<String>>,
+    /// require_tls_inbound property.
+    pub require_tls_inbound: Option<bool>,
+    /// require_tls_outbound property.
+    pub require_tls_outbound: Option<bool>,
+    /// transport property.
+    pub transport: Option<String>,
+}
+
+/// `EmailSecurityUpdateDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateDomainResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityUpdateTrustedDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateTrustedDomain {
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_recent property.
+    pub is_recent: Option<bool>,
+    /// is_regex property.
+    pub is_regex: Option<bool>,
+    /// is_similarity property.
+    pub is_similarity: Option<bool>,
+    /// pattern property.
+    pub pattern: Option<String>,
+}
+
+/// `EmailSecurityUpdateTrustedDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateTrustedDomainRequest {
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_recent property.
+    pub is_recent: Option<bool>,
+    /// is_regex property.
+    pub is_regex: Option<bool>,
+    /// is_similarity property.
+    pub is_similarity: Option<bool>,
+    /// pattern property.
+    pub pattern: Option<String>,
+}
+
+/// `EmailSecurityUpdateTrustedDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateTrustedDomainResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `GetDomainMatchListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetDomainMatchListResponse {
+    /// matches property.
+    pub matches: Vec<GetDomainMatchListResponseMatchesItem>,
+    /// total property.
+    pub total: i64,
+}
+
+/// `GetDomainMatchListResponseMatchesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetDomainMatchListResponseMatchesItem {
+    /// dismissed property.
+    pub dismissed: bool,
+    /// domain property.
+    pub domain: String,
+    /// first_seen property.
+    pub first_seen: String,
+    /// match_ids property.
+    pub match_ids: Option<Vec<i64>>,
+    /// matched_queries property.
+    pub matched_queries: Option<Vec<i64>>,
+    /// public_scans property.
+    pub public_scans: GetDomainMatchListResponseMatchesItemPublicScans,
+    /// scan_status property.
+    pub scan_status: String,
+    /// scan_submission_id property.
+    pub scan_submission_id: i64,
+    /// source property.
+    pub source: String,
+}
+
+/// `GetDomainMatchListResponseMatchesItemPublicScans` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetDomainMatchListResponseMatchesItemPublicScans {
+    /// submission_id property.
+    pub submission_id: String,
+}
+
+/// `IntelAdditionalInformation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelAdditionalInformation {
+    /// suspected_malware_family property.
+    pub suspected_malware_family: Option<String>,
+}
+
+/// `IntelApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<IntelResultInfo>,
+}
+
+/// `IntelApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
 }
 
 /// `IntelApiResponseSingle` type.
@@ -37,16 +422,121 @@ pub struct TeamsDevicesFallbackDomain {
 pub struct IntelApiResponseSingle {
 }
 
-/// `RegistrarApiTelephone` type.
+/// `IntelApplication` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiTelephone {
+pub struct IntelApplication {
+    /// id property.
+    pub id: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `IntelCategoriesWithSuperCategoryIdsExampleEmpty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelCategoriesWithSuperCategoryIdsExampleEmpty {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiFirstName` type.
+/// `IntelCategoryWithSuperCategoryId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiFirstName {
+pub struct IntelCategoryWithSuperCategoryId {
+    /// id property.
+    pub id: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// super_category_id property.
+    pub super_category_id: Option<i64>,
+}
+
+/// `IntelCollectionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelCollectionResponse {
+    /// `result` property.
+    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+}
+
+/// `IntelContentCategories` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelContentCategories {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelDomain {
+    /// additional_information property.
+    pub additional_information: Option<IntelAdditionalInformation>,
+    /// application property.
+    pub application: Option<IntelApplication>,
+    /// content_categories property.
+    pub content_categories: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// domain property.
+    pub domain: Option<IntelDomainName>,
+    /// inherited_content_categories property.
+    pub inherited_content_categories: Option<IntelInheritedContentCategories>,
+    /// inherited_from property.
+    pub inherited_from: Option<IntelInheritedFrom>,
+    /// inherited_risk_types property.
+    pub inherited_risk_types: Option<IntelInheritedRiskTypes>,
+    /// popularity_rank property.
+    pub popularity_rank: Option<IntelPopularityRank>,
+    /// resolves_to_refs property.
+    pub resolves_to_refs: Option<Vec<IntelResolvesToRef>>,
+    /// risk_score property.
+    pub risk_score: Option<IntelRiskScore>,
+    /// risk_types property.
+    pub risk_types: Option<IntelRiskTypes>,
+}
+
+/// `IntelDomainHistory` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelDomainHistory {
+    /// categorizations property.
+    pub categorizations: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// domain property.
+    pub domain: Option<IntelDomainName>,
+}
+
+/// `IntelDomainName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelDomainName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelInheritedContentCategories` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelInheritedContentCategories {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelInheritedFrom` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelInheritedFrom {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelInheritedRiskTypes` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelInheritedRiskTypes {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelPopularityRank` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelPopularityRank {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -60,6 +550,47 @@ pub struct IntelResolvesToRef {
     pub value: Option<String>,
 }
 
+/// `IntelResolvesToRefs` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelResolvesToRefs {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelResponse {
+    /// `result` property.
+    pub result: Option<Vec<IntelDomainHistory>>,
+}
+
+/// `IntelResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `IntelRiskScore` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelRiskScore {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelRiskTypes` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelRiskTypes {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `IntelSchemasApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IntelSchemasApiResponseCommon {
@@ -69,6 +600,1099 @@ pub struct IntelSchemasApiResponseCommon {
     pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// success property.
     pub success: bool,
+}
+
+/// `IntelSchemasMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelSchemasMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IntelSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelSingleResponse {
+    /// `result` property.
+    pub result: Option<IntelDomain>,
+}
+
+/// `IntelStixIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IntelStixIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2AddCustomDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2AddCustomDomainRequest {
+    /// ciphers property.
+    pub ciphers: Option<Vec<String>>,
+    /// domain property.
+    pub domain: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// minTLS property.
+    #[serde(rename = "minTLS")]
+    pub min_tls: Option<String>,
+    /// zoneId property.
+    #[serde(rename = "zoneId")]
+    pub zone_id: String,
+}
+
+/// `R2AddCustomDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2AddCustomDomainResponse {
+    /// ciphers property.
+    pub ciphers: Option<Vec<String>>,
+    /// domain property.
+    pub domain: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// minTLS property.
+    #[serde(rename = "minTLS")]
+    pub min_tls: Option<String>,
+}
+
+/// `R2AddCustomDomainResponse2` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2AddCustomDomainResponse2 {
+    /// `result` property.
+    pub result: Option<R2AddCustomDomainResponse>,
+}
+
+/// `R2DeleteCustomDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DeleteCustomDomainResponse {
+    /// `result` property.
+    pub result: Option<R2RemoveCustomDomainResponse>,
+}
+
+/// `R2EditCustomDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EditCustomDomainRequest {
+    /// ciphers property.
+    pub ciphers: Option<Vec<String>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// minTLS property.
+    #[serde(rename = "minTLS")]
+    pub min_tls: Option<String>,
+}
+
+/// `R2EditCustomDomainSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EditCustomDomainSettingsResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `R2EditManagedDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EditManagedDomainRequest {
+    /// enabled property.
+    pub enabled: bool,
+}
+
+/// `R2Errors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Errors {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2GetBucketPublicPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketPublicPolicyResponse {
+    /// `result` property.
+    pub result: Option<R2ManagedDomainResponse>,
+}
+
+/// `R2GetCustomDomainSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetCustomDomainSettingsResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `R2ListCustomDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ListCustomDomainsResponse {
+    /// domains property.
+    pub domains: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2ListCustomDomainsResponse2` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ListCustomDomainsResponse2 {
+    /// `result` property.
+    pub result: Option<R2ListCustomDomainsResponse>,
+}
+
+/// `R2ManagedDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ManagedDomainResponse {
+    /// bucketId property.
+    #[serde(rename = "bucketId")]
+    pub bucket_id: String,
+    /// domain property.
+    pub domain: String,
+    /// enabled property.
+    pub enabled: bool,
+}
+
+/// `R2Messages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Messages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2PutBucketPublicPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketPublicPolicyResponse {
+    /// `result` property.
+    pub result: Option<R2ManagedDomainResponse>,
+}
+
+/// `R2RemoveCustomDomainResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2RemoveCustomDomainResponse {
+    /// domain property.
+    pub domain: String,
+}
+
+/// `R2V4Response` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2V4Response {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<String>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponse {
+    /// result property.
+    pub result: RadarGetEmailSecurityTopTldsByMaliciousResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecurityTopTldsByMaliciousResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetEmailSecurityTopTldsByMaliciousResponseResultTop0Item>,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMaliciousResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultTop0Item {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponse {
+    /// result property.
+    pub result: RadarGetEmailSecurityTopTldsByMessagesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecurityTopTldsByMessagesResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetEmailSecurityTopTldsByMessagesResponseResultTop0Item>,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsByMessagesResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultTop0Item {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponse {
+    /// result property.
+    pub result: RadarGetEmailSecurityTopTldsBySpamResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecurityTopTldsBySpamResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetEmailSecurityTopTldsBySpamResponseResultTop0Item>,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecurityTopTldsBySpamResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecurityTopTldsBySpamResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpamResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultTop0Item {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponse {
+    /// result property.
+    pub result: RadarGetEmailSecurityTopTldsBySpoofResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecurityTopTldsBySpoofResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetEmailSecurityTopTldsBySpoofResponseResultTop0Item>,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTopTldsBySpoofResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultTop0Item {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRankingDomainDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponse {
+    /// result property.
+    pub result: RadarGetRankingDomainDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResult {
+    /// details_0 property.
+    pub details_0: RadarGetRankingDomainDetailsResponseResultDetails0,
+    /// meta property.
+    pub meta: RadarGetRankingDomainDetailsResponseResultMeta,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResultDetails0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResultDetails0 {
+    /// bucket property.
+    pub bucket: Option<String>,
+    /// categories property.
+    pub categories: Vec<RadarGetRankingDomainDetailsResponseResultDetails0CategoriesItem>,
+    /// rank property.
+    pub rank: Option<i64>,
+    /// top_locations property.
+    pub top_locations: Option<Vec<RadarGetRankingDomainDetailsResponseResultDetails0TopLocationsItem>>,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResultDetails0CategoriesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResultDetails0CategoriesItem {
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: String,
+    /// superCategoryId property.
+    #[serde(rename = "superCategoryId")]
+    pub super_category_id: i64,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResultDetails0TopLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResultDetails0TopLocationsItem {
+    /// locationCode property.
+    #[serde(rename = "locationCode")]
+    pub location_code: String,
+    /// locationName property.
+    #[serde(rename = "locationName")]
+    pub location_name: String,
+    /// rank property.
+    pub rank: i64,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResultMeta {
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRankingDomainDetailsResponseResultMetaDateRangeItem>,
+}
+
+/// `RadarGetRankingDomainDetailsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainDetailsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetRankingDomainTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetRankingDomainTimeseriesResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetRankingDomainTimeseriesResponseResultSerie0,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRankingDomainTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetRankingDomainTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRankingDomainTimeseriesResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingDomainTimeseriesResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetRankingTopDomainsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponse {
+    /// result property.
+    pub result: RadarGetRankingTopDomainsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingTopDomainsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResult {
+    /// meta property.
+    pub meta: RadarGetRankingTopDomainsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetRankingTopDomainsResponseResultTop0Item>,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetRankingTopDomainsResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRankingTopDomainsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetRankingTopDomainsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetRankingTopDomainsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultTop0Item {
+    /// categories property.
+    pub categories: Vec<RadarGetRankingTopDomainsResponseResultTop0ItemCategoriesItem>,
+    /// domain property.
+    pub domain: String,
+    /// pctRankChange property.
+    #[serde(rename = "pctRankChange")]
+    pub pct_rank_change: Option<f64>,
+    /// rank property.
+    pub rank: i64,
+}
+
+/// `RadarGetRankingTopDomainsResponseResultTop0ItemCategoriesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopDomainsResponseResultTop0ItemCategoriesItem {
+    /// id property.
+    pub id: f64,
+    /// name property.
+    pub name: String,
+    /// superCategoryId property.
+    #[serde(rename = "superCategoryId")]
+    pub super_category_id: f64,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponse {
+    /// result property.
+    pub result: RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResult {
+    /// meta property.
+    pub meta: RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultTop0Item>,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultTop0Item {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: i64,
+}
+
+/// `RadarGetTldDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldDetailsResponse {
+    /// result property.
+    pub result: RadarGetTldDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTldDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldDetailsResponseResult {
+    /// tld property.
+    pub tld: RadarGetTldDetailsResponseResultTld,
+}
+
+/// `RadarGetTldDetailsResponseResultTld` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldDetailsResponseResultTld {
+    /// manager property.
+    pub manager: String,
+    /// tld property.
+    pub tld: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetTldsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldsResponse {
+    /// result property.
+    pub result: RadarGetTldsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTldsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldsResponseResult {
+    /// tlds property.
+    pub tlds: Vec<RadarGetTldsResponseResultTldsItem>,
+}
+
+/// `RadarGetTldsResponseResultTldsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTldsResponseResultTldsItem {
+    /// manager property.
+    pub manager: String,
+    /// tld property.
+    pub tld: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RegistrarApiAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiAddress {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiAddress2` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiAddress2 {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<RegistrarApiResultInfo>,
+}
+
+/// `RegistrarApiApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RegistrarApiApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiApiResponseSingle {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `RegistrarApiAutoRenew` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiAutoRenew {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiAvailable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiAvailable {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiCanRegister` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiCanRegister {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiCity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiCity {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiContactIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiContactIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiContactProperties` type.
@@ -102,46 +1726,28 @@ pub struct RegistrarApiContactProperties {
     pub zip: RegistrarApiZipcode,
 }
 
-/// `TeamsDevicesMessages` type.
+/// `RegistrarApiContacts` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesMessages {
+pub struct RegistrarApiContacts {
+}
+
+/// `RegistrarApiCountry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiCountry {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `IntelCategoriesWithSuperCategoryIdsExampleEmpty` type.
+/// `RegistrarApiCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelCategoriesWithSuperCategoryIdsExampleEmpty {
+pub struct RegistrarApiCreatedAt {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiOrganization` type.
+/// `RegistrarApiCurrentRegistrar` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiOrganization {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelDomainName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelDomainName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelApplication` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelApplication {
-    /// id property.
-    pub id: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-}
-
-/// `RegistrarApiExpiresAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiExpiresAt {
+pub struct RegistrarApiCurrentRegistrar {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -149,225 +1755,6 @@ pub struct RegistrarApiExpiresAt {
 /// `RegistrarApiDomainIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RegistrarApiDomainIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiContactIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiContactIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
-
-/// `RegistrarApiTransferIn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiTransferIn {
-    /// accept_foa property.
-    pub accept_foa: Option<String>,
-    /// approve_transfer property.
-    pub approve_transfer: Option<String>,
-    /// can_cancel_transfer property.
-    pub can_cancel_transfer: Option<bool>,
-    /// disable_privacy property.
-    pub disable_privacy: Option<String>,
-    /// enter_auth_code property.
-    pub enter_auth_code: Option<String>,
-    /// unlock_domain property.
-    pub unlock_domain: Option<String>,
-}
-
-/// `RegistrarApiAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiAddress {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiLastName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiLastName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiAddress2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiAddress2 {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelContentCategories` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelContentCategories {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<IntelResultInfo>,
-}
-
-/// `RegistrarApiSupportedTld` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiSupportedTld {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelRiskScore` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelRiskScore {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelDomainHistory` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelDomainHistory {
-    /// categorizations property.
-    pub categorizations: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// domain property.
-    pub domain: Option<IntelDomainName>,
-}
-
-/// `IntelStixIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelStixIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiDomainResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiDomainResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `IntelCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelCollectionResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
-
-/// `TeamsDevicesIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIp {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `R2EditManagedDomainRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2EditManagedDomainRequest {
-    /// enabled property.
-    pub enabled: bool,
-}
-
-/// `TeamsDevicesResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `IntelResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelResponse {
-    /// `result` property.
-    pub result: Option<Vec<IntelDomainHistory>>,
-}
-
-/// `RegistrarApiRegistryStatuses` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiRegistryStatuses {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiCanRegister` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiCanRegister {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiEmail {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiDomainResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiDomainResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<RegistrarApiDomains>>,
-}
-
-/// `RegistrarApiResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `RegistrarApiRegistrantContact` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiRegistrantContact {
-}
-
-/// `IntelSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelSchemasMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -401,112 +1788,46 @@ pub struct RegistrarApiDomainProperties {
     pub updated_at: Option<RegistrarApiUpdatedAt>,
 }
 
-/// `IntelInheritedRiskTypes` type.
+/// `RegistrarApiDomainResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelInheritedRiskTypes {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiAvailable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiAvailable {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `TeamsDevicesApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseCollection {
+pub struct RegistrarApiDomainResponseCollection {
     /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<TeamsDevicesResultInfo>,
+    pub result: Option<Vec<RegistrarApiDomains>>,
 }
 
-/// `RegistrarApiApiResponseSingle` type.
+/// `RegistrarApiDomainResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiApiResponseSingle {
+pub struct RegistrarApiDomainResponseSingle {
     /// `result` property.
     pub result: Option<serde_json::Value>,
 }
 
-/// `IntelSingleResponse` type.
+/// `RegistrarApiDomainUpdateProperties` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelSingleResponse {
-    /// `result` property.
-    pub result: Option<IntelDomain>,
+pub struct RegistrarApiDomainUpdateProperties {
+    /// auto_renew property.
+    pub auto_renew: Option<RegistrarApiAutoRenew>,
+    /// locked property.
+    pub locked: Option<RegistrarApiLocked>,
+    /// privacy property.
+    pub privacy: Option<RegistrarApiPrivacy>,
 }
 
-/// `RegistrarApiZipcode` type.
+/// `RegistrarApiDomains` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiZipcode {
+pub struct RegistrarApiDomains {
+}
+
+/// `RegistrarApiEmail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiEmail {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiContacts` type.
+/// `RegistrarApiExpiresAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiContacts {
-}
-
-/// `IntelPopularityRank` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelPopularityRank {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiCreatedAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelDomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelDomain {
-    /// additional_information property.
-    pub additional_information: Option<IntelAdditionalInformation>,
-    /// application property.
-    pub application: Option<IntelApplication>,
-    /// content_categories property.
-    pub content_categories: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// domain property.
-    pub domain: Option<IntelDomainName>,
-    /// inherited_content_categories property.
-    pub inherited_content_categories: Option<IntelInheritedContentCategories>,
-    /// inherited_from property.
-    pub inherited_from: Option<IntelInheritedFrom>,
-    /// inherited_risk_types property.
-    pub inherited_risk_types: Option<IntelInheritedRiskTypes>,
-    /// popularity_rank property.
-    pub popularity_rank: Option<IntelPopularityRank>,
-    /// resolves_to_refs property.
-    pub resolves_to_refs: Option<Vec<IntelResolvesToRef>>,
-    /// risk_score property.
-    pub risk_score: Option<IntelRiskScore>,
-    /// risk_types property.
-    pub risk_types: Option<IntelRiskTypes>,
-}
-
-/// `RegistrarApiCity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiCity {
+pub struct RegistrarApiExpiresAt {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -518,16 +1839,23 @@ pub struct RegistrarApiFax {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiLocked` type.
+/// `RegistrarApiFirstName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiLocked {
+pub struct RegistrarApiFirstName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `IntelInheritedFrom` type.
+/// `RegistrarApiLastName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelInheritedFrom {
+pub struct RegistrarApiLastName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiLocked` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiLocked {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -537,6 +1865,111 @@ pub struct IntelInheritedFrom {
 pub struct RegistrarApiMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiOrganization` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiOrganization {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiPrivacy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiPrivacy {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiRegistrantContact` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiRegistrantContact {
+}
+
+/// `RegistrarApiRegistryStatuses` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiRegistryStatuses {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `RegistrarApiState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiSupportedTld` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiSupportedTld {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiTelephone` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiTelephone {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiTransferIn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiTransferIn {
+    /// accept_foa property.
+    pub accept_foa: Option<String>,
+    /// approve_transfer property.
+    pub approve_transfer: Option<String>,
+    /// can_cancel_transfer property.
+    pub can_cancel_transfer: Option<bool>,
+    /// disable_privacy property.
+    pub disable_privacy: Option<String>,
+    /// enter_auth_code property.
+    pub enter_auth_code: Option<String>,
+    /// unlock_domain property.
+    pub unlock_domain: Option<String>,
+}
+
+/// `RegistrarApiUpdatedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiUpdatedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarApiZipcode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiZipcode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RegistrarDomainsUpdateDomainRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarDomainsUpdateDomainRequest {
+}
+
+/// `TeamsDevicesApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
 }
 
 /// `TeamsDevicesApiResponseCommon` type.
@@ -552,85 +1985,15 @@ pub struct TeamsDevicesApiResponseCommon {
     pub success: bool,
 }
 
-/// `RegistrarApiUpdatedAt` type.
+/// `TeamsDevicesFallbackDomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiUpdatedAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiCurrentRegistrar` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiCurrentRegistrar {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelCategoryWithSuperCategoryId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelCategoryWithSuperCategoryId {
-    /// id property.
-    pub id: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// super_category_id property.
-    pub super_category_id: Option<i64>,
-}
-
-/// `IntelApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
-
-/// `IntelAdditionalInformation` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelAdditionalInformation {
-    /// suspected_malware_family property.
-    pub suspected_malware_family: Option<String>,
-}
-
-/// `R2AddCustomDomainRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2AddCustomDomainRequest {
-    /// ciphers property.
-    pub ciphers: Option<Vec<String>>,
-    /// domain property.
-    pub domain: String,
-    /// enabled property.
-    pub enabled: bool,
-    /// minTLS property.
-    pub min_tls: Option<String>,
-    /// zoneId property.
-    pub zone_id: String,
-}
-
-/// `RegistrarApiCountry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiCountry {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelResolvesToRefs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelResolvesToRefs {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IntelInheritedContentCategories` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelInheritedContentCategories {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct TeamsDevicesFallbackDomain {
+    /// description property.
+    pub description: Option<String>,
+    /// dns_server property.
+    pub dns_server: Option<Vec<TeamsDevicesIp>>,
+    /// suffix property.
+    pub suffix: String,
 }
 
 /// `TeamsDevicesFallbackDomainResponseCollection` type.
@@ -640,36 +2003,31 @@ pub struct TeamsDevicesFallbackDomainResponseCollection {
     pub result: Option<Vec<TeamsDevicesFallbackDomain>>,
 }
 
-/// `R2EditCustomDomainRequest` type.
+/// `TeamsDevicesIp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2EditCustomDomainRequest {
-    /// ciphers property.
-    pub ciphers: Option<Vec<String>>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// minTLS property.
-    pub min_tls: Option<String>,
-}
-
-/// `IntelRiskTypes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IntelRiskTypes {
+pub struct TeamsDevicesIp {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiDomains` type.
+/// `TeamsDevicesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiDomains {
+pub struct TeamsDevicesMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RegistrarApiApiResponseCollection` type.
+/// `TeamsDevicesResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<RegistrarApiResultInfo>,
+pub struct TeamsDevicesResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
 }
 
 // =============================================================================
@@ -775,7 +2133,7 @@ pub struct EmailSecurityDeleteDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
-    pub body: Vec<serde_json::Value>,
+    pub body: Vec<EmailSecurityDeleteDomainsRequestItem>,
 }
 
 /// Arguments for [`email_security_get_domain_request`].
@@ -794,6 +2152,8 @@ pub struct EmailSecurityUpdateDomainArgs {
     pub account_id: String,
     /// Path parameter: `domain_id`.
     pub domain_id: String,
+    /// Request body.
+    pub body: EmailSecurityUpdateDomainRequest,
 }
 
 /// Arguments for [`email_security_delete_domain_request`].
@@ -810,6 +2170,8 @@ pub struct EmailSecurityDeleteDomainArgs {
 pub struct EmailSecurityBatchSendingDomainRestrictionsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityBatchSendingDomainRestrictionsRequest,
 }
 
 /// Arguments for [`email_security_list_trusted_domains_request`].
@@ -840,6 +2202,8 @@ pub struct EmailSecurityListTrustedDomainsArgs {
 pub struct EmailSecurityCreateTrustedDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityCreateTrustedDomainRequest,
 }
 
 /// Arguments for [`email_security_batch_trusted_domains_request`].
@@ -847,6 +2211,8 @@ pub struct EmailSecurityCreateTrustedDomainArgs {
 pub struct EmailSecurityBatchTrustedDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityBatchTrustedDomainsRequest,
 }
 
 /// Arguments for [`email_security_get_trusted_domain_request`].
@@ -865,6 +2231,8 @@ pub struct EmailSecurityUpdateTrustedDomainArgs {
     pub account_id: String,
     /// Path parameter: `trusted_domain_id`.
     pub trusted_domain_id: String,
+    /// Request body.
+    pub body: EmailSecurityUpdateTrustedDomainRequest,
 }
 
 /// Arguments for [`email_security_delete_trusted_domain_request`].
@@ -1001,6 +2369,8 @@ pub struct RegistrarDomainsUpdateDomainArgs {
     pub domain_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: RegistrarDomainsUpdateDomainRequest,
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-messages_request`].
@@ -1258,15 +2628,16 @@ pub struct RadarGetTldDetailsArgs {
 pub async fn get_domain_match_list_request<F>(
     client: DynNetClient,
     args: &GetDomainMatchListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetDomainMatchListResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/v2/brand-protection/domain/matches",
+    let path = format!("/accounts/{}/cloudforce-one/v2/brand-protection/domain/matches",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1290,9 +2661,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetDomainMatchListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1320,15 +2696,16 @@ where
 pub async fn get_get_domain_queries_request<F>(
     client: DynNetClient,
     args: &GetGetDomainQueriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/v2/brand-protection/domain/queries",
+    let path = format!("/accounts/{}/cloudforce-one/v2/brand-protection/domain/queries",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1345,7 +2722,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1377,15 +2757,16 @@ where
 pub async fn devices_get_local_domain_fallback_list_request<F>(
     client: DynNetClient,
     args: &DevicesGetLocalDomainFallbackListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesFallbackDomainResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/fallback_domains",
+    let path = format!("/accounts/{}/devices/policy/fallback_domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1400,7 +2781,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesFallbackDomainResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1432,15 +2816,16 @@ where
 pub async fn devices_set_local_domain_fallback_list_request<F>(
     client: DynNetClient,
     args: &DevicesSetLocalDomainFallbackListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesFallbackDomainResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/fallback_domains",
+    let path = format!("/accounts/{}/devices/policy/fallback_domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1458,7 +2843,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesFallbackDomainResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1490,16 +2878,17 @@ where
 pub async fn devices_get_local_domain_fallback_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesGetLocalDomainFallbackListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesFallbackDomainResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/fallback_domains",
+    let path = format!("/accounts/{}/devices/policy/{}/fallback_domains",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1514,7 +2903,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesFallbackDomainResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1546,16 +2938,17 @@ where
 pub async fn devices_set_local_domain_fallback_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesSetLocalDomainFallbackListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesFallbackDomainResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/fallback_domains",
+    let path = format!("/accounts/{}/devices/policy/{}/fallback_domains",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1573,7 +2966,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesFallbackDomainResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1605,15 +3001,16 @@ where
 pub async fn email_security_list_domains_request<F>(
     client: DynNetClient,
     args: &EmailSecurityListDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityListDomainsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/domains",
+    let path = format!("/accounts/{}/email-security/settings/domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1638,9 +3035,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityListDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1668,15 +3070,16 @@ where
 pub async fn email_security_delete_domains_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteDomainsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/domains",
+    let path = format!("/accounts/{}/email-security/settings/domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1694,9 +3097,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1724,16 +3132,17 @@ where
 pub async fn email_security_get_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/domains/{}",
         args.account_id,
         args.domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1748,9 +3157,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1778,18 +3192,22 @@ where
 pub async fn email_security_update_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityUpdateDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityUpdateDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/domains/{}",
         args.account_id,
         args.domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1802,9 +3220,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityUpdateDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1832,16 +3255,17 @@ where
 pub async fn email_security_delete_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/domains/{}",
         args.account_id,
         args.domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1856,9 +3280,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1886,17 +3315,21 @@ where
 pub async fn email_security_batch_sending_domain_restrictions_request<F>(
     client: DynNetClient,
     args: &EmailSecurityBatchSendingDomainRestrictionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityBatchSendingDomainRestrictionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/sending_domain_restrictions/batch",
+    let path = format!("/accounts/{}/email-security/settings/sending_domain_restrictions/batch",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1909,9 +3342,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityBatchSendingDomainRestrictionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1939,15 +3377,16 @@ where
 pub async fn email_security_list_trusted_domains_request<F>(
     client: DynNetClient,
     args: &EmailSecurityListTrustedDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityListTrustedDomainsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1971,9 +3410,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityListTrustedDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2001,17 +3445,21 @@ where
 pub async fn email_security_create_trusted_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityCreateTrustedDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityCreateTrustedDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2024,9 +3472,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityCreateTrustedDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2054,17 +3507,21 @@ where
 pub async fn email_security_batch_trusted_domains_request<F>(
     client: DynNetClient,
     args: &EmailSecurityBatchTrustedDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityBatchTrustedDomainsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains/batch",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains/batch",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2077,9 +3534,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityBatchTrustedDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2107,16 +3569,17 @@ where
 pub async fn email_security_get_trusted_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetTrustedDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetTrustedDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains/{}",
         args.account_id,
         args.trusted_domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2131,9 +3594,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetTrustedDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2161,18 +3629,22 @@ where
 pub async fn email_security_update_trusted_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityUpdateTrustedDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityUpdateTrustedDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains/{}",
         args.account_id,
         args.trusted_domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2185,9 +3657,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityUpdateTrustedDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2215,16 +3692,17 @@ where
 pub async fn email_security_delete_trusted_domain_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteTrustedDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteTrustedDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/trusted_domains/{}",
+    let path = format!("/accounts/{}/email-security/settings/trusted_domains/{}",
         args.account_id,
         args.trusted_domain_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2239,9 +3717,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteTrustedDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2269,15 +3752,16 @@ where
 pub async fn domain_intelligence_get_domain_details_request<F>(
     client: DynNetClient,
     args: &DomainIntelligenceGetDomainDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IntelSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/domain",
+    let path = format!("/accounts/{}/intel/domain",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2294,7 +3778,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IntelSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2326,15 +3813,16 @@ where
 pub async fn domain_history_get_domain_history_request<F>(
     client: DynNetClient,
     args: &DomainHistoryGetDomainHistoryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IntelResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/domain-history",
+    let path = format!("/accounts/{}/intel/domain-history",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2351,7 +3839,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IntelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2383,15 +3874,16 @@ where
 pub async fn domain_intelligence_get_multiple_domain_details_request<F>(
     client: DynNetClient,
     args: &DomainIntelligenceGetMultipleDomainDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IntelCollectionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/domain/bulk",
+    let path = format!("/accounts/{}/intel/domain/bulk",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2408,7 +3900,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IntelCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2440,16 +3935,17 @@ where
 pub async fn r2_list_custom_domains_request<F>(
     client: DynNetClient,
     args: &R2ListCustomDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2ListCustomDomainsResponse2>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/custom",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/custom",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2464,9 +3960,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2ListCustomDomainsResponse2 = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2494,16 +3995,17 @@ where
 pub async fn r2_add_custom_domain_request<F>(
     client: DynNetClient,
     args: &R2AddCustomDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2AddCustomDomainResponse2>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/custom",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/custom",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2521,9 +4023,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2AddCustomDomainResponse2 = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2551,17 +4058,18 @@ where
 pub async fn r2_get_custom_domain_settings_request<F>(
     client: DynNetClient,
     args: &R2GetCustomDomainSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetCustomDomainSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/custom/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/custom/{}",
         args.account_id,
         args.bucket_name,
         args.domain,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2576,9 +4084,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetCustomDomainSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2606,17 +4119,18 @@ where
 pub async fn r2_edit_custom_domain_settings_request<F>(
     client: DynNetClient,
     args: &R2EditCustomDomainSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2EditCustomDomainSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/custom/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/custom/{}",
         args.account_id,
         args.bucket_name,
         args.domain,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2634,9 +4148,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2EditCustomDomainSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2664,17 +4183,18 @@ where
 pub async fn r2_delete_custom_domain_request<F>(
     client: DynNetClient,
     args: &R2DeleteCustomDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2DeleteCustomDomainResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/custom/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/custom/{}",
         args.account_id,
         args.bucket_name,
         args.domain,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2689,9 +4209,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2DeleteCustomDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2719,16 +4244,17 @@ where
 pub async fn r2_get_bucket_public_policy_request<F>(
     client: DynNetClient,
     args: &R2GetBucketPublicPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketPublicPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/managed",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/managed",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2743,9 +4269,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketPublicPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2773,16 +4304,17 @@ where
 pub async fn r2_put_bucket_public_policy_request<F>(
     client: DynNetClient,
     args: &R2PutBucketPublicPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketPublicPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/domains/managed",
+    let path = format!("/accounts/{}/r2/buckets/{}/domains/managed",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2800,9 +4332,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2PutBucketPublicPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2830,15 +4367,16 @@ where
 pub async fn registrar_domains_list_domains_request<F>(
     client: DynNetClient,
     args: &RegistrarDomainsListDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<RegistrarApiDomainResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/registrar/domains",
+    let path = format!("/accounts/{}/registrar/domains",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2853,7 +4391,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: RegistrarApiDomainResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2885,16 +4426,17 @@ where
 pub async fn registrar_domains_get_domain_request<F>(
     client: DynNetClient,
     args: &RegistrarDomainsGetDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<RegistrarApiDomainResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/registrar/domains/{}",
+    let path = format!("/accounts/{}/registrar/domains/{}",
         args.account_id,
         args.domain_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2909,7 +4451,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: RegistrarApiDomainResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2941,18 +4486,22 @@ where
 pub async fn registrar_domains_update_domain_request<F>(
     client: DynNetClient,
     args: &RegistrarDomainsUpdateDomainArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<RegistrarApiDomainResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/registrar/domains/{}",
+    let path = format!("/accounts/{}/registrar/domains/{}",
         args.account_id,
         args.domain_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2965,7 +4514,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: RegistrarApiDomainResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2997,14 +4549,15 @@ where
 pub async fn radar_get_email_security_top_tlds_by_messages_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecurityTopTldsByMessagesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecurityTopTldsByMessagesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/top/tlds",
+    let path = format!("/radar/email/security/top/tlds",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3032,9 +4585,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecurityTopTldsByMessagesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3062,15 +4620,16 @@ where
 pub async fn radar_get_email_security_top_tlds_by_malicious_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecurityTopTldsByMaliciousArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecurityTopTldsByMaliciousResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/top/tlds/malicious/{}",
+    let path = format!("/radar/email/security/top/tlds/malicious/{}",
         args.malicious,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3098,9 +4657,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecurityTopTldsByMaliciousResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3128,15 +4692,16 @@ where
 pub async fn radar_get_email_security_top_tlds_by_spam_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecurityTopTldsBySpamArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecurityTopTldsBySpamResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/top/tlds/spam/{}",
+    let path = format!("/radar/email/security/top/tlds/spam/{}",
         args.spam,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3164,9 +4729,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecurityTopTldsBySpamResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3194,15 +4764,16 @@ where
 pub async fn radar_get_email_security_top_tlds_by_spoof_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecurityTopTldsBySpoofArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecurityTopTldsBySpoofResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/top/tlds/spoof/{}",
+    let path = format!("/radar/email/security/top/tlds/spoof/{}",
         args.spoof,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3230,9 +4801,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecurityTopTldsBySpoofResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3260,15 +4836,16 @@ where
 pub async fn radar_get_ranking_domain_details_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingDomainDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingDomainDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/domain/{}",
+    let path = format!("/radar/ranking/domain/{}",
         args.domain,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3290,9 +4867,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingDomainDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3320,14 +4902,15 @@ where
 pub async fn radar_get_ranking_domain_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingDomainTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingDomainTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/timeseries_groups",
+    let path = format!("/radar/ranking/timeseries_groups",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3353,9 +4936,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingDomainTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3383,14 +4971,15 @@ where
 pub async fn radar_get_ranking_top_domains_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingTopDomainsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingTopDomainsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/top",
+    let path = format!("/radar/ranking/top",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3413,9 +5002,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingTopDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3443,14 +5037,15 @@ where
 pub async fn radar_get_robots_txt_top_domain_categories_by_files_parsed_request<F>(
     client: DynNetClient,
     args: &RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/robots_txt/top/domain_categories",
+    let path = format!("/radar/robots_txt/top/domain_categories",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3471,9 +5066,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3501,14 +5101,15 @@ where
 pub async fn radar_get_tlds_request<F>(
     client: DynNetClient,
     args: &RadarGetTldsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTldsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/tlds",
+    let path = format!("/radar/tlds",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3530,9 +5131,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTldsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3560,15 +5166,16 @@ where
 pub async fn radar_get_tld_details_request<F>(
     client: DynNetClient,
     args: &RadarGetTldDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTldDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/tlds/{}",
+    let path = format!("/radar/tlds/{}",
         args.tld,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3585,8 +5192,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTldDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

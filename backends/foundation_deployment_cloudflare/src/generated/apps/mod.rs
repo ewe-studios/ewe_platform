@@ -21,92 +21,95 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AlexandriaApplicationUpdatedAt` type.
+/// `AbuseReportsAppealReason` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationUpdatedAt {
+pub struct AbuseReportsAppealReason {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AlexandriaApplicationTypeDescription` type.
+/// `AbuseReportsMessage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationTypeDescription {
+pub struct AbuseReportsMessage {
+    /// message property.
+    pub message: String,
+}
+
+/// `AbuseReportsMitigatedEntityType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigatedEntityType {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AlexandriaApplicationHostnames` type.
+/// `AbuseReportsMitigationAppeal` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationHostnames {
+pub struct AbuseReportsMitigationAppeal {
+    /// id property.
+    pub id: String,
+    /// reason property.
+    pub reason: AbuseReportsAppealReason,
+}
+
+/// `AbuseReportsMitigationAppealRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationAppealRequest {
+    /// appeals property.
+    pub appeals: Vec<AbuseReportsMitigationAppeal>,
+}
+
+/// `AbuseReportsMitigationAppealResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationAppealResult {
+    /// errors property.
+    pub errors: Option<Vec<AbuseReportsMessage>>,
+    /// messages property.
+    pub messages: Option<Vec<AbuseReportsMessage>>,
+    /// result property.
+    pub result: Option<Vec<AbuseReportsMitigationListItem>>,
+    /// result_info property.
+    pub result_info: std::collections::HashMap<String, serde_json::Value>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `AbuseReportsMitigationListItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationListItem {
+    /// effective_date property.
+    pub effective_date: String,
+    /// entity_id property.
+    pub entity_id: String,
+    /// entity_type property.
+    pub entity_type: AbuseReportsMitigatedEntityType,
+    /// id property.
+    pub id: String,
+    /// status property.
+    pub status: AbuseReportsMitigationStatus,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: AbuseReportsMitigationType,
+}
+
+/// `AbuseReportsMitigationStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationStatus {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AlexandriaGetApplicationResponse` type.
+/// `AbuseReportsMitigationType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaGetApplicationResponse {
-    /// `result` property.
-    pub result: Option<AlexandriaApplication>,
-}
-
-/// `AlexandriaUpdateApplicationVersionRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaUpdateApplicationVersionRequest {
-    /// hostnames property.
-    pub hostnames: Option<Vec<String>>,
-    /// ip_subnets property.
-    pub ip_subnets: Option<Vec<String>>,
-    /// port_protocols property.
-    pub port_protocols: Option<Vec<String>>,
-    /// support_domains property.
-    pub support_domains: Option<Vec<String>>,
-}
-
-/// `AlexandriaApplicationIpSubnets` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationIpSubnets {
+pub struct AbuseReportsMitigationType {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AlexandriaApplicationId` type.
+/// `AlexandriaApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplicationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaCreateApplicationRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaCreateApplicationRequest {
-    /// application_type_id property.
-    pub application_type_id: String,
-    /// hostnames property.
-    pub hostnames: Option<serde_json::Value>,
-    /// human_id property.
-    pub human_id: AlexandriaApplicationHumanId,
-    /// ip_subnets property.
-    pub ip_subnets: Option<Vec<String>>,
-    /// name property.
-    pub name: AlexandriaApplicationName,
-    /// port_protocols property.
-    pub port_protocols: Option<Vec<String>>,
-    /// support_domains property.
-    pub support_domains: Option<Vec<String>>,
-}
-
-/// `AlexandriaApplicationVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct AlexandriaApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `AlexandriaApiResponseCommon` type.
@@ -118,78 +121,6 @@ pub struct AlexandriaApiResponseCommon {
     pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// success property.
     pub success: bool,
-}
-
-/// `AbuseReportsMitigationAppealResult` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AbuseReportsMitigationAppealResult {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaGetApplicationsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaGetApplicationsResponse {
-    /// `result` property.
-    pub result: Option<Vec<AlexandriaApplication>>,
-}
-
-/// `AlexandriaApplicationSource` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationSource {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplicationSupportDomains` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationSupportDomains {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplicationName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplicationPortProtocols` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationPortProtocols {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplications` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplications {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AlexandriaApplicationCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApplicationCreatedAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AbuseReportsMitigationAppealRequest` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AbuseReportsMitigationAppealRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AlexandriaApplication` type.
@@ -223,11 +154,18 @@ pub struct AlexandriaApplication {
     pub version: AlexandriaApplicationVersion,
 }
 
-/// `AlexandriaApiResponseCollection` type.
+/// `AlexandriaApplicationCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct AlexandriaApplicationCreatedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationHostnames` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationHostnames {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AlexandriaApplicationHumanId` type.
@@ -235,6 +173,136 @@ pub struct AlexandriaApiResponseCollection {
 pub struct AlexandriaApplicationHumanId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationIpSubnets` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationIpSubnets {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationPortProtocols` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationPortProtocols {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationSource` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationSource {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationSupportDomains` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationSupportDomains {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationTypeDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationTypeDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationUpdatedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationUpdatedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplicationVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplicationVersion {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaApplications` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaApplications {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaCreateApplicationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaCreateApplicationRequest {
+    /// application_type_id property.
+    pub application_type_id: String,
+    /// hostnames property.
+    pub hostnames: Option<serde_json::Value>,
+    /// human_id property.
+    pub human_id: AlexandriaApplicationHumanId,
+    /// ip_subnets property.
+    pub ip_subnets: Option<Vec<String>>,
+    /// name property.
+    pub name: AlexandriaApplicationName,
+    /// port_protocols property.
+    pub port_protocols: Option<Vec<String>>,
+    /// support_domains property.
+    pub support_domains: Option<Vec<String>>,
+}
+
+/// `AlexandriaGetApplicationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaGetApplicationResponse {
+    /// `result` property.
+    pub result: Option<AlexandriaApplication>,
+}
+
+/// `AlexandriaGetApplicationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaGetApplicationsResponse {
+    /// `result` property.
+    pub result: Option<Vec<AlexandriaApplication>>,
+}
+
+/// `AlexandriaMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AlexandriaUpdateApplicationVersionRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AlexandriaUpdateApplicationVersionRequest {
+    /// hostnames property.
+    pub hostnames: Option<Vec<String>>,
+    /// ip_subnets property.
+    pub ip_subnets: Option<Vec<String>>,
+    /// port_protocols property.
+    pub port_protocols: Option<Vec<String>>,
+    /// support_domains property.
+    pub support_domains: Option<Vec<String>>,
 }
 
 // =============================================================================
@@ -325,15 +393,16 @@ pub struct RequestReviewArgs {
 pub async fn get_applications_request<F>(
     client: DynNetClient,
     args: &GetApplicationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AlexandriaGetApplicationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications",
+    let path = format!("/accounts/{}/resource-library/applications",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -353,7 +422,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AlexandriaGetApplicationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -385,15 +457,16 @@ where
 pub async fn create_application_request<F>(
     client: DynNetClient,
     args: &CreateApplicationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AlexandriaGetApplicationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications",
+    let path = format!("/accounts/{}/resource-library/applications",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -411,7 +484,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AlexandriaGetApplicationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -443,16 +519,17 @@ where
 pub async fn get_application_by_id_request<F>(
     client: DynNetClient,
     args: &GetApplicationByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AlexandriaGetApplicationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications/{}",
+    let path = format!("/accounts/{}/resource-library/applications/{}",
         args.account_id,
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -467,7 +544,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AlexandriaGetApplicationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -499,16 +579,17 @@ where
 pub async fn update_application_version_request<F>(
     client: DynNetClient,
     args: &UpdateApplicationVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AlexandriaGetApplicationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications/{}",
+    let path = format!("/accounts/{}/resource-library/applications/{}",
         args.account_id,
         args.id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -526,7 +607,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AlexandriaGetApplicationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -558,16 +642,17 @@ where
 pub async fn request_review_request<F>(
     client: DynNetClient,
     args: &RequestReviewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AbuseReportsMitigationAppealResult>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/abuse-reports/{}/mitigations/appeal",
+    let path = format!("/accounts/{}/abuse-reports/{}/mitigations/appeal",
         args.account_id,
         args.report_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -585,7 +670,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AbuseReportsMitigationAppealResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

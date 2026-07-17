@@ -21,12 +21,220 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `R2SlurperCreateJobRequest` response type.
+/// `R2SlurperApiV4Error` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2SlurperCreateJobRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct R2SlurperApiV4Error {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperApiV4Message {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperApiV4Success` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperApiV4Success {
+    /// errors property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// messages property.
+    pub messages: Option<Vec<String>>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `R2SlurperCreateJobRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperCreateJobRequest {
+    /// overwrite property.
+    pub overwrite: Option<bool>,
+    /// source property.
+    pub source: Option<R2SlurperSourceJobSchema>,
+    /// target property.
+    pub target: Option<R2SlurperR2TargetSchema>,
+}
+
+/// `R2SlurperGCSLikeCredsSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperGCSLikeCredsSchema {
+    /// clientEmail property.
+    #[serde(rename = "clientEmail")]
+    pub client_email: String,
+    /// privateKey property.
+    #[serde(rename = "privateKey")]
+    pub private_key: String,
+}
+
+/// `R2SlurperGCSSourceSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperGCSSourceSchema {
+    /// bucket property.
+    pub bucket: String,
+    /// keys property.
+    pub keys: Option<Vec<String>>,
+    /// pathPrefix property.
+    #[serde(rename = "pathPrefix")]
+    pub path_prefix: Option<String>,
+    /// secret property.
+    pub secret: R2SlurperGCSLikeCredsSchema,
+    /// vendor property.
+    pub vendor: String,
+}
+
+/// `R2SlurperJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperJobResponse {
+    /// createdAt property.
+    #[serde(rename = "createdAt")]
+    pub created_at: Option<String>,
+    /// finishedAt property.
+    #[serde(rename = "finishedAt")]
+    pub finished_at: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// overwrite property.
+    pub overwrite: Option<bool>,
+    /// source property.
+    pub source: Option<serde_json::Value>,
+    /// status property.
+    pub status: Option<R2SlurperJobStatus>,
+    /// target property.
+    pub target: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2SlurperJobStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperJobStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperJurisdiction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperJurisdiction {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperR2SourceSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperR2SourceSchema {
+    /// bucket property.
+    pub bucket: String,
+    /// jurisdiction property.
+    pub jurisdiction: Option<R2SlurperJurisdiction>,
+    /// keys property.
+    pub keys: Option<Vec<String>>,
+    /// pathPrefix property.
+    #[serde(rename = "pathPrefix")]
+    pub path_prefix: Option<String>,
+    /// secret property.
+    pub secret: R2SlurperS3LikeCredsSchema,
+    /// vendor property.
+    pub vendor: String,
+}
+
+/// `R2SlurperR2TargetSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperR2TargetSchema {
+    /// bucket property.
+    pub bucket: String,
+    /// jurisdiction property.
+    pub jurisdiction: Option<R2SlurperJurisdiction>,
+    /// secret property.
+    pub secret: R2SlurperS3LikeCredsSchema,
+    /// vendor property.
+    pub vendor: String,
+}
+
+/// `R2SlurperS3LikeCredsSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperS3LikeCredsSchema {
+    /// accessKeyId property.
+    #[serde(rename = "accessKeyId")]
+    pub access_key_id: String,
+    /// secretAccessKey property.
+    #[serde(rename = "secretAccessKey")]
+    pub secret_access_key: String,
+}
+
+/// `R2SlurperS3SourceSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperS3SourceSchema {
+    /// bucket property.
+    pub bucket: String,
+    /// endpoint property.
+    pub endpoint: Option<String>,
+    /// keys property.
+    pub keys: Option<Vec<String>>,
+    /// pathPrefix property.
+    #[serde(rename = "pathPrefix")]
+    pub path_prefix: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// secret property.
+    pub secret: R2SlurperS3LikeCredsSchema,
+    /// vendor property.
+    pub vendor: String,
+}
+
+/// `R2SlurperSourceJobSchema` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperSourceJobSchema {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SlurperAbortAllJobsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperAbortAllJobsResponse {
+    /// `result` property.
+    pub result: Option<String>,
+}
+
+/// `SlurperAbortJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperAbortJobResponse {
+    /// `result` property.
+    pub result: Option<String>,
+}
+
+/// `SlurperCreateJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperCreateJobResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SlurperGetJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperGetJobResponse {
+    /// `result` property.
+    pub result: Option<R2SlurperJobResponse>,
+}
+
+/// `SlurperListJobsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperListJobsResponse {
+    /// `result` property.
+    pub result: Option<Vec<R2SlurperJobResponse>>,
+}
+
+/// `SlurperPauseJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperPauseJobResponse {
+    /// `result` property.
+    pub result: Option<String>,
+}
+
+/// `SlurperResumeJobResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperResumeJobResponse {
+    /// `result` property.
+    pub result: Option<String>,
 }
 
 // =============================================================================
@@ -125,15 +333,16 @@ pub struct SlurperResumeJobArgs {
 pub async fn slurper_list_jobs_request<F>(
     client: DynNetClient,
     args: &SlurperListJobsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperListJobsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs",
+    let path = format!("/accounts/{}/slurper/jobs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -151,9 +360,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperListJobsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -181,15 +395,16 @@ where
 pub async fn slurper_create_job_request<F>(
     client: DynNetClient,
     args: &SlurperCreateJobArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperCreateJobResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs",
+    let path = format!("/accounts/{}/slurper/jobs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -207,9 +422,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperCreateJobResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -237,15 +457,16 @@ where
 pub async fn slurper_abort_all_jobs_request<F>(
     client: DynNetClient,
     args: &SlurperAbortAllJobsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperAbortAllJobsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/abortAll",
+    let path = format!("/accounts/{}/slurper/jobs/abortAll",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -260,9 +481,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperAbortAllJobsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -290,16 +516,17 @@ where
 pub async fn slurper_get_job_request<F>(
     client: DynNetClient,
     args: &SlurperGetJobArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperGetJobResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}",
+    let path = format!("/accounts/{}/slurper/jobs/{}",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -314,9 +541,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperGetJobResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -344,16 +576,17 @@ where
 pub async fn slurper_abort_job_request<F>(
     client: DynNetClient,
     args: &SlurperAbortJobArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperAbortJobResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/abort",
+    let path = format!("/accounts/{}/slurper/jobs/{}/abort",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -368,9 +601,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperAbortJobResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -398,16 +636,17 @@ where
 pub async fn slurper_pause_job_request<F>(
     client: DynNetClient,
     args: &SlurperPauseJobArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperPauseJobResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/pause",
+    let path = format!("/accounts/{}/slurper/jobs/{}/pause",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -422,9 +661,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperPauseJobResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -452,16 +696,17 @@ where
 pub async fn slurper_resume_job_request<F>(
     client: DynNetClient,
     args: &SlurperResumeJobArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperResumeJobResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/resume",
+    let path = format!("/accounts/{}/slurper/jobs/{}/resume",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -476,8 +721,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperResumeJobResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

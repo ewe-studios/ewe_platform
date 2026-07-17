@@ -1429,7 +1429,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1490,7 +1490,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1549,7 +1549,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();
@@ -1608,7 +1608,7 @@ where
         f(&mut builder);
     }
 
-    let mut response = client.send_async(builder.build()).await
+    let response = client.send_async(builder.build()).await
         .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
 
     let status: usize = response.get_status().into();

@@ -26,54 +26,40 @@ use super::shared::IamSingleTokenCreateResponse;
 use super::shared::IamSingleTokenResponse;
 use super::shared::IamTokenBody;
 use super::shared::IamTokenVerifyResponseSingleSegment;
-use super::shared::IamTokenBase;
-use super::shared::IamResources;
+use super::shared::AaaApiResponseSingle;
 use super::shared::AaaSchemasApiResponseCommon;
-use super::shared::IamName;
-use super::shared::IamRequestIp;
-use super::shared::IamResultInfo;
-use super::shared::IamEffect;
-use super::shared::IamResourcesTypeObjectString;
 use super::shared::AaaUuid;
 use super::shared::IamApiResponseCollection;
-use super::shared::IamValue;
-use super::shared::AaaApiResponseSingle;
-use super::shared::IamTokenWithValue;
-use super::shared::IamApiResponseSingle;
-use super::shared::IamCondition;
-use super::shared::IamCommonComponentsSchemasIdentifier;
-use super::shared::IamIssuedOn;
-use super::shared::IamPermissionGroup;
-use super::shared::IamModifiedOn;
 use super::shared::IamApiResponseCommon;
-use super::shared::IamTokenStatus;
-use super::shared::IamNotBefore;
-use super::shared::IamPolicyWithPermissionGroupsAndResources;
-use super::shared::IamResourcesTypeObjectNested;
-use super::shared::IamLastUsedOn;
-use super::shared::IamPolicyIdentifier;
+use super::shared::IamApiResponseSingle;
+use super::shared::IamCommonComponentsSchemasIdentifier;
+use super::shared::IamCondition;
+use super::shared::IamEffect;
 use super::shared::IamExpiresOn;
+use super::shared::IamIssuedOn;
+use super::shared::IamLastUsedOn;
+use super::shared::IamModifiedOn;
+use super::shared::IamName;
+use super::shared::IamNotBefore;
+use super::shared::IamPermissionGroup;
+use super::shared::IamPolicyIdentifier;
+use super::shared::IamPolicyWithPermissionGroupsAndResources;
+use super::shared::IamRequestIp;
+use super::shared::IamResources;
+use super::shared::IamResourcesTypeObjectNested;
+use super::shared::IamResourcesTypeObjectString;
+use super::shared::IamResultInfo;
+use super::shared::IamTokenBase;
 use super::shared::IamTokenIdentifier;
+use super::shared::IamTokenStatus;
+use super::shared::IamTokenWithValue;
+use super::shared::IamValue;
 
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `IamCidrList` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamCidrList {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IamSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamSchemasMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `AaaComponentsSchemasMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -82,9 +68,23 @@ pub struct AaaComponentsSchemasMessages {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `IamCidrList` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamCidrList {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `IamPermissionGroups` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamPermissionGroups {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `IamSchemasMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamSchemasMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -216,16 +216,17 @@ pub struct AccountApiTokensRollTokenArgs {
 pub async fn notification_destinations_with_pager_duty_connect_pager_duty_token_request<F>(
     client: DynNetClient,
     args: &NotificationDestinationsWithPagerDutyConnectPagerDutyTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/pagerduty/connect/{}",
+    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty/connect/{}",
         args.account_id,
         args.token_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -240,7 +241,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -272,15 +276,16 @@ where
 pub async fn account_api_tokens_list_tokens_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensListTokensArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamCollectionTokensResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens",
+    let path = format!("/accounts/{}/tokens",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -299,7 +304,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamCollectionTokensResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -331,15 +339,16 @@ where
 pub async fn account_api_tokens_create_token_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensCreateTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamSingleTokenCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens",
+    let path = format!("/accounts/{}/tokens",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -357,7 +366,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamSingleTokenCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -389,15 +401,16 @@ where
 pub async fn account_api_tokens_list_permission_groups_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensListPermissionGroupsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamPermissionsGroupResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/permission_groups",
+    let path = format!("/accounts/{}/tokens/permission_groups",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -415,7 +428,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamPermissionsGroupResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -447,15 +463,16 @@ where
 pub async fn account_api_tokens_verify_token_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensVerifyTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamTokenVerifyResponseSingleSegment>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/verify",
+    let path = format!("/accounts/{}/tokens/verify",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -470,7 +487,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamTokenVerifyResponseSingleSegment = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -502,16 +522,17 @@ where
 pub async fn account_api_tokens_token_details_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensTokenDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamSingleTokenResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/{}",
+    let path = format!("/accounts/{}/tokens/{}",
         args.account_id,
         args.token_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -526,7 +547,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamSingleTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -558,16 +582,17 @@ where
 pub async fn account_api_tokens_update_token_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensUpdateTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamSingleTokenResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/{}",
+    let path = format!("/accounts/{}/tokens/{}",
         args.account_id,
         args.token_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -585,7 +610,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamSingleTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -617,16 +645,17 @@ where
 pub async fn account_api_tokens_delete_token_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensDeleteTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamApiResponseSingleId>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/{}",
+    let path = format!("/accounts/{}/tokens/{}",
         args.account_id,
         args.token_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -641,7 +670,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamApiResponseSingleId = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -673,16 +705,17 @@ where
 pub async fn account_api_tokens_roll_token_request<F>(
     client: DynNetClient,
     args: &AccountApiTokensRollTokenArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<IamResponseSingleValue>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tokens/{}/value",
+    let path = format!("/accounts/{}/tokens/{}/value",
         args.account_id,
         args.token_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -697,7 +730,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IamResponseSingleValue = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

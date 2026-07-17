@@ -21,11 +21,37 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `TlsCertificatesAndHostnamesSchemasName` type.
+/// `MTlsCertificateManagementUploadMTlsCertificateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct MTlsCertificateManagementUploadMTlsCertificateRequest {
+    /// ca property.
+    pub ca: TlsCertificatesAndHostnamesCa,
+    /// certificates property.
+    pub certificates: TlsCertificatesAndHostnamesSchemasCertificates,
+    /// name property.
+    pub name: Option<TlsCertificatesAndHostnamesSchemasName>,
+    /// private_key property.
+    pub private_key: Option<TlsCertificatesAndHostnamesComponentsSchemasPrivateKey>,
+}
+
+/// `OriginCaCreateCertificateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OriginCaCreateCertificateRequest {
+    /// csr property.
+    pub csr: TlsCertificatesAndHostnamesCsr,
+    /// hostnames property.
+    pub hostnames: Vec<String>,
+    /// request_type property.
+    pub request_type: TlsCertificatesAndHostnamesRequestType,
+    /// requested_validity property.
+    pub requested_validity: Option<TlsCertificatesAndHostnamesRequestedValidity>,
+}
+
+/// `TlsCertificatesAndHostnamesApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `TlsCertificatesAndHostnamesApiResponseCommon` type.
@@ -39,96 +65,18 @@ pub struct TlsCertificatesAndHostnamesApiResponseCommon {
     pub success: bool,
 }
 
-/// `TlsCertificatesAndHostnamesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesCertificateRevokeResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesCertificateRevokeResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesSchemasCertificateResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseSingle {
-    /// `result` property.
-    pub result: Option<TlsCertificatesAndHostnamesCertificates>,
-}
-
 /// `TlsCertificatesAndHostnamesApiResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesApiResponseSingle {
 }
 
-/// `TlsCertificatesAndHostnamesRequestType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesRequestType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesAssociationObject` response type.
+/// `TlsCertificatesAndHostnamesAssociationObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesAssociationObject {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `TlsCertificatesAndHostnamesSchemasSerialNumber` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasSerialNumber {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesSchemasCertificates` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasCertificates {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesSchemasIssuer` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasIssuer {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesComponentsSchemasExpiresOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesComponentsSchemasExpiresOn {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TlsCertificatesAndHostnamesComponentsSchemasCertificateObject>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// service property.
+    pub service: Option<TlsCertificatesAndHostnamesService>,
+    /// status property.
+    pub status: Option<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasStatus>,
 }
 
 /// `TlsCertificatesAndHostnamesAssociationResponseCollection` type.
@@ -138,13 +86,6 @@ pub struct TlsCertificatesAndHostnamesAssociationResponseCollection {
     pub result: Option<Vec<TlsCertificatesAndHostnamesAssociationObject>>,
 }
 
-/// `TlsCertificatesAndHostnamesIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `TlsCertificatesAndHostnamesCa` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCa {
@@ -152,32 +93,43 @@ pub struct TlsCertificatesAndHostnamesCa {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TlsCertificatesAndHostnamesHostnames` type.
+/// `TlsCertificatesAndHostnamesCertificateObjectPost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesHostnames {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct TlsCertificatesAndHostnamesCertificateObjectPost {
+    /// ca property.
+    pub ca: Option<TlsCertificatesAndHostnamesCa>,
+    /// certificates property.
+    pub certificates: Option<TlsCertificatesAndHostnamesSchemasCertificates>,
+    /// expires_on property.
+    pub expires_on: Option<TlsCertificatesAndHostnamesSchemasExpiresOn>,
+    /// id property.
+    pub id: Option<TlsCertificatesAndHostnamesIdentifier>,
+    /// issuer property.
+    pub issuer: Option<TlsCertificatesAndHostnamesSchemasIssuer>,
+    /// name property.
+    pub name: Option<TlsCertificatesAndHostnamesSchemasName>,
+    /// serial_number property.
+    pub serial_number: Option<TlsCertificatesAndHostnamesSchemasSerialNumber>,
+    /// signature property.
+    pub signature: Option<TlsCertificatesAndHostnamesSignature>,
+    /// updated_at property.
+    pub updated_at: Option<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt>,
+    /// uploaded_on property.
+    pub uploaded_on: Option<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUploadedOn>,
 }
 
-/// `TlsCertificatesAndHostnamesRequestedValidity` type.
+/// `TlsCertificatesAndHostnamesCertificateResponseSinglePost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesRequestedValidity {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct TlsCertificatesAndHostnamesCertificateResponseSinglePost {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
 }
 
-/// `TlsCertificatesAndHostnamesSchemasExpiresOn` type.
+/// `TlsCertificatesAndHostnamesCertificateRevokeResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasExpiresOn {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct TlsCertificatesAndHostnamesCertificateRevokeResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCertificates` type.
@@ -199,26 +151,48 @@ pub struct TlsCertificatesAndHostnamesCertificates {
     pub requested_validity: TlsCertificatesAndHostnamesRequestedValidity,
 }
 
-/// `TlsCertificatesAndHostnamesCertificateObjectPost` response type.
+/// `TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesCertificateObjectPost {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TlsCertificatesAndHostnamesCertificateResponseSinglePost` type.
+/// `TlsCertificatesAndHostnamesComponentsSchemasCertificateObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesCertificateResponseSinglePost {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
+pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateObject {
+    /// ca property.
+    pub ca: Option<TlsCertificatesAndHostnamesCa>,
+    /// certificates property.
+    pub certificates: Option<TlsCertificatesAndHostnamesSchemasCertificates>,
+    /// expires_on property.
+    pub expires_on: Option<TlsCertificatesAndHostnamesSchemasExpiresOn>,
+    /// id property.
+    pub id: Option<TlsCertificatesAndHostnamesIdentifier>,
+    /// issuer property.
+    pub issuer: Option<TlsCertificatesAndHostnamesSchemasIssuer>,
+    /// name property.
+    pub name: Option<TlsCertificatesAndHostnamesSchemasName>,
+    /// serial_number property.
+    pub serial_number: Option<TlsCertificatesAndHostnamesSchemasSerialNumber>,
+    /// signature property.
+    pub signature: Option<TlsCertificatesAndHostnamesSignature>,
+    /// uploaded_on property.
+    pub uploaded_on: Option<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUploadedOn>,
 }
 
-/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle` type.
+/// `TlsCertificatesAndHostnamesComponentsSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
+pub struct TlsCertificatesAndHostnamesComponentsSchemasExpiresOn {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesComponentsSchemasPrivateKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesComponentsSchemasPrivateKey {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCsr` type.
@@ -228,23 +202,53 @@ pub struct TlsCertificatesAndHostnamesCsr {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TlsCertificatesAndHostnamesSchemasCertificateResponseCollection` type.
+/// `TlsCertificatesAndHostnamesHostnames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TlsCertificatesAndHostnamesCertificates>>,
-}
-
-/// `TlsCertificatesAndHostnamesSignature` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesSignature {
+pub struct TlsCertificatesAndHostnamesHostnames {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TlsCertificatesAndHostnamesComponentsSchemasCertificateObject>>,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -256,6 +260,69 @@ pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUploadedOn 
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `TlsCertificatesAndHostnamesRequestType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesRequestType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesRequestedValidity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesRequestedValidity {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasCertificateResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TlsCertificatesAndHostnamesCertificates>>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasCertificateResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseSingle {
+    /// `result` property.
+    pub result: Option<TlsCertificatesAndHostnamesCertificates>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasCertificates` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasCertificates {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasExpiresOn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasExpiresOn {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasIssuer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasIssuer {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TlsCertificatesAndHostnamesSchemasSerialNumber` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSchemasSerialNumber {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `TlsCertificatesAndHostnamesService` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesService {
@@ -263,10 +330,9 @@ pub struct TlsCertificatesAndHostnamesService {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TlsCertificatesAndHostnamesComponentsSchemasCertificateObject` response type.
+/// `TlsCertificatesAndHostnamesSignature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateObject {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct TlsCertificatesAndHostnamesSignature {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -287,6 +353,8 @@ pub struct MTlsCertificateManagementListMTlsCertificatesArgs {
 pub struct MTlsCertificateManagementUploadMTlsCertificateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: MTlsCertificateManagementUploadMTlsCertificateRequest,
 }
 
 /// Arguments for [`m-tls-certificate-management-get-m-tls-certificate_request`].
@@ -334,6 +402,8 @@ pub struct OriginCaListCertificatesArgs {
 /// Arguments for [`origin-ca-create-certificate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct OriginCaCreateCertificateArgs {
+    /// Request body.
+    pub body: OriginCaCreateCertificateRequest,
 }
 
 /// Arguments for [`origin-ca-get-certificate_request`].
@@ -379,15 +449,16 @@ pub struct OriginCaRevokeCertificateArgs {
 pub async fn m_tls_certificate_management_list_m_tls_certificates_request<F>(
     client: DynNetClient,
     args: &MTlsCertificateManagementListMTlsCertificatesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates",
+    let path = format!("/accounts/{}/mtls_certificates",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -402,7 +473,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -434,17 +508,21 @@ where
 pub async fn m_tls_certificate_management_upload_m_tls_certificate_request<F>(
     client: DynNetClient,
     args: &MTlsCertificateManagementUploadMTlsCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesCertificateResponseSinglePost>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates",
+    let path = format!("/accounts/{}/mtls_certificates",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -457,7 +535,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesCertificateResponseSinglePost = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -489,16 +570,17 @@ where
 pub async fn m_tls_certificate_management_get_m_tls_certificate_request<F>(
     client: DynNetClient,
     args: &MTlsCertificateManagementGetMTlsCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}",
+    let path = format!("/accounts/{}/mtls_certificates/{}",
         args.account_id,
         args.mtls_certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -513,7 +595,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -545,16 +630,17 @@ where
 pub async fn m_tls_certificate_management_delete_m_tls_certificate_request<F>(
     client: DynNetClient,
     args: &MTlsCertificateManagementDeleteMTlsCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}",
+    let path = format!("/accounts/{}/mtls_certificates/{}",
         args.account_id,
         args.mtls_certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -569,7 +655,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -601,16 +690,17 @@ where
 pub async fn m_tls_certificate_management_list_m_tls_certificate_associations_request<F>(
     client: DynNetClient,
     args: &MTlsCertificateManagementListMTlsCertificateAssociationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesAssociationResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}/associations",
+    let path = format!("/accounts/{}/mtls_certificates/{}/associations",
         args.account_id,
         args.mtls_certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -625,7 +715,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesAssociationResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -657,14 +750,15 @@ where
 pub async fn origin_ca_list_certificates_request<F>(
     client: DynNetClient,
     args: &OriginCaListCertificatesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates",
+    let path = format!("/certificates",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -685,7 +779,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -716,17 +813,21 @@ where
 /// ```
 pub async fn origin_ca_create_certificate_request<F>(
     client: DynNetClient,
-    _args: &OriginCaCreateCertificateArgs,
+    args: &OriginCaCreateCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates",
+    let path = format!("/certificates",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -739,7 +840,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -771,15 +875,16 @@ where
 pub async fn origin_ca_get_certificate_request<F>(
     client: DynNetClient,
     args: &OriginCaGetCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates/{}",
+    let path = format!("/certificates/{}",
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -794,7 +899,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -826,15 +934,16 @@ where
 pub async fn origin_ca_revoke_certificate_request<F>(
     client: DynNetClient,
     args: &OriginCaRevokeCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TlsCertificatesAndHostnamesCertificateRevokeResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates/{}",
+    let path = format!("/certificates/{}",
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -849,7 +958,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TlsCertificatesAndHostnamesCertificateRevokeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

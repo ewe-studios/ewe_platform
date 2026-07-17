@@ -17,150 +17,18 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::AccessResponseCollectionHostnames;
-use super::shared::TunnelDeletedAt;
-use super::shared::TunnelApiResponseCommon;
-use super::shared::AccessSettings;
-use super::shared::TunnelCreatedAt;
-use super::shared::AccessApiResponseCommon;
 use super::shared::AccessApiResponseCollection;
+use super::shared::AccessApiResponseCommon;
+use super::shared::AccessSettings;
+use super::shared::TunnelApiResponseCommon;
+use super::shared::TunnelCreatedAt;
+use super::shared::TunnelDeletedAt;
 
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `SecondaryDnsTsig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsTsig {
-    /// algo property.
-    pub algo: SecondaryDnsAlgo,
-    /// id property.
-    pub id: SecondaryDnsSchemasIdentifier,
-    /// name property.
-    pub name: SecondaryDnsSchemasName,
-    /// secret property.
-    pub secret: SecondaryDnsSecret,
-}
-
-/// `DnsFirewallDnsFirewallClusterPatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallClusterPatch {
-}
-
-/// `DnsFirewallMaximumCacheTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallMaximumCacheTtl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<SecondaryDnsTsig>>,
-}
-
-/// `DnsFirewallMinimumCacheTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallMinimumCacheTtl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DnsSettingsDnsSettingsAccountPatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsSettingsAccountPatch {
-    /// `nameservers` property.
-    pub nameservers: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DnsSettingsZoneMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsZoneMode {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsMultiProvider` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsMultiProvider {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversEmptyResponse {
-    /// `result` property.
-    pub result: Option<Vec<String>>,
-}
-
-/// `SecondaryDnsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<SecondaryDnsPeer>>,
-}
-
-/// `SecondaryDnsIxfrEnable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsIxfrEnable {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsNsTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsNsTtl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallClusterPost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallClusterPost {
-}
-
-/// `DnsFirewallApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `DnsSettingsCreatedTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsCreatedTime {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 /// `AccessMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -169,16 +37,23 @@ pub struct AccessMessages {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DnsSettingsAccountSettingsPatch` type.
+/// `DlsAccountRegionalHostnamesAccountListRegionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsAccountSettingsPatch {
-    /// zone_defaults property.
-    pub zone_defaults: Option<DnsSettingsDnsSettingsAccountPatch>,
+pub struct DlsAccountRegionalHostnamesAccountListRegionsResponse {
+    /// `result` property.
+    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
-/// `DnsRecordsApiResponseCommon` type.
+/// `DlsApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordsApiResponseCommon {
+pub struct DlsApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DlsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlsApiResponseCommon {
     /// errors property.
     pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// messages property.
@@ -187,119 +62,23 @@ pub struct DnsRecordsApiResponseCommon {
     pub success: bool,
 }
 
-/// `DnsSettingsDnsResponseSingle` type.
+/// `DlsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsResponseSingle {
-    /// `result` property.
-    pub result: Option<DnsSettingsAccountSettings>,
-}
-
-/// `DnsSettingsDnsSettingsBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsSettingsBase {
-    /// flatten_all_cnames property.
-    pub flatten_all_cnames: Option<DnsSettingsFlattenAllCnames>,
-    /// foundation_dns property.
-    pub foundation_dns: Option<DnsSettingsFoundationDns>,
-    /// internal_dns property.
-    pub internal_dns: Option<DnsSettingsInternalDnsBase>,
-    /// multi_provider property.
-    pub multi_provider: Option<DnsSettingsMultiProvider>,
-    /// ns_ttl property.
-    pub ns_ttl: Option<DnsSettingsNsTtl>,
-    /// secondary_overrides property.
-    pub secondary_overrides: Option<DnsSettingsSecondaryOverrides>,
-    /// soa property.
-    pub soa: Option<DnsSettingsSoaBase>,
-    /// zone_mode property.
-    pub zone_mode: Option<DnsSettingsZoneMode>,
-}
-
-/// `DnsSettingsSecondaryOverrides` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsSecondaryOverrides {
+pub struct DlsMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DnsSettingsInternalDnsBase` type.
+/// `DlsRegionKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsInternalDnsBase {
-    /// reference_zone_id property.
-    pub reference_zone_id: Option<String>,
-}
-
-/// `DnsSettingsSoaBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsSoaBase {
-    /// expire property.
-    pub expire: Option<f64>,
-    /// min_ttl property.
-    pub min_ttl: Option<f64>,
-    /// mname property.
-    pub mname: Option<String>,
-    /// refresh property.
-    pub refresh: Option<f64>,
-    /// retry property.
-    pub retry: Option<f64>,
-    /// rname property.
-    pub rname: Option<String>,
-    /// ttl property.
-    pub ttl: Option<f64>,
-}
-
-/// `DnsSettingsDnsViewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewResponse {
-    /// `id` property.
-    pub id: DnsSettingsIdentifier,
-}
-
-/// `SecondaryDnsSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSecret {
+pub struct DlsRegionKey {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DnsCustomNameserversNsSet` type.
+/// `DnsAnalyticsApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversNsSet {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallEcsFallback` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallEcsFallback {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallSingleResponse {
-    /// `result` property.
-    pub result: Option<DnsFirewallDnsFirewallClusterResponse>,
-}
-
-/// `DnsFirewallDnsFirewallReverseDnsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallReverseDnsResponse {
-    /// `result` property.
-    pub result: Option<Box<DnsFirewallDnsFirewallReverseDnsResponse>>,
-}
-
-/// `SecondaryDnsSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `SecondaryDnsApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsApiResponseCommon {
+pub struct DnsAnalyticsApiResponseCommon {
     /// errors property.
     pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// messages property.
@@ -308,18 +87,135 @@ pub struct SecondaryDnsApiResponseCommon {
     pub success: bool,
 }
 
-/// `DnsSettingsAccountSettings` type.
+/// `DnsAnalyticsApiResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsAccountSettings {
-    /// zone_defaults property.
-    pub zone_defaults: DnsSettingsDnsSettingsAccountResponse,
+pub struct DnsAnalyticsApiResponseSingle {
 }
 
-/// `SecondaryDnsIpRange` type.
+/// `DnsAnalyticsData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsIpRange {
+pub struct DnsAnalyticsData {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsFilters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsFilters {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsLimit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsLimit {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsQuery` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsQuery {
+    /// dimensions property.
+    pub dimensions: Vec<String>,
+    /// filters property.
+    pub filters: Option<DnsAnalyticsFilters>,
+    /// limit property.
+    pub limit: DnsAnalyticsLimit,
+    /// metrics property.
+    pub metrics: Vec<String>,
+    /// since property.
+    pub since: DnsAnalyticsSince,
+    /// sort property.
+    pub sort: Option<Vec<String>>,
+    /// until property.
+    pub until: DnsAnalyticsUntil,
+}
+
+/// `DnsAnalyticsReport` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsReport {
+    /// `data` property.
+    pub data: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DnsAnalyticsReportBytime` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsReportBytime {
+    /// `data` property.
+    pub data: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `query` property.
+    pub query: std::collections::HashMap<String, serde_json::Value>,
+    /// `time_intervals` property.
+    pub time_intervals: Vec<Vec<String>>,
+}
+
+/// `DnsAnalyticsResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsResult {
+    /// data property.
+    pub data: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// data_lag property.
+    pub data_lag: f64,
+    /// max property.
+    pub max: serde_json::Value,
+    /// min property.
+    pub min: serde_json::Value,
+    /// query property.
+    pub query: DnsAnalyticsQuery,
+    /// rows property.
+    pub rows: f64,
+    /// totals property.
+    pub totals: serde_json::Value,
+}
+
+/// `DnsAnalyticsSince` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsSince {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsTimeDelta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsTimeDelta {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsAnalyticsUntil` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsUntil {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsCustomNameserversAcnsResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversAcnsResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<DnsCustomNameserversCustomNS>>,
+}
+
+/// `DnsCustomNameserversAcnsResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversAcnsResponseSingle {
+    /// `result` property.
+    pub result: Option<DnsCustomNameserversCustomNS>,
+}
+
+/// `DnsCustomNameserversApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `DnsCustomNameserversApiResponseCommon` type.
@@ -333,135 +229,40 @@ pub struct DnsCustomNameserversApiResponseCommon {
     pub success: bool,
 }
 
-/// `DnsSettingsDnsViewPatch` type.
+/// `DnsCustomNameserversApiResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewPatch {
+pub struct DnsCustomNameserversApiResponseSingle {
 }
 
-/// `DnsFirewallUpstreamIps` type.
+/// `DnsCustomNameserversCustomNS` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallUpstreamIps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DnsCustomNameserversCustomNS {
+    /// dns_records property.
+    pub dns_records: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// ns_name property.
+    pub ns_name: DnsCustomNameserversNsName,
+    /// ns_set property.
+    pub ns_set: Option<DnsCustomNameserversNsSet>,
+    /// status property.
+    pub status: String,
+    /// zone_tag property.
+    pub zone_tag: DnsCustomNameserversSchemasIdentifier,
 }
 
-/// `TunnelHostnameComment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameComment {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallRatelimit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallRatelimit {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsViewPost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewPost {
-}
-
-/// `DnsSettingsName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelComponentsSchemasTunnelId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelComponentsSchemasTunnelId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsPeer` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsPeer {
-    /// id property.
-    pub id: SecondaryDnsComponentsSchemasIdentifier,
-    /// ip property.
-    pub ip: Option<SecondaryDnsIp>,
-    /// ixfr_enable property.
-    pub ixfr_enable: Option<SecondaryDnsIxfrEnable>,
-    /// name property.
-    pub name: SecondaryDnsComponentsSchemasName,
-    /// port property.
-    pub port: Option<SecondaryDnsPort>,
-    /// tsig_id property.
-    pub tsig_id: Option<SecondaryDnsTsigId>,
-}
-
-/// `DnsRecordsMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordsMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<SecondaryDnsPeer>,
-}
-
-/// `DnsSettingsFlattenAllCnames` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsFlattenAllCnames {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsZones` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsZones {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelHostnameRoute` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRoute {
-    /// comment property.
-    pub comment: Option<TunnelHostnameComment>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// hostname property.
-    pub hostname: Option<TunnelHostname>,
-    /// id property.
-    pub id: Option<TunnelHostnameRouteId>,
-    /// tunnel_id property.
-    pub tunnel_id: Option<TunnelComponentsSchemasTunnelId>,
-    /// tunnel_name property.
-    pub tunnel_name: Option<TunnelSchemasTunnelName>,
-}
-
-/// `DnsCustomNameserversCustomNSInput` response type.
+/// `DnsCustomNameserversCustomNSInput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversCustomNSInput {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// ns_name property.
+    pub ns_name: DnsCustomNameserversNsName,
+    /// ns_set property.
+    pub ns_set: Option<DnsCustomNameserversNsSet>,
 }
 
-/// `DnsFirewallModifiedOn` type.
+/// `DnsCustomNameserversEmptyResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallModifiedOn {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DnsCustomNameserversEmptyResponse {
+    /// `result` property.
+    pub result: Option<Vec<String>>,
 }
 
 /// `DnsCustomNameserversMessages` type.
@@ -471,83 +272,62 @@ pub struct DnsCustomNameserversMessages {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DnsFirewallRetries` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallRetries {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsInternalDnsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsInternalDnsResponse {
-}
-
-/// `SecondaryDnsAcl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsAcl {
-    /// id property.
-    pub id: SecondaryDnsComponentsSchemasIdentifier,
-    /// ip_range property.
-    pub ip_range: SecondaryDnsIpRange,
-    /// name property.
-    pub name: SecondaryDnsAclComponentsSchemasName,
-}
-
-/// `SecondaryDnsComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsTsigId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsTsigId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<DnsFirewallDnsFirewallClusterResponse>>,
-}
-
-/// `DnsSettingsFoundationDns` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsFoundationDns {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
 /// `DnsCustomNameserversNsName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversNsName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsCustomNameserversNsSet` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversNsSet {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsCustomNameserversSchemasIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversSchemasIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallAnalyticsByTimeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallAnalyticsByTimeResponse {
+    /// `result` property.
+    pub result: Option<DnsAnalyticsReportBytime>,
+}
+
+/// `DnsFirewallAnalyticsTableResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallAnalyticsTableResponse {
+    /// `result` property.
+    pub result: Option<DnsAnalyticsReport>,
+}
+
+/// `DnsFirewallApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DnsFirewallApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DnsFirewallApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallApiResponseSingle {
 }
 
 /// `DnsFirewallAttackMitigation` type.
@@ -559,123 +339,16 @@ pub struct DnsFirewallAttackMitigation {
     pub only_when_upstream_unhealthy: Option<bool>,
 }
 
-/// `SecondaryDnsAclComponentsSchemasName` type.
+/// `DnsFirewallDeleteDnsFirewallClusterResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsAclComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DnsFirewallDeleteDnsFirewallClusterResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `DnsFirewallDeprecateAnyRequests` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsFirewallDeprecateAnyRequests {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelHostnameRouteResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRouteResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TunnelHostnameRoute>>,
-}
-
-/// `DnsSettingsDnsSettingsAccountResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsSettingsAccountResponse {
-    /// `nameservers` property.
-    pub nameservers: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallReverseDnsPatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallReverseDnsPatch {
-}
-
-/// `SecondaryDnsPort` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsPort {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsApiResponseSingle {
-}
-
-/// `DnsRecordsDnsResponseAccountUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordsDnsResponseAccountUsage {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DnsFirewallApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallApiResponseSingle {
-}
-
-/// `DnsCustomNameserversAcnsResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversAcnsResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<DnsCustomNameserversCustomNS>>,
-}
-
-/// `SecondaryDnsComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<SecondaryDnsAcl>,
-}
-
-/// `DnsFirewallNegativeCacheTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallNegativeCacheTtl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsAlgo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsAlgo {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversAcnsResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversAcnsResponseSingle {
-    /// `result` property.
-    pub result: Option<DnsCustomNameserversCustomNS>,
-}
-
-/// `DnsCustomNameserversSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversSchemasIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSingleResponse {
-    /// `result` property.
-    pub result: Option<SecondaryDnsTsig>,
-}
-
-/// `TunnelHostname` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostname {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversCustomNS` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversCustomNS {
-    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -705,9 +378,1232 @@ pub struct DnsFirewallDnsFirewallCluster {
     pub upstream_ips: Option<Vec<String>>,
 }
 
+/// `DnsFirewallDnsFirewallClusterPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallClusterPatch {
+}
+
+/// `DnsFirewallDnsFirewallClusterPost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallClusterPost {
+}
+
+/// `DnsFirewallDnsFirewallClusterResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallClusterResponse {
+    /// `dns_firewall_ips` property.
+    pub dns_firewall_ips: Vec<String>,
+    /// `id` property.
+    pub id: DnsFirewallIdentifier,
+    /// `modified_on` property.
+    pub modified_on: DnsFirewallModifiedOn,
+}
+
+/// `DnsFirewallDnsFirewallIps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallIps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallDnsFirewallResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<DnsFirewallDnsFirewallClusterResponse>>,
+}
+
+/// `DnsFirewallDnsFirewallReverseDns` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallReverseDns {
+    /// ptr property.
+    pub ptr: Option<serde_json::Value>,
+}
+
+/// `DnsFirewallDnsFirewallReverseDnsPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallReverseDnsPatch {
+}
+
+/// `DnsFirewallDnsFirewallReverseDnsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallReverseDnsResponse {
+    /// `result` property.
+    pub result: Option<Box<DnsFirewallDnsFirewallReverseDnsResponse>>,
+}
+
+/// `DnsFirewallDnsFirewallSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallSingleResponse {
+    /// `result` property.
+    pub result: Option<DnsFirewallDnsFirewallClusterResponse>,
+}
+
+/// `DnsFirewallEcsFallback` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallEcsFallback {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallMaximumCacheTtl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallMaximumCacheTtl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallMinimumCacheTtl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallMinimumCacheTtl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallModifiedOn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallModifiedOn {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallNegativeCacheTtl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallNegativeCacheTtl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallRatelimit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallRatelimit {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallRetries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallRetries {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallUpstreamIps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallUpstreamIps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsRecordsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DnsRecordsApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsApiResponseSingle {
+}
+
+/// `DnsRecordsDnsResponseAccountUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsResponseAccountUsage {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DnsRecordsMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsAccountSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsAccountSettings {
+    /// zone_defaults property.
+    pub zone_defaults: DnsSettingsDnsSettingsAccountResponse,
+}
+
+/// `DnsSettingsAccountSettingsPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsAccountSettingsPatch {
+    /// zone_defaults property.
+    pub zone_defaults: Option<DnsSettingsDnsSettingsAccountPatch>,
+}
+
+/// `DnsSettingsApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DnsSettingsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DnsSettingsApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsApiResponseSingle {
+}
+
+/// `DnsSettingsCreatedTime` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsCreatedTime {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsDnsResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsResponseSingle {
+    /// `result` property.
+    pub result: Option<DnsSettingsAccountSettings>,
+}
+
+/// `DnsSettingsDnsSettingsAccountPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsAccountPatch {
+    /// `nameservers` property.
+    pub nameservers: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DnsSettingsDnsSettingsAccountResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsAccountResponse {
+    /// `nameservers` property.
+    pub nameservers: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsDnsSettingsBase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsBase {
+    /// flatten_all_cnames property.
+    pub flatten_all_cnames: Option<DnsSettingsFlattenAllCnames>,
+    /// foundation_dns property.
+    pub foundation_dns: Option<DnsSettingsFoundationDns>,
+    /// internal_dns property.
+    pub internal_dns: Option<DnsSettingsInternalDnsBase>,
+    /// multi_provider property.
+    pub multi_provider: Option<DnsSettingsMultiProvider>,
+    /// ns_ttl property.
+    pub ns_ttl: Option<DnsSettingsNsTtl>,
+    /// secondary_overrides property.
+    pub secondary_overrides: Option<DnsSettingsSecondaryOverrides>,
+    /// soa property.
+    pub soa: Option<DnsSettingsSoaBase>,
+    /// zone_mode property.
+    pub zone_mode: Option<DnsSettingsZoneMode>,
+}
+
+/// `DnsSettingsDnsSettingsPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsPatch {
+}
+
+/// `DnsSettingsDnsSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsResponse {
+    /// `internal_dns` property.
+    pub internal_dns: DnsSettingsInternalDnsResponse,
+    /// `soa` property.
+    pub soa: DnsSettingsSoaResponse,
+}
+
+/// `DnsSettingsDnsView` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsView {
+    /// created_time property.
+    pub created_time: Option<DnsSettingsCreatedTime>,
+    /// modified_time property.
+    pub modified_time: Option<DnsSettingsModifiedTime>,
+    /// name property.
+    pub name: Option<DnsSettingsName>,
+    /// zones property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// `DnsSettingsDnsViewPatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewPatch {
+}
+
+/// `DnsSettingsDnsViewPost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewPost {
+}
+
+/// `DnsSettingsDnsViewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewResponse {
+    /// `id` property.
+    pub id: DnsSettingsIdentifier,
+}
+
+/// `DnsSettingsDnsViewResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<DnsSettingsDnsViewResponse>>,
+}
+
+/// `DnsSettingsDnsViewResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewResponseSingle {
+    /// `result` property.
+    pub result: Option<DnsSettingsDnsViewResponse>,
+}
+
+/// `DnsSettingsFlattenAllCnames` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsFlattenAllCnames {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsFoundationDns` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsFoundationDns {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsInternalDnsBase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsInternalDnsBase {
+    /// reference_zone_id property.
+    pub reference_zone_id: Option<String>,
+}
+
+/// `DnsSettingsInternalDnsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsInternalDnsResponse {
+}
+
 /// `DnsSettingsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettingsMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsModifiedTime` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsModifiedTime {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsMultiProvider` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsMultiProvider {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsNsTtl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsNsTtl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsSecondaryOverrides` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSecondaryOverrides {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsSoaBase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSoaBase {
+    /// expire property.
+    pub expire: Option<f64>,
+    /// min_ttl property.
+    pub min_ttl: Option<f64>,
+    /// mname property.
+    pub mname: Option<String>,
+    /// refresh property.
+    pub refresh: Option<f64>,
+    /// retry property.
+    pub retry: Option<f64>,
+    /// rname property.
+    pub rname: Option<String>,
+    /// ttl property.
+    pub ttl: Option<f64>,
+}
+
+/// `DnsSettingsSoaResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSoaResponse {
+}
+
+/// `DnsSettingsZoneMode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsZoneMode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsZones` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsZones {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsViewsForAnAccountDeleteInternalDnsViewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsViewsForAnAccountDeleteInternalDnsViewResponse {
+    /// result property.
+    pub result: Option<DnsViewsForAnAccountDeleteInternalDnsViewResponseResult>,
+}
+
+/// `DnsViewsForAnAccountDeleteInternalDnsViewResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsViewsForAnAccountDeleteInternalDnsViewResponseResult {
+    /// id property.
+    pub id: Option<DnsSettingsIdentifier>,
+}
+
+/// `RadarGetDnsSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponse {
+    /// result property.
+    pub result: RadarGetDnsSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetDnsSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetDnsTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetDnsTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetDnsTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetDnsTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsTimeseriesResponseResultMeta,
+}
+
+/// `RadarGetDnsTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTopAsesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponse {
+    /// result property.
+    pub result: RadarGetDnsTopAsesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsTopAsesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsTopAsesResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsTopAsesResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsTopAsesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsTopAsesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsTopAsesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsTopAsesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsTopAsesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsTopAsesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsTopAsesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTopAsesResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopAsesResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTopLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponse {
+    /// result property.
+    pub result: RadarGetDnsTopLocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsTopLocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsTopLocationsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsTopLocationsResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsTopLocationsResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsTopLocationsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsTopLocationsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsTopLocationsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsTopLocationsResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `SecondaryDnsAcl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsAcl {
+    /// id property.
+    pub id: SecondaryDnsComponentsSchemasIdentifier,
+    /// ip_range property.
+    pub ip_range: SecondaryDnsIpRange,
+    /// name property.
+    pub name: SecondaryDnsAclComponentsSchemasName,
+}
+
+/// `SecondaryDnsAclComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsAclComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsAclCreateAclRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsAclCreateAclRequest {
+    /// ip_range property.
+    pub ip_range: SecondaryDnsIpRange,
+    /// name property.
+    pub name: SecondaryDnsAclComponentsSchemasName,
+}
+
+/// `SecondaryDnsAlgo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsAlgo {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SecondaryDnsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `SecondaryDnsApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsApiResponseSingle {
+}
+
+/// `SecondaryDnsComponentsSchemasIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasIdResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SecondaryDnsComponentsSchemasIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<SecondaryDnsAcl>>,
+}
+
+/// `SecondaryDnsComponentsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<SecondaryDnsAcl>,
+}
+
+/// `SecondaryDnsIp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsIp {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsIpRange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsIpRange {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsIxfrEnable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsIxfrEnable {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsPeer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsPeer {
+    /// id property.
+    pub id: SecondaryDnsComponentsSchemasIdentifier,
+    /// ip property.
+    pub ip: Option<SecondaryDnsIp>,
+    /// ixfr_enable property.
+    pub ixfr_enable: Option<SecondaryDnsIxfrEnable>,
+    /// name property.
+    pub name: SecondaryDnsComponentsSchemasName,
+    /// port property.
+    pub port: Option<SecondaryDnsPort>,
+    /// tsig_id property.
+    pub tsig_id: Option<SecondaryDnsTsigId>,
+}
+
+/// `SecondaryDnsPeerCreatePeerRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsPeerCreatePeerRequest {
+    /// name property.
+    pub name: SecondaryDnsComponentsSchemasName,
+}
+
+/// `SecondaryDnsPort` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsPort {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<SecondaryDnsTsig>>,
+}
+
+/// `SecondaryDnsSchemasIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasIdResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SecondaryDnsSchemasIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<SecondaryDnsPeer>>,
+}
+
+/// `SecondaryDnsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<SecondaryDnsPeer>,
+}
+
+/// `SecondaryDnsSecret` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSecret {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSingleResponse {
+    /// `result` property.
+    pub result: Option<SecondaryDnsTsig>,
+}
+
+/// `SecondaryDnsTsig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsTsig {
+    /// algo property.
+    pub algo: SecondaryDnsAlgo,
+    /// id property.
+    pub id: SecondaryDnsSchemasIdentifier,
+    /// name property.
+    pub name: SecondaryDnsSchemasName,
+    /// secret property.
+    pub secret: SecondaryDnsSecret,
+}
+
+/// `SecondaryDnsTsigId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsTsigId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+}
+
+/// `TunnelComponentsSchemasTunnelId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelComponentsSchemasTunnelId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostname` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostname {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostnameComment` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameComment {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostnameRoute` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRoute {
+    /// comment property.
+    pub comment: Option<TunnelHostnameComment>,
+    /// created_at property.
+    pub created_at: Option<TunnelCreatedAt>,
+    /// deleted_at property.
+    pub deleted_at: Option<TunnelDeletedAt>,
+    /// hostname property.
+    pub hostname: Option<TunnelHostname>,
+    /// id property.
+    pub id: Option<TunnelHostnameRouteId>,
+    /// tunnel_id property.
+    pub tunnel_id: Option<TunnelComponentsSchemasTunnelId>,
+    /// tunnel_name property.
+    pub tunnel_name: Option<TunnelSchemasTunnelName>,
+}
+
+/// `TunnelHostnameRouteId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRouteId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostnameRouteResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRouteResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TunnelHostnameRoute>>,
+}
+
+/// `TunnelHostnameRouteResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRouteResponseSingle {
+    /// `result` property.
+    pub result: Option<TunnelHostnameRoute>,
+}
+
+/// `TunnelMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -725,144 +1621,6 @@ pub struct TunnelResultInfo {
     pub total_count: Option<f64>,
 }
 
-/// `DnsFirewallMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsViewResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewResponseSingle {
-    /// `result` property.
-    pub result: Option<DnsSettingsDnsViewResponse>,
-}
-
-/// `DnsSettingsApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsApiResponseSingle {
-}
-
-/// `DnsSettingsSoaResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsSoaResponse {
-}
-
-/// `DnsFirewallDnsFirewallReverseDns` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallReverseDns {
-    /// ptr property.
-    pub ptr: Option<serde_json::Value>,
-}
-
-/// `SecondaryDnsIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsIp {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversApiResponseSingle {
-}
-
-/// `DnsSettingsApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DnsFirewallApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `TunnelHostnameRouteResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRouteResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelHostnameRoute>,
-}
-
-/// `DnsSettingsApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `DnsSettingsDnsViewResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<DnsSettingsDnsViewResponse>>,
-}
-
-/// `DnsRecordsApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordsApiResponseSingle {
-}
-
-/// `DnsSettingsDnsSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsSettingsResponse {
-    /// `internal_dns` property.
-    pub internal_dns: DnsSettingsInternalDnsResponse,
-    /// `soa` property.
-    pub soa: DnsSettingsSoaResponse,
-}
-
-/// `SecondaryDnsComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<SecondaryDnsAcl>>,
-}
-
-/// `SecondaryDnsComponentsSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `DnsSettingsDnsSettingsPatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsSettingsPatch {
-}
-
-/// `TunnelApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<TunnelResultInfo>,
-}
-
-/// `TunnelHostnameRouteId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRouteId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `TunnelSchemasTunnelName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSchemasTunnelName {
@@ -870,56 +1628,26 @@ pub struct TunnelSchemasTunnelName {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SecondaryDnsMessages` type.
+/// `ZeroTrustNetworksRouteHostnameCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustNetworksRouteHostnameCreateRequest {
+    /// comment property.
+    pub comment: Option<TunnelHostnameComment>,
+    /// hostname property.
+    pub hostname: Option<TunnelHostname>,
+    /// tunnel_id property.
+    pub tunnel_id: Option<TunnelComponentsSchemasTunnelId>,
 }
 
-/// `DnsSettingsDnsView` type.
+/// `ZeroTrustNetworksRouteHostnameUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsView {
-    /// created_time property.
-    pub created_time: Option<DnsSettingsCreatedTime>,
-    /// modified_time property.
-    pub modified_time: Option<DnsSettingsModifiedTime>,
-    /// name property.
-    pub name: Option<DnsSettingsName>,
-    /// zones property.
-    pub zones: Option<Vec<String>>,
-}
-
-/// `DnsSettingsModifiedTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsModifiedTime {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallClusterResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallClusterResponse {
-    /// `dns_firewall_ips` property.
-    pub dns_firewall_ips: Vec<String>,
-    /// `id` property.
-    pub id: DnsFirewallIdentifier,
-    /// `modified_on` property.
-    pub modified_on: DnsFirewallModifiedOn,
-}
-
-/// `SecondaryDnsComponentsSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallIps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallIps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustNetworksRouteHostnameUpdateRequest {
+    /// comment property.
+    pub comment: Option<TunnelHostnameComment>,
+    /// hostname property.
+    pub hostname: Option<TunnelHostname>,
+    /// tunnel_id property.
+    pub tunnel_id: Option<TunnelComponentsSchemasTunnelId>,
 }
 
 // =============================================================================
@@ -1186,6 +1914,8 @@ pub struct SecondaryDnsAclListAcLsArgs {
 pub struct SecondaryDnsAclCreateAclArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: SecondaryDnsAclCreateAclRequest,
 }
 
 /// Arguments for [`secondary-dns-(-acl)-acl-details_request`].
@@ -1229,6 +1959,8 @@ pub struct SecondaryDnsPeerListPeersArgs {
 pub struct SecondaryDnsPeerCreatePeerArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: SecondaryDnsPeerCreatePeerRequest,
 }
 
 /// Arguments for [`secondary-dns-(-peer)-peer-details_request`].
@@ -1333,6 +2065,8 @@ pub struct ZeroTrustNetworksRouteHostnameListArgs {
 pub struct ZeroTrustNetworksRouteHostnameCreateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustNetworksRouteHostnameCreateRequest,
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-get_request`].
@@ -1351,6 +2085,8 @@ pub struct ZeroTrustNetworksRouteHostnameUpdateArgs {
     pub account_id: String,
     /// Path parameter: `hostname_route_id`.
     pub hostname_route_id: String,
+    /// Request body.
+    pub body: ZeroTrustNetworksRouteHostnameUpdateRequest,
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-delete_request`].
@@ -1636,15 +2372,16 @@ pub struct RadarGetDnsTopLocationsArgs {
 pub async fn access_mtls_authentication_list_mtls_certificates_hostname_settings_request<F>(
     client: DynNetClient,
     args: &AccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AccessResponseCollectionHostnames>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/access/certificates/settings",
+    let path = format!("/accounts/{}/access/certificates/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1659,7 +2396,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AccessResponseCollectionHostnames = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1691,15 +2431,16 @@ where
 pub async fn dls_account_regional_hostnames_account_list_regions_request<F>(
     client: DynNetClient,
     args: &DlsAccountRegionalHostnamesAccountListRegionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlsAccountRegionalHostnamesAccountListRegionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/addressing/regional_hostnames/regions",
+    let path = format!("/accounts/{}/addressing/regional_hostnames/regions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1714,9 +2455,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlsAccountRegionalHostnamesAccountListRegionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1744,15 +2490,16 @@ where
 pub async fn account_level_custom_nameservers_list_account_custom_nameservers_request<F>(
     client: DynNetClient,
     args: &AccountLevelCustomNameserversListAccountCustomNameserversArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsCustomNameserversAcnsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/custom_ns",
+    let path = format!("/accounts/{}/custom_ns",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1767,7 +2514,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsCustomNameserversAcnsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1799,15 +2549,16 @@ where
 pub async fn account_level_custom_nameservers_add_account_custom_nameserver_request<F>(
     client: DynNetClient,
     args: &AccountLevelCustomNameserversAddAccountCustomNameserverArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsCustomNameserversAcnsResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/custom_ns",
+    let path = format!("/accounts/{}/custom_ns",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1825,7 +2576,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsCustomNameserversAcnsResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1857,16 +2611,17 @@ where
 pub async fn account_level_custom_nameservers_delete_account_custom_nameserver_request<F>(
     client: DynNetClient,
     args: &AccountLevelCustomNameserversDeleteAccountCustomNameserverArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsCustomNameserversEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/custom_ns/{}",
+    let path = format!("/accounts/{}/custom_ns/{}",
         args.account_id,
         args.custom_ns_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1881,7 +2636,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsCustomNameserversEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1913,15 +2671,16 @@ where
 pub async fn dns_firewall_list_dns_firewall_clusters_request<F>(
     client: DynNetClient,
     args: &DnsFirewallListDnsFirewallClustersArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall",
+    let path = format!("/accounts/{}/dns_firewall",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1939,7 +2698,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1971,15 +2733,16 @@ where
 pub async fn dns_firewall_create_dns_firewall_cluster_request<F>(
     client: DynNetClient,
     args: &DnsFirewallCreateDnsFirewallClusterArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall",
+    let path = format!("/accounts/{}/dns_firewall",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1997,7 +2760,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2029,16 +2795,17 @@ where
 pub async fn dns_firewall_dns_firewall_cluster_details_request<F>(
     client: DynNetClient,
     args: &DnsFirewallDnsFirewallClusterDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}",
+    let path = format!("/accounts/{}/dns_firewall/{}",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2053,7 +2820,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2085,16 +2855,17 @@ where
 pub async fn dns_firewall_update_dns_firewall_cluster_request<F>(
     client: DynNetClient,
     args: &DnsFirewallUpdateDnsFirewallClusterArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}",
+    let path = format!("/accounts/{}/dns_firewall/{}",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2112,7 +2883,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2144,16 +2918,17 @@ where
 pub async fn dns_firewall_delete_dns_firewall_cluster_request<F>(
     client: DynNetClient,
     args: &DnsFirewallDeleteDnsFirewallClusterArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DnsFirewallDeleteDnsFirewallClusterResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}",
+    let path = format!("/accounts/{}/dns_firewall/{}",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2168,9 +2943,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DnsFirewallDeleteDnsFirewallClusterResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2198,16 +2978,17 @@ where
 pub async fn dns_firewall_analytics_table_request<F>(
     client: DynNetClient,
     args: &DnsFirewallAnalyticsTableArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DnsFirewallAnalyticsTableResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}/dns_analytics/report",
+    let path = format!("/accounts/{}/dns_firewall/{}/dns_analytics/report",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2230,9 +3011,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DnsFirewallAnalyticsTableResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2260,16 +3046,17 @@ where
 pub async fn dns_firewall_analytics_by_time_request<F>(
     client: DynNetClient,
     args: &DnsFirewallAnalyticsByTimeArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DnsFirewallAnalyticsByTimeResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}/dns_analytics/report/bytime",
+    let path = format!("/accounts/{}/dns_firewall/{}/dns_analytics/report/bytime",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2293,9 +3080,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DnsFirewallAnalyticsByTimeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2323,16 +3115,17 @@ where
 pub async fn dns_firewall_show_dns_firewall_cluster_reverse_dns_request<F>(
     client: DynNetClient,
     args: &DnsFirewallShowDnsFirewallClusterReverseDnsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallReverseDnsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}/reverse_dns",
+    let path = format!("/accounts/{}/dns_firewall/{}/reverse_dns",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2347,7 +3140,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallReverseDnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2379,16 +3175,17 @@ where
 pub async fn dns_firewall_update_dns_firewall_cluster_reverse_dns_request<F>(
     client: DynNetClient,
     args: &DnsFirewallUpdateDnsFirewallClusterReverseDnsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsFirewallDnsFirewallReverseDnsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_firewall/{}/reverse_dns",
+    let path = format!("/accounts/{}/dns_firewall/{}/reverse_dns",
         args.account_id,
         args.dns_firewall_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2406,7 +3203,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsFirewallDnsFirewallReverseDnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2438,15 +3238,16 @@ where
 pub async fn dns_records_for_an_account_get_usage_request<F>(
     client: DynNetClient,
     args: &DnsRecordsForAnAccountGetUsageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsRecordsDnsResponseAccountUsage>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_records/usage",
+    let path = format!("/accounts/{}/dns_records/usage",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2461,7 +3262,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsRecordsDnsResponseAccountUsage = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2493,15 +3297,16 @@ where
 pub async fn dns_settings_for_an_account_list_dns_settings_request<F>(
     client: DynNetClient,
     args: &DnsSettingsForAnAccountListDnsSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings",
+    let path = format!("/accounts/{}/dns_settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2516,7 +3321,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2548,15 +3356,16 @@ where
 pub async fn dns_settings_for_an_account_update_dns_settings_request<F>(
     client: DynNetClient,
     args: &DnsSettingsForAnAccountUpdateDnsSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings",
+    let path = format!("/accounts/{}/dns_settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2574,7 +3383,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2606,15 +3418,16 @@ where
 pub async fn dns_views_for_an_account_list_internal_dns_views_request<F>(
     client: DynNetClient,
     args: &DnsViewsForAnAccountListInternalDnsViewsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsViewResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings/views",
+    let path = format!("/accounts/{}/dns_settings/views",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2642,7 +3455,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsViewResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2674,15 +3490,16 @@ where
 pub async fn dns_views_for_an_account_create_internal_dns_views_request<F>(
     client: DynNetClient,
     args: &DnsViewsForAnAccountCreateInternalDnsViewsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsViewResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings/views",
+    let path = format!("/accounts/{}/dns_settings/views",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2700,7 +3517,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2732,16 +3552,17 @@ where
 pub async fn dns_views_for_an_account_get_internal_dns_view_request<F>(
     client: DynNetClient,
     args: &DnsViewsForAnAccountGetInternalDnsViewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsViewResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings/views/{}",
+    let path = format!("/accounts/{}/dns_settings/views/{}",
         args.account_id,
         args.view_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2756,7 +3577,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2788,16 +3612,17 @@ where
 pub async fn dns_views_for_an_account_update_internal_dns_view_request<F>(
     client: DynNetClient,
     args: &DnsViewsForAnAccountUpdateInternalDnsViewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsSettingsDnsViewResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings/views/{}",
+    let path = format!("/accounts/{}/dns_settings/views/{}",
         args.account_id,
         args.view_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2815,7 +3640,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2847,16 +3675,17 @@ where
 pub async fn dns_views_for_an_account_delete_internal_dns_view_request<F>(
     client: DynNetClient,
     args: &DnsViewsForAnAccountDeleteInternalDnsViewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DnsViewsForAnAccountDeleteInternalDnsViewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dns_settings/views/{}",
+    let path = format!("/accounts/{}/dns_settings/views/{}",
         args.account_id,
         args.view_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2871,9 +3700,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DnsViewsForAnAccountDeleteInternalDnsViewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2901,15 +3735,16 @@ where
 pub async fn secondary_dns_acl_list_ac_ls_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsAclListAcLsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/acls",
+    let path = format!("/accounts/{}/secondary_dns/acls",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2924,7 +3759,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2956,17 +3794,21 @@ where
 pub async fn secondary_dns_acl_create_acl_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsAclCreateAclArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/acls",
+    let path = format!("/accounts/{}/secondary_dns/acls",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2979,7 +3821,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3011,16 +3856,17 @@ where
 pub async fn secondary_dns_acl_acl_details_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsAclAclDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/acls/{}",
+    let path = format!("/accounts/{}/secondary_dns/acls/{}",
         args.account_id,
         args.acl_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3035,7 +3881,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3067,16 +3916,17 @@ where
 pub async fn secondary_dns_acl_update_acl_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsAclUpdateAclArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/acls/{}",
+    let path = format!("/accounts/{}/secondary_dns/acls/{}",
         args.account_id,
         args.acl_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3094,7 +3944,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3126,16 +3979,17 @@ where
 pub async fn secondary_dns_acl_delete_acl_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsAclDeleteAclArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/acls/{}",
+    let path = format!("/accounts/{}/secondary_dns/acls/{}",
         args.account_id,
         args.acl_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3150,7 +4004,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3182,15 +4039,16 @@ where
 pub async fn secondary_dns_peer_list_peers_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsPeerListPeersArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/peers",
+    let path = format!("/accounts/{}/secondary_dns/peers",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3205,7 +4063,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3237,17 +4098,21 @@ where
 pub async fn secondary_dns_peer_create_peer_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsPeerCreatePeerArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/peers",
+    let path = format!("/accounts/{}/secondary_dns/peers",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3260,7 +4125,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3292,16 +4160,17 @@ where
 pub async fn secondary_dns_peer_peer_details_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsPeerPeerDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/peers/{}",
+    let path = format!("/accounts/{}/secondary_dns/peers/{}",
         args.account_id,
         args.peer_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3316,7 +4185,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3348,16 +4220,17 @@ where
 pub async fn secondary_dns_peer_update_peer_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsPeerUpdatePeerArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/peers/{}",
+    let path = format!("/accounts/{}/secondary_dns/peers/{}",
         args.account_id,
         args.peer_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3375,7 +4248,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3407,16 +4283,17 @@ where
 pub async fn secondary_dns_peer_delete_peer_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsPeerDeletePeerArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsComponentsSchemasIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/peers/{}",
+    let path = format!("/accounts/{}/secondary_dns/peers/{}",
         args.account_id,
         args.peer_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3431,7 +4308,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsComponentsSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3463,15 +4343,16 @@ where
 pub async fn secondary_dns_tsig_list_tsi_gs_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsTsigListTsiGsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/tsigs",
+    let path = format!("/accounts/{}/secondary_dns/tsigs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3486,7 +4367,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3518,15 +4402,16 @@ where
 pub async fn secondary_dns_tsig_create_tsig_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsTsigCreateTsigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/tsigs",
+    let path = format!("/accounts/{}/secondary_dns/tsigs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3544,7 +4429,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3576,16 +4464,17 @@ where
 pub async fn secondary_dns_tsig_tsig_details_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsTsigTsigDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/tsigs/{}",
+    let path = format!("/accounts/{}/secondary_dns/tsigs/{}",
         args.account_id,
         args.tsig_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3600,7 +4489,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3632,16 +4524,17 @@ where
 pub async fn secondary_dns_tsig_update_tsig_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsTsigUpdateTsigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/tsigs/{}",
+    let path = format!("/accounts/{}/secondary_dns/tsigs/{}",
         args.account_id,
         args.tsig_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3659,7 +4552,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3691,16 +4587,17 @@ where
 pub async fn secondary_dns_tsig_delete_tsig_request<F>(
     client: DynNetClient,
     args: &SecondaryDnsTsigDeleteTsigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SecondaryDnsSchemasIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/secondary_dns/tsigs/{}",
+    let path = format!("/accounts/{}/secondary_dns/tsigs/{}",
         args.account_id,
         args.tsig_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3715,7 +4612,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SecondaryDnsSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3747,15 +4647,16 @@ where
 pub async fn zero_trust_networks_route_hostname_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksRouteHostnameListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelHostnameRouteResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/routes/hostname",
+    let path = format!("/accounts/{}/zerotrust/routes/hostname",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3779,7 +4680,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelHostnameRouteResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3811,17 +4715,21 @@ where
 pub async fn zero_trust_networks_route_hostname_create_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksRouteHostnameCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelHostnameRouteResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/routes/hostname",
+    let path = format!("/accounts/{}/zerotrust/routes/hostname",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3834,7 +4742,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3866,16 +4777,17 @@ where
 pub async fn zero_trust_networks_route_hostname_get_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksRouteHostnameGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelHostnameRouteResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/routes/hostname/{}",
+    let path = format!("/accounts/{}/zerotrust/routes/hostname/{}",
         args.account_id,
         args.hostname_route_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3890,7 +4802,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3922,18 +4837,22 @@ where
 pub async fn zero_trust_networks_route_hostname_update_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksRouteHostnameUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelHostnameRouteResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/routes/hostname/{}",
+    let path = format!("/accounts/{}/zerotrust/routes/hostname/{}",
         args.account_id,
         args.hostname_route_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3946,7 +4865,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3978,16 +4900,17 @@ where
 pub async fn zero_trust_networks_route_hostname_delete_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksRouteHostnameDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelHostnameRouteResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/routes/hostname/{}",
+    let path = format!("/accounts/{}/zerotrust/routes/hostname/{}",
         args.account_id,
         args.hostname_route_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4002,7 +4925,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4034,15 +4960,16 @@ where
 pub async fn radar_get_dns_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/dns/summary/{}",
+    let path = format!("/radar/dns/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4079,9 +5006,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4109,14 +5041,15 @@ where
 pub async fn radar_get_dns_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/dns/timeseries",
+    let path = format!("/radar/dns/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4153,9 +5086,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4183,15 +5121,16 @@ where
 pub async fn radar_get_dns_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/dns/timeseries_groups/{}",
+    let path = format!("/radar/dns/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4230,9 +5169,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4260,14 +5204,15 @@ where
 pub async fn radar_get_dns_top_ases_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsTopAsesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsTopAsesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/dns/top/ases",
+    let path = format!("/radar/dns/top/ases",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4304,9 +5249,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsTopAsesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4334,14 +5284,15 @@ where
 pub async fn radar_get_dns_top_locations_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsTopLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsTopLocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/dns/top/locations",
+    let path = format!("/radar/dns/top/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4379,8 +5330,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsTopLocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

@@ -1475,8 +1475,12 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Send asynchronously and parse the response.
-        // `mut` because the error path now takes the body too.
-        writeln!(out, "    let mut response = client.send_async(builder.build()).await")?;
+        //
+        // Not `let mut`: `take_body(self)` consumes the response, and the error
+        // branch below returns — so the two `take_body` calls never coexist and
+        // no binding needs to be mutable. Marking it `mut` cost 2442 "does not
+        // need to be mutable" warnings in cloudflare alone.
+        writeln!(out, "    let response = client.send_async(builder.build()).await")?;
         writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
         writeln!(out)?;
         writeln!(out, "    let status: usize = response.get_status().into();")?;
