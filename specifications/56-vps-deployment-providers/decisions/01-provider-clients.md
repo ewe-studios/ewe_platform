@@ -1,72 +1,99 @@
-# 01 — Provider clients: codegen vs hand-written
+# 01 — Provider clients: codegen, with selective generation
 
 **Date:** 2026-07-17
-**Status:** Open
+**Status:** **Resolved** (2026-07-17, owner)
 
-## The question
+## Decision
 
-Each provider crate needs an HTTP client for its vendor's API. The workspace has
-an established pipeline — `genapi generate <provider>` reads
-`artefacts/cloud_providers/<provider>/openapi.json` and emits `src/generated/`,
-with hand-written domain logic on top (`foundation_deployment_cloudflare` is the
-model: `client.rs` + `types.rs` + `dns_ops.rs` over a generated client, registered
-in `SPLIT_OUT_PROVIDERS`).
+**Codegen for all three providers** — keep the workspace pattern
+(`genapi` → `src/generated/`, hand-written domain logic on top, as
+`foundation_deployment_cloudflare` does).
 
-Do these three follow it?
+The objection to codegen was cost, not principle: DigitalOcean's spec is ~3 MB
+covering the whole platform (droplets, Kubernetes, Spaces, databases, App
+Platform) and we need **six endpoints**. Generating it whole would add a large
+surface of dead types — the Cloudflare crate already carries thousands of
+generated types nothing references.
 
-## What we know (probed 2026-07-17)
+**The resolution removes that cost: teach the generator to emit only the parts we
+ask for.** A crate declares which slice of a spec it wants, and the generator
+ignores the rest. Then codegen is affordable for a 3 MB spec, the workspace keeps
+one pattern, and we zero in on exactly the surface we support.
 
-| Provider | Spec | Status |
-|---|---|---|
-| Hetzner Cloud | `https://docs.hetzner.cloud/cloud.spec.json` | **HTTP 200** — reachable, and the API is small and server-centric |
-| DigitalOcean | `https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml` | **HTTP 200, ~3 MB** — the whole platform (droplets, k8s, spaces, databases, apps, …) |
-| Linode | four candidates 404'd (`linode/linode-openapi`, `linode/linode-api-docs`, `www.linode.com/docs/api/openapi.yaml`, `api.linode.com/v4/openapi.yaml`) | **unconfirmed** — needs a source, or hand-writing |
+That capability is [feature 00](../features/00-selective-codegen/feature.md), and
+it **blocks** features 01–03.
 
-We need roughly **six endpoints per provider**: create server, get server, list
-servers, delete server, list/create SSH key, and (Hetzner/Linode) list images or
-sizes. Everything else in those specs is noise for this spec.
+## What the generator does today
 
-## Options
+- Groups a spec's endpoints into modules by tag (`cloudflare_access`,
+  `cloudflare_workers`, …) and gates each group behind a **cargo feature**
+  (`<provider>_<group>`, plus a `<provider>_all`).
+- Has a `--spec` filter for multi-spec providers (gcp's many sub-APIs).
+- **Generates every group regardless.** The features gate *compilation*, not
+  *generation* — so the dead code is still emitted, still reviewed, still in the
+  tree. That is the gap.
 
-### A. Codegen for all three (matches the workspace pattern)
+## What changes
 
-Fetch each spec into `artefacts/cloud_providers/<name>/`, register in
-`SPLIT_OUT_PROVIDERS`, run `genapi generate`.
+An **allowlist**, honoured at generation time. Sketch (exact shape is feature 00):
 
-- **For:** one pattern across every provider crate in the tree; the generated
-  types track the vendor's schema; regenerating picks up API changes; no bespoke
-  request-building to review.
-- **Against:** DO's 3 MB spec generates an enormous surface for six endpoints
-  (compile time, review burden, and a great deal of dead code — the Cloudflare
-  crate already carries thousands of generated types nothing references). Linode
-  has no confirmed spec, so it cannot follow this path today without one.
+```rust
+// backends/foundation_deployment_hetzner/build.rs
+foundation_codegentools::generate()
+    .provider("hetzner")
+    .spec("artefacts/cloud_providers/hetzner/openapi.json")
+    .include_tags(["Servers", "SSHKeys"])          // or:
+    .include_paths(["/servers", "/servers/{id}", "/ssh_keys"])
+    .run()?;
+```
 
-### B. Hand-written thin clients
+Anything not reachable from the allowlist — including schemas — is not emitted.
 
-~6 typed calls per provider over `foundation_netio`, no generated code.
+## Consequences to work through in feature 00
 
-- **For:** small, readable, exactly the surface we use; no spec dependency, so
-  Linode is unblocked; no 3 MB artefact per provider.
-- **Against:** breaks the workspace convention; hand-rolled request building is
-  the class of code that produced spec-53's "no body on POST /build" and
-  "fieldless `NetworkInspect`" defects; schema drift is silent.
+- **Transitive schemas.** Including `POST /servers` pulls its request/response
+  types, which pull their `$ref`s, and so on. The generator must walk refs and
+  emit exactly the reachable closure. This is the actual work, and it is where the
+  saving comes from.
+- **Selection granularity.** Tags are the natural key (they already drive the
+  group modules), but tags are the vendor's taxonomy, not ours — DO's "Droplets"
+  tag is far more than the four droplet calls we want. Paths are precise but
+  brittle across spec revisions. Probably both, with paths winning.
+- **Generate at build time or check the output in?** Both patterns exist here:
+  cloudflare checks `src/generated/` in and regenerates via the CLI;
+  `foundation_deployment_docker` has a build.rs emitting BuildKit protos to
+  `OUT_DIR`. Checked-in output is reviewable and offline; build.rs output cannot
+  drift from the manifest. Feature 00 decides.
+- **Drift.** If a spec adds a field to a type we include, nothing tells us. Same
+  as today, but worth noting a trimmed spec makes it quieter.
 
-### C. Codegen where a spec exists, hand-written where not
+## Linode: spec found — all three providers codegen
 
-Hetzner + DigitalOcean generated; Linode hand-written until a spec is confirmed.
+Linode's spec was **not** where the public URLs suggested (four candidates 404'd
+on 2026-07-17; the docs moved to Akamai TechDocs and the spec moved with them).
+The owner supplied it: the official **`linode/linode-api-openapi`** repo, cloned
+locally at
+`/home/darkvoid/Boxxed/@formulas/src.rust/src.cloud_providers/src.linode/linode-api-openapi`.
 
-- **For:** unblocks all three now; keeps the convention where it is affordable.
-- **Against:** two shapes to maintain; the odd one out invites divergence.
+Validated 2026-07-17: OpenAPI **3.0.1**, "Akamai: Linode API" **v4.229.1**,
+**9.3 MB**, **334 paths**, and every endpoint feature 03 needs is present. So
+Linode follows the same codegen path as the other two — no hand-written client.
 
-## Recommendation
+**Quirk to handle:** Linode's paths are prefixed with the API version as a *path
+parameter* — `/{apiVersion}/linode/instances`, not `/v4/linode/instances`. The
+generated client will take `apiVersion` as an argument on every call unless the
+generator or the hand-written layer pins it. See
+[feature 03](../features/03-linode/feature.md).
 
-**C, leaning to A once Linode's spec is found** — but the DO spec's size is a
-real cost worth confirming with the owner, since it is 3 MB of schema for six
-endpoints, and the Cloudflare precedent shows most of it will be dead code.
+## Spec sources (2026-07-17)
 
-## To resolve
+| Provider | Spec | Size | Status |
+|---|---|---|---|
+| Hetzner Cloud | `https://docs.hetzner.cloud/cloud.spec.json` | small | **HTTP 200** |
+| DigitalOcean | `https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml` | ~3 MB | **HTTP 200** |
+| Linode | `linode/linode-api-openapi` (local clone; owner-supplied) | **9.3 MB**, 334 paths | **validated** |
 
-1. Which option?
-2. If codegen: does `genapi` support trimming a spec to selected paths, or do we
-   generate the whole surface?
-3. Where does Linode's OpenAPI spec live?
+Note what that table says about the decision: **9.3 MB, 3 MB and one small spec —
+for six endpoints each.** Selective generation is not a nicety here; without it
+the Linode crate alone would carry a 334-path surface to create and delete a
+server.

@@ -4,7 +4,7 @@ description: "DigitalOcean provider crate: create/destroy a Droplet through the 
 status: "not-started"
 priority: "high"
 phase: 1
-depends_on: ["01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
+depends_on: ["00-selective-codegen", "01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
 estimated_effort: "medium"
 created: 2026-07-17
 ---

@@ -25,21 +25,23 @@ DigitalOcean, Hetzner, Linode — with credentials from the environment and
 
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
+| 00 | [Selective codegen](features/00-selective-codegen/feature.md) | 0 | not started — **blocks 01–03** |
 | 01 | [`foundation_deployment_hetzner`](features/01-hetzner/feature.md) | 1 | not started |
 | 02 | [`foundation_deployment_digitalocean`](features/02-digitalocean/feature.md) | 1 | not started |
-| 03 | [`foundation_deployment_linode`](features/03-linode/feature.md) | 1 | not started — **spec source unconfirmed** |
+| 03 | [`foundation_deployment_linode`](features/03-linode/feature.md) | 1 | not started — spec found (owner-supplied, validated) |
 | 04 | [Cloud-init + SSH bootstrap](features/04-cloud-init-and-ssh-bootstrap/feature.md) | 2 | not started |
 | 05 | [VPS hardening](features/05-vps-hardening/feature.md) | 2 | not started |
 | 06 | [`VpsDeployment` (shared Deployable)](features/06-vps-deployable/feature.md) | 2 | not started |
 | 07 | [TLS termination proof + Cloudflare provider](features/07-tls-termination-and-cloudflare/feature.md) | 4 | not started |
 
-## Decisions — all open
+## Decisions
 
-Nothing should be built until these are resolved; each one changes the code.
+01 is resolved. The rest are open, and nothing should be built until they are —
+each one changes the code.
 
 | # | Decision | The question |
 |---|---|---|
-| 01 | [Provider clients](decisions/01-provider-clients.md) | Codegen from each vendor's OpenAPI (the workspace pattern) or hand-written thin clients? DO's spec is **3 MB** for the **six endpoints** we need; Linode's spec source is unconfirmed. |
+| 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three, conditional on selective generation ([feature 00](features/00-selective-codegen/feature.md)). Linode's spec found (owner-supplied). |
 | 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | Variable names (`HCLOUD_TOKEN`/`DIGITALOCEAN_TOKEN`/`LINODE_TOKEN`?), an `EWE_` override, and failing loudly when absent. |
 | 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, create-or-find, and destroy-on-partial-failure (a stranded VPS bills). |
 | 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely; cloud-init vs post-boot SSH; and how to stop **Docker publishing past the host firewall**. |
@@ -75,4 +77,5 @@ recorded in this spec's rule:
 |---|---|
 | `https://docs.hetzner.cloud/cloud.spec.json` | **HTTP 200** |
 | `https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml` | **HTTP 200**, ~3 MB |
-| Linode — 4 candidate URLs | **all 404**; source needs finding (decision 01) |
+| Linode — 4 public candidate URLs | all **404** (docs moved to Akamai TechDocs) |
+| Linode — `linode/linode-api-openapi`, owner-supplied local clone | **validated**: OpenAPI 3.0.1, "Akamai: Linode API" v4.229.1, **9.3 MB, 334 paths**, all needed endpoints present |

@@ -4,7 +4,7 @@ description: "Hetzner Cloud provider crate: create/destroy a server through the 
 status: "not-started"
 priority: "high"
 phase: 1
-depends_on: ["01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
+depends_on: ["00-selective-codegen", "01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
 estimated_effort: "medium"
 created: 2026-07-17
 ---
@@ -25,7 +25,7 @@ pattern:
 ```
 backends/foundation_deployment_hetzner/
 ├── src/
-│   ├── generated/      # from artefacts/cloud_providers/hetzner/openapi.json (decision 01)
+│   ├── generated/      # selective codegen from artefacts/cloud_providers/hetzner/openapi.json
 │   ├── client.rs       # HetznerClient::from_env() -> HCLOUD_TOKEN (decision 02)
 │   ├── types.rs        # the few types we use: Server, ServerStatus, SshKey, Image, ServerType
 │   ├── server_ops.rs   # create / get / list / delete / await_running / public_ip
@@ -36,8 +36,10 @@ backends/foundation_deployment_hetzner/
     └── deployable_tests.rs      # vs a mock API + the local sshd fixture
 ```
 
-Registered in `genapi`'s `SPLIT_OUT_PROVIDERS` (`backends/foundation_codegentools/src/cli/gen_api.rs`)
-if decision 01 lands on codegen.
+Registered in `genapi`'s `SPLIT_OUT_PROVIDERS`
+(`backends/foundation_codegentools/src/cli/gen_api.rs`), and generated through
+[feature 00](../00-selective-codegen/feature.md) so only these six endpoints and
+their schema closure are emitted.
 
 ## Endpoints we need
 

@@ -4,7 +4,7 @@ description: "Linode provider crate: create/destroy a Linode instance through th
 status: "not-started"
 priority: "high"
 phase: 1
-depends_on: ["01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
+depends_on: ["00-selective-codegen", "01-provider-clients", "02-credentials-from-environment", "03-deployable-vps-model", "04-hardening-policy"]
 estimated_effort: "medium"
 created: 2026-07-17
 ---
@@ -16,34 +16,43 @@ A split-out provider crate, same shape as [feature 01](../01-hetzner/feature.md)
 `client.rs` (`from_env` → `LINODE_TOKEN`) + `types.rs` + `instance_ops.rs` +
 `deployable.rs` (`VpsDeployment: Deployable`).
 
-## Blocked on a spec source
+## Spec source — found (2026-07-17)
 
-**Linode's OpenAPI spec source is unconfirmed.** Probed 2026-07-17, all 404:
+The public URLs all 404 (Linode's docs moved to Akamai TechDocs and the spec moved
+with them). The owner supplied the real one: the official
+**`linode/linode-api-openapi`** repo, cloned at
 
-- `https://raw.githubusercontent.com/linode/linode-openapi/main/openapi.yaml`
-- `https://raw.githubusercontent.com/linode/linode-api-docs/development/openapi.yaml`
-- `https://www.linode.com/docs/api/openapi.yaml`
-- `https://api.linode.com/v4/openapi.yaml`
+```
+/home/darkvoid/Boxxed/@formulas/src.rust/src.cloud_providers/src.linode/linode-api-openapi/openapi.json
+```
 
-Linode's docs moved to Akamai TechDocs, which likely relocated the spec. So this
-feature carries an extra step the other two do not: **find the spec, or hand-write
-the client** — see [decision 01](../../decisions/01-provider-clients.md), which is
-partly *about* this case. Do that first; the rest of the feature depends on the
-answer.
+Validated: OpenAPI **3.0.1**, "Akamai: Linode API" **v4.229.1**, **9.3 MB**,
+**334 paths**, and every endpoint below is present. Vendor it into
+`artefacts/cloud_providers/linode/` like the other providers.
+
+At 9.3 MB for six endpoints, this crate is the clearest case for
+[feature 00](../00-selective-codegen/feature.md) — without selective generation it
+would carry a 334-path surface to create and delete a server.
 
 ## Endpoints we need
 
-| Operation | Endpoint |
+Note the spec's paths carry the API version as a **path parameter**
+(`/{apiVersion}/…`), not a base-URL constant:
+
+| Operation | Endpoint (as the spec declares it) |
 |---|---|
-| create instance | `POST /v4/linode/instances` (label, region, type, image, authorized_keys, root_pass, metadata.user_data) |
-| get instance | `GET /v4/linode/instances/{id}` — status + `ipv4[]` |
-| list instances | `GET /v4/linode/instances?tags=` — create-or-find (decision 03) |
-| delete instance | `DELETE /v4/linode/instances/{id}` |
-| list ssh keys | `GET /v4/profile/sshkeys` |
-| create ssh key | `POST /v4/profile/sshkeys` |
+| create instance | `POST /{apiVersion}/linode/instances` (label, region, type, image, authorized_keys, root_pass, metadata.user_data) |
+| get instance | `GET /{apiVersion}/linode/instances/{linodeId}` — status + `ipv4[]` |
+| list instances | `GET /{apiVersion}/linode/instances?tags=` — create-or-find (decision 03) |
+| delete instance | `DELETE /{apiVersion}/linode/instances/{linodeId}` |
+| list ssh keys | `GET /{apiVersion}/profile/sshkeys` |
+| create ssh key | `POST /{apiVersion}/profile/sshkeys` |
 
 ## Notes specific to Linode
 
+- **`apiVersion` is a path parameter.** Every generated call will take it as an
+  argument unless it is pinned. The hand-written layer should fix it at `v4` so
+  callers never pass it — an API version is not a per-call decision.
 - **`root_pass` is required on create** even when we only ever intend key auth.
   Generate a long random one, never log it, and let hardening disable password
   auth (decision 04) — the password exists only to satisfy the API.
@@ -72,7 +81,9 @@ fixture).
 
 ## Acceptance criteria
 
-- [ ] Spec source confirmed, or decision 01 resolved to hand-write this client
+- [ ] Spec vendored into `artefacts/cloud_providers/linode/` from the owner-supplied repo
+- [ ] Generated via [feature 00](../00-selective-codegen/feature.md) — 6 endpoints, not 334
+- [ ] `apiVersion` pinned to `v4` by the hand-written layer, not exposed to callers
 - [ ] `LinodeClient::from_env()` reads `LINODE_TOKEN` and **errors by name** when absent
 - [ ] Token and the generated `root_pass` never appear in `Debug`, logs, or errors
 - [ ] `create_instance` sends `authorized_keys` and (where supported) `metadata.user_data`

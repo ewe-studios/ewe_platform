@@ -1,6 +1,6 @@
 # Requirements — Spec 56: VPS Deployment Providers
 
-**Status:** Draft (decisions open, awaiting resolution)
+**Status:** Draft (decision 01 resolved; 02–04 open, awaiting resolution)
 **Created:** 2026-07-17
 **Owner:** Main Agent
 **has_features:** true
@@ -82,11 +82,14 @@ Following the established split-out provider pattern (`foundation_deployment_clo
 is the model: generated API client in `generated/`, hand-written domain logic on
 top, registered in `genapi`'s `SPLIT_OUT_PROVIDERS`):
 
-- **Generated client** from the vendor's OpenAPI spec where one exists.
-  Confirmed reachable 2026-07-17: **Hetzner** (`docs.hetzner.cloud/cloud.spec.json`,
-  HTTP 200) and **DigitalOcean** (`api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml`,
-  HTTP 200, ~3 MB). **Linode's spec source is unconfirmed** — four candidate URLs
-  404'd; see decision 01.
+- **Generated client** from the vendor's OpenAPI spec — **all three**, per
+  [decision 01](decisions/01-provider-clients.md), using **selective generation**
+  ([feature 00](features/00-selective-codegen/feature.md)) so each crate carries
+  only the ~6 endpoints it uses and their schema closure. Sources (2026-07-17):
+  **Hetzner** (`docs.hetzner.cloud/cloud.spec.json`, 200), **DigitalOcean**
+  (`…/DigitalOcean-public.v2.yaml`, 200, ~3 MB), **Linode**
+  (`linode/linode-api-openapi`, owner-supplied local clone — OpenAPI 3.0.1,
+  v4.229.1, 9.3 MB, 334 paths).
 - **Hand-written domain logic** — `client.rs` (env credentials), `types.rs`
   (the handful of types we actually use), `server_ops.rs` (create / get / list /
   delete / await-ready / public IP).
@@ -119,11 +122,11 @@ F02/F03/F04 broken for weeks. So:
   with real credentials. Mock-verified means mock-verified, and the feature docs
   say so.
 
-## Open decisions
+## Decisions
 
 | # | Decision | Why it matters |
 |---|---|---|
-| 01 | [Provider clients: codegen vs hand-written](decisions/01-provider-clients.md) | DO's spec is 3 MB and covers the whole platform; we need ~6 endpoints. Linode's spec source is unconfirmed. |
+| 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three, conditional on selective generation (feature 00). |
 | 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | Variable names, precedence, and what happens when a token is absent or rejected. |
 | 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, and whether it is idempotent. |
 | 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely, and whether it is provider-side, cloud-init, or post-boot SSH. |
