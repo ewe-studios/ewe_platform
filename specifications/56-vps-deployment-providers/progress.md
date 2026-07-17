@@ -21,12 +21,50 @@ Plus the owner's new requirement (2026-07-17): **three VPS provider crates** —
 DigitalOcean, Hetzner, Linode — with credentials from the environment and
 `Deployable`s that deploy, set up and harden the instances.
 
+## Where it stands (2026-07-17)
+
+**Feature 00 delivered its promise, measured on a real provider:** Hetzner's crate
+generates **6 endpoints out of 151 paths**, every response a named type, in 1636
+lines. Feature 01 is code-complete and mock-verified.
+
+### The one thing the owner needs to decide
+
+**Feature 00 §8 — regenerating the existing providers.** Routing `genapi` through
+`Pipeline` means every provider now gets canonicalised, which the old path never
+did. For Cloudflare that is a real trade: the generated code gets **better and
+still compiles** (6214 → 9945 structs, **1349 → 2241 typed responses**), but it
+breaks **9 hand-written call sites** in `dns_ops.rs`/`provider_client.rs` that were
+built against the untyped API. Recommendation: take it — the typed-response gain
+is exactly what feature 00 was written for, and the 9 sites are a morning's work.
+It just should not ride along inside a commit about selection.
+
+Until then, `genapi generate cloudflare --check` reports the drift, which is how
+anyone finds out.
+
+### Five bugs found, all by running against something real
+
+None of these was caught by a fixture; every one was found by pointing the code at
+a real vendor spec or a real socket. It is the same lesson spec-53's audit taught
+("code present with no consumer = it doesn't work"), one level down.
+
+| Where | Bug |
+|---|---|
+| `foundation_openapi` | hoisted names could contain `/` — a component name is a **JSON-pointer segment**, so 61 `$ref`s became unresolvable |
+| `foundation_openapi` | `sanitize_identifier` was a **blocklist** of 14 punctuation marks; vendors use `*`, `$metadata`, `+gt`, `1.1.1.1`, `pg_partman_bgw.interval` |
+| `foundation_openapi` | hoisting could take a name the **vendor already owns** — presents as `error[E0072] recursive type has infinite size`, is really two schemas fighting over one name |
+| `foundation_openapi` | `resolve_schema_key` guessed at the inverse of pascal-casing (not invertible) — **52 of Hetzner's 100 types silently became untyped blobs**, including the one holding the IP |
+| `foundation_openapi` | generated clients emitted `ApiError::HttpStatus { body: None }` **unconditionally** — every vendor's error detail discarded on every endpoint (Cloudflare: 2442) |
+| `foundation_testing` | `TestHttpServer::with_response` never answered `Expect: 100-continue`, which our own client sends by default — **every request body arrived empty, silently** |
+
+The last two are the ones to remember: both **lost data without erroring**, so
+every test that asserted on a response passed anyway.
+
 ## Features
 
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
-| 00 | [Selective codegen](features/00-selective-codegen/feature.md) | 0 | not started — **blocks 01–03** |
-| 01 | [`foundation_deployment_hetzner`](features/01-hetzner/feature.md) | 1 | not started |
+| 00 | [Selective codegen](features/00-selective-codegen/feature.md) | 0 | **done** (2026-07-17) — except §8, which needs the owner |
+| 01 | [`foundation_deployment_hetzner`](features/01-hetzner/feature.md) | 1 | **code-complete, mock-verified** (2026-07-17) — live path unrun |
 | 02 | [`foundation_deployment_digitalocean`](features/02-digitalocean/feature.md) | 1 | not started |
 | 03 | [`foundation_deployment_linode`](features/03-linode/feature.md) | 1 | not started — spec found (owner-supplied, validated) |
 | 04 | [Cloud-init + SSH bootstrap](features/04-cloud-init-and-ssh-bootstrap/feature.md) | 2 | not started |
