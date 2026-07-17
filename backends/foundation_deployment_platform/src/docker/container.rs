@@ -2,8 +2,15 @@
 
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
+use std::time::{Duration, Instant};
 
-use foundation_deployment_docker::client::{ContainerCreateBody, ContainerHostConfig};
+use foundation_core::valtron::sleep_async;
+use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
+
+use foundation_deployment_docker::client::{
+    ContainerCreateBody, ContainerHostConfig, NetworkingConfig,
+};
+use foundation_deployment_docker::generated::connect::EndpointSettings;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
 };
@@ -11,6 +18,7 @@ use foundation_deployment_docker::DockerClient;
 use tracing::{info, warn};
 
 use crate::docker::config::{parse_memory_bytes, ContainerConfig};
+use crate::docker::network::NetworkHandle;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
@@ -38,6 +46,15 @@ impl ContainerHandle {
         };
 
         Self::ensure_image(&docker, &config.image, config.always_pull).await?;
+
+        // A user-defined network must exist before a container can join it —
+        // Docker fails the create otherwise. `create_or_find` is idempotent, so
+        // naming a network is enough to get one (Decision 10). It is deliberately
+        // left in place afterwards: it may be shared with containers this handle
+        // knows nothing about, so it is not ours to remove.
+        if let Some(ref network) = config.network {
+            NetworkHandle::create_or_find(&docker, network, None).await?;
+        }
 
         let body = Self::build_body(&config, memory_bytes);
 
@@ -180,6 +197,63 @@ impl ContainerHandle {
         crate::block_on(self.shutdown_async())
     }
 
+    /// The container's logs so far, stdout and stderr interleaved, with
+    /// Docker's stream framing already removed.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::Connection`] if the daemon rejects the request.
+    pub async fn logs_async(&self) -> DockerResult<String> {
+        let raw = self
+            .docker
+            .container_logs(
+                &self.container_id,
+                false, // follow
+                true,  // stdout
+                true,  // stderr
+                None,  // since
+                None,  // until
+                false, // timestamps
+                None,  // tail (all)
+            )
+            .await
+            .map_err(|e| docker_err(DockerError::Connection(format!("container_logs: {e}"))))?;
+
+        let mut decoder = LogFrameDecoder::new();
+        decoder.feed(&raw);
+        let mut out = String::new();
+        while let Some(frame) = decoder.decode() {
+            match frame {
+                LogOutput::StdOut { message } | LogOutput::StdErr { message } => {
+                    out.push_str(&String::from_utf8_lossy(&message));
+                }
+                _ => continue,
+            }
+        }
+        Ok(out)
+    }
+
+    /// Waits for the container to exit, then returns its logs.
+    ///
+    /// For a one-shot container — one given a `command` that runs and exits —
+    /// this is the way to read what it printed.
+    ///
+    /// Uses the daemon's `/wait` endpoint rather than polling `State.Running`:
+    /// a container that has been created but not yet scheduled *also* reports
+    /// `Running == false`, so polling that flag returns the instant the
+    /// container starts and hands back empty logs. `/wait` blocks until the
+    /// container has genuinely exited.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::Connection`] if the daemon rejects a request.
+    pub async fn wait_for_exit_async(&self) -> DockerResult<String> {
+        self.docker
+            .wait_container(&self.container_id, Some("not-running"))
+            .await
+            .map_err(|e| docker_err(DockerError::Connection(format!("wait_container: {e}"))))?;
+
+        self.logs_async().await
+    }
+
     pub async fn is_running_async(&self) -> DockerResult<bool> {
         let info = self
             .docker
@@ -287,14 +361,22 @@ impl ContainerHandle {
             );
         }
 
+        // Docker bind syntax is `source:target[:ro]`, where `source` is a host
+        // path for a bind mount and the volume's name for a named volume — the
+        // daemon tells them apart by the leading `/`. Both kinds go in `Binds`,
+        // and a read-only mount needs the explicit `:ro` suffix.
         let binds: Vec<String> = config
             .volumes
             .iter()
-            .filter_map(|v| match &v.source {
-                crate::docker::config::VolumeSource::Bind(host_path) => {
-                    Some(format!("{}:{}", host_path.display(), v.target.display()))
-                }
-                crate::docker::config::VolumeSource::Named(_) => None,
+            .map(|v| {
+                let source = match &v.source {
+                    crate::docker::config::VolumeSource::Bind(host_path) => {
+                        host_path.display().to_string()
+                    }
+                    crate::docker::config::VolumeSource::Named(name) => name.clone(),
+                };
+                let mode = if v.read_only { ":ro" } else { "" };
+                format!("{source}:{}{mode}", v.target.display())
             })
             .collect();
 
@@ -373,10 +455,30 @@ impl ContainerHandle {
             ..Default::default()
         };
 
+        // Network aliases are extra DNS names this container answers to, and
+        // they attach to a *specific* network's endpoint — so they can only be
+        // set when a network was named. Setting them at create time (rather than
+        // connecting afterwards) means the container is resolvable by alias from
+        // the moment it starts, with no window where a peer could miss it.
+        let networking_config = match (&config.network, config.network_aliases.is_empty()) {
+            (Some(network), false) => {
+                let mut endpoints_config = HashMap::new();
+                endpoints_config.insert(
+                    network.clone(),
+                    EndpointSettings {
+                        aliases: Some(config.network_aliases.clone()),
+                        ..Default::default()
+                    },
+                );
+                Some(NetworkingConfig { endpoints_config })
+            }
+            _ => None,
+        };
+
         ContainerCreateBody {
             config: gen_config,
             host_config: Some(host_config),
-            networking_config: None,
+            networking_config,
         }
     }
 

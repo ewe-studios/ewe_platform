@@ -204,6 +204,23 @@ impl ContainerConfig {
 
     /// Mount a named volume into the container.
     #[must_use]
+    /// Bind-mount a host path read-only — the container can read it but any
+    /// write is refused by the kernel.
+    #[must_use]
+    pub fn volume_read_only(
+        mut self,
+        host_path: impl Into<PathBuf>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
+        self.volumes.push(VolumeMount {
+            source: VolumeSource::Bind(host_path.into()),
+            target: container_path.into(),
+            read_only: true,
+        });
+        self
+    }
+
+    #[must_use]
     pub fn named_volume(mut self, volume_name: impl Into<String>, container_path: impl Into<PathBuf>) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Named(volume_name.into()),

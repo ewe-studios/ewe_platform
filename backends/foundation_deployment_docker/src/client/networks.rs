@@ -9,6 +9,7 @@
 //! HOW: Each method constructs the appropriate Args struct and delegates to
 //! the generated function.
 
+use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
@@ -17,9 +18,9 @@ use crate::generated::connect::{network_connect_request, NetworkConnectArgs};
 use crate::generated::create::{network_create_request, NetworkCreateArgs, NetworkCreateResponse};
 use crate::generated::disconnect::{network_disconnect_request, NetworkDisconnectArgs};
 use crate::generated::networks::{
-    network_delete_request, network_inspect_request, network_list_request, NetworkDeleteArgs,
-    NetworkInspect, NetworkInspectArgs, NetworkListArgs,
+    network_delete_request, network_list_request, Network, NetworkDeleteArgs, NetworkListArgs,
 };
+use crate::generated::shared::ApiError;
 use crate::generated::prune::{network_prune_request, NetworkPruneArgs};
 
 use super::{DockerClient, NoMod};
@@ -50,27 +51,53 @@ impl DockerClient {
     /// WHY: Returns low-level information about a network (IPAM config, connected
     /// containers, driver options).
     ///
-    /// WHAT: Calls `network_inspect_request` with optional `verbose` and `scope`
-    /// query parameters.
+    /// WHAT: `GET /networks/{id}?verbose=...&scope=...`, deserialized into
+    /// [`Network`].
     ///
-    /// HOW: `GET /networks/{id}?verbose=...&scope=...`.
+    /// HOW: Deliberately **not** via the generated `network_inspect_request`.
+    /// That returns the generated `NetworkInspect`, which the schema defines with
+    /// **no fields** — serde therefore accepts the daemon's JSON and discards all
+    /// of it, so callers got an empty struct and could learn nothing about the
+    /// network. `Network` is the populated type for the same response, so this
+    /// sends the request directly and decodes into it.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure, non-2xx status, or a
+    /// response body that is not a network object.
     pub async fn network_inspect(
         &self,
         id: &str,
         verbose: Option<bool>,
         scope: Option<&str>,
-    ) -> Result<NetworkInspect, DockerError> {
-        let args = NetworkInspectArgs {
-            id: id.to_string(),
-            verbose: verbose.map(|v| v.to_string()),
-            scope: scope.map(str::to_string),
-        };
-        let response = network_inspect_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
-        Ok(response.body)
+    ) -> Result<Network, DockerError> {
+        let endpoint_url = format!("{}/networks/{id}", self.base_url());
+        let mut builder = PreparedRequestBuilder::get(&endpoint_url)
+            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+        builder = builder.query("verbose", verbose.map(|v| v.to_string()).as_deref());
+        builder = builder.query("scope", scope);
+
+        let response = self
+            .http()
+            .send_async(builder.build())
+            .await
+            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
+
+        let status: usize = response.get_status().into();
+        let headers = response.get_headers_ref().clone();
+        if !(200..300).contains(&status) {
+            return Err(ApiError::HttpStatus {
+                code: status as u16,
+                headers,
+                body: None,
+            }
+            .into());
+        }
+
+        let body = collect_bytes_from_send_safe(response.take_body());
+        serde_json::from_slice(&body).map_err(|e| {
+            DockerError::JsonParse(format!("network_inspect: decode Network: {e}"))
+        })
     }
 
     /// Delete a network (`DELETE /networks/{id}`).
@@ -127,22 +154,33 @@ impl DockerClient {
 
     /// Connect a container to a network (`POST /networks/{id}/connect`).
     ///
-    /// WHY: Attaches a container to a network, optionally with endpoint
-    /// configuration (IP address, aliases, links).
+    /// WHY: Attaches a container to a network. `aliases` are extra hostnames the
+    /// container answers to on this network — Docker's embedded DNS resolves
+    /// them for every other container on the same network, which is how services
+    /// find each other by a stable name.
     ///
-    /// WHAT: Sends a `{"Container": "<container_id>"}` body.
+    /// WHAT: Sends `{"Container": "<id>"}`, plus an `EndpointConfig.Aliases`
+    /// entry when `aliases` is non-empty (the daemon rejects an empty list).
     ///
     /// HOW: `network_connect_request` with a `builder_mod` that sets the JSON body.
     ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn network_connect(&self, id: &str, container_id: &str) -> Result<(), DockerError> {
+    pub async fn network_connect(
+        &self,
+        id: &str,
+        container_id: &str,
+        aliases: &[&str],
+    ) -> Result<(), DockerError> {
         let args = NetworkConnectArgs {
             id: id.to_string(),
             body: Default::default(),
         };
-        let body = serde_json::json!({"Container": container_id});
+        let mut body = serde_json::json!({"Container": container_id});
+        if !aliases.is_empty() {
+            body["EndpointConfig"] = serde_json::json!({ "Aliases": aliases });
+        }
         network_connect_request(
             self.http(),
             &args,
