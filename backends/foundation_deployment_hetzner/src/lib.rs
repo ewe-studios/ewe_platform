@@ -23,6 +23,7 @@
 //! republish fails loudly rather than silently changing our types.
 
 pub mod client;
+pub mod server_ops;
 pub mod types;
 // The generated API surface — six of Hetzner's 151 endpoints.
 pub mod generated;

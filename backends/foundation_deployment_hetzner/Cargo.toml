@@ -37,6 +37,14 @@ workspace = true
 [dependencies.tracing]
 workspace = true
 
+[dev-dependencies.foundation_netio]
+path = "../foundation_netio"
+version = "0.0.1"
+
+[dev-dependencies.foundation_testing]
+path = "../foundation_testing"
+version = "0.0.1"
+
 [features]
 default = ["hetzner"]
 hetzner = [

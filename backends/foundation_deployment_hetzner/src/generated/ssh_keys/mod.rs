@@ -21,32 +21,28 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `CreateSshKeyResponseSshKey` type.
+/// `ListSshKeysResponseMetaPagination` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyResponseSshKey {
-    /// created property.
-    pub created: String,
-    /// fingerprint property.
-    pub fingerprint: String,
-    /// id property.
-    pub id: i64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// public_key property.
-    pub public_key: String,
+pub struct ListSshKeysResponseMetaPagination {
+    /// last_page property.
+    pub last_page: i64,
+    /// next_page property.
+    pub next_page: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// previous_page property.
+    pub previous_page: i64,
+    /// total_entries property.
+    pub total_entries: i64,
 }
 
-/// `CreateSshKeyRequest` type.
+/// `ListSshKeysResponseMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyRequest {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: String,
-    /// public_key property.
-    pub public_key: String,
+pub struct ListSshKeysResponseMeta {
+    /// pagination property.
+    pub pagination: ListSshKeysResponseMetaPagination,
 }
 
 /// `ListSshKeysResponseSshKeysItem` type.
@@ -73,28 +69,32 @@ pub struct CreateSshKeyResponse {
     pub ssh_key: CreateSshKeyResponseSshKey,
 }
 
-/// `ListSshKeysResponseMetaPagination` type.
+/// `CreateSshKeyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseMetaPagination {
-    /// last_page property.
-    pub last_page: i64,
-    /// next_page property.
-    pub next_page: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// previous_page property.
-    pub previous_page: i64,
-    /// total_entries property.
-    pub total_entries: i64,
+pub struct CreateSshKeyRequest {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: String,
+    /// public_key property.
+    pub public_key: String,
 }
 
-/// `ListSshKeysResponseMeta` type.
+/// `CreateSshKeyResponseSshKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseMeta {
-    /// pagination property.
-    pub pagination: ListSshKeysResponseMetaPagination,
+pub struct CreateSshKeyResponseSshKey {
+    /// created property.
+    pub created: String,
+    /// fingerprint property.
+    pub fingerprint: String,
+    /// id property.
+    pub id: i64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// public_key property.
+    pub public_key: String,
 }
 
 /// `ListSshKeysResponse` type.
@@ -193,7 +193,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ListSshKeysResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -251,7 +254,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: CreateSshKeyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

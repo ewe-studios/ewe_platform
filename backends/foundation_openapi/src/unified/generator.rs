@@ -1468,13 +1468,23 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Send asynchronously and parse the response.
-        writeln!(out, "    let response = client.send_async(builder.build()).await")?;
+        // `mut` because the error path now takes the body too.
+        writeln!(out, "    let mut response = client.send_async(builder.build()).await")?;
         writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
         writeln!(out)?;
         writeln!(out, "    let status: usize = response.get_status().into();")?;
         writeln!(out, "    let headers = response.get_headers_ref().clone();")?;
         writeln!(out, "    if status < 200 || status >= 300 {{")?;
-        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body: None }});")?;
+        // Read the error body. It was `None`, unconditionally — which discarded
+        // every vendor's error detail before any caller could see it, and left
+        // ApiError::HttpStatus with a field that was structurally always empty.
+        // A status number alone does not say what to fix: Hetzner's
+        // `{"error":{"code":"invalid_input","message":"server_type cx99 does not
+        // exist"}}` is the whole diagnosis, and it was being thrown away.
+        writeln!(out, "        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
+        writeln!(out, "        let body = (!error_bytes.is_empty())")?;
+        writeln!(out, "            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());")?;
+        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body }});")?;
         writeln!(out, "    }}")?;
         if return_type == "()" {
             writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
