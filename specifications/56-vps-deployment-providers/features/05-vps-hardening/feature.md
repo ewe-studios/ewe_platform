@@ -53,9 +53,15 @@ Each assertion is a test:
 | our key works | key login succeeds |
 | only our key is trusted | `authorized_keys` contains exactly the deploy key |
 | root login policy | `PermitRootLogin` matches the decision |
-| firewall default-deny | firewall status; only 22/80/443 (+443/udp for HTTP/3) open |
+| firewall default-deny | firewall status; only `ssh_port`/80/443 (+443/udp) open |
+| sshd moved off 22 | a connection on `ssh_port` authenticates; **22 refuses** |
+| the switchover never strands us | both ports listen → new port verified → only then 22 closes |
 | **Docker does not bypass the firewall** | a container published on a port the firewall denies is **not** reachable from off-box |
-| security updates on | `unattended-upgrades` enabled |
+| security updates on | `unattended-upgrades` enabled, security pocket |
+| auto-reboot configured | `Automatic-Reboot` + the window from the policy |
+| **containers survive a reboot** | restart the daemon/host in the fixture → the container comes back |
+| fail2ban running | the sshd jail is active |
+| fail2ban never bans our sources | `ignoreip` contains loopback + every entry in `fail2ban_ignore`; a failed auth from an ignored source does **not** ban it |
 | Docker answers | `docker version` over SSH |
 
 The Docker/firewall row is the one that will bite: **Docker writes its own
@@ -73,6 +79,19 @@ firewall is decorative for our workload.
   *verifier*, and the YAML stays unproven until someone boots a real VPS. Decision
   04 weighs that.
 
+## Prerequisite this feature carries
+
+Auto-reboot (decision 04) is useless — worse, harmful — without container restart
+policies, and **spec-53's `ContainerConfig` has none** (the Docker client's
+`HostConfig.RestartPolicy` does; nothing wires it). So this feature includes:
+
+- `ContainerConfig::restart_policy(..)` → `HostConfig.RestartPolicy`
+- everything this spec deploys defaults to `unless-stopped`
+- a test that restarts the daemon/host in the fixture and asserts the container
+  returns
+
+Without it, the 03:00 security reboot brings the box back with every service down.
+
 ## Acceptance criteria
 
 - [ ] Decision 04 resolved
@@ -82,3 +101,6 @@ firewall is decorative for our workload.
 - [ ] The Docker-past-the-firewall case is explicitly asserted
 - [ ] A failed verification fails `deploy` and does not leave a billing instance
 - [ ] Idempotent: re-running hardening on a hardened box is a no-op
+- [ ] `ssh_port` (default 2222) is one policy field, rendered into sshd, both firewall layers, the verifier and the host output — never hard-coded
+- [ ] `fail2ban_ignore` (IPs / CIDRs / hostnames) renders into `ignoreip`, loopback always retained; asserted by failing auth from an ignored source and confirming no ban
+- [ ] The port switchover listens on both, verifies the new one, and only then closes 22 — and the fixture exercises that sequence

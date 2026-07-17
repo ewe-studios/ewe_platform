@@ -1,7 +1,7 @@
 # 03 — The `Deployable` VPS model
 
 **Date:** 2026-07-17
-**Status:** Open
+**Status:** **Resolved** (2026-07-17, owner)
 
 ## The question
 
@@ -123,11 +123,35 @@ case), but nobody explicitly asked for the charge — so:
 - "alive" must mean *alive*, not merely "the API answered". A terminated instance
   that still resolves must count as gone, or `deploy` returns a corpse.
 
-### 4. What does `destroy` do about the SSH key?
+### 4. Vendor-side SSH keys on `destroy` — **resolved: remove only keys we created**
 
-If `deploy` uploaded a key to the vendor's account, does `destroy` remove it?
-Shared keys across deployments make this dangerous — deleting a key another
-instance still uses would lock it out.
+**Resolved** (owner, 2026-07-17): the deployable records whether **it** uploaded
+the key; `destroy` removes it only then.
+
+```
+deploy():  uploaded the key? -> state { key_id: 7, ours: true }
+destroy(): ours == true  -> DELETE /ssh_keys/7
+           ours == false -> leave it alone
+```
+
+**The trap this has to dodge:** "we created it" is *not* the same as "nobody else
+uses it". Two deployments uploading the **same public key** would each think it is
+theirs, and the first `destroy` would lock the second out of its box —
+unrecoverable without console access. So:
+
+- **Upload a per-deployment key**, named uniquely (`ewe-<namespace>-<instance>`),
+  so `ours == true` genuinely implies "only ours". This is what makes the rule
+  safe rather than merely tidy.
+- If the caller hands us a key that is **already in the account**, record
+  `ours: false` and never delete it — it predates us and is not ours to remove.
+- All three vendors also accept a public key **inline at create**
+  (`ssh_keys`/`authorized_keys`), and cloud-init can write `authorized_keys`
+  directly. Where inline works, uploading nothing at all is the least-cleanup
+  path — worth preferring, with the account-level key as the fallback for vendors
+  or flows that need it.
+- Deleting a key that is still attached elsewhere may simply fail at the vendor;
+  treat that as informational, not a `destroy` failure — the instance is gone,
+  which is what `destroy` promised.
 
 ### 5. Rollback on partial failure — **resolved: destroy by default, opt-out to keep**
 
@@ -178,7 +202,9 @@ exactly this).
 3. ~~Idempotent create-or-find? And what if the recorded instance is gone?~~ —
    **resolved**: create-or-find; recreate (and log) when the recorded instance is
    gone.
-4. Does `destroy` touch vendor-side SSH keys?
+4. ~~Does `destroy` touch vendor-side SSH keys?~~ — **resolved**: only ones it
+   uploaded (`ours: true`), which is made safe by uploading a per-deployment key;
+   prefer inline keys and upload nothing where the vendor allows it.
 5. ~~Destroy-on-partial-failure by default, with an opt-out?~~ — **resolved**:
    destroy by default; `keep_on_failure(true)` to preserve; cleanup failures never
    mask the original error.

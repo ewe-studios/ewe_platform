@@ -1,7 +1,7 @@
 # Progress — Spec 56: VPS Deployment Providers
 
 **Last updated:** 2026-07-17
-**Status:** Draft — decisions open, no implementation started
+**Status:** Draft — **all decisions resolved**, no implementation started
 
 ## Where this came from
 
@@ -36,15 +36,21 @@ DigitalOcean, Hetzner, Linode — with credentials from the environment and
 
 ## Decisions
 
-01 and 02 are resolved. 03 and 04 are open, and nothing should be built until
-they are — each one changes the code.
+**All four are resolved** (2026-07-17). Implementation can start with feature 00,
+which blocks the three provider crates.
+
+One prerequisite surfaced by decision 04 and tracked in
+[feature 05](features/05-vps-hardening/feature.md): auto-reboot needs container
+restart policies, and spec-53's `ContainerConfig` has none — the Docker client's
+`HostConfig.RestartPolicy` exists but nothing wires it. Without that, the 03:00
+security reboot brings the box back with every service down.
 
 | # | Decision | The question |
 |---|---|---|
 | 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three via selective generation ([feature 00](features/00-selective-codegen/feature.md)); output stays a checked-in `src/generated/` per crate with hand-written code outside it; API version pinned + spec revision validated; RPC (if ever needed) goes through `foundation_connectrpc`. |
 | 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | ✅ **Resolved** — `EWE_<VENDOR>_TOKEN` wins over the vendor-native name; `from_env()` errors naming both; 401 gets its own variant; token never in `Debug`/logs/errors; `new(token)`/`with_client` stay for tests + secret stores. |
-| 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, create-or-find, and destroy-on-partial-failure (a stranded VPS bills). |
-| 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely; cloud-init vs post-boot SSH; and how to stop **Docker publishing past the host firewall**. |
+| 03 | [The Deployable model](decisions/03-deployable-vps-model.md) | ✅ **Resolved** — separate Deployables composed with plain Rust (fields carry inputs); per-vendor server + provider-agnostic `SshHardening`/`DockerBootstrap`; create-or-find (recreate + log if gone); destroy-by-default on partial failure (`keep_on_failure` to opt out); vendor SSH keys removed only if we uploaded them (per-deployment key). |
+| 04 | [Hardening policy](decisions/04-hardening-policy.md) | ✅ **Resolved** — root hardens then a docker-group user (passwordless sudo; root pathway still offered); cloud-init applies best-effort **and** SSH re-applies + verifies (one `HardeningPolicy` renders both); provider **and** host firewall + `DOCKER-USER`; sshd on 2222; unattended upgrades **with** auto-reboot; fail2ban. |
 
 ## What already exists (verified, spec-53's review)
 

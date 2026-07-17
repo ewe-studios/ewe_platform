@@ -1,6 +1,6 @@
 # Requirements — Spec 56: VPS Deployment Providers
 
-**Status:** Draft (decision 01 resolved; 02–04 open, awaiting resolution)
+**Status:** Draft — **all decisions resolved** (2026-07-17); awaiting implementation approval
 **Created:** 2026-07-17
 **Owner:** Main Agent
 **has_features:** true
@@ -127,9 +127,9 @@ F02/F03/F04 broken for weeks. So:
 | # | Decision | Why it matters |
 |---|---|---|
 | 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three, conditional on selective generation (feature 00). |
-| 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | Variable names, precedence, and what happens when a token is absent or rejected. |
-| 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, and whether it is idempotent. |
-| 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely, and whether it is provider-side, cloud-init, or post-boot SSH. |
+| 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | ✅ **Resolved** — `EWE_*` wins over vendor-native; `from_env()` errors naming both; 401 its own variant; never in `Debug`/logs. |
+| 03 | [The Deployable model](decisions/03-deployable-vps-model.md) | ✅ **Resolved** — separate Deployables composed with plain Rust; create-or-find; destroy-on-partial-failure. |
+| 04 | [Hardening policy](decisions/04-hardening-policy.md) | ✅ **Resolved** — root hardens → docker-group user; cloud-init + SSH both apply, SSH verifies; provider + host firewall with `DOCKER-USER`; sshd 2222; unattended upgrades + auto-reboot; fail2ban. |
 
 ## Related specs
 
