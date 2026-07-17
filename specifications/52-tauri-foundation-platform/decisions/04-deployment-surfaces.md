@@ -634,8 +634,8 @@ fn business_logic(session: PlatformSession) {
 ```
 
 Full details — code generation, `src/generated/` wrappers, `foundation_wasmtime`
-builder, `PackageDirectorate` integration, session registry, build.rs pipeline,
-auto-routing — are in [decision 13](13-wasm-app-entrypoint.md).
+builder, session registry, build.rs pipeline, auto-routing — are in
+[decision 13](13-wasm-app-entrypoint.md).
 
 **`#[platform_worker]` — background thread in native shell:**
 
