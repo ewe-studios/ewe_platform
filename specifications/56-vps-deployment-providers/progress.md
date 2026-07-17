@@ -33,17 +33,19 @@ DigitalOcean, Hetzner, Linode — with credentials from the environment and
 | 05 | [VPS hardening](features/05-vps-hardening/feature.md) | 2 | not started |
 | 06 | [Composed deployables (VPS + hardening + bootstrap)](features/06-composed-deployables/feature.md) | 2 | not started |
 | 07 | [TLS termination proof + Cloudflare provider](features/07-tls-termination-and-cloudflare/feature.md) | 4 | not started |
+| 08 | [`ContainerConfig` restart policy](features/08-container-restart-policy/feature.md) | 2 | not started — **blocks 05** (decision 04 auto-reboot needs it) |
 
 ## Decisions
 
 **All four are resolved** (2026-07-17). Implementation can start with feature 00,
 which blocks the three provider crates.
 
-One prerequisite surfaced by decision 04 and tracked in
-[feature 05](features/05-vps-hardening/feature.md): auto-reboot needs container
-restart policies, and spec-53's `ContainerConfig` has none — the Docker client's
-`HostConfig.RestartPolicy` exists but nothing wires it. Without that, the 03:00
-security reboot brings the box back with every service down.
+Decision 04's auto-reboot surfaced one prerequisite, now
+**[feature 08](features/08-container-restart-policy/feature.md)**: container
+restart policies. Spec-53's `ContainerConfig` has none (the Docker client's
+`HostConfig.RestartPolicy` exists; nothing wires it), so a 03:00 security reboot
+would bring the box back with every service down. It is spec-53 code, owned here
+because a spec-56 decision requires it — spec-53 is closed and verified.
 
 | # | Decision | The question |
 |---|---|---|

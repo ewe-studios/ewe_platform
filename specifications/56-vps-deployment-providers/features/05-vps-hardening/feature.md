@@ -4,7 +4,7 @@ description: "One hardening policy applied to every provider's VPS — key-only 
 status: "not-started"
 priority: "high"
 phase: 2
-depends_on: ["04-hardening-policy"]
+depends_on: ["04-hardening-policy", "08-container-restart-policy"]
 estimated_effort: "medium"
 created: 2026-07-17
 ---
@@ -79,18 +79,13 @@ firewall is decorative for our workload.
   *verifier*, and the YAML stays unproven until someone boots a real VPS. Decision
   04 weighs that.
 
-## Prerequisite this feature carries
+## Blocked on feature 08
 
 Auto-reboot (decision 04) is useless — worse, harmful — without container restart
-policies, and **spec-53's `ContainerConfig` has none** (the Docker client's
-`HostConfig.RestartPolicy` does; nothing wires it). So this feature includes:
-
-- `ContainerConfig::restart_policy(..)` → `HostConfig.RestartPolicy`
-- everything this spec deploys defaults to `unless-stopped`
-- a test that restarts the daemon/host in the fixture and asserts the container
-  returns
-
-Without it, the 03:00 security reboot brings the box back with every service down.
+policies, and spec-53's `ContainerConfig` has none. That is
+[feature 08](../08-container-restart-policy/feature.md), and this feature is
+blocked on it: without it, the 03:00 security reboot brings the box back with
+every service down.
 
 ## Acceptance criteria
 

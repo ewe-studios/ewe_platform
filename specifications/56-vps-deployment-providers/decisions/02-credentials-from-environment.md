@@ -1,7 +1,7 @@
 # 02 — Credentials from the environment
 
 **Date:** 2026-07-17
-**Status:** **Resolved** (2026-07-17, owner)
+**Status:** **Resolved** (2026-07-17, owner) — one open item: the `DIGITALOCEAN_ACCESS_TOKEN` alias (§1)
 
 ## The question
 
@@ -36,9 +36,20 @@ Precedence is strictly `EWE_*` → vendor-native. When **neither** is set,
 `from_env()` errors **naming both** names it looked for — a "credentials not
 found" that does not say what it looked for is a scavenger hunt.
 
-`DIGITALOCEAN_ACCESS_TOKEN` is also common in the wild; worth accepting as a
-third fallback for DO, or worth leaving out to keep the rule "two names, in
-order"? (Minor; not blocking.)
+**Open — `DIGITALOCEAN_ACCESS_TOKEN`.** DO's ecosystem uses two names in the
+wild: `DIGITALOCEAN_TOKEN` (doctl, terraform) and `DIGITALOCEAN_ACCESS_TOKEN`
+(also common, and what some CI images export). Do we accept it as a third
+fallback?
+
+| | For | Against |
+|---|---|---|
+| **Accept it** | someone whose environment already has it just works, which is the whole point of vendor-native names | DO alone then has three names; the "two names, in order" rule stops being uniform, and the not-found error has to list three |
+| **Leave it out** | one rule, every provider: `EWE_*` → vendor-native | a user with only `DIGITALOCEAN_ACCESS_TOKEN` set gets "not found" while a token sits right there in the environment — the exact confusion vendor-native names exist to avoid |
+
+Recommendation: **accept it**, ordered `EWE_DIGITALOCEAN_TOKEN` →
+`DIGITALOCEAN_TOKEN` → `DIGITALOCEAN_ACCESS_TOKEN`, with the not-found error
+naming all three. The rule stays "the EWE override wins, then whatever the vendor's
+tooling uses" — DO just happens to use two.
 
 ### 2. Absent or empty token — **resolved: fail loudly**
 
@@ -91,5 +102,6 @@ mutating the process environment, which is global and would race under
 4. **Leakage:** never in `Debug`, logs, or errors (audit Cloudflare too).
 5. **Constructors:** `from_env()` + `new(token)` + `with_client(http, token)`.
 
-Open (minor, not blocking): whether to accept `DIGITALOCEAN_ACCESS_TOKEN` as a
-third fallback for DO, or keep the rule at exactly two names in order.
+**Still to answer:** whether DO also accepts `DIGITALOCEAN_ACCESS_TOKEN` as a
+third fallback (§1). Recommendation: yes, ordered after `DIGITALOCEAN_TOKEN`, with
+the not-found error naming all three.
