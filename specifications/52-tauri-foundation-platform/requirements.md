@@ -39,24 +39,38 @@ This specification defines the creation of a new `foundation_platform` crate to 
 - [`platform-synthesis.md`](foundations/platform-synthesis.md) — Synthesis: what `foundation_platform` should be.
 
 ## Plan
-1. ~~Outline initial decisions.~~ ✅ 12 resolved.
+1. ~~Outline initial decisions.~~ ✅ 13 resolved.
 2. ~~Create predocs/00-plan.md.~~ ✅
 3. ~~Explore Basecamp Hotwire Native sources.~~ ✅
 4. ~~Explore Tauri sources.~~ ✅
 5. ~~Write foundation documents.~~ ✅ 4 documents.
 6. ~~Create `foundation_platform` crate skeleton.~~ ✅
-7. **Implement `foundation_platform` crate** (next)
-   - Session backbone + navigation interception
-   - Route handler trait + macro API surface
-   - `ewe://` custom protocol registration
-   - Transport lanes (command IPC, events, resources)
-   - Capability registry
-   - WebView profiles
-   - Offline cache policy integration
-8. **Integrate with WASM UI**
-   - Wire session backbone into `foundation_wasm_ui` JS runtime
-   - Route native-side and web-side sessions as peers
-9. **Testing**
-   - Unit tests for platform modules
-   - Integration tests for Tauri-WASM UI bridge
-   - Functional testing on desktop targets
+7. ~~Resolve all 12 gaps.~~ ✅ [gaps.md](gaps.md)
+8. ~~Generate feature tickets.~~ ✅ 13 features (see below)
+9. **Implement features** (next — in dependency order)
+
+## Features
+
+| ID | Feature | Priority | Depends on |
+|---|---|---|---|
+| F00 | Crate scaffold + shared types | Critical | — |
+| F01 | Session backbone | Critical | F00 |
+| F02 | Route handler trait + pattern router | Critical | F01 |
+| F03 | `ewe://` custom protocol + transport lanes | Critical | F01 |
+| F04 | WebView profiles + access gates | High | F00 |
+| F05 | Capability registry | High | F01, F04 |
+| F06 | Single-WebView stack manager (v1) | High | F01, F02 |
+| F07 | Cache tiers + per-route policies | High | F01 |
+| F08 | LWW mutation queue (MVP) | Medium | F01 |
+| F09 | Walking skeleton (end-to-end) | Critical | F01–F08 |
+| F10 | Testing harness (`#[platform_test]`) | High | F01 |
+| F11 | Entrypoint annotations + build pipeline | Medium | F00, F01 |
+| F12 | MVP integration + demo app | Critical | F09–F11 |
+
+**Post-MVP features** (deferred from decisions):
+- Native view support (SwiftUI/Jetpack Compose)
+- `#[wasm_app]` + `foundation_wasmtime` (decision 13)
+- Full conflict resolution (decision 12)
+- Surface 2 (native static lib) + Surface 3 (shell+WASM runtime)
+- Background workers (foreground/background, OS constraints)
+- Multi-WebView (desktop+unstable)
