@@ -239,7 +239,7 @@ BuildKit-backend tests against a real buildkitd — skipped when none is reachab
 | 12 | SSL redirect | 25 | ✅ wired |
 | 13 | Writer affinity (sticky cookie) | 23 | ✅ wired |
 | 14 | State persistence | 21 | ✅ wired + verified |
-| 15 | ACME cert provisioning | 18 | ✅ wired + verified |
+| 15 | ACME cert provisioning | 18 | ✅ wired + verified (Let's Encrypt path only — TLS termination itself is unproven and the Cloudflare provider is unbuilt: [spec 56 feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md)) |
 | 16 | Unix-socket control RPC | 20 | ✅ wired + verified |
 | 17 | HTTP/2 proxy | 26 | ✅ fixed + verified |
 | 18 | Zero-downtime deploy (drain) | 22 | ✅ wired |
@@ -252,7 +252,9 @@ BuildKit-backend tests against a real buildkitd — skipped when none is reachab
 | HTTP/1.1 reverse proxy | ✅ e2e (Docker integration suite) |
 | HTTP/2 termination | ✅ verified end-to-end |
 | HTTP/3 (QUIC) termination | ✅ built + verified (foundation_http H3 server) |
-| Let's Encrypt ACME | ✅ wired + verified (DNS-01 setter is a hook) |
+| **TLS termination (HTTPS in → backend)** | 🔴 **wired, never exercised** — no test makes a TLS connection through the proxy; see [spec 56 feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md) |
+| Let's Encrypt ACME | ✅ wired + verified (a mock CA signs the CSR → the cert builds a real `SSLAcceptor`); the DNS-01 setter is a caller hook |
+| **Cloudflare cert provider** | 🔴 **not implemented** — `build_cert_manager` errors for `SslProvider::Cloudflare`; decision 18 wants ACME DNS-01 via the Cloudflare API (wildcards), see [spec 56 feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md) |
 | Zero-downtime deploys (drain) | ✅ wired |
 | TCP/UDP health checks | ✅ e2e (Docker health eject/readmit) |
 | Weighted round-robin (smooth WRR) | ✅ e2e (Docker round-robin) |
@@ -292,6 +294,56 @@ russh). Platform default suite green._
    e2e-tested at both the http and proxy levels. — done
 
 **All reopened proxy features (F14/F15/F16/F19) are now wired and verified.**
+
+---
+
+## Final completeness review (2026-07-17)
+
+A full sweep of all 19 features and 29 decisions, after the F02/F03/F04 repairs.
+
+### Verified green
+
+Every claim in this file now names a test that exists and passes. Re-run this
+session against real daemons:
+
+| Area | Evidence |
+|---|---|
+| Part A (F01–F05) | `container_integration`, `docker_macro_tests` (3), `network_volume_integration` (4), `image_build_integration` (6) |
+| Part B (F09–F11) | `ssh_backend_tests` (5), `runner_integration_tests` (1), `docker_provider_tests` (1) — all vms-gated, Docker-backed |
+| Proxy data plane | `proxy_integration_tests` **9/9** (`--features docker-tests`): forward, WRR, host/path routing, 404/503, XFF + hop-by-hop, TCP **and UDP** passthrough, health eject/readmit |
+| Proxy features | `proxy_features_tests` (sticky, drain, SSL-redirect, WebSocket), `persistence_restart_tests`, `control_socket_tests`, `acme_provisioning_tests` |
+| H2/H3 | `h2_integration_tests`, `h3_integration_tests` + `foundation_http::http3_server_tests` (`--features quic`) |
+| Remote Docker over SSH | `ssh_transport_tests` (info + container round-trip) vs docker-in-docker + sshd |
+| Client | `foundation_deployment_docker` 101 passed (docker + integration-tests) |
+
+Structural checks: **no `unimplemented!`/`todo!`** anywhere in the four crates,
+and **no unused public type** in any hand-written module — the dead-module problem
+that hid F03 (`NetworkHandle`) and F04 (`image.rs`) is gone. Every test file named
+in this document and in `features/README.md` exists.
+
+### Pending work — moved to [spec 56](../../56-vps-deployment-providers/)
+
+**This spec is done.** Four items the review surfaced were never in its feature
+set (01–19) and are pending; they moved to
+**[spec 56 — VPS Deployment Providers](../../56-vps-deployment-providers/)**
+rather than hold spec-53 open:
+
+| Gap | Now |
+|---|---|
+| **TLS termination is wired but never exercised.** No test makes a TLS connection through the proxy; the ACME tests prove a cert *builds an acceptor*, and the SSL-redirect test only drives plain HTTP. | [spec 56, feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md) |
+| **`SslProvider::Cloudflare` not implemented** — `build_cert_manager` errors out, and the message describes Origin CA while decision 18 asks for ACME DNS-01 *via* the Cloudflare API (wildcards). Unwired, not unbuildable: `Dns01Setter` + `upsert_dns_record`/`Txt` both exist. | [spec 56, feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md) |
+| **Cloudflare DNS ops untested** — 12 tests, all on typed records (decision 24 ✅); `list/upsert/delete/find_zone/bootstrap_domain` have none. `find_zone(_domain)` **ignores its argument** and reports on the configured zone id instead — the same silently-dropped-parameter family as F03's `subnet` and F04's `memory`. | [spec 56, feature 07](../../56-vps-deployment-providers/features/07-tls-termination-and-cloudflare/feature.md) |
+| **Decision 06 (cloud deployment) never built** — no cloud-init, no VM provisioning. Nothing blocks it: 4 of 5 steps exist and are verified; only VM creation needs an account. | [spec 56](../../56-vps-deployment-providers/) — features 01–06 (Hetzner/DigitalOcean/Linode crates, cloud-init + bootstrap, hardening, `VpsDeployment`) |
+
+### Not gaps (checked, resolved)
+
+- **The 3 `#[ignore]`d "known-fragile mock" tests** (`exec_create`,
+  `network_create`, `volume_create`) are **redundant**: all three endpoints are
+  covered against a **real daemon** by `network_volume_exec_integration_tests` and
+  `integration_tests`, which pass. The mock races; the endpoints are proven.
+- **Decision 29** (Docker test `block_on`) — "Investigated — resolved by spec-54".
+- **Decisions 15/24** (Cloudflare transition, typed DNS records) — the typed
+  records of 24 are covered; the transition's runtime surface is item 3 above.
 
 ## Related specs
 

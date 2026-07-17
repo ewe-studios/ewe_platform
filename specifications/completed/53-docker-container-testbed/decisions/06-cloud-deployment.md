@@ -1,7 +1,38 @@
 # 06 — Cloud Deployment
 
 **Date:** 2026-07-10
-**Status:** Resolved
+**Status:** Resolved as a design — **not built here; implementation moved to [spec 56](../../../56-vps-deployment-providers/)**
+
+> **Audit 2026-07-17: not built here, and nothing technical is stopping it.**
+> The build lives in **[spec 56 — VPS Deployment Providers](../../../56-vps-deployment-providers/)**,
+> which turns the "create the VM" row below into three provider crates
+> (DigitalOcean, Hetzner, Linode) plus hardening and a shared `VpsDeployment`. There is
+> no cloud-init template and no Hetzner/AWS/GCP provisioning code, and no feature
+> in the spec's set (01–19) covers this. This file is a plan, not a description of
+> the tree. Most of what it depends on now exists and is verified:
+>
+> | Step | State |
+> |---|---|
+> | cloud-init provisions curl + ca-certificates | **not built** — a string template; no dependency on anything |
+> | bootstrap Docker + binary over SSH (`foundation_sshkit`) | **exists, e2e-verified** — `ssh_backend_tests` (execute/upload/download/auth, 5 tests vs a real container) |
+> | subsequent container ops over SSH | **exists, e2e-verified** — `DockerClient::connect_ssh` + `docker system dial-stdio`; `ssh_transport_tests` (info + container round-trip) pass against docker-in-docker with sshd |
+> | service exposure + TLS (`foundation_proxy`) | **exists, e2e-verified** — 9/9 reverse-proxy e2e, ACME provisioning |
+> | create the VM on Hetzner/AWS/GCP | **not built** — the only piece with an external dependency: a provider API client plus an account to run it against |
+>
+> So the work left is the cloud-init template, an SSH bootstrap sequence (both
+> buildable and testable locally against the docker-in-docker + sshd fixture the
+> transport tests already use), and one provider API client for VM creation —
+> which cannot be verified here without credentials.
+>
+> Two corrections before building it:
+> - **bollard is gone.** "Remote Docker via bollard SSH" below predates the
+>   migration to `foundation_deployment_docker`. The equivalent today is
+>   `DockerClient::connect_ssh("ssh://user@host")`.
+> - **`connect_ssh` needs the `ssh` feature**, and `ssh` and `buildkit` are
+>   mutually exclusive (libssh2/OpenSSL vs BoringSSL — see decision 05, "How the
+>   build runs"). A deployment that drives a remote daemon over SSH cannot also
+>   drive a standalone buildkitd from the same binary; build images with the
+>   `Classic` backend on the remote daemon instead.
 
 ## Decision
 
