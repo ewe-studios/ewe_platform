@@ -97,6 +97,11 @@ pub struct RouteDecision {
 
     /// Native capabilities allowed on this route (per-route allowlisting).
     pub capabilities: Vec<CapabilityId>,
+
+    /// Auth origin for this route. Only meaningful when profile is Auth.
+    /// The session uses this to restrict HTTP requests to the auth provider's
+    /// origin (e.g., OAuth endpoints, token endpoints).
+    pub auth_origin: Option<String>,
 }
 
 // ── Route source ────────────────────────────────────────────────────────────

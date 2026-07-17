@@ -4,6 +4,7 @@
 //! capability registry, cache manager, transport lanes, and WebView stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
+mod backend;
 mod builder;
 mod cache;
 mod capability;
@@ -20,6 +21,7 @@ mod types;
 
 pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
+pub use backend::query_backend;
 pub use builder::PlatformBuilder;
 pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
 pub use capability::{Capability, CapabilityRegistry};

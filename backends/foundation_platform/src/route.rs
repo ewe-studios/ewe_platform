@@ -28,6 +28,7 @@ pub fn webview_app() -> RouteDecision {
         native_view_id: None,
         target: None,
         capabilities: Vec::new(),
+            auth_origin: None,
     }
 }
 
@@ -45,6 +46,7 @@ pub fn ipc_shell() -> RouteDecision {
         native_view_id: None,
         target: None,
         capabilities: Vec::new(),
+            auth_origin: None,
     }
 }
 
@@ -72,6 +74,7 @@ pub fn remote_fetch() -> RouteDecision {
         native_view_id: None,
         target: None,
         capabilities: Vec::new(),
+            auth_origin: None,
     }
 }
 
@@ -134,10 +137,8 @@ impl RouteDecisionExt for RouteDecision {
         self
     }
 
-    fn with_auth_origin(self, _origin: &str) -> Self {
-        // The origin is stored in the session's route metadata, not in
-        // the RouteDecision struct. This method exists for API symmetry —
-        // the session records the auth_origin when the route is registered.
+    fn with_auth_origin(mut self, origin: &str) -> Self {
+        self.auth_origin = Some(origin.to_string());
         self
     }
 }

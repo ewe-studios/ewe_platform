@@ -151,10 +151,67 @@ impl PlatformSession {
         self.register_handler(super::route_handler::FnRouteHandler::new(f));
     }
 
-    fn default_decision_for(&self, _intent: &NavigationIntent) -> RouteDecision {
+    fn default_decision_for(&self, intent: &NavigationIntent) -> RouteDecision {
+        // External URLs → system browser
+        if intent.url.starts_with("http://") || intent.url.starts_with("https://") {
+            return super::route::webview_app()
+                .with_presentation(Presentation::External);
+        }
+
+        // Same-origin ewe:// with no handler → UntrustedRemote sandbox
         super::route::remote_fetch()
             .with_profile(Profile::UntrustedRemote)
             .with_cache_policy(CachePolicy::OnlineOnly)
+    }
+
+    /// Execute a RouteDecision through the full 9-step contract.
+    ///
+    /// Steps 2-9 of the execution contract (step 1 = interception, done by caller):
+    /// 2. Handler chain — already resolved, decision passed in
+    /// 3. Cache check
+    /// 4. Presentation — record navigation for stack manager
+    /// 5. Backend query
+    /// 6. Protocol selection
+    /// 7. Content encoding
+    /// 8-9. Post-render — page identity tracking
+    ///
+    /// Returns the encoded response (body, content_type) ready for delivery.
+    pub fn execute_decision(
+        &self,
+        decision: &RouteDecision,
+        intent: &NavigationIntent,
+    ) -> (Vec<u8>, String) {
+        // Step 3: Cache check
+        let route = crate::pattern::extract_path(&intent.url);
+        if self.cache.should_serve_cached(decision, &route) {
+            if let Some(entry) = self.cache.get(decision.profile, &route) {
+                return (entry.body, entry.content_type);
+            }
+        }
+
+        // Step 5: Backend query
+        let content = crate::backend::query_backend(decision, &route);
+
+        // Step 6: Protocol selection
+        // Extract proto query param if present
+        let proto_hint: Option<String> = intent.url.split('?').nth(1)
+            .and_then(|q| q.split('&')
+                .find(|p| p.starts_with("proto="))
+                .map(|p| p[6..].to_string()));
+
+        let protocol = super::ewe::select_protocol(
+            &decision.protocol,
+            proto_hint.as_ref(),
+            &content,
+        );
+
+        // Step 7: Content encoding
+        let (body, content_type) = super::ewe::encode_protocol(&protocol, &content);
+
+        // Step 9: Post-render — record navigation
+        self.record_navigation(&route);
+
+        (body, content_type.to_string())
     }
 }
 

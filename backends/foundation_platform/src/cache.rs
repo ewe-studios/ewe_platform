@@ -209,6 +209,7 @@ mod tests {
             native_view_id: None,
             target: None,
             capabilities: vec![],
+            auth_origin: None,
         }
     }
 
