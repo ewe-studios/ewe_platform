@@ -34,6 +34,7 @@ pub mod extractor;
 pub mod normalizer;
 pub mod selection;
 pub mod spec;
+pub mod transform;
 pub mod type_resolver;
 pub mod unified;
 
@@ -52,6 +53,10 @@ pub use normalizer::{
     PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
 };
 pub use selection::{glob_match, operations_of, Selection};
+pub use transform::{
+    ensure_servers, extract_inline_schemas, normalize_nullable_types, path_to_type_name,
+    validate_canonical, NotCanonical,
+};
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;
 

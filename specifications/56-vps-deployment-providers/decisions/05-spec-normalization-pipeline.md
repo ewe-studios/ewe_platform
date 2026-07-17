@@ -1,9 +1,7 @@
 # 05 — Who normalizes provider specs, and where the canonical one lives
 
 **Date:** 2026-07-17
-**Status:** **Mostly resolved** (owner, 2026-07-17) — raw specs are kept under
-`artefacts/cloud_providers/raw/`, and a registry maps provider → normalizer → raw file.
-Two wrinkles remain (§1 where transforms live, §5 output validation).
+**Status:** **Resolved** (owner, 2026-07-17)
 
 ## The proposal
 
@@ -92,20 +90,17 @@ It should also carry what this spec needs:
 
 ## Wrinkles to resolve
 
-### 1. Where do the transforms live?
+### 1. Where do the transforms live? — **resolved: `foundation_openapi`** (owner, 2026-07-17)
 
-They are in `foundation_deployment` (runtime) and used only by its tests.
-Candidates:
+**Done 2026-07-17.** `foundation_deployment::providers::standard::normalize` →
+**`foundation_openapi::transform`** (moved with history; its tests came along).
+Canonicalising a spec is a build-time concern belonging to the spec-processing
+library — not to a runtime crate that never called it — and it now sits beside
+`Selection` and (next) the closure, with `genapi` driving it. No dependency cycle:
+neither crate depended on the other.
 
-- **`foundation_openapi`** — its own doc already claims the job ("parse OpenAPI
-  specs … and produce normalized JSON representations"), and it is where selection
-  and the closure now live. The CLI in `foundation_codegentools` then just drives
-  it. **Recommended.**
-- `foundation_codegentools` directly — fine, but then `foundation_openapi` (the
-  spec-processing library) cannot canonicalise, which is odd.
-
-Either way `foundation_deployment` loses them. Its tests come along; nothing else
-references them.
+`foundation_deployment` is unaffected: nothing but those tests referenced them
+(17 tests still green).
 
 ### 2. Do we keep the raw spec? — **resolved: yes, under `artefacts/cloud_providers/raw/`** (owner, 2026-07-17)
 
@@ -185,13 +180,40 @@ output*, and the raw input moves to `raw/`. For providers that arrive canonical
 byte-identical — worth keeping anyway, so every provider goes through one pipeline
 rather than two.
 
-### 5. Does `normalize` validate its own output?
+### 5. Does `normalize` validate its own output? — **resolved: yes** (owner, 2026-07-17)
 
-It should — that is the cheap version of "did the transform work". Assert the
-result is canonical (schemas in `components/schemas`, `servers` non-empty, no
-inline object schemas left in operations) and fail loudly otherwise. Without it a
-half-applied transform produces a spec that generates quietly-wrong code, which is
-the exact failure mode spec-53's audit kept finding.
+**Done 2026-07-17** — `foundation_openapi::validate_canonical` reports every way a
+spec falls short, not just the first:
+
+| Finding | Meaning |
+|---|---|
+| `NoServers` | generated clients would have no base URL |
+| `NoComponentSchemas` | nothing to `$ref` |
+| `InlineSchema { path, method, location }` | an operation still carries an inline object schema — it generates as an anonymous blob, since types are named from `$ref` |
+
+Free-form `{"type": "object"}` (no properties) and arrays of `$ref`s pass — they
+have no fields to name a type from. Inline `properties`, inline `allOf`, and
+arrays of inline objects do not.
+
+#### What it found when pointed at the real specs
+
+| Spec | Verdict |
+|---|---|
+| Linode (9.3 MB) | **not canonical** — 1042 inline schemas |
+| Hetzner (3.4 MB) | **not canonical** — 633 inline schemas |
+| **Cloudflare (19 MB, generated today)** | **not canonical — 3090 inline schemas** |
+
+The first two were expected. **Cloudflare was not** — it has 18,727 `$ref`s, yet
+3090 operations still write their schemas in place. And it shows in the shipped
+client: **1224 of its 2442 generated request fns return `serde_json::Value` or
+`()`** rather than a named type. Some of those are legitimately 204/free-form, so
+that is a correlation rather than a count of fixable endpoints — but it means the
+transform stage is not only for the three new providers. Hoisting would give a
+large part of the existing Cloudflare client real types.
+
+Note the validator checks canonical **for our generator** — schemas hoisted so an
+operation's schema is a `$ref`. Cloudflare's spec is perfectly legal OpenAPI; it
+is just not in the shape this pipeline needs.
 
 ## To resolve
 

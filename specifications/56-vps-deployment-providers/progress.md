@@ -37,8 +37,8 @@ DigitalOcean, Hetzner, Linode — with credentials from the environment and
 
 ## Decisions
 
-01–04 are resolved (2026-07-17). **05 (spec normalization) is mostly resolved** —
-two wrinkles left. Implementation has started on feature 00.
+**All five are resolved** (2026-07-17). Implementation has started on feature 00:
+selection and the transform move + validation are done.
 
 Decision 04's auto-reboot surfaced one prerequisite, now
 **[feature 08](features/08-container-restart-policy/feature.md)**: container
@@ -52,7 +52,7 @@ because a spec-56 decision requires it — spec-53 is closed and verified.
 | 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three via selective generation ([feature 00](features/00-selective-codegen/feature.md)); output stays a checked-in `src/generated/` per crate with hand-written code outside it; API version pinned + spec revision validated; RPC (if ever needed) goes through `foundation_connectrpc`. |
 | 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | ✅ **Resolved** — a provider declares its vendor spelling(s); the override is `EWE_` + that name (derived, not invented), all `EWE_*` before all vendor-native; `from_env()` errors naming every name tried; 401 gets its own variant; token never in `Debug`/logs/errors; `new(token)`/`with_client` stay. |
 | 03 | [The Deployable model](decisions/03-deployable-vps-model.md) | ✅ **Resolved** — separate Deployables composed with plain Rust (fields carry inputs); per-vendor server + provider-agnostic `SshHardening`/`DockerBootstrap`; create-or-find (recreate + log if gone); destroy-by-default on partial failure (`keep_on_failure` to opt out); vendor SSH keys removed only if we uploaded them (per-deployment key). |
-| 05 | [Spec normalization pipeline](decisions/05-spec-normalization-pipeline.md) | **Mostly resolved** — `genapi normalize <provider>` is file→file over a committed `artefacts/cloud_providers/raw/<provider>.json`; a registry maps provider → normalizer → raw file; the canonical artefact + manifest are the output. Open: where the transforms live, and confirming output validation. |
+| 05 | [Spec normalization pipeline](decisions/05-spec-normalization-pipeline.md) | ✅ **Resolved** — `genapi normalize <provider>` is file→file over a committed `artefacts/cloud_providers/raw/<provider>.json`; registry maps provider → normalizer → raw; transforms moved to `foundation_openapi::transform` (**done**); `validate_canonical` fails loudly on non-canonical output (**done**). |
 | 04 | [Hardening policy](decisions/04-hardening-policy.md) | ✅ **Resolved** — root hardens then a docker-group user (passwordless sudo; root pathway still offered); cloud-init applies best-effort **and** SSH re-applies + verifies (one `HardeningPolicy` renders both); provider **and** host firewall + `DOCKER-USER`; sshd on 2222; unattended upgrades **with** auto-reboot; fail2ban. |
 
 ## What already exists (verified, spec-53's review)
