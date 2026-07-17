@@ -8,7 +8,7 @@ mod builder;
 mod cache;
 mod capability;
 mod mutation;
-mod stack;
+pub mod stack;
 pub mod ewe;
 pub mod pattern;
 pub mod profiles;
