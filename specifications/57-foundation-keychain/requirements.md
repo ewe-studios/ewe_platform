@@ -68,6 +68,7 @@ Extract and generalize OrangeVault into `foundation_keychain`:
 | `shared::middleware::AuthContext` | Auth context (token, path, IP, sub) | `auth/guards.rs` `AuthenticatedUser` |
 | `shared::credential_store::AsyncCredentialStore` | Credential lookup | `db/queries.rs` `find_user_by_email` |
 | `shared::credential_store::D1CredentialStore` | D1 credential store (wasm) | None (already exists) |
+| `shared::pbkdf2` | PBKDF2-HMAC-SHA256 derive/verify | `crypto/pbkdf2.rs` + `auth/guards.rs` verify_master_password |
 | `server::services::UserService` | User CRUD, password hashing | `api/identity.rs` register |
 | `server::services::TokenService` | OAuth token issuance | `api/identity.rs` `connect_token` |
 | `server::services::SessionService` | Session management | Device tracking in `identity.rs` |

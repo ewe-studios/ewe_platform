@@ -22,9 +22,10 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 # Cryptography
 zeroize = { version = "1" }
 argon2 = "0.5"            # Password hashing (memory-hard)
+pbkdf2 = "0.12"           # PBKDF2-HMAC-SHA256 (native)
 chacha20poly1305 = "0.10" # Encrypted session data
-sha2 = "0.10"             # SHA256 for PKCE
-hmac = "0.12"             # TOTP, HMAC
+sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
+hmac = "0.12"             # TOTP, HMAC, PBKDF2
 rand = "0.8"              # Secure random generation
 getrandom = { version = "0.2", optional = true }
 
@@ -106,6 +107,15 @@ server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "fou
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API
 wasm-bindgen-oauth = [
+  "wasm",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
+
+# PBKDF2 on WASM (needs web-sys for SubtleCrypto, js-sys/wasm-bindgen-futures for JS interop)
+wasm-pbkdf2 = [
   "wasm",
   "dep:wasm-bindgen",
   "dep:wasm-bindgen-futures",
