@@ -1,0 +1,77 @@
+[dependencies]
+# The generated types derive JsonHash, whose expansion names these crates
+# directly — every consumer of the derive must depend on them itself.
+base85rs = "0.1"
+sha2 = "0.10"
+
+[dependencies.chrono]
+workspace = true
+
+[dependencies.derive_more]
+workspace = true
+
+[dependencies.foundation_core]
+path = "../foundation_core"
+version = "0.0.3"
+
+[dependencies.foundation_deployment]
+path = "../foundation_deployment"
+version = "0.0.1"
+
+[dependencies.foundation_macros]
+path = "../foundation_macros"
+version = "0.0.4"
+
+[dependencies.foundation_netio]
+features = [
+    "ssl",
+    "multi",
+]
+path = "../foundation_netio"
+version = "0.0.1"
+
+[dependencies.serde]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.tracing]
+workspace = true
+
+[features]
+default = ["hetzner"]
+hetzner = [
+    "hetzner_servers",
+    "hetzner_ssh_keys",
+]
+hetzner_all = [
+    "hetzner_servers",
+    "hetzner_ssh_keys",
+]
+hetzner_servers = []
+hetzner_ssh_keys = []
+
+[lints]
+workspace = true
+
+[package]
+description = "Hetzner Cloud API v1 client — VPS provisioning and SSH keys"
+name = "foundation_deployment_hetzner"
+version = "0.1.0"
+
+[package.authors]
+workspace = true
+
+[package.edition]
+workspace = true
+
+[package.license]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.rust-version]
+workspace = true
+

@@ -4499,6 +4499,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_deployment_hetzner"
+version = "0.1.0"
+dependencies = [
+ "base85rs",
+ "chrono",
+ "derive_more",
+ "foundation_core",
+ "foundation_deployment",
+ "foundation_macros",
+ "foundation_netio",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_deployment_huggingface"
 version = "0.1.0"
 dependencies = [
