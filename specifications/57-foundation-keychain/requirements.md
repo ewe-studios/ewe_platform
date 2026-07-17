@@ -183,12 +183,7 @@ foundation_auth = { path = "../foundation_auth" }
 
 # WASM deps (Cloudflare Workers)
 [target.'cfg(target_family = "wasm")'.dependencies]
-worker = { version = "0.8", features = ["d1"] }
-worker-macros = "0.8"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["Crypto", "SubtleCrypto"] }
-js-sys = "0.3"
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", features = ["workers"] }
 foundation_db = { path = "../foundation_db", features = ["wasm-bindgen-storage"] }
 foundation_auth = { path = "../foundation_auth", features = ["wasm-bindgen-session", "wasm-pbkdf2"] }
 
@@ -196,6 +191,7 @@ foundation_auth = { path = "../foundation_auth", features = ["wasm-bindgen-sessi
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http" }
 foundation_netio = { path = "../foundation_netio" }
+foundation_cronjobs = { path = "../foundation_cronjobs" }
 foundation_auth = { path = "../foundation_auth", features = ["server"] }
 ```
 

@@ -4,7 +4,7 @@ Portable Bitwarden-compatible keychain service built on `foundation_db` and `fou
 
 ## Summary
 
-Extracts OrangeVault's Bitwarden-compatible vault API into a portable crate. Zero custom storage traits — uses `foundation_db`'s `QueryStore`, `KeyValueStore`, `BlobStore`, `RateLimiterStore`, `StorageProvider` directly. Uses `foundation_auth` for JWT/TOTP/middleware/credential-stores. The only new code is the Bitwarden domain logic (API handlers, SignalR protocol, org lifecycle).
+Extracts OrangeVault's Bitwarden-compatible vault API into a portable crate. Zero custom storage traits — uses `foundation_db`'s `QueryStore`, `KeyValueStore`, `BlobStore`, `RateLimiterStore`, `StorageProvider` directly. Uses `foundation_auth` for JWT/TOTP/PBKDF2/middleware/credential-stores. Workers runtime via `foundation_deployment_cloudflare::workers`. Cron via `foundation_cronjobs`. The only new code is the Bitwarden domain logic (API handlers, SignalR protocol, org lifecycle).
 
 ## Progress
 
@@ -19,13 +19,15 @@ Extracts OrangeVault's Bitwarden-compatible vault API into a portable crate. Zer
 
 | # | Decision | Status |
 |---|----------|--------|
-| 01 | Crypto — Web Crypto (wasm) + foundation_auth JwtSigningKey (native) | Resolved |
+| 01 | Crypto — foundation_auth (JwtSigningKey, TOTP, PBKDF2) | Resolved |
 | 02 | Storage — foundation_db traits only (no custom traits) | Resolved |
-| 03 | Feature gates — mutually exclusive (backend-cloudflare / backend-native) | Resolved |
+| 03 | No backend features — target gates (`cfg(target_family = "wasm")`) | Resolved |
 | 04 | Notifications — foundation_netio WebSocket (native), DO (Cloudflare) | Resolved |
-| 05 | Jobs — valtron-based cron scheduler (native), cron triggers (Cloudflare) | Resolved |
+| 05 | Jobs — foundation_cronjobs (valtron + foundation_db persistence) | Resolved |
 | 06 | Auth — foundation_auth for JWT/TOTP/middleware; keychain adapts | Resolved |
-| 07 | Blob — foundation_db BlobStore (R2Wasm native, filesystem native) | Resolved |
+| 07 | Blob — foundation_db BlobStore (R2Wasm, filesystem) | Resolved |
+| 08 | age encryption — deferred (admin ops story) | Resolved |
+| 09 | Workers runtime — foundation_deployment_cloudflare::workers | Resolved |
 
 ## Source
 

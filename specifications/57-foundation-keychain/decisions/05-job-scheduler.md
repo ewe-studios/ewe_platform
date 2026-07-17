@@ -1,23 +1,29 @@
-# Decision 05: Native Job Scheduler — valtron-based
+# Decision 05: Cron Jobs — foundation_cronjobs
 
 ## Problem
 
 The keychain needs scheduled jobs (purge expired sends, trash cleanup). Cloudflare uses Workers cron triggers. Native needs an equivalent.
 
-1. **tokio-cron-scheduler** — cron-compatible but requires tokio runtime (not used in this workspace)
-2. **valtron-based timer** — uses the workspace's existing executor
-3. **Custom timer** — simple but reinvents cron parsing
+1. **foundation_cronjobs** — new crate: valtron-based scheduler with foundation_db persistence
+2. **Per-crate ad-hoc timers** — each crate rolls its own scheduling
 
 ## Analysis
 
-The workspace uses valtron for all async execution. Pulling in `tokio-cron-scheduler` would add a second runtime for one use case. The cron parsing logic (`"0 */6 * * *"`) is trivial — a small cron parser on top of valtron's `Delayed` parking is straightforward.
+A cron scheduler is general infrastructure. Any crate that needs periodic work (purge jobs, cleanup, reporting) would benefit from a shared implementation. The scheduler needs:
+- Cron expression parsing (`"0 */6 * * *"`)
+- Next fire time computation
+- Valtron `Delayed` parking (no tokio)
+- Persistence via foundation_db (last_run, success/failure, consecutive errors, catch-up on restart)
 
-## Decision: valtron-based cron scheduler
+## Decision: foundation_cronjobs crate
 
-A simple valtron task that parses cron expressions, computes the next fire time, and parks via `Delayed` until then. No tokio dependency. Same cron expressions as the Cloudflare backend (`0 */6 * * *`, `0 0 * * *`).
+A new crate that provides `CronScheduler` — parse cron expressions, compute next fire time, spawn valtron tasks that park via `Delayed` until execution. Job state persists in foundation_db (SQL table: `cron_jobs` with id, cron_expr, last_run, last_status, error_count, next_run).
+
+Keychain uses it directly. The Cloudflare backend uses Workers cron triggers (native to the platform, no scheduler needed).
 
 ## Consequences
 
-- No tokio dependency in the workspace
-- Consistent with how all other foundation crates schedule work
-- Job implementations are portable functions that take `&dyn QueryStore` + `&dyn BlobStore` — identical between Cloudflare cron triggers and native valtron timer
+- One scheduler for all crates
+- No tokio dependency
+- Job history survives restarts
+- Missed-job policy configurable: catch up once, skip, or run all

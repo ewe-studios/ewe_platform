@@ -2,7 +2,7 @@
 
 ## Goal
 
-Implement the Cloudflare Workers backend using `foundation_db`'s WASM backends (`D1Wasm`, `R2Wasm`, `KVWasm`) + Web Crypto for PBKDF2 + `foundation_auth`'s `D1CredentialStore`. Prove everything works end-to-end on `wasm32-unknown-unknown`.
+Implement the Cloudflare Workers backend using `foundation_deployment_cloudflare::workers` (Durable Objects, WebSocket, Env) + `foundation_db`'s WASM backends (`D1Wasm`, `R2Wasm`, `KVWasm`) + `foundation_auth`'s `D1CredentialStore` and `pbkdf2`. Prove everything works end-to-end on `wasm32-unknown-unknown`.
 
 ## Work
 
@@ -20,53 +20,17 @@ TOTP uses `foundation_auth::two_factor::TOTPSecret` — the Web Crypto backend o
 
 ### 2. Server Bootstrap (`server/cloudflare.rs`)
 
-The `#[event(fetch)]` and `#[event(scheduled)]` entry points:
+The `#[event(fetch)]` and `#[event(scheduled)]` entry points via `foundation_deployment_cloudflare::workers`:
 
 ```rust
+use foundation_deployment_cloudflare::workers::{env, context::WorkersContext, durable_object::DurableObjectHandle};
+
 #[event(fetch)]
-async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
-    // Initialize foundation_db StorageProvider
-    let db = StorageProvider::new(StorageBackend::D1Wasm {
-        db: Arc::new(env.d1("DB")?),
-        table_prefix: "orangevault".into(),
-    })?;
-    let blob = StorageProvider::new(StorageBackend::R2Wasm {
-        bucket: env.bucket("FILES")?,
-        prefix: "".into(),
-    })?;
-    let kv = StorageProvider::new(StorageBackend::KVWasm {
-        kv: env.kv("CACHE")?,
-        prefix: "".into(),
-    })?;
-
-    // Initialize foundation_auth JWT signing key (stored in KV)
-    let signing_key = load_or_create_signing_key(&kv).await?;
-
-    // Build request context with storage + auth
-    let ctx = KeychainContext { db, blob, kv, signing_key, env: env.clone() };
-
+async fn main(req: Request, e: Env, _ctx: Context) -> Result<Response> {
+    let env = env::WorkersEnv::new(e)?;
+    let ctx = WorkersContext::new(env.clone())?;
     // Route setup — wire api/ handlers to workers-rs Router
-    let router = Router::with_data(ctx)
-        .get("/alive", |_, _| Response::ok(""))
-        .get("/api/alive", |_, _| Response::ok(""))
-        .get_async("/api/config", api::accounts::get_config)
-        .post_async("/accounts/prelogin", api::accounts::prelogin)
-        // ... all ~150 routes ...
-        .run(req, env).await;
-
-    // CORS + security headers on response
-    finalize_response(router)
-}
-
-#[event(scheduled)]
-async fn scheduled(event: ScheduledEvent, env: Env, _ctx: ScheduleContext) {
-    let db = StorageProvider::new(StorageBackend::D1Wasm { ... })?;
-    let blob = StorageProvider::new(StorageBackend::R2Wasm { ... })?;
-    match event.cron().as_str() {
-        "0 */6 * * *" => purge_expired_sends(&db, &blob).await,
-        "0 0 * * *" => purge_trashed_ciphers(&db).await,
-        other => console_log!("cron: unknown schedule {other}"),
-    }
+    // ...
 }
 ```
 
