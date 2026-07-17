@@ -21,9 +21,9 @@ pub mod shared;
 /// `compile_error!` line as each gap is fixed.
 pub mod completeness;
 
-/// Native-only glue: UDP transport, the tunnel driver task, and the BoringSSL
-/// TLS-PSK bootstrap/mTLS. Gated behind `native-mesh` (default-on) so consumers
-/// needing only the pure-Rust key/seed types can build without BoringSSL.
+/// Native-only glue: UDP transport, the tunnel driver task, and the pure-Rust
+/// Noise-PSK bootstrap channel. Gated behind `native-mesh` (default-on) so consumers
+/// needing only the key/seed types can trim it with `default-features = false`.
 #[cfg(all(not(target_family = "wasm"), feature = "native-mesh"))]
 pub mod native;
 
@@ -37,7 +37,7 @@ pub use foundation_macros::wireguard_main;
 
 pub use shared::bootstrap::{BootstrapFlags, BootstrapToken, TokenSecret, WgBootstrap};
 pub use shared::config::{
-    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig, SecurityConfig,
+    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig,
     WgConfig, WgConfigBuilder,
 };
 pub use shared::error::{WgError, WgResult};

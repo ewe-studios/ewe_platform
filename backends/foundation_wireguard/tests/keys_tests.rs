@@ -25,10 +25,16 @@ fn seed_derivation_is_deterministic_and_network_bound() {
         "same seed + network => same bootstrap public key"
     );
     assert_eq!(first.psk, second.psk, "same seed => same WG PSK");
-    assert_eq!(first.tls_psk, second.tls_psk, "same seed => same TLS PSK");
+    assert_eq!(
+        first.channel_psk, second.channel_psk,
+        "same seed => same bootstrap channel PSK"
+    );
 
     // Domain separation: the three derived values are mutually distinct.
-    assert_ne!(first.psk, first.tls_psk, "WG PSK differs from TLS PSK");
+    assert_ne!(
+        first.psk, first.channel_psk,
+        "WG tunnel PSK differs from bootstrap channel PSK"
+    );
     assert_ne!(
         &first.psk[..],
         first.public.as_bytes(),

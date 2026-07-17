@@ -102,7 +102,6 @@ fn macro_produces_valid_config() {
         Ok(wireguard! {
             seed: "q6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6s",
             relay: { advertise: true, max_sessions: 512, rate_limit_pps: 500, idle_timeout_secs: 90 },
-            security: { mtls: false },
             mtu: 1400,
             keepalive: 30,
         })

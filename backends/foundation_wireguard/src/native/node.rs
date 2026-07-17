@@ -179,7 +179,6 @@ impl WgNode {
             my_ip,
             OVERLAY_PREFIX,
         )?;
-        let netstack_opt = dp.netstack().cloned();
 
         let udp = UdpSocket::bind(self.config.udp_listen())?;
         let udp_addr = udp.get_ref().local_addr()?;
@@ -191,7 +190,7 @@ impl WgNode {
         let seed_endpoints = self.config.seed_endpoints();
         // Bootstrap join (joiners only): pull membership + announce self.
         if !seed_endpoints.is_empty() {
-            let client = BootstrapClient::new(boot.tls_psk, network_id)?;
+            let client = BootstrapClient::new(boot.channel_psk)?;
             let mut joined = false;
             for endpoint in seed_endpoints {
                 let Ok(mut conn) = client.connect(*endpoint) else {
@@ -228,7 +227,7 @@ impl WgNode {
             swim: Arc::clone(&swim),
             policy: Arc::clone(&policy),
         });
-        let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.tls_psk, handler)?;
+        let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.channel_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
 
         let relay_enabled = self.config.relay.advertise;
@@ -363,7 +362,6 @@ impl WgNode {
         // TUN mode: kernel TUN device — gossip over regular UDP (kernel
         //   routes through TUN), WgHandle overlay methods error (apps use
         //   OS sockets directly).
-        let tun_mode = dp.is_tun();
         let netstack = dp.netstack().cloned();
         let driver = TunnelDriver::new(udp, dp);
         let gossip = if let Some(ref ns) = netstack {
@@ -1025,8 +1023,7 @@ fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
 ///
 /// Falls back to `thread::sleep(timeout_ms)` when no reactor is running.
 fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64) {
-    use std::os::unix::io::AsRawFd;
-    use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
+    use foundation_nativeapis::native::fd::Reactor;
     use foundation_nativeapis::native::poll::{Interest, Token};
     use foundation_nativeapis::native::fd::Ready;
 

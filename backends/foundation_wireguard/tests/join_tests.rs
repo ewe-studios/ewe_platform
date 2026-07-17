@@ -1,7 +1,7 @@
-//! TLS-PSK bootstrap join tests (spec-55, feature 02; decision 06).
+//! Noise-PSK bootstrap join tests (spec-55, feature 02; decision 06).
 //!
-//! WHY: Proves a joiner reaches a member over a real TCP + TLS-PSK channel keyed by the
-//! seed-derived `tls_psk`, is admitted, and receives the membership — while a wrong seed
+//! WHY: Proves a joiner reaches a member over a real TCP + Noise-PSK channel keyed by the
+//! seed-derived `channel_psk`, is admitted, and receives the membership — while a wrong seed
 //! fails the handshake and a revoked seed is rejected.
 #![cfg(not(target_family = "wasm"))]
 
@@ -64,27 +64,27 @@ impl BootstrapHandler for TestHandler {
     }
 }
 
-fn tls_psk_for(seed_byte: u8) -> ([u8; 32], foundation_wireguard::NetworkId) {
+fn channel_psk_for(seed_byte: u8) -> [u8; 32] {
     let seed = WgSeed::from_bytes(&[seed_byte; 32]).unwrap();
     let network = seed.derive_network_id();
-    (seed.derive_bootstrap(&network).tls_psk, network)
+    seed.derive_bootstrap(&network).channel_psk
 }
 
 #[test]
 #[traced_test]
-fn joiner_admitted_over_tls_psk_and_receives_membership() {
-    let (tls_psk, network) = tls_psk_for(0x77);
+fn joiner_admitted_over_noise_psk_and_receives_membership() {
+    let channel_psk = channel_psk_for(0x77);
 
     let seed_member = record(1);
     let handler = TestHandler::new(vec![seed_member.clone()], Admission::Admit);
-    let server = BootstrapServer::bind("127.0.0.1:0".parse().unwrap(), tls_psk, handler.clone())
+    let server = BootstrapServer::bind("127.0.0.1:0".parse().unwrap(), channel_psk, handler.clone())
         .expect("bind server");
     let addr = server.local_addr().expect("addr");
 
     let server_thread = thread::spawn(move || server.serve_once());
 
-    let client = BootstrapClient::new(tls_psk, network).expect("client ctx");
-    let mut conn = client.connect(addr).expect("tls-psk connect");
+    let client = BootstrapClient::new(channel_psk).expect("client ctx");
+    let mut conn = client.connect(addr).expect("noise-psk connect");
 
     let joiner = record(2);
     let (decision, members) = conn.join(joiner.clone()).expect("join");
@@ -116,8 +116,8 @@ fn joiner_admitted_over_tls_psk_and_receives_membership() {
 #[test]
 #[traced_test]
 fn wrong_seed_fails_handshake() {
-    let (correct_psk, _network) = tls_psk_for(0x11);
-    let (wrong_psk, wrong_network) = tls_psk_for(0x22);
+    let correct_psk = channel_psk_for(0x11);
+    let wrong_psk = channel_psk_for(0x22);
 
     let handler = TestHandler::new(vec![record(1)], Admission::Admit);
     let server = BootstrapServer::bind("127.0.0.1:0".parse().unwrap(), correct_psk, handler)
@@ -127,7 +127,7 @@ fn wrong_seed_fails_handshake() {
     // Server will attempt (and fail) the handshake; its thread returns an error.
     let server_thread = thread::spawn(move || server.serve_once());
 
-    let client = BootstrapClient::new(wrong_psk, wrong_network).unwrap();
+    let client = BootstrapClient::new(wrong_psk).unwrap();
     let result = client.connect(addr);
     assert!(result.is_err(), "handshake with the wrong seed must fail");
 
@@ -138,16 +138,16 @@ fn wrong_seed_fails_handshake() {
 #[test]
 #[traced_test]
 fn revoked_seed_is_rejected() {
-    let (tls_psk, network) = tls_psk_for(0x33);
+    let channel_psk = channel_psk_for(0x33);
 
     // Handler refuses admission (simulating an expired/revoked seed — decision 11).
     let handler = TestHandler::new(vec![record(1)], Admission::Reject);
-    let server = BootstrapServer::bind("127.0.0.1:0".parse().unwrap(), tls_psk, handler)
+    let server = BootstrapServer::bind("127.0.0.1:0".parse().unwrap(), channel_psk, handler)
         .expect("bind");
     let addr = server.local_addr().unwrap();
     let server_thread = thread::spawn(move || server.serve_once());
 
-    let client = BootstrapClient::new(tls_psk, network).unwrap();
+    let client = BootstrapClient::new(channel_psk).unwrap();
     let mut conn = client.connect(addr).expect("handshake still succeeds");
     let (decision, members) = conn.join(record(2)).expect("join reply");
     assert_eq!(decision, Admission::Reject, "revoked seed rejected");

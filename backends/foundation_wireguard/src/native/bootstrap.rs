@@ -1,83 +1,28 @@
-//! Native TLS-PSK bootstrap channel + Join protocol (spec-55, feature 02; decision 06).
+//! Native Noise-PSK bootstrap channel + Join protocol (spec-55, feature 02; decision 06).
 //!
 //! WHY: A joiner must reach a member over an **encrypted, seed-authenticated** channel
 //! before any tunnel exists, and be handed the current membership. The seed's derived
-//! `tls_psk` authenticates a TLS-PSK handshake — a wrong seed simply fails the handshake.
+//! `channel_psk` authenticates a Noise-PSK handshake — a wrong seed simply fails the handshake.
 //!
 //! WHAT: [`BootstrapServer`] (a member's listener) and [`BootstrapClient`] /
 //! [`BootstrapConnection`] (the joiner), exchanging [`BootstrapRequest`]/
-//! [`BootstrapResponse`] over a length-prefixed frame protocol on the TLS stream.
+//! [`BootstrapResponse`] over a length-prefixed frame protocol on the Noise stream.
 //!
-//! HOW: `boring` (BoringSSL) TLS 1.2 with a PSK cipher suite and PSK client/server
-//! callbacks keyed by `tls_psk`; the PSK identity hint is the network id. A
-//! [`BootstrapHandler`] supplies admission decisions + membership.
+//! HOW: A pure-Rust Noise-PSK session ([`super::noise_psk`]) keyed by the seed-derived
+//! `channel_psk`; a wrong seed fails the handshake. A [`BootstrapHandler`] supplies admission
+//! decisions + membership.
 
 use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::Arc;
 
-use boring::ssl::{Ssl, SslContext, SslContextBuilder, SslMethod, SslStream, SslVersion};
-
+use super::noise_psk::{self, NoiseStream};
 use crate::shared::bootstrap::rpc::{Admission, BootstrapRequest, BootstrapResponse};
 use crate::shared::error::{WgError, WgResult};
-use crate::shared::keys::NetworkId;
 use crate::shared::membership::PeerRecord;
-
-/// PSK cipher suites (TLS 1.2). BoringSSL only ships the CBC-SHA PSK suites (no GCM PSK),
-/// so we negotiate one of these when both sides present the PSK callbacks.
-const PSK_CIPHERS: &str = "PSK-AES256-CBC-SHA:PSK-AES128-CBC-SHA";
 
 /// Maximum accepted frame length (guards against a hostile/desynced peer).
 const MAX_FRAME: usize = 4 * 1024 * 1024;
-
-// ---------------------------------------------------------------------------
-// TLS-PSK contexts
-// ---------------------------------------------------------------------------
-
-fn base_builder() -> WgResult<SslContextBuilder> {
-    let mut builder =
-        SslContextBuilder::new(SslMethod::tls()).map_err(|e| tls_err("context", &e))?;
-    builder
-        .set_min_proto_version(Some(SslVersion::TLS1_2))
-        .map_err(|e| tls_err("min version", &e))?;
-    builder
-        .set_max_proto_version(Some(SslVersion::TLS1_2))
-        .map_err(|e| tls_err("max version", &e))?;
-    builder
-        .set_cipher_list(PSK_CIPHERS)
-        .map_err(|e| tls_err("cipher list", &e))?;
-    Ok(builder)
-}
-
-/// Build the server-side TLS-PSK context keyed by `tls_psk`.
-fn server_context(tls_psk: [u8; 32]) -> WgResult<SslContext> {
-    let mut builder = base_builder()?;
-    builder.set_psk_server_callback(move |_ssl, _identity, psk_out| {
-        let n = tls_psk.len().min(psk_out.len());
-        psk_out[..n].copy_from_slice(&tls_psk[..n]);
-        Ok(n)
-    });
-    Ok(builder.build())
-}
-
-/// Build the client-side TLS-PSK context keyed by `tls_psk`, advertising `network_id` as
-/// the PSK identity hint.
-fn client_context(tls_psk: [u8; 32], network_id: NetworkId) -> WgResult<SslContext> {
-    let identity = network_id.to_hex().into_bytes();
-    let mut builder = base_builder()?;
-    builder.set_psk_client_callback(move |_ssl, _hint, identity_out, psk_out| {
-        // Null-terminated identity string.
-        if identity.len() + 1 > identity_out.len() {
-            return Ok(0);
-        }
-        identity_out[..identity.len()].copy_from_slice(&identity);
-        identity_out[identity.len()] = 0;
-        let n = tls_psk.len().min(psk_out.len());
-        psk_out[..n].copy_from_slice(&tls_psk[..n]);
-        Ok(n)
-    });
-    Ok(builder.build())
-}
 
 // ---------------------------------------------------------------------------
 // HTTP/1.1 framing — connectrpc-compatible (JSON codec + HTTP transport)
@@ -187,10 +132,10 @@ pub trait BootstrapHandler: Send + Sync {
 // Server
 // ---------------------------------------------------------------------------
 
-/// A member's TLS-PSK bootstrap listener.
+/// A member's Noise-PSK bootstrap listener.
 pub struct BootstrapServer {
     listener: TcpListener,
-    context: SslContext,
+    channel_psk: [u8; 32],
     handler: Arc<dyn BootstrapHandler>,
 }
 
@@ -205,22 +150,22 @@ impl std::fmt::Debug for BootstrapServer {
 impl BootstrapServer {
     /// WHY: Any member can accept joiners (masterless — decision 05).
     ///
-    /// WHAT: Bind a TCP listener and build a TLS-PSK server context keyed by `tls_psk`.
+    /// WHAT: Bind a TCP listener keyed by `channel_psk` for the Noise-PSK handshake.
     ///
-    /// HOW: Binds `addr`, builds the BoringSSL PSK context, stores the handler.
+    /// HOW: Binds `addr` and stores the pre-shared key + handler; the handshake runs per
+    /// accepted connection.
     ///
     /// # Errors
-    /// [`WgError::Io`] if binding fails; [`WgError::Protocol`] on TLS context errors.
+    /// [`WgError::Io`] if binding fails.
     pub fn bind(
         addr: SocketAddr,
-        tls_psk: [u8; 32],
+        channel_psk: [u8; 32],
         handler: Arc<dyn BootstrapHandler>,
     ) -> WgResult<Self> {
         let listener = TcpListener::bind(addr)?;
-        let context = server_context(tls_psk)?;
         Ok(Self {
             listener,
-            context,
+            channel_psk,
             handler,
         })
     }
@@ -259,10 +204,10 @@ impl BootstrapServer {
 
     /// WHY: Tests and simple deployments accept one joiner at a time.
     ///
-    /// WHAT: Accept a single TCP connection, complete the TLS-PSK handshake, and serve its
+    /// WHAT: Accept a single TCP connection, complete the Noise-PSK handshake, and serve its
     /// requests until the peer closes.
     ///
-    /// HOW: `accept` → BoringSSL `accept` → frame loop dispatched through the handler.
+    /// HOW: `accept` → [`noise_psk::accept`] → frame loop dispatched through the handler.
     ///
     /// # Errors
     /// [`WgError::Protocol`] on a failed handshake (e.g. wrong seed) or malformed frame;
@@ -334,15 +279,11 @@ impl BootstrapServer {
     }
 
     fn handshake_and_serve(&self, tcp: TcpStream) -> WgResult<()> {
-        let ssl = Ssl::new(&self.context).map_err(|e| tls_err("ssl", &e))?;
-        let mut stream = SslStream::new(ssl, tcp).map_err(|e| tls_err("ssl stream", &e))?;
-        stream
-            .accept()
-            .map_err(|e| WgError::Protocol(format!("tls-psk handshake failed: {e}")))?;
+        let mut stream = noise_psk::accept(tcp, self.channel_psk)?;
         self.serve_stream(&mut stream)
     }
 
-    fn serve_stream(&self, stream: &mut SslStream<TcpStream>) -> WgResult<()> {
+    fn serve_stream(&self, stream: &mut NoiseStream<TcpStream>) -> WgResult<()> {
         loop {
             let req = match read_http_request(stream)? {
                 Some(r) => r,
@@ -451,9 +392,9 @@ fn write_http_response(stream: &mut impl Write, status: u16, body: &[u8]) -> io:
 // Client
 // ---------------------------------------------------------------------------
 
-/// The joiner's TLS-PSK bootstrap dialer.
+/// The joiner's Noise-PSK bootstrap dialer.
 pub struct BootstrapClient {
-    context: SslContext,
+    channel_psk: [u8; 32],
 }
 
 impl std::fmt::Debug for BootstrapClient {
@@ -463,43 +404,38 @@ impl std::fmt::Debug for BootstrapClient {
 }
 
 impl BootstrapClient {
-    /// WHY: The joiner authenticates with the seed-derived `tls_psk`.
+    /// WHY: The joiner authenticates with the seed-derived `channel_psk`.
     ///
-    /// WHAT: Build a client dialer keyed by `tls_psk` for `network_id`.
+    /// WHAT: Build a client dialer keyed by `channel_psk`. The network id is already bound into
+    /// the key via its HKDF derivation, so no separate identity hint is needed.
     ///
-    /// HOW: Builds the BoringSSL PSK client context.
+    /// HOW: Stores the pre-shared key; the handshake runs on [`Self::connect`].
     ///
     /// # Errors
-    /// [`WgError::Protocol`] on TLS context errors.
-    pub fn new(tls_psk: [u8; 32], network_id: NetworkId) -> WgResult<Self> {
-        Ok(Self {
-            context: client_context(tls_psk, network_id)?,
-        })
+    /// Infallible today, but returns [`WgResult`] for forward compatibility.
+    pub fn new(channel_psk: [u8; 32]) -> WgResult<Self> {
+        Ok(Self { channel_psk })
     }
 
     /// WHY: Dial a seed endpoint to join.
     ///
-    /// WHAT: Open a TCP connection to `endpoint` and complete the TLS-PSK handshake.
+    /// WHAT: Open a TCP connection to `endpoint` and complete the Noise-PSK handshake.
     ///
-    /// HOW: `TcpStream::connect` → BoringSSL `connect`.
+    /// HOW: `TcpStream::connect` → [`noise_psk::connect`].
     ///
     /// # Errors
     /// [`WgError::Io`] if the TCP connect fails; [`WgError::Protocol`] if the handshake
     /// fails (e.g. wrong seed).
     pub fn connect(&self, endpoint: SocketAddr) -> WgResult<BootstrapConnection> {
         let tcp = TcpStream::connect(endpoint)?;
-        let ssl = Ssl::new(&self.context).map_err(|e| tls_err("ssl", &e))?;
-        let mut stream = SslStream::new(ssl, tcp).map_err(|e| tls_err("ssl stream", &e))?;
-        stream
-            .connect()
-            .map_err(|e| WgError::Protocol(format!("tls-psk handshake failed: {e}")))?;
+        let stream = noise_psk::connect(tcp, self.channel_psk)?;
         Ok(BootstrapConnection { stream })
     }
 }
 
-/// An established TLS-PSK bootstrap connection.
+/// An established Noise-PSK bootstrap connection.
 pub struct BootstrapConnection {
-    stream: SslStream<TcpStream>,
+    stream: NoiseStream<TcpStream>,
 }
 
 impl std::fmt::Debug for BootstrapConnection {
@@ -559,8 +495,4 @@ impl BootstrapConnection {
             other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}"))),
         }
     }
-}
-
-fn tls_err(what: &str, err: &boring::error::ErrorStack) -> WgError {
-    WgError::Protocol(format!("tls {what}: {err}"))
 }

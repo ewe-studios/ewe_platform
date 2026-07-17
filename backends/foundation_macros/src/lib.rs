@@ -754,7 +754,6 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     network_id: "deadbeef...",
 ///     udp_listen: "0.0.0.0:51820",
 ///     relay: { advertise: true },
-///     security: { mtls: false },
 /// };
 /// let node = foundation_wireguard::native::WgNode::from_config(config);
 /// ```

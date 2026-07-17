@@ -28,7 +28,7 @@ const HKDF_SALT: &[u8] = b"foundation_wireguard/v1";
 /// HKDF-Expand `info` prefixes for domain separation (decision 03, normative).
 const INFO_BOOTSTRAP_X25519: &[u8] = b"wg-bootstrap-x25519|";
 const INFO_BOOTSTRAP_PSK: &[u8] = b"wg-bootstrap-psk|";
-const INFO_TLS_PSK: &[u8] = b"tls-psk|";
+const INFO_CHANNEL_PSK: &[u8] = b"bootstrap-channel-psk|";
 const INFO_NETWORK_ID: &[u8] = b"network-id";
 
 /// Seed strength: 128-bit (short, human-copyable) or 256-bit (long-lived).
@@ -129,8 +129,9 @@ pub struct BootstrapKeys {
     pub public: PublicKey,
     /// WireGuard preshared key for bootstrap-phase tunnels (Noise defense-in-depth).
     pub psk: [u8; 32],
-    /// External PSK for the TLS bootstrap channel (decision 06).
-    pub tls_psk: [u8; 32],
+    /// Pre-shared key for the Noise-PSK bootstrap control channel (decision 06). Domain-separated
+    /// from `psk` so the control channel and the WireGuard tunnel never share key material.
+    pub channel_psk: [u8; 32],
 }
 
 impl std::fmt::Debug for BootstrapKeys {
@@ -266,8 +267,8 @@ impl WgSeed {
         hk.expand_multi_info(&[INFO_BOOTSTRAP_PSK, network_id.as_bytes()], &mut psk)
             .expect("32 bytes within HKDF limits");
 
-        let mut tls_psk = [0u8; 32];
-        hk.expand_multi_info(&[INFO_TLS_PSK, network_id.as_bytes()], &mut tls_psk)
+        let mut channel_psk = [0u8; 32];
+        hk.expand_multi_info(&[INFO_CHANNEL_PSK, network_id.as_bytes()], &mut channel_psk)
             .expect("32 bytes within HKDF limits");
 
         // The intermediate secret bytes are copied into StaticSecret; wipe our copy.
@@ -277,7 +278,7 @@ impl WgSeed {
             static_secret,
             public,
             psk,
-            tls_psk,
+            channel_psk,
         }
     }
 }
@@ -362,27 +363,6 @@ impl IdentityKeypair {
     #[must_use]
     pub fn to_secret_bytes(&self) -> [u8; 32] {
         self.secret.to_bytes()
-    }
-
-    /// WHY: Optional app-layer mTLS pins mutual auth to the WG identity keys without an
-    /// external CA (decision 10).
-    ///
-    /// WHAT: Derive a symmetric PSK shared with `peer`, bound to `context`.
-    ///
-    /// HOW: x25519 ECDH between our secret and the peer's public key, then
-    /// `HKDF-BLAKE2s` with an mTLS domain salt. Both peers derive the same value; no third
-    /// party can (it requires one of the two identity secrets).
-    ///
-    /// # Panics
-    /// Never panics.
-    #[must_use]
-    pub fn derive_shared_psk(&self, peer: &PublicKey, context: &[u8]) -> [u8; 32] {
-        let shared = self.secret.diffie_hellman(peer);
-        let hk = SimpleHkdf::<Blake2s256>::new(Some(b"foundation_wireguard/mtls/v1"), shared.as_bytes());
-        let mut psk = [0u8; 32];
-        hk.expand(context, &mut psk)
-            .expect("32 bytes within HKDF-BLAKE2s limits");
-        psk
     }
 
     /// This identity's static secret (for constructing a `Tunn`).

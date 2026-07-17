@@ -21,9 +21,7 @@ struct WireguardInput {
     udp_listen: Option<LitStr>,
     bootstrap_listen: Option<LitStr>,
     relay: Option<RelayBlock>,
-    security: Option<SecurityBlock>,
     seed_endpoints: Vec<LitStr>,
-    mtls: Option<LitBool>,
     mtu: Option<LitInt>,
     keepalive: Option<LitInt>,
 }
@@ -36,9 +34,7 @@ impl Parse for WireguardInput {
         let mut udp_listen = None;
         let mut bootstrap_listen = None;
         let mut relay = None;
-        let mut security = None;
         let mut seed_endpoints = Vec::new();
-        let mut mtls = None;
         let mut mtu = None;
         let mut keepalive = None;
 
@@ -52,7 +48,6 @@ impl Parse for WireguardInput {
                 "udp_listen" => udp_listen = Some(input.parse()?),
                 "bootstrap_listen" => bootstrap_listen = Some(input.parse()?),
                 "relay" => relay = Some(input.parse()?),
-                "security" => security = Some(input.parse()?),
                 "seed_endpoints" => {
                     let content;
                     syn::bracketed!(content in input);
@@ -63,7 +58,6 @@ impl Parse for WireguardInput {
                         }
                     }
                 }
-                "mtls" => mtls = Some(input.parse()?),
                 "mtu" => mtu = Some(input.parse()?),
                 "keepalive" => keepalive = Some(input.parse()?),
                 other => {
@@ -92,9 +86,7 @@ impl Parse for WireguardInput {
             udp_listen,
             bootstrap_listen,
             relay,
-            security,
             seed_endpoints,
-            mtls,
             mtu,
             keepalive,
         })
@@ -146,39 +138,6 @@ impl Parse for RelayBlock {
             rate_limit_pps,
             idle_timeout_secs,
         })
-    }
-}
-
-// ── Security block: security: { mtls: true } ──
-
-struct SecurityBlock {
-    mtls: Option<LitBool>,
-}
-
-impl Parse for SecurityBlock {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        braced!(content in input);
-
-        let mut mtls = None;
-        while !content.is_empty() {
-            let key: Ident = content.parse()?;
-            content.parse::<Token![:]>()?;
-            match key.to_string().as_str() {
-                "mtls" => mtls = Some(content.parse()?),
-                other => {
-                    return Err(syn::Error::new(
-                        key.span(),
-                        format!("unknown security key: {other}"),
-                    ));
-                }
-            }
-            if content.peek(Token![,]) {
-                content.parse::<Token![,]>()?;
-            }
-        }
-
-        Ok(Self { mtls })
     }
 }
 
@@ -263,18 +222,6 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
         None => quote! {},
     };
 
-    // security / mtls
-    let mtls_call = match &config.security {
-        Some(sec) => match &sec.mtls {
-            Some(b) => quote! { .mtls(#b) },
-            None => quote! {},
-        },
-        None => match &config.mtls {
-            Some(b) => quote! { .mtls(#b) },
-            None => quote! {},
-        },
-    };
-
     // mtu / keepalive
     let mtu_call = match &config.mtu {
         Some(m) => quote! { .mtu(#m as u16) },
@@ -294,7 +241,6 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
                 #boot_call
                 #(#ep_calls)*
                 #relay_call
-                #mtls_call
                 #mtu_call
                 #keep_call
                 .build()?

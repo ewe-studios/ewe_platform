@@ -3,6 +3,17 @@
 **Date:** 2026-07-12
 **Status:** Resolved
 
+> **Amendment (2026-07-18): `boring` dropped; control channel now uses `snow` (pure Rust).**
+> `boring` (BoringSSL) is no longer a source crate. Its only role was the TLS-PSK bootstrap/control
+> channel ([decision 06](06-hybrid-transport-tls-psk.md)), which now uses the pure-Rust
+> [`snow`](https://crates.io/crates/snow) Noise implementation (`snow = "0.10"`, features
+> `["default-resolver-crypto"]`, `default-features = false`). **Why:** BoringSSL's `EVP_*` symbols
+> collide at link time with the OpenSSL bundled by `libssh2`/`ssh2`, so no single binary could use
+> both the mesh and SSH; `snow`'s RustCrypto backend (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s)
+> links no C crypto and no `ring`. Consequence: the "two crypto backends coexist" note below no
+> longer applies — WireGuard (`boringtun`, pure Rust) and the control channel (`snow`, pure Rust)
+> share one Rust crypto ecosystem, and `foundation_wireguard` links no BoringSSL at all.
+
 ## Decision
 
 `foundation_wireguard` builds on three external crates, **pinned to their published crates.io

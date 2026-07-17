@@ -13,7 +13,7 @@
 //! the system's WebRTC stack or a sans-I/O ICE implementation.
 
 use crate::shared::membership::PeerId;
-use crate::shared::webrtc::{AnswererState, WebRtcSignal};
+use crate::shared::webrtc::AnswererState;
 
 /// A native-side WebRTC answerer.
 ///

@@ -4390,6 +4390,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_cronjobs"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "foundation_core",
+ "foundation_db",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_db"
 version = "0.0.1"
 dependencies = [
@@ -5149,7 +5162,6 @@ dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",
  "blake2",
- "boring",
  "boringtun",
  "derive_more",
  "foundation_core",
@@ -5166,6 +5178,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "smoltcp",
+ "snow",
  "tempfile",
  "thiserror 2.0.17",
  "toml 0.9.8",
@@ -11231,6 +11244,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36358427d32ecdb1624616deed99eccfef0a167fe5bf40ddb51efe6980bc1ec8"
 dependencies = [
  "simdutf8",
+]
+
+[[package]]
+name = "snow"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "599b506ccc4aff8cf7844bc42cf783009a434c1e26c964432560fb6d6ad02d82"
+dependencies = [
+ "aes-gcm",
+ "blake2",
+ "chacha20poly1305",
+ "curve25519-dalek",
+ "getrandom 0.3.4",
+ "rustc_version",
+ "sha2",
+ "subtle",
 ]
 
 [[package]]
