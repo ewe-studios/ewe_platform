@@ -41,7 +41,7 @@ each one changes the code.
 
 | # | Decision | The question |
 |---|---|---|
-| 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three, conditional on selective generation ([feature 00](features/00-selective-codegen/feature.md)). Linode's spec found (owner-supplied). |
+| 01 | [Provider clients](decisions/01-provider-clients.md) | ✅ **Resolved** — codegen for all three via selective generation ([feature 00](features/00-selective-codegen/feature.md)); output stays a checked-in `src/generated/` per crate with hand-written code outside it; API version pinned + spec revision validated; RPC (if ever needed) goes through `foundation_connectrpc`. |
 | 02 | [Credentials from the environment](decisions/02-credentials-from-environment.md) | Variable names (`HCLOUD_TOKEN`/`DIGITALOCEAN_TOKEN`/`LINODE_TOKEN`?), an `EWE_` override, and failing loudly when absent. |
 | 03 | [The Deployable VPS model](decisions/03-deployable-vps-model.md) | What `deploy` guarantees, what is persisted, create-or-find, and destroy-on-partial-failure (a stranded VPS bills). |
 | 04 | [Hardening policy](decisions/04-hardening-policy.md) | What "hardened" means concretely; cloud-init vs post-boot SSH; and how to stop **Docker publishing past the host firewall**. |

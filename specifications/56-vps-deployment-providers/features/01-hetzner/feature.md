@@ -41,9 +41,18 @@ Registered in `genapi`'s `SPLIT_OUT_PROVIDERS`
 [feature 00](../00-selective-codegen/feature.md) so only these six endpoints and
 their schema closure are emitted.
 
+## Spec + version pins
+
+Validated 2026-07-17: `https://docs.hetzner.cloud/cloud.spec.json` — **Hetzner
+Cloud API**, OpenAPI **3.1.2**, `info.version` **1.0.0**, **151 paths**.
+
+- **API version:** `v1` — pinned into the client; callers never pass it.
+- **Spec revision:** `1.0.0` — validated against `info.version` at generation;
+  a mismatch fails (feature 00 §3).
+
 ## Endpoints we need
 
-Six, out of a much larger API:
+Six, out of 151 paths:
 
 | Operation | Endpoint |
 |---|---|
@@ -86,6 +95,8 @@ hardening-before-first-boot possible on this provider.
 
 ## Acceptance criteria
 
+- [ ] Spec vendored into `artefacts/cloud_providers/hetzner/`; `api_version` pinned to `v1`, `spec_version` to `1.0.0` and validated
+- [ ] Generated via [feature 00](../00-selective-codegen/feature.md) — 6 endpoints, not 151
 - [ ] `HetznerClient::from_env()` reads `HCLOUD_TOKEN` and **errors by name** when absent
 - [ ] Token never appears in `Debug`, logs, or errors
 - [ ] `create_server` sends cloud-init `user_data` and the deploy key

@@ -49,6 +49,26 @@ foundation_codegentools::generate()
 
 Anything not reachable from the allowlist — including schemas — is not emitted.
 
+## If a provider needs RPC, it uses `foundation_connectrpc`
+
+All three of these vendors are plain HTTP/REST, so this does not bite here — but
+the rule stands for any provider that is not (owner, 2026-07-17): **reach for
+`foundation_connectrpc`**, never a second gRPC stack.
+
+There is precedent in the tree: `foundation_deployment_docker` drives BuildKit's
+gRPC Control API through `foundation_connectrpc` (with
+`foundation_connectrpc_codegen` in `[build-dependencies]` generating the message
+types), over its `H2Transport`. A provider needing gRPC follows that shape.
+
+Note the one constraint that comes with it, learned in spec-53: the
+`foundation_connectrpc` path reaches BoringSSL via `jwt-simple` →
+`foundation_auth`, which **cannot share a binary with libssh2/OpenSSL** (the
+`ssh` transport). Two libcryptos, duplicate `EVP_*` symbols, link failure. Since
+this spec's whole point is reaching a box over SSH, an RPC-based provider crate
+would collide with that — so it would need the same feature-gating treatment
+`foundation_deployment_docker` now has (`ssh` and `buildkit` are mutually
+exclusive features).
+
 ## Consequences to work through in feature 00
 
 - **Transitive schemas.** Including `POST /servers` pulls its request/response
@@ -64,8 +84,12 @@ Anything not reachable from the allowlist — including schemas — is not emitt
   `foundation_deployment_docker` has a build.rs emitting BuildKit protos to
   `OUT_DIR`. Checked-in output is reviewable and offline; build.rs output cannot
   drift from the manifest. Feature 00 decides.
-- **Drift.** If a spec adds a field to a type we include, nothing tells us. Same
-  as today, but worth noting a trimmed spec makes it quieter.
+- **Version pinning (resolved, owner 2026-07-17).** Each crate pins the vendor's
+  **API version** (Linode `v4`, DO `v2`, Hetzner `v1`) into its client, and pins
+  the **spec revision** it generated from (`info.version`); generation **fails**
+  if the spec on disk no longer matches. Upgrading is then a deliberate act — bump
+  the pin, regenerate, review the diff. See
+  [feature 00](../features/00-selective-codegen/feature.md) §3.
 
 ## Linode: spec found — all three providers codegen
 
@@ -80,9 +104,10 @@ Validated 2026-07-17: OpenAPI **3.0.1**, "Akamai: Linode API" **v4.229.1**,
 Linode follows the same codegen path as the other two — no hand-written client.
 
 **Quirk to handle:** Linode's paths are prefixed with the API version as a *path
-parameter* — `/{apiVersion}/linode/instances`, not `/v4/linode/instances`. The
-generated client will take `apiVersion` as an argument on every call unless the
-generator or the hand-written layer pins it. See
+parameter* — `/{apiVersion}/linode/instances`, not `/v4/linode/instances` — so
+every generated call would take `apiVersion` as an argument. Pin it to `v4` (the
+version-pinning rule above); callers never pass it. And pin the spec revision at
+**4.229.1**, the document validated on 2026-07-17. See
 [feature 03](../features/03-linode/feature.md).
 
 ## Spec sources (2026-07-17)

@@ -76,10 +76,47 @@ Watch for: `allOf`/`oneOf`/`anyOf` composition, recursive schemas (a type that
 refs itself), shared error envelopes, and `$ref`s into `components/parameters` and
 `components/responses`, not just `components/schemas`.
 
-### 3. A build.rs-callable form
+### 3. Pin the API version, validate the spec revision — **resolved** (owner, 2026-07-17)
+
+*"We should always pin the API version and validate the OpenAPI spec version
+matches, then its left to users to decide to upgrade versions and regenerate."*
+
+Two different things, both pinned in the declaration:
+
+| | What | Example | Enforced |
+|---|---|---|---|
+| **API version** | the vendor's major API line — part of the URL | Linode `v4`, DO `v2`, Hetzner `v1` | the client fixes it; callers never pass it |
+| **Spec revision** | the exact document we generated from (`info.version`) | Linode `4.229.1` | **generation fails** if the spec on disk says otherwise |
+
+```rust
+foundation_codegentools::generate()
+    .provider("linode")
+    .spec("artefacts/cloud_providers/linode/openapi.json")
+    .api_version("v4")            // pinned into the client
+    .spec_version("4.229.1")      // must match the spec's info.version, or fail
+    .include_paths([...])
+    .run()?;
+```
+
+**Why fail rather than adapt:** a spec that has moved under us is a decision, not
+an event. Silently regenerating against a new revision would change the client's
+types without anyone choosing to — the same class of surprise as the silently
+dropped parameters spec-53's audit kept finding (`subnet`, `network_alias`,
+`memory = "256m"`). Upgrading is deliberate: bump `spec_version`, regenerate,
+read the diff (which is exactly why the output is checked in, §4).
+
+The failure must name both versions — "spec says 4.230.0, manifest pins 4.229.1"
+— so the fix is obvious.
+
+This also answers **drift** below: we cannot detect a vendor changing a field
+inside a type we already generate, but we *can* detect that the document is not
+the one we pinned, which is the case that matters.
+
+### 4. A build.rs-callable form
 
 `foundation_codegentools` is already a lib (`pub mod cli; pub mod schema_gen;`)
-with `genapi` as a bin, so a crate can call it from `build.rs`:
+with `genapi` as a bin, so a crate can call it from `build.rs` — subject to the
+publishing constraint in §5:
 
 ```rust
 // backends/foundation_deployment_hetzner/build.rs
@@ -93,21 +130,46 @@ foundation_codegentools::generate()
 The declaration lives **with the crate that needs it**, which is the point: the
 slice is visible next to the code that uses it, not buried in the generator.
 
-### 4. Where the output goes — decide first
+### 5. Where the output goes — **resolved** (owner, 2026-07-17)
 
-Both patterns exist in this tree, and they trade off differently:
+**Every crate keeps a checked-in `src/generated/` module**, exactly as
+`foundation_deployment_cloudflare` does today (45 committed files, no build.rs —
+regenerated with the `genapi` CLI). Hand-written domain logic and wrappers live
+**outside** it: `client.rs`, `types.rs`, `*_ops.rs`, `deployable.rs`.
 
-| | Checked-in `src/generated/` (cloudflare) | build.rs → `OUT_DIR` (deployment_docker's BuildKit protos) |
-|---|---|---|
-| Review | diffs are visible | invisible; you review the manifest instead |
-| Drift | can go stale vs the manifest | impossible by construction |
-| Build | free | every clean build pays for it |
-| Offline | works | needs the spec vendored (all three are, in `artefacts/`) |
-| Debugging | `git grep` finds the code | `OUT_DIR` spelunking |
+So the output location is not `OUT_DIR`. Diffs stay reviewable, `git grep` finds
+the code, and a build needs no spec artefact.
 
-A middle option: **build.rs generates, output is checked in, CI fails if
-regenerating produces a diff.** Reviewable *and* drift-proof, at the cost of a CI
-step.
+#### The mechanic still to settle: can build.rs write there?
+
+The owner also asked for "a build.rs format that these crates can have that calls
+into our codegen and indicate what part of the API specs we want generated". A
+build.rs that *writes into `src/generated/`* has a real constraint behind it:
+
+**These crates are publishable** — none set `publish = false`. If build.rs
+regenerated `src/generated/` at build time, a downstream consumer building from
+crates.io would need the spec artefact (which is not published) and would be
+writing into the registry's read-only source directory. Cargo's own rule is that
+build scripts write only to `OUT_DIR`; violating it also risks `cargo package
+--verify` seeing a dirty tree.
+
+Two ways to honour both asks:
+
+- **A — build.rs declares, and generates only in-workspace.** The slice lives in
+  `build.rs` next to the code that uses it; generation runs when the spec artefact
+  is present (a workspace checkout) and **skips silently** when it is not (a
+  consumer building from crates.io, who just compiles the committed output).
+  Needs `cargo:rerun-if-changed` on the spec + manifest, and a content-compare so
+  an unchanged regeneration does not churn mtimes and re-trigger builds.
+- **B — build.rs declares and *verifies*; the CLI generates.** `genapi generate
+  <provider>` reads the same declaration and writes `src/generated/`; build.rs
+  only fails when the committed output is stale against the manifest. Closest to
+  today's pattern (cloudflare has no build.rs at all), and it never writes to
+  `src/`.
+
+**Recommendation: B**, with the staleness check behind CI rather than every
+developer build. It gives the declaration-next-to-the-crate that A does, without
+a build script that writes into a published crate's source tree.
 
 ## Verification
 
@@ -123,12 +185,19 @@ All local — no network, no accounts:
   test that would have caught "we generated all 334 paths anyway".
 - **Glob/tag selection** — selecting by tag pulls the tag's operations; selecting
   by path pulls just that path.
+- **Version pinning** — a spec whose `info.version` differs from the pinned
+  `spec_version` fails generation with both versions named; a matching one
+  proceeds.
 - **A generated crate compiles and its calls work against a mock server** — which
   the provider features (01–03) then build on.
 
 ## Acceptance criteria
 
-- [ ] Output location decided (checked-in / `OUT_DIR` / generate-and-verify-in-CI)
+- [ ] Output is a checked-in `src/generated/` per crate; hand-written code and wrappers live outside it
+- [ ] build.rs mechanic settled (A: generate in-workspace only, or B: declare + verify, CLI generates) — it must not write into `src/` for a published consumer
+- [ ] `api_version` pinned into the client; callers never pass it
+- [ ] `spec_version` validated against the spec's `info.version` — **generation fails on a mismatch**, naming both versions
+- [ ] Upgrading is a deliberate act: bump the pin, regenerate, review the diff
 - [ ] `include_paths` (with globs) and `include_tags` honoured **at generation time**
 - [ ] Transitive schema closure emitted — nothing missing, nothing extra
 - [ ] `allOf`/`oneOf`/`anyOf`, recursive schemas, and `components/{parameters,responses}` refs handled

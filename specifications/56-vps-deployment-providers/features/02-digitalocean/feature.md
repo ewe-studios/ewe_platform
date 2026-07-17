@@ -60,6 +60,8 @@ on mock evidence.
 
 ## Acceptance criteria
 
+- [ ] Spec vendored into `artefacts/cloud_providers/digitalocean/`; `api_version` pinned to `v2`, `spec_version` pinned to the vendored spec's `info.version` and validated
+- [ ] Generated via [feature 00](../00-selective-codegen/feature.md) — 6 endpoints, not the whole platform
 - [ ] `DigitalOceanClient::from_env()` reads `DIGITALOCEAN_TOKEN` and **errors by name** when absent
 - [ ] Token never appears in `Debug`, logs, or errors
 - [ ] `create_droplet` sends cloud-init `user_data` and the deploy key

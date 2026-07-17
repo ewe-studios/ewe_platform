@@ -83,7 +83,8 @@ fixture).
 
 - [ ] Spec vendored into `artefacts/cloud_providers/linode/` from the owner-supplied repo
 - [ ] Generated via [feature 00](../00-selective-codegen/feature.md) — 6 endpoints, not 334
-- [ ] `apiVersion` pinned to `v4` by the hand-written layer, not exposed to callers
+- [ ] `apiVersion` pinned to `v4`, not exposed to callers
+- [ ] `spec_version` pinned to **4.229.1** and validated against the spec's `info.version` at generation
 - [ ] `LinodeClient::from_env()` reads `LINODE_TOKEN` and **errors by name** when absent
 - [ ] Token and the generated `root_pass` never appear in `Debug`, logs, or errors
 - [ ] `create_instance` sends `authorized_keys` and (where supported) `metadata.user_data`
