@@ -333,6 +333,7 @@ fixtures were written by the same person as the code:
 | `sanitize_identifier` was a blocklist | `pub struct Rules*ContentSignal` | fourteen punctuation marks were listed; vendors use `*`, `$metadata`, `+gt`, `1.1.1.1`, `pg_partman_bgw.interval` |
 | Field names never sanitised | `pub 13335: …`, `pub : …` | the generator used `escape_field_keyword(to_snake_case(k))` — keywords and casing only. `sanitize_field_name`, which does the right thing, existed with **zero callers** |
 | Hoisting could take a name the vendor owns | `recursive type has infinite size` | Cloudflare bundles `vectorize_index_info_response` *and* has operation `vectorize-index-info`; both pascal-case to one Rust type, so a field rendered as its own parent. `unique_name` only checked other **hoisted** names |
+| `resolve_schema_key` guessed at the inverse of pascal-casing | 52 of Hetzner's 100 types silently became `HashMap<String, Value>` blobs | it tried three specific spellings (direct, snake_case, lower-first). Hetzner keys a schema `CreateServerResponseServerPublic_net` (its property is `public_net`); the reference site calls it `…PublicNet`, and **no snake-casing of that name returns the original**. Pascal-casing is not invertible — the lookup now matches in the pascal-cased space, which is the direction that is well defined |
 
 The last one is the one to remember: it presents as a compiler error about
 recursion and is really **two different schemas fighting over one name**. Silently
@@ -359,7 +360,10 @@ For **Cloudflare, which is already committed**, it is a decision:
 
 - **The generated code is better and it compiles.** 6214 → 9945 structs, and
   **1349 → 2241 typed responses** — the 3090 inline schemas that made 1224 of its
-  2442 fns return `serde_json::Value` become named types.
+  2442 fns return `serde_json::Value` become named types. The `resolve_schema_key`
+  fix (found via Hetzner) very likely helps here too: it turned **52 of Hetzner's
+  100 types from opaque blobs into real ones**, and Cloudflare's spec has the same
+  underscore-bearing keys.
 - **But it breaks Cloudflare's hand-written wrappers.** 9 call sites in
   `dns_ops.rs` and `provider_client.rs` fail to compile: request fns gained a
   typed body parameter they did not have. The generated tree is clean; the

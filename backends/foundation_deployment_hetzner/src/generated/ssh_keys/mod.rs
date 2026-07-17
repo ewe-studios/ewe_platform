@@ -21,11 +21,56 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ListSshKeysResponseMeta` type.
+/// `CreateSshKeyResponseSshKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseMeta {
-    /// pagination property.
-    pub pagination: ListSshKeysResponseMetaPagination,
+pub struct CreateSshKeyResponseSshKey {
+    /// created property.
+    pub created: String,
+    /// fingerprint property.
+    pub fingerprint: String,
+    /// id property.
+    pub id: i64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// public_key property.
+    pub public_key: String,
+}
+
+/// `CreateSshKeyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateSshKeyRequest {
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// name property.
+    pub name: String,
+    /// public_key property.
+    pub public_key: String,
+}
+
+/// `ListSshKeysResponseSshKeysItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListSshKeysResponseSshKeysItem {
+    /// created property.
+    pub created: String,
+    /// fingerprint property.
+    pub fingerprint: String,
+    /// id property.
+    pub id: i64,
+    /// labels property.
+    pub labels: serde_json::Value,
+    /// name property.
+    pub name: String,
+    /// public_key property.
+    pub public_key: String,
+}
+
+/// `CreateSshKeyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateSshKeyResponse {
+    /// ssh_key property.
+    pub ssh_key: CreateSshKeyResponseSshKey,
 }
 
 /// `ListSshKeysResponseMetaPagination` type.
@@ -45,30 +90,11 @@ pub struct ListSshKeysResponseMetaPagination {
     pub total_entries: i64,
 }
 
-/// `CreateSshKeyRequest` type.
+/// `ListSshKeysResponseMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyRequest {
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// name property.
-    pub name: String,
-    /// public_key property.
-    pub public_key: String,
-}
-
-/// `CreateSshKeyResponseSshKey` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyResponseSshKey {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateSshKeyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyResponse {
-    /// ssh_key property.
-    pub ssh_key: CreateSshKeyResponseSshKey,
+pub struct ListSshKeysResponseMeta {
+    /// pagination property.
+    pub pagination: ListSshKeysResponseMetaPagination,
 }
 
 /// `ListSshKeysResponse` type.
@@ -78,14 +104,6 @@ pub struct ListSshKeysResponse {
     pub meta: ListSshKeysResponseMeta,
     /// ssh_keys property.
     pub ssh_keys: Vec<ListSshKeysResponseSshKeysItem>,
-}
-
-/// `ListSshKeysResponseSshKeysItem` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseSshKeysItem {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

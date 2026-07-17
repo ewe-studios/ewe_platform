@@ -1498,23 +1498,39 @@ impl UnifiedGenerator {
         type_name: &str,
         schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
     ) -> Option<&'a crate::spec::Schema> {
-        // 1. Direct lookup (spec may use PascalCase keys)
+        // 1. Direct lookup — the spec's key already matches the type name.
         if let Some(s) = schemas.get(type_name) {
             return Some(s);
         }
-        // 2. Convert to snake_case (Cloudflare spec uses snake_case keys)
+        // 2. Convert to snake_case (Cloudflare's spec uses snake_case keys).
         let snake = crate::to_snake_case(type_name);
         if let Some(s) = schemas.get(&snake) {
             return Some(s);
         }
-        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar")
+        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar").
         if let Some(first) = type_name.chars().next() {
             let lower_first = first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
             if let Some(s) = schemas.get(&lower_first) {
                 return Some(s);
             }
         }
-        None
+        // 4. Match on the *pascal-cased* key.
+        //
+        // The three guesses above try to invert pascal-casing, and pascal-casing
+        // is not invertible: Hetzner keys a schema `CreateServerResponseServerPublic_net`
+        // (its property is `public_net`), which the generator refers to as
+        // `…PublicNet`. No amount of snake-casing that name gets back to the
+        // original, so the lookup missed and the type fell back to an opaque
+        // `HashMap<String, Value>` blob — 52 of Hetzner's 100 types, including
+        // `public_net`, which is where the server's IP address lives.
+        //
+        // Comparing in the pascal-cased space is the direction that *is* well
+        // defined: it is exactly the transform the reference site applies.
+        let target = crate::to_pascal_case(type_name);
+        schemas
+            .iter()
+            .find(|(key, _)| crate::to_pascal_case(key) == target)
+            .map(|(_, schema)| schema)
     }
 
     /// Generate shared module for cross-group types.
@@ -1757,7 +1773,7 @@ impl UnifiedGenerator {
 
 #[cfg(test)]
 mod tests {
-    use super::field_ident;
+    use super::{field_ident, UnifiedGenerator};
 
     /// `field_ident` is private, so this lives here rather than in `tests/`.
     ///
@@ -1789,5 +1805,58 @@ mod tests {
         }
         // Casing conversion is unchanged.
         assert_eq!(field_ident("ApiVersion"), "api_version");
+    }
+
+    /// `resolve_schema_key` is private; this is the regression that made 52 of
+    /// Hetzner's 100 generated types opaque blobs.
+    #[test]
+    fn a_schema_key_resolves_even_when_pascal_casing_is_not_invertible() {
+        use crate::spec::Schema;
+
+        let mut schemas = std::collections::BTreeMap::new();
+        // Hetzner's real key: the property is `public_net`, so the hoisted
+        // component carries the underscore.
+        schemas.insert(
+            "CreateServerResponseServerPublic_net".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                properties: Some(Default::default()),
+                ..Default::default()
+            },
+        );
+
+        // The reference site pascal-cases, giving `…PublicNet` — which no amount
+        // of snake-casing turns back into `…Public_net`. Matching in the
+        // pascal-cased space is the direction that is actually well defined.
+        assert!(
+            UnifiedGenerator::resolve_schema_key(
+                "CreateServerResponseServerPublicNet",
+                &schemas
+            )
+            .is_some(),
+            "the schema exists; failing to find it emits an opaque blob instead"
+        );
+
+        // A name nothing declares must still miss — the fallback is a real signal.
+        assert!(UnifiedGenerator::resolve_schema_key("NoSuchType", &schemas).is_none());
+    }
+
+    #[test]
+    fn a_direct_key_match_still_wins() {
+        use crate::spec::Schema;
+
+        let mut schemas = std::collections::BTreeMap::new();
+        for key in ["Exact", "exact_other"] {
+            schemas.insert(
+                key.to_string(),
+                Schema {
+                    schema_type: Some("object".to_string()),
+                    ..Default::default()
+                },
+            );
+        }
+        assert!(UnifiedGenerator::resolve_schema_key("Exact", &schemas).is_some());
+        // Cloudflare's snake_case keys, via the existing rule.
+        assert!(UnifiedGenerator::resolve_schema_key("ExactOther", &schemas).is_some());
     }
 }

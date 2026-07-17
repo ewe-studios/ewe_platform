@@ -1,6 +1,4 @@
 [dependencies]
-# The generated types derive JsonHash, whose expansion names these crates
-# directly — every consumer of the derive must depend on them itself.
 base85rs = "0.1"
 sha2 = "0.10"
 
