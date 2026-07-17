@@ -29,7 +29,7 @@ See `fundamental/` for the pitchfork and ecdysis exploration files that inform t
 
 | ID | Title | Status |
 |----|-------|--------|
-| [F01-daemon-config](features/F01-daemon-config/feature.md) | TOML config system + namespace derivation + dependency graph | planned |
+| [F01-daemon-config](features/F01-daemon-config/feature.md) | DaemonDef + DaemonGroup + proc macro (`#[daemon_process]`, `#[daemon_main]`) + TOML + builder | planned |
 | [F02-process-lifecycle](features/F02-process-lifecycle/feature.md) | Supervisor + daemon start/stop/monitor + readiness detection + graceful kill | planned |
 | [F03-connectrpc-control](features/F03-connectrpc-control/feature.md) | ConnectRPC service over Unix socket — CLI + streaming status/events | planned |
 | [F04-pid1-mode](features/F04-pid1-mode/feature.md) | Container init: zombie reaping + signal forwarding | planned |
@@ -37,12 +37,14 @@ See `fundamental/` for the pitchfork and ecdysis exploration files that inform t
 | [F06-file-watching](features/F06-file-watching/feature.md) | Auto-restart on source changes + interval/cron scheduling | planned |
 | [F07-resource-monitoring](features/F07-resource-monitoring/feature.md) | CPU/memory enforcement limits + periodic health checks | planned |
 | [F08-valtron-integration](features/F08-valtron-integration/feature.md) | Valtron executor tasks + signal task + CompositeReadiness gates | planned |
-| [F09-boot-manager](features/F09-boot-manager/feature.md) | systemd/LaunchAgent/Registry Run auto-registration | planned |
+| [F09-boot-manager](features/F09-boot-manager/feature.md) | systemd/LaunchAgent/Registry Run auto-registration (reusable BootRegistrar) | planned |
+| [F10-binary-downloaders](features/F10-binary-downloaders/feature.md) | GitHub releases, crates.io, arbitrary URL downloaders → DaemonDef integration | planned |
 
 ## Crate impact
 
 **`foundation_nativeapis`** — new `daemon` module with submodules:
-- `daemon/config.rs` — config types, TOML parsing, namespace derivation
+- `daemon/config.rs` — `DaemonDef` builder + `DaemonId`, TOML parsing, namespace derivation
+- `daemon/group.rs` — `DaemonGroup` + `DaemonHandle` grouped lifecycle
 - `daemon/supervisor.rs` — supervisor singleton, lifecycle orchestration
 - `daemon/process.rs` — managed process, spawn, kill, readiness
 - `daemon/deps.rs` — dependency graph, topological sort
@@ -53,15 +55,30 @@ See `fundamental/` for the pitchfork and ecdysis exploration files that inform t
 - `daemon/resource.rs` — CPU/memory monitoring + enforcement
 - `daemon/boot.rs` — boot-time auto-registration (systemd, LaunchAgent, Windows)
 
+**`foundation_downloaders`** — new crate (F10):
+- `lib.rs` — `Downloader` trait, `DownloadResult`, `DownloadError`
+- `github.rs` — `GitHubRelease` downloader (GitHub API, auto asset selection, checksum)
+- `cratesio.rs` — `CratesIoBinary` downloader (crates.io API, `cargo install`)
+- `url.rs` — `UrlDownload` for arbitrary HTTP endpoints
+- `manager.rs` — `DownloadManager` with caching + versioned subdirectories
+
+**`foundation_macros`** — new proc macros:
+- `#[daemon_process(...)]` — attribute macro for declaring daemons on `fn main()`
+- `#[daemon_main]` — entry point macro (valtron pool + config load + boot)
+
 New feature flag: `daemon` (implies `signal`, `poll`, `fd`).
 New feature flag: `daemon-rpc` (implies `daemon`, pulls in `foundation_connectrpc`).
 New feature flag: `daemon-boot` (implies `daemon`, boot registration constructs).
+New feature flag: `daemon-downloaders` (implies `daemon`, pulls in `foundation_downloaders`).
 
 ## Reusable APIs
 
-The graceful restart system (F05) and boot manager (F09) expose public constructs
-that users can adopt for their own services — even outside the daemon supervisor:
+The graceful restart system (F05), boot manager (F09), and downloaders (F10) expose
+public constructs that users can adopt for their own services — even outside the daemon
+supervisor:
 
+- **DaemonDef** — builder-constructed daemon definition. Any code can build these.
+- **DaemonGroup** — grouped lifecycle handle. Boot any set of daemons, Drop cleans up.
 - **FdRegistry** — register any socket/listener by type + address; inherit across
   fork/exec; serialize/deserialize via bincode. Any service can use this.
 - **UpgradeExecutor** — spawn a child, pass FDs, wait for ready signal, drain parent.
@@ -69,3 +86,6 @@ that users can adopt for their own services — even outside the daemon supervis
 - **ReadyPipe** — simple pipe-based child→parent "I'm ready" signaling with timeout.
 - **BootRegistrar** — register/unregister any binary for boot-time auto-start
   (systemd user unit, LaunchAgent, Windows Run key). Any binary can use this.
+- **Downloader** trait — `GitHubRelease`, `CratesIoBinary`, `UrlDownload`. Any code
+  can download binaries and feed paths into `DaemonDef::run`.
+- **DownloadManager** — caches downloads by source, versioned subdirectories.
