@@ -47,6 +47,9 @@ pub struct PlatformSession {
     /// Capability registry — registered at startup, invoked at runtime.
     capability_registry: crate::capability::CapabilityRegistry,
 
+    /// Cache manager — protocol-transparent, profile-scoped, per-route policies.
+    cache: crate::cache::CacheManager,
+
     /// Session identity — generated once at app launch, never changes.
     session_id: SessionId,
 
@@ -80,6 +83,7 @@ impl PlatformSession {
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
             capability_registry: crate::capability::CapabilityRegistry::new(),
+            cache: crate::cache::CacheManager::in_memory(),
             session_id,
             visit_counter: AtomicU64::new(0),
             active_page: RwLock::new(None),
@@ -217,6 +221,16 @@ impl PlatformSession {
     /// The current visit counter value (before increment).
     pub fn visit_count(&self) -> u64 {
         self.visit_counter.load(Ordering::SeqCst)
+    }
+
+    /// Access the cache manager for storing/retrieving cached responses.
+    pub fn cache(&self) -> &crate::cache::CacheManager {
+        &self.cache
+    }
+
+    /// Access the capability registry for invoking native capabilities.
+    pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
+        &self.capability_registry
     }
 }
 
