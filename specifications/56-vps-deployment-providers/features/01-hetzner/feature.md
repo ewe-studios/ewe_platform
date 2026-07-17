@@ -88,7 +88,19 @@ hardening-before-first-boot possible on this provider.
   bootstrap + hardening pointed at the **docker-in-docker + sshd fixture** (the
   one `foundation_deployment_docker::ssh_transport_tests` already uses). This
   exercises the real hardening and Docker-install path with no cloud account.
-- **Live path: unverified until someone runs it with a real `HCLOUD_TOKEN`.**
+- **Live path: VERIFIED 2026-07-17** — `tests/live_tests.rs`, 5 read-only tests
+  against the real API, `#[ignore]`d so they are opted into rather than swept up
+  by a bare `cargo test`:
+
+  ```
+  HCLOUD_TOKEN=… cargo test --profile uat -p foundation_deployment_hetzner \
+      --test live_tests -- --ignored --nocapture
+  ```
+
+  All 5 pass. **The first one found a bug within seconds** — see below. That is
+  the whole argument for running them.
+
+- **(historical) Live path: unverified until someone runs it with a real `HCLOUD_TOKEN`.**
   Say so in the feature's status — do not mark it complete on mock evidence.
   (Spec-53's F02/F03/F04 were all "code present" with no consumer; a
   mock-verified provider is better than that, but it is not "it works".)
@@ -109,15 +121,49 @@ hardening-before-first-boot possible on this provider.
   moving from fixtures to a real transport, and the same will be true of the live
   path.
 
+### The live test earned its keep on the first call
+
+`list_servers` against the real API died immediately:
+
+```
+Decode("invalid type: null, expected i64")
+```
+
+Hetzner sends `"next_page": null` on the last page. We generated `pub next_page: i64`.
+
+**`required` and `nullable` are different statements** — the first says the key is
+always present, the second says its value may be `null`. A field can be both, and
+Hetzner's pagination is: `next_page` is *required and nullable*. The generator
+treated `required` as "not an Option" and ignored `nullable` entirely.
+
+The chain had three links and the last one was missing: `normalize_nullable_types`
+correctly rewrote 3.1's `"type": ["integer","null"]` into `nullable: true`, and
+wrote it to the artefact — but **`Schema` never deserialised a `nullable` field**,
+so the generator never saw it. Computed, persisted, and thrown away.
+
+**857 fields across the four vendored specs are required AND nullable** — hetzner
+441, cloudflare 292, linode 108, digitalocean 16. Every one was a latent panic on
+real data.
+
+**No mock could have found this.** These tests build fixtures from the generated
+types via `Default`, which yields `0` — never `null`. The mock answers what we told
+it to; only the vendor knows what the vendor sends.
+
+A second instance, caught by the same fix: `root_password` is nullable because
+Hetzner returns `null` for it **when you create a server with SSH keys** — which is
+exactly what this feature does. `create_server` would have panicked on its first
+real call.
+
 ### What building it taught us
 
-Three bugs, none of which a fixture would have caught, all fixed:
+Four bugs, none of which a fixture would have caught, all fixed:
 
 | Where | Bug |
 |---|---|
 | `foundation_openapi` | `resolve_schema_key` guessed at the inverse of pascal-casing, so **52 of Hetzner's 100 types silently became `HashMap<String, Value>` blobs** — including `public_net`, where the server's IP lives |
 | `foundation_openapi` | the generator emitted `ApiError::HttpStatus { body: None }` unconditionally — **every vendor's error detail, on every endpoint, read off the socket and discarded** (Cloudflare: 2442 of them) |
 | `foundation_testing` | `TestHttpServer::with_response` never answered `Expect: 100-continue`, which our client sends by default on any request with a body — so **every request body arrived empty, silently** |
+| `foundation_openapi` | `nullable` was computed, written to the artefact, and **never read** — `Schema` had no such field. 857 required-and-nullable fields across four vendors generated as non-`Option`, each a panic waiting for real data |
 
 ## Acceptance criteria
 
@@ -126,7 +172,7 @@ Three bugs, none of which a fixture would have caught, all fixed:
 - [x] `HetznerClient::from_env()` reads `EWE_HCLOUD_TOKEN` then `HCLOUD_TOKEN`, and **errors naming both** when absent (an empty token counts as absent — it would otherwise surface as a 401, blaming the token rather than the setup)
 - [x] Token never appears in `Debug`, logs, or errors — hand-written `Debug`, asserted in `{:?}` and `{:#?}`; no error variant holds it. (Audited `CloudflareClient` per decision 02 §4: it derives no `Debug` at all, so it is clean by accident rather than design.)
 - [x] `create_server` sends cloud-init `user_data` and the deploy key — asserted on the captured request body
-- [ ] `await_running` waits for `running` **and** for sshd to accept our key
+- [ ] `await_running` waits for `running` **and** for sshd to accept our key — the sshd half is feature 04
 - [ ] `VpsDeployment::deploy` leaves a hardened box with Docker answering over SSH
 - [x] `deploy` is create-or-find — proven by asserting **no POST** on the second deploy, on adoption of an unrecorded box with our name (the crash-between-create-and-persist case), and on a second instance id
 - [x] `destroy` removes the server and clears persisted state; destroying what was never deployed is not an error and does not call Hetzner

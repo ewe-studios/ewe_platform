@@ -801,7 +801,7 @@ pub struct DlpPredefinedProfileConfig {
     /// allowed_match_count property.
     pub allowed_match_count: i64,
     /// confidence_threshold property.
-    pub confidence_threshold: String,
+    pub confidence_threshold: Option<String>,
     /// enabled_entries property.
     pub enabled_entries: Vec<String>,
     /// entries property.

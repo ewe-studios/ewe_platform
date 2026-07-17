@@ -4441,7 +4441,7 @@ pub struct IamUserInvite {
     /// invited_member_email property.
     pub invited_member_email: Option<IamInvitedMemberEmail>,
     /// invited_member_id property.
-    pub invited_member_id: String,
+    pub invited_member_id: Option<String>,
     /// invited_on property.
     pub invited_on: Option<IamInvitedOn>,
     /// organization_id property.
@@ -5478,7 +5478,7 @@ pub struct OrganizationsApiAccount {
     /// id property.
     pub id: String,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// settings property.
     pub settings: std::collections::HashMap<String, serde_json::Value>,
     /// type property.

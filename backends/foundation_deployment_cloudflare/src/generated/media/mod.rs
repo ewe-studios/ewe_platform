@@ -2617,13 +2617,13 @@ pub struct RealtimekitRealtimekitBucketConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitRecording {
     /// audio_download_url property.
-    pub audio_download_url: String,
+    pub audio_download_url: Option<String>,
     /// download_url property.
-    pub download_url: String,
+    pub download_url: Option<String>,
     /// download_url_expiry property.
-    pub download_url_expiry: String,
+    pub download_url_expiry: Option<String>,
     /// file_size property.
-    pub file_size: f64,
+    pub file_size: Option<f64>,
     /// id property.
     pub id: String,
     /// invoked_time property.
@@ -2633,13 +2633,13 @@ pub struct RealtimekitRecording {
     /// recording_duration property.
     pub recording_duration: Option<i64>,
     /// session_id property.
-    pub session_id: String,
+    pub session_id: Option<String>,
     /// started_time property.
-    pub started_time: String,
+    pub started_time: Option<String>,
     /// status property.
     pub status: String,
     /// stopped_time property.
-    pub stopped_time: String,
+    pub stopped_time: Option<String>,
 }
 
 /// `RealtimekitRecordingConfig` type.

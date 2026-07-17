@@ -540,10 +540,10 @@ pub struct RadarGetCertificateLogDetailsResponseResultCertificateLog {
     pub state_timestamp: String,
     /// submittableCertCount property.
     #[serde(rename = "submittableCertCount")]
-    pub submittable_cert_count: String,
+    pub submittable_cert_count: Option<String>,
     /// submittedCertCount property.
     #[serde(rename = "submittedCertCount")]
-    pub submitted_cert_count: String,
+    pub submitted_cert_count: Option<String>,
     /// url property.
     pub url: String,
 }

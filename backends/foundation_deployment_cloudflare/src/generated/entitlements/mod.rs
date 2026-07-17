@@ -57,7 +57,7 @@ pub struct OrganizationsApiInnateEntitlements {
     /// cname_setup_allowed property.
     pub cname_setup_allowed: OrganizationsApiBoolAllocation,
     /// custom_entitlements property.
-    pub custom_entitlements: Vec<OrganizationsApiEntitlement>,
+    pub custom_entitlements: Option<Vec<OrganizationsApiEntitlement>>,
     /// mhs_certificate_count property.
     pub mhs_certificate_count: OrganizationsApiMaxCountAllocation,
     /// partial_setup_allowed property.

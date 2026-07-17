@@ -624,3 +624,120 @@ fn check_stays_green_across_runs() {
 
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ── nullable ─────────────────────────────────────────────────────────────────
+
+#[test]
+fn a_required_but_nullable_field_is_an_option() {
+    // Found by the first live call to Hetzner, and by nothing before it:
+    //   Decode("invalid type: null, expected i64")
+    //
+    // `required` and `nullable` say DIFFERENT things. `required` means the key is
+    // always present; `nullable` means its value may be null. Hetzner's pagination
+    // marks `next_page` BOTH — always there, and null on the last page. Treating
+    // required as "not an Option" generated `pub next_page: i64` and panicked on
+    // the vendor's real response.
+    //
+    // 857 fields across hetzner/digitalocean/cloudflare/linode are required AND
+    // nullable, so every one of them was a latent panic on real data. A mock
+    // cannot find this: fixtures built from Default give 0, never null.
+    let dir = tmpdir("nullable");
+    let spec = json!({
+        "openapi": "3.0.1",
+        "info": { "title": "T", "version": "1.0.0" },
+        "servers": [{ "url": "https://x" }],
+        "paths": { "/p": { "get": {
+            "operationId": "get-page",
+            "responses": { "200": { "content": { "application/json": {
+                "schema": { "$ref": "#/components/schemas/pagination" } } } } }
+        }}},
+        "components": { "schemas": { "pagination": {
+            "type": "object",
+            "required": ["page", "next_page"],
+            "properties": {
+                // required + not nullable -> bare
+                "page": { "type": "integer" },
+                // required + nullable -> Option
+                "next_page": { "type": "integer", "nullable": true },
+                // optional -> Option, as before
+                "label": { "type": "string" }
+            }
+        }}}
+    });
+    let path = dir.join("openapi.json");
+    std::fs::write(&path, serde_json::to_string(&spec).unwrap()).unwrap();
+    let krate = dir.join("crate");
+
+    generate()
+        .provider("testprov")
+        .spec(&path)
+        .crate_dir(&krate)
+        .write()
+        .expect("generates");
+
+    let source = generated_source(&krate);
+    assert!(
+        source.contains("pub page: i64"),
+        "required and not nullable stays bare: {source}"
+    );
+    assert!(
+        source.contains("pub next_page: Option<i64>"),
+        "required BUT nullable must be an Option — this is the one that panicked: {source}"
+    );
+    assert!(
+        source.contains("pub label: Option<String>"),
+        "optional is unchanged: {source}"
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn openapi_31_nullable_syntax_reaches_the_generated_type() {
+    // Hetzner's spec is OpenAPI 3.1.2, which spells nullability as
+    // `"type": ["integer", "null"]`. `normalize_nullable_types` rewrites that to
+    // 3.0's `nullable: true` — but the value was then dropped on the floor,
+    // because the Schema model never deserialised a `nullable` field at all. The
+    // transform computed it, wrote it to the artefact, and nothing read it.
+    let dir = tmpdir("nullable31");
+    let mut spec = json!({
+        "openapi": "3.1.2",
+        "info": { "title": "T", "version": "1.0.0" },
+        "servers": [{ "url": "https://x" }],
+        "paths": { "/p": { "get": {
+            "operationId": "get-page",
+            "responses": { "200": { "content": { "application/json": {
+                "schema": { "$ref": "#/components/schemas/pagination" } } } } }
+        }}},
+        "components": { "schemas": { "pagination": {
+            "type": "object",
+            "required": ["next_page"],
+            "properties": { "next_page": { "type": ["integer", "null"] } }
+        }}}
+    });
+    // The normalize step a 3.1 provider runs (see PROVIDER_SPECS::HoistInlineFrom31).
+    foundation_openapi::normalize_nullable_types(&mut spec["components"]["schemas"]["pagination"]);
+    assert_eq!(
+        spec["components"]["schemas"]["pagination"]["properties"]["next_page"]["nullable"],
+        true,
+        "the transform records it"
+    );
+
+    let path = dir.join("openapi.json");
+    std::fs::write(&path, serde_json::to_string(&spec).unwrap()).unwrap();
+    let krate = dir.join("crate");
+
+    generate()
+        .provider("testprov")
+        .spec(&path)
+        .crate_dir(&krate)
+        .write()
+        .expect("generates");
+
+    assert!(
+        generated_source(&krate).contains("pub next_page: Option<i64>"),
+        "…and the generator honours it"
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}

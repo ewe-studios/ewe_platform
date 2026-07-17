@@ -82,7 +82,7 @@ pub struct CreateServerResponse {
     /// next_actions property.
     pub next_actions: Vec<CreateServerResponseNextActionsItem>,
     /// root_password property.
-    pub root_password: String,
+    pub root_password: Option<String>,
     /// server property.
     pub server: CreateServerResponseServer,
 }
@@ -95,7 +95,7 @@ pub struct CreateServerResponseAction {
     /// error property.
     pub error: CreateServerResponseActionError,
     /// finished property.
-    pub finished: String,
+    pub finished: Option<String>,
     /// id property.
     pub id: i64,
     /// progress property.
@@ -135,7 +135,7 @@ pub struct CreateServerResponseNextActionsItem {
     /// error property.
     pub error: CreateServerResponseNextActionsItemError,
     /// finished property.
-    pub finished: String,
+    pub finished: Option<String>,
     /// id property.
     pub id: i64,
     /// progress property.
@@ -171,7 +171,7 @@ pub struct CreateServerResponseNextActionsItemResourcesItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateServerResponseServer {
     /// backup_window property.
-    pub backup_window: String,
+    pub backup_window: Option<String>,
     /// created property.
     pub created: String,
     /// id property.
@@ -179,9 +179,9 @@ pub struct CreateServerResponseServer {
     /// image property.
     pub image: CreateServerResponseServerImage,
     /// included_traffic property.
-    pub included_traffic: i64,
+    pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
-    pub ingoing_traffic: i64,
+    pub ingoing_traffic: Option<i64>,
     /// iso property.
     pub iso: CreateServerResponseServerIso,
     /// labels property.
@@ -195,7 +195,7 @@ pub struct CreateServerResponseServer {
     /// name property.
     pub name: String,
     /// outgoing_traffic property.
-    pub outgoing_traffic: i64,
+    pub outgoing_traffic: Option<i64>,
     /// placement_group property.
     pub placement_group: Option<CreateServerResponseServerPlacementGroup>,
     /// primary_disk_size property.
@@ -222,15 +222,15 @@ pub struct CreateServerResponseServerImage {
     /// architecture property.
     pub architecture: String,
     /// bound_to property.
-    pub bound_to: i64,
+    pub bound_to: Option<i64>,
     /// created property.
     pub created: String,
     /// created_from property.
     pub created_from: CreateServerResponseServerImageCreatedFrom,
     /// deleted property.
-    pub deleted: String,
+    pub deleted: Option<String>,
     /// deprecated property.
-    pub deprecated: String,
+    pub deprecated: Option<String>,
     /// description property.
     pub description: String,
     /// disk_size property.
@@ -238,15 +238,15 @@ pub struct CreateServerResponseServerImage {
     /// id property.
     pub id: i64,
     /// image_size property.
-    pub image_size: f64,
+    pub image_size: Option<f64>,
     /// labels property.
     pub labels: serde_json::Value,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// os_flavor property.
     pub os_flavor: String,
     /// os_version property.
-    pub os_version: String,
+    pub os_version: Option<String>,
     /// protection property.
     pub protection: CreateServerResponseServerImageProtection,
     /// rapid_deploy property.
@@ -278,7 +278,7 @@ pub struct CreateServerResponseServerImageProtection {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateServerResponseServerIso {
     /// architecture property.
-    pub architecture: String,
+    pub architecture: Option<String>,
     /// deprecation property.
     pub deprecation: CreateServerResponseServerIsoDeprecation,
     /// description property.
@@ -286,10 +286,10 @@ pub struct CreateServerResponseServerIso {
     /// id property.
     pub id: i64,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// type property.
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub r#type: Option<String>,
 }
 
 /// `CreateServerResponseServerIsoDeprecation` type.
@@ -403,7 +403,7 @@ pub struct CreateServerResponseServerPublicNetIpv6 {
     /// blocked property.
     pub blocked: bool,
     /// dns_ptr property.
-    pub dns_ptr: Vec<CreateServerResponseServerPublicNetIpv6DnsPtrItem>,
+    pub dns_ptr: Option<Vec<CreateServerResponseServerPublicNetIpv6DnsPtrItem>>,
     /// id property.
     pub id: Option<i64>,
     /// ip property.
@@ -542,7 +542,7 @@ pub struct DeleteServerResponseAction {
     /// error property.
     pub error: DeleteServerResponseActionError,
     /// finished property.
-    pub finished: String,
+    pub finished: Option<String>,
     /// id property.
     pub id: i64,
     /// progress property.
@@ -585,7 +585,7 @@ pub struct GetServerResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetServerResponseServer {
     /// backup_window property.
-    pub backup_window: String,
+    pub backup_window: Option<String>,
     /// created property.
     pub created: String,
     /// id property.
@@ -593,9 +593,9 @@ pub struct GetServerResponseServer {
     /// image property.
     pub image: GetServerResponseServerImage,
     /// included_traffic property.
-    pub included_traffic: i64,
+    pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
-    pub ingoing_traffic: i64,
+    pub ingoing_traffic: Option<i64>,
     /// iso property.
     pub iso: GetServerResponseServerIso,
     /// labels property.
@@ -609,7 +609,7 @@ pub struct GetServerResponseServer {
     /// name property.
     pub name: String,
     /// outgoing_traffic property.
-    pub outgoing_traffic: i64,
+    pub outgoing_traffic: Option<i64>,
     /// placement_group property.
     pub placement_group: Option<GetServerResponseServerPlacementGroup>,
     /// primary_disk_size property.
@@ -636,15 +636,15 @@ pub struct GetServerResponseServerImage {
     /// architecture property.
     pub architecture: String,
     /// bound_to property.
-    pub bound_to: i64,
+    pub bound_to: Option<i64>,
     /// created property.
     pub created: String,
     /// created_from property.
     pub created_from: GetServerResponseServerImageCreatedFrom,
     /// deleted property.
-    pub deleted: String,
+    pub deleted: Option<String>,
     /// deprecated property.
-    pub deprecated: String,
+    pub deprecated: Option<String>,
     /// description property.
     pub description: String,
     /// disk_size property.
@@ -652,15 +652,15 @@ pub struct GetServerResponseServerImage {
     /// id property.
     pub id: i64,
     /// image_size property.
-    pub image_size: f64,
+    pub image_size: Option<f64>,
     /// labels property.
     pub labels: serde_json::Value,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// os_flavor property.
     pub os_flavor: String,
     /// os_version property.
-    pub os_version: String,
+    pub os_version: Option<String>,
     /// protection property.
     pub protection: GetServerResponseServerImageProtection,
     /// rapid_deploy property.
@@ -692,7 +692,7 @@ pub struct GetServerResponseServerImageProtection {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetServerResponseServerIso {
     /// architecture property.
-    pub architecture: String,
+    pub architecture: Option<String>,
     /// deprecation property.
     pub deprecation: GetServerResponseServerIsoDeprecation,
     /// description property.
@@ -700,10 +700,10 @@ pub struct GetServerResponseServerIso {
     /// id property.
     pub id: i64,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// type property.
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub r#type: Option<String>,
 }
 
 /// `GetServerResponseServerIsoDeprecation` type.
@@ -817,7 +817,7 @@ pub struct GetServerResponseServerPublicNetIpv6 {
     /// blocked property.
     pub blocked: bool,
     /// dns_ptr property.
-    pub dns_ptr: Vec<GetServerResponseServerPublicNetIpv6DnsPtrItem>,
+    pub dns_ptr: Option<Vec<GetServerResponseServerPublicNetIpv6DnsPtrItem>>,
     /// id property.
     pub id: Option<i64>,
     /// ip property.
@@ -961,24 +961,24 @@ pub struct ListServersResponseMeta {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListServersResponseMetaPagination {
     /// last_page property.
-    pub last_page: i64,
+    pub last_page: Option<i64>,
     /// next_page property.
-    pub next_page: i64,
+    pub next_page: Option<i64>,
     /// page property.
     pub page: i64,
     /// per_page property.
     pub per_page: i64,
     /// previous_page property.
-    pub previous_page: i64,
+    pub previous_page: Option<i64>,
     /// total_entries property.
-    pub total_entries: i64,
+    pub total_entries: Option<i64>,
 }
 
 /// `ListServersResponseServersItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListServersResponseServersItem {
     /// backup_window property.
-    pub backup_window: String,
+    pub backup_window: Option<String>,
     /// created property.
     pub created: String,
     /// id property.
@@ -986,9 +986,9 @@ pub struct ListServersResponseServersItem {
     /// image property.
     pub image: ListServersResponseServersItemImage,
     /// included_traffic property.
-    pub included_traffic: i64,
+    pub included_traffic: Option<i64>,
     /// ingoing_traffic property.
-    pub ingoing_traffic: i64,
+    pub ingoing_traffic: Option<i64>,
     /// iso property.
     pub iso: ListServersResponseServersItemIso,
     /// labels property.
@@ -1002,7 +1002,7 @@ pub struct ListServersResponseServersItem {
     /// name property.
     pub name: String,
     /// outgoing_traffic property.
-    pub outgoing_traffic: i64,
+    pub outgoing_traffic: Option<i64>,
     /// placement_group property.
     pub placement_group: Option<ListServersResponseServersItemPlacementGroup>,
     /// primary_disk_size property.
@@ -1029,15 +1029,15 @@ pub struct ListServersResponseServersItemImage {
     /// architecture property.
     pub architecture: String,
     /// bound_to property.
-    pub bound_to: i64,
+    pub bound_to: Option<i64>,
     /// created property.
     pub created: String,
     /// created_from property.
     pub created_from: ListServersResponseServersItemImageCreatedFrom,
     /// deleted property.
-    pub deleted: String,
+    pub deleted: Option<String>,
     /// deprecated property.
-    pub deprecated: String,
+    pub deprecated: Option<String>,
     /// description property.
     pub description: String,
     /// disk_size property.
@@ -1045,15 +1045,15 @@ pub struct ListServersResponseServersItemImage {
     /// id property.
     pub id: i64,
     /// image_size property.
-    pub image_size: f64,
+    pub image_size: Option<f64>,
     /// labels property.
     pub labels: serde_json::Value,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// os_flavor property.
     pub os_flavor: String,
     /// os_version property.
-    pub os_version: String,
+    pub os_version: Option<String>,
     /// protection property.
     pub protection: ListServersResponseServersItemImageProtection,
     /// rapid_deploy property.
@@ -1085,7 +1085,7 @@ pub struct ListServersResponseServersItemImageProtection {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListServersResponseServersItemIso {
     /// architecture property.
-    pub architecture: String,
+    pub architecture: Option<String>,
     /// deprecation property.
     pub deprecation: ListServersResponseServersItemIsoDeprecation,
     /// description property.
@@ -1093,10 +1093,10 @@ pub struct ListServersResponseServersItemIso {
     /// id property.
     pub id: i64,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// type property.
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub r#type: Option<String>,
 }
 
 /// `ListServersResponseServersItemIsoDeprecation` type.
@@ -1210,7 +1210,7 @@ pub struct ListServersResponseServersItemPublicNetIpv6 {
     /// blocked property.
     pub blocked: bool,
     /// dns_ptr property.
-    pub dns_ptr: Vec<ListServersResponseServersItemPublicNetIpv6DnsPtrItem>,
+    pub dns_ptr: Option<Vec<ListServersResponseServersItemPublicNetIpv6DnsPtrItem>>,
     /// id property.
     pub id: Option<i64>,
     /// ip property.

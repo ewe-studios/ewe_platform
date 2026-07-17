@@ -6228,7 +6228,7 @@ pub struct KaminoEnvironment {
     /// http_application_id property.
     pub http_application_id: Option<String>,
     /// locked_on_deployment property.
-    pub locked_on_deployment: bool,
+    pub locked_on_deployment: Option<bool>,
     /// name property.
     pub name: String,
     /// position property.
@@ -6237,7 +6237,7 @@ pub struct KaminoEnvironment {
     #[serde(rename = "ref")]
     pub r#ref: String,
     /// version property.
-    pub version: i64,
+    pub version: Option<i64>,
 }
 
 /// `KaminoEnvironmentPosition` type.
@@ -14138,7 +14138,7 @@ pub struct ZonesZone {
     /// account property.
     pub account: std::collections::HashMap<String, serde_json::Value>,
     /// activated_on property.
-    pub activated_on: String,
+    pub activated_on: Option<String>,
     /// cname_suffix property.
     pub cname_suffix: Option<String>,
     /// created_on property.
@@ -14156,11 +14156,11 @@ pub struct ZonesZone {
     /// name_servers property.
     pub name_servers: Vec<String>,
     /// original_dnshost property.
-    pub original_dnshost: String,
+    pub original_dnshost: Option<String>,
     /// original_name_servers property.
-    pub original_name_servers: Vec<String>,
+    pub original_name_servers: Option<Vec<String>>,
     /// original_registrar property.
-    pub original_registrar: String,
+    pub original_registrar: Option<String>,
     /// owner property.
     pub owner: std::collections::HashMap<String, serde_json::Value>,
     /// paused property.

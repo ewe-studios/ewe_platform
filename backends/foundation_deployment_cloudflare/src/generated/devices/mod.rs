@@ -1620,7 +1620,7 @@ pub struct TeamsDevicesPhysicalDevice {
     /// id property.
     pub id: String,
     /// last_seen_at property.
-    pub last_seen_at: String,
+    pub last_seen_at: Option<String>,
     /// last_seen_registration property.
     pub last_seen_registration: Option<serde_json::Value>,
     /// last_seen_user property.
@@ -2588,7 +2588,7 @@ pub struct ZeroTrustGatewayCustomCertificateSettings {
     /// binding_status property.
     pub binding_status: Option<String>,
     /// enabled property.
-    pub enabled: bool,
+    pub enabled: Option<bool>,
     /// id property.
     pub id: Option<String>,
     /// updated_at property.

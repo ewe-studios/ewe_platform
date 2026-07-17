@@ -169,9 +169,9 @@ pub struct BillableUsageApiUsageRecord {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BillableUsageApiUsageResponse {
     /// errors property.
-    pub errors: Vec<BillableUsageApiMessage>,
+    pub errors: Option<Vec<BillableUsageApiMessage>>,
     /// messages property.
-    pub messages: Vec<BillableUsageApiMessage>,
+    pub messages: Option<Vec<BillableUsageApiMessage>>,
     /// result property.
     pub result: Vec<BillableUsageApiUsageRecord>,
     /// success property.

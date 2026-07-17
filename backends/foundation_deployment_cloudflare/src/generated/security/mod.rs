@@ -1970,13 +1970,13 @@ pub struct GetLogoMatchListResponseMatchesItem {
     /// image_data property.
     pub image_data: Option<String>,
     /// matched_at property.
-    pub matched_at: String,
+    pub matched_at: Option<String>,
     /// query_id property.
     pub query_id: i64,
     /// similarity_score property.
     pub similarity_score: f64,
     /// url_scan_id property.
-    pub url_scan_id: String,
+    pub url_scan_id: Option<String>,
 }
 
 /// `GetSecurityCenterIssueTypesResponse` type.
@@ -3890,7 +3890,7 @@ pub struct PostEventCreateBulkRequestDataItemIndicatorsItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostEventCreateBulkRequestDataItemRaw {
     /// data property.
-    pub data: serde_json::Value,
+    pub data: Option<serde_json::Value>,
     /// source property.
     pub source: Option<String>,
     /// tlp property.
@@ -4003,7 +4003,7 @@ pub struct PostEventCreateRequestIndicatorsItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostEventCreateRequestRaw {
     /// data property.
-    pub data: serde_json::Value,
+    pub data: Option<serde_json::Value>,
     /// source property.
     pub source: Option<String>,
     /// tlp property.

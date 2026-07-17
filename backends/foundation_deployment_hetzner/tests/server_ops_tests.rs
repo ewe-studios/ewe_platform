@@ -90,7 +90,7 @@ fn create_response_json(id: i64, name: &str, status: &str, ip: &str) -> String {
             },
             ..Default::default()
         },
-        root_password: "hunter2".to_string(),
+        root_password: Some("hunter2".to_string()),
         ..Default::default()
     };
     serde_json::to_string(&response).expect("a generated type serializes")

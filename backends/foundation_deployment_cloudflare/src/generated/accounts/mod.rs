@@ -969,7 +969,7 @@ pub struct WorCreateOrModifyWorkflowResponseResult {
     /// terminator_running property.
     pub terminator_running: f64,
     /// triggered_on property.
-    pub triggered_on: String,
+    pub triggered_on: Option<String>,
     /// version_id property.
     pub version_id: String,
 }
@@ -1028,7 +1028,7 @@ pub struct WorDeleteWorkflowResponseResult {
     /// status property.
     pub status: String,
     /// success property.
-    pub success: bool,
+    pub success: Option<bool>,
 }
 
 /// `WorDeleteWorkflowResponseResultInfo` type.
@@ -1083,7 +1083,7 @@ pub struct WorDescribeWorkflowInstanceResponseMessagesItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorDescribeWorkflowInstanceResponseResult {
     /// end property.
-    pub end: String,
+    pub end: Option<String>,
     /// error property.
     pub error: WorDescribeWorkflowInstanceResponseResultError,
     /// output property.
@@ -1093,7 +1093,7 @@ pub struct WorDescribeWorkflowInstanceResponseResult {
     /// queued property.
     pub queued: String,
     /// start property.
-    pub start: String,
+    pub start: Option<String>,
     /// status property.
     pub status: String,
     /// step_count property.
@@ -1101,7 +1101,7 @@ pub struct WorDescribeWorkflowInstanceResponseResult {
     /// steps property.
     pub steps: Vec<serde_json::Value>,
     /// success property.
-    pub success: bool,
+    pub success: Option<bool>,
     /// trigger property.
     pub trigger: WorDescribeWorkflowInstanceResponseResultTrigger,
     /// versionId property.
@@ -1181,7 +1181,7 @@ pub struct WorDescribeWorkflowVersionsDagResponseResult {
     /// created_on property.
     pub created_on: String,
     /// dag property.
-    pub dag: serde_json::Value,
+    pub dag: Option<serde_json::Value>,
     /// id property.
     pub id: String,
     /// modified_on property.
@@ -1417,7 +1417,7 @@ pub struct WorGetWorkflowDetailsResponseResult {
     /// script_name property.
     pub script_name: String,
     /// triggered_on property.
-    pub triggered_on: String,
+    pub triggered_on: Option<String>,
 }
 
 /// `WorGetWorkflowDetailsResponseResultInfo` type.
@@ -1511,13 +1511,13 @@ pub struct WorListWorkflowInstancesResponseResultItem {
     /// created_on property.
     pub created_on: String,
     /// ended_on property.
-    pub ended_on: String,
+    pub ended_on: Option<String>,
     /// id property.
     pub id: String,
     /// modified_on property.
     pub modified_on: String,
     /// started_on property.
-    pub started_on: String,
+    pub started_on: Option<String>,
     /// status property.
     pub status: String,
     /// version_id property.
@@ -1666,7 +1666,7 @@ pub struct WorListWorkflowsResponseResultItem {
     /// script_name property.
     pub script_name: String,
     /// triggered_on property.
-    pub triggered_on: String,
+    pub triggered_on: Option<String>,
 }
 
 /// `WorListWorkflowsResponseResultItemInstances` type.

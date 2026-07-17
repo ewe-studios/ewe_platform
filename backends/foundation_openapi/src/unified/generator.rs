@@ -108,6 +108,16 @@ fn field_ident(prop_name: &str) -> String {
     escape_field_keyword(&snake)
 }
 
+/// Whether the vendor says this field's value may be `null`.
+///
+/// Covers both spellings: OpenAPI 3.0's `nullable: true`, and 3.1's
+/// `"type": ["integer", "null"]` — which `normalize_nullable_types` rewrites into
+/// the former, but which is checked here too so the generator is correct against a
+/// spec that skipped that transform.
+fn is_nullable(schema: &crate::spec::Schema) -> bool {
+    schema.nullable == Some(true)
+}
+
 fn escape_field_keyword(ident: &str) -> String {
     if ident == "self" {
         "_self".to_string()
@@ -1221,7 +1231,12 @@ impl UnifiedGenerator {
             for (field_name, (prop_name, prop_schema)) in &all_properties {
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let rust_type = maybe_box_type(&rust_type, recursive_types);
-                let is_required = required.contains(prop_name);
+                // `required` and `nullable` say different things: the first that
+                // the key is always present, the second that its value may be
+                // null. A field can be both — Hetzner's pagination `next_page`
+                // is always there and is null on the last page. Only a field
+                // that is required AND not nullable can be a bare T.
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name
@@ -1253,7 +1268,9 @@ impl UnifiedGenerator {
 
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let rust_type = maybe_box_type(&rust_type, recursive_types);
-                let is_required = required.contains(prop_name);
+                // See the allOf branch above: required means "the key is there",
+                // nullable means "the value may be null". Both can hold.
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name

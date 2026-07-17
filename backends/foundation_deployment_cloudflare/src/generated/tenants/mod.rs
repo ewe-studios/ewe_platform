@@ -29,7 +29,7 @@ pub struct OrganizationsApiAccount {
     /// id property.
     pub id: String,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
     /// settings property.
     pub settings: std::collections::HashMap<String, serde_json::Value>,
     /// type property.

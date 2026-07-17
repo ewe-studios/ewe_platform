@@ -376,9 +376,9 @@ pub struct GetDomainMatchListResponseMatchesItem {
     /// scan_status property.
     pub scan_status: String,
     /// scan_submission_id property.
-    pub scan_submission_id: i64,
+    pub scan_submission_id: Option<i64>,
     /// source property.
-    pub source: String,
+    pub source: Option<String>,
 }
 
 /// `GetDomainMatchListResponseMatchesItemPublicScans` type.

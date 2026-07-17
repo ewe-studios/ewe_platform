@@ -76,17 +76,17 @@ pub struct ListSshKeysResponseMeta {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListSshKeysResponseMetaPagination {
     /// last_page property.
-    pub last_page: i64,
+    pub last_page: Option<i64>,
     /// next_page property.
-    pub next_page: i64,
+    pub next_page: Option<i64>,
     /// page property.
     pub page: i64,
     /// per_page property.
     pub per_page: i64,
     /// previous_page property.
-    pub previous_page: i64,
+    pub previous_page: Option<i64>,
     /// total_entries property.
-    pub total_entries: i64,
+    pub total_entries: Option<i64>,
 }
 
 /// `ListSshKeysResponseSshKeysItem` type.

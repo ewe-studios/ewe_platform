@@ -984,7 +984,7 @@ pub struct MagicAppsResponseArray {
     /// messages property.
     pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// result property.
-    pub result: Vec<serde_json::Value>,
+    pub result: Option<Vec<serde_json::Value>>,
     /// success property.
     pub success: bool,
 }
@@ -997,7 +997,7 @@ pub struct MagicAppsResponseObject {
     /// messages property.
     pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// result property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
     /// success property.
     pub success: bool,
 }

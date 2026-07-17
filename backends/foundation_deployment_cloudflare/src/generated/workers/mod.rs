@@ -210,7 +210,7 @@ pub struct BuildsAPIResponse {
     /// messages property.
     pub messages: Vec<String>,
     /// result property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
     /// result_info property.
     pub result_info: Option<BuildsPaginationInfo>,
     /// success property.
@@ -3072,16 +3072,16 @@ pub struct PagesBuildConfig {
     /// root_dir property.
     pub root_dir: Option<String>,
     /// web_analytics_tag property.
-    pub web_analytics_tag: String,
+    pub web_analytics_tag: Option<String>,
     /// web_analytics_token property.
-    pub web_analytics_token: String,
+    pub web_analytics_token: Option<String>,
 }
 
 /// `PagesDeployment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDeployment {
     /// aliases property.
-    pub aliases: Vec<String>,
+    pub aliases: Option<Vec<String>>,
     /// build_config property.
     pub build_config: PagesBuildConfig,
     /// created_on property.
@@ -3127,7 +3127,7 @@ pub struct PagesDeploymentCreateDeploymentResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDeploymentDeleteDeploymentResponse {
     /// `result` property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
 }
 
 /// `PagesDeploymentGetDeploymentInfoResponse` type.
@@ -3224,7 +3224,7 @@ pub struct PagesDomainsAddDomainResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDomainsDeleteDomainResponse {
     /// `result` property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
 }
 
 /// `PagesDomainsGetDomainResponse` type.
@@ -3296,7 +3296,7 @@ pub struct PagesProject {
     /// subdomain property.
     pub subdomain: Option<String>,
     /// uses_functions property.
-    pub uses_functions: bool,
+    pub uses_functions: Option<bool>,
 }
 
 /// `PagesProjectCreateProjectRequest` type.
@@ -3392,7 +3392,7 @@ pub struct PagesProjectCreateProjectResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProjectDeleteProjectResponse {
     /// `result` property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
 }
 
 /// `PagesProjectGetProjectResponse` type.
@@ -3509,7 +3509,7 @@ pub struct PagesProjectUpdateProjectResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesPurgeBuildCacheResponse {
     /// `result` property.
-    pub result: serde_json::Value,
+    pub result: Option<serde_json::Value>,
 }
 
 /// `PagesSource` type.
@@ -3526,11 +3526,11 @@ pub struct PagesSource {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesStage {
     /// ended_on property.
-    pub ended_on: String,
+    pub ended_on: Option<String>,
     /// name property.
     pub name: String,
     /// started_on property.
-    pub started_on: String,
+    pub started_on: Option<String>,
     /// status property.
     pub status: String,
 }
@@ -3924,7 +3924,7 @@ pub struct QueriesListResponseMessagesItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPatchRequest {
     /// description property.
-    pub description: String,
+    pub description: Option<String>,
     /// name property.
     pub name: String,
     /// parameters property.
@@ -4045,7 +4045,7 @@ pub struct QueriesPatchResponseMessagesItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPostRequest {
     /// description property.
-    pub description: String,
+    pub description: Option<String>,
     /// name property.
     pub name: String,
     /// parameters property.
@@ -5587,7 +5587,7 @@ pub struct WorkersObservabilityQuery {
     #[serde(rename = "createdBy")]
     pub created_by: String,
     /// description property.
-    pub description: String,
+    pub description: Option<String>,
     /// id property.
     pub id: String,
     /// name property.

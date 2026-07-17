@@ -1309,7 +1309,7 @@ pub struct AiSearchInstanceChatCompletionRequestAiSearchOptionsRetrievalBoostByI
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AiSearchInstanceChatCompletionRequestMessagesItem {
     /// content property.
-    pub content: String,
+    pub content: Option<String>,
     /// role property.
     pub role: String,
 }
@@ -1342,7 +1342,7 @@ pub struct AiSearchInstanceChatCompletionResponseChoicesItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AiSearchInstanceChatCompletionResponseChoicesItemMessage {
     /// content property.
-    pub content: String,
+    pub content: Option<String>,
     /// role property.
     pub role: String,
 }
@@ -1625,7 +1625,7 @@ pub struct AiSearchInstanceSearchRequestAiSearchOptionsRetrievalBoostByItem {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AiSearchInstanceSearchRequestMessagesItem {
     /// content property.
-    pub content: String,
+    pub content: Option<String>,
     /// role property.
     pub role: String,
 }
@@ -2756,7 +2756,7 @@ pub struct AigConfigCreateGatewayRequest {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// id property.
@@ -2770,9 +2770,9 @@ pub struct AigConfigCreateGatewayRequest {
     /// logpush_public_key property.
     pub logpush_public_key: Option<String>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -2804,7 +2804,7 @@ pub struct AigConfigCreateGatewayResponseResult {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// created_at property.
@@ -2828,9 +2828,9 @@ pub struct AigConfigCreateGatewayResponseResult {
     /// otel property.
     pub otel: Option<Vec<AigConfigCreateGatewayResponseResultOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -3109,7 +3109,7 @@ pub struct AigConfigDeleteGatewayResponseResult {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// created_at property.
@@ -3133,9 +3133,9 @@ pub struct AigConfigDeleteGatewayResponseResult {
     /// otel property.
     pub otel: Option<Vec<AigConfigDeleteGatewayResponseResultOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -3362,7 +3362,7 @@ pub struct AigConfigFetchGatewayResponseResult {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// created_at property.
@@ -3386,9 +3386,9 @@ pub struct AigConfigFetchGatewayResponseResult {
     /// otel property.
     pub otel: Option<Vec<AigConfigFetchGatewayResponseResultOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -3581,9 +3581,9 @@ pub struct AigConfigGetGatewayLogDetailResponseResult {
     /// success property.
     pub success: bool,
     /// tokens_in property.
-    pub tokens_in: i64,
+    pub tokens_in: Option<i64>,
     /// tokens_out property.
-    pub tokens_out: i64,
+    pub tokens_out: Option<i64>,
 }
 
 /// `AigConfigGetGatewayUrlResponse` type.
@@ -3994,9 +3994,9 @@ pub struct AigConfigListGatewayLogsResponseResultItem {
     /// success property.
     pub success: bool,
     /// tokens_in property.
-    pub tokens_in: i64,
+    pub tokens_in: Option<i64>,
     /// tokens_out property.
-    pub tokens_out: i64,
+    pub tokens_out: Option<i64>,
 }
 
 /// `AigConfigListGatewayResponse` type.
@@ -4016,7 +4016,7 @@ pub struct AigConfigListGatewayResponseResultItem {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// created_at property.
@@ -4040,9 +4040,9 @@ pub struct AigConfigListGatewayResponseResultItem {
     /// otel property.
     pub otel: Option<Vec<AigConfigListGatewayResponseResultItemOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -4405,7 +4405,7 @@ pub struct AigConfigUpdateGatewayRequest {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// dlp property.
@@ -4421,9 +4421,9 @@ pub struct AigConfigUpdateGatewayRequest {
     /// otel property.
     pub otel: Option<Vec<AigConfigUpdateGatewayRequestOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
@@ -4488,7 +4488,7 @@ pub struct AigConfigUpdateGatewayResponseResult {
     /// cache_invalidate_on_update property.
     pub cache_invalidate_on_update: bool,
     /// cache_ttl property.
-    pub cache_ttl: i64,
+    pub cache_ttl: Option<i64>,
     /// collect_logs property.
     pub collect_logs: bool,
     /// created_at property.
@@ -4512,9 +4512,9 @@ pub struct AigConfigUpdateGatewayResponseResult {
     /// otel property.
     pub otel: Option<Vec<AigConfigUpdateGatewayResponseResultOtelItem>>,
     /// rate_limiting_interval property.
-    pub rate_limiting_interval: i64,
+    pub rate_limiting_interval: Option<i64>,
     /// rate_limiting_limit property.
-    pub rate_limiting_limit: i64,
+    pub rate_limiting_limit: Option<i64>,
     /// rate_limiting_technique property.
     pub rate_limiting_technique: Option<String>,
     /// retry_backoff property.
