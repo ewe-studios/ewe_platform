@@ -93,6 +93,7 @@ Extract and generalize OrangeVault into `foundation_keychain`:
 | **Icon proxy with SSRF guard** | `validate_icon_domain()` |
 | **Cron purge jobs** | Expired sends, trashed ciphers |
 | **Bitwarden error shapes** | `AppError` with OAuth + `ErrorModel` variants |
+| **App registry + SSH key provisioning** | App registration (one-time secret), SSH key generation (Ed25519/RSA), at-rest encrypted storage, credential retrieval API |
 
 ## Crate Structure
 
@@ -174,6 +175,8 @@ rmpv = "1"
 tracing = "0.1"
 async-trait = "0.1"
 futures-lite = "2"
+ssh_key = { version = "0.6", features = ["ed25519", "rsa"] } # SSH key generation
+age = "0.11"                                                # At-rest encryption for stored private keys
 
 # foundation_db for ALL storage (QueryStore, KeyValueStore, BlobStore, RateLimiterStore)
 foundation_db = { path = "../foundation_db" }
