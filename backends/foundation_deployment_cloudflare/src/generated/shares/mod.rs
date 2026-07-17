@@ -202,6 +202,26 @@ pub struct ResourceSharingV4Errors {
 pub struct SharesListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `kind`.
+    pub kind: Option<String>,
+    /// Query parameter: `target_type`.
+    pub target_type: Option<String>,
+    /// Query parameter: `resource_types`.
+    pub resource_types: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `include_recipient_counts`.
+    pub include_recipient_counts: Option<String>,
 }
 
 /// Arguments for [`share-create_request`].
@@ -220,6 +240,10 @@ pub struct SharesGetByIdArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `include_recipient_counts`.
+    pub include_recipient_counts: Option<String>,
 }
 
 /// Arguments for [`share-update_request`].
@@ -249,6 +273,12 @@ pub struct ShareRecipientsListArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`share-recipient-create_request`].
@@ -282,6 +312,8 @@ pub struct ShareRecipientsGetByIdArgs {
     pub share_id: String,
     /// Path parameter: `recipient_id`.
     pub recipient_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
 }
 
 /// Arguments for [`share-recipient-delete_request`].
@@ -302,6 +334,14 @@ pub struct ShareResourcesListArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `resource_type`.
+    pub resource_type: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`share-resource-create_request`].
@@ -392,6 +432,17 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("kind", args.kind.as_deref());
+    builder = builder.query("target_type", args.target_type.as_deref());
+    builder = builder.query("resource_types", args.resource_types.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("include_recipient_counts", args.include_recipient_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -514,6 +565,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("include_recipient_counts", args.include_recipient_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -697,6 +751,10 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -883,6 +941,8 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -1003,6 +1063,11 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("resource_type", args.resource_type.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

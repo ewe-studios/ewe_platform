@@ -525,6 +525,10 @@ pub struct SubscriptionsPatchResponse {
 pub struct BillableUsageGetPaygoAccountUsageArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `from`.
+    pub from: Option<String>,
+    /// Query parameter: `to`.
+    pub to: Option<String>,
 }
 
 /// Arguments for [`subscriptions-list_request`].
@@ -714,6 +718,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("from", args.from.as_deref());
+    builder = builder.query("to", args.to.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

@@ -978,7 +978,7 @@ pub struct MagicVisibilityMnmMnmConfigWarpDevices {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmRule {
     /// automatic_advertisement property.
-    pub automatic_advertisement: MagicVisibilityMnmMnmRuleAutomaticAdvertisement,
+    pub automatic_advertisement: Option<MagicVisibilityMnmMnmRuleAutomaticAdvertisement>,
     /// bandwidth_threshold property.
     pub bandwidth_threshold: Option<MagicVisibilityMnmMnmRuleBandwidthThreshold>,
     /// duration property.
@@ -1006,7 +1006,7 @@ pub struct MagicVisibilityMnmMnmRule {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmRuleAdvertisableResponse {
     /// automatic_advertisement property.
-    pub automatic_advertisement: MagicVisibilityMnmMnmRuleAutomaticAdvertisement,
+    pub automatic_advertisement: Option<MagicVisibilityMnmMnmRuleAutomaticAdvertisement>,
 }
 
 /// `MagicVisibilityMnmMnmRuleAdvertisementSingleResponse` type.

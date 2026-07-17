@@ -215,6 +215,14 @@ pub struct SecretsStoreQuotaArgs {
 pub struct SecretsStoreListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
 }
 
 /// Arguments for [`secrets-store-create_request`].
@@ -249,6 +257,18 @@ pub struct SecretsStoreSecretsListArgs {
     pub account_id: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `scopes`.
+    pub scopes: Option<String>,
 }
 
 /// Arguments for [`secrets-store-secret-create_request`].
@@ -318,6 +338,14 @@ pub struct SecretsStoreDuplicateByIdArgs {
 pub struct SecretsStoreSystemListArgs {
     /// Path parameter: `account_tag`.
     pub account_tag: String,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
 }
 
 /// Arguments for [`secrets-store-system-create_request`].
@@ -330,6 +358,8 @@ pub struct SecretsStoreSystemCreateArgs {
 /// Arguments for [`secrets-store-system-get-store-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemGetStoreByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
 }
@@ -337,6 +367,8 @@ pub struct SecretsStoreSystemGetStoreByIdArgs {
 /// Arguments for [`secrets-store-system-delete-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDeleteByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
 }
@@ -344,13 +376,29 @@ pub struct SecretsStoreSystemDeleteByIdArgs {
 /// Arguments for [`secrets-store-system-secrets-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretsListArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `scopes`.
+    pub scopes: Option<String>,
 }
 
 /// Arguments for [`secrets-store-system-secret-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretCreateArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
 }
@@ -358,6 +406,8 @@ pub struct SecretsStoreSystemSecretCreateArgs {
 /// Arguments for [`secrets-store-system-delete-bulk_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDeleteBulkArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
 }
@@ -365,6 +415,8 @@ pub struct SecretsStoreSystemDeleteBulkArgs {
 /// Arguments for [`secrets-store-system-get-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemGetByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
     /// Path parameter: `secret_id`.
@@ -374,6 +426,8 @@ pub struct SecretsStoreSystemGetByIdArgs {
 /// Arguments for [`secrets-store-system-patch-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemPatchByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
     /// Path parameter: `secret_id`.
@@ -383,6 +437,8 @@ pub struct SecretsStoreSystemPatchByIdArgs {
 /// Arguments for [`secrets-store-system-secret-delete-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretDeleteByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
     /// Path parameter: `secret_id`.
@@ -392,6 +448,8 @@ pub struct SecretsStoreSystemSecretDeleteByIdArgs {
 /// Arguments for [`secrets-store-system-duplicate-by-id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDuplicateByIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
     /// Path parameter: `store_id`.
     pub store_id: String,
     /// Path parameter: `secret_id`.
@@ -499,6 +557,11 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("order", args.order.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -738,6 +801,13 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("scopes", args.scopes.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1162,6 +1232,11 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -1272,7 +1347,8 @@ pub async fn secrets_store_system_get_store_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}",
+    let path = format!("/system/accounts/{}/stores/{}",
+        args.account_tag,
         args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1331,7 +1407,8 @@ pub async fn secrets_store_system_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}",
+    let path = format!("/system/accounts/{}/stores/{}",
+        args.account_tag,
         args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1390,13 +1467,21 @@ pub async fn secrets_store_system_secrets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets",
+    let path = format!("/system/accounts/{}/stores/{}/secrets",
+        args.account_tag,
         args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("scopes", args.scopes.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1449,7 +1534,8 @@ pub async fn secrets_store_system_secret_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets",
+    let path = format!("/system/accounts/{}/stores/{}/secrets",
+        args.account_tag,
         args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1508,7 +1594,8 @@ pub async fn secrets_store_system_delete_bulk_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets",
+    let path = format!("/system/accounts/{}/stores/{}/secrets",
+        args.account_tag,
         args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1567,7 +1654,8 @@ pub async fn secrets_store_system_get_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets/{}",
+    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag,
         args.store_id,
         args.secret_id,
     );
@@ -1627,7 +1715,8 @@ pub async fn secrets_store_system_patch_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets/{}",
+    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag,
         args.store_id,
         args.secret_id,
     );
@@ -1687,7 +1776,8 @@ pub async fn secrets_store_system_secret_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets/{}",
+    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag,
         args.store_id,
         args.secret_id,
     );
@@ -1747,7 +1837,8 @@ pub async fn secrets_store_system_duplicate_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{{account_tag}}/stores/{}/secrets/{}/duplicate",
+    let path = format!("/system/accounts/{}/stores/{}/secrets/{}/duplicate",
+        args.account_tag,
         args.store_id,
         args.secret_id,
     );

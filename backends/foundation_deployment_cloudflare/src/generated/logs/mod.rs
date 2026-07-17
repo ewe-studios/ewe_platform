@@ -827,7 +827,7 @@ pub struct PostAccountsAccountIdLogpushOwnershipValidateRequest {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostAccountsAccountIdLogpushValidateOriginRequest {
     /// logpull_options property.
-    pub logpull_options: LogpushLogpullOptions,
+    pub logpull_options: Option<LogpushLogpullOptions>,
 }
 
 /// `PutAccountsAccountIdLogpushJobsJobIdRequest` type.

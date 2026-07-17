@@ -6077,6 +6077,10 @@ pub struct AccessApplicationsListAccessApplicationsArgs {
     pub exact: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`access-applications-add-an-application_request`].
@@ -6093,6 +6097,8 @@ pub struct AccessApplicationsAddAnApplicationArgs {
 pub struct AccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6160,6 +6166,8 @@ pub struct AccessPoliciesListAccessAppPoliciesArgs {
     pub app_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6266,6 +6274,8 @@ pub struct AccessApplicationsTestAccessPoliciesArgs {
 pub struct AccessMtlsAuthenticationListMtlsCertificatesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6349,6 +6359,10 @@ pub struct AccessGroupsListAccessGroupsArgs {
     pub name: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`access-groups-create-an-access-group_request`].
@@ -6396,6 +6410,8 @@ pub struct AccessIdentityProvidersListAccessIdentityProvidersArgs {
     pub account_id: String,
     /// Query parameter: `scim_enabled`.
     pub scim_enabled: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6451,6 +6467,8 @@ pub struct AccessIdentityProvidersListScimGroupResourcesArgs {
     pub idp_resource_id: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6472,6 +6490,8 @@ pub struct AccessIdentityProvidersListScimUserResourcesArgs {
     pub email: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6512,6 +6532,8 @@ pub struct AccessAuthenticationLogsGetAccessAuthenticationLogsArgs {
     pub since: Option<String>,
     /// Query parameter: `until`.
     pub until: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
     /// Query parameter: `email`.
@@ -6571,6 +6593,8 @@ pub struct AccessScimUpdateLogsListAccessScimUpdateLogsArgs {
     pub cf_resource_id: Option<String>,
     /// Query parameter: `idp_resource_id`.
     pub idp_resource_id: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6632,6 +6656,8 @@ pub struct ZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs {
 pub struct AccessPoliciesListAccessReusablePoliciesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6699,6 +6725,8 @@ pub struct AccessPolicyTestsGetAUserPageArgs {
     pub account_id: String,
     /// Path parameter: `policy_test_id`.
     pub policy_test_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
     /// Query parameter: `status`.
@@ -6723,6 +6751,10 @@ pub struct AccessServiceTokensListServiceTokensArgs {
     pub name: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`access-service-tokens-create-a-service-token_request`].
@@ -6788,6 +6820,8 @@ pub struct AccessServiceTokensRotateAServiceTokenArgs {
 pub struct AccessTagsListTagsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6841,6 +6875,10 @@ pub struct ZeroTrustUsersGetUsersArgs {
     pub email: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`zero-trust-users-create-user_request`].
@@ -7458,6 +7496,28 @@ pub struct UserSAccountMembershipsDeleteMembershipArgs {
 /// Arguments for [`Organization_listOrganizations_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct OrganizationListOrganizationsArgs {
+    /// Query parameter: `id`.
+    pub id: Option<String>,
+    /// Query parameter: `name`.
+    pub name: Option<String>,
+    /// Query parameter: `name.startsWith`.
+    pub name_starts_with: Option<String>,
+    /// Query parameter: `name.endsWith`.
+    pub name_ends_with: Option<String>,
+    /// Query parameter: `name.contains`.
+    pub name_contains: Option<String>,
+    /// Query parameter: `containing.account`.
+    pub containing_account: Option<String>,
+    /// Query parameter: `containing.user`.
+    pub containing_user: Option<String>,
+    /// Query parameter: `containing.organization`.
+    pub containing_organization: Option<String>,
+    /// Query parameter: `parent.id`.
+    pub parent_id: Option<String>,
+    /// Query parameter: `page_token`.
+    pub page_token: Option<String>,
+    /// Query parameter: `page_size`.
+    pub page_size: Option<String>,
 }
 
 /// Arguments for [`Organizations_createUserOrganization_request`].
@@ -7515,6 +7575,10 @@ pub struct OrganizationsGetAccountsArgs {
     pub order_by: Option<String>,
     /// Query parameter: `direction`.
     pub direction: Option<String>,
+    /// Query parameter: `page_token`.
+    pub page_token: Option<String>,
+    /// Query parameter: `page_size`.
+    pub page_size: Option<String>,
 }
 
 /// Arguments for [`audit-logs-v2-get-organization-audit-logs_request`].
@@ -7621,6 +7685,10 @@ pub struct MembersListArgs {
     pub user_email_starts_with: Option<String>,
     /// Query parameter: `user.email.endsWith`.
     pub user_email_ends_with: Option<String>,
+    /// Query parameter: `page_token`.
+    pub page_token: Option<String>,
+    /// Query parameter: `page_size`.
+    pub page_size: Option<String>,
 }
 
 /// Arguments for [`Members_create_request`].
@@ -7682,6 +7750,22 @@ pub struct OrganizationsModifyProfileArgs {
 pub struct OrganizationSharesListArgs {
     /// Path parameter: `organization_id`.
     pub organization_id: String,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `kind`.
+    pub kind: Option<String>,
+    /// Query parameter: `target_type`.
+    pub target_type: Option<String>,
+    /// Query parameter: `resource_types`.
+    pub resource_types: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`Tenants_listMemberships_request`].
@@ -8920,6 +9004,8 @@ where
     builder = builder.query("target_attributes", args.target_attributes.as_deref());
     builder = builder.query("exact", args.exact.as_deref());
     builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -9042,6 +9128,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -9467,6 +9554,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -10084,6 +10172,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -10632,6 +10721,8 @@ where
 
     builder = builder.query("name", args.name.as_deref());
     builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -10938,6 +11029,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("scim_enabled", args.scim_enabled.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11248,6 +11340,7 @@ where
     builder = builder.query("cf_resource_id", args.cf_resource_id.as_deref());
     builder = builder.query("idp_resource_id", args.idp_resource_id.as_deref());
     builder = builder.query("name", args.name.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11315,6 +11408,7 @@ where
     builder = builder.query("username", args.username.as_deref());
     builder = builder.query("email", args.email.as_deref());
     builder = builder.query("name", args.name.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11560,6 +11654,7 @@ where
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("since", args.since.as_deref());
     builder = builder.query("until", args.until.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("email", args.email.as_deref());
     builder = builder.query("email_exact", args.email_exact.as_deref());
@@ -11646,6 +11741,7 @@ where
     builder = builder.query("resource_group_name", args.resource_group_name.as_deref());
     builder = builder.query("cf_resource_id", args.cf_resource_id.as_deref());
     builder = builder.query("idp_resource_id", args.idp_resource_id.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -12075,6 +12171,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -12504,6 +12601,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("status", args.status.as_deref());
 
@@ -12630,6 +12728,8 @@ where
 
     builder = builder.query("name", args.name.as_deref());
     builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -13058,6 +13158,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -13367,6 +13468,8 @@ where
     builder = builder.query("name", args.name.as_deref());
     builder = builder.query("email", args.email.as_deref());
     builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -17166,7 +17269,7 @@ where
 /// ```
 pub async fn organization_list_organizations_request<F>(
     client: DynNetClient,
-    _args: &OrganizationListOrganizationsArgs,
+    args: &OrganizationListOrganizationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<OrganizationListOrganizationsResponse>, super::shared::ApiError>
@@ -17179,6 +17282,18 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("id", args.id.as_deref());
+    builder = builder.query("name", args.name.as_deref());
+    builder = builder.query("name.startsWith", args.name_starts_with.as_deref());
+    builder = builder.query("name.endsWith", args.name_ends_with.as_deref());
+    builder = builder.query("name.contains", args.name_contains.as_deref());
+    builder = builder.query("containing.account", args.containing_account.as_deref());
+    builder = builder.query("containing.user", args.containing_user.as_deref());
+    builder = builder.query("containing.organization", args.containing_organization.as_deref());
+    builder = builder.query("parent.id", args.parent_id.as_deref());
+    builder = builder.query("page_token", args.page_token.as_deref());
+    builder = builder.query("page_size", args.page_size.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -17490,6 +17605,8 @@ where
     builder = builder.query("name.contains", args.name_contains.as_deref());
     builder = builder.query("order_by", args.order_by.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page_token", args.page_token.as_deref());
+    builder = builder.query("page_size", args.page_size.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -17656,6 +17773,8 @@ where
     builder = builder.query("user.email.contains", args.user_email_contains.as_deref());
     builder = builder.query("user.email.startsWith", args.user_email_starts_with.as_deref());
     builder = builder.query("user.email.endsWith", args.user_email_ends_with.as_deref());
+    builder = builder.query("page_token", args.page_token.as_deref());
+    builder = builder.query("page_size", args.page_size.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -18079,6 +18198,15 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("kind", args.kind.as_deref());
+    builder = builder.query("target_type", args.target_type.as_deref());
+    builder = builder.query("resource_types", args.resource_types.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

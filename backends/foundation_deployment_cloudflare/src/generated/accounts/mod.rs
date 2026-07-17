@@ -1085,7 +1085,7 @@ pub struct WorDescribeWorkflowInstanceResponseResult {
     /// end property.
     pub end: Option<String>,
     /// error property.
-    pub error: WorDescribeWorkflowInstanceResponseResultError,
+    pub error: Option<WorDescribeWorkflowInstanceResponseResultError>,
     /// output property.
     pub output: serde_json::Value,
     /// params property.
@@ -1246,7 +1246,7 @@ pub struct WorDescribeWorkflowVersionsGraphResponseResult {
     /// created_on property.
     pub created_on: String,
     /// graph property.
-    pub graph: WorDescribeWorkflowVersionsGraphResponseResultGraph,
+    pub graph: Option<WorDescribeWorkflowVersionsGraphResponseResultGraph>,
     /// id property.
     pub id: String,
     /// modified_on property.

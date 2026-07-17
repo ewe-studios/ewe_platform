@@ -609,6 +609,91 @@ pub fn strip_doc_only(spec: &mut Value) {
     }
 }
 
+/// What [`resolve_parameter_refs`] rewired.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ParameterRefStats {
+    /// Operation parameters rewritten from a `$ref` into their real definition.
+    pub parameters_inlined: usize,
+    /// `$ref`s naming a component that does not exist — the vendor's bug, left alone.
+    pub unresolved: usize,
+}
+
+/// Resolve `$ref`s into `components/parameters` so operations carry their
+/// parameters directly.
+///
+/// **WHY:** the twin of [`resolve_response_refs`], and it bites harder. DigitalOcean
+/// writes **every** parameter as a reference —
+/// `{"$ref": "#/components/parameters/droplet_tag_name"}` — and our `Parameter`
+/// model has `name`/`in`/`required`/`schema` and **no `$ref` field**. So each one
+/// deserialises into a nameless parameter and is dropped: **833 of DO's 1030
+/// parameters vanish**, silently, and `droplets_list` generates with no arguments
+/// at all.
+///
+/// That is not cosmetic. `?tag_name=` is how a deployment enumerates *its own*
+/// droplets — DigitalOcean's answer to Hetzner's label selector — so losing it
+/// takes the identity mechanism with it.
+///
+/// **WHAT:** replaces each `$ref` parameter with the component's body.
+///
+/// **HOW:** a straight substitution — unlike responses, a parameter has no schema
+/// to hoist, so there is nothing to name. A `$ref` naming a component that does not
+/// exist is left exactly as it is: that is the vendor's bug, and inventing an empty
+/// parameter would hide it.
+///
+/// Run it **before** [`canonicalize_operations`].
+pub fn resolve_parameter_refs(spec: &mut Value) -> ParameterRefStats {
+    let mut stats = ParameterRefStats::default();
+
+    let components: Map<String, Value> = spec
+        .pointer("/components/parameters")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    if components.is_empty() {
+        return stats;
+    }
+
+    let Some(paths) = spec.get_mut("paths").and_then(Value::as_object_mut) else {
+        return stats;
+    };
+
+    for (_, item) in paths.iter_mut() {
+        let Some(item) = item.as_object_mut() else { continue };
+        for (method, op) in item.iter_mut() {
+            // A path item can carry `parameters` shared by every method on it, so
+            // that key is walked too — not only the HTTP methods.
+            if !is_http_method(method) && method != "parameters" {
+                continue;
+            }
+            let params = if method == "parameters" {
+                op.as_array_mut()
+            } else {
+                op.get_mut("parameters").and_then(Value::as_array_mut)
+            };
+            let Some(params) = params else { continue };
+
+            for param in params.iter_mut() {
+                let Some(target) = param
+                    .get("$ref")
+                    .and_then(Value::as_str)
+                    .and_then(|r| r.strip_prefix("#/components/parameters/"))
+                else {
+                    continue;
+                };
+                match components.get(target) {
+                    Some(body) => {
+                        *param = body.clone();
+                        stats.parameters_inlined += 1;
+                    }
+                    None => stats.unresolved += 1,
+                }
+            }
+        }
+    }
+
+    stats
+}
+
 /// What [`resolve_response_refs`] rewired.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ResponseRefStats {

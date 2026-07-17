@@ -372,7 +372,7 @@ pub struct GetDomainMatchListResponseMatchesItem {
     /// matched_queries property.
     pub matched_queries: Option<Vec<i64>>,
     /// public_scans property.
-    pub public_scans: GetDomainMatchListResponseMatchesItemPublicScans,
+    pub public_scans: Option<GetDomainMatchListResponseMatchesItemPublicScans>,
     /// scan_status property.
     pub scan_status: String,
     /// scan_submission_id property.
@@ -798,7 +798,7 @@ pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResult {
 pub struct RadarGetEmailSecurityTopTldsByMaliciousResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecurityTopTldsByMaliciousResponseResultMetaDateRangeItem>,
@@ -897,7 +897,7 @@ pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResult {
 pub struct RadarGetEmailSecurityTopTldsByMessagesResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecurityTopTldsByMessagesResponseResultMetaDateRangeItem>,
@@ -996,7 +996,7 @@ pub struct RadarGetEmailSecurityTopTldsBySpamResponseResult {
 pub struct RadarGetEmailSecurityTopTldsBySpamResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetEmailSecurityTopTldsBySpamResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecurityTopTldsBySpamResponseResultMetaDateRangeItem>,
@@ -1095,7 +1095,7 @@ pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResult {
 pub struct RadarGetEmailSecurityTopTldsBySpoofResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecurityTopTldsBySpoofResponseResultMetaDateRangeItem>,
@@ -1369,7 +1369,7 @@ pub struct RadarGetRankingTopDomainsResponseResult {
 pub struct RadarGetRankingTopDomainsResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetRankingTopDomainsResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetRankingTopDomainsResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetRankingTopDomainsResponseResultMetaDateRangeItem>,
@@ -1485,7 +1485,7 @@ pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResult {
 pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetRobotsTxtTopDomainCategoriesByFilesParsedResponseResultMetaDateRangeItem>,
@@ -1705,25 +1705,25 @@ pub struct RegistrarApiContactProperties {
     /// city property.
     pub city: RegistrarApiCity,
     /// country property.
-    pub country: RegistrarApiCountry,
+    pub country: Option<RegistrarApiCountry>,
     /// email property.
     pub email: Option<RegistrarApiEmail>,
     /// fax property.
     pub fax: Option<RegistrarApiFax>,
     /// first_name property.
-    pub first_name: RegistrarApiFirstName,
+    pub first_name: Option<RegistrarApiFirstName>,
     /// id property.
     pub id: Option<RegistrarApiContactIdentifier>,
     /// last_name property.
-    pub last_name: RegistrarApiLastName,
+    pub last_name: Option<RegistrarApiLastName>,
     /// organization property.
     pub organization: RegistrarApiOrganization,
     /// phone property.
-    pub phone: RegistrarApiTelephone,
+    pub phone: Option<RegistrarApiTelephone>,
     /// state property.
     pub state: RegistrarApiState,
     /// zip property.
-    pub zip: RegistrarApiZipcode,
+    pub zip: Option<RegistrarApiZipcode>,
 }
 
 /// `RegistrarApiContacts` type.

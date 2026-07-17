@@ -3089,7 +3089,7 @@ pub struct PagesDeployment {
     /// deployment_trigger property.
     pub deployment_trigger: std::collections::HashMap<String, serde_json::Value>,
     /// env_vars property.
-    pub env_vars: PagesEnvVars,
+    pub env_vars: Option<PagesEnvVars>,
     /// environment property.
     pub environment: String,
     /// id property.
@@ -6193,6 +6193,8 @@ pub struct CustomPagesForAnAccountUpdateACustomPageArgs {
 pub struct AccessCustomPagesListCustomPagesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
@@ -6359,6 +6361,8 @@ pub struct DeleteRepoConnectionArgs {
 /// Arguments for [`getWorkerConfigAutofill_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetWorkerConfigAutofillArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `provider_type`.
     pub provider_type: String,
     /// Path parameter: `provider_account_id`.
@@ -6376,6 +6380,10 @@ pub struct GetWorkerConfigAutofillArgs {
 pub struct ListBuildTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`createBuildToken_request`].
@@ -6390,6 +6398,8 @@ pub struct CreateBuildTokenArgs {
 /// Arguments for [`deleteBuildToken_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DeleteBuildTokenArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `build_token_uuid`.
     pub build_token_uuid: String,
 }
@@ -6457,6 +6467,10 @@ pub struct UpsertEnvironmentVariablesArgs {
 /// Arguments for [`deleteEnvironmentVariable_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DeleteEnvironmentVariableArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `trigger_uuid`.
+    pub trigger_uuid: String,
     /// Path parameter: `environment_variable_key`.
     pub environment_variable_key: String,
 }
@@ -6473,13 +6487,21 @@ pub struct PurgeBuildCacheArgs {
 /// Arguments for [`listBuildsByScript_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListBuildsByScriptArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `external_script_id`.
     pub external_script_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`listTriggersByScript_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListTriggersByScriptArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `external_script_id`.
     pub external_script_id: String,
 }
@@ -8773,6 +8795,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
@@ -9860,7 +9883,8 @@ pub async fn get_worker_config_autofill_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/builds/repos/{}/{}/{}/config_autofill",
+    let path = format!("/accounts/{}/builds/repos/{}/{}/{}/config_autofill",
+        args.account_id,
         args.provider_type,
         args.provider_account_id,
         args.repo_id,
@@ -9931,6 +9955,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -10045,7 +10072,8 @@ pub async fn delete_build_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/builds/tokens/{}",
+    let path = format!("/accounts/{}/builds/tokens/{}",
+        args.account_id,
         args.build_token_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -10475,7 +10503,9 @@ pub async fn delete_environment_variable_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/builds/triggers/{{trigger_uuid}}/environment_variables/{}",
+    let path = format!("/accounts/{}/builds/triggers/{}/environment_variables/{}",
+        args.account_id,
+        args.trigger_uuid,
         args.environment_variable_key,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -10594,13 +10624,17 @@ pub async fn list_builds_by_script_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/builds/workers/{}/builds",
+    let path = format!("/accounts/{}/builds/workers/{}/builds",
+        args.account_id,
         args.external_script_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -10653,7 +10687,8 @@ pub async fn list_triggers_by_script_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/builds/workers/{}/triggers",
+    let path = format!("/accounts/{}/builds/workers/{}/triggers",
+        args.account_id,
         args.external_script_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);

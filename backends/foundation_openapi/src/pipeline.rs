@@ -244,6 +244,11 @@ impl Pipeline {
         // operation looks like it returns nothing. Rewiring these before hoisting
         // means `canonicalize_operations` sees ordinary `content` for every vendor.
         crate::transform::resolve_response_refs(&mut spec);
+        // Same story for parameters: DO refs all 833 of them, and our Parameter
+        // model cannot express a $ref — so `droplets_list` generated with no
+        // arguments, losing `?tag_name=`, which is how a deployment enumerates its
+        // own droplets.
+        crate::transform::resolve_parameter_refs(&mut spec);
         crate::transform::canonicalize_operations(&mut spec);
 
         // 3. prune again — hoisting rewires reachability, and nothing else drops

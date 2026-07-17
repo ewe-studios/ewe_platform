@@ -97,6 +97,10 @@ pub struct SshKeysNewResponse {
 /// Arguments for [`sshKeys_list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SshKeysListArgs {
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
 }
 
 /// Arguments for [`sshKeys_create_request`].
@@ -134,7 +138,7 @@ pub struct SshKeysCreateArgs {
 /// ```
 pub async fn ssh_keys_list_request<F>(
     client: DynNetClient,
-    _args: &SshKeysListArgs,
+    args: &SshKeysListArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SshKeysAllResponse>, super::shared::ApiError>
@@ -147,6 +151,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("page", args.page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

@@ -101,7 +101,7 @@ pub struct DeleteRegistrationsResponse {
     /// messages property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
     /// result property.
-    pub result: TeamsDevicesEmptyBody,
+    pub result: Option<TeamsDevicesEmptyBody>,
     /// result_info property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
     /// success property.
@@ -661,7 +661,7 @@ pub struct RevokeRegistrationsResponse {
     /// messages property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
     /// result property.
-    pub result: TeamsDevicesEmptyBody,
+    pub result: Option<TeamsDevicesEmptyBody>,
     /// result_info property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
     /// success property.
@@ -1376,7 +1376,7 @@ pub struct TeamsDevicesIpProfile {
     /// created_at property.
     pub created_at: TeamsDevicesIpProfileCreatedAt,
     /// description property.
-    pub description: TeamsDevicesIpProfileDescription,
+    pub description: Option<TeamsDevicesIpProfileDescription>,
     /// enabled property.
     pub enabled: TeamsDevicesIpProfileEnabled,
     /// id property.
@@ -2194,7 +2194,7 @@ pub struct UnrevokeRegistrationsResponse {
     /// messages property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
     /// result property.
-    pub result: TeamsDevicesEmptyBody,
+    pub result: Option<TeamsDevicesEmptyBody>,
     /// result_info property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
     /// success property.
@@ -3861,6 +3861,28 @@ pub struct DeviceManagedNetworksDeleteDeviceManagedNetworkArgs {
 pub struct ListDevicesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `last_seen_user.email`.
+    pub last_seen_user_email: Option<String>,
+    /// Query parameter: `seen_after`.
+    pub seen_after: Option<String>,
+    /// Query parameter: `seen_before`.
+    pub seen_before: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `active_registrations`.
+    pub active_registrations: Option<String>,
+    /// Query parameter: `id`.
+    pub id: Option<String>,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`get-device_request`].
@@ -3870,6 +3892,8 @@ pub struct GetDeviceArgs {
     pub device_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-device_request`].
@@ -4118,6 +4142,30 @@ pub struct DevicePostureRulesDeleteDevicePostureRuleArgs {
 pub struct ListRegistrationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `user.id`.
+    pub user_id: Option<String>,
+    /// Query parameter: `seen_after`.
+    pub seen_after: Option<String>,
+    /// Query parameter: `seen_before`.
+    pub seen_before: Option<String>,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
+    /// Query parameter: `id`.
+    pub id: Option<String>,
+    /// Query parameter: `device.id`.
+    pub device_id: Option<String>,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-registrations_request`].
@@ -4154,6 +4202,8 @@ pub struct GetRegistrationArgs {
     pub registration_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-registration_request`].
@@ -5395,6 +5445,18 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("cursor", args.cursor.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("last_seen_user.email", args.last_seen_user_email.as_deref());
+    builder = builder.query("seen_after", args.seen_after.as_deref());
+    builder = builder.query("seen_before", args.seen_before.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("active_registrations", args.active_registrations.as_deref());
+    builder = builder.query("id", args.id.as_deref());
+    builder = builder.query("include", args.include.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -5454,6 +5516,8 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -7155,6 +7219,19 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("user.id", args.user_id.as_deref());
+    builder = builder.query("seen_after", args.seen_after.as_deref());
+    builder = builder.query("seen_before", args.seen_before.as_deref());
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
+    builder = builder.query("id", args.id.as_deref());
+    builder = builder.query("device.id", args.device_id.as_deref());
+    builder = builder.query("include", args.include.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -7397,6 +7474,8 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

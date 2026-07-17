@@ -80,6 +80,10 @@ pub struct WaitingroomMessages {
 pub struct WaitingRoomListWaitingRoomsAccountArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 // =============================================================================
@@ -124,6 +128,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

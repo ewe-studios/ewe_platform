@@ -7679,7 +7679,7 @@ pub struct PostZonesZoneIdLogpushValidateDestinationRequest {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushValidateOriginRequest {
     /// logpull_options property.
-    pub logpull_options: LogpushLogpullOptions,
+    pub logpull_options: Option<LogpushLogpullOptions>,
 }
 
 /// `PostZonesZoneIdentifierZarazPublishResponse` type.
@@ -14826,6 +14826,26 @@ pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneAsOpenapiArgs
 pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `host`.
+    pub host: Option<String>,
+    /// Query parameter: `method`.
+    pub method: Option<String>,
+    /// Query parameter: `endpoint`.
+    pub endpoint: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `diff`.
+    pub diff: Option<String>,
+    /// Query parameter: `origin`.
+    pub origin: Option<String>,
+    /// Query parameter: `state`.
+    pub state: Option<String>,
 }
 
 /// Arguments for [`api-shield-api-patch-discovered-operations_request`].
@@ -14862,6 +14882,20 @@ pub struct ApiShieldExpressionTemplatesFallthroughArgs {
 pub struct ApiShieldLabelsGetLabelsArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `source`.
+    pub source: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+    /// Query parameter: `with_mapped_resource_counts`.
+    pub with_mapped_resource_counts: Option<String>,
 }
 
 /// Arguments for [`api-shield-labels-get-managed-label_request`].
@@ -14871,6 +14905,8 @@ pub struct ApiShieldLabelsGetManagedLabelArgs {
     pub zone_id: String,
     /// Path parameter: `name`.
     pub name: String,
+    /// Query parameter: `with_mapped_resource_counts`.
+    pub with_mapped_resource_counts: Option<String>,
 }
 
 /// Arguments for [`api-shield-labels-replace-operations-attached-to-managed-label_request`].
@@ -14907,6 +14943,8 @@ pub struct ApiShieldLabelsGetUserLabelArgs {
     pub zone_id: String,
     /// Path parameter: `name`.
     pub name: String,
+    /// Query parameter: `with_mapped_resource_counts`.
+    pub with_mapped_resource_counts: Option<String>,
 }
 
 /// Arguments for [`api-shield-put-user-label_request`].
@@ -14956,8 +14994,22 @@ pub struct ApiShieldLabelsReplaceOperationsAttachedToUserLabelArgs {
 pub struct ApiShieldEndpointManagementRetrieveInformationAboutAllOperationsOnAZoneArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
     /// Query parameter: `order`.
     pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `host`.
+    pub host: Option<String>,
+    /// Query parameter: `method`.
+    pub method: Option<String>,
+    /// Query parameter: `endpoint`.
+    pub endpoint: Option<String>,
+    /// Query parameter: `feature`.
+    pub feature: Option<String>,
 }
 
 /// Arguments for [`api-shield-endpoint-management-add-operations-to-a-zone_request`].
@@ -15021,6 +15073,8 @@ pub struct ApiShieldEndpointManagementRetrieveInformationAboutAnOperationArgs {
     pub zone_id: String,
     /// Path parameter: `operation_id`.
     pub operation_id: String,
+    /// Query parameter: `feature`.
+    pub feature: Option<String>,
 }
 
 /// Arguments for [`api-shield-endpoint-management-delete-an-operation_request`].
@@ -15072,6 +15126,8 @@ pub struct ApiShieldEndpointManagementRetrieveOperationsAndFeaturesAsOpenApiSche
     pub zone_id: String,
     /// Query parameter: `host`.
     pub host: Option<String>,
+    /// Query parameter: `feature`.
+    pub feature: Option<String>,
 }
 
 /// Arguments for [`argo-smart-routing-get-argo-smart-routing-setting_request`].
@@ -16323,6 +16379,10 @@ pub struct FraudDetectionZoneUpdateSettingsArgs {
 pub struct HealthChecksListHealthChecksArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`health-checks-create-health-check_request`].
@@ -17398,6 +17458,12 @@ pub struct ListZoneRulesetVersionRulesByTagArgs {
 pub struct SchemaValidationListSchemasPaginatedArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `omit_source`.
+    pub omit_source: Option<String>,
     /// Query parameter: `validation_enabled`.
     pub validation_enabled: Option<String>,
 }
@@ -17414,6 +17480,10 @@ pub struct SchemaValidationCreateSchemaArgs {
 pub struct SchemaValidationListSchemaHostsArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`schema-validation-get-schema_request`].
@@ -17423,6 +17493,8 @@ pub struct SchemaValidationGetSchemaArgs {
     pub zone_id: String,
     /// Path parameter: `schema_id`.
     pub schema_id: String,
+    /// Query parameter: `omit_source`.
+    pub omit_source: Option<String>,
 }
 
 /// Arguments for [`schema-validation-edit-schema_request`].
@@ -17450,6 +17522,18 @@ pub struct SchemaValidationExtractOperationsFromSchemaArgs {
     pub zone_id: String,
     /// Path parameter: `schema_id`.
     pub schema_id: String,
+    /// Query parameter: `feature`.
+    pub feature: Option<String>,
+    /// Query parameter: `host`.
+    pub host: Option<String>,
+    /// Query parameter: `method`.
+    pub method: Option<String>,
+    /// Query parameter: `endpoint`.
+    pub endpoint: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
     /// Query parameter: `operation_status`.
     pub operation_status: Option<String>,
 }
@@ -17480,6 +17564,10 @@ pub struct SchemaValidationEditSettingsArgs {
 pub struct SchemaValidationListPerOperationSettingsArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`schema-validation-bulk-edit-per-operation-settings_request`].
@@ -18034,6 +18122,10 @@ pub struct SmartShieldSettingsStartCacheReserveClearArgs {
 pub struct SmartShieldListHealthChecksArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`smart-shield-create-health-check_request`].
@@ -18454,6 +18546,10 @@ pub struct TagsZoneDeleteArgs {
 pub struct TokenValidationConfigListArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`token-validation-config-create_request`].
@@ -18504,6 +18600,10 @@ pub struct TokenValidationConfigCredentialsUpdateArgs {
 pub struct TokenValidationRulesListArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `token_configuration`.
     pub token_configuration: Option<String>,
     /// Query parameter: `action`.
@@ -18546,6 +18646,10 @@ pub struct TokenValidationRulesBulkEditArgs {
 pub struct TokenValidationRulesPreviewArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
     /// Query parameter: `state`.
     pub state: Option<String>,
     /// Query parameter: `host`.
@@ -18611,6 +18715,10 @@ pub struct DeleteUrlNormalizationArgs {
 pub struct WaitingRoomListWaitingRoomsArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`waiting-room-create-waiting-room_request`].
@@ -18703,6 +18811,10 @@ pub struct WaitingRoomListEventsArgs {
     pub waiting_room_id: String,
     /// Path parameter: `zone_id`.
     pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`waiting-room-create-event_request`].
@@ -23140,6 +23252,17 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("host", args.host.as_deref());
+    builder = builder.query("method", args.method.as_deref());
+    builder = builder.query("endpoint", args.endpoint.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("diff", args.diff.as_deref());
+    builder = builder.query("origin", args.origin.as_deref());
+    builder = builder.query("state", args.state.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -23386,6 +23509,14 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("source", args.source.as_deref());
+    builder = builder.query("filter", args.filter.as_deref());
+    builder = builder.query("with_mapped_resource_counts", args.with_mapped_resource_counts.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -23445,6 +23576,8 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("with_mapped_resource_counts", args.with_mapped_resource_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -23689,6 +23822,8 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("with_mapped_resource_counts", args.with_mapped_resource_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -23998,7 +24133,14 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("host", args.host.as_deref());
+    builder = builder.query("method", args.method.as_deref());
+    builder = builder.query("endpoint", args.endpoint.as_deref());
+    builder = builder.query("feature", args.feature.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -24432,6 +24574,8 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("feature", args.feature.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -24741,6 +24885,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("host", args.host.as_deref());
+    builder = builder.query("feature", args.feature.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -32415,6 +32560,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -39070,6 +39218,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("omit_source", args.omit_source.as_deref());
     builder = builder.query("validation_enabled", args.validation_enabled.as_deref());
 
     if let Some(f) = builder_mod {
@@ -39190,6 +39341,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -39249,6 +39403,8 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("omit_source", args.omit_source.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -39430,6 +39586,12 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("feature", args.feature.as_deref());
+    builder = builder.query("host", args.host.as_deref());
+    builder = builder.query("method", args.method.as_deref());
+    builder = builder.query("endpoint", args.endpoint.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("operation_status", args.operation_status.as_deref());
 
     if let Some(f) = builder_mod {
@@ -39667,6 +39829,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -43204,6 +43369,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -45779,6 +45947,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -46137,6 +46308,8 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("token_configuration", args.token_configuration.as_deref());
     builder = builder.query("action", args.action.as_deref());
     builder = builder.query("enabled", args.enabled.as_deref());
@@ -46381,6 +46554,8 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("page", args.page.as_deref());
     builder = builder.query("state", args.state.as_deref());
     builder = builder.query("host", args.host.as_deref());
     builder = builder.query("hostname", args.hostname.as_deref());
@@ -46800,6 +46975,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -47413,6 +47591,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

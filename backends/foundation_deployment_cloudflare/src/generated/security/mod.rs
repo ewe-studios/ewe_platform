@@ -5416,7 +5416,7 @@ pub struct RadarGetAttacksLayer3TopAttacksResponseResult {
 pub struct RadarGetAttacksLayer3TopAttacksResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer3TopAttacksResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer3TopAttacksResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer3TopAttacksResponseResultMetaDateRangeItem>,
@@ -5519,7 +5519,7 @@ pub struct RadarGetAttacksLayer3TopOriginLocationsResponseResult {
 pub struct RadarGetAttacksLayer3TopOriginLocationsResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer3TopOriginLocationsResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer3TopOriginLocationsResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer3TopOriginLocationsResponseResultMetaDateRangeItem>,
@@ -5624,7 +5624,7 @@ pub struct RadarGetAttacksLayer3TopTargetLocationsResponseResult {
 pub struct RadarGetAttacksLayer3TopTargetLocationsResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer3TopTargetLocationsResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer3TopTargetLocationsResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer3TopTargetLocationsResponseResultMetaDateRangeItem>,
@@ -6021,7 +6021,7 @@ pub struct RadarGetAttacksLayer7TopAttacksResponseResult {
 pub struct RadarGetAttacksLayer7TopAttacksResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer7TopAttacksResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer7TopAttacksResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer7TopAttacksResponseResultMetaDateRangeItem>,
@@ -6130,7 +6130,7 @@ pub struct RadarGetAttacksLayer7TopOriginAsResponseResult {
 pub struct RadarGetAttacksLayer7TopOriginAsResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer7TopOriginAsResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer7TopOriginAsResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer7TopOriginAsResponseResultMetaDateRangeItem>,
@@ -6235,7 +6235,7 @@ pub struct RadarGetAttacksLayer7TopOriginLocationResponseResult {
 pub struct RadarGetAttacksLayer7TopOriginLocationResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer7TopOriginLocationResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer7TopOriginLocationResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer7TopOriginLocationResponseResultMetaDateRangeItem>,
@@ -6340,7 +6340,7 @@ pub struct RadarGetAttacksLayer7TopTargetLocationResponseResult {
 pub struct RadarGetAttacksLayer7TopTargetLocationResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetAttacksLayer7TopTargetLocationResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetAttacksLayer7TopTargetLocationResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetAttacksLayer7TopTargetLocationResponseResultMetaDateRangeItem>,
@@ -6994,7 +6994,7 @@ pub struct RadarGetHttpTopAsesByBotClassResponseResult {
 pub struct RadarGetHttpTopAsesByBotClassResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetHttpTopAsesByBotClassResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetHttpTopAsesByBotClassResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetHttpTopAsesByBotClassResponseResultMetaDateRangeItem>,
@@ -7097,7 +7097,7 @@ pub struct RadarGetHttpTopLocationsByBotClassResponseResult {
 pub struct RadarGetHttpTopLocationsByBotClassResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetHttpTopLocationsByBotClassResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetHttpTopLocationsByBotClassResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetHttpTopLocationsByBotClassResponseResultMetaDateRangeItem>,
@@ -7200,7 +7200,7 @@ pub struct RadarGetRobotsTxtTopUserAgentsByDirectiveResponseResult {
 pub struct RadarGetRobotsTxtTopUserAgentsByDirectiveResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetRobotsTxtTopUserAgentsByDirectiveResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetRobotsTxtTopUserAgentsByDirectiveResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetRobotsTxtTopUserAgentsByDirectiveResponseResultMetaDateRangeItem>,
@@ -10278,6 +10278,8 @@ pub struct CloudforceOneValidateRuleArgs {
 /// Arguments for [`cloudforce-one-get-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct CloudforceOneGetRuleArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `id`.
     pub id: String,
 }
@@ -10285,6 +10287,8 @@ pub struct CloudforceOneGetRuleArgs {
 /// Arguments for [`cloudforce-one-update-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct CloudforceOneUpdateRuleArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `id`.
     pub id: String,
     /// Request body.
@@ -10294,6 +10298,8 @@ pub struct CloudforceOneUpdateRuleArgs {
 /// Arguments for [`cloudforce-one-delete-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct CloudforceOneDeleteRuleArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
     /// Path parameter: `id`.
     pub id: String,
 }
@@ -19207,7 +19213,8 @@ pub async fn cloudforce_one_get_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/cloudforce-one/rules/{}",
+    let path = format!("/accounts/{}/cloudforce-one/rules/{}",
+        args.account_id,
         args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -19266,7 +19273,8 @@ pub async fn cloudforce_one_update_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/cloudforce-one/rules/{}",
+    let path = format!("/accounts/{}/cloudforce-one/rules/{}",
+        args.account_id,
         args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -19328,7 +19336,8 @@ pub async fn cloudforce_one_delete_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/cloudforce-one/rules/{}",
+    let path = format!("/accounts/{}/cloudforce-one/rules/{}",
+        args.account_id,
         args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);

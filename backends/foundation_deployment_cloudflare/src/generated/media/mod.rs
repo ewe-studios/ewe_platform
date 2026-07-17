@@ -3946,6 +3946,10 @@ pub struct GetOrgAnalyticsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Query parameter: `start_date`.
+    pub start_date: Option<String>,
+    /// Query parameter: `end_date`.
+    pub end_date: Option<String>,
 }
 
 /// Arguments for [`get-livestream-analytics-complete_request`].
@@ -4028,6 +4032,16 @@ pub struct GetAllMeetingsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `start_time`.
+    pub start_time: Option<String>,
+    /// Query parameter: `end_time`.
+    pub end_time: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
 }
 
 /// Arguments for [`create_meeting_request`].
@@ -4079,10 +4093,6 @@ pub struct StopLivestreamingArgs {
 /// Arguments for [`GetActiveSession_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetActiveSessionArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
     /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
@@ -4094,6 +4104,8 @@ pub struct KickPartcipantsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
 }
 
 /// Arguments for [`KickAllParticipants_request`].
@@ -4103,6 +4115,8 @@ pub struct KickAllParticipantsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
 }
 
 /// Arguments for [`MuteParticipants_request`].
@@ -4112,6 +4126,8 @@ pub struct MuteParticipantsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
 }
 
 /// Arguments for [`MuteAllParticipants_request`].
@@ -4121,6 +4137,8 @@ pub struct MuteAllParticipantsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
 }
 
 /// Arguments for [`CreatePoll_request`].
@@ -4130,6 +4148,8 @@ pub struct CreatePollArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
 }
 
 /// Arguments for [`livestream-session-details_request`].
@@ -4161,6 +4181,10 @@ pub struct GetMeetingParticipantsArgs {
     pub app_id: String,
     /// Path parameter: `meeting_id`.
     pub meeting_id: String,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`add_participant_request`].
@@ -4221,6 +4245,10 @@ pub struct GetPresetsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
 }
 
 /// Arguments for [`post-presets_request`].
@@ -4274,8 +4302,24 @@ pub struct GetAllRecordingsArgs {
     pub app_id: String,
     /// Query parameter: `meeting_id`.
     pub meeting_id: Option<String>,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
     /// Query parameter: `expired`.
     pub expired: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `start_time`.
+    pub start_time: Option<String>,
+    /// Query parameter: `end_time`.
+    pub end_time: Option<String>,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
 }
 
 /// Arguments for [`start_recording_request`].
@@ -4338,6 +4382,22 @@ pub struct GetSessionsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `start_time`.
+    pub start_time: Option<String>,
+    /// Query parameter: `end_time`.
+    pub end_time: Option<String>,
+    /// Query parameter: `participants`.
+    pub participants: Option<String>,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
     /// Query parameter: `associated_id`.
@@ -4394,6 +4454,16 @@ pub struct GetSessionParticipantsArgs {
     pub app_id: String,
     /// Path parameter: `session_id`.
     pub session_id: String,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `page_no`.
+    pub page_no: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
     /// Query parameter: `include_peer_events`.
     pub include_peer_events: Option<String>,
     /// Query parameter: `view`.
@@ -7056,6 +7126,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("start_date", args.start_date.as_deref());
+    builder = builder.query("end_date", args.end_date.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -7432,6 +7505,12 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page_no", args.page_no.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("start_time", args.start_time.as_deref());
+    builder = builder.query("end_time", args.end_time.as_deref());
+    builder = builder.query("search", args.search.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -7841,9 +7920,7 @@ pub async fn get_active_session_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session",
-        args.account_id,
-        args.app_id,
+    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-session",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7902,9 +7979,10 @@ pub async fn kick_partcipants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{{meeting_id}}/active-session/kick",
+    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick",
         args.account_id,
         args.app_id,
+        args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7962,9 +8040,10 @@ pub async fn kick_all_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{{meeting_id}}/active-session/kick-all",
+    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick-all",
         args.account_id,
         args.app_id,
+        args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8022,9 +8101,10 @@ pub async fn mute_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{{meeting_id}}/active-session/mute",
+    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute",
         args.account_id,
         args.app_id,
+        args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8082,9 +8162,10 @@ pub async fn mute_all_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{{meeting_id}}/active-session/mute-all",
+    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute-all",
         args.account_id,
         args.app_id,
+        args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8142,9 +8223,10 @@ pub async fn create_poll_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{{meeting_id}}/active-session/poll",
+    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/poll",
         args.account_id,
         args.app_id,
+        args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8335,6 +8417,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("page_no", args.page_no.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -8699,6 +8784,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("page_no", args.page_no.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -9003,7 +9091,15 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("meeting_id", args.meeting_id.as_deref());
+    builder = builder.query("page_no", args.page_no.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("expired", args.expired.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("start_time", args.start_time.as_deref());
+    builder = builder.query("end_time", args.end_time.as_deref());
+    builder = builder.query("status", args.status.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -9369,6 +9465,14 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("page_no", args.page_no.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("start_time", args.start_time.as_deref());
+    builder = builder.query("end_time", args.end_time.as_deref());
+    builder = builder.query("participants", args.participants.as_deref());
+    builder = builder.query("status", args.status.as_deref());
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("associated_id", args.associated_id.as_deref());
 
@@ -9623,6 +9727,11 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("page_no", args.page_no.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
     builder = builder.query("include_peer_events", args.include_peer_events.as_deref());
     builder = builder.query("view", args.view.as_deref());
 

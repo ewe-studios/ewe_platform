@@ -1121,7 +1121,7 @@ pub struct RadarGetDnsTopAsesResponseResult {
 pub struct RadarGetDnsTopAsesResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetDnsTopAsesResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetDnsTopAsesResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetDnsTopAsesResponseResultMetaDateRangeItem>,
@@ -1224,7 +1224,7 @@ pub struct RadarGetDnsTopLocationsResponseResult {
 pub struct RadarGetDnsTopLocationsResponseResultMeta {
     /// confidenceInfo property.
     #[serde(rename = "confidenceInfo")]
-    pub confidence_info: RadarGetDnsTopLocationsResponseResultMetaConfidenceInfo,
+    pub confidence_info: Option<RadarGetDnsTopLocationsResponseResultMetaConfidenceInfo>,
     /// dateRange property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetDnsTopLocationsResponseResultMetaDateRangeItem>,

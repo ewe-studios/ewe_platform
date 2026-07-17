@@ -738,6 +738,8 @@ pub struct TagsDeleteArgs {
 pub struct TagsListKeysArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`tags-list_request`].
@@ -747,6 +749,10 @@ pub struct TagsListArgs {
     pub account_id: String,
     /// Query parameter: `type`.
     pub r#type: Option<String>,
+    /// Query parameter: `tag`.
+    pub tag: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`tags-list-values_request`].
@@ -756,6 +762,10 @@ pub struct TagsListValuesArgs {
     pub account_id: String,
     /// Path parameter: `tag_key`.
     pub tag_key: String,
+    /// Query parameter: `type`.
+    pub r#type: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`wor-send-event-workflow-instance_request`].
@@ -1965,6 +1975,8 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.query("cursor", args.cursor.as_deref());
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -2025,6 +2037,8 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("type", args.r#type.as_deref());
+    builder = builder.query("tag", args.tag.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2085,6 +2099,9 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("type", args.r#type.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

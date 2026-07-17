@@ -292,6 +292,16 @@ pub struct Size {
 /// Arguments for [`droplets_list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DropletsListArgs {
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `tag_name`.
+    pub tag_name: Option<String>,
+    /// Query parameter: `name`.
+    pub name: Option<String>,
+    /// Query parameter: `type`.
+    pub r#type: Option<String>,
 }
 
 /// Arguments for [`droplets_create_request`].
@@ -343,7 +353,7 @@ pub struct DropletsDestroyArgs {
 /// ```
 pub async fn droplets_list_request<F>(
     client: DynNetClient,
-    _args: &DropletsListArgs,
+    args: &DropletsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AllDropletsResponse>, super::shared::ApiError>
@@ -356,6 +366,12 @@ where
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("tag_name", args.tag_name.as_deref());
+    builder = builder.query("name", args.name.as_deref());
+    builder = builder.query("type", args.r#type.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

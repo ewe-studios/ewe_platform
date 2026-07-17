@@ -852,3 +852,126 @@ fn the_real_digitalocean_responses_resolve() {
         stats.components_hoisted, stats.responses_inlined
     );
 }
+
+// ── parameters behind a $ref ─────────────────────────────────────────────────
+
+#[test]
+fn a_parameter_referenced_from_components_is_inlined() {
+    use foundation_openapi::resolve_parameter_refs;
+
+    // DigitalOcean writes EVERY parameter as a reference, and our `Parameter`
+    // model has name/in/required/schema and NO $ref field — so each one
+    // deserialised into a nameless parameter and was dropped. 833 of DO's 1030
+    // vanished, silently, and `droplets_list` generated with no arguments at all.
+    //
+    // Not cosmetic: `?tag_name=` is how a deployment enumerates its OWN droplets
+    // (DigitalOcean's answer to Hetzner's label selector), so losing it took the
+    // identity mechanism with it.
+    let mut spec = json!({
+        "paths": { "/v2/droplets": { "get": {
+            "operationId": "droplets_list",
+            "parameters": [
+                { "$ref": "#/components/parameters/droplet_tag_name" },
+                { "name": "inline_one", "in": "query", "schema": { "type": "string" } }
+            ],
+            "responses": {}
+        }}},
+        "components": { "parameters": { "droplet_tag_name": {
+            "name": "tag_name", "in": "query", "schema": { "type": "string" }
+        }}}
+    });
+
+    let stats = resolve_parameter_refs(&mut spec);
+    assert_eq!(stats.parameters_inlined, 1);
+    assert_eq!(stats.unresolved, 0);
+
+    let params = spec["paths"]["/v2/droplets"]["get"]["parameters"].as_array().unwrap();
+    assert_eq!(params[0]["name"], "tag_name", "the ref became the real parameter");
+    assert_eq!(params[0]["in"], "query");
+    assert_eq!(params[1]["name"], "inline_one", "an inline parameter is untouched");
+}
+
+#[test]
+fn parameters_shared_by_a_whole_path_item_are_resolved_too() {
+    use foundation_openapi::resolve_parameter_refs;
+
+    // A path item may carry `parameters` that apply to every method on it. Walking
+    // only the HTTP methods would leave those refs dangling.
+    let mut spec = json!({
+        "paths": { "/v2/droplets/{id}": {
+            "parameters": [{ "$ref": "#/components/parameters/droplet_id" }],
+            "get": { "operationId": "droplets_get", "responses": {} }
+        }},
+        "components": { "parameters": { "droplet_id": {
+            "name": "droplet_id", "in": "path", "required": true, "schema": { "type": "integer" }
+        }}}
+    });
+
+    let stats = resolve_parameter_refs(&mut spec);
+    assert_eq!(stats.parameters_inlined, 1);
+    assert_eq!(
+        spec["paths"]["/v2/droplets/{id}"]["parameters"][0]["name"],
+        "droplet_id"
+    );
+}
+
+#[test]
+fn a_parameter_ref_the_vendor_never_defined_is_left_alone() {
+    use foundation_openapi::resolve_parameter_refs;
+
+    // The vendor's bug. Inventing an empty parameter would hide it and generate a
+    // call that silently omits an argument.
+    let mut spec = json!({
+        "paths": { "/a": { "get": {
+            "operationId": "a",
+            "parameters": [{ "$ref": "#/components/parameters/never_defined" }],
+            "responses": {}
+        }}},
+        "components": { "parameters": { "other": { "name": "x", "in": "query" } } }
+    });
+
+    let stats = resolve_parameter_refs(&mut spec);
+    assert_eq!(stats.parameters_inlined, 0);
+    assert_eq!(stats.unresolved, 1);
+    assert_eq!(
+        spec["paths"]["/a"]["get"]["parameters"][0]["$ref"],
+        "#/components/parameters/never_defined",
+        "left exactly as the vendor wrote it"
+    );
+}
+
+/// DigitalOcean's real spec — the document that exposed this.
+#[test]
+fn the_real_digitalocean_parameters_resolve() {
+    use foundation_openapi::resolve_parameter_refs;
+
+    const SPEC: &str = "../../artefacts/cloud_providers/digitalocean/openapi.json";
+    if !std::path::Path::new(SPEC).exists() {
+        eprintln!("SKIP: digitalocean artefact not present");
+        return;
+    }
+    let mut spec: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(SPEC).unwrap()).unwrap();
+
+    let before = foundation_openapi::dangling_refs(&spec);
+    let stats = resolve_parameter_refs(&mut spec);
+    let after = foundation_openapi::dangling_refs(&spec);
+
+    assert!(stats.parameters_inlined > 800, "DO refs nearly all of them: {stats:?}");
+    let introduced: Vec<&String> = after.iter().filter(|r| !before.contains(r)).collect();
+    assert!(introduced.is_empty(), "rewiring must not break a ref: {introduced:?}");
+
+    // The one that carries the identity mechanism.
+    let list = &spec["paths"]["/v2/droplets"]["get"]["parameters"];
+    let names: Vec<&str> = list
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|p| p["name"].as_str())
+        .collect();
+    assert!(
+        names.contains(&"tag_name"),
+        "droplets_list must keep ?tag_name= — it is how a deployment finds its own droplets: {names:?}"
+    );
+    eprintln!("  digitalocean: {} parameters rewired", stats.parameters_inlined);
+}
