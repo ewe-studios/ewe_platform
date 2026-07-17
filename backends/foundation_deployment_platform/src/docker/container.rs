@@ -1,6 +1,7 @@
 //! Container lifecycle — the RAII guard for running Docker containers.
 
 use std::collections::HashMap;
+use std::net::{Ipv4Addr, SocketAddr};
 
 use foundation_deployment_docker::client::{ContainerCreateBody, ContainerHostConfig};
 use foundation_deployment_docker::generated::json::{
@@ -131,6 +132,28 @@ impl ContainerHandle {
     #[must_use]
     pub fn host_ports(&self) -> &HashMap<String, u16> {
         &self.ports
+    }
+
+    /// The host-side address `container_port` is reachable at, e.g.
+    /// `127.0.0.1:49153`. This is the address to connect to from the test
+    /// process, and it is the reason a caller rarely needs `port_mapped`: let
+    /// Docker assign the host port with `port = N` and ask the handle where it
+    /// landed, instead of pinning a host port that a parallel run may already
+    /// hold.
+    ///
+    /// `None` if `container_port` was never exposed as TCP.
+    #[must_use]
+    pub fn address(&self, container_port: u16) -> Option<SocketAddr> {
+        self.host_port(container_port)
+            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
+    }
+
+    /// The host-side UDP address for `container_port`. `None` if it was never
+    /// exposed as UDP.
+    #[must_use]
+    pub fn udp_address(&self, container_port: u16) -> Option<SocketAddr> {
+        self.host_port_udp(container_port)
+            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
     }
 
     pub async fn shutdown_async(&self) -> DockerResult<()> {

@@ -76,6 +76,46 @@ a container-side port, and the multi-container start order (the doc claimed
 "outermost starts first"; the *lowest* attribute is outermost at runtime and
 starts first — measured via `docker events`).
 
+#### Handle exposure (design change, decided 2026-07-17)
+
+The repair above left a real gap: the macro kept the `ContainerHandle` in a
+hidden local, so a body could only reach its container by pinning a host port
+with `port_mapped` — which is what made two of these tests collide in parallel.
+Handles are now passed to the body (decision 08, "Reaching the containers"):
+
+- **The annotated fn must take exactly one parameter**, receiving a
+  `ContainerGroup` of every started container; a zero-arg fn is a compile error.
+  `ContainerGroup` is reused rather than a new type — it already modelled
+  "several containers torn down together in reverse start order" and only needed
+  `empty()`/`insert()` for the macro to fill it. The group owns the handles, so
+  its Drop replaces the per-container guard.
+- **All containers are declared in one invocation**, one `{ ... }` block each
+  (bare `key = value` remains shorthand for a single container); stacking the
+  attribute is now a compile error. Stacking made each attribute an independent
+  expansion blind to its siblings, which forced the group to be threaded through
+  the nest (each expansion inferring whether it was outermost), inverted the
+  start order (the *lowest* attribute started first), and left duplicate lookup
+  keys detectable only at runtime. One invocation sees the whole set: containers
+  start in the order written, and a duplicate `as` key is a compile error.
+- **Lookup is by logical key (`as = "cache"`), never the Docker name.** Docker
+  names are global to the daemon, so keying on `name` would force every test that
+  wants a handle to pin a globally-unique name and collide with a 409 in parallel
+  — the same failure this change removes for ports. A logical key never reaches
+  the Docker API, so containers stay auto-named and any number of runs can share
+  the key. Duplicate keys panic on insert rather than resolving arbitrarily.
+- **Ports are Docker-assigned by default**: `port = 6379` plus the new
+  `ContainerHandle::address(6379)` → `127.0.0.1:<assigned>`. No test pins a host
+  port any more, so parallel runs cannot conflict.
+- `as` is a Rust keyword, so the attribute parser is hand-rolled: `syn::Meta`
+  rejects `as = "cache"` ("expected identifier, found keyword `as`"). Peeking
+  `Token![as]` accepts it, and spans on unknown keys improved as a side effect.
+
+Coverage: `docker_macro_tests` rewritten onto the group API (the multi-container
+test asserts both containers are in one group, get distinct Docker-assigned
+ports, are each independently reachable via `address()`, and start in the order
+written); plus four `foundation_macros` trybuild compile-fail cases — missing
+parameter, unknown attribute key, stacked attributes, and duplicate `as` key.
+
 ### Reopened — repair status
 | # | Feature | Status |
 |---|---------|--------|

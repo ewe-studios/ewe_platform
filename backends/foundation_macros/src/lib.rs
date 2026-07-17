@@ -693,15 +693,47 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// into a `ContainerConfig`, starts the container before the function body,
 /// and stops/removes it after (even on panic — Drop cleanup).
 ///
+/// The function **must** declare exactly one parameter, which receives a
+/// `ContainerGroup` holding every started container; a fn without one is a
+/// compile error, since it could not address its own containers. Look a handle
+/// up by the logical key given with `as = "..."`, then ask it for its address.
+/// Prefer `port = N` (Docker assigns the host port, readable via
+/// `handle.address(N)`) over pinning a host port with `port_mapped`, which a
+/// parallel run may already hold.
+///
+/// Declare every container in one invocation, one `{ ... }` block each; they
+/// start in the order written and all land in the same group. The attribute
+/// cannot be stacked (that is a compile error pointing here).
+///
 /// # Examples
 ///
+/// A single container — the bare `key = value` list is shorthand:
+///
 /// ```ignore
+/// use foundation_core::valtron::valtron_test;
+/// use foundation_deployment_platform::docker::ContainerGroup;
 /// use foundation_deployment_platform::docker_container;
 ///
+/// #[docker_container(image = "redis:7", as = "cache", port = 6379)]
 /// #[valtron_test]
-/// #[docker_container(image = "redis:7", port = 6379)]
-/// fn test_redis() {
-///     // Redis is running at localhost:<auto-assigned port>
+/// fn test_redis(containers: ContainerGroup) {
+///     let addr = containers.container("cache").unwrap().address(6379).unwrap();
+///     // Redis is serving at `addr` (127.0.0.1:<auto-assigned port>).
+/// }
+/// ```
+///
+/// Several containers — one block each:
+///
+/// ```ignore
+/// #[docker_container(
+///     { image = "redis:7", as = "cache", port = 6379 },
+///     { image = "postgres:16", as = "db", port = 5432,
+///       env = [("POSTGRES_PASSWORD", "test")] }
+/// )]
+/// #[valtron_test]
+/// fn test_stack(containers: ContainerGroup) {
+///     let cache = containers.container("cache").unwrap().address(6379).unwrap();
+///     let db = containers.container("db").unwrap().address(5432).unwrap();
 /// }
 /// ```
 #[proc_macro_attribute]

@@ -1,24 +1,90 @@
 //! `#[docker_container]` — start Docker containers for the duration of a function.
 //!
-//! Parses key=value attributes into a `ContainerConfig`, generates async setup
-//! (start container, verify readiness) and teardown (stop + remove on Drop)
-//! around the user's function body.
+//! Parses one or more container definitions into `ContainerConfig`s, generates
+//! async setup (start each container, verify readiness) before the user's
+//! function body, hands the body a `ContainerGroup` of the started containers,
+//! and tears them all down after (the group's Drop, which also covers panics).
+//!
+//! One invocation declares every container, so this macro knows the whole set at
+//! expansion time: it starts them in the order written, catches duplicate lookup
+//! keys as compile errors, and needs no cooperation between attributes.
+
+use std::collections::HashMap;
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    Expr, ExprLit, ItemFn, Lit, Meta, Token,
+    Expr, ExprLit, Ident, ItemFn, Lit, Token,
 };
 
 use crate::crate_paths::{
     foundation_core_path, foundation_deployment_platform_path,
 };
 
+/// Every container the macro invocation declares, in the order written.
 struct Attr {
+    defs: Vec<ContainerDef>,
+}
+
+impl Parse for Attr {
+    /// Two accepted shapes:
+    ///
+    /// - a braced block per container, comma-separated —
+    ///   `{ image = "redis:7", as = "cache" }, { image = "postgres:16", as = "db" }`
+    /// - the bare `key = value` list, shorthand for a single container.
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut defs = Vec::new();
+
+        if input.peek(syn::token::Brace) {
+            while !input.is_empty() {
+                let content;
+                syn::braced!(content in input);
+                defs.push(content.parse::<ContainerDef>()?);
+
+                if input.is_empty() {
+                    break;
+                }
+                input.parse::<Token![,]>()?;
+            }
+        } else {
+            defs.push(input.parse::<ContainerDef>()?);
+        }
+
+        if defs.is_empty() {
+            return Err(syn::Error::new(
+                proc_macro2::Span::call_site(),
+                "#[docker_container] needs at least one container definition",
+            ));
+        }
+
+        // The whole set is visible here, so an ambiguous lookup key is a compile
+        // error rather than a panic once the containers are already running.
+        let mut seen: HashMap<&str, ()> = HashMap::new();
+        for def in &defs {
+            if let Some(ref key) = def.lookup_key {
+                if seen.insert(key.as_str(), ()).is_some() {
+                    return Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        format!(
+                            "duplicate container key {key:?}: each `as = \"...\"` must be unique \
+                             within one #[docker_container]"
+                        ),
+                    ));
+                }
+            }
+        }
+
+        Ok(Attr { defs })
+    }
+}
+
+/// A single container's configuration.
+struct ContainerDef {
     image: String,
+    /// Logical lookup key (`as = "cache"`) — never sent to the Docker API.
+    lookup_key: Option<String>,
     port: Vec<u16>,
     port_mapped: Vec<(u16, u16)>,
     port_udp: Vec<u16>,
@@ -37,9 +103,15 @@ struct Attr {
     required: bool,
 }
 
-impl Parse for Attr {
+impl Parse for ContainerDef {
+    /// Parses `key = value` pairs by hand rather than via
+    /// `Punctuated<syn::Meta, Token![,]>`: `as` is a Rust keyword, so `Meta`'s
+    /// path parser rejects `as = "cache"` with "expected identifier, found
+    /// keyword `as`". Peeking for `Token![as]` accepts it, and spanning errors
+    /// on the key ident gives better messages than `Meta` did.
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut image = None;
+        let mut lookup_key = None;
         let mut port = Vec::new();
         let mut port_mapped = Vec::new();
         let mut port_udp = Vec::new();
@@ -57,49 +129,59 @@ impl Parse for Attr {
         let mut always_pull = false;
         let mut required = false;
 
-        let metas: Punctuated<Meta, Token![,]> = input.parse_terminated(Meta::parse, Token![,])?;
-        for meta in metas {
-            if let Meta::NameValue(nv) = meta {
-                let key = nv.path.get_ident().map(|i| i.to_string()).unwrap_or_default();
-                match key.as_str() {
-                    "image" => image = Some(parse_string(&nv.value)?),
-                    "port" => port.push(parse_u16(&nv.value)?),
-                    "port_mapped" => port_mapped.push(parse_u16_pair(&nv.value)?),
-                    "port_udp" => port_udp.push(parse_u16(&nv.value)?),
-                    "env" => env.extend(parse_env_list(&nv.value)?),
-                    "network" => network = Some(parse_string(&nv.value)?),
-                    "name" => name = Some(parse_string(&nv.value)?),
-                    "volume" => volume.push(parse_string_pair(&nv.value)?),
-                    "wait_stdout" => wait_stdout = Some(parse_string(&nv.value)?),
-                    "wait_port" => wait_port = Some(parse_u16(&nv.value)?),
-                    "wait_http" => wait_http = Some(parse_string(&nv.value)?),
-                    "wait_timeout" => wait_timeout = Some(parse_u64(&nv.value)?),
-                    "stop_timeout" => stop_timeout = Some(parse_u64(&nv.value)?),
-                    "memory" => memory = Some(parse_string(&nv.value)?),
-                    "cpus" => cpus = Some(parse_u32(&nv.value)?),
-                    "always_pull" => always_pull = parse_bool(&nv.value)?,
-                    "required" => required = parse_bool(&nv.value)?,
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            &nv,
-                            format!("unknown docker_container attribute: {key}"),
-                        ));
-                    }
-                }
+        while !input.is_empty() {
+            // `as` is a keyword, so it cannot be parsed as an `Ident`.
+            let (key, key_span) = if input.peek(Token![as]) {
+                let kw: Token![as] = input.parse()?;
+                ("as".to_string(), kw.span)
             } else {
-                return Err(syn::Error::new_spanned(
-                    &meta,
-                    "expected `key = value` in docker_container attribute",
-                ));
+                let ident: Ident = input.parse()?;
+                (ident.to_string(), ident.span())
+            };
+
+            input.parse::<Token![=]>()?;
+            let value: Expr = input.parse()?;
+
+            match key.as_str() {
+                "image" => image = Some(parse_string(&value)?),
+                "as" => lookup_key = Some(parse_string(&value)?),
+                "port" => port.push(parse_u16(&value)?),
+                "port_mapped" => port_mapped.push(parse_u16_pair(&value)?),
+                "port_udp" => port_udp.push(parse_u16(&value)?),
+                "env" => env.extend(parse_env_list(&value)?),
+                "network" => network = Some(parse_string(&value)?),
+                "name" => name = Some(parse_string(&value)?),
+                "volume" => volume.push(parse_string_pair(&value)?),
+                "wait_stdout" => wait_stdout = Some(parse_string(&value)?),
+                "wait_port" => wait_port = Some(parse_u16(&value)?),
+                "wait_http" => wait_http = Some(parse_string(&value)?),
+                "wait_timeout" => wait_timeout = Some(parse_u64(&value)?),
+                "stop_timeout" => stop_timeout = Some(parse_u64(&value)?),
+                "memory" => memory = Some(parse_string(&value)?),
+                "cpus" => cpus = Some(parse_u32(&value)?),
+                "always_pull" => always_pull = parse_bool(&value)?,
+                "required" => required = parse_bool(&value)?,
+                _ => {
+                    return Err(syn::Error::new(
+                        key_span,
+                        format!("unknown docker_container attribute: {key}"),
+                    ));
+                }
             }
+
+            if input.is_empty() {
+                break;
+            }
+            input.parse::<Token![,]>()?;
         }
 
         let image = image.ok_or_else(|| {
             syn::Error::new(proc_macro2::Span::call_site(), "`image` is required")
         })?;
 
-        Ok(Attr {
+        Ok(ContainerDef {
             image,
+            lookup_key,
             port,
             port_mapped,
             port_udp,
@@ -217,12 +299,166 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
     let platform = foundation_deployment_platform_path();
     let core = foundation_core_path();
 
-    // Build the ContainerConfig chain from parsed attributes
+    // The function must take the group, so a body can reach its containers —
+    // a container it cannot address is of no use to it. Rejecting a zero-arg
+    // fn at compile time is better than handing back handles nobody asked for.
+    if input.sig.inputs.len() != 1 {
+        return syn::Error::new_spanned(
+            &input.sig,
+            format!(
+                "#[docker_container] requires exactly one parameter to receive the started \
+                 containers, but `{fn_name}` declares {}. Add `containers: ContainerGroup` \
+                 (or `_: ContainerGroup` if the body does not need the handles).",
+                input.sig.inputs.len()
+            ),
+        )
+        .to_compile_error();
+    }
+
+    let inputs = &input.sig.inputs;
+    // The parameter's pattern (`containers`), needed by the async arm to bind
+    // the group to the name the body expects.
+    let group_pat = match &input.sig.inputs[0] {
+        syn::FnArg::Typed(pat_type) => pat_type.pat.clone(),
+        syn::FnArg::Receiver(recv) => {
+            return syn::Error::new_spanned(
+                recv,
+                "#[docker_container] cannot be applied to a method taking `self`",
+            )
+            .to_compile_error();
+        }
+    };
+
+    // One invocation owns the whole set, so stacking is rejected rather than
+    // silently half-working: a second attribute would receive an already-expanded
+    // zero-arg fn and fail with an unrelated "requires exactly one parameter".
+    if attrs.iter().any(|a| {
+        a.path()
+            .segments
+            .last()
+            .is_some_and(|s| s.ident == "docker_container")
+    }) {
+        return syn::Error::new_spanned(
+            &input.sig,
+            "#[docker_container] cannot be stacked: declare every container in one invocation, \
+             one `{ ... }` block each — \
+             #[docker_container({ image = \"redis:7\", as = \"cache\" }, { image = \"postgres:16\", as = \"db\" })]",
+        )
+        .to_compile_error();
+    }
+
+    // Per-container startup, in the order written. Each block starts one
+    // container and adds it to the group under its lookup key; the group is the
+    // single owner, so an early return drops it and cleans up whatever already
+    // started.
+    let starts: Vec<TokenStream2> = args
+        .defs
+        .iter()
+        .map(|def| container_start(def, &platform))
+        .collect();
+
+    // Starting the containers is the same async job in both arms: fill a group
+    // in declaration order, yielding `None` if Docker is absent. `Option` (not
+    // `return`) carries the skip out, since a `return` inside an async block
+    // only leaves the block. On `None` the partially filled group drops here,
+    // stopping whatever had already started.
+    let startup = quote! {
+        async move {
+            let mut __docker_group = #platform::docker::ContainerGroup::empty();
+            #(#starts)*
+            ::core::option::Option::Some(__docker_group)
+        }
+    };
+
+    // The arms differ only in what drives that job: the caller's executor for an
+    // `async fn`, or valtron's pool for a sync one (the Docker client is
+    // valtron-based, hence the documented pairing with `#[valtron_test]`).
+    let expanded = if is_async {
+        quote! {
+            #(#attrs)*
+            #vis async fn #fn_name() #fn_output {
+                let __docker_group = match #startup.await {
+                    ::core::option::Option::Some(g) => g,
+                    ::core::option::Option::None => return,
+                };
+
+                // Bind the group to the name the body declared.
+                let #group_pat = __docker_group;
+
+                // The body is spliced in directly rather than wrapped in an
+                // `async {}`: this fn is already `async`, so `.await` inside the
+                // body compiles as-is, and `return` keeps meaning "return from
+                // this fn" (an async block would swallow it). The group's Drop
+                // still stops the containers on an early return.
+                #body
+            }
+        }
+    } else {
+        let inner_fn = format_ident!("__docker_body_{fn_name}");
+        quote! {
+            #(#attrs)*
+            #vis fn #fn_name() #fn_output {
+                fn #inner_fn(#inputs) #fn_output #body
+
+                let __docker_group = match #core::valtron::block_on_future(#startup) {
+                    ::core::option::Option::Some(g) => g,
+                    ::core::option::Option::None => return,
+                };
+
+                #inner_fn(__docker_group)
+            }
+        }
+    };
+
+    expanded
+}
+
+/// Generates the statements that start one container and add it to
+/// `__docker_group`. Written to be valid in both arms: the enclosing scope is
+/// always an async context, and a skip is a bare `return` — which returns from
+/// the `async fn` in the async arm, and from the `block_on_future` async block
+/// (yielding `None`) in the sync arm.
+fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
+    let config = container_config(def, platform);
+
+    let lookup_key = match &def.lookup_key {
+        Some(k) => quote! { ::core::option::Option::Some(::std::string::String::from(#k)) },
+        None => quote! { ::core::option::Option::None },
+    };
+
+    // `required = true` means a missing daemon is a hard failure, so the
+    // graceful-skip arm is left out of the generated match entirely and any
+    // start error falls through to the panic arm.
+    let skip_arm = if def.required {
+        quote! {}
+    } else {
+        quote! {
+            Err(e) if e.current_context().is_connection_error() => {
+                ::tracing::warn!("SKIP: Docker not available ({})", e);
+                return ::core::option::Option::None;
+            }
+        }
+    };
+
+    quote! {
+        {
+            let __cfg = #config;
+            match #platform::docker::ContainerHandle::start_async(__cfg).await {
+                Ok(h) => __docker_group.insert(#lookup_key, h),
+                #skip_arm
+                Err(e) => ::std::panic!("Failed to start Docker container: {}", e),
+            }
+        }
+    }
+}
+
+/// Builds one container's `ContainerConfig` builder chain.
+fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
     let image = &args.image;
     let mut config_calls = Vec::new();
 
-    let port = args.port;
-    for p in &port {
+    let port = &args.port;
+    for p in port {
         config_calls.push(quote! { .port(#p) });
     }
     for (c, h) in &args.port_mapped {
@@ -314,85 +550,8 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
         }
     }
 
-    // `required = true` means a missing daemon is a hard failure, so the
-    // graceful-skip arm is left out of the generated match entirely and any
-    // start error falls through to the panic arm.
-    let async_skip_arm = if args.required {
-        quote! {}
-    } else {
-        quote! {
-            Err(e) if e.current_context().is_connection_error() => {
-                ::tracing::warn!("SKIP: Docker not available ({})", e);
-                return;
-            }
-        }
-    };
-    let sync_skip_arm = if args.required {
-        quote! {}
-    } else {
-        quote! {
-            Err(e) if e.current_context().is_connection_error() => {
-                ::tracing::warn!("SKIP: Docker not available ({})", e);
-                None
-            }
-        }
-    };
-
-    // Generate the wrapper
-    let expanded = if is_async {
-        quote! {
-            #(#attrs)*
-            #vis async fn #fn_name() #fn_output {
-                let __cfg = #platform::docker::ContainerConfig::new(#image)
-                    #(#config_calls)*;
-
-                let __docker_guard = match #platform::docker::ContainerHandle::start_async(__cfg).await {
-                    Ok(h) => h,
-                    #async_skip_arm
-                    Err(e) => ::std::panic!("Failed to start Docker container: {}", e),
-                };
-
-                // The body is spliced in directly rather than wrapped in an
-                // `async {}`: this fn is already `async`, so `.await` inside the
-                // body compiles as-is, and `return` keeps meaning "return from
-                // this fn" (an async block would swallow it). The guard's Drop
-                // still stops the container on an early return.
-                let __result = { #body };
-                ::core::mem::drop(__docker_guard);
-                __result
-            }
-        }
-    } else {
-        let inner_fn = format_ident!("__docker_body_{fn_name}");
-        quote! {
-            #(#attrs)*
-            #vis fn #fn_name() #fn_output {
-                fn #inner_fn() #fn_output #body
-
-                let __cfg = #platform::docker::ContainerConfig::new(#image)
-                    #(#config_calls)*;
-
-                // `Option` so the Docker-absent skip needs no `Default` on the
-                // handle; `None` means skip the body (as the async arm returns).
-                let __docker_guard = #core::valtron::block_on_future(async move {
-                    match #platform::docker::ContainerHandle::start_async(__cfg).await {
-                        Ok(h) => Some(h),
-                        #sync_skip_arm
-                        Err(e) => ::std::panic!("Failed to start Docker container: {}", e),
-                    }
-                });
-
-                let __docker_guard = match __docker_guard {
-                    Some(h) => h,
-                    None => return,
-                };
-
-                let __result = #inner_fn();
-                ::core::mem::drop(__docker_guard);
-                __result
-            }
-        }
-    };
-
-    expanded
+    quote! {
+        #platform::docker::ContainerConfig::new(#image)
+            #(#config_calls)*
+    }
 }

@@ -1,0 +1,5 @@
+error: unknown docker_container attribute: bogus_key
+ --> tests/trybuild/fail/docker_container_unknown_key.rs:9:46
+  |
+9 | #[docker_container(image = "redis:7-alpine", bogus_key = "x")]
+  |                                              ^^^^^^^^^
