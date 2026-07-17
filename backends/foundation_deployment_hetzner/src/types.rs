@@ -190,4 +190,12 @@ pub struct CreateServerRequest {
     /// Where hardening goes (feature 04): this runs **before first boot
     /// completes**, which is the only way to have a box that was never unhardened.
     pub user_data: Option<String>,
+    /// Labels to stamp on the server.
+    ///
+    /// **This is how a deployment identifies its own instances.** An id is
+    /// provider-assigned and opaque; a name is a user-chosen attribute that
+    /// changes. A label we write is neither — and it goes out *in the create
+    /// request*, so it exists on the machine even when we never manage to read
+    /// the response that would have told us the id.
+    pub labels: std::collections::BTreeMap<String, String>,
 }

@@ -194,6 +194,7 @@ async fn create_server_sends_what_hetzner_needs_to_build_the_box() {
             location: Some("nbg1".into()),
             ssh_keys: vec![7, 9],
             user_data: Some("#cloud-config\nruncmd: [echo hi]".into()),
+            labels: Default::default(),
         })
         .await
         .expect("creates");

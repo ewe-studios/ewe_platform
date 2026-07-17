@@ -124,6 +124,55 @@ The mock's remaining job is the narrow set of faults a vendor cannot be *asked* 
 — an unparseable 201, a 429 with a specific reset header — and even those are worth
 suspecting.
 
+#### State must articulate the instance, not hold an id and hope
+
+Owner, 2026-07-17: *"if you are storing stupid things like id in state that does
+not authoritatively let us get the right instance we need then that's bad state —
+state should clearly articulate that instance fully, so that we can confidently
+find it, enumerate from the provider and do stuff with it."*
+
+An **id is a weak key**: Hetzner assigns it, it is opaque, and holding one proves
+nothing about what it points at. A **name** is no better — it is a user-chosen
+attribute that changes the moment someone edits a declaration.
+
+So identity is a **label we write**, and the record articulates the instance:
+
+| Field | Why it is there |
+|---|---|
+| `provider` | a record that does not say what it belongs to can only be acted on by the code that wrote it |
+| `identity` | `ewe.dev/deployment=hetzner.cloud.servers.0` — the slot. **Stamped in the create request**, so it is on the machine whether or not the response reaches us, and it survives a rename |
+| `declared` | what was *asked for*, so a record can be told from one belonging to a different declaration |
+| `id`, `name`, `public_ip` | conveniences — the outputs |
+
+The label is what lets `deploy` and `destroy` **enumerate this slot's own
+instances** from Hetzner (`?label_selector=…`) rather than hoping an id resolves.
+Proven live: *"state's identity `ewe.dev/deployment=hetzner.cloud.servers.0`
+enumerates the server from Hetzner"*.
+
+**And Hetzner's label grammar had to be read, not guessed.** The first attempt used
+`hetzner/cloud/servers/0` and the API rejected it — `invalid label_selector: value
+contains invalid characters or is malformed`. Values allow `[a-z0-9A-Z]`, `-`, `_`,
+`.`, max 63, beginning and ending alphanumeric; **slashes are legal only in a key**,
+separating the DNS-subdomain prefix. So the key is `ewe.dev/deployment` (prefixed;
+`hetzner.cloud/` is reserved) and the value is sanitised. **All 38 mocks accepted
+the illegal value** — they do not validate label syntax.
+
+#### The create response is a hint, not the record
+
+Owner: *"we should be looking at what the API returns when we create a server —
+if it returns nothing but we were able to set the name, then before deploy finishes
+we should be getting the resource and all the info, then store that as state."*
+
+Everything identifying the instance goes out in the **request**. So a create whose
+response we cannot read means *"we do not know"*, not *"it does not exist"* — and
+the first design's answer (find it, **destroy it**, return an error) threw away
+exactly what the caller asked for because a receipt was unreadable.
+
+Now: a create failure is recovered by enumerating the slot's label; the resource is
+**read back** from Hetzner (`await_running` polls `GET /servers/{id}`); and *that*
+read is what becomes the state. The record is Hetzner's account of the machine,
+never the create response's.
+
 #### Teardown for a billing resource cannot be keyed on our own state
 
 The first run of the round-trip **leaked a live server while reporting success**.

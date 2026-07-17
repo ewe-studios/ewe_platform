@@ -135,6 +135,16 @@ fn mock(responder: impl Fn(&str, usize) -> HttpResponse + Send + 'static) -> (Te
     (server, calls)
 }
 
+/// Whether this call is deploy/destroy enumerating its own instances.
+///
+/// They ask by **label** now — `?label_selector=ewe-deployment=hetzner/cloud/servers/0`
+/// — because a label is stamped in the create request and survives a rename, where
+/// a name is a user-chosen attribute and an id is an opaque number Hetzner assigns.
+/// (Kept matching `name=` too: `find_server_by_name` is still public API.)
+fn is_list_query(call: &str) -> bool {
+    call.contains("label_selector") || call.contains("name=")
+}
+
 fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
     HetznerServer::new(
         HetznerClient::new("test-token").with_base_url(mock.base_url().to_string()),
@@ -169,8 +179,9 @@ async fn a_first_deploy_creates_and_records_the_server() {
     // otherwise bill a second box on the next run.
     let seen = calls.lock().unwrap().clone();
     assert!(
-        seen.iter().any(|c| c.contains("GET") && c.contains("name=web-1")),
-        "looked for an existing server first: {seen:?}"
+        seen.iter().any(|c| c.contains("GET") && c.contains("label_selector")),
+        "it enumerates this slot's own instances before creating — a crash between create and \
+         persist would otherwise bill a second box on the next run: {seen:?}"
     );
     assert_eq!(
         seen.iter().filter(|c| c.contains("POST")).count(),
@@ -188,7 +199,7 @@ async fn a_second_deploy_returns_the_same_server_without_creating_another() {
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else {
             json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
@@ -220,7 +231,7 @@ async fn an_unrecorded_server_with_our_name_is_adopted_rather_than_duplicated() 
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(99, "web-1", "initializing", "9.9.9.9"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]))
         } else {
             json(200, &get_server_json(42, "web-1", "running", "1.2.3.4"))
@@ -250,7 +261,7 @@ async fn a_recorded_server_that_is_gone_is_replaced() {
     let (mock_server, _) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(43, "web-1", "initializing", "5.6.7.8"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("/servers/42") {
             // Deleted out of band.
@@ -269,9 +280,20 @@ async fn a_recorded_server_that_is_gone_is_replaced() {
         .store_typed(
             "0",
             &foundation_deployment_hetzner::ServerDeployOutput {
+                provider: "hetzner".to_string(),
                 id: 42,
                 name: "web-1".to_string(),
                 public_ip: "1.2.3.4".to_string(),
+                identity: Some("ewe-deployment=hetzner/cloud/servers/0".to_string()),
+                // What a previous deploy of this same declaration would have
+                // written. Omitting it would make deploy call the record stale —
+                // correctly, which is the point of the field.
+                declared: Some(foundation_deployment_hetzner::deployable::ServerDeclaration {
+                    name: "web-1".to_string(),
+                    server_type: "cx23".to_string(),
+                    image: "ubuntu-24.04".to_string(),
+                    location: None,
+                }),
             },
         )
         .expect("seeds state");
@@ -291,7 +313,7 @@ async fn a_dying_server_does_not_count_as_alive() {
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(43, "web-1", "initializing", "5.6.7.8"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("/servers/42") {
             json(200, &get_server_json(42, "web-1", "deleting", "1.2.3.4"))
@@ -307,9 +329,20 @@ async fn a_dying_server_does_not_count_as_alive() {
         .store_typed(
             "0",
             &foundation_deployment_hetzner::ServerDeployOutput {
+                provider: "hetzner".to_string(),
                 id: 42,
                 name: "web-1".to_string(),
                 public_ip: "1.2.3.4".to_string(),
+                identity: Some("ewe-deployment=hetzner/cloud/servers/0".to_string()),
+                // What a previous deploy of this same declaration would have
+                // written. Omitting it would make deploy call the record stale —
+                // correctly, which is the point of the field.
+                declared: Some(foundation_deployment_hetzner::deployable::ServerDeclaration {
+                    name: "web-1".to_string(),
+                    server_type: "cx23".to_string(),
+                    image: "ubuntu-24.04".to_string(),
+                    location: None,
+                }),
             },
         )
         .expect("seeds state");
@@ -334,7 +367,7 @@ async fn a_failure_after_create_destroys_the_server_rather_than_stranding_a_bill
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
             json(200, "{}")
@@ -365,7 +398,7 @@ async fn keep_on_failure_leaves_the_server_for_inspection() {
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
             json(200, "{}")
@@ -396,7 +429,7 @@ async fn a_server_with_no_public_ip_is_refused_rather_than_returned() {
     let (mock_server, _) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(42, "web-1", "initializing", ""))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
             json(200, "{}")
@@ -422,7 +455,7 @@ async fn destroy_removes_the_server_and_clears_the_state() {
     let (mock_server, calls) = mock(|call, _| {
         if call.contains("POST") {
             json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             json(200, &list_servers_json(&[]))
         } else if call.contains("DELETE") {
             json(200, "{}")
@@ -470,7 +503,7 @@ async fn a_second_instance_id_with_the_same_name_adopts_rather_than_billing_twic
         if call.contains("POST") {
             *state = Some((42, "web-1".to_string()));
             json(201, &create_server_json(42, "web-1", "initializing", "1.2.3.4"))
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             match state.as_ref() {
                 Some((id, name)) => json(200, &list_servers_json(&[(*id, name, "running", "1.2.3.4")])),
                 None => json(200, &list_servers_json(&[])),
@@ -502,26 +535,32 @@ async fn a_second_instance_id_with_the_same_name_adopts_rather_than_billing_twic
 
 
 #[valtron_test]
-async fn a_create_whose_response_we_cannot_read_does_not_leave_a_bill() {
-    // The exact failure: Hetzner returns 201 and builds the machine, our decode
-    // fails. `deploy`'s ordinary unwind cannot fire — it deletes `created.id`,
-    // and we never got an id. So the create path asks by name before giving up.
+async fn a_create_whose_response_we_cannot_read_still_yields_the_server() {
+    // A mock earns its place here: Hetzner will not return an unparseable 201 on
+    // demand, and this is the failure that shipped — the vendor built the machine
+    // and our decode of the receipt failed.
+    //
+    // The create response is a HINT, not the record. Everything identifying the
+    // instance — the name, the slot's label — went out in the REQUEST, so the
+    // machine carries them whether or not the reply is readable. Destroying it and
+    // returning an error (my first design) throws away exactly what the caller
+    // asked for because we could not read a receipt.
     let dir = tmpdir("create-unreadable");
     let deleted: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
     let log = Arc::clone(&deleted);
-    let created = Arc::new(Mutex::new(false));
-    let state = Arc::clone(&created);
+    let exists = Arc::new(Mutex::new(false));
+    let state = Arc::clone(&exists);
 
     let (mock_server, _) = mock(move |call, _| {
         if call.contains("POST") {
-            // 201: the server EXISTS from here on. The body is garbage we cannot
-            // parse, so we never learn its id.
+            // 201: the server EXISTS from here on. The body is garbage, so we
+            // never learn its id from the response.
             *state.lock().unwrap() = true;
             json(201, r#"{"server":"this is not a server object"}"#)
         } else if call.contains("DELETE") {
             log.lock().unwrap().push(call.to_string());
             json(200, "{}")
-        } else if call.contains("name=web-1") {
+        } else if is_list_query(call) {
             if *state.lock().unwrap() {
                 json(200, &list_servers_json(&[(42, "web-1", "running", "1.2.3.4")]))
             } else {
@@ -532,15 +571,17 @@ async fn a_create_whose_response_we_cannot_read_does_not_leave_a_bill() {
         }
     });
 
-    let err = server_for(&mock_server, "web-1")
+    let out = server_for(&mock_server, "web-1")
         .deploy(0, provider_client(&dir))
         .await
-        .expect_err("the response was unreadable");
-    assert!(matches!(err, HetznerError::Decode(_)), "got {err:?}");
+        .expect("the server exists and carries our label — deploy must adopt it");
 
+    assert_eq!(out.id, 42, "adopted the server the create actually made");
+    assert_eq!(out.public_ip, "1.2.3.4", "and read its details back from Hetzner");
     assert!(
-        deleted.lock().unwrap().iter().any(|c| c.contains("/servers/42")),
-        "a create we could not read still created a server — it must be destroyed, not left billing: {:?}",
+        deleted.lock().unwrap().is_empty(),
+        "it must NOT destroy a server the caller asked for just because the receipt was \
+         unreadable: {:?}",
         deleted.lock().unwrap()
     );
 

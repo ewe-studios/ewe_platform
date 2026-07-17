@@ -150,6 +150,8 @@ impl HetznerClient {
                 // Hetzner accepts an id or a name here; we always send ids.
                 ssh_keys: Some(req.ssh_keys.iter().map(i64::to_string).collect()),
                 user_data: req.user_data.clone(),
+                labels: (!req.labels.is_empty())
+                    .then(|| serde_json::to_value(&req.labels).unwrap_or_default()),
                 // Ask Hetzner to boot it — a created-but-off server bills and
                 // cannot be reached.
                 start_after_create: Some(true),
@@ -231,6 +233,51 @@ impl HetznerClient {
     pub async fn list_servers(&self, name: Option<&str>) -> Result<Vec<Server>, HetznerError> {
         let args = ListServersArgs {
             name: name.map(str::to_string),
+            ..Default::default()
+        };
+        let response = list_servers_request(
+            self.http(),
+            &args,
+            self.base_url(),
+            Some(auth_mod(&self.token())),
+        )
+        .await
+        .map_err(map_api_error)?;
+
+        Ok(response
+            .body
+            .servers
+            .iter()
+            .map(|server| Server {
+                id: server.id,
+                name: server.name.clone(),
+                status: parse_status(&server.status),
+                public_ipv4: server
+                    .public_net
+                    .ipv4
+                    .as_ref()
+                    .and_then(|v4| non_empty(&v4.ip)),
+            })
+            .collect())
+    }
+
+    /// Every server carrying `key=value`.
+    ///
+    /// **The lookup a deployment should identify itself with.** Hetzner's `id` is
+    /// assigned by Hetzner and means nothing on its own; `name` is a user-chosen
+    /// attribute that changes when someone edits a declaration. A label is written
+    /// by *us*, in the create request — so it survives a rename, and it is present
+    /// on the machine even if the create's response never reached us.
+    ///
+    /// # Errors
+    /// A rejected token, a rate limit, or transport.
+    pub async fn find_servers_by_label(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<Server>, HetznerError> {
+        let args = ListServersArgs {
+            label_selector: Some(format!("{key}={value}")),
             ..Default::default()
         };
         let response = list_servers_request(
