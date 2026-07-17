@@ -8,6 +8,7 @@ mod docker_container;
 mod proxy;
 mod embedders;
 mod from_arrow;
+mod platform_test;
 mod json_hash;
 mod json_schema;
 mod scaffold;
@@ -172,6 +173,11 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 /// # Panics
 ///
 /// Never panics. Returns compile errors for invalid usage.
+#[proc_macro_attribute]
+pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    platform_test::platform_test(attr, item)
+}
+
 #[proc_macro_attribute]
 pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_entrypoint::expand(attr.into(), item.into()).into()
