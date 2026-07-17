@@ -678,3 +678,177 @@ fn an_identical_shape_hoisted_twice_shares_one_name() {
         "one struct, not two"
     );
 }
+
+// ── responses behind a $ref ──────────────────────────────────────────────────
+
+#[test]
+fn a_response_referenced_from_components_gets_its_content_inlined() {
+    use foundation_openapi::resolve_response_refs;
+
+    // DigitalOcean's shape: every response is `{"$ref": "#/components/responses/X"}`.
+    // Our `Response` model has `description` and `content` and NO `$ref` field, so
+    // this deserialises to an empty Response, the return type resolves to nothing,
+    // and all 447 of DO's paths generate as `ApiResponse<()>` — silently, with the
+    // body discarded.
+    let mut spec = json!({
+        "paths": { "/droplets": { "post": {
+            "operationId": "droplets_create",
+            "responses": { "202": { "$ref": "#/components/responses/droplet_create" } }
+        }}},
+        "components": {
+            "responses": { "droplet_create": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": { "droplet": { "type": "string" } } } } } } },
+            "schemas": {}
+        }
+    });
+
+    let stats = resolve_response_refs(&mut spec);
+    assert_eq!(stats.components_hoisted, 1);
+    assert_eq!(stats.responses_inlined, 1);
+
+    // The operation now carries content the generator can see.
+    let schema = &spec["paths"]["/droplets"]["post"]["responses"]["202"]["content"]
+        ["application/json"]["schema"];
+    assert_eq!(schema["$ref"], "#/components/schemas/DropletCreateResponse");
+    assert!(spec["components"]["schemas"]["DropletCreateResponse"].is_object());
+    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+}
+
+#[test]
+fn a_response_component_is_named_once_not_once_per_operation() {
+    use foundation_openapi::resolve_response_refs;
+
+    // The reason names come from the COMPONENT and not the operation: an error
+    // response shared by twenty endpoints should be one type with one meaningful
+    // name, not twenty copies named after whichever operation hoisted first.
+    let mut spec = json!({
+        "paths": {
+            "/a": { "get": { "operationId": "a", "responses": { "401": { "$ref": "#/components/responses/unauthorized" } } } },
+            "/b": { "get": { "operationId": "b", "responses": { "401": { "$ref": "#/components/responses/unauthorized" } } } }
+        },
+        "components": {
+            "responses": { "unauthorized": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } } } },
+            "schemas": {}
+        }
+    });
+
+    resolve_response_refs(&mut spec);
+
+    let schemas = spec["components"]["schemas"].as_object().unwrap();
+    assert_eq!(schemas.len(), 1, "one type, not one per operation: {:?}", schemas.keys().collect::<Vec<_>>());
+    assert!(schemas.contains_key("UnauthorizedResponse"));
+    for path in ["/a", "/b"] {
+        assert_eq!(
+            spec["paths"][path]["get"]["responses"]["401"]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/UnauthorizedResponse"
+        );
+    }
+}
+
+#[test]
+fn a_response_component_never_steals_a_schemas_name() {
+    use foundation_openapi::resolve_response_refs;
+
+    // DigitalOcean has BOTH `components/schemas/droplet_create` (the request body)
+    // and `components/responses/droplet_create` (what comes back). Bare
+    // pascal-casing collides; the `Response` suffix says which is which.
+    let mut spec = json!({
+        "paths": { "/d": { "post": {
+            "operationId": "droplets_create",
+            "responses": { "202": { "$ref": "#/components/responses/droplet_create" } }
+        }}},
+        "components": {
+            "responses": { "droplet_create": { "content": { "application/json": {
+                "schema": { "type": "object", "properties": { "droplet": { "type": "string" } } } } } } },
+            "schemas": { "droplet_create": { "type": "object", "properties": { "name": { "type": "string" } } } }
+        }
+    });
+
+    resolve_response_refs(&mut spec);
+
+    let schemas = spec["components"]["schemas"].as_object().unwrap();
+    assert!(schemas.contains_key("droplet_create"), "the vendor's request schema is untouched");
+    assert!(schemas.contains_key("DropletCreateResponse"), "and the response has its own name");
+    assert!(
+        !schemas.keys().any(|k| k.ends_with('2')),
+        "no fallback rename was needed: {:?}",
+        schemas.keys().collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn a_oneof_response_is_named_rather_than_dropped() {
+    use foundation_openapi::resolve_response_refs;
+
+    // DO's droplet_create response is a `oneOf` (one droplet, or many). We do not
+    // generate Rust enums for unions — the type comes out as a flattened
+    // HashMap — but hoisting it anyway is the difference between handing the
+    // caller the JSON and handing them `()` with the body discarded.
+    let mut spec = json!({
+        "paths": { "/d": { "post": {
+            "operationId": "c",
+            "responses": { "202": { "$ref": "#/components/responses/droplet_create" } }
+        }}},
+        "components": {
+            "responses": { "droplet_create": { "content": { "application/json": { "schema": { "oneOf": [
+                { "type": "object", "properties": { "droplet": { "type": "string" } } },
+                { "type": "object", "properties": { "droplets": { "type": "array", "items": { "type": "string" } } } }
+            ]}}}}},
+            "schemas": {}
+        }
+    });
+
+    resolve_response_refs(&mut spec);
+    assert!(
+        spec["components"]["schemas"]["DropletCreateResponse"].is_object(),
+        "the union got a name"
+    );
+}
+
+#[test]
+fn a_response_ref_the_vendor_never_defined_is_left_for_the_dangling_check() {
+    use foundation_openapi::resolve_response_refs;
+
+    // Not ours to paper over: inventing an empty response here would hide the
+    // vendor's bug and generate a client that silently returns nothing.
+    let mut spec = json!({
+        "paths": { "/a": { "get": { "operationId": "a", "responses": {
+            "200": { "$ref": "#/components/responses/never_defined" } } } } },
+        "components": { "responses": {}, "schemas": {} }
+    });
+
+    let stats = resolve_response_refs(&mut spec);
+    assert_eq!(stats.responses_inlined, 0);
+    assert_eq!(
+        spec["paths"]["/a"]["get"]["responses"]["200"]["$ref"],
+        "#/components/responses/never_defined",
+        "left exactly as the vendor wrote it"
+    );
+}
+
+/// DigitalOcean's real 447-path spec — the document that exposed this.
+#[test]
+fn the_real_digitalocean_responses_resolve() {
+    use foundation_openapi::resolve_response_refs;
+
+    const SPEC: &str = "../../artefacts/cloud_providers/digitalocean/openapi.json";
+    if !std::path::Path::new(SPEC).exists() {
+        eprintln!("SKIP: digitalocean artefact not present");
+        return;
+    }
+    let mut spec: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(SPEC).unwrap()).unwrap();
+
+    let before = foundation_openapi::dangling_refs(&spec);
+    let stats = resolve_response_refs(&mut spec);
+    let after = foundation_openapi::dangling_refs(&spec);
+
+    assert!(stats.responses_inlined > 100, "DO refs its responses everywhere: {stats:?}");
+    let introduced: Vec<&String> = after.iter().filter(|r| !before.contains(r)).collect();
+    assert!(introduced.is_empty(), "rewiring must not break a ref: {introduced:?}");
+    eprintln!(
+        "  digitalocean: {} component responses named, {} operation responses rewired",
+        stats.components_hoisted, stats.responses_inlined
+    );
+}

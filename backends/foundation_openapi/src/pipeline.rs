@@ -239,6 +239,11 @@ impl Pipeline {
         if let Some(base) = &self.base_url {
             crate::transform::ensure_servers(&mut spec, base);
         }
+        // Responses first: DigitalOcean hides every response behind a $ref into
+        // components/responses, which our Response model cannot express — so the
+        // operation looks like it returns nothing. Rewiring these before hoisting
+        // means `canonicalize_operations` sees ordinary `content` for every vendor.
+        crate::transform::resolve_response_refs(&mut spec);
         crate::transform::canonicalize_operations(&mut spec);
 
         // 3. prune again — hoisting rewires reachability, and nothing else drops

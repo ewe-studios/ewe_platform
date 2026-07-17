@@ -329,6 +329,15 @@ fn is_inline_object(schema: &Value) -> bool {
     if schema.get("properties").is_some() || schema.get("allOf").is_some() {
         return true;
     }
+    // A `oneOf`/`anyOf` is a union, and we do not generate Rust enums for them —
+    // the generator emits a flattened `HashMap<String, Value>` instead. Hoisting
+    // it anyway is still worth it: DigitalOcean's `droplet_create` response is a
+    // `oneOf` (one droplet, or many), and left unhoisted the endpoint's return
+    // type resolves to `()` and THE BODY IS DISCARDED ENTIRELY. Named-but-opaque
+    // hands the caller the JSON; unnamed hands them nothing.
+    if schema.get("oneOf").is_some() || schema.get("anyOf").is_some() {
+        return true;
+    }
     // An array whose items are an inline object has the same problem.
     if schema.get("type").and_then(Value::as_str) == Some("array") {
         if let Some(items) = schema.get("items") {
@@ -598,4 +607,156 @@ pub fn strip_doc_only(spec: &mut Value) {
         }
         _ => {}
     }
+}
+
+/// What [`resolve_response_refs`] rewired.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ResponseRefStats {
+    /// Component responses whose inline schema was given a name.
+    pub components_hoisted: usize,
+    /// Operation responses rewritten from a `$ref` into their real content.
+    pub responses_inlined: usize,
+}
+
+/// Resolve `$ref`s into `components/responses` so operations carry their content
+/// directly.
+///
+/// **WHY:** DigitalOcean writes every response as a reference —
+/// `"202": { "$ref": "#/components/responses/droplet_create" }` — where Hetzner
+/// inlines `content` at the operation. Our `Response` model has `description` and
+/// `content` and **no `$ref` field**, so a DO response deserialises to an empty
+/// `Response`, the endpoint's return type resolves to nothing, and every one of
+/// its 447 paths generates as `ApiResponse<()>`. Silently: nothing errors, the
+/// code compiles, and the client is useless.
+///
+/// This is the gap feature 00's verification list named ("DO's
+/// `components/{responses,parameters,headers}` refs resolve — currently
+/// unrepresentable in `Components`"). It is fixed here rather than in the model
+/// because that is what canonicalisation is *for*: reshaping a vendor's document
+/// into the one shape the generator understands, so the generator does not grow a
+/// branch per vendor.
+///
+/// **WHAT:** two passes.
+///
+/// 1. Each `components/responses/<name>` with an **inline** schema gets that
+///    schema hoisted to `components/schemas/<PascalName>` and left as a `$ref`.
+///    Naming from the *component* is the point: a response shared by twenty
+///    operations is one type with one meaningful name (`Unauthorized`), not
+///    twenty copies named after whichever operation happened to hoist first.
+/// 2. Each operation response that is a `$ref` into `components/responses` is
+///    replaced by that component's body — which, after pass 1, carries only refs.
+///
+/// Run it **before** [`canonicalize_operations`], which then finds ordinary
+/// `content` and has nothing left to do for these.
+pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
+    let mut stats = ResponseRefStats::default();
+
+    // ── pass 1: name the inline schemas inside components/responses ──────────
+    let reserved: BTreeSet<String> = spec
+        .pointer("/components/schemas")
+        .and_then(Value::as_object)
+        .map(|s| s.keys().map(|k| crate::api_catalog::to_pascal_case_from_any(k)).collect())
+        .unwrap_or_default();
+
+    let mut hoisted: Map<String, Value> = Map::new();
+    if let Some(responses) = spec
+        .pointer_mut("/components/responses")
+        .and_then(Value::as_object_mut)
+    {
+        for (name, response) in responses.iter_mut() {
+            let Some(schema) = response
+                .get_mut("content")
+                .and_then(Value::as_object_mut)
+                .and_then(first_media_schema_mut)
+            else {
+                continue;
+            };
+            if !is_inline_object(schema) {
+                continue; // already a $ref, or free-form
+            }
+            // `<Name>Response`, not `<Name>`. A vendor routinely keys a *request*
+            // schema and a *response* the same: DigitalOcean has both
+            // `components/schemas/droplet_create` (the body you send) and
+            // `components/responses/droplet_create` (what comes back). Bare
+            // pascal-casing collides, and the reserved-name guard then renames one
+            // to `DropletCreate2` — correct, but it tells the reader nothing. The
+            // suffix says what the type IS, and matches what
+            // `canonicalize_operations` names an operation's response.
+            let type_name = format!(
+                "{}Response",
+                crate::api_catalog::to_pascal_case_from_any(name)
+            );
+            let before = hoisted.len();
+            let mut sink = CanonicalizeStats::default();
+            hoist(schema, &type_name, &mut hoisted, &reserved, &mut sink);
+            if hoisted.len() > before {
+                stats.components_hoisted += 1;
+            }
+        }
+    }
+
+    if !hoisted.is_empty() {
+        let schemas = spec
+            .as_object_mut()
+            .expect("spec is an object")
+            .entry("components")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .expect("components is an object")
+            .entry("schemas")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .expect("schemas is an object");
+        for (name, schema) in hoisted {
+            schemas.insert(name, schema);
+        }
+    }
+
+    // ── pass 2: give each operation its response's body ──────────────────────
+    let components: Map<String, Value> = spec
+        .pointer("/components/responses")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    if components.is_empty() {
+        return stats;
+    }
+
+    let Some(paths) = spec.get_mut("paths").and_then(Value::as_object_mut) else {
+        return stats;
+    };
+
+    for (_, item) in paths.iter_mut() {
+        let Some(item) = item.as_object_mut() else { continue };
+        for (method, op) in item.iter_mut() {
+            if !is_http_method(method) {
+                continue;
+            }
+            let Some(responses) = op
+                .get_mut("responses")
+                .and_then(Value::as_object_mut)
+            else {
+                continue;
+            };
+
+            for (_, response) in responses.iter_mut() {
+                let Some(target) = response
+                    .get("$ref")
+                    .and_then(Value::as_str)
+                    .and_then(|r| r.strip_prefix("#/components/responses/"))
+                else {
+                    continue;
+                };
+                // A `$ref` we cannot resolve is the vendor's bug, and not ours to
+                // paper over — leave it exactly as it is so `dangling_refs`
+                // reports it rather than us inventing an empty response.
+                if let Some(body) = components.get(target) {
+                    *response = body.clone();
+                    stats.responses_inlined += 1;
+                }
+            }
+        }
+    }
+
+    stats
 }
