@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F08-mutation-queue"
 this_file: "specifications/52-tauri-foundation-platform/features/F08-mutation-queue/feature.md"
 
-status: pending
+status: completed
 priority: medium
 created: 2026-07-17
 

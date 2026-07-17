@@ -50,6 +50,9 @@ pub struct PlatformSession {
     /// Cache manager — protocol-transparent, profile-scoped, per-route policies.
     cache: crate::cache::CacheManager,
 
+    /// Mutation queue — offline mutations replayed on connectivity restore.
+    mutation_queue: crate::mutation::MutationQueue,
+
     /// Session identity — generated once at app launch, never changes.
     session_id: SessionId,
 
@@ -84,6 +87,7 @@ impl PlatformSession {
             route_handlers: RwLock::new(Vec::new()),
             capability_registry: crate::capability::CapabilityRegistry::new(),
             cache: crate::cache::CacheManager::in_memory(),
+            mutation_queue: crate::mutation::MutationQueue::in_memory(),
             session_id,
             visit_counter: AtomicU64::new(0),
             active_page: RwLock::new(None),
@@ -231,6 +235,11 @@ impl PlatformSession {
     /// Access the capability registry for invoking native capabilities.
     pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
         &self.capability_registry
+    }
+
+    /// Access the mutation queue for enqueuing/replaying offline mutations.
+    pub fn mutation_queue(&self) -> &crate::mutation::MutationQueue {
+        &self.mutation_queue
     }
 }
 
