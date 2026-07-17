@@ -103,8 +103,8 @@ Build time:
               places the .wasm in the shell's wasm asset directory
               (separate from the webview assets). Then generates a
               wasmtime wrapper module — a generated/ directory in the
-              crate that provides a function returning a wasmtime
-              Instance with the WASM loaded and imports wired.
+              crate with a function that returns a pre-configured
+              builder ready for the session (and user) to customize.
 ```
 
 **Two separate asset locations:**
@@ -116,20 +116,46 @@ Build time:
 
 **`foundation_wasmtime`** is a new crate that owns the wasmtime surface. It
 takes WASM bytes (via `PackageDirectorate`: bundled in release, local
-filesystem in debug) and provides a builder:
+filesystem in debug) and provides a builder. The generated wrapper module
+(crated by the `#[platform_bin]` source parser) pre-configures the builder
+with everything the generated code can automatically provide — WASM bytes
+loaded from the correct asset location, basic session imports. The user (or
+the session) customizes from there.
 
 ```rust
-// foundation_wasmtime — takes WASM bytes, returns an instance:
-let instance = WasmtimeRuntime::new(wasm_bytes)?
-    .with_import("platform", session.exported_functions())
-    .with_import("db", db.exported_functions())
-    .build()?;
+// The generated module for `#[wasm_app] fn business_logic` provides:
+//   generated::business_logic::builder() -> WasmtimeBuilder
 
-// The session backbone gains access to the instance's exports:
-session.register_wasm_app("business_logic", instance);
-// Routes can now resolve to IpcShell and the session calls
-// into the wasmtime-hosted WASM.
+// In #[platform_bin], the user wires it up:
+fn main(session: PlatformSession) {
+    // Get the pre-configured builder from the generated module.
+    // The builder already knows where the .wasm lives (PackageDirectorate)
+    // and has the session's basic imports pre-wired.
+    let instance = generated::business_logic::builder()
+        .with_import("db", session.db().exported_functions())
+        .with_import("custom", my_custom_imports())
+        .build(&session)?;
+
+    // Register with the session — routes can now reach it.
+    // "/business_logic/*" routes automatically resolve to IpcShell
+    // and the session calls into this wasmtime instance.
+    session.register_wasm_app("business_logic", instance);
+
+    // Any code can retrieve it later:
+    //   let app = session.get_wasm_app("business_logic");
+}
 ```
+
+**Two key API surfaces:**
+
+1. **`generated::{name}::builder() -> WasmtimeBuilder`** — the generated
+   function. Pre-loaded with WASM bytes (via `PackageDirectorate`) and
+   session-standard imports. Returns a builder the user can extend.
+
+2. **`session.register_wasm_app(name, instance)` / `session.get_wasm_app(name)`**
+   — the session registry. Routes that match `/{name}/*` automatically resolve
+   to `RouteSource::IpcShell` and dispatch to the registered instance. Users
+   can also resolve routes manually with `RouteDecision::ipc_shell()`.
 
 **Three ways user code runs locally:**
 
