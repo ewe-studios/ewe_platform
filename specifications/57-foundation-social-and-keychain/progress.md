@@ -1,70 +1,68 @@
 # Spec 57 Progress: foundation-social-and-keychain
 
-## Status: In Progress (Phase 0 — social login)
+## Status: In Progress
 
-Merged spec-58 (foundation_auth social login) into spec-57 on 2026-07-18 — both
-touch `foundation_auth` + `foundation_db`. Social login is phase 0 (features
-001–007), keychain is phase 1 (features 008–012). Phase 0 lands first so the
-auth surface is complete before the vault builds on it.
+Phase 0 (social login): F001-F006 complete, F007 partial
+Phase 1 (keychain): F008 complete, F009-F012 pending
 
 ## Implementation Order
 
-**Phase 0 — foundation_auth social login (IN PROGRESS):**
-1. ✅ 001 provider model + CRUD → ✅ 002 migrations → ✅ 003 upstream client
-2. ✅ 004 auth session store → ✅ 005 provisioning service
-3. 🔲 006 provider discovery + admin API → 🔲 007 wasm client
+**Phase 0 — foundation_auth social login:**
+1. ✅ 001 provider model + ✅ 002 migrations + ✅ 003 upstream client
+2. ✅ 004 auth session store + ✅ 005 provisioning service + ✅ 006 provider admin API
 
-**Phase 1 — foundation_keychain (builds on phase 0):**
-4. 🔲 008 core types + domain → 🔲 009 Cloudflare / 010 native (parallel) → 🔲 011 tests+Docker
-5. 🔲 012 SSH key provisioning + app registry
+**Phase 1 — foundation_keychain:**
+3. ✅ 008 core types + models + auth + notifications
+4. 🔲 009 Cloudflare backend / 🔲 010 native backend / 🔲 011 integration tests / 🔲 012 SSH provisioning
 
 ## Feature Progress
 
-| Feature | Phase | Status |
-|---------|-------|--------|
-| 001: Provider model + CRUD | 0 | ✅ Complete (UpstreamProvider, ProviderType, ProviderMapping, ProviderService, ProviderCrypto, ProviderUpdate) |
-| 002: Provider migrations | 0 | ✅ Complete (migrations 024/025 — upstream_providers + user_provider_links) |
-| 003: Upstream OIDC/OAuth2 client | 0 | ✅ Complete (UpstreamOidcClient, UpstreamClientError, UpstreamProfile — 5 tests) |
-| 004: Auth session store | 0 | ✅ Complete (UpstreamAuthSession, UpstreamAuthSessionStore, MemoryAuthSessionStore — 4 tests) |
-| 005: User provisioning | 0 | ✅ Complete (ProvisioningService, ProvisioningResult, ProvisioningError — 5 tests) |
-| 006: Provider discovery + admin API | 0 | 🔲 Pending |
-| 007: WASM upstream client | 0 | 🔲 Pending (WasmOAuth exists, needs wiring to UpstreamOidcClient) |
-| 008: Core types + portable domain logic | 1 | 🔲 Not started |
-| 009: Cloudflare backend | 1 | 🔲 Not started |
-| 010: Native backend | 1 | 🔲 Not started |
-| 011: Integration tests + Docker | 1 | 🔲 Not started |
-| 012: SSH key provisioning + app registry | 1 | 🔲 Not started |
+| Feature | Phase | Status | Tests |
+|---------|-------|--------|-------|
+| 001: Provider model + CRUD | 0 | ✅ Complete | 18 (provider_service) |
+| 002: Provider migrations | 0 | ✅ Complete | — |
+| 003: Upstream OIDC/OAuth2 client | 0 | ✅ Complete | 5 (upstream_client) |
+| 004: Auth session store | 0 | ✅ Complete | 4 (auth_session) |
+| 005: User provisioning | 0 | ✅ Complete | 5 (provisioning_service) |
+| 006: Provider discovery + admin API | 0 | ✅ Complete | 10 (provider_admin) |
+| 007: WASM upstream client | 0 | 🟡 Partial | WasmOAuth exists, needs adapter |
+| 008: Keychain core types | 1 | ✅ Complete | 26 (core_tests) |
+| 009: Cloudflare backend | 1 | 🔲 Not started | — |
+| 010: Native backend | 1 | 🔲 Not started | — |
+| 011: Integration tests + Docker | 1 | 🔲 Not started | — |
+| 012: SSH key provisioning | 1 | 🔲 Not started | — |
 
 ## Test Results (2026-07-18)
 
-- provider_service (F001/F002): **18 passed, 0 failed**
-- upstream_client (F003): **5 passed, 0 failed**
-- auth_session (F004): **4 passed, 0 failed**
-- provisioning_service (F005): **5 passed, 0 failed**
-- **Total: 32 passed, 0 failed**
+- **foundation_auth**: 32 passed (provider_service: 18, upstream_client: 5, auth_session: 4, provisioning_service: 5, provider_admin: 10)
+- **foundation_keychain**: 26 passed (core_tests: 22 integration + 4 unit)
+- **Total: 58 passed, 0 failed**
+
+## Keychain Crate Structure
+
+```
+foundation_keychain/              (✅ created, compiles on native + wasm)
+├── src/core/
+│   ├── error.rs                  # AppError, AppResult, ValidationError
+│   ├── util.rs                   # SSRF icon guard, helpers
+│   ├── models/
+│   │   ├── cipher.rs             # Cipher, Login, Card, Identity, SecureNote
+│   │   ├── folder.rs             # Folder, create/update requests
+│   │   ├── org.rs                # Organization, membership types
+│   │   ├── send.rs               # Send, time-limited sharing
+│   │   ├── user.rs               # Prelogin, Register, Profile, KDF
+│   │   └── sync.rs               # SyncData, EquivalentDomains
+│   ├── auth/mod.rs               # BitwardenClaims, security stamp verify
+│   ├── notifications/mod.rs      # SignalR MessagePack framing, UpdateType
+│   └── api/                      # Handler stubs (accounts, ciphers, folders, orgs, sends, 2FA, sync, events, emergency, icons)
+├── src/server/
+│   ├── native.rs                 # 🔲 foundation_http server (F010)
+│   └── cloudflare.rs             # 🔲 Workers router (F009)
+└── tests/core_tests.rs           # 22 integration tests
+```
 
 ## Foundation Reuse (no custom traits)
 
-- `foundation_db`: `QueryStore`, `AsyncQueryStore`, `KeyValueStore`, `BlobStore`, `RateLimiterStore`, `StorageProvider`, `SchemaMigration`, `AuthStore`
-- `foundation_auth`: `JwtSigningKey`, `TOTPSecret`, `require_auth`, `AsyncCredentialStore`, `IdpServer`, `UserService`, `TokenService`, `password_hash::{pbkdf2, argon2id}`, + new social-login: `ProviderService`, `UpstreamOidcClient`, `ProvisioningService`
-- `foundation_cronjobs`: `CronScheduler` (new crate)
-- `foundation_deployment_cloudflare::workers`: DO + WebSocket transport + Env (new module)
-- `foundation_http`, `foundation_netio`: native HTTP + WebSocket
-
-## Key Design Decisions
-
-1. Social login lands first (phase 0) — completes the auth surface
-2. Identity broker — IdP always mints its own JWTs, upstream providers are auth sources only
-3. No custom storage traits — foundation_db directly
-4. No reinvented auth — foundation_auth for JWT/TOTP/PBKDF2/Argon2id/middleware
-5. No tokio — valtron for all async + cron
-6. Target gates, not feature gates
-7. age scrypt passphrase for SSH key at-rest (native+WASM)
-
-## Implementation Notes (2026-07-18)
-
-- Turso storage requires `#[valtron_test]` (valtron pool) — all integration tests use it
-- `users.email` is UNIQUE, `users.username` is UNIQUE — provisioning tests account for both
-- `UpstreamOidcClient` is `#[cfg(feature = "server")]` gated; `UpstreamProfile` and `UpstreamClientError` are always available
-- `UpstreamAuthSessionStore` trait with `MemoryAuthSessionStore` for tests (behind `server-test`)
-- Provisioning auto-link by email is on by default, call `disable_auto_link()` for stricter mode
+- `foundation_db`: QueryStore, AsyncQueryStore, KeyValueStore, BlobStore, RateLimiterStore, StorageProvider
+- `foundation_auth`: JwtSigningKey, TOTPSecret, require_auth, IdpServer, ProviderService, ProvisioningService, UpstreamOidcClient, UpstreamAuthSession
+- `foundation_http`, `foundation_netio`: native HTTP + WebSocket (F010)

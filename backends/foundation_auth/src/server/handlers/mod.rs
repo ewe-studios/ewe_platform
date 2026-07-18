@@ -1,4 +1,5 @@
 pub mod core;
+pub mod provider_admin;
 pub mod serve_adapter;
 
 pub use self::core::{

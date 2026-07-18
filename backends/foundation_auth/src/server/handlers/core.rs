@@ -21,6 +21,7 @@ use super::super::storage::{
 use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// Typed response from a handler — carries HTTP status code, body, and headers.
+#[derive(Debug)]
 pub struct HandlerResponse {
     pub status: u16,
     pub body: serde_json::Value,

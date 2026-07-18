@@ -23,7 +23,7 @@ use chacha20poly1305::{
 use chrono::Utc;
 use rand::RngCore;
 
-use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow, StorageItemStream};
 use foundation_core::valtron::Stream;
 
 use crate::shared::password_hash::argon2id_derive;
@@ -256,17 +256,34 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self
-            .query_store
-            .query(
-                "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
-                 encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
-                 scopes, is_active, mapping_config, created_at, updated_at \
-                 FROM upstream_providers WHERE is_active = 1 ORDER BY id",
-                &[],
-            )
-            .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
+        Self::drain_providers(self.query_store.query(
+            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+             encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
+             scopes, is_active, mapping_config, created_at, updated_at \
+             FROM upstream_providers WHERE is_active = 1 ORDER BY id",
+            &[],
+        ))
+    }
 
+    /// List all providers (active and inactive), ordered by id.
+    ///
+    /// # Errors
+    ///
+    /// `Storage` on query failure, `Parse` if a row can't be decoded.
+    pub fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
+        Self::drain_providers(self.query_store.query(
+            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+             encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
+             scopes, is_active, mapping_config, created_at, updated_at \
+             FROM upstream_providers ORDER BY id",
+            &[],
+        ))
+    }
+
+    fn drain_providers(
+        result: std::result::Result<StorageItemStream<'_, SqlRow>, foundation_db::StorageError>,
+    ) -> Result<Vec<UpstreamProvider>> {
+        let stream = result.map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
         let mut out = Vec::new();
         for item in stream {
             match item {
