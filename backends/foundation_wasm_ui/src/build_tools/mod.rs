@@ -398,6 +398,31 @@ impl WasmBundleGenerator {
                 });
             }
         }
+
+        // Generate index.html — loads bundle.js + WasmLoader for each #[wasm_bin]
+        let bins: Vec<_> = self.entrypoints.iter()
+            .filter(|ep| matches!(ep.mode, BundleMode::Bin))
+            .collect();
+        if !bins.is_empty() {
+            let mut inits = String::new();
+            for ep in &bins {
+                let name = &ep.name;
+                inits.push_str(&format!(
+                    "var l=new FoundationWasmRuntime.WasmLoader();l.loadURL('./{name}.wasm').then(function(r){{r.instance.exports.{name}();document.getElementById('__ewe_status').textContent='OK'}}).catch(function(e){{document.getElementById('__ewe_status').textContent=String(e)}});"
+                ));
+            }
+            let html = format!(
+                "<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>FP</title>\
+                 <style>body{{font-family:sans-serif;padding:16px;background:#0a0a1a;color:#ccd6f6}}h1{{color:#64ffda;font-size:20px}}#__ewe_status{{margin:8px 0;font-size:12px;color:#8892b0}}</style></head>\
+                 <body><h1>Foundation Platform</h1><div id=__ewe_status>Loading...</div>\
+                 <script src=\"bundle.js\"></script>\
+                 <script>{inits}</script></body></html>"
+            );
+            let dest = self.output_dir.join("index.html");
+            std::fs::write(&dest, &html).map_err(|e| io_err(&dest, e))?;
+            written.push(PlannedFile { path: dest, kind: "index.html" });
+        }
+
         Ok(written)
     }
 
