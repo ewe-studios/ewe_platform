@@ -67,7 +67,9 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F10 | Testing harness (`#[platform_test]`) | High | F01 |
 | F11 | Entrypoint annotations + build pipeline | Medium | F00, F01 |
 | F12 | MVP integration + demo app | Critical | F09–F11 |
-| F13 | Docker-based test environments | High | F10 |
+| F13 | Cross-platform builds (Desktop, Android, iOS) | Critical | F12 |
+| F14 | Android example app (platform_android) | Critical | F13 |
+| F15 | iOS example app (platform_ios) | Critical | F13 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
