@@ -51,24 +51,13 @@ fn ewe_handler<R: tauri::Runtime>(
     };
     let decision = session.resolve_route(&intent);
 
-    // 3-5. Cache, presentation, backend query — rest of execution contract
-    let content = format!(
-        "route {} resolved to {:?} (profile {:?})",
-        ewe_url.path, decision.source, decision.profile
-    );
+    // 3-9. Run the full execution contract through the session
+    // Cache check → backend query → protocol selection → encoding → navigation record
+    let (body, content_type) = session.execute_decision(&decision, &intent);
 
-    // 6. Protocol selection
-    let protocol = select_protocol(
-        &decision.protocol,
-        ewe_url.query_params.get("proto"),
-        content.as_bytes(),
-    );
-
-    // 7. Encode and respond
-    let (body, content_type) = encode_protocol(&protocol, content.as_bytes());
     Response::builder()
         .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, content_type)
+        .header(header::CONTENT_TYPE, content_type.clone())
         .header("Access-Control-Allow-Origin", "ewe://localhost")
         .body(body)
         .unwrap()

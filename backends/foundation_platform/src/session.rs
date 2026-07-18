@@ -12,6 +12,7 @@
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
+use crate::backend::{BackendTransport, DEFAULT_TRANSPORT};
 use crate::route::RouteDecisionExt;
 use foundation_ui_traits::*;
 
@@ -68,6 +69,10 @@ pub struct PlatformSession {
     /// Event listeners. Called on every lifecycle/connectivity transition.
     /// Listeners return `true` to stay subscribed, `false` to unsubscribe.
     event_listeners: RwLock<Vec<EventListener>>,
+
+    /// Pluggable backend transport. Injected at startup; falls back to
+    /// [`DefaultTransport`] if not set. Tests inject their own transport.
+    backend_transport: RwLock<Option<Box<dyn BackendTransport>>>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -93,6 +98,7 @@ impl PlatformSession {
             active_page: RwLock::new(None),
             online: AtomicBool::new(true),
             event_listeners: RwLock::new(Vec::new()),
+            backend_transport: RwLock::new(None),
         })
     }
 }
@@ -191,8 +197,16 @@ impl PlatformSession {
             }
         }
 
-        // Step 5: Backend query
-        let content = crate::backend::query_backend(decision, &route);
+        // Offline fallback: NetworkFirst/OnlineOnly skip cache normally, but when
+        // offline and a stale entry exists, serve it instead of failing.
+        if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
+            if let Some(entry) = self.cache.get(decision.profile, &route) {
+                return (entry.body, entry.content_type);
+            }
+        }
+
+        // Step 5: Backend query through the registered transport
+        let content = crate::backend::query_backend(self.backend(), decision, &route);
 
         // Step 6: Protocol selection
         // Extract proto query param if present
@@ -299,6 +313,30 @@ impl PlatformSession {
     /// Access the mutation queue for enqueuing/replaying offline mutations.
     pub fn mutation_queue(&self) -> &crate::mutation::MutationQueue {
         &self.mutation_queue
+    }
+
+    /// Inject a backend transport. Called once at startup (or in tests).
+    /// All subsequent [`execute_decision`] calls will use this transport.
+    pub fn set_backend(&self, transport: Box<dyn BackendTransport>) {
+        *self.backend_transport.write().unwrap() = Some(transport);
+    }
+
+    /// Return the active backend transport, or the default.
+    fn backend(&self) -> &dyn BackendTransport {
+        // Safety: we leak a reference to the DefaultTransport static.
+        // This is fine — DefaultTransport is a unit struct living in a static.
+        // We need a reference with a stable address; the RwLock guard would
+        // be temporary. The &*Box<dyn> inside the option lives as long as the
+        // option, but we can't return that from a method without GATs.
+        // Instead, always return &DefaultTransport when no custom transport
+        // is set, since DefaultTransport is stateless.
+        if let Some(ref t) = *self.backend_transport.read().unwrap() {
+            // SAFETY: The Box lives as long as self. We're returning a
+            // reference with the same lifetime as &self.
+            unsafe { &*(t.as_ref() as *const dyn BackendTransport) }
+        } else {
+            &DEFAULT_TRANSPORT
+        }
     }
 }
 

@@ -1,22 +1,70 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Platform Android</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foundation Platform</title>
 <style>
-body{font-family:monospace;padding:20px;background:#0a0a1a;color:#00ff88}
-.card{background:#111133;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #333}
-h1{font-size:22px}h2{font-size:16px;color:#88ffcc}
-</style></head><body>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}
+h1{font-size:20px;color:#64ffda;margin-bottom:4px}
+.sub{font-size:12px;color:#8892b0;margin-bottom:16px}
+.card{background:#112240;border:1px solid #233554;border-radius:8px;padding:12px;margin:8px 0}
+.card h3{font-size:14px;color:#64ffda;margin-bottom:6px}
+.card .mode{font-size:11px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px}
+.mode-wasm{background:#1a3a2a;color:#64ffda}
+.mode-ipc{background:#3a2a1a;color:#ffb86c}
+.mode-remote{background:#2a1a3a;color:#bd93f9}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.toolbar a{font-size:12px;padding:6px 12px;border:1px solid #233554;border-radius:4px;background:#112240;color:#64ffda;cursor:pointer;text-decoration:none}
+.toolbar a:hover{background:#233554}
+</style>
+</head>
+<body>
 <h1>Foundation Platform</h1>
-<h2>Android — Native Rust .so</h2>
-<div class="card"><b>Session</b><br>PlatformSession via platform_run!</div>
-<div class="card"><b>Routes</b><br>/app/*, /remote/*, /cached/*</div>
-<div class="card"><b>Protocol</b><br>ewe:// custom scheme</div>
-<p style="color:#00ff88">foundation_platform 0.0.1</p>
+<p class="sub">Android — Native Rust .so</p>
+
+<div class="toolbar">
+  <a href="ewe://localhost/app/home">🏠 App (WASM)</a>
+  <a href="ewe://localhost/api/status">⚡ API (IPC)</a>
+  <a href="ewe://localhost/remote/news">🌐 Remote</a>
+  <a href="ewe://localhost/cached/data">💾 Cached</a>
+  <a href="ewe://localhost/auth/login">🔐 Auth</a>
+</div>
+
+<div class="card">
+  <h3>Session</h3>
+  <div class="content">PlatformSession via platform_run! — cross-compiled .so</div>
+</div>
+
+<div class="card">
+  <h3>Routes</h3>
+  <div class="content">
+    <span class="mode mode-wasm">WASM</span> /app/* — in-WebView rendering<br>
+    <span class="mode mode-ipc">IPC</span> /api/* — native shell dispatch<br>
+    <span class="mode mode-remote">Remote</span> /remote/* — server fetch<br>
+    <span class="mode">Cache</span> /cached/* — CacheFirst<br>
+    <span class="mode">Auth</span> /auth/* — Auth profile
+  </div>
+</div>
+
+<div class="card">
+  <h3>Protocol</h3>
+  <div class="content">ewe:// custom scheme — transport auto-selected by RouteSource</div>
+</div>
+
+<p style="font-size:11px;color:#64ffda;margin-top:12px">foundation_platform 0.0.1</p>
+
 <script>
-document.querySelectorAll('a').forEach(a=>{
-  a.addEventListener('click',e=>{
-    e.preventDefault();
-    window.location.href=a.getAttribute('href');
+document.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href.startsWith('ewe://')) {
+      e.preventDefault();
+      window.location.href = href;
+    }
   });
 });
 </script>
-</body></html>
+</body>
+</html>

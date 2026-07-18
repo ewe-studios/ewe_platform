@@ -29,7 +29,7 @@ fn full_ewe_pipeline_webview_app() {
     assert!(!should_cache); // no cached entry yet
 
     // Step 5: Backend query
-    let content = query_backend(&decision, "/app/items");
+    let content = query_backend(&DefaultTransport, &decision, "/app/items");
     assert!(!content.is_empty());
 
     // Step 6: Protocol selection (query param = json)
@@ -64,7 +64,7 @@ fn full_ewe_pipeline_remote_server() {
     assert_eq!(decision.cache_policy, CachePolicy::NetworkFirst);
 
     // Backend query
-    let content = query_backend(&decision, "/remote/dashboard");
+    let content = query_backend(&DefaultTransport, &decision, "/remote/dashboard");
     let s = String::from_utf8(content.clone()).unwrap();
     assert!(s.contains("remote_server"));
 
@@ -89,7 +89,7 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
     assert_eq!(decision.source, RouteSource::IpcShell);
 
     // Verify target was resolved
-    let content = query_backend(&decision, "/api/data");
+    let content = query_backend(&DefaultTransport, &decision, "/api/data");
     let s = String::from_utf8(content.clone()).unwrap();
     assert!(s.contains("business_logic"));
 }

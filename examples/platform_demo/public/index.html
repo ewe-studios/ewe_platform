@@ -1,29 +1,89 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Platform Demo</title></head>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foundation Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}
+h1{font-size:20px;color:#64ffda;margin-bottom:4px}
+.sub{font-size:12px;color:#8892b0;margin-bottom:16px}
+.card{background:#112240;border:1px solid #233554;border-radius:8px;padding:12px;margin:8px 0}
+.card h3{font-size:14px;color:#64ffda;margin-bottom:6px}
+.card .mode{font-size:11px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px}
+.mode-wasm{background:#1a3a2a;color:#64ffda}
+.mode-ipc{background:#3a2a1a;color:#ffb86c}
+.mode-remote{background:#2a1a3a;color:#bd93f9}
+.card .content{font-size:12px;color:#8892b0;word-break:break-all}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.toolbar a{font-size:12px;padding:6px 12px;border:1px solid #233554;border-radius:4px;background:#112240;color:#64ffda;cursor:pointer;text-decoration:none}
+.toolbar a:hover{background:#233554}
+.status{font-size:11px;color:#8892b0;padding:4px 8px;background:#112240;border-radius:4px;margin:8px 0}
+#log{margin-top:8px}
+#log .entry{padding:4px 0;font-size:11px;border-bottom:1px solid #1a1a3a}
+</style>
+</head>
 <body>
-  <h1>Foundation Platform Demo</h1>
-  <div id="status">Initializing...</div>
-  <div id="routes">
-    <h2>Routes</h2>
-    <ul>
-      <li><a href="ewe://localhost/app/home">/app/home</a> — WebviewApp (local WASM)</li>
-      <li><a href="ewe://localhost/remote/dashboard">/remote/dashboard</a> — Remote fetch</li>
-      <li><a href="ewe://localhost/cached/data">/cached/data</a> — CacheFirst</li>
-      <li><a href="ewe://localhost/auth/login">/auth/login</a> — Auth profile</li>
-    </ul>
-  </div>
-  <div id="log"></div>
-  <script>
-    document.getElementById('status').textContent = 'Platform session active.';
-    document.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        const url = a.getAttribute('href');
-        document.getElementById('log').textContent = 'Navigating to: ' + url;
-        window.location.href = url;
-      });
-    });
-  </script>
+<h1>Foundation Platform</h1>
+<p class="sub">Multi-mode demo — WASM · IPC · Remote</p>
+
+<div class="toolbar">
+  <a href="ewe://localhost/app/home">🏠 App (WASM)</a>
+  <a href="ewe://localhost/api/status">⚡ API (IPC)</a>
+  <a href="ewe://localhost/remote/news">🌐 Remote</a>
+  <a href="ewe://localhost/cached/data">💾 Cached</a>
+  <a href="ewe://localhost/auth/login">🔐 Auth</a>
+</div>
+
+<div class="status" id="status">Online · Session: —</div>
+
+<div class="card">
+  <h3>Current Route</h3>
+  <div id="routeInfo" class="content">No navigation yet — click a link above</div>
+</div>
+
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+const statusEl = document.getElementById('status');
+const routeInfo = document.getElementById('routeInfo');
+
+function addEntry(label, detail) {
+  const d = document.createElement('div');
+  d.className = 'entry';
+  d.innerHTML = `<b>${label}</b> ${detail}`;
+  logEl.prepend(d);
+}
+
+function detectMode() {
+  const u = window.location.href;
+  if (u.includes('/app/')) return {m:'🟢 App (WASM)',c:'mode-wasm'};
+  if (u.includes('/api/')) return {m:'🟠 IPC Shell',c:'mode-ipc'};
+  if (u.includes('/remote/')) return {m:'🟣 Remote Server',c:'mode-remote'};
+  if (u.includes('/cached/')) return {m:'💾 CacheFirst',c:''};
+  if (u.includes('/auth/')) return {m:'🔐 Auth',c:''};
+  return {m:'Default',c:''};
+}
+
+// Intercept ewe:// link clicks
+document.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href.startsWith('ewe://')) {
+      e.preventDefault();
+      addEntry('Navigate', href);
+      window.location.href = href;
+    }
+  });
+});
+
+const m = detectMode();
+routeInfo.innerHTML = `<span class="mode ${m.c}">${m.m}</span>
+<div style="margin-top:4px">URL: ${window.location.href}</div>`;
+
+addEntry('Boot', 'foundation_platform 0.0.1 — ewe:// protocol active');
+</script>
 </body>
 </html>
