@@ -112,7 +112,6 @@ impl<R: Runtime> PlatformBuilder<R> {
             // WASM: returns an HTML page that signals the in-WebView WASM app.
             // IPC: dispatches via Tauri event to the named target.
             // Remote: blocking HTTP fetch (returns HTML response).
-            let h = handle.clone();
             let wasm = move |route: &str| -> Vec<u8> {
                 let html = format!(
                     "<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\

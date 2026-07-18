@@ -36,7 +36,7 @@ fn expand_mode(
     attr: TokenStream,
     item: TokenStream,
 ) -> TokenStream {
-    let func: syn::ItemFn = match syn::parse2(item) {
+    let mut func: syn::ItemFn = match syn::parse2(item) {
         Ok(func) => func,
         Err(err) => {
             return syn::Error::new(err.span(), format!("#[{mode}] applies to functions only"))
@@ -47,6 +47,7 @@ fn expand_mode(
     let mut saw_routes = false;
     let mut single_file = false;
     let mut saw_encoded = false;
+    let mut extern_c = false;
 
     if !attr.is_empty() {
         let parser = syn::meta::parser(|meta| {
@@ -71,6 +72,15 @@ fn expand_mode(
                         "encoded = \"{other}\" — expected \"b64\" or \"uint8array\""
                     ))),
                 }
+            } else if meta.path.is_ident("extern") {
+                let value: syn::LitStr = meta.value()?.parse()?;
+                match value.value().as_str() {
+                    "true" => { extern_c = true; Ok(()) }
+                    "false" => Ok(()),
+                    other => Err(meta.error(format!(
+                        "extern = \"{other}\" — expected \"true\" or \"false\""
+                    ))),
+                }
             } else if meta.path.is_ident("desc") {
                 let _: syn::LitStr = meta.value()?.parse()?;
                 Ok(())
@@ -79,15 +89,17 @@ fn expand_mode(
                     return Err(meta.error("routes = […] is only valid on #[wasm_service]"));
                 }
                 saw_routes = true;
-                // `routes = ["/a", "/b"]` — a bracketed list of string literals.
                 let value = meta.value()?;
                 let content;
                 syn::bracketed!(content in value);
                 let _routes =
                     content.parse_terminated(<syn::LitStr as syn::parse::Parse>::parse, syn::Token![,])?;
                 Ok(())
+            } else if meta.path.is_ident("target") {
+                let _: syn::LitStr = meta.value()?.parse()?;
+                Ok(())
             } else {
-                Err(meta.error("expected js / encoded / desc / routes"))
+                Err(meta.error("expected js / encoded / extern / desc / routes / target"))
             }
         });
         if let Err(err) = syn::parse::Parser::parse2(parser, attr) {
@@ -108,6 +120,14 @@ fn expand_mode(
             "encoded = … only applies with js = \"single-file\"",
         )
         .to_compile_error();
+    }
+
+    // extern = "true": auto-generate #[no_mangle] pub extern "C"
+    // Zero boilerplate for wasm export functions.
+    if extern_c {
+        func.attrs.push(syn::parse_quote!(#[no_mangle]));
+        func.vis = syn::parse_quote!(pub);
+        func.sig.abi = Some(syn::parse_quote!(extern "C"));
     }
 
     quote! { #func }

@@ -1,0 +1,14 @@
+# Root package — thin shell: exists only so build.rs has a package to run in.
+# Opt-out of parent workspace; src-tauri/ and app/ each have their own [workspace].
+
+[workspace]
+
+[package]
+name = "platform_android"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "platform_android_build"
+path = "src/lib.rs"

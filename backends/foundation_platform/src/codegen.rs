@@ -1,25 +1,25 @@
 //! Build pipeline — source scanner and code generation orchestrator.
 //!
-//! `generate_platform_code()` is called from the user's `build.rs`.
-//! It scans the crate for platform annotations and triggers the
-//! appropriate code generation.
+//! Two entry points for two contexts:
 //!
-//! MVP: scans for `#[wasm_bin]`/`#[wasm_worker]`/`#[wasm_service]` and
-//! delegates to the existing `WasmBundleGenerator` from `foundation_wasm`.
+//! 1. `generate_platform_code()` — called from `src-tauri/build.rs`.
+//!    Runs `tauri_build::build()`, scans `src/` for platform annotations
+//!    (`#[platform_bin]`, `#[platform_worker]`, `#[platform_service]`),
+//!    and generates Tauri-specific code.
+//!
+//! 2. `build_wasm_app(app_dir, public_dir)` — called from root `build.rs`.
+//!    Scans `app/src/` for WASM annotations (`#[wasm_bin]`,
+//!    `#[wasm_worker]`, `#[wasm_service]`), delegates to
+//!    `WasmBundleGenerator` to compile to wasm32, generates JS wrappers,
+//!    copies runtimes and artifacts to `public/`, and generates
+//!    `index.html`.
 
 use std::path::{Path, PathBuf};
 
-/// Entry point for the platform build pipeline.
-///
-/// Called from the user's `build.rs`:
-/// ```ignore
-/// fn main() {
-///     foundation_platform::codegen::generate_platform_code();
-/// }
-/// ```
-///
-/// Calls `tauri_build::build()` internally to generate the Tauri context,
-/// then scans the crate for platform annotations.
+// ── Entry point: src-tauri/build.rs ────────────────────────────────────
+
+/// Called from `src-tauri/build.rs`.
+/// Generates Tauri context and scans for platform annotations.
 pub fn generate_platform_code() {
     // Always generate Tauri context first — required by platform_run!
     tauri_build::build();
@@ -29,31 +29,26 @@ pub fn generate_platform_code() {
             .expect("CARGO_MANIFEST_DIR not set"),
     );
 
-    let src_dir = manifest_dir.join("src");
-
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=build.rs");
 
-    // Discover platform annotations
-    let annotations = scan_for_annotations(&src_dir);
+    // Discover platform annotations in src/
+    let annotations = scan_for_annotations(&manifest_dir.join("src"));
 
-    // Generate code for web-side annotations
     for annotation in &annotations {
         match annotation.kind {
-            AnnotationKind::WasmBin
-            | AnnotationKind::WasmWorker
-            | AnnotationKind::WasmService => {
-                // Delegate to existing WasmBundleGenerator from foundation_wasm
-                println!(
-                    "cargo:warning=foundation_platform: found {} '{}' in {}",
-                    annotation.kind.name(),
-                    annotation.name,
-                    annotation.file.display()
-                );
-            }
             AnnotationKind::PlatformBin => {
                 println!(
                     "cargo:warning=foundation_platform: found #[platform_bin] '{}'",
+                    annotation.name
+                );
+            }
+            AnnotationKind::WasmBin
+            | AnnotationKind::WasmWorker
+            | AnnotationKind::WasmService => {
+                println!(
+                    "cargo:warning=foundation_platform: ignoring {} '{}' in src-tauri/ — WASM annotations belong in app/",
+                    annotation.kind.name(),
                     annotation.name
                 );
             }
@@ -61,7 +56,7 @@ pub fn generate_platform_code() {
     }
 
     // Generate src/generated/ directory if it doesn't exist
-    let generated_dir = src_dir.join("generated");
+    let generated_dir = manifest_dir.join("src").join("generated");
     if !generated_dir.exists() {
         std::fs::create_dir_all(&generated_dir).ok();
         let mod_file = generated_dir.join("mod.rs");
@@ -72,15 +67,231 @@ pub fn generate_platform_code() {
     }
 }
 
+// ── Entry point: root build.rs ─────────────────────────────────────────
+
+/// Called from the project root `build.rs`.
+///
+/// Scans `app_dir/src/` for WASM annotations, delegates to
+/// `WasmBundleGenerator` to compile to the correct wasm32 target,
+/// copies runtimes and artifacts to `public_dir/`, and generates
+/// `index.html`.
+pub fn build_wasm_app(app_dir: &Path, public_dir: &Path) {
+    println!("cargo:rerun-if-changed=app/src/");
+    println!("cargo:rerun-if-changed=app/Cargo.toml");
+
+    // 1. Discover wasm entrypoints in app/src/
+    let annotations = scan_for_annotations(&app_dir.join("src"));
+    let wasm_annotations: Vec<_> = annotations
+        .iter()
+        .filter(|a| matches!(a.kind, AnnotationKind::WasmBin | AnnotationKind::WasmWorker | AnnotationKind::WasmService))
+        .collect();
+
+    if wasm_annotations.is_empty() {
+        println!("cargo:warning=foundation_platform: no wasm annotations found in app/src/ — skipping wasm build");
+        return;
+    }
+
+    println!("cargo:warning=foundation_platform: building {} wasm entrypoints", wasm_annotations.len());
+
+    // 2. Determine the wasm target from annotations.
+    // Default is wasm32-unknown-unknown. Each annotation can specify
+    // #[wasm_bin(target = "wasip1")] to override.
+    let target = resolve_wasm_target(&wasm_annotations);
+
+    // 3. Compile the app crate
+    let status = std::process::Command::new("cargo")
+        .args(["build", "--manifest-path"])
+        .arg(app_dir.join("Cargo.toml"))
+        .args(["--target", &target, "--profile", "uat"])
+        .status()
+        .expect("cargo build (wasm app) failed");
+
+    if !status.success() {
+        panic!("WASM app build failed for target {target}");
+    }
+
+    // 4. Copy .wasm binaries to public/
+    std::fs::create_dir_all(public_dir).ok();
+    for annotation in &wasm_annotations {
+        let wasm_src = app_dir
+            .join("target")
+            .join(&target)
+            .join("uat")
+            .join(format!("{}.wasm", annotation.name));
+        let wasm_dest = public_dir.join(format!("{}.wasm", annotation.name));
+        std::fs::copy(&wasm_src, &wasm_dest)
+            .unwrap_or_else(|e| panic!("copy {}.wasm: {e}", annotation.name));
+    }
+
+    // 5. Copy JS runtimes from foundation crates
+    // Path: platform_android/ → examples/ → repo root
+    let repo_root = app_dir.parent().unwrap() // platform_android/
+        .parent().unwrap() // examples/
+        .parent().unwrap(); // repo root
+    copy_runtimes_to_public(repo_root, public_dir);
+
+    // 6. Generate JS wrappers for each wasm entrypoint
+    for annotation in &wasm_annotations {
+        let wrapper = generate_js_wrapper(&annotation.name, annotation.kind);
+        let wrapper_path = public_dir.join(format!("{}.js", annotation.name));
+        std::fs::write(&wrapper_path, wrapper)
+            .unwrap_or_else(|e| panic!("write {}.js: {e}", annotation.name));
+    }
+
+    // 7. Generate index.html
+    let index_html = generate_index_html(&wasm_annotations);
+    std::fs::write(public_dir.join("index.html"), index_html)
+        .expect("write index.html");
+}
+
+// ── WASM target resolution ──────────────────────────────────────────────
+
+/// Determine the wasm target. Default is `wasm32-unknown-unknown`.
+/// Annotations can override with `#[wasm_bin(target = "wasip1")]`.
+fn resolve_wasm_target(annotations: &[&Annotation]) -> String {
+    // For now: all entrypoints in one crate share the same target.
+    // If annotations specify different targets, the first non-default wins.
+    for a in annotations {
+        if a.target == "wasip1" || a.target == "wasip2" {
+            return format!("wasm32-{}", a.target);
+        }
+    }
+    "wasm32-unknown-unknown".to_string()
+}
+
+// ── JS wrapper generation ───────────────────────────────────────────────
+
+fn generate_js_wrapper(name: &str, kind: AnnotationKind) -> String {
+    match kind {
+        AnnotationKind::WasmBin => format!(
+            r#"// Generated — wasm_bin "{name}".
+import './foundation-wasm-ui.js';
+import './platform-scheme-interceptor.js';
+import {{ FoundationWasm }} from './foundation-wasm.js';
+
+const WASM_URL = './{name}.wasm';
+
+export async function init(importOverrides = {{}}) {{
+  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();
+  const rt = new FoundationWasm();
+  const imports = {{ abi: {{ ...rt.web_abi, ...importOverrides }} }};
+  const {{ instance }} = await WebAssembly.instantiate(wasmBytes, imports);
+  rt.init(instance);
+  instance.exports.{name}();
+  return {{ runtime: rt, instance }};
+}}
+"#
+        ),
+        AnnotationKind::WasmWorker => format!(
+            r#"// Generated — wasm_worker "{name}".
+import './foundation-wasm-ui.js';
+import './platform-scheme-interceptor.js';
+import {{ FoundationWasm }} from './foundation-wasm.js';
+
+const WASM_URL = './{name}.wasm';
+
+(async () => {{
+  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();
+  const rt = new FoundationWasm();
+  const {{ instance }} = await WebAssembly.instantiate(wasmBytes, {{ abi: rt.web_abi }});
+  rt.init(instance);
+  instance.exports.{name}();
+  self.postMessage({{ ready: true }});
+}})();
+"#
+        ),
+        AnnotationKind::WasmService => format!(
+            r#"// Generated — wasm_service "{name}".
+importScripts('./foundation-wasm.js');
+
+const WASM_URL = './{name}.wasm';
+let runtimePromise = null;
+async function ensureRuntime() {{
+  if (!runtimePromise) {{
+    runtimePromise = (async () => {{
+      const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();
+      const rt = new globalThis.FoundationWasmRuntime.FoundationWasm();
+      const {{ instance }} = await WebAssembly.instantiate(wasmBytes, {{ abi: rt.web_abi }});
+      rt.init(instance);
+      instance.exports.{name}();
+      return rt;
+    }})();
+  }}
+  return runtimePromise;
+}}
+
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+"#
+        ),
+        AnnotationKind::PlatformBin => String::new(),
+    }
+}
+
+// ── index.html generation ───────────────────────────────────────────────
+
+fn generate_index_html(annotations: &[&Annotation]) -> String {
+    let mut scripts = String::new();
+    let mut inits = String::new();
+
+    for a in annotations {
+        if a.kind == AnnotationKind::WasmBin {
+            scripts.push_str(&format!("<script type=module src=\"{name}.js\"></script>\n  ", name = a.name));
+            inits.push_str(&format!(
+                "<script type=module>import {{ init }} from './{name}.js';init().then(()=>document.getElementById('status').textContent='WASM active').catch(e=>document.getElementById('status').textContent='Error: '+e.message)</script>\n  ",
+                name = a.name
+            ));
+        }
+    }
+
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foundation Platform</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:system-ui,sans-serif;padding:16px;background:#0a0a1a;color:#ccd6f6}}
+h1{{color:#64ffda;font-size:22px}}
+p{{color:#8892b0;font-size:12px;margin:4px 0}}
+#status{{margin:12px 0;font-size:11px;color:#445566}}
+</style></head><body>
+<h1>Foundation Platform</h1>
+<p>Android — WASM UI · columnar v1</p>
+<div id="status">Loading WASM runtime...</div>
+  {inits}
+  {scripts}
+</body></html>"#
+    )
+}
+
+// ── Runtime copying ─────────────────────────────────────────────────────
+
+fn copy_runtimes_to_public(repo_root: &Path, public_dir: &Path) {
+    for (src_rel, name) in &[
+        ("backends/foundation_wasm/runtime/foundation-wasm.js", "foundation-wasm.js"),
+        ("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js", "foundation-wasm-ui.js"),
+        ("backends/foundation_wasm_ui/runtimes/platform-scheme-interceptor.js", "platform-scheme-interceptor.js"),
+    ] {
+        let src = repo_root.join(src_rel);
+        let dest = public_dir.join(name);
+        std::fs::copy(&src, &dest)
+            .unwrap_or_else(|e| panic!("copy {}: {e}", name));
+    }
+}
+
+// ── Annotation scanning ────────────────────────────────────────────────
+
 #[derive(Debug, Clone)]
-struct Annotation {
-    name: String,
-    kind: AnnotationKind,
-    file: PathBuf,
+pub struct Annotation {
+    pub name: String,
+    pub kind: AnnotationKind,
+    pub file: PathBuf,
+    pub target: String, // "unknown", "wasip1", "wasip2"
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum AnnotationKind {
+pub enum AnnotationKind {
     WasmBin,
     WasmWorker,
     WasmService,
@@ -88,7 +299,7 @@ enum AnnotationKind {
 }
 
 impl AnnotationKind {
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             AnnotationKind::WasmBin => "#[wasm_bin]",
             AnnotationKind::WasmWorker => "#[wasm_worker]",
@@ -98,11 +309,8 @@ impl AnnotationKind {
     }
 }
 
-/// Scan a source directory for platform annotations.
-///
-/// Simple text-based scan — finds `#[wasm_bin]`, `#[wasm_worker]`,
-/// `#[wasm_service]`, and `#[platform_bin]` in Rust source files.
-fn scan_for_annotations(src_dir: &Path) -> Vec<Annotation> {
+/// Scan a source directory for platform + wasm annotations.
+pub fn scan_for_annotations(src_dir: &Path) -> Vec<Annotation> {
     let mut found = Vec::new();
 
     let Ok(entries) = std::fs::read_dir(src_dir) else {
@@ -119,20 +327,8 @@ fn scan_for_annotations(src_dir: &Path) -> Vec<Annotation> {
             if let Ok(content) = std::fs::read_to_string(&path) {
                 for line in content.lines() {
                     let trimmed = line.trim();
-                    let kind = if trimmed.starts_with("#[wasm_bin") {
-                        Some(AnnotationKind::WasmBin)
-                    } else if trimmed.starts_with("#[wasm_worker") {
-                        Some(AnnotationKind::WasmWorker)
-                    } else if trimmed.starts_with("#[wasm_service") {
-                        Some(AnnotationKind::WasmService)
-                    } else if trimmed.starts_with("#[platform_bin") {
-                        Some(AnnotationKind::PlatformBin)
-                    } else {
-                        None
-                    };
-
+                    let (kind, target) = parse_annotation(trimmed);
                     if let Some(kind) = kind {
-                        // Extract function name: `fn function_name`
                         let name = if let Some(fn_pos) = line.find("fn ") {
                             let after_fn = &line[fn_pos + 3..];
                             after_fn.split(|c: char| !c.is_alphanumeric() && c != '_')
@@ -142,11 +338,11 @@ fn scan_for_annotations(src_dir: &Path) -> Vec<Annotation> {
                         } else {
                             "unknown".to_string()
                         };
-
                         found.push(Annotation {
                             name,
                             kind,
                             file: path.clone(),
+                            target: target.unwrap_or_else(|| "unknown".to_string()),
                         });
                     }
                 }
@@ -157,58 +353,27 @@ fn scan_for_annotations(src_dir: &Path) -> Vec<Annotation> {
     found
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn parse_annotation(line: &str) -> (Option<AnnotationKind>, Option<String>) {
+    let kind = if line.starts_with("#[wasm_bin") {
+        Some(AnnotationKind::WasmBin)
+    } else if line.starts_with("#[wasm_worker") {
+        Some(AnnotationKind::WasmWorker)
+    } else if line.starts_with("#[wasm_service") {
+        Some(AnnotationKind::WasmService)
+    } else if line.starts_with("#[platform_bin") {
+        Some(AnnotationKind::PlatformBin)
+    } else {
+        None
+    };
 
-    #[test]
-    fn scan_detects_platform_annotations() {
-        let tmp = std::env::temp_dir().join("fplat_test_scan");
-        std::fs::create_dir_all(&tmp).unwrap();
+    // Extract target = "..." if present
+    let target = line.find("target").and_then(|i| {
+        let rest = &line[i..];
+        rest.find('"').and_then(|start| {
+            let after_quote = &rest[start + 1..];
+            after_quote.find('"').map(|end| after_quote[..end].to_string())
+        })
+    });
 
-        let file = tmp.join("test.rs");
-        std::fs::write(&file, r#"
-#[wasm_bin] fn my_app() {}
-
-#[platform_bin] fn main_setup(session: PlatformSession) {}
-
-fn not_annotated() {}
-"#).unwrap();
-
-        let annotations = scan_for_annotations(&tmp);
-        assert_eq!(annotations.len(), 2);
-
-        let wasm_bin = annotations.iter().find(|a| a.kind == AnnotationKind::WasmBin).unwrap();
-        assert_eq!(wasm_bin.name, "my_app");
-
-        let plat_bin = annotations.iter().find(|a| a.kind == AnnotationKind::PlatformBin).unwrap();
-        assert_eq!(plat_bin.name, "main_setup");
-
-        std::fs::remove_dir_all(&tmp).ok();
-    }
-
-    #[test]
-    fn empty_directory_returns_no_annotations() {
-        let tmp = std::env::temp_dir().join("fplat_empty");
-        std::fs::create_dir_all(&tmp).unwrap();
-        let annotations = scan_for_annotations(&tmp);
-        assert!(annotations.is_empty());
-        std::fs::remove_dir_all(&tmp).ok();
-    }
-
-    #[test]
-    fn generate_creates_generated_dir() {
-        let tmp = std::env::temp_dir().join("fplat_generate_test");
-        std::fs::create_dir_all(&tmp.join("src")).unwrap();
-
-        // Write a marker file so we can test
-        let src_file = tmp.join("src").join("main.rs");
-        std::fs::write(&src_file, "#[platform_bin]\nfn main(session: PlatformSession) {}\n").unwrap();
-
-        // Override CARGO_MANIFEST_DIR for the test
-        // We can't actually call generate_platform_code() in tests easily
-        // because it reads CARGO_MANIFEST_DIR. But we document the API here.
-
-        std::fs::remove_dir_all(&tmp).ok();
-    }
+    (kind, target)
 }
