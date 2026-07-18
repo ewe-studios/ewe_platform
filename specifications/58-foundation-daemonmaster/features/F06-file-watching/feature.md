@@ -206,12 +206,13 @@ impl Supervisor {
         }
     }
 
-    /// Spawn a background thread that waits for the cron time and triggers restart.
-    fn spawn_cron_thread(&self, cron: CronSchedule) {
+    /// Spawn a background job (via valtron's BackgroundJobRegistry) that waits
+    /// for the cron time and triggers restart.
+    fn spawn_cron_thread(&self, cron: CronSchedule, bg_jobs: &BackgroundJobRegistry) {
         let daemon_id = cron.daemon_id.clone();
         let supervisor = self.clone();
 
-        std::thread::spawn(move || {
+        bg_jobs.submit(move || {
             let next = cron.schedule.upcoming(chrono::Utc).next();
             if let Some(datetime) = next {
                 let delay = datetime - chrono::Utc::now();
