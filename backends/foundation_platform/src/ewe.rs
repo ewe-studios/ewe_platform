@@ -29,8 +29,8 @@ fn ewe_handler<R: tauri::Runtime>(
 ) -> Response<Vec<u8>> {
     let uri = request.uri().to_string();
 
-    // 1. Parse URI
-    let ewe_url = match EweUrl::parse(&uri) {
+    // 1. Validate URI is a well-formed ewe:// URL
+    let _ewe_url = match EweUrl::parse(&uri) {
         Ok(u) => u,
         Err(e) => {
             return Response::builder()
@@ -57,7 +57,7 @@ fn ewe_handler<R: tauri::Runtime>(
 
     Response::builder()
         .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, content_type.clone())
+        .header(header::CONTENT_TYPE, content_type.as_str())
         .header("Access-Control-Allow-Origin", "ewe://localhost")
         .body(body)
         .unwrap()
@@ -65,6 +65,7 @@ fn ewe_handler<R: tauri::Runtime>(
 
 // ── URL parsing ───────────────────────────────────────────────────────
 
+#[allow(dead_code)]
 struct EweUrl {
     path: String,
     query_params: HashMap<String, String>,
@@ -72,13 +73,19 @@ struct EweUrl {
 
 impl EweUrl {
     fn parse(uri: &str) -> Result<Self, String> {
+        // Accept ewe://<any-host>/path — strip the scheme+authority.
         let without_scheme = uri
-            .strip_prefix("ewe://localhost")
+            .strip_prefix("ewe://")
             .ok_or_else(|| format!("not an ewe:// URL: {uri}"))?;
 
-        let (path, query) = match without_scheme.split_once('?') {
+        // Find the first '/' after the host — that's where the path starts.
+        let path_start = without_scheme.find('/').unwrap_or(without_scheme.len());
+        let host_and_path = &without_scheme[path_start..];
+        let path_and_query = if host_and_path.is_empty() { "/" } else { host_and_path };
+
+        let (path, query) = match path_and_query.split_once('?') {
             Some((p, q)) => (p.to_string(), q.to_string()),
-            None => (without_scheme.to_string(), String::new()),
+            None => (path_and_query.to_string(), String::new()),
         };
 
         let query_params: HashMap<String, String> = query
@@ -99,6 +106,140 @@ fn method_from_request(request: &Request<Vec<u8>>) -> Method {
         "PATCH" => Method::Patch,
         "DELETE" => Method::Delete,
         _ => Method::Get,
+    }
+}
+
+// ── Mode page rendering ─────────────────────────────────────────────────
+
+/// Return a CSS class + label for the route's source.
+#[allow(dead_code)]
+fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
+    match decision.source {
+        RouteSource::WebviewApp => ("wasm", "🟢 App — WASM in WebView"),
+        RouteSource::IpcShell => ("ipc", "🟠 IPC — Native Shell"),
+        RouteSource::RemoteServer => ("remote", "🟣 Remote — Server Fetch"),
+    }
+}
+
+/// Build a self-contained HTML page showing which mode was activated,
+/// the route, and the raw response payload.
+#[allow(dead_code)]
+fn build_mode_page(
+    path: &str,
+    (cls, label): &(&str, &str),
+    decision: &RouteDecision,
+    body_str: &str,
+) -> String {
+    // Escape the body for safe embedding in HTML
+    let escaped_body = html_escape(body_str);
+    let profile = format!("{:?}", decision.profile);
+    let cache = format!("{:?}", decision.cache_policy);
+    let proto = format!("{:?}", decision.protocol);
+
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ewe:// — {path}</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}}
+h1{{font-size:20px;color:#64ffda;margin-bottom:4px}}
+.badge{{font-size:12px;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px}}
+.wasm{{background:#1a3a2a;color:#64ffda}}
+.ipc{{background:#3a2a1a;color:#ffb86c}}
+.remote{{background:#2a1a3a;color:#bd93f9}}
+.card{{background:#112240;border:1px solid #233554;border-radius:8px;padding:10px;margin:8px 0}}
+.card h3{{font-size:13px;color:#64ffda;margin-bottom:4px}}
+.pills{{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}}
+.pill{{font-size:10px;padding:2px 8px;border-radius:10px;background:#0a1a2a;color:#8892b0;border:1px solid #233554}}
+.payload{{font-size:11px;color:#a8b2d1;word-break:break-all;white-space:pre-wrap;max-height:300px;overflow-y:auto;background:#0a0e1a;padding:8px;border-radius:4px;margin-top:6px}}
+nav a{{font-size:12px;padding:5px 10px;border:1px solid #233554;border-radius:4px;background:#112240;color:#64ffda;text-decoration:none;margin-right:4px;display:inline-block;margin-bottom:4px}}
+nav a:hover{{background:#233554}}
+</style></head><body>
+<h1>ewe://{path}</h1>
+<div class="badge {cls}">{label}</div>
+
+<nav>
+<a href="ewe://localhost/app/home">🏠 App (WASM)</a>
+<a href="ewe://localhost/api/status">⚡ API (IPC)</a>
+<a href="ewe://localhost/remote/news">🌐 Remote</a>
+<a href="ewe://localhost/cached/data">💾 Cached</a>
+<a href="ewe://localhost/auth/login">🔐 Auth</a>
+</nav>
+
+<div class="card">
+<h3>Route Decision</h3>
+<div class="pills">
+<span class="pill">profile: {profile}</span>
+<span class="pill">cache: {cache}</span>
+<span class="pill">protocol: {proto}</span>
+</div>
+</div>
+
+<div class="card">
+<h3>Backend Response</h3>
+<div class="payload">{escaped_body}</div>
+</div>
+
+<p style="font-size:10px;color:#445566;margin-top:12px">foundation_platform · ewe:// protocol</p>
+</body></html>"#
+    )
+}
+
+#[allow(dead_code)]
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
+}
+
+#[cfg(test)]
+mod mode_page_tests {
+    use super::*;
+
+    #[test]
+    fn build_mode_page_works_with_json_body() {
+        let d = RouteDecision {
+            source: RouteSource::WebviewApp,
+            presentation: Presentation::Morph,
+            view_kind: ViewKind::WebView,
+            protocol: ProtocolHint::Default,
+            cache_policy: CachePolicy::CacheFirst,
+            profile: Profile::App,
+            native_view_id: None,
+            target: None,
+            capabilities: vec![],
+            auth_origin: None,
+        };
+        let (cls, label) = mode_badge_for(&d);
+        let html = build_mode_page("/app/home", &(cls, label), &d, r#"{"type":"wasm_signal"}"#);
+        assert!(html.contains("ewe:///app/home"));
+        assert!(html.contains("wasm_signal"));
+        assert!(html.contains("App"));
+        assert!(!html.contains("panic"));
+    }
+
+    #[test]
+    fn build_mode_page_escapes_html_in_body() {
+        let d = RouteDecision {
+            source: RouteSource::RemoteServer,
+            presentation: Presentation::Morph,
+            view_kind: ViewKind::WebView,
+            protocol: ProtocolHint::Default,
+            cache_policy: CachePolicy::NetworkFirst,
+            profile: Profile::TrustedRemote,
+            native_view_id: None,
+            target: None,
+            capabilities: vec![],
+            auth_origin: None,
+        };
+        let (cls, label) = mode_badge_for(&d);
+        let html = build_mode_page("/remote/data", &(cls, label), &d, "<script>alert('xss')</script>");
+        assert!(html.contains("&lt;script&gt;"));
+        assert!(!html.contains("<script>alert"));
     }
 }
 

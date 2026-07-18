@@ -6,84 +6,60 @@
 <title>Foundation Platform</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}
+body{font-family:system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}
 h1{font-size:20px;color:#64ffda;margin-bottom:4px}
-.sub{font-size:12px;color:#8892b0;margin-bottom:16px}
+.sub{font-size:12px;color:#8892b0;margin-bottom:12px}
+.btn{font-size:13px;padding:8px 14px;border:1px solid #233554;border-radius:6px;background:#112240;color:#64ffda;cursor:pointer;margin:4px}
+.btn:hover{background:#233554}
 .card{background:#112240;border:1px solid #233554;border-radius:8px;padding:12px;margin:8px 0}
 .card h3{font-size:14px;color:#64ffda;margin-bottom:6px}
-.card .mode{font-size:11px;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px}
-.mode-wasm{background:#1a3a2a;color:#64ffda}
-.mode-ipc{background:#3a2a1a;color:#ffb86c}
-.mode-remote{background:#2a1a3a;color:#bd93f9}
-.card .content{font-size:12px;color:#8892b0;word-break:break-all}
-.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
-.toolbar a{font-size:12px;padding:6px 12px;border:1px solid #233554;border-radius:4px;background:#112240;color:#64ffda;cursor:pointer;text-decoration:none}
-.toolbar a:hover{background:#233554}
-.status{font-size:11px;color:#8892b0;padding:4px 8px;background:#112240;border-radius:4px;margin:8px 0}
-#log{margin-top:8px}
-#log .entry{padding:4px 0;font-size:11px;border-bottom:1px solid #1a1a3a}
+.mode{font-size:11px;padding:3px 8px;border-radius:4px;display:inline-block;margin:4px 2px}
+.m-wasm{background:#1a3a2a;color:#64ffda}
+.m-ipc{background:#3a2a1a;color:#ffb86c}
+.m-remote{background:#2a1a3a;color:#bd93f9}
+#output{font-size:11px;color:#a8b2d1;white-space:pre-wrap;max-height:400px;overflow-y:auto;background:#0a0e1a;padding:8px;border-radius:4px;margin-top:8px}
 </style>
 </head>
 <body>
 <h1>Foundation Platform</h1>
 <p class="sub">Multi-mode demo — WASM · IPC · Remote</p>
 
-<div class="toolbar">
-  <a href="ewe://localhost/app/home">🏠 App (WASM)</a>
-  <a href="ewe://localhost/api/status">⚡ API (IPC)</a>
-  <a href="ewe://localhost/remote/news">🌐 Remote</a>
-  <a href="ewe://localhost/cached/data">💾 Cached</a>
-  <a href="ewe://localhost/auth/login">🔐 Auth</a>
+<div>
+<button class="btn" onclick="load('ewe://localhost/app/home')">🏠 App (WASM)</button>
+<button class="btn" onclick="load('ewe://localhost/api/status')">⚡ API (IPC)</button>
+<button class="btn" onclick="load('ewe://localhost/remote/news')">🌐 Remote</button>
+<button class="btn" onclick="load('ewe://localhost/cached/data')">💾 Cached</button>
+<button class="btn" onclick="load('ewe://localhost/auth/login')">🔐 Auth</button>
 </div>
-
-<div class="status" id="status">Online · Session: —</div>
 
 <div class="card">
-  <h3>Current Route</h3>
-  <div id="routeInfo" class="content">No navigation yet — click a link above</div>
+<h3>Platform Info</h3>
+<div>Session: <span id="session">—</span></div>
+<div id="currentMode">Click a button to test each mode</div>
 </div>
 
-<div id="log"></div>
+<div id="output">Ready. Click a mode button.</div>
 
 <script>
-const logEl = document.getElementById('log');
-const statusEl = document.getElementById('status');
-const routeInfo = document.getElementById('routeInfo');
-
-function addEntry(label, detail) {
-  const d = document.createElement('div');
-  d.className = 'entry';
-  d.innerHTML = `<b>${label}</b> ${detail}`;
-  logEl.prepend(d);
+async function load(url) {
+  const out = document.getElementById('output');
+  out.textContent = 'Loading: ' + url + '...';
+  try {
+    const resp = await fetch(url);
+    const text = await resp.text();
+    let modeTag = '';
+    if (url.includes('/app/')) modeTag = '<span class="mode m-wasm">WASM</span>';
+    else if (url.includes('/api/')) modeTag = '<span class="mode m-ipc">IPC</span>';
+    else if (url.includes('/remote/')) modeTag = '<span class="mode m-remote">Remote</span>';
+    else if (url.includes('/cached/')) modeTag = 'CacheFirst';
+    else if (url.includes('/auth/')) modeTag = 'Auth';
+    document.getElementById('currentMode').innerHTML = 'Current: ' + modeTag + ' — ' + url;
+    out.textContent = text;
+  } catch(e) {
+    out.textContent = 'ERROR: ' + e.message;
+  }
 }
-
-function detectMode() {
-  const u = window.location.href;
-  if (u.includes('/app/')) return {m:'🟢 App (WASM)',c:'mode-wasm'};
-  if (u.includes('/api/')) return {m:'🟠 IPC Shell',c:'mode-ipc'};
-  if (u.includes('/remote/')) return {m:'🟣 Remote Server',c:'mode-remote'};
-  if (u.includes('/cached/')) return {m:'💾 CacheFirst',c:''};
-  if (u.includes('/auth/')) return {m:'🔐 Auth',c:''};
-  return {m:'Default',c:''};
-}
-
-// Intercept ewe:// link clicks
-document.querySelectorAll('a').forEach(a => {
-  a.addEventListener('click', e => {
-    const href = a.getAttribute('href');
-    if (href.startsWith('ewe://')) {
-      e.preventDefault();
-      addEntry('Navigate', href);
-      window.location.href = href;
-    }
-  });
-});
-
-const m = detectMode();
-routeInfo.innerHTML = `<span class="mode ${m.c}">${m.m}</span>
-<div style="margin-top:4px">URL: ${window.location.href}</div>`;
-
-addEntry('Boot', 'foundation_platform 0.0.1 — ewe:// protocol active');
+document.getElementById('session').textContent = 'platform_run! active';
 </script>
 </body>
 </html>
