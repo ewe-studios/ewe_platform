@@ -30,7 +30,7 @@ fn ewe_handler<R: tauri::Runtime>(
     let uri = request.uri().to_string();
 
     // 1. Validate URI is a well-formed ewe:// URL
-    let _ewe_url = match EweUrl::parse(&uri) {
+    let ewe_url = match EweUrl::parse(&uri) {
         Ok(u) => u,
         Err(e) => {
             return Response::builder()
@@ -41,7 +41,14 @@ fn ewe_handler<R: tauri::Runtime>(
         }
     };
 
-    // 2. Resolve route through session handler chain
+    // 2. Asset serving: ewe://localhost/__platform__/path → reads public/
+    //    WebViewAssetLoader doesn't set MIME for .js breaking ES modules.
+    //    ewe:// provides proper Content-Type for all file types.
+    if ewe_url.path.starts_with("/__platform__/") {
+        return serve_platform_asset(&ewe_url.path);
+    }
+
+    // 3. Resolve route through session handler chain
     let session = ctx.app_handle().state::<std::sync::Arc<PlatformSession>>();
     let intent = NavigationIntent {
         url: uri,
@@ -59,13 +66,40 @@ fn ewe_handler<R: tauri::Runtime>(
     // can only use link navigation. Every response must be HTML.
     let body_str = String::from_utf8_lossy(&body);
     let (badge_cls, badge_label) = mode_badge_for(&decision);
-    let html = build_mode_page(&_ewe_url.path, &(badge_cls, badge_label), &decision, &body_str);
+    let html = build_mode_page(&ewe_url.path, &(badge_cls, badge_label), &decision, &body_str);
 
     Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
         .body(html.into_bytes())
         .unwrap()
+}
+
+// ── Asset serving ──────────────────────────────────────────────────────
+
+fn serve_platform_asset(path: &str) -> Response<Vec<u8>> {
+    let file = path.strip_prefix("/__platform__/").unwrap_or(path);
+    let ct = match std::path::Path::new(file).extension().and_then(|e| e.to_str()) {
+        Some("js") => "application/javascript; charset=utf-8",
+        Some("wasm") => "application/wasm",
+        Some("html") => "text/html; charset=utf-8",
+        Some("css") => "text/css; charset=utf-8",
+        _ => "application/octet-stream",
+    };
+    let public = std::path::PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default(),
+    ).join("public");
+    match std::fs::read(public.join(file)) {
+        Ok(data) => Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, ct)
+            .header("Access-Control-Allow-Origin", "*")
+            .body(data).unwrap(),
+        Err(_) => Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .header(header::CONTENT_TYPE, "text/plain")
+            .body(format!("not found: {file}").into_bytes()).unwrap(),
+    }
 }
 
 // ── URL parsing ───────────────────────────────────────────────────────

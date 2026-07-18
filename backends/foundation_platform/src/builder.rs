@@ -91,12 +91,21 @@ impl<R: Runtime> PlatformBuilder<R> {
         let routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
 
-        // Inject the platform scheme interceptor into every WebView page.
+        // Inject the platform scheme interceptor into the main window.
         // Runs before any app code — catches ewe:// links on Android.
         let interceptor = PLATFORM_SCHEME_INTERCEPTOR_JS;
         self.inner = self.inner.setup(move |app| {
             let session = PlatformSession::new();
             let handle = app.handle().clone();
+
+            // Navigate the initial WebView to the ewe handler's asset path
+            // so pages are served with correct Origin and Content-Type.
+            // WebViewAssetLoader doesn't execute inline scripts.
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.eval(
+                    "location.replace('http://ewe.localhost/__platform__/index.html')"
+                );
+            }
 
             // Register every route declared via .route()
             for entry in &routes {

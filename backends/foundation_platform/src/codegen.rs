@@ -15,14 +15,34 @@ use std::path::{Path, PathBuf};
 // ── Entry point: src-tauri/build.rs ────────────────────────────────────
 
 pub fn generate_platform_code() {
-    tauri_build::build();
-
     let manifest_dir = PathBuf::from(
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"),
     );
 
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=build.rs");
+
+    // 1. Build the app/ crate (wasm32) FIRST — put artifacts in public/
+    //    so tauri_build::build() hashes and embeds them.
+    let app_dir = manifest_dir.parent().unwrap().join("app");
+    let public_dir = manifest_dir.join("public");
+    if app_dir.join("Cargo.toml").exists() {
+        println!("cargo:warning=found app/ crate, building wasm...");
+        build_wasm_app(&app_dir, &public_dir);
+    }
+
+    // 2. Copy public/ assets into the Android project so Gradle bundles them.
+    //    Tauri's desktop embedding (tauri_build) hashes for the native binary;
+    //    Android uses WebViewAssetLoader which reads from APK assets/.
+    let android_assets = manifest_dir.join("gen/android/app/src/main/assets");
+    if android_assets.parent().map_or(false, |p| p.exists()) {
+        std::fs::create_dir_all(&android_assets).ok();
+        copy_public_to(&public_dir, &android_assets);
+    }
+
+    // 3. Tauri context generation — hashes everything in public/ now that
+    //    build_wasm_app has populated it.
+    tauri_build::build();
 
     // Scan src-tauri/src/ for #[platform_bin]
     let annotations = scan_for_annotations(&manifest_dir.join("src"));
@@ -92,6 +112,28 @@ pub fn build_wasm_app(app_dir: &Path, public_dir: &Path) {
 
     let repo_root = app_dir.parent().unwrap().parent().unwrap().parent().unwrap();
     let interceptor = repo_root.join("backends/foundation_wasm_ui/runtimes/platform-scheme-interceptor.js");
+
+    // Ensure public/ exists before copying into it
+    std::fs::create_dir_all(public_dir).ok();
+
+    // Copy core JS runtimes — these are always needed by every WASM app.
+    for (src_rel, name) in &[
+        ("backends/foundation_wasm/runtime/foundation-wasm.js", "foundation-wasm.js"),
+        ("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js", "foundation-wasm-ui.js"),
+    ] {
+        let src = repo_root.join(src_rel);
+        let dest = public_dir.join(name);
+        println!("cargo:warning=runtime copy: {} -> {}", src.display(), dest.display());
+        if src.exists() {
+            match std::fs::copy(&src, &dest) {
+                Ok(n) => println!("cargo:warning=copied {name} ({n} bytes)"),
+                Err(e) => println!("cargo:warning=copy error {name}: {e}"),
+            }
+        } else {
+            println!("cargo:warning=source not found: {}", src.display());
+        }
+    }
+
     let runtime_assets: &[(&str, &Path)] = &[("platform-scheme-interceptor.js", &interceptor)];
 
     match generator.execute(false, false, runtime_assets) {
@@ -99,7 +141,9 @@ pub fn build_wasm_app(app_dir: &Path, public_dir: &Path) {
         Err(e) => println!("cargo:warning=execute failed: {e}"),
     }
 
-    // Generate index.html
+    // Generate index.html — loads JS/WASM via http://ewe.localhost/__platform__/
+    // which the ewe_handler serves with correct Content-Type headers
+    // (WebViewAssetLoader doesn't set MIME for .js, breaking ES modules).
     let bins: Vec<&str> = wasm_annotations
         .iter()
         .filter(|a| a.kind == AnnotationKind::WasmBin)
@@ -121,24 +165,121 @@ fn mode_str(k: AnnotationKind) -> &'static str {
 }
 
 fn generate_index_html(bins: &[&str]) -> String {
-    let mut inits = String::new();
+    // Served via ewe:// custom protocol handler which sets proper Content-Type
+    // and Origin. WebViewAssetLoader doesn't execute inline scripts (CSP).
+    // The initial load redirects the WebView to http://ewe.localhost/ which
+    // wry intercepts → ewe_handler → this HTML with full script execution.
+    let repo_root = PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default(),
+    ).parent().unwrap().parent().unwrap().parent().unwrap().to_path_buf();
+
+    let wasm_rt = std::fs::read_to_string(
+        repo_root.join("backends/foundation_wasm/runtime/foundation-wasm.js")
+    ).unwrap_or_default();
+    let wasm_ui = std::fs::read_to_string(
+        repo_root.join("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js")
+    ).unwrap_or_default();
+    let interceptor = std::fs::read_to_string(
+        repo_root.join("backends/foundation_wasm_ui/runtimes/platform-scheme-interceptor.js")
+    ).unwrap_or_default();
+
+    // Strip `export ` — modules aren't supported through WebViewAssetLoader.
+    // All symbols land on globalThis.FoundationWasmRuntime anyway (line 1992).
+    let strip = |s: &str| -> String {
+        let mut out = String::with_capacity(s.len());
+        for line in s.lines() {{
+            let t = line.trim();
+            if t.starts_with("export ") {{ out.push_str(t.strip_prefix("export ").unwrap()); out.push('\n'); }}
+            else {{ out.push_str(line); out.push('\n'); }}
+        }}
+        out
+    };
+
+    let mut init = String::new();
     for name in bins {
-        inits.push_str(&format!(
-            r#"<script type=module>import{{init}}from'./{name}.js';init()
-.then(()=>document.getElementById('status').textContent='WASM active')
-.catch(e=>document.getElementById('status').textContent='Error: '+e.message)</script>
-"#
-        ));
+        init.push_str(&format!(r#"
+(async function __init() {{
+  try {{
+    var rt = new FoundationWasmRuntime.FoundationWasm();
+    var r = await fetch('./{name}.wasm');
+    var b = await r.arrayBuffer();
+    var imports = {{ abi: rt.web_abi }};
+    var result = await WebAssembly.instantiate(b, imports);
+    rt.init(result.instance);
+    result.instance.exports.{name}();
+    document.getElementById('status').textContent = 'WASM active';
+  }} catch(e) {{
+    document.getElementById('status').textContent = 'Error: ' + (e.message || String(e));
+  }}
+}})();
+"#));
     }
-    format!(
-        r#"<!DOCTYPE html>
+
+    let wasm_rt_stripped = strip(&wasm_rt);
+    let wasm_ui_stripped = strip(&wasm_ui);
+
+    format!(r#"<!DOCTYPE html>
 <html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
 <title>Foundation Platform</title><style>
 *{{margin:0;padding:0;box-sizing:border-box}}body{{font-family:sans-serif;padding:16px;background:#0a0a1a;color:#ccd6f6}}
 h1{{color:#64ffda;font-size:22px}}p{{color:#8892b0;font-size:12px}}#status{{margin:12px 0;font-size:11px;color:#445566}}
-</style></head><body><h1>Foundation Platform</h1><p>Android — WASM UI</p>
-<div id=status>Loading...</div>{inits}</body></html>"#
+</style></head><body>
+<h1>Foundation Platform</h1><p>Android — WASM UI</p>
+<div id=status>Loading WASM runtime...</div>
+<script>{interceptor}</script>
+<script>{wasm_rt_stripped}</script>
+<script>{wasm_ui_stripped}</script>
+<script>{init}</script>
+</body></html>"#)
+}
+
+/// Non-module wrapper — uses global `FoundationWasm` instead of ES `import`.
+/// Works around WebViewAssetLoader not setting correct MIME for .js files
+/// (which breaks ES module loading).
+fn generate_non_module_wrapper(name: &str) -> String {
+    format!(
+        r#"// Generated — non-module wasm_bin wrapper for "{name}".
+// Uses global FoundationWasm from foundation-wasm.js (loaded via <script>).
+// Platform scheme interceptor loaded separately via <script>.
+
+(function() {{
+  'use strict';
+  var WASM_URL = './{name}.wasm';
+
+  async function init(importOverrides) {{
+    importOverrides = importOverrides || {{}};
+    var r = await fetch(WASM_URL);
+    var b = await r.arrayBuffer();
+    var rt = new FoundationWasm();
+    var imports = {{ abi: {{ ...rt.web_abi, ...importOverrides }} }};
+    var result = await WebAssembly.instantiate(b, imports);
+    rt.init(result.instance);
+    result.instance.exports.{name}();
+    return {{ runtime: rt, instance: result.instance }};
+  }}
+
+  // Export for inline script in index.html
+  window.__wasm_init__ = init;
+}})();
+"#
     )
+}
+
+// ── Asset copying helper ───────────────────────────────────────────────
+
+fn copy_public_to(src: &Path, dest: &Path) {
+    let Ok(entries) = std::fs::read_dir(src) else { return };
+    for entry in entries.filter_map(|e| e.ok()) {
+        let path = entry.path();
+        let name = path.file_name().unwrap();
+        let dest_path = dest.join(name);
+        if path.is_dir() {
+            std::fs::create_dir_all(&dest_path).ok();
+            copy_public_to(&path, &dest_path);
+        } else {
+            let _ = std::fs::copy(&path, &dest_path);
+        }
+    }
 }
 
 // ── Annotation scanning ────────────────────────────────────────────────
