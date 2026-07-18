@@ -140,19 +140,26 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
         let content = format!(
             r#"// Generated — WebviewApp responder for "{name}".
 // Route: {route_prefix}  Assets: public/{public_subdir}/
-// Usage: builder.route("{route_prefix}", webview_app().with_handler("app_{name}")
-//        .setup(|session| session.register_responder("app_{name}", AppAssets::build()));
+//
+// Wire in src-tauri/src/lib.rs:
+//   builder.route_with("{route_prefix}", webview_app().with_profile(Profile::App),
+//       generated::{module_name}::AppAssets::build());
 
+use foundation_macros::EmbedDirectoryAs;
 use foundation_platform::responder::WebviewApp;
 
-/// Returns a WebviewApp responder that serves from public/{public_subdir}/.
-pub fn build() -> WebviewApp {{
-    let dir = std::path::PathBuf::from(
-        std::env!("CARGO_MANIFEST_DIR")
-    ).join("public").join("{public_subdir}");
-    WebviewApp::new(dir)
+/// Embedded assets from public/{public_subdir}/.
+#[derive(EmbedDirectoryAs)]
+#[source = "public/{public_subdir}"]
+pub struct AppAssets;
+
+impl AppAssets {{
+    pub fn build() -> WebviewApp {{
+        WebviewApp::new(Self {{}})
+    }}
 }}
 "#,
+            module_name = app.name.replace('-', "_"),
             name = app.name,
             route_prefix = route_prefix,
             public_subdir = public_subdir,

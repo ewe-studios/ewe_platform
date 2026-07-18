@@ -1,9 +1,10 @@
 //! Route responders — the concrete handlers behind each RouteSource.
 //!
-//! Each responder owns the logic for its response type. When a route
-//! resolves, `execute_decision()` looks up the registered responder
-//! and calls `respond()` with `NavigationIntent`, `RouteDecision`,
-//! and `PlatformSession`. The responder returns a `tauri::http::Response`.
+//! The platform provides the `RouteResponder` trait and `WebviewApp`.
+//! Users implement `IpcShell` and `RemoteServer` responders for their app.
+//! Each route declaration carries its handler via `route_with()`.
+
+use std::path::Path;
 
 use foundation_ui_traits::*;
 use tauri::http::{header, Response, StatusCode};
@@ -12,17 +13,41 @@ use crate::pattern;
 use crate::route_handler::RouteResponder;
 use crate::session::PlatformSession;
 
-/// WASM app responder — serves static files from a directory on disk.
-/// `/app/` → `index.html`, `/app/foo.wasm` → `foo.wasm`.
-/// Sets correct Content-Type for .wasm, .js, .html files.
+/// WASM app responder — serves static files from an asset directory.
+/// Reads `index.html` for bare paths, `.wasm`, `.js` with correct Content-Type.
+///
+/// ```ignore
+/// #[derive(EmbedDirectoryAs)]
+/// #[source = "public/app"]
+/// struct AppAssets;
+///
+/// builder.route_with("/app/*", webview_app(),
+///     WebviewApp::new(Box::new(AppAssets)));
+/// ```
 pub struct WebviewApp {
-    pub asset_dir: std::path::PathBuf,
+    assets: Box<dyn AssetReader>,
+}
+
+/// Internal trait — erases the `EmbeddableDirectory` concrete type
+/// behind a `Send + Sync` boundary so `WebviewApp` satisfies
+/// `RouteResponder: Send + Sync`.
+trait AssetReader: Send + Sync {
+    fn read(&self, file: &str) -> Option<Vec<u8>>;
+}
+
+/// Blanket impl: any `EmbeddableDirectory` that is `Send + Sync` works.
+impl<T> AssetReader for T
+where
+    T: foundation_nostd::embeddable::EmbeddableDirectory + Send + Sync,
+{
+    fn read(&self, file: &str) -> Option<Vec<u8>> {
+        self.read_utf8_for(file)
+    }
 }
 
 impl WebviewApp {
-    #[must_use]
-    pub fn new(asset_dir: impl Into<std::path::PathBuf>) -> Self {
-        Self { asset_dir: asset_dir.into() }
+    pub fn new(assets: impl foundation_nostd::embeddable::EmbeddableDirectory + Send + Sync + 'static) -> Self {
+        Self { assets: Box::new(assets) }
     }
 }
 
@@ -34,18 +59,18 @@ impl RouteResponder for WebviewApp {
         _session: &PlatformSession,
     ) -> Response<Vec<u8>> {
         let path = pattern::extract_path(&intent.url).trim_start_matches('/').to_string();
-        let file = if std::path::Path::new(&path).extension().is_some() { path } else { "index.html".to_string() };
-        let ct = match std::path::Path::new(&file).extension().and_then(|e| e.to_str()) {
+        let file = if Path::new(&path).extension().is_some() { path } else { "index.html".to_string() };
+        let ct = match Path::new(&file).extension().and_then(|e| e.to_str()) {
             Some("wasm") => "application/wasm",
             Some("js") => "application/javascript",
             _ => "text/html; charset=utf-8",
         };
-        match std::fs::read(self.asset_dir.join(&file)) {
-            Ok(data) => Response::builder()
+        match self.assets.read(&file) {
+            Some(data) => Response::builder()
                 .status(StatusCode::OK)
                 .header(header::CONTENT_TYPE, ct)
                 .body(data).unwrap(),
-            Err(_) => {
+            None => {
                 let body = format!("Not Found: {file}").into_bytes();
                 Response::builder()
                     .status(StatusCode::NOT_FOUND)
