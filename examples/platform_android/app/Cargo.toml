@@ -9,7 +9,7 @@ publish = false
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 foundation_wasm = { path = "../../../backends/foundation_wasm", features = ["web"] }

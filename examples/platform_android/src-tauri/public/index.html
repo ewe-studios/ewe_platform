@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Foundation Platform</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:sans-serif;padding:16px;background:#0a0a1a;color:#ccd6f6}
+h1{color:#64ffda;font-size:22px}p{color:#8892b0;font-size:12px}#status{margin:12px 0;font-size:11px;color:#445566}
+</style></head><body><h1>Foundation Platform</h1><p>Android — WASM UI</p>
+<div id=status>Loading...</div><script type=module>import{init}from'./platform_dashboard.js';init()
+.then(()=>document.getElementById('status').textContent='WASM active')
+.catch(e=>document.getElementById('status').textContent='Error: '+e.message)</script>
+</body></html>
