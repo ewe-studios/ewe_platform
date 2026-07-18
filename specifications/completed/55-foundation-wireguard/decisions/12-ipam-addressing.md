@@ -1,7 +1,7 @@
 # 12 — IPAM: Overlay Address Assignment (PROPOSED)
 
 **Date:** 2026-07-12
-**Status:** **Proposed** (default recommendation — owner review pending)
+**Status:** **Confirmed** (resolved 2026-07-18 — accepted as default; IPv6-first, collision-detect via gossip, operator override supported)
 
 ## Decision (proposed)
 

@@ -1,7 +1,7 @@
 # 13 — Tri-Config & `wireguard!` Macro (PROPOSED)
 
 **Date:** 2026-07-12
-**Status:** **Proposed** (mirrors `foundation_proxy`; owner review pending)
+**Status:** **Confirmed** (resolved 2026-07-18 — mirrors foundation_proxy pattern, all three paths converge on WgConfig)
 
 ## Decision (proposed)
 

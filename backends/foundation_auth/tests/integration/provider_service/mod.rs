@@ -11,6 +11,7 @@ use foundation_auth::server::models::provider::{
     ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider,
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
+use foundation_core::valtron::valtron_test;
 use foundation_db::{QueryStore, StorageBackend, StorageProvider};
 use tempfile::TempDir;
 
@@ -62,7 +63,7 @@ fn sample_provider() -> UpstreamProvider {
 
 // ── Valid input ──────────────────────────────────────────────────────────
 
-#[test]
+#[valtron_test]
 fn create_and_find_round_trips() {
     let (svc, _tmp) = make_service();
     let created = svc.create(sample_provider()).expect("create");
@@ -81,7 +82,7 @@ fn create_and_find_round_trips() {
     assert!(found.is_active);
 }
 
-#[test]
+#[valtron_test]
 fn secret_encrypt_decrypt_round_trips() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).expect("create");
@@ -99,7 +100,7 @@ fn secret_encrypt_decrypt_round_trips() {
     assert!(blob.len() > "GOCSPX-super-secret".len(), "nonce + tag overhead");
 }
 
-#[test]
+#[valtron_test]
 fn secret_survives_new_service_with_same_passphrase() {
     // Decrypt must be deterministic across service instances (restart safety):
     // a fresh ProviderCrypto derived from the same passphrase decrypts.
@@ -119,7 +120,7 @@ fn secret_survives_new_service_with_same_passphrase() {
     assert_eq!(svc2.get_secret("google").unwrap(), "the-secret");
 }
 
-#[test]
+#[valtron_test]
 fn wrong_passphrase_fails_to_decrypt() {
     let (store, _tmp) = make_store();
     let svc1 = ProviderService::new(
@@ -137,7 +138,7 @@ fn wrong_passphrase_fails_to_decrypt() {
     assert!(svc2.get_secret("google").is_err());
 }
 
-#[test]
+#[valtron_test]
 fn update_applies_partial_changes() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).expect("create");
@@ -160,7 +161,7 @@ fn update_applies_partial_changes() {
     assert_eq!(updated.client_id, "client-abc.apps.googleusercontent.com");
 }
 
-#[test]
+#[valtron_test]
 fn find_active_filters_inactive() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).expect("create google");
@@ -180,7 +181,7 @@ fn find_active_filters_inactive() {
     assert_eq!(active[0].id, "google");
 }
 
-#[test]
+#[valtron_test]
 fn delete_removes_provider() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).expect("create");
@@ -190,7 +191,7 @@ fn delete_removes_provider() {
 
 // ── Invalid input ────────────────────────────────────────────────────────
 
-#[test]
+#[valtron_test]
 fn create_rejects_empty_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
@@ -198,7 +199,7 @@ fn create_rejects_empty_id() {
     assert!(svc.create(p).is_err());
 }
 
-#[test]
+#[valtron_test]
 fn create_rejects_empty_client_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
@@ -206,7 +207,7 @@ fn create_rejects_empty_client_id() {
     assert!(svc.create(p).is_err());
 }
 
-#[test]
+#[valtron_test]
 fn create_rejects_missing_endpoints() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
@@ -217,7 +218,7 @@ fn create_rejects_missing_endpoints() {
     assert!(svc.create(p).is_err());
 }
 
-#[test]
+#[valtron_test]
 fn oauth2_with_only_authorize_url_is_rejected() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
@@ -227,13 +228,13 @@ fn oauth2_with_only_authorize_url_is_rejected() {
     assert!(svc.create(p).is_err());
 }
 
-#[test]
+#[valtron_test]
 fn set_secret_on_missing_provider_is_not_found() {
     let (svc, _tmp) = make_service();
     assert!(svc.set_secret("nonexistent", "x").is_err());
 }
 
-#[test]
+#[valtron_test]
 fn get_secret_without_set_is_error() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).expect("create");
@@ -241,7 +242,7 @@ fn get_secret_without_set_is_error() {
     assert!(svc.get_secret("google").is_err());
 }
 
-#[test]
+#[valtron_test]
 fn update_missing_provider_is_not_found() {
     let (svc, _tmp) = make_service();
     let r = svc.update("nope", ProviderUpdate::default());
@@ -250,26 +251,26 @@ fn update_missing_provider_is_not_found() {
 
 // ── Edge cases ───────────────────────────────────────────────────────────
 
-#[test]
+#[valtron_test]
 fn find_missing_returns_none() {
     let (svc, _tmp) = make_service();
     assert!(svc.find_by_id("nope").unwrap().is_none());
 }
 
-#[test]
+#[valtron_test]
 fn delete_missing_is_ok() {
     let (svc, _tmp) = make_service();
     // Idempotent: deleting a non-existent id succeeds.
     assert!(svc.delete("nope").is_ok());
 }
 
-#[test]
+#[valtron_test]
 fn find_active_empty_when_none() {
     let (svc, _tmp) = make_service();
     assert!(svc.find_active().unwrap().is_empty());
 }
 
-#[test]
+#[valtron_test]
 fn oauth2_provider_with_explicit_urls_is_valid() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();

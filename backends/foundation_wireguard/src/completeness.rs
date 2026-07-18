@@ -43,6 +43,22 @@ pub fn check() {
         let _: fn() -> crate::shared::error::WgResult<crate::shared::config::WgConfig> =
             || { crate::shared::config::WgConfig::from_env() };
     }
+
+    // Check 6: Android module exports JNI symbols (F12 mobile, decision 08)
+    {
+        let _ = crate::android::Java_com_example_ewe_WireguardService_nativeTick;
+        let _ = crate::android::Java_com_example_ewe_WireguardService_nativeStartNodeFromToml;
+    }
+
+    // Check 7: iOS module exports C FFI symbols (F12 mobile, decision 08)
+    {
+        let _ = crate::ios::wg_node_create;
+        let _ = crate::ios::wg_node_create_from_toml;
+        let _ = crate::ios::wg_node_destroy;
+        let _ = crate::ios::wg_node_start;
+        let _ = crate::ios::wg_node_tick;
+        let _ = crate::ios::wg_node_generate_seed;
+    }
 }
 
 /// No-op when spec55-complete is not enabled.

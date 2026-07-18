@@ -53,6 +53,10 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-fe
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # the Noise-PSK control channel for bootstrap (decision 06; native-only per decision 01).
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+# Enable the multi-threaded executor so EventReadinessPtr + Send+S Sync is
+# available to foundation_netio's ExchangeContinuation (which requires Send on
+# non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
+foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the

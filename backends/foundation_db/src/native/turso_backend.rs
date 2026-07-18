@@ -162,11 +162,17 @@ impl TursoStorage {
         }
     }
 
-    /// Convert `turso::Row` to crate-owned [`SqlRow`].
-    fn turso_row_to_sql_row(row: &turso::Row, column_count: i32) -> StorageResult<SqlRow> {
+    fn turso_row_to_sql_row(
+        row: &turso::Row,
+        column_count: i32,
+        column_names: &[String],
+    ) -> StorageResult<SqlRow> {
         let mut columns = Vec::with_capacity(column_count.unsigned_abs() as usize);
         for i in 0..column_count {
-            let name = format!("col{i}");
+            let name = column_names
+                .get(i as usize)
+                .cloned()
+                .unwrap_or_else(|| format!("col{i}"));
             #[allow(clippy::cast_sign_loss)]
             let value = Self::turso_value_to_data_value(row.get_value(i as usize)?);
             columns.push((name, value));
@@ -502,12 +508,18 @@ impl TursoStorage {
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
+            // Column names live on the result set (Rows), not individual Row values.
+            let column_names = rows.column_names();
 
             while let Some(row) = rows.next().await
                 .map_err(|e| StorageError::Backend(e.to_string()))?
             {
                 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-                yield Self::turso_row_to_sql_row(&row, row.column_count() as i32)?;
+                yield Self::turso_row_to_sql_row(
+                    &row,
+                    row.column_count() as i32,
+                    &column_names,
+                )?;
             }
         }
     }

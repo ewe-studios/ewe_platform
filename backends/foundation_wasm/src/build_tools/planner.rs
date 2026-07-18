@@ -1,6 +1,9 @@
 // Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
+// Explicit macro import — edition 2024 + no_std doesn't always resolve
+// format! through glob prelude imports on stable Rust.
+use std::format;
 
 use std::path::{Path, PathBuf};
 
