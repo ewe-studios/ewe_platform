@@ -15,7 +15,8 @@ serde = "1"
 serde_json = "1"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+foundation_platform = { path = "../../../backends/foundation_platform" }
+tauri-build = { version = "2" }
 
-# Opt out of parent workspace — Tauri v2 nested crate
+# Opt out of parent workspace — Tauri v2 nested crate for mobile builds
 [workspace]

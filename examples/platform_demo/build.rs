@@ -1,3 +1,3 @@
 fn main() {
-    tauri_build::build()
+    foundation_platform::codegen::generate_platform_code();
 }

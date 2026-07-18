@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Platform Android</title>
+<style>
+body{font-family:monospace;padding:20px;background:#0a0a1a;color:#00ff88}
+.card{background:#111133;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #333}
+h1{font-size:22px}h2{font-size:16px;color:#88ffcc}
+</style></head><body>
+<h1>Foundation Platform</h1>
+<h2>Android — Native Rust .so</h2>
+<div class="card"><b>Session</b><br>PlatformSession via platform_run!</div>
+<div class="card"><b>Routes</b><br>/app/*, /remote/*, /cached/*</div>
+<div class="card"><b>Protocol</b><br>ewe:// custom scheme</div>
+<p style="color:#00ff88">foundation_platform 0.0.1</p>
+<script>
+document.querySelectorAll('a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    window.location.href=a.getAttribute('href');
+  });
+});
+</script>
+</body></html>

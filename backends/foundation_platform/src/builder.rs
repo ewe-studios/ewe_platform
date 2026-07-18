@@ -1,8 +1,6 @@
 //! PlatformBuilder — wraps `tauri::Builder<R>`, exposes foundation_platform API.
 //!
-//! Default type parameter `R = tauri_runtime_wry::Wry<tauri::EventLoopMessage>`
-//! so desktop builds work without explicit annotation. Android/iOS override
-//! via `PlatformBuilder::<MyRuntime>::new()`.
+//! Default type parameter `R = Wry` (desktop). Android/iOS override via turbofish.
 //!
 //! ```ignore
 //! platform_run!(PlatformBuilder::new()
@@ -20,11 +18,14 @@ struct RouteEntry {
     decision: foundation_ui_traits::RouteDecision,
 }
 
+type SetupCallback = Box<dyn Fn(&PlatformSession) + Send + Sync + 'static>;
+
 /// Wraps `tauri::Builder<R>`. Default `R` = `tauri::Wry` (desktop).
 /// Generic over `R: Runtime` so mobile builds work too.
 pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     inner: tauri::Builder<R>,
     routes: Vec<RouteEntry>,
+    setups: Vec<SetupCallback>,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
@@ -33,11 +34,13 @@ impl<R: Runtime> PlatformBuilder<R> {
         Self {
             inner: tauri::Builder::new(),
             routes: Vec::new(),
+            setups: Vec::new(),
         }
     }
 
     /// Register a route pattern. Stored until `build()`, then wired into
     /// the PlatformSession during Tauri's setup hook.
+    #[must_use]
     pub fn route(mut self, pattern: &str, decision: foundation_ui_traits::RouteDecision) -> Self {
         self.routes.push(RouteEntry {
             pattern: pattern.to_string(),
@@ -46,49 +49,50 @@ impl<R: Runtime> PlatformBuilder<R> {
         self
     }
 
-    /// Set a user setup hook. Called AFTER the session is created and
-    /// routes are registered.
+    /// Register a user setup callback. Called AFTER the session is created
+    /// and routes are registered. Multiple calls chain — each callback runs
+    /// in order.
+    #[must_use]
     pub fn setup<F>(mut self, f: F) -> Self
     where
         F: Fn(&PlatformSession) + Send + Sync + 'static,
     {
-        let routes = std::mem::take(&mut self.routes);
-        self.inner = self.inner.setup(move |app| {
-            let session = PlatformSession::new();
-            for entry in &routes {
-                session.route(&entry.pattern, entry.decision.clone());
-            }
-            f(&session);
-            app.manage(session);
-            Ok(())
-        });
+        self.setups.push(Box::new(f));
         self
     }
 
     /// Consume the builder and produce a Tauri `App`.
     ///
-    /// Routes wired automatically. ewe:// protocol always registered.
+    /// This is the **single place** the session is created, routes are
+    /// registered, setup callbacks run, and `app.manage(session)` is called.
+    /// ewe:// protocol is always registered.
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
-        if self.routes.is_empty() {
-            self.inner = self.inner.setup(|app| {
-                app.manage(PlatformSession::new());
-                Ok(())
-            });
-        } else {
-            let routes = std::mem::take(&mut self.routes);
-            self.inner = self.inner.setup(move |app| {
-                let session = PlatformSession::new();
-                for entry in &routes {
-                    session.route(&entry.pattern, entry.decision.clone());
-                }
-                app.manage(session);
-                Ok(())
-            });
-        }
+        let routes = std::mem::take(&mut self.routes);
+        let setups = std::mem::take(&mut self.setups);
+
+        self.inner = self.inner.setup(move |app| {
+            let session = PlatformSession::new();
+
+            // Register every route declared via .route()
+            for entry in &routes {
+                session.route(&entry.pattern, entry.decision.clone());
+            }
+
+            // Call every .setup() callback in registration order
+            for setup in &setups {
+                setup(&session);
+            }
+
+            app.manage(session);
+            Ok(())
+        });
+
         self.inner = ewe::register_ewe_protocol(self.inner);
         self.inner.build(context)
     }
 
+    /// Access the inner `tauri::Builder` for advanced configuration
+    /// (plugins, custom Tauri setup, etc.).
     pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> {
         &mut self.inner
     }

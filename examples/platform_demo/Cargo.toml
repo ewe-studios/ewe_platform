@@ -12,7 +12,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+foundation_platform = { path = "../../backends/foundation_platform" }
 
 [lints]
 workspace = true
