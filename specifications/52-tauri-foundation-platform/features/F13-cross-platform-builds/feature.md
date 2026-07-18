@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F13-cross-platform-builds"
 this_file: "specifications/52-tauri-foundation-platform/features/F13-cross-platform-builds/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-18
 
