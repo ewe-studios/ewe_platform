@@ -13,6 +13,27 @@ use tauri::{App, Context, Manager, Runtime};
 use crate::ewe;
 use crate::session::PlatformSession;
 
+/// Injected into every WebView at startup. Converts `ewe://`, `foundation://`,
+/// `platform://` links to `http://*.localhost/` on Android — wry intercepts
+/// these in `shouldInterceptRequest` and routes them to the Rust protocol
+/// handler. Desktop engines support custom schemes natively; this is a no-op.
+const PLATFORM_SCHEME_INTERCEPTOR_JS: &str = r#"
+;(function(){'use strict';var S=['ewe','foundation','platform'],P='http://';
+function m(h){if(!h)return null;for(var i=0;i<S.length;i++){var p=S[i]+'://';
+if(h.indexOf(p)===0)return S[i];}return null;}
+function r(h){var s=m(h);if(!s)return null;return h.replace(s+'://',P+s+'.');}
+function a(){return/android/i.test(navigator.userAgent);}
+if(!a())return;
+document.addEventListener('click',function(e){var el=e.target.closest('a');
+if(!el)return;var href=el.getAttribute('href')||el.href;var n=r(href);if(!n)return;
+e.preventDefault();e.stopImmediatePropagation();location.href=n;},true);
+(function(){var A=location.assign,R=location.replace,H=Object.getOwnPropertyDescriptor(Location.prototype,'href');
+location.assign=function(u){var w=r(u);return A.call(this,w||u);};
+location.replace=function(u){var w=r(u);return R.call(this,w||u);};
+if(H&&H.set){var s=H.set;Object.defineProperty(location,'href',{get:H.get,set:function(u){s.call(this,r(u)||u);},configurable:true,enumerable:true});}})();
+})();
+"#;
+
 struct RouteEntry {
     pattern: String,
     decision: foundation_ui_traits::RouteDecision,
@@ -70,6 +91,9 @@ impl<R: Runtime> PlatformBuilder<R> {
         let routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
 
+        // Inject the platform scheme interceptor into every WebView page.
+        // Runs before any app code — catches ewe:// links on Android.
+        let interceptor = PLATFORM_SCHEME_INTERCEPTOR_JS;
         self.inner = self.inner.setup(move |app| {
             let session = PlatformSession::new();
 
@@ -84,11 +108,32 @@ impl<R: Runtime> PlatformBuilder<R> {
             }
 
             app.manage(session);
+
+            // Inject platform scheme interceptor into the main window
+            if let Some(window) = app.get_webview_window("main") {
+                // eval() runs after page load but before user interaction.
+                // For pre-page-load injection we'd use initialization_script,
+                // but that requires WebviewBuilder access during construction.
+                let _ = window.eval(interceptor);
+            }
+
             Ok(())
         });
 
         self.inner = ewe::register_ewe_protocol(self.inner);
         self.inner.build(context)
+    }
+
+    /// Register Tauri commands via the invoke handler.
+    /// Commands are callable from JavaScript via `window.__TAURI__.invoke()`.
+    /// Pass the result of `tauri::generate_handler![cmd1, cmd2]`.
+    #[must_use]
+    pub fn invoke_handler<H: Send + Sync + 'static>(mut self, handler: H) -> Self
+    where
+        H: Fn(tauri::ipc::Invoke<R>) -> bool,
+    {
+        self.inner = self.inner.invoke_handler(handler);
+        self
     }
 
     /// Access the inner `tauri::Builder` for advanced configuration

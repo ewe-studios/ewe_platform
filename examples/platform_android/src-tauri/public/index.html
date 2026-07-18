@@ -1,67 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Foundation Platform</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6;min-height:100vh}
-h1{font-size:20px;color:#64ffda;margin-bottom:4px}
-.sub{font-size:12px;color:#8892b0;margin-bottom:12px}
-.btn{font-size:13px;padding:8px 14px;border:1px solid #233554;border-radius:6px;background:#112240;color:#64ffda;cursor:pointer;margin:4px}
-.btn:hover{background:#233554}
-.card{background:#112240;border:1px solid #233554;border-radius:8px;padding:12px;margin:8px 0}
-.card h3{font-size:14px;color:#64ffda;margin-bottom:6px}
-.mode{font-size:11px;padding:3px 8px;border-radius:4px;display:inline-block;margin:4px 2px}
-.mode-wasm{background:#1a3a2a;color:#64ffda}
-.mode-ipc{background:#3a2a1a;color:#ffb86c}
-.mode-remote{background:#2a1a3a;color:#bd93f9}
-#output{font-size:11px;color:#a8b2d1;white-space:pre-wrap;max-height:400px;overflow-y:auto;background:#0a0e1a;padding:8px;border-radius:4px;margin-top:8px}
-</style>
-</head>
-<body>
+body{font-family:system-ui,sans-serif;padding:12px;background:#0a0a1a;color:#ccd6f6}
+h1{font-size:22px;color:#64ffda;margin:0 0 4px}
+.sub{font-size:12px;color:#8892b0;margin:0 0 16px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+nav a{font-size:13px;padding:8px 14px;border:1px solid #233554;border-radius:6px;background:#112240;color:#64ffda;text-decoration:none}
+nav a:hover{background:#233554}
+.card{background:#112240;border:1px solid #233554;border-radius:8px;padding:10px;margin:8px 0}
+.card h3{font-size:13px;color:#64ffda;margin:0 0 6px}
+.pill{font-size:11px;padding:2px 8px;border-radius:4px;display:inline-block;margin:2px}
+.w{background:#1a3a2a;color:#64ffda}
+.i{background:#3a2a1a;color:#ffb86c}
+.r{background:#2a1a3a;color:#bd93f9}
+</style></head><body>
 <h1>Foundation Platform</h1>
-<p class="sub">Android — Native Rust .so  |  WASM · IPC · Remote</p>
-
-<div>
-<button class="btn" onclick="load('ewe://localhost/app/home')">🏠 App (WASM)</button>
-<button class="btn" onclick="load('ewe://localhost/api/status')">⚡ API (IPC)</button>
-<button class="btn" onclick="load('ewe://localhost/remote/news')">🌐 Remote</button>
-<button class="btn" onclick="load('ewe://localhost/cached/data')">💾 Cached</button>
-<button class="btn" onclick="load('ewe://localhost/auth/login')">🔐 Auth</button>
+<p class="sub">Android — Native Rust .so</p>
+<nav>
+  <a href="ewe://localhost/app/home">🏠 App (WASM)</a>
+  <a href="ewe://localhost/api/status">⚡ API (IPC)</a>
+  <a href="ewe://localhost/remote/news">🌐 Remote</a>
+  <a href="ewe://localhost/cached/data">💾 Cached</a>
+  <a href="ewe://localhost/auth/login">🔐 Auth</a>
+</nav>
+<div class="card"><h3>Session</h3>PlatformSession via platform_run!</div>
+<div class="card"><h3>Routes</h3>
+  <span class="pill w">WASM</span> /app/*<br>
+  <span class="pill i">IPC</span> /api/*<br>
+  <span class="pill r">Remote</span> /remote/*
 </div>
-
-<div class="card">
-<h3>Platform Info</h3>
-<div>Session: <span id="session">—</span></div>
-<div id="currentMode">Click a button above to test each mode</div>
-</div>
-
-<div id="output">Ready. Click a mode button.</div>
-
-<script>
-async function load(url) {
-  const out = document.getElementById('output');
-  out.textContent = 'Loading: ' + url + '...';
-  try {
-    const resp = await fetch(url);
-    const text = await resp.text();
-    // Detect mode from URL
-    let mode = '';
-    if (url.includes('/app/')) mode = '<span class="mode mode-wasm">WASM</span>';
-    else if (url.includes('/api/')) mode = '<span class="mode mode-ipc">IPC</span>';
-    else if (url.includes('/remote/')) mode = '<span class="mode mode-remote">Remote</span>';
-    else if (url.includes('/cached/')) mode = 'CacheFirst';
-    else if (url.includes('/auth/')) mode = 'Auth';
-    document.getElementById('currentMode').innerHTML = 'Current: ' + mode + ' — ' + url;
-    out.textContent = text;
-  } catch(e) {
-    out.textContent = 'ERROR: ' + e.message;
-  }
-}
-
-document.getElementById('session').textContent = 'platform_run! active';
-</script>
-</body>
-</html>
+<p style="font-size:10px;color:#445566;margin-top:12px">foundation_platform 0.0.1</p>
+</body></html>
