@@ -8,6 +8,9 @@ pub fn run() {
     // ── WASM app: serves public/app/ via EmbedDirectoryAs ──
     let app_responder = generated::app::AppAssets::build();
 
+    // ── Second WASM app: serves public/app-hello/ ──
+    let hello_responder = generated::app_hello::AppAssets::build();
+
     // ── Remote server: example responder that fetches from a URL ──
     struct RemoteFetch {
         base_url: String,
@@ -66,6 +69,11 @@ pub fn run() {
         .route_with("/app/*",
             webview_app().with_profile(Profile::App),
             app_responder)
+
+        // ── Second WASM app: embedded assets from public/app-hello/ ──
+        .route_with("/app-hello/*",
+            webview_app().with_profile(Profile::App),
+            hello_responder)
 
         // ── Remote server: fetches from a backend URL ──
         .route_with("/remote/*",
