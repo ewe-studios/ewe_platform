@@ -1,36 +1,33 @@
-//! PlatformBuilder — wraps `tauri::Builder`, exposes foundation_platform API.
+//! PlatformBuilder — wraps `tauri::Builder<R>`, exposes foundation_platform API.
 //!
-//! User code never touches Tauri directly. Routes are registered on the builder
-//! and auto-wired into the PlatformSession at startup.
+//! Default type parameter `R = tauri_runtime_wry::Wry<tauri::EventLoopMessage>`
+//! so desktop builds work without explicit annotation. Android/iOS override
+//! via `PlatformBuilder::<MyRuntime>::new()`.
 //!
 //! ```ignore
-//! PlatformBuilder::new()
+//! platform_run!(PlatformBuilder::new()
 //!     .route("/app/*", webview_app())
-//!     .route("/remote/*", remote_fetch())
-//!     .build(tauri::generate_context!())
+//!     .route("/remote/*", remote_fetch()));
 //! ```
 
-use tauri::{App, Context, Manager};
+use tauri::{App, Context, Manager, Runtime};
 
 use crate::ewe;
 use crate::session::PlatformSession;
 
-type R = tauri_runtime_wry::Wry<tauri::EventLoopMessage>;
-
-/// Route registration stored before the session is created.
 struct RouteEntry {
     pattern: String,
     decision: foundation_ui_traits::RouteDecision,
 }
 
-/// Wraps `tauri::Builder`. Routes registered here are auto-wired into
-/// the PlatformSession at startup.
-pub struct PlatformBuilder {
+/// Wraps `tauri::Builder<R>`. Default `R` = `tauri::Wry` (desktop).
+/// Generic over `R: Runtime` so mobile builds work too.
+pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     inner: tauri::Builder<R>,
     routes: Vec<RouteEntry>,
 }
 
-impl PlatformBuilder {
+impl<R: Runtime> PlatformBuilder<R> {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -50,10 +47,7 @@ impl PlatformBuilder {
     }
 
     /// Set a user setup hook. Called AFTER the session is created and
-    /// routes are registered. Use for capability registration, custom init.
-    ///
-    /// Signature takes `&PlatformSession` — the session is already booted.
-    /// Errors are logged; the app still starts.
+    /// routes are registered.
     pub fn setup<F>(mut self, f: F) -> Self
     where
         F: Fn(&PlatformSession) + Send + Sync + 'static,
@@ -73,14 +67,11 @@ impl PlatformBuilder {
 
     /// Consume the builder and produce a Tauri `App`.
     ///
-    /// If `setup()` was NOT called, routes are wired into a default setup
-    /// hook automatically. The ewe:// protocol is always registered.
+    /// Routes wired automatically. ewe:// protocol always registered.
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
-        // If user didn't call setup(), wire routes into a default setup
         if self.routes.is_empty() {
             self.inner = self.inner.setup(|app| {
-                let session = PlatformSession::new();
-                app.manage(session);
+                app.manage(PlatformSession::new());
                 Ok(())
             });
         } else {
@@ -94,19 +85,16 @@ impl PlatformBuilder {
                 Ok(())
             });
         }
-
-        // Always register ewe:// custom protocol
         self.inner = ewe::register_ewe_protocol(self.inner);
         self.inner.build(context)
     }
 
-    /// Access the inner `tauri::Builder` for advanced customization.
     pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> {
         &mut self.inner
     }
 }
 
-impl Default for PlatformBuilder {
+impl<R: Runtime> Default for PlatformBuilder<R> {
     fn default() -> Self {
         Self::new()
     }

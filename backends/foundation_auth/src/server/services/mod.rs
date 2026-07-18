@@ -3,6 +3,7 @@
 pub mod client_service;
 pub mod pow_service;
 pub mod provider_service;
+pub mod provisioning_service;
 pub mod session_service;
 pub mod tos_service;
 pub mod token_service;

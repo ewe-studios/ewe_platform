@@ -2,9 +2,11 @@
 
 pub mod auth_manager;   // Feature 08: Auth Manager
 pub mod auth_state;
+pub mod auth_session;       // Feature 04: Upstream auth session store
 pub mod auth_token;
 pub mod credential_store;
-pub mod discovery;      // Feature 03: OIDC Discovery
+pub mod discovery;           // Feature 03: OIDC Discovery
+pub mod upstream_client;     // Feature 03: Unified Upstream OIDC/OAuth2 Client
 pub mod introspection;  // Feature 06: Token Introspection
 pub mod jwt;
 pub mod jwks;           // Feature 02: JWKS Manager

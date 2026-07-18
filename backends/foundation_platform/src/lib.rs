@@ -46,23 +46,24 @@ pub use foundation_ui_traits::*;
 /// ```ignore
 /// platform_run!(PlatformBuilder::new()
 ///     .route("/app/*", webview_app())
-///     .route("/remote/*", remote_fetch())
 ///     .setup(|session| { session.capabilities().register(MyCap); }));
 /// ```
 #[macro_export]
 macro_rules! platform_run {
-    ($builder:expr) => {
-        $builder.build(::tauri::generate_context!())
+    ($builder:expr) => {{
+        let __builder: $crate::PlatformBuilder = $builder;
+        __builder.build(::tauri::generate_context!())
             .expect("failed to build foundation_platform app")
             .run(|_handle, event| {
                 if let ::tauri::RunEvent::Exit = event {
                     std::process::exit(0);
                 }
             })
-    };
-    ($builder:expr, |$handle:ident, $event:ident| $body:block) => {
-        $builder.build(::tauri::generate_context!())
+    }};
+    ($builder:expr, |$handle:ident, $event:ident| $body:block) => {{
+        let __builder: $crate::PlatformBuilder = $builder;
+        __builder.build(::tauri::generate_context!())
             .expect("failed to build foundation_platform app")
             .run(|$handle, $event| $body)
-    };
+    }};
 }

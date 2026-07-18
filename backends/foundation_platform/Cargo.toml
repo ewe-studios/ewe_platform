@@ -9,9 +9,8 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-# Host platform
+# Host platform (generic R: Runtime — works on Wry, Android, iOS)
 tauri = { version = "2.11.5", features = [] }
-tauri-runtime-wry = "2"
 
 # Shared types (dependency-free, compiles for wasm32)
 foundation_ui_traits = { path = "../foundation_ui_traits" }
