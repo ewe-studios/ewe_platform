@@ -18,9 +18,12 @@ use std::path::{Path, PathBuf};
 /// }
 /// ```
 ///
-/// MVP: discovers web-side annotations and triggers WASM bundle generation.
-/// `#[wasm_app]` support (decision 13) is post-MVP.
+/// Calls `tauri_build::build()` internally to generate the Tauri context,
+/// then scans the crate for platform annotations.
 pub fn generate_platform_code() {
+    // Always generate Tauri context first — required by platform_run!
+    tauri_build::build();
+
     let manifest_dir = PathBuf::from(
         std::env::var("CARGO_MANIFEST_DIR")
             .expect("CARGO_MANIFEST_DIR not set"),
