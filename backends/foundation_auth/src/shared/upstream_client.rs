@@ -7,24 +7,31 @@
 //!
 //! WHAT: [`UpstreamOidcClient`] wraps [`super::discovery::DiscoveryClient`]
 //! for OIDC providers and [`super::oauth::OAuthManager`] for authorization URL
-//! generation. Token exchange is platform-gated (native uses
-//! [`crate::native::oauth::NativeOAuth`]; wasm uses
-//! [`crate::wasm_bindgen::oauth::WasmOAuth`]).
+//! generation. It is fully cross-platform: discovery, token exchange, and
+//! userinfo all run over the shared [`foundation_netio`] `HttpClient`
+//! ([`default_http_client`]), which resolves to the native HTTP stack on
+//! native targets and browser/Worker `fetch` on wasm32 — so the whole broker
+//! flow executes wherever an `HttpClient` exists (including a Cloudflare
+//! Worker), with no platform-gated branching in this module.
 //!
 //! HOW:
 //! 1. `discover_and_configure()` — fetches discovery doc, builds `OAuthConfig`
-//! 2. `build_authorize_url(state) -> (url, pkce)` — ready for redirect
-//! 3. `exchange_code()` — platform-gated token exchange
+//! 2. `authorize_url(state) -> (url, pkce)` — ready for redirect
+//! 3. `exchange_code()` — exchanges the auth code for tokens at the token endpoint
 //! 4. `fetch_userinfo()` — fetches the standardized profile from userinfo
 
-use super::discovery::DiscoveryError;
-#[cfg(feature = "server")]
-use super::discovery::{DiscoveryClient, OidcDiscovery};
-use super::oauth::OAuthError;
-#[cfg(feature = "server")]
-use super::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
-#[cfg(feature = "server")]
-use crate::server::models::provider::{ProviderType, UpstreamProvider};
+use foundation_core::url::Uri;
+use foundation_netio::default_http_client;
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleResponse,
+};
+
+use super::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
+use super::oauth::{OAuthConfig, OAuthError, OAuthManager, PkceChallenge, TokenResponse};
+use super::oauth_token::OAuthToken;
+use super::provider::{ProviderType, UpstreamProvider};
 
 /// Errors from upstream authentication flows.
 #[derive(Debug)]
@@ -76,7 +83,6 @@ impl From<OAuthError> for UpstreamClientError {
 /// The client is configured from an [`UpstreamProvider`] — it either discovers
 /// endpoints from a `.well-known` URL or uses the explicit authorize/token/userinfo
 /// URLs configured on the provider.
-#[cfg(feature = "server")]
 pub struct UpstreamOidcClient {
     /// The provider configuration.
     provider: UpstreamProvider,
@@ -88,7 +94,6 @@ pub struct UpstreamOidcClient {
     redirect_uri: String,
 }
 
-#[cfg(feature = "server")]
 impl UpstreamOidcClient {
     /// Create a new client for the given provider.
     ///
@@ -250,6 +255,88 @@ impl UpstreamOidcClient {
                 .and_then(|d| d.userinfo_endpoint.clone())
         })
     }
+
+    /// Exchange an authorization code for tokens at the provider's token endpoint.
+    ///
+    /// Runs the OAuth2 `authorization_code` grant over the shared
+    /// [`default_http_client`], so it works identically on native and wasm.
+    /// The `client_secret` (decrypted by the caller from
+    /// [`UpstreamProvider::client_secret_ciphertext`]) is sent only when
+    /// provided — public PKCE clients pass `None`. Any secret already present
+    /// on the configured [`OAuthConfig`] is used as a fallback.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpstreamClientError::OAuth`] if the client is not configured,
+    /// or [`UpstreamClientError::TokenExchange`] if the request fails or the
+    /// token response cannot be parsed.
+    pub async fn exchange_code(
+        &self,
+        code: &str,
+        code_verifier: Option<&str>,
+        client_secret: Option<&str>,
+    ) -> Result<OAuthToken, UpstreamClientError> {
+        let config = self.oauth.config();
+        config.validate().map_err(UpstreamClientError::OAuth)?;
+
+        let mut form = vec![
+            ("grant_type".to_string(), "authorization_code".to_string()),
+            ("code".to_string(), code.to_string()),
+            ("redirect_uri".to_string(), config.redirect_uri.clone()),
+            ("client_id".to_string(), config.client_id.clone()),
+        ];
+
+        if let Some(secret) = client_secret.or(config.client_secret.as_deref()) {
+            form.push(("client_secret".to_string(), secret.to_string()));
+        }
+        if let Some(verifier) = code_verifier {
+            form.push(("code_verifier".to_string(), verifier.to_string()));
+        }
+
+        let body = encode_form(&form);
+        let response = http_post_form(&config.token_url, &body).await?;
+        let token: TokenResponse = serde_json::from_str(&response)
+            .map_err(|e| UpstreamClientError::TokenExchange(format!("parse token response: {e}")))?;
+
+        Ok(OAuthToken {
+            access_token: token.access_token,
+            token_type: token.token_type,
+            expires_in: token.expires_in,
+            refresh_token: token.refresh_token,
+            scope: token.scope,
+            id_token: token.id_token,
+        })
+    }
+
+    /// Fetch the standardized user profile from the provider's userinfo endpoint.
+    ///
+    /// GETs the userinfo endpoint with a Bearer access token over the shared
+    /// [`default_http_client`], then maps the raw claims to an
+    /// [`UpstreamProfile`] using the provider's `mapping_config`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpstreamClientError::NoEndpoints`] if the provider exposes no
+    /// userinfo endpoint, or [`UpstreamClientError::Userinfo`] if the request
+    /// fails, the body is not valid JSON, or required claims are missing.
+    pub async fn fetch_userinfo(
+        &self,
+        access_token: &str,
+    ) -> Result<UpstreamProfile, UpstreamClientError> {
+        let url = self
+            .userinfo_endpoint()
+            .ok_or(UpstreamClientError::NoEndpoints)?;
+
+        let response = http_get_with_bearer(&url, access_token).await?;
+        let json: serde_json::Value = serde_json::from_str(&response)
+            .map_err(|e| UpstreamClientError::Userinfo(format!("parse userinfo response: {e}")))?;
+
+        UpstreamProfile::from_userinfo(&json, &self.provider.mapping_config).ok_or_else(|| {
+            UpstreamClientError::Userinfo(
+                "userinfo response missing the mapped subject claim".to_string(),
+            )
+        })
+    }
 }
 
 /// A standardized upstream user profile returned from userinfo.
@@ -274,10 +361,9 @@ pub struct UpstreamProfile {
 
 impl UpstreamProfile {
     /// Extract a profile from a userinfo JSON response using the provider's mapping.
-    #[cfg(feature = "server")]
     pub fn from_userinfo(
         json: &serde_json::Value,
-        mapping: &crate::server::models::provider::ProviderMapping,
+        mapping: &super::provider::ProviderMapping,
     ) -> Option<Self> {
         Some(Self {
             sub: json.get(&mapping.subject_field)?.as_str()?.to_string(),
@@ -304,23 +390,125 @@ impl UpstreamProfile {
     }
 
     /// Extract a profile from an OIDC ID token claims set.
-    #[cfg(feature = "server")]
     pub fn from_id_token(
         claims: &serde_json::Value,
-        mapping: &crate::server::models::provider::ProviderMapping,
+        mapping: &super::provider::ProviderMapping,
     ) -> Option<Self> {
         Self::from_userinfo(claims, mapping)
     }
+}
+
+// ===========================================================================
+// HTTP — cross-platform via the shared foundation_netio `HttpClient`
+// (`default_http_client`): native HTTP stack on native, browser/Worker fetch
+// on wasm32. Mirrors `discovery.rs` / `userinfo.rs`.
+// ===========================================================================
+
+/// URL-encode a set of form fields into an `application/x-www-form-urlencoded` body.
+fn encode_form(fields: &[(String, String)]) -> String {
+    fields
+        .iter()
+        .map(|(k, v)| format!("{}={}", urlencoding::encode(k), urlencoding::encode(v)))
+        .collect::<Vec<_>>()
+        .join("&")
+}
+
+/// POST a form-urlencoded body and return the response text.
+async fn http_post_form(url: &str, body: &str) -> Result<String, UpstreamClientError> {
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?;
+
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec!["application/x-www-form-urlencoded".into()],
+    );
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+
+    let req = PreparedRequest {
+        method: SimpleMethod::POST,
+        url: uri,
+        headers,
+        body: SendSafeBody::Text(body.to_string()),
+        extensions: Default::default(),
+    };
+
+    let resp = client
+        .send_async(req)
+        .await
+        .map_err(|e| UpstreamClientError::TokenExchange(e.to_string()))?;
+
+    let status: usize = resp.get_status().into();
+    let text = collect_body_text(resp)
+        .map_err(|e| UpstreamClientError::TokenExchange(format!("read token response: {e}")))?;
+    if !(200..300).contains(&status) {
+        return Err(UpstreamClientError::TokenExchange(format!(
+            "HTTP {status}: {text}"
+        )));
+    }
+    Ok(text)
+}
+
+/// GET a URL with a Bearer access token and return the response text.
+async fn http_get_with_bearer(
+    url: &str,
+    access_token: &str,
+) -> Result<String, UpstreamClientError> {
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| UpstreamClientError::Userinfo(format!("invalid userinfo URL: {e}")))?;
+
+    let mut headers = SimpleHeaders::new();
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+    headers.insert(
+        SimpleHeader::AUTHORIZATION,
+        vec![format!("Bearer {access_token}")],
+    );
+
+    let req = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: uri,
+        headers,
+        body: SendSafeBody::None,
+        extensions: Default::default(),
+    };
+
+    let resp = client
+        .send_async(req)
+        .await
+        .map_err(|e| UpstreamClientError::Userinfo(e.to_string()))?;
+
+    let status: usize = resp.get_status().into();
+    let text = collect_body_text(resp)
+        .map_err(|e| UpstreamClientError::Userinfo(format!("read userinfo response: {e}")))?;
+    if status == 401 {
+        return Err(UpstreamClientError::Userinfo(format!("unauthorized: {text}")));
+    }
+    if !(200..300).contains(&status) {
+        return Err(UpstreamClientError::Userinfo(format!("HTTP {status}: {text}")));
+    }
+    Ok(text)
+}
+
+/// Drain a response body to a UTF-8 string (lossy for raw bytes).
+///
+/// The client returns bodies as a lazy [`SendSafeBody::Stream`], so
+/// `get_body_ref()` would observe an empty body — the stream must be collected
+/// via [`try_collect_bytes`].
+fn collect_body_text(resp: SimpleResponse<SendSafeBody>) -> Result<String, String> {
+    let bytes = try_collect_bytes(resp.take_body()).map_err(|e| e.to_string())?;
+    Ok(String::from_utf8_lossy(&bytes).to_string())
 }
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-#[cfg(all(test, feature = "server"))]
+#[cfg(test)]
 mod tests {
     use super::*;
-    use crate::server::models::provider::{ProviderMapping, ProviderType, UpstreamProvider};
+    use super::super::provider::{ProviderMapping, ProviderType, UpstreamProvider};
 
     fn google_provider() -> UpstreamProvider {
         UpstreamProvider {

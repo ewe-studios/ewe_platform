@@ -3,3 +3,4 @@ mod e2e;
 mod idp_server;
 mod provider_admin;
 mod provider_service;
+mod upstream_client;

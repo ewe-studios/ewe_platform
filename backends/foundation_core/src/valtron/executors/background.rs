@@ -194,21 +194,25 @@ impl BackgroundJobRegistry {
 
 /// Compute how to split total threads between `ThreadRegistry` and `BackgroundJobRegistry`.
 ///
-/// WHY: ThreadRegistry needs the larger share for cooperative tasks; background
-/// jobs need fewer threads since they run blocking work to completion
+/// WHY: Background jobs run I/O-heavy blocking work (cargo builds, network calls,
+/// file I/O) where threads spend most of their time waiting, not burning CPU.
+/// A larger background pool prevents queue backup when multiple blocking operations
+/// coincide. Task threads park efficiently on readiness signals, so they need fewer.
 ///
-/// WHAT: Returns `(task_threads, bg_threads)` where `bg_threads = max(1, total / 3)`
+/// WHAT: Returns `(task_threads, bg_threads)` where `bg_threads = total` and
+/// `task_threads = total / 2`. The bg pool gets burst capacity; the task pool
+/// still gets enough threads to multiplex since idle tasks park.
 ///
-/// HOW: Integer division by 3 with a floor of 1 for background threads
+/// HOW: task_threads = max(2, total / 2), bg_threads = total.
 ///
 /// # Panics
 ///
-/// Panics if `total` is less than 2.
+/// Panics if `total` is less than 3 (need ≥ 2 task threads + ≥ 1 bg thread).
 #[must_use]
 pub fn split_thread_count(total: usize) -> (usize, usize) {
-    assert!(total >= 2, "split_thread_count requires at least 2 threads");
-    let bg_threads = 1.max(total / 3);
-    let task_threads = total - bg_threads;
+    assert!(total >= 3, "split_thread_count requires at least 3 threads");
+    let task_threads = 2.max(total / 2);
+    let bg_threads = total;
     (task_threads, bg_threads)
 }
 
@@ -221,27 +225,27 @@ mod tests {
     /// WHAT: Verify (task_threads, bg_threads) for known input values
     #[test]
     fn test_split_thread_count() {
-        assert_eq!(split_thread_count(2), (1, 1));
-        assert_eq!(split_thread_count(3), (2, 1));
-        assert_eq!(split_thread_count(4), (3, 1));
-        assert_eq!(split_thread_count(5), (4, 1));
-        assert_eq!(split_thread_count(6), (4, 2));
-        assert_eq!(split_thread_count(7), (5, 2));
-        assert_eq!(split_thread_count(8), (6, 2));
-        assert_eq!(split_thread_count(9), (6, 3));
-        assert_eq!(split_thread_count(10), (7, 3));
-        assert_eq!(split_thread_count(12), (8, 4));
-        assert_eq!(split_thread_count(16), (11, 5));
+        // bg = total, task = max(2, total / 2)
+        assert_eq!(split_thread_count(3), (2, 3));
+        assert_eq!(split_thread_count(4), (2, 4));
+        assert_eq!(split_thread_count(5), (2, 5));
+        assert_eq!(split_thread_count(6), (3, 6));
+        assert_eq!(split_thread_count(7), (3, 7));
+        assert_eq!(split_thread_count(8), (4, 8));
+        assert_eq!(split_thread_count(10), (5, 10));
+        assert_eq!(split_thread_count(12), (6, 12));
+        assert_eq!(split_thread_count(16), (8, 16));
     }
 
     #[test]
-    #[should_panic(expected = "split_thread_count requires at least 2 threads")]
+    #[should_panic(expected = "split_thread_count requires at least 3 threads")]
     #[cfg_attr(
         cranelift_backend,
         ignore = "cranelift does not support panic unwinding"
     )]
-    fn test_split_thread_count_panics_below_2() {
+    fn test_split_thread_count_panics_below_3() {
         let _ = split_thread_count(1);
+        let _ = split_thread_count(2);
     }
 
     /// WHY: BackgroundJobRegistry must execute submitted jobs

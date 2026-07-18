@@ -52,14 +52,19 @@ fn ewe_handler<R: tauri::Runtime>(
     let decision = session.resolve_route(&intent);
 
     // 3-9. Run the full execution contract through the session
-    // Cache check → backend query → protocol selection → encoding → navigation record
-    let (body, content_type) = session.execute_decision(&decision, &intent);
+    let (body, _content_type) = session.execute_decision(&decision, &intent);
+
+    // Wrap backend response in a mode-aware HTML dashboard page.
+    // On Android WebView, custom-scheme fetch() is blocked, so we
+    // can only use link navigation. Every response must be HTML.
+    let body_str = String::from_utf8_lossy(&body);
+    let (badge_cls, badge_label) = mode_badge_for(&decision);
+    let html = build_mode_page(&_ewe_url.path, &(badge_cls, badge_label), &decision, &body_str);
 
     Response::builder()
         .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, content_type.as_str())
-        .header("Access-Control-Allow-Origin", "ewe://localhost")
-        .body(body)
+        .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(html.into_bytes())
         .unwrap()
 }
 
@@ -130,11 +135,15 @@ fn build_mode_page(
     decision: &RouteDecision,
     body_str: &str,
 ) -> String {
-    // Escape the body for safe embedding in HTML
     let escaped_body = html_escape(body_str);
     let profile = format!("{:?}", decision.profile);
     let cache = format!("{:?}", decision.cache_policy);
     let proto = format!("{:?}", decision.protocol);
+
+    // Use http://ewe.localhost/... on all platforms.
+    // wry's register_uri_scheme_protocol handles the conversion:
+    //   Desktop: natively registered "ewe" scheme
+    //   Android: shouldInterceptRequest detects http://ewe.* → reverts to ewe://
 
     format!(
         r#"<!DOCTYPE html>
@@ -161,11 +170,11 @@ nav a:hover{{background:#233554}}
 <div class="badge {cls}">{label}</div>
 
 <nav>
-<a href="ewe://localhost/app/home">🏠 App (WASM)</a>
-<a href="ewe://localhost/api/status">⚡ API (IPC)</a>
-<a href="ewe://localhost/remote/news">🌐 Remote</a>
-<a href="ewe://localhost/cached/data">💾 Cached</a>
-<a href="ewe://localhost/auth/login">🔐 Auth</a>
+<a href="http://ewe.localhost/app/home">🏠 App (WASM)</a>
+<a href="http://ewe.localhost/api/status">⚡ API (IPC)</a>
+<a href="http://ewe.localhost/remote/news">🌐 Remote</a>
+<a href="http://ewe.localhost/cached/data">💾 Cached</a>
+<a href="http://ewe.localhost/auth/login">🔐 Auth</a>
 </nav>
 
 <div class="card">

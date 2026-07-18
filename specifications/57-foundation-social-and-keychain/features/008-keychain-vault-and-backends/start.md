@@ -1,13 +1,32 @@
 ---
-feature: "008-core-types-and-domain"
+feature: "008-keychain-vault-and-backends"
 spec: "57-foundation-social-and-keychain"
 depends: "none"
-status: "complete"
+status: "in-progress"
+stages:
+  - "1-portable-vault-api"      # ← current
+  - "2-native-backend"
+  - "3-cloudflare-workers-backend"
+  - "4-integration-tests-and-docker"
 ---
 
-# Feature 008: Core Types + Portable Domain Logic
+# Feature 008: Keychain Vault API + Backends (staged)
 
-## Current state
-Foundation_keychain crate is built with error types, models (cipher, folder, org, send, user, sync), auth adapters, notification framing, API stubs. 26 tests pass.
+Consolidates former F008/F009/F010/F011. See `feature.md` for the stage plan and the
+2026-07-18 reconciliation notes (crypto via `foundation_auth`; target gates, not
+`backend-*` features).
 
-## Remaining work
+## Current state (Stage 1 partial)
+
+`foundation_keychain` compiles (native + wasm core) with error types, models
+(cipher, folder, org, send, user, sync), auth adapters, notification framing. **26
+tests pass.** The `core/api/*` handlers are still 1-line stubs — implementing that
+portable business logic over `foundation_db` (+ `foundation_auth` crypto) is the
+remaining Stage-1 work, then Stages 2–4.
+
+## Stage order (each unlocks the next)
+
+1. **Portable vault API** (`core/api/*`) + tests in `foundation_keychain/tests/`.
+2. **Native backend** (`server/native.rs`) — `foundation_http` + `foundation_netio` WS + `foundation_cronjobs`.
+3. **Cloudflare/Workers backend** (`server/cloudflare.rs`) — `foundation_deployment_cloudflare::workers` + D1/R2/KV + `UserNotifier` DO.
+4. **Integration tests + Docker** — shared suite over both backends, crypto-compat, Dockerfile/compose, Bitwarden CLI e2e.

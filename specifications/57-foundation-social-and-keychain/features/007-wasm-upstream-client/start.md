@@ -2,8 +2,16 @@
 feature: "07-wasm-upstream-client"
 spec: "57-foundation-social-and-keychain"
 depends: "03-oauth-upstream-client"
-status: "partial"
+status: "complete"
 ---
+
+> **Resolved (2026-07-18):** Rather than a separate `WasmOAuth` that callers
+> dispatch to via `cfg`, `UpstreamOidcClient` itself was made cross-platform by
+> building on the shared `default_http_client()` (`Arc<dyn HttpClient>`), which is
+> native HTTP on native and browser/Worker `fetch` on wasm. The broker flow
+> (discover → authorize → `exchange_code` → `fetch_userinfo`) now runs on native
+> and wasm/Workers alike. See `feature.md`.
+
 
 # Feature 07: WASM Upstream Client
 

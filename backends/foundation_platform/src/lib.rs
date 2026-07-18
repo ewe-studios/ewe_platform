@@ -21,7 +21,7 @@ mod types;
 
 pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
-pub use backend::{query_backend, BackendTransport, DefaultTransport};
+pub use backend::{query_backend, BackendTransport, ClosureTransport, DefaultTransport};
 pub use builder::PlatformBuilder;
 pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
 pub use capability::{Capability, CapabilityRegistry};

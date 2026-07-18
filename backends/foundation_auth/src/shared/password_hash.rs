@@ -67,6 +67,7 @@ pub async fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_le
 
     fn js_set(obj: &Object, key: &str, val: &JsValue) -> Result<(), CryptoError> {
         js_sys::Reflect::set(obj, &JsValue::from_str(key), val)
+            .map(|_| ())
             .map_err(|e| CryptoError::JsError(format!("set {key}: {e:?}")))
     }
 
@@ -75,7 +76,7 @@ pub async fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_le
 
     let import_promise = subtle.import_key_with_str(
         "raw", &password_arr, "PBKDF2", false,
-        &js_sys::Array::from_iter(["deriveBits".into()]),
+        &js_sys::Array::from_iter([JsValue::from_str("deriveBits")]),
     ).map_err(|e| CryptoError::JsError(format!("import_key: {e:?}")))?;
 
     let key = JsFuture::from(import_promise).await

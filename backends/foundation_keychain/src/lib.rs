@@ -19,6 +19,7 @@ pub mod core;
 pub mod server;
 
 // Core re-exports
+pub use core::context::KeychainContext;
 pub use core::error::{AppError, AppResult};
 pub use core::models::cipher::{
     Cipher, CipherCreateRequest, CipherType, CipherUpdateRequest, SecureNoteType,

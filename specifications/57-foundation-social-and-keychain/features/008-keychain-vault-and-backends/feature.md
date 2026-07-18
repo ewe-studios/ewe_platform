@@ -1,213 +1,101 @@
-# F00: Core Types + Portable Domain Logic
+# F008: Keychain Vault API + Backends (staged)
 
-## Goal
+**Status:** 🟡 In progress — Stage 1 partial
 
-Port all Bitwarden domain logic that has no runtime coupling, using `foundation_db` traits for storage and `foundation_auth` for auth surfaces. No `worker::` types, no platform-specific code.
+Consolidates the former F008 (core types), F009 (cloudflare), F010 (native), and
+F011 (integration + docker). Those were split by concern, but they are one thing —
+the Bitwarden-compatible vault — and share the same portable business logic. This
+feature delivers it in **sequential stages, each unlocking the next**. SSH key
+provisioning (former F012) is a distinct add-on and lives in feature `009`.
 
-## Work
+## Reconciliation notes (2026-07-18)
 
-### 1. Error + Util (portable from orangevault)
+- **No crypto in the keychain** ([decision 01](../../decisions/01-crypto-backend.md)):
+  all crypto comes from `foundation_auth` — `shared::jwt::JwtSigningKey`,
+  `shared::two_factor::TOTPSecret`, and `shared::password_hash::{pbkdf2_derive,
+  pbkdf2_verify, PBKDF2_SERVER_ITERATIONS}`. There is **no** `cloudflare/crypto.rs`
+  port. `foundation_auth::shared::password_hash` is already cross-platform (native
+  `pbkdf2` crate; wasm WebCrypto `SubtleCrypto`), so both backends use the same code.
+- **No `backend-*` cargo features** ([decision 03](../../decisions/03-feature-gate-strategy.md)):
+  the backend is chosen by **target** (`cfg(target_family = "wasm")` → Workers;
+  otherwise native), and `foundation_db` selects its storage backend the same way.
+  Success criteria use `--target`, not `--features backend-cloudflare/backend-native`.
+- The portable domain logic (`core/api/*`) is the shared foundation both backends
+  route to; it was stubbed in the old F008 and is Stage 1 here.
 
-**`core/error.rs`** — Port `AppError` enum:
-```rust
-pub enum AppError {
-    Unauthorized(String),   // 401
-    BadRequest(String),     // 400
-    NotFound(String),       // 404
-    Forbidden(String),      // 403
-    Conflict(String),       // 409
-    PayloadTooLarge(String), // 413
-    TooManyRequests,        // 429
-    Internal(String),       // 500
-    OAuth {
-        error: String,
-        error_description: String,
-        status: u16,
-        two_factor_providers: Option<Vec<i32>>,
-    },
-}
-```
-- `to_response()` — serializes to Bitwarden error shape (PascalCase `ErrorModel` + OAuth variant)
-- `into_response()` — converts `Result<Response, AppError>` to HTTP response
+---
 
-**`core/util.rs`** — Port helpers:
-- `generate_uuid()` → `uuid::Uuid::new_v4()`
-- `now_utc()` → `chrono::Utc::now().to_rfc3339_opts()`
-- `now_epoch_secs()` → `chrono::Utc::now().timestamp()`
-- `base64url_encode/decode`, `base64_encode/decode`, `hex_encode`
-- `enforce_content_length`, `enforce_body_len`, `enforce_declared_size` (upload guards)
-- `MAX_UPLOAD_BYTES = 100 * 1024 * 1024`
+## Stage 1 — Portable vault domain + API (`core/`)  ← current
 
-### 2. Models (portable serde types from orangevault)
+Cross-platform Bitwarden business logic. No `worker::` types, no `foundation_http`
+types — handlers take a `KeychainContext` of `foundation_db` stores +
+`foundation_auth` primitives and return portable response models. **Unlocks Stages
+2 & 3** (both transports route to these handlers).
 
-**`core/models/user.rs`** — API request/response types:
-- `PreloginRequest`, `PreloginResponse` — KDF params lookup
-- `RegisterRequest`, `RegisterVerificationRequest` — user registration
-- `TokenRequest` — form-urlencoded grant (password, refresh_token)
-- `LoginResponse` — Bitwarden-shaped response with `Key`, `PrivateKey`, `Kdf`, `UserDecryptionOptions`, `AccountKeys`, `unofficialServer`
-- `ProfileResponse`, `UpdateProfileRequest`, `ChangePasswordRequest`, `ChangeKdfRequest`, `UpdateKeysRequest`, `VerifyPasswordRequest`, `SecurityStampRequest`, `ApiKeyRequest`, `ApiKeyResponse`, `DeleteAccountRequest`
+- `core/error.rs`, `core/util.rs`, `core/models/*` — **done** (F008).
+- `core/api/*` — implement the handler logic (currently stubs):
+  - `accounts.rs` — prelogin, register, profile get/update, verify-password, change
+    password (rotate security stamp), delete account.
+  - `identity` (in `accounts`/`auth`) — `connect/token` password + refresh grants →
+    `LoginResponse` (JWT via `foundation_auth` `JwtSigningKey`), prelogin KDF params.
+  - `ciphers.rs` — create/list/get/update/delete, soft-delete (`deleted_at`),
+    restore, bulk ops, share-to-org, attachments.
+  - `folders.rs` — CRUD.
+  - `sends.rs` — text + file sends, anonymous access (password-gated), JWT-gated
+    download URLs, expiry.
+  - `orgs.rs` — org create (auto owner membership + collection), invite/accept/
+    confirm members, collections, collection-user access, share.
+  - `sync.rs` — full sync payload (profile + ciphers + folders + collections +
+    policies + sends + domains).
+  - `two_factor.rs` — TOTP get/enable/recover via `foundation_auth::TOTPSecret`.
+  - `emergency.rs`, `events.rs`, `icons.rs` (SSRF-guarded proxy via `core/util`).
+- Storage via `foundation_db` (`QueryStore`/`AsyncQueryStore`, `KeyValueStore`,
+  `BlobStore`, `RateLimiterStore`) — no custom traits.
+- **Tests:** `foundation_keychain/tests/` — portable unit/logic tests over an
+  in-memory `foundation_db` backend (models + each handler's logic).
 
-**`core/models/cipher.rs`** — Cipher types:
-- `CipherRequest` — create/update with `type`, `name`, `notes`, `login`/`card`/`identity`/`secure_note` variants
-- `CipherResponse` — Bitwarden-shaped response with `Data` wrapper
-- `AttachmentRequestV2`, `AttachmentResponse`, `AttachmentUploadResponse`
-- `BulkIdsRequest`, `BulkMoveRequest`, `ImportCiphersRequest`, `CipherCollectionsRequest`
+## Stage 2 — Native backend (`server/native.rs`)
 
-**`core/models/folder.rs`** — `FolderRequest`, `FolderResponse`
+Requires Stage 1. Thin transport: `foundation_http` (h1/h2, spec-41 F47) routes the
+Bitwarden API paths to the Stage-1 handlers; `foundation_netio` WebSocket
+(`/notifications/hub`, SignalR MessagePack) for notifications; `foundation_cronjobs`
+for purge jobs (expired sends, trashed ciphers); `foundation_db::SchemaMigration` for
+`migrations/`. Native PBKDF2 can use full iterations; JWT via `JwtSigningKey`.
+**Unlocks** running the vault on a VPS/Docker.
 
-**`core/models/organization.rs`** — Org types:
-- `OrgCreateRequest`, `OrganizationResponse`
-- `ShareCipherRequest` — share cipher to org with collection IDs
-- `CollectionCreateRequest`, `CollectionResponse`, `CollectionDetailsResponse`, `UpdateCollectionRequest`, `CollectionSelection`
-- `InviteRequest`, `MemberResponse`, `ConfirmRequest`, `UpdateMemberRequest`
-- `PolicyRequest`, `PolicyResponse`
+## Stage 3 — Cloudflare / Workers backend (`server/cloudflare.rs`)
 
-**`core/models/send.rs`** — Send types:
-- `SendRequest`, `SendResponse`, `SendAccessRequest`, `SendAccessResponse`
-- `SendFileUploadResponse`, `SendFileDownloadResponse`
-- `SEND_TYPE_TEXT = 0`, `SEND_TYPE_FILE = 1`
+Requires Stage 1. Thin transport via `foundation_deployment_cloudflare::workers`
+(`env`, `context`, `durable_object`, `websocket`): `#[event(fetch)]` +
+`#[event(scheduled)]` entry points route to the Stage-1 handlers; `foundation_db`
+D1/R2/KV wasm backends; `UserNotifier` Durable Object (WebSocket accept + SignalR
+MessagePack + 15s alarm ping) reusing `core/notifications` framing +
+`foundation_netio::websocket::shared` framing (decision 09). PBKDF2 via the WebCrypto
+path (100K cap, `PBKDF2_SERVER_ITERATIONS`). **Unlocks** edge deployment. Builds on
+`wasm32-unknown-unknown`.
 
-**`core/models/sync.rs`** — `SyncResponse`, `DomainsResponse`, `GlobalDomain`, `default_global_domains()`
+## Stage 4 — Integration tests + Docker
 
-**`core/models/config.rs`** — `ConfigResponse`, `EnvironmentUrls`, `ServerInfo`
+Requires Stages 2 & 3. Shared integration suite in `foundation_keychain/tests/` that
+runs against **both** backends (target-selected), covering auth flow, vault CRUD,
+folders, sends, orgs, 2FA, cron, plus crypto-compatibility (same inputs → identical
+PBKDF2/HMAC/JWT/TOTP across backends). Multi-stage Dockerfile + `docker-compose.yml`
+for the native server; Bitwarden CLI end-to-end (register → login → sync → create →
+delete). Source parity target: `/home/darkvoid/Boxxed/@formulas/src.rust/src.auth/orangevault`.
 
-### 3. SignalR Notifications (portable)
+---
 
-**`core/notifications/mod.rs`** — SignalR MessagePack framing:
-```rust
-pub enum UpdateType {
-    SyncCipherUpdate = 0, SyncCipherCreate = 1, SyncLoginDelete = 2,
-    SyncFolderDelete = 3, SyncCiphers = 4, SyncVault = 5,
-    SyncOrgKeys = 6, SyncFolderCreate = 7, SyncFolderUpdate = 8,
-    SyncCipherDelete = 9, SyncSettings = 10, LogOut = 11,
-    SyncSendCreate = 12, SyncSendUpdate = 13, SyncSendDelete = 14,
-}
-```
-- `serialize_msgpack(value: &rmpv::Value) -> Vec<u8>` — VarInt length prefix + MessagePack (BinaryMessageFormat)
-- `create_notification(update_type, context_id, payload) -> rmpv::Value` — SignalR Invocation frame
-- `create_ping() -> rmpv::Value` — SignalR Ping frame (`[6]`)
-- `json_to_rmpv(val: &serde_json::Value) -> rmpv::Value` — JSON → MessagePack conversion
+## Success criteria (per stage)
 
-### 4. Auth Adapters (Bitwarden-specific over foundation_auth)
+- **S1:** `cargo test -p foundation_keychain` (native) green; `core/api` handlers
+  implemented over `foundation_db`; `cargo check -p foundation_keychain --target wasm32-unknown-unknown` compiles the portable core.
+- **S2:** native server starts, migrates, serves; WS notifications + cron work.
+- **S3:** `cargo check -p foundation_keychain --target wasm32-unknown-unknown` (Workers
+  entry) compiles; `worker-build --release` under ~5 MB; SignalR DO notifications work.
+- **S4:** integration suite green on both backends; crypto-compat bit-for-bit; Docker
+  image runs; Bitwarden CLI e2e passes.
 
-All crypto comes from `foundation_auth` — no crypto code in keychain:
-- `foundation_auth::shared::jwt::JwtSigningKey` — JWT signing/verification
-- `foundation_auth::shared::pbkdf2::{pbkdf2_derive, pbkdf2_verify, SERVER_PASSWORD_ITERATIONS}` — password verification
-- `foundation_auth::shared::two_factor::TOTPSecret` — TOTP generation/verification
-```rust
-/// Bitwarden-specific claims added to the JWT's `custom` map.
-pub struct BitwardenClaims<'a> {
-    pub sstamp: &'a str,           // Security stamp (invalidation token)
-    pub device: &'a str,           // Device identifier
-    pub premium: bool,
-    pub email: &'a str,
-    pub name: &'a str,
-    pub email_verified: bool,
-    pub orgowner: &'a [String],    // Org IDs where user is owner
-    pub orgadmin: &'a [String],    // Org IDs where user is admin
-    pub orguser: &'a [String],     // Org IDs where user is member
-    pub orgmanager: &'a [String],  // Org IDs where user is manager
-}
+## Related decisions
 
-impl BitwardenClaims<'_> {
-    /// Serialize into a serde_json::Value for foundation_auth::JwtSigningKey::sign_claims
-    pub fn to_value(&self) -> serde_json::Value { ... }
-
-    /// Extract from VerifiedClaims::custom map
-    pub fn from_verified(claims: &VerifiedClaims) -> Result<Self, AppError> { ... }
-}
-```
-
-**`core/auth/stamp_middleware.rs`** — Security stamp check after `foundation_auth` JWT verify:
-```rust
-/// After foundation_auth verifies the JWT, check the Bitwarden-specific
-/// security stamp. Operations that rotate the stamp (password change, KDF
-/// change, key rotation) immediately invalidate every outstanding access token.
-pub async fn check_security_stamp(
-    store: &dyn QueryStore,          // foundation_db
-    user_id: &str,
-    expected_stamp: &str,
-) -> Result<bool, AppError> {
-    let row = store.query("SELECT security_stamp FROM users WHERE uuid = ?", &[DataValue::Text(user_id)])?;
-    // Extract stamp from SqlRow, compare constant-time
-}
-```
-
-**`core/auth/token_response.rs`** — Adapter from `foundation_auth` to Bitwarden response:
-```rust
-/// Build Bitwarden LoginResponse from a foundation_auth TokenPair + user data.
-pub fn build_login_response(
-    access_token: &str,
-    refresh_token: &str,
-    user: &User,                     // Bitwarden user model
-) -> LoginResponse {
-    LoginResponse {
-        access_token: access_token.into(),
-        expires_in: jwt::ACCESS_TOKEN_EXPIRY, // 7200 (2 hours)
-        token_type: "Bearer".into(),
-        refresh_token: refresh_token.into(),
-        key: user.akey.clone(),
-        private_key: user.private_key.clone(),
-        kdf: user.client_kdf_type,
-        kdf_iterations: user.client_kdf_iter,
-        kdf_memory: user.client_kdf_memory,
-        kdf_parallelism: user.client_kdf_parallelism,
-        unofficial_server: true,
-        user_decryption_options: UserDecryptionOptions { ... },
-        account_keys: user.public_key.as_ref().map(|_| AccountKeys { ... }),
-        two_factor_token: None,
-    }
-}
-```
-
-### 5. DB Models (portable structs matching the 16 SQL tables)
-
-Port from `orangevault/src/db/models.rs`:
-- `User`, `Cipher`, `Folder`, `Favorite`, `FolderCipher`
-- `Organization`, `Membership`, `Collection`, `UserCollection`, `CipherCollection`
-- `TwoFactor`, `Send`, `Event`, `OrgPolicy`, `EquivalentDomain`
-- `Attachment`, `Device`
-
-These are **not** the storage trait — they're `serde::Deserialize` structs that query functions parse from `SqlRow` using `get<T>`/`get_by_name<T>`.
-
-### 6. Query Functions (foundation_db QueryStore-based)
-
-Port from `orangevault/src/db/queries.rs` — ~90 functions, all using `foundation_db::QueryStore`:
-```rust
-// Example: find_user_by_email uses foundation_db's QueryStore
-pub fn find_user_by_email(store: &dyn QueryStore, email: &str) -> Result<Option<User>, AppError> {
-    let mut stream = store.query(
-        "SELECT * FROM users WHERE email = ?1",
-        &[DataValue::Text(email.into())],
-    )?;
-    // Iterate StorageItemStream<SqlRow>, parse into User struct
-}
-
-// Example: execute uses foundation_db's QueryStore::execute
-pub fn insert_user(store: &dyn QueryStore, user: &User) -> Result<(), AppError> {
-    store.execute(
-        "INSERT INTO users (uuid, email, name, ...) VALUES (?1, ?2, ?3, ...)",
-        &[
-            DataValue::Text(user.uuid.clone()),
-            DataValue::Text(user.email.clone()),
-            DataValue::Text(user.name.clone()),
-            // ...
-        ],
-    )?;
-    Ok(())
-}
-```
-
-All 90 query functions ported: user CRUD, device CRUD, cipher CRUD, folder CRUD, org CRUD, membership CRUD, collection CRUD, 2FA CRUD, send CRUD, event CRUD, policy CRUD, attachment CRUD, equivalent domains, favorites, folder-cipher links, cipher-collection links.
-
-### 7. API Handlers (portable, trait-bound)
-
-Port from `orangevault/src/api/` — 14 modules, ~150 route handlers. Each handler takes `foundation_db` traits and `foundation_auth` surfaces instead of `worker::` types.
-
-### Success Criterion
-
-- `cargo check --lib` passes with no backend features enabled
-- All types compile, no `worker::` types anywhere in `core/`
-- All query functions compile against `dyn QueryStore` + `dyn KeyValueStore` + `dyn BlobStore`
-- SignalR MessagePack frames round-trip correctly (unit test)
-- `AppError` serializes to Bitwarden-compatible JSON
+- 01 crypto (foundation_auth), 02 storage (foundation_db), 03 target-gates,
+  04 native notifications, 05 job scheduler, 07 blob storage, 09 workers websocket.

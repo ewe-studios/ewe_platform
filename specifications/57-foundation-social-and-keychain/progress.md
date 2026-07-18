@@ -2,8 +2,23 @@
 
 ## Status: In Progress
 
-Phase 0 (social login): F001-F006 complete, F007 partial
-Phase 1 (keychain): F008 complete, F009-F012 pending
+Phase 0 (social login): F001-F007 complete
+Phase 1 (keychain): 008 (staged vault+backends) — Stage 1 in progress; 009 (SSH) pending
+
+**2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
+is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on
+native + wasm/Workers): provider models moved to `shared/`, `server` gate removed, and
+`exchange_code` + `fetch_userinfo` added. Fixed a systemic body-read bug (all shared
+clients read `get_body_ref()` on a lazy `SendSafeBody::Stream` = empty; now
+`try_collect_bytes(take_body())`) and the chain of latent wasm-compilation breakage that
+had kept `foundation_auth` from ever compiling on wasm32 (netio dep `default-features`,
+web-sys `SubtleCrypto`/`CryptoKey`, `password_hash` WebCrypto bugs, `network_client` ssl
+target-gating). 5 new `#[valtron_test]` integration tests exercise the broker end-to-end
+over a real server. Native + wasm32 compile clean.
+
+> Note: the pre-existing `e2e`/`idp_server` integration tests fail on a
+> `#[tracing_test::traced_test]` + `#[valtron_test]` global-subscriber conflict (fails at
+> test setup, unrelated to F007) — a separate test-harness issue to fix.
 
 **Spec quality:** All 11 decisions have `Status:` fields. All 12 features have
 `feature.md` + `start.md` with frontmatter. `foundation_cronjobs` crate
@@ -16,9 +31,20 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 1. ✅ 001 provider model + ✅ 002 migrations + ✅ 003 upstream client
 2. ✅ 004 auth session store + ✅ 005 provisioning service + ✅ 006 provider admin API
 
-**Phase 1 — foundation_keychain:**
-3. ✅ 008 core types + models + auth + notifications
-4. 🔲 009 Cloudflare backend / 🔲 010 native backend / 🔲 011 integration tests / 🔲 012 SSH provisioning
+**Phase 1 — foundation_keychain (008 consolidated + staged, 009 add-on):**
+3. 🟡 008 keychain vault + backends — Stage 1 (portable core/api) in progress
+   - ✅ core types/models/auth/notifications (26 tests)
+   - ✅ Stage-1 architecture + **folders vertical**: `KeychainContext` + `core/store/` +
+     `core/api/folders` + `migrations/0001_initial.sql`; 6 integration tests; native + wasm32 compile
+   - 🔲 core/api: accounts/identity, ciphers, sync, orgs, sends, 2FA, emergency, events, icons
+   - 🔲 Stage 2 native backend · 🔲 Stage 3 cloudflare/workers · 🔲 Stage 4 integration+docker
+4. 🔲 009 SSH key provisioning (former 012)
+
+> **2026-07-18 restructure:** former F008–F011 (core, cloudflare, native, integration)
+> consolidated into **008-keychain-vault-and-backends** as 4 sequential stages (each
+> unlocks the next); former F012 renumbered to **009**. Reconciled with decision 01
+> (crypto via `foundation_auth`, no keychain crypto) and decision 03 (target gates, not
+> `backend-*` features).
 
 ## Feature Progress
 
@@ -30,12 +56,9 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 004: Auth session store | 0 | ✅ Complete | 4 (auth_session) |
 | 005: User provisioning | 0 | ✅ Complete | 5 (provisioning_service) |
 | 006: Provider discovery + admin API | 0 | ✅ Complete | 10 (provider_admin) |
-| 007: WASM upstream client | 0 | 🟡 Partial | WasmOAuth exists, needs adapter |
-| 008: Keychain core types | 1 | ✅ Complete | 26 (core_tests) |
-| 009: Cloudflare backend | 1 | 🔲 Not started | — |
-| 010: Native backend | 1 | 🔲 Not started | — |
-| 011: Integration tests + Docker | 1 | 🔲 Not started | — |
-| 012: SSH key provisioning | 1 | 🔲 Not started | — |
+| 007: Cross-platform upstream client | 0 | ✅ Complete | 10 (5 unit + 5 integration) |
+| 008: Keychain vault + backends (staged) | 1 | 🟡 Stage 1 partial | 26 (core) — S1 core/api next |
+| 009: SSH key provisioning | 1 | 🔲 Not started | — |
 
 ## Test Results (2026-07-18)
 
@@ -61,8 +84,8 @@ foundation_keychain/              (✅ created, compiles on native + wasm)
 │   ├── notifications/mod.rs      # SignalR MessagePack framing, UpdateType
 │   └── api/                      # Handler stubs (accounts, ciphers, folders, orgs, sends, 2FA, sync, events, emergency, icons)
 ├── src/server/
-│   ├── native.rs                 # 🔲 foundation_http server (F010)
-│   └── cloudflare.rs             # 🔲 Workers router (F009)
+│   ├── native.rs                 # 🔲 Stage 2 (native: foundation_http)
+│   └── cloudflare.rs             # 🔲 Stage 3 (cloudflare/workers router)
 └── tests/core_tests.rs           # 22 integration tests
 ```
 
@@ -70,4 +93,4 @@ foundation_keychain/              (✅ created, compiles on native + wasm)
 
 - `foundation_db`: QueryStore, AsyncQueryStore, KeyValueStore, BlobStore, RateLimiterStore, StorageProvider
 - `foundation_auth`: JwtSigningKey, TOTPSecret, require_auth, IdpServer, ProviderService, ProvisioningService, UpstreamOidcClient, UpstreamAuthSession
-- `foundation_http`, `foundation_netio`: native HTTP + WebSocket (F010)
+- `foundation_http`, `foundation_netio`: native HTTP + WebSocket (Stage 2)

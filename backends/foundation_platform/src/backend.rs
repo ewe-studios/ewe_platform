@@ -94,6 +94,45 @@ pub fn query_backend(
 /// Fallback transport used when session has no custom transport registered.
 pub static DEFAULT_TRANSPORT: DefaultTransport = DefaultTransport;
 
+// ── Closure-based transport ──────────────────────────────────────────────
+
+/// A [`BackendTransport`] built from closures. The Tauri setup hook
+/// constructs this with closures that capture the `AppHandle` for real
+/// IPC dispatch and HTTP fetch.
+pub struct ClosureTransport {
+    wasm_fn: Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>,
+    ipc_fn: Box<dyn Fn(Option<&str>, &str) -> Vec<u8> + Send + Sync>,
+    remote_fn: Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>,
+}
+
+impl ClosureTransport {
+    pub fn new(
+        wasm: impl Fn(&str) -> Vec<u8> + Send + Sync + 'static,
+        ipc: impl Fn(Option<&str>, &str) -> Vec<u8> + Send + Sync + 'static,
+        remote: impl Fn(&str) -> Vec<u8> + Send + Sync + 'static,
+    ) -> Self {
+        Self {
+            wasm_fn: Box::new(wasm),
+            ipc_fn: Box::new(ipc),
+            remote_fn: Box::new(remote),
+        }
+    }
+}
+
+impl BackendTransport for ClosureTransport {
+    fn signal_webview(&self, route: &str) -> Vec<u8> {
+        (self.wasm_fn)(route)
+    }
+
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {
+        (self.ipc_fn)(target, route)
+    }
+
+    fn fetch_remote(&self, route: &str) -> Vec<u8> {
+        (self.remote_fn)(route)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

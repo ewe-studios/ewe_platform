@@ -31,23 +31,37 @@ age = { version = "0.10", optional = true }
 # Foundation deps
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1" }
+# `default-features = false` is required: foundation_auth's default `turso` feature is
+# native-only and, via cargo's default-features union, would otherwise pull
+# foundation_db/turso → foundation_db/multi → foundation_netio/multi into the wasm build
+# and break compilation. Backend features are added per-target below (decision 03).
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["wasm-bindgen-storage"] }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["wasm-bindgen-session"] }
+# `default-features = false` required: without it cargo's default-features union re-enables
+# foundation_auth's native `turso` default (→ foundation_db/turso → multi) on wasm.
+# `wasm-pbkdf2` brings the WebCrypto PBKDF2 path (js-sys/web-sys) the keychain uses for
+# password hashing on Workers (decision 01 — all crypto via foundation_auth).
+# NOTE: `wasm-bindgen-session` (foundation_auth D1CredentialStore) is added in the auth/login
+# stage that actually uses it — the vault-CRUD stages talk to foundation_db's D1 directly.
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["wasm-pbkdf2"] }
 
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["server"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["server", "turso"] }
+# Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
+foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["turso"] }
 
 [dev-dependencies]
 tempfile = "3"
 tracing-test = { workspace = true }
 tracing-subscriber = { workspace = true }
+# valtron multi-worker pool for #[valtron_test] async tests.
+foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
 
 [features]
 default = []

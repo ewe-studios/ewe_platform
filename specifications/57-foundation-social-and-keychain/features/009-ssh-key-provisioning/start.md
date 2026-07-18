@@ -1,11 +1,11 @@
 ---
-feature: "012-ssh-key-provisioning"
+feature: "009-ssh-key-provisioning"
 spec: "57-foundation-social-and-keychain"
-depends: "008-core-types-and-domain"
+depends: "008-keychain-vault-and-backends"
 status: "pending"
 ---
 
-# Feature 012: SSH Key Provisioning + App Registry
+# Feature 009: SSH Key Provisioning + App Registry
 
 ## Current state
 Not started.

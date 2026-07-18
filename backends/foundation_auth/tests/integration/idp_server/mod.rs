@@ -123,7 +123,6 @@ fn test_config() -> IdpConfig {
 // Scenario 1: OIDC Discovery — the entry point for any OIDC client
 // ============================================================================
 
-#[tracing_test::traced_test]
 #[valtron_test(threads = 8)]
 fn discovery_returns_valid_oidc_document() {
     let (addr, shutdown, handle) = start_idp(test_config());
@@ -274,7 +273,6 @@ fn discovery_then_jwks_flow() {
 // Scenario 4: Token introspection — returns inactive for unknown tokens
 // ============================================================================
 
-#[tracing_test::traced_test]
 #[valtron_test(threads = 8)]
 fn introspect_returns_inactive_for_unknown_token() {
     tracing::info!("TEST: starting idp server...");

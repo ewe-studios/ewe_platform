@@ -40,10 +40,11 @@ pub use shared::jwks::{Jwk, Jwks, JwksError, JwksManager};
 // Feature 03: OIDC Discovery
 pub use shared::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 
-// Feature 03: Unified Upstream OIDC/OAuth2 Client
-pub use shared::upstream_client::{UpstreamClientError, UpstreamProfile};
-#[cfg(feature = "server")]
-pub use shared::upstream_client::UpstreamOidcClient;
+// Feature 03: Unified Upstream OIDC/OAuth2 Client (cross-platform — native + wasm)
+pub use shared::upstream_client::{UpstreamClientError, UpstreamOidcClient, UpstreamProfile};
+
+// Feature 01/03: Upstream provider models (cross-platform, pure serde)
+pub use shared::provider::{ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider};
 
 // Feature 04: UserInfo Client
 pub use shared::userinfo::{UserInfo, UserInfoClient, UserInfoError};

@@ -12,8 +12,11 @@ This spec merges two closely-coupled bodies of work that touch the same crates
   should be complete before the vault layers on top. See `social-login-requirements.md`
   for the full detail and `decisions/00-identity-broker-pattern.md` for the design.
 
-- **Phase 1 (features 008–012): foundation_keychain.** The Bitwarden-compatible vault +
+- **Phase 1 (features 008–009): foundation_keychain.** The Bitwarden-compatible vault +
   SSH key provisioning, built on the now-complete `foundation_auth` and `foundation_db`.
+  Feature 008 (**staged**: portable vault API → native backend → cloudflare/workers
+  backend → integration+docker) consolidates what were F008–F011; feature 009 is the
+  SSH-key-provisioning add-on (former F012).
 
 ## Problem
 

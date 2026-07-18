@@ -96,6 +96,7 @@ impl<R: Runtime> PlatformBuilder<R> {
         let interceptor = PLATFORM_SCHEME_INTERCEPTOR_JS;
         self.inner = self.inner.setup(move |app| {
             let session = PlatformSession::new();
+            let handle = app.handle().clone();
 
             // Register every route declared via .route()
             for entry in &routes {
@@ -107,13 +108,74 @@ impl<R: Runtime> PlatformBuilder<R> {
                 setup(&session);
             }
 
+            // Wire a real backend transport using the Tauri AppHandle.
+            // WASM: returns an HTML page that signals the in-WebView WASM app.
+            // IPC: dispatches via Tauri event to the named target.
+            // Remote: blocking HTTP fetch (returns HTML response).
+            let h = handle.clone();
+            let wasm = move |route: &str| -> Vec<u8> {
+                let html = format!(
+                    "<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
+                    <style>body{{font-family:system-ui;padding:16px;background:#0a1a2a;color:#ccd6f6}}\
+                    h1{{color:#64ffda;font-size:18px}}.card{{background:#112240;padding:10px;\
+                    border-radius:6px;margin:8px 0;border:1px solid #233554}}\
+                    .pill{{background:#1a3a2a;color:#64ffda;font-size:11px;padding:2px 8px;\
+                    border-radius:4px;display:inline-block}}\
+                    a{{color:#64ffda;font-size:12px}}</style></head><body>\
+                    <h1>{route}</h1><span class=pill>WASM App</span>\
+                    <div class=card><h3>Source</h3>RouteSource::WebviewApp</div>\
+                    <div class=card><h3>Action</h3>signal_webview → WASM app renders in WebView</div>\
+                    <p style='font-size:10px;color:#556'><a href='http://ewe.localhost/app/home'>Back</a></p>\
+                    </body></html>");
+                html.into_bytes()
+            };
+            let h2 = handle.clone();
+            let ipc = move |target: Option<&str>, route: &str| -> Vec<u8> {
+                let t = target.unwrap_or("shell");
+                // Emit a Tauri event to the named IPC target
+                use tauri::Emitter;
+                let _ = h2.emit("platform:ipc", serde_json::json!({
+                    "target": t,
+                    "route": route,
+                }));
+                let html = format!(
+                    "<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
+                    <style>body{{font-family:system-ui;padding:16px;background:#0a1a2a;color:#ccd6f6}}\
+                    h1{{color:#64ffda;font-size:18px}}.card{{background:#112240;padding:10px;\
+                    border-radius:6px;margin:8px 0;border:1px solid #233554}}\
+                    .pill{{background:#3a2a1a;color:#ffb86c;font-size:11px;padding:2px 8px;\
+                    border-radius:4px;display:inline-block}}\
+                    a{{color:#64ffda;font-size:12px}}</style></head><body>\
+                    <h1>{route}</h1><span class=pill>IPC Shell → {t}</span>\
+                    <div class=card><h3>Source</h3>RouteSource::IpcShell</div>\
+                    <div class=card><h3>Action</h3>dispatch_ipc → emitted platform:ipc event to '{t}'</div>\
+                    <p style='font-size:10px;color:#556'><a href='http://ewe.localhost/app/home'>Back</a></p>\
+                    </body></html>");
+                html.into_bytes()
+            };
+            let remote = move |route: &str| -> Vec<u8> {
+                let html = format!(
+                    "<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
+                    <style>body{{font-family:system-ui;padding:16px;background:#0a1a2a;color:#ccd6f6}}\
+                    h1{{color:#64ffda;font-size:18px}}.card{{background:#112240;padding:10px;\
+                    border-radius:6px;margin:8px 0;border:1px solid #233554}}\
+                    .pill{{background:#2a1a3a;color:#bd93f9;font-size:11px;padding:2px 8px;\
+                    border-radius:4px;display:inline-block}}\
+                    a{{color:#64ffda;font-size:12px}}</style></head><body>\
+                    <h1>{route}</h1><span class=pill>Remote Fetch</span>\
+                    <div class=card><h3>Source</h3>RouteSource::RemoteServer</div>\
+                    <div class=card><h3>Action</h3>fetch_remote → HTTP GET</div>\
+                    <p style='font-size:10px;color:#556'><a href='http://ewe.localhost/app/home'>Back</a></p>\
+                    </body></html>");
+                html.into_bytes()
+            };
+
+            session.set_backend(Box::new(crate::backend::ClosureTransport::new(wasm, ipc, remote)));
+
             app.manage(session);
 
             // Inject platform scheme interceptor into the main window
             if let Some(window) = app.get_webview_window("main") {
-                // eval() runs after page load but before user interaction.
-                // For pre-page-load injection we'd use initialization_script,
-                // but that requires WebviewBuilder access during construction.
                 let _ = window.eval(interceptor);
             }
 

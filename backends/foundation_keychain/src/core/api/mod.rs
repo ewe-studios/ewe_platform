@@ -3,8 +3,6 @@
 //! Full handler implementations live in F009 (Cloudflare) and F010 (native).
 //! This module declares the handler signatures that both backends implement.
 
-use crate::core::error::AppResult;
-
 /// Accounts API — prelogin, register, password hint, profile, keys, avatar.
 pub mod accounts;
 
