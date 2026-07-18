@@ -19,15 +19,15 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 pub(crate) fn wasm_bin(attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand_mode("wasm_bin", false, attr, item)
+    expand_mode("wasm_bin", false, attr, item, true)
 }
 
 pub(crate) fn wasm_worker(attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand_mode("wasm_worker", false, attr, item)
+    expand_mode("wasm_worker", false, attr, item, true)
 }
 
 pub(crate) fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand_mode("wasm_service", true, attr, item)
+    expand_mode("wasm_service", true, attr, item, true)
 }
 
 fn expand_mode(
@@ -35,6 +35,7 @@ fn expand_mode(
     requires_routes: bool,
     attr: TokenStream,
     item: TokenStream,
+    default_single_js: bool,
 ) -> TokenStream {
     let mut func: syn::ItemFn = match syn::parse2(item) {
         Ok(func) => func,
@@ -48,6 +49,7 @@ fn expand_mode(
     let mut single_file = false;
     let mut saw_encoded = false;
     let mut extern_c = false;
+    let mut jsruntime_single = default_single_js;
 
     if !attr.is_empty() {
         let parser = syn::meta::parser(|meta| {
@@ -98,8 +100,17 @@ fn expand_mode(
             } else if meta.path.is_ident("target") {
                 let _: syn::LitStr = meta.value()?.parse()?;
                 Ok(())
+            } else if meta.path.is_ident("jsruntime_single") {
+                let value: syn::LitStr = meta.value()?.parse()?;
+                match value.value().as_str() {
+                    "true" => { jsruntime_single = true; Ok(()) }
+                    "false" => { jsruntime_single = false; Ok(()) }
+                    other => Err(meta.error(format!(
+                        "jsruntime_single = \"{other}\" — expected \"true\" or \"false\""
+                    ))),
+                }
             } else {
-                Err(meta.error("expected js / encoded / extern / desc / routes / target"))
+                Err(meta.error("expected js / encoded / extern / desc / routes / target / jsruntime_single"))
             }
         });
         if let Err(err) = syn::parse::Parser::parse2(parser, attr) {

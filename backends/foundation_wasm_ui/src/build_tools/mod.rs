@@ -75,6 +75,8 @@ pub struct BundleEntrypoint {
     pub packaging: JsPackaging,
     /// `wasm_service` route prefixes.
     pub routes: Vec<String>,
+    /// Combine all JS runtimes into one bundle.js (default true).
+    pub jsruntime_single: bool,
 }
 
 /// What `plan()`/`execute()` will produce for one entrypoint.
@@ -144,6 +146,7 @@ impl WasmBundleGenerator {
         crate_dir: &Path,
         output_dir: &Path,
         annotations: &[(&str, &str)],  // &[(mode_str, fn_name)]
+        jsruntime_single: bool,
     ) -> Result<Self, WasmBinError> {
         let crate_name = WasmBinGenerator::from_crate_only(crate_dir)?
             .crate_name()
@@ -174,6 +177,7 @@ impl WasmBundleGenerator {
                 mode: bundle_mode,
                 packaging: JsPackaging::Separate,
                 routes,
+                jsruntime_single,
             });
         }
 
@@ -196,7 +200,10 @@ impl WasmBundleGenerator {
         crate_dir: &Path,
         output_dir: &Path,
         entrypoints: Vec<BundleEntrypoint>,
+        jsruntime_single: bool,
     ) -> Result<Self, WasmBinError> {
+        // Apply jsruntime_single to all entrypoints
+        let entrypoints: Vec<_> = entrypoints.into_iter().map(|mut ep| { ep.jsruntime_single = jsruntime_single; ep }).collect();
         let inner = WasmBinGenerator::from_crate_only(crate_dir)?;
         Ok(Self {
             inner,
@@ -234,6 +241,24 @@ impl WasmBundleGenerator {
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
+        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
+        if do_single_js {
+            let mut bundle = String::new();
+            for (file_name, source) in runtime_assets {
+                if let Ok(content) = std::fs::read_to_string(source) {
+                    let stripped = content.lines().map(|l| {
+                        let t = l.trim();
+                        if t.starts_with("export ") { &t[7..] } else { l }
+                    }).collect::<Vec<_>>().join("\n");
+                    bundle.push_str(&format!("// ── {file_name} ──\n{stripped}\n"));
+                }
+            }
+            if !bundle.is_empty() {
+                let dest = self.output_dir.join("bundle.js");
+                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+            }
+        }
         if !skip_runtimes {
             for (file_name, source) in runtime_assets {
                 let dest = self.output_dir.join(file_name);
@@ -345,6 +370,24 @@ impl WasmBundleGenerator {
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
+        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
+        if do_single_js {
+            let mut bundle = String::new();
+            for (file_name, source) in runtime_assets {
+                if let Ok(content) = std::fs::read_to_string(source) {
+                    let stripped = content.lines().map(|l| {
+                        let t = l.trim();
+                        if t.starts_with("export ") { &t[7..] } else { l }
+                    }).collect::<Vec<_>>().join("\n");
+                    bundle.push_str(&format!("// ── {file_name} ──\n{stripped}\n"));
+                }
+            }
+            if !bundle.is_empty() {
+                let dest = self.output_dir.join("bundle.js");
+                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+            }
+        }
         if !skip_runtimes {
             for (file_name, source) in runtime_assets {
                 let dest = self.output_dir.join(file_name);
@@ -366,8 +409,9 @@ impl WasmBundleGenerator {
         // (file name, contents, kind) — written in one pass below.
         let mut outputs: Vec<(String, Vec<u8>, &'static str)> = Vec::new();
 
+        let use_bundle = ep.jsruntime_single;
         let wrapper = match ep.mode {
-            BundleMode::Bin => js_wrapper::bin_wrapper(&ep.name),
+            BundleMode::Bin => js_wrapper::bin_wrapper_with_bundle(&ep.name, use_bundle),
             BundleMode::Worker => {
                 outputs.push((
                     format!("{}-worker-host.js", ep.name),
@@ -448,5 +492,6 @@ pub fn entrypoint_from_attrs(
             JsPackaging::Separate
         },
         routes,
+        jsruntime_single: true,
     }
 }
