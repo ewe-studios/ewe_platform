@@ -1,5 +1,7 @@
 # Decision 04: Native Notifications — foundation_netio WebSocket Server
 
+**Status:** Resolved (2026-07-18) — multi-instance pub/sub deferred
+
 ## Problem
 
 Cloudflare uses Durable Objects for per-user WebSocket notifications. The native backend needs an equivalent:

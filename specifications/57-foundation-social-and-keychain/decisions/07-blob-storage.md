@@ -1,5 +1,7 @@
 # Decision 07: Blob Storage — foundation_db BlobStore
 
+**Status:** Resolved (2026-07-18) — S3 backend deferred
+
 ## Problem
 
 Cipher attachments and Send files need object storage. Options:

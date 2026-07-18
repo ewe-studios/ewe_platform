@@ -1,5 +1,7 @@
 # Design Decisions — Social Login / Upstream IdP Federation
 
+**Status:** Resolved (2026-07-18)
+
 ## D01: Identity Broker vs Direct Passthrough
 
 ### Context

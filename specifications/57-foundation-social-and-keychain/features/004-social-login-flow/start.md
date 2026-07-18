@@ -2,7 +2,7 @@
 feature: "04-social-login-flow"
 spec: "57-foundation-social-and-keychain"
 depends: "01-provider-model, 02-provider-migrations, 03-oauth-upstream-client"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 04: Social Login Flow (Redirect + Callback)

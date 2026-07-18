@@ -2,7 +2,7 @@
 feature: "02-provider-migrations"
 spec: "57-foundation-social-and-keychain"
 depends: "01-provider-model"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 02: Provider Migrations

@@ -1,5 +1,7 @@
 # Decision 05: Cron Jobs — foundation_cronjobs
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 The keychain needs scheduled jobs (purge expired sends, trash cleanup). Cloudflare uses Workers cron triggers. Native needs an equivalent.

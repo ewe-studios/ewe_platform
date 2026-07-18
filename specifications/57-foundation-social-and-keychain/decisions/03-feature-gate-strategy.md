@@ -1,5 +1,7 @@
 # Decision 03: No Backend Feature Gates — Target-Gated Code
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 The keychain has platform-specific code: Cloudflare Workers needs `#[event(fetch)]`, `worker::Router`, Durable Objects, and Web Crypto; native needs `foundation_http`, `foundation_netio` WebSocket, and valtron. How to gate it?

@@ -1,5 +1,7 @@
 # Decision 06: Password Hashing — PBKDF2 (both) + Argon2id (native)
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 Bitwarden clients support two KDF types: PBKDF2 (type 0) and Argon2id (type 1). The server must verify passwords hashed by either. WebCrypto (WASM) only supports PBKDF2.

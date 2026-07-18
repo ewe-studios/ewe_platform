@@ -2,7 +2,7 @@
 feature: "05-user-provisioning"
 spec: "57-foundation-social-and-keychain"
 depends: "01-provider-model, 02-provider-migrations, 04-social-login-flow"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 05: User Provisioning from Social Login

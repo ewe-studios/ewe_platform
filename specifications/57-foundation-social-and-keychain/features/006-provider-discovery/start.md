@@ -2,7 +2,7 @@
 feature: "06-provider-discovery"
 spec: "57-foundation-social-and-keychain"
 depends: "01-provider-model, 02-provider-migrations, 04-social-login-flow"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 06: Provider Discovery + Admin API

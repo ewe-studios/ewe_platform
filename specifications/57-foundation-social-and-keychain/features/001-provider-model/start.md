@@ -2,7 +2,7 @@
 feature: "01-provider-model"
 spec: "57-foundation-social-and-keychain"
 depends: "decisions/00-identity-broker-pattern.md"
-status: "ready"
+status: "complete"
 ---
 
 # Feature 01: Provider Model + CRUD Service

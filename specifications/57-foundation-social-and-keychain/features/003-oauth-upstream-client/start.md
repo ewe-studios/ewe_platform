@@ -2,7 +2,7 @@
 feature: "03-oauth-upstream-client"
 spec: "57-foundation-social-and-keychain"
 depends: "01-provider-model, 02-provider-migrations"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 03: Generic Upstream OIDC/OAuth2 Client

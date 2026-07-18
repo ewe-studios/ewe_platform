@@ -1,5 +1,7 @@
 # Decision 10: SSH Key Provisioning API
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 Applications need SSH keys for authentication (git, SSH access, etc.) but managing key generation, storage, and rotation is a cross-cutting concern. Running this as part of the keychain service means:

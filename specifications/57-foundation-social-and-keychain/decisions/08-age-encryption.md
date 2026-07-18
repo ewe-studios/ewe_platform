@@ -1,5 +1,7 @@
 # Decision 08: age Encryption — Used for SSH Key At-Rest
 
+**Status:** Resolved (2026-07-18) — JWT key encryption, backups, audit log deferred
+
 ## Context
 
 [`age`](https://crates.io/crates/age) is a modern encryption library (X25519 + XChaCha20-Poly1305 + scrypt) that compiles to both native and `wasm32-unknown-unknown`. It supports two modes:

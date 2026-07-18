@@ -1,5 +1,7 @@
 # Decision 02: Storage — foundation_db Traits Only
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 The keychain needs database, KV, and blob storage. Options:

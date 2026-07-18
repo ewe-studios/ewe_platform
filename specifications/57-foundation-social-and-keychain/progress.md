@@ -5,6 +5,11 @@
 Phase 0 (social login): F001-F006 complete, F007 partial
 Phase 1 (keychain): F008 complete, F009-F012 pending
 
+**Spec quality:** All 11 decisions have `Status:` fields. All 12 features have
+`feature.md` + `start.md` with frontmatter. `foundation_cronjobs` crate
+compiles (3 tests). `foundation_deployment_cloudflare::workers::websocket`
+verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`.
+
 ## Implementation Order
 
 **Phase 0 — foundation_auth social login:**

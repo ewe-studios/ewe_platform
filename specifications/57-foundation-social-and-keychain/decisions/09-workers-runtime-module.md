@@ -1,5 +1,7 @@
 # Decision 09: Workers WebSocket — Reuse foundation_netio Framing
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 SignalR notifications need WebSocket + MessagePack binary framing. foundation_netio (F51-complete) already has:

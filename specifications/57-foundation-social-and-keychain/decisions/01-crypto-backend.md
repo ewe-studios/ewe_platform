@@ -1,5 +1,7 @@
 # Decision 01: Crypto — foundation_auth (JwtSigningKey, TOTP, PBKDF2)
 
+**Status:** Resolved (2026-07-18)
+
 ## Problem
 
 The keychain needs crypto for PBKDF2 (password verification), RSA/EdDSA (JWT signing), HMAC (TOTP), and SHA-256.
