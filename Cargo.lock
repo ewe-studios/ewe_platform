@@ -830,6 +830,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
 
 [[package]]
+name = "base32"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "022dfe9eb35f19ebbcb51e0b40a5ab759f46ad60cadf7297e0bd085afb50e076"
+
+[[package]]
 name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4897,11 +4903,13 @@ name = "foundation_keychain"
 version = "0.1.0"
 dependencies = [
  "age",
+ "base32",
  "base64 0.22.1",
  "chrono",
  "foundation_auth",
  "foundation_core",
  "foundation_db",
+ "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
  "rmp-serde",
@@ -5101,6 +5109,7 @@ dependencies = [
 name = "foundation_platform"
 version = "0.0.1"
 dependencies = [
+ "foundation_nostd",
  "foundation_ui_traits",
  "foundation_wasm_ui",
  "serde",

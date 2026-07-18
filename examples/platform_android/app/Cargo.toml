@@ -24,11 +24,3 @@ codegen-backend = "llvm"
 [[bin]]
 name = "platform_dashboard"
 path = "bin/platform_dashboard/main.rs"
-
-[[bin]]
-name = "bg_worker"
-path = "bin/bg_worker/main.rs"
-
-[[bin]]
-name = "platform_sw"
-path = "bin/platform_sw/main.rs"

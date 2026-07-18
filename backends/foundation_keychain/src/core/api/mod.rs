@@ -5,6 +5,8 @@
 
 /// Accounts API — prelogin, register, password hint, profile, keys, avatar.
 pub mod accounts;
+/// Identity API — connect/token (login + refresh).
+pub mod identity;
 
 /// Ciphers API — CRUD, share, move, purge, restore.
 pub mod ciphers;

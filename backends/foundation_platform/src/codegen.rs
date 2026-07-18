@@ -1,52 +1,29 @@
 use std::path::{Path, PathBuf};
 
-// ── AppDistribution ────────────────────────────────────────────────────
-
-/// Describes one WASM app crate to build and deploy.
-///
-/// Each app gets its own `public/{name}/` subdirectory. The route prefix
-/// determines the URL path (e.g. `"/app/dashboard/"` → `http://ewe.localhost/app/dashboard/`).
 pub struct AppDistribution {
-    /// Subdirectory name for assets (e.g. `"app-hello"` → `public/app-hello/`).
     pub name: String,
-    /// Path to the wasm crate root (e.g. `root.join("app")`).
     pub crate_dir: PathBuf,
-    /// Route prefix this app serves at (e.g. `"/app/"` or `"/app/dashboard/"`).
     pub route_prefix: String,
 }
 
-// ── Entry point: src-tauri/build.rs ───────────────────────────────────
-
-/// Called from `src-tauri/build.rs`. Scans for wasm app crates, builds
-/// each, and runs Tauri codegen.
 pub fn generate_platform_code() {
-    let manifest_dir = PathBuf::from(
-        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"),
-    );
+    let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let project_root = manifest_dir.parent().unwrap().to_path_buf();
 
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=build.rs");
 
-    // Discover WASM app crates: looks for app/ and app-*/ directories
     let mut apps = Vec::new();
     let app_dir = project_root.join("app");
     if app_dir.join("Cargo.toml").exists() {
-        apps.push(AppDistribution {
-            name: "app".into(),
-            crate_dir: app_dir,
-            route_prefix: "/app/".into(),
-        });
+        apps.push(AppDistribution { name: "app".into(), crate_dir: app_dir, route_prefix: "/app/".into() });
     }
-    // Scan for app-*/ crates
     if let Ok(entries) = std::fs::read_dir(&project_root) {
         for e in entries.filter_map(|e| e.ok()) {
             let p = e.path();
-            let fname = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if fname.starts_with("app-") && p.is_dir() && p.join("Cargo.toml").exists() {
-                let name = fname.to_string();
-                let prefix = format!("/{}/", fname);
-                apps.push(AppDistribution { name, crate_dir: p, route_prefix: prefix });
+            let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+            if n.starts_with("app-") && p.is_dir() && p.join("Cargo.toml").exists() {
+                apps.push(AppDistribution { name: n.clone(), crate_dir: p, route_prefix: format!("/{}/", n) });
             }
         }
     }
@@ -54,8 +31,6 @@ pub fn generate_platform_code() {
     if !apps.is_empty() {
         let public_dir = manifest_dir.join("public");
         build_all_wasm_apps(&apps, &public_dir);
-
-        // Generate src/generated/ per app
         let generated_dir = manifest_dir.join("src").join("generated");
         std::fs::create_dir_all(&generated_dir).ok();
         generate_app_modules(&apps, &generated_dir);
@@ -63,7 +38,6 @@ pub fn generate_platform_code() {
 
     tauri_build::build();
 
-    // Patch initial URL to bypass WebViewAssetLoader
     if let Some(first) = apps.first() {
         patch_tauri_conf_for_ewe(&manifest_dir, &first.route_prefix);
     } else {
@@ -71,28 +45,20 @@ pub fn generate_platform_code() {
     }
 }
 
-// ── Public API: root build.rs ──────────────────────────────────────────
-
-/// Builds multiple wasm app crates, each into `public/{name}/`.
 pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
     for app in apps {
-        let app_public = public_dir.join(&app.name);
-        build_wasm_app(&app.crate_dir, &app_public, &app.name);
+        build_wasm_app(&app.crate_dir, &public_dir.join(&app.name));
     }
 }
 
-fn build_wasm_app(app_dir: &Path, out_dir: &Path, _name: &str) {
+fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     use foundation_wasm_ui::build_tools::WasmBundleGenerator;
 
     let wasm: Vec<_> = scan_for_annotations(&app_dir.join("src"))
         .into_iter()
         .filter(|a| matches!(a.kind, AnnotationKind::WasmBin | AnnotationKind::WasmWorker | AnnotationKind::WasmService))
         .collect();
-
-    if wasm.is_empty() {
-        println!("cargo:warning=no wasm annotations in {}", app_dir.display());
-        return;
-    }
+    if wasm.is_empty() { return; }
 
     let pairs: Vec<(&str, &str)> = wasm.iter().map(|a| (mode_str(a.kind), a.name.as_str())).collect();
     let gen = match WasmBundleGenerator::from_annotations(app_dir, out_dir, &pairs, true) {
@@ -101,105 +67,48 @@ fn build_wasm_app(app_dir: &Path, out_dir: &Path, _name: &str) {
     };
 
     let repo_root = app_dir.parent().unwrap().parent().unwrap().parent().unwrap();
-
-    // Find runtimes relative to repo root
-    let runtime_dir = |relative: &str| -> PathBuf {
-        // Try the standard backends/ path first
-        let p = repo_root.join("backends").join(relative);
-        if p.exists() { return p; }
-        // Fallback: search
-        repo_root.join(relative)
-    };
-
-    let wasm_js = runtime_dir("foundation_wasm/runtime/foundation-wasm.js");
-    let wasm_ui_js = runtime_dir("foundation_wasm_ui/runtimes/foundation-wasm-ui.js");
-    let interceptor = runtime_dir("foundation_wasm_ui/runtimes/platform-scheme-interceptor.js");
-
+    let wasm_js = repo_root.join("backends/foundation_wasm/runtime/foundation-wasm.js");
+    let wasm_ui_js = repo_root.join("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js");
+    let interceptor = repo_root.join("backends/foundation_wasm_ui/runtimes/platform-scheme-interceptor.js");
     std::fs::create_dir_all(out_dir).ok();
-
-    let runtime_assets: &[(&str, &Path)] = &[
+    let _ = gen.execute(false, false, &[
         ("foundation-wasm.js", wasm_js.as_path()),
         ("foundation-wasm-ui.js", wasm_ui_js.as_path()),
         ("platform-scheme-interceptor.js", interceptor.as_path()),
-    ];
-    // WasmBundleGenerator handles everything: .wasm, JS wrappers,
-    // bundle.js, runtime assets, and index.html generation.
-    let _ = gen.execute(false, false, runtime_assets);
+    ]);
 }
 
-// ── src/generated/ modules ─────────────────────────────────────────────
-
 fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
-    let mut mod_lines = String::from("// Auto-generated by foundation_platform::codegen\n\n");
-
+    let mut mod_lines = String::from("// Auto-generated\n\n");
     for app in apps {
         let module_name = app.name.replace('-', "_");
-        let route_prefix = &app.route_prefix;
-        let public_subdir = &app.name;
-
         let content = format!(
-            r#"// Generated — WebviewApp responder for "{name}".
-// Route: {route_prefix}  Assets: public/{public_subdir}/
-//
-// Wire in src-tauri/src/lib.rs:
-//   builder.route_with("{route_prefix}", webview_app().with_profile(Profile::App),
-//       generated::{module_name}::AppAssets::build());
-
-use foundation_macros::EmbedDirectoryAs;
-use foundation_platform::responder::WebviewApp;
-
-/// Embedded assets from public/{public_subdir}/.
-#[derive(EmbedDirectoryAs)]
-#[source = "public/{public_subdir}"]
-pub struct AppAssets;
-
-impl AppAssets {{
-    pub fn build() -> WebviewApp {{
-        WebviewApp::new(Self {{}})
-    }}
-}}
-"#,
-            module_name = app.name.replace('-', "_"),
-            name = app.name,
-            route_prefix = route_prefix,
-            public_subdir = public_subdir,
+            "// Generated — WebviewApp for \"{name}\"\n// Route prefix: {route_prefix}\n\
+             // Usage: builder.route_with(\"{route_prefix}\", webview_app(), generated::{module_name}::AppAssets::build());\n\n\
+             use foundation_macros::EmbedDirectoryAs;\n\
+             use foundation_platform::WebviewApp;\n\n\
+             #[derive(EmbedDirectoryAs)]\n#[source = \"public/{public_subdir}\"]\n\
+             pub struct AppAssets;\n\n\
+             impl AppAssets {{\n    pub fn build() -> WebviewApp<AppAssets> {{ WebviewApp::new(AppAssets {{}}) }}\n}}\n",
+            module_name = module_name, name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
         );
-
-        std::fs::write(generated_dir.join(format!("{}.rs", module_name)), &content).ok();
+        std::fs::write(generated_dir.join(format!("{module_name}.rs")), &content).ok();
         mod_lines.push_str(&format!("pub mod {module_name};\n"));
     }
-
     std::fs::write(generated_dir.join("mod.rs"), &mod_lines).ok();
-    println!("cargo:warning=generated {}/mod.rs + {} app modules", generated_dir.display(), apps.len());
+    println!("cargo:warning=generated {} app modules", apps.len());
 }
 
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
-    let conf_path = manifest_dir.join("tauri.conf.json");
     let target_url = format!("http://ewe.localhost{}", route_prefix.trim_end_matches('/'));
-    if let Ok(content) = std::fs::read_to_string(&conf_path) {
-        let patched = content.replace(
-            r#""url": "index.html""#,
-            &format!(r#""url": "{target_url}""#),
-        );
-        let patched = patched.replace(
-            r#""url":"index.html""#,
-            &format!(r#""url":"{target_url}""#),
-        );
-        if patched != content {
-            std::fs::write(&conf_path, &patched).ok();
-            println!("cargo:warning=patched tauri.conf.json url → {target_url}");
-        }
+    if let Ok(c) = std::fs::read_to_string(&manifest_dir.join("tauri.conf.json")) {
+        let patched = c.replace(r#""url": "index.html""#, &format!(r#""url": "{target_url}""#));
+        if patched != c { std::fs::write(&manifest_dir.join("tauri.conf.json"), &patched).ok(); }
     }
 }
 
-// ── Scanner ────────────────────────────────────────────────────────────
-
-#[derive(Debug, Clone)]
-pub struct Annotation { pub name: String, pub kind: AnnotationKind, pub file: PathBuf, pub target: String }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AnnotationKind { WasmBin, WasmWorker, WasmService, PlatformBin }
-
+#[derive(Debug, Clone)] pub struct Annotation { pub name: String, pub kind: AnnotationKind, pub file: PathBuf, pub target: String }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] pub enum AnnotationKind { WasmBin, WasmWorker, WasmService, PlatformBin }
 fn mode_str(k: AnnotationKind) -> &'static str {
     match k { AnnotationKind::WasmBin => "wasm_bin", AnnotationKind::WasmWorker => "wasm_worker", AnnotationKind::WasmService => "wasm_service", AnnotationKind::PlatformBin => "platform_bin" }
 }

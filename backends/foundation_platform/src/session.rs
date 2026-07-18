@@ -13,8 +13,8 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
-use crate::route_handler::RouteResponder;
 use crate::route::RouteDecisionExt;
+use crate::route_handler::RouteResponder;
 use foundation_ui_traits::*;
 
 // ── Session event types ───────────────────────────────────────────────
@@ -105,12 +105,6 @@ impl PlatformSession {
     }
 }
 
-impl Default for PlatformSession {
-    fn default() -> Self {
-        unreachable!("use PlatformSession::new() which returns Arc<PlatformSession>")
-    }
-}
-
 // ── Route handler registration ────────────────────────────────────────
 
 impl PlatformSession {
@@ -153,8 +147,7 @@ impl PlatformSession {
     /// Convenience wrapper around `FnRouteHandler` + `register_handler`.
     pub fn on_navigate(
         &self,
-        f: impl Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision>
-            + Send + Sync + 'static,
+        f: impl Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision> + Send + Sync + 'static,
     ) {
         self.register_handler(super::route_handler::FnRouteHandler::new(f));
     }
@@ -162,8 +155,7 @@ impl PlatformSession {
     fn default_decision_for(&self, intent: &NavigationIntent) -> RouteDecision {
         // External URLs → system browser
         if intent.url.starts_with("http://") || intent.url.starts_with("https://") {
-            return super::route::webview_app()
-                .with_presentation(Presentation::External);
+            return super::route::webview_app().with_presentation(Presentation::External);
         }
 
         // Same-origin ewe:// with no handler → UntrustedRemote sandbox
@@ -197,7 +189,8 @@ impl PlatformSession {
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
-                    .body(entry.body).unwrap();
+                    .body(entry.body)
+                    .unwrap();
             }
         }
 
@@ -207,7 +200,8 @@ impl PlatformSession {
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
-                    .body(entry.body).unwrap();
+                    .body(entry.body)
+                    .unwrap();
             }
         }
 
@@ -217,11 +211,20 @@ impl PlatformSession {
                 handler.respond(intent, decision, self)
             } else {
                 let body = format!("No handler for '{handler_id}'").into_bytes();
-                tauri::http::Response::builder().status(500).header("Content-Type", "text/plain").body(body).unwrap()
+                tauri::http::Response::builder()
+                    .status(500)
+                    .header("Content-Type", "text/plain")
+                    .body(body)
+                    .unwrap()
             }
         } else {
-            let body = crate::backend::query_backend(&crate::backend::DEFAULT_TRANSPORT, decision, &route);
-            tauri::http::Response::builder().status(200).header("Content-Type", "text/html").body(body).unwrap()
+            let body =
+                crate::backend::query_backend(&crate::backend::DEFAULT_TRANSPORT, decision, &route);
+            tauri::http::Response::builder()
+                .status(200)
+                .header("Content-Type", "text/html")
+                .body(body)
+                .unwrap()
         };
 
         // Step 9: Record navigation
@@ -330,9 +333,9 @@ impl PlatformSession {
         // SAFETY: Extending the lifetime of the Box<dyn> inside the RwLock.
         // The registry lives as long as the session, so this is safe.
         let guard = self.handler_registry.read().unwrap();
-        guard.get(handler_id).map(|b| {
-            unsafe { &*(b.as_ref() as *const dyn RouteResponder) }
-        })
+        guard
+            .get(handler_id)
+            .map(|b| unsafe { &*(b.as_ref() as *const dyn RouteResponder) })
     }
 }
 
@@ -364,10 +367,7 @@ impl PlatformSession {
     /// Register an event listener. The callback receives every session
     /// event. Return `true` to stay subscribed, `false` to unsubscribe
     /// after this event (one-shot listeners).
-    pub fn on_event(
-        &self,
-        f: impl Fn(&SessionEvent) -> bool + Send + Sync + 'static,
-    ) {
+    pub fn on_event(&self, f: impl Fn(&SessionEvent) -> bool + Send + Sync + 'static) {
         self.event_listeners.write().unwrap().push(Box::new(f));
     }
 

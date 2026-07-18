@@ -16,7 +16,7 @@ use foundation_db::core::storage_provider::AsyncQueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::folders;
 use foundation_keychain::core::models::folder::{FolderCreateRequest, FolderUpdateRequest};
-use foundation_keychain::core::store::SCHEMA;
+use foundation_keychain::core::store::apply_schema;
 use foundation_keychain::{AppError, KeychainContext};
 use tempfile::TempDir;
 
@@ -46,8 +46,7 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
 
     let db_for_schema = Arc::clone(&db);
-    drive(async move { db_for_schema.execute_batch_async(SCHEMA).await })
-        .expect("apply schema");
+    drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
 
     (KeychainContext::new(db), dir)
 }

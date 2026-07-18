@@ -1269,7 +1269,7 @@ fn impl_embeddable_directory(
                             #project_dir_tokens,
                             "",
                             "",
-                            "",
+                            None,
                             None,
                             true,
                         ),
@@ -1291,8 +1291,30 @@ fn impl_embeddable_directory(
         }
     };
 
+    let compression_value = match compression {
+        foundation_nostd::embeddable::DataCompression::NONE => {
+            quote! { foundation_nostd::embeddable::DataCompression::NONE }
+        }
+        foundation_nostd::embeddable::DataCompression::GZIP => {
+            quote! { foundation_nostd::embeddable::DataCompression::GZIP }
+        }
+        foundation_nostd::embeddable::DataCompression::BROTTLI => {
+            quote! { foundation_nostd::embeddable::DataCompression::BROTTLI }
+        }
+    };
+
+    let has_compression_tokens = quote! {
+        impl foundation_nostd::embeddable::HasCompression for #struct_name {
+            fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                #compression_value
+            }
+        }
+    };
+
     quote! {
         #embeddable_file_tokens
+
+        #has_compression_tokens
 
         #embeddable_directory_tokens
 

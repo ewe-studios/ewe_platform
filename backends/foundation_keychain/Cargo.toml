@@ -16,6 +16,7 @@ crate-type = ["rlib", "cdylib"]
 serde = { workspace = true }
 serde_json = "1"
 base64 = "0.22"
+base32 = "0.5"
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 rmpv = "1"
@@ -31,6 +32,10 @@ age = { version = "0.10", optional = true }
 # Foundation deps
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false }
+# Cross-platform HTTP client (`default_http_client`) for the icon proxy etc.
+# `default-features = false`; the right backend comes from the target (multi on
+# native via foundation_db/turso, wasm-fetch on wasm — see per-target sections).
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
 # `default-features = false` is required: foundation_auth's default `turso` feature is
 # native-only and, via cargo's default-features union, would otherwise pull
 # foundation_db/turso → foundation_db/multi → foundation_netio/multi into the wasm build
@@ -47,10 +52,12 @@ foundation_db = { path = "../foundation_db", version = "0.0.1", default-features
 # NOTE: `wasm-bindgen-session` (foundation_auth D1CredentialStore) is added in the auth/login
 # stage that actually uses it — the vault-CRUD stages talk to foundation_db's D1 directly.
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["wasm-pbkdf2"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false, features = ["wasm-fetch"] }
 
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).

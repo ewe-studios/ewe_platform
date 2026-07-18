@@ -34,3 +34,66 @@ pub struct OrganizationCreateRequest {
     pub key: Option<String>,
     pub collection_name: Option<String>,
 }
+
+// ── Collections + membership DTOs (F008 Stage 1) ────────────────────────────
+
+/// A collection within an organization.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Collection {
+    pub id: String,
+    pub organization_id: String,
+    pub name: String,
+    pub external_id: Option<String>,
+    pub read_only: bool,
+    pub object: &'static str,
+}
+
+/// An organization membership as returned to the owner/admin.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MemberResponse {
+    pub id: String,
+    pub user_id: Option<String>,
+    pub organization_id: String,
+    pub email: String,
+    #[serde(rename = "type")]
+    pub member_type: OrganizationUserType,
+    pub status: i32,
+    pub object: &'static str,
+}
+
+/// The `profile.organizations[*]` entry a client sees for its own memberships.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileOrganization {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub member_type: OrganizationUserType,
+    pub status: i32,
+    pub enabled: bool,
+    pub key: Option<String>,
+    pub object: &'static str,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionCreateRequest {
+    pub name: String,
+    pub external_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InviteMemberRequest {
+    pub email: String,
+    #[serde(rename = "type")]
+    pub member_type: OrganizationUserType,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConfirmMemberRequest {
+    pub key: Option<String>,
+}

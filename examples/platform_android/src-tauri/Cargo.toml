@@ -10,6 +10,8 @@ crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 foundation_platform = { path = "../../../backends/foundation_platform" }
+foundation_macros = { path = "../../../backends/foundation_macros" }
+foundation_nostd = { path = "../../../backends/foundation_nostd" }
 tauri = { version = "2.11.5", features = [] }
 serde = "1"
 serde_json = "1"

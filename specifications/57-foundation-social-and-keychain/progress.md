@@ -36,7 +36,25 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    - ✅ core types/models/auth/notifications (26 tests)
    - ✅ Stage-1 architecture + **folders vertical**: `KeychainContext` + `core/store/` +
      `core/api/folders` + `migrations/0001_initial.sql`; 6 integration tests; native + wasm32 compile
-   - 🔲 core/api: accounts/identity, ciphers, sync, orgs, sends, 2FA, emergency, events, icons
+   - ✅ **accounts vertical**: `core/crypto` (cross-platform PBKDF2 wrapper) + `core/store/users`
+     (`vault_accounts` table) + `core/api/accounts` (prelogin/register/profile/verify); 7 tests
+   - ✅ **identity/login vertical**: `connect/token` password + refresh grants → `LoginResponse`;
+     JWT mint/verify via `foundation_auth::JwtSigningKey` (context gains signing key + verifier);
+     `core/store/devices` (refresh-token rotation); 6 tests. **Fixed `foundation_auth::sign_claims`
+     to carry custom claims + honor `exp` (was dropping everything but sub/iss/aud).**
+   - ✅ **ciphers vertical**: `core/store/ciphers` + `core/api/ciphers` (CRUD + soft-delete/restore,
+     content JSON in `data` column); 6 tests
+   - ✅ **sync vertical**: `core/api/sync` assembles profile + folders + ciphers; 1 test
+   - ✅ **sends vertical**: `core/store/sends` + `core/api/sends` (CRUD + anonymous access controls:
+     password/max-count/disabled/expiry); 4 tests
+   - ✅ **two_factor** (TOTP setup/enable/verify/disable via foundation_auth TOTPSecret; base32); 1 test
+   - ✅ **icons** (SSRF-guarded favicon proxy over default_http_client); 2 tests
+   - ✅ **events** (audit log collect/list); 1 test · ✅ **emergency** (faithful placeholder, empty)
+   - ✅ **orgs** (create+owner+default collection, get/list/delete, collections CRUD, member
+     invite/confirm/list; advanced ACLs/policies/groups/cipher-share deferred); 4 tests
+   - ✅ **sync** now includes org collections + sends
+   - **✅ STAGE 1 COMPLETE — portable vault API: all core/api entities, native + wasm32, 64 tests green**
+   - 🔲 Stage 2 native backend (foundation_http transport) · 🔲 Stage 3 cloudflare/workers · 🔲 Stage 4 integration+docker
    - 🔲 Stage 2 native backend · 🔲 Stage 3 cloudflare/workers · 🔲 Stage 4 integration+docker
 4. 🔲 009 SSH key provisioning (former 012)
 

@@ -258,10 +258,31 @@ impl JwtSigningKey {
     ///
     /// Returns `JwtError::GenerationError` if signing fails.
     pub fn sign_claims(&self, claims: &serde_json::Value) -> Result<String, JwtError> {
-        // Build jwt-simple claims from the JSON value
-        let mut builder = jwt_simple::prelude::Claims::create(
-            jwt_simple::prelude::Duration::from_secs(3600),
-        );
+        use jwt_simple::prelude::{Claims, Duration};
+
+        // Token lifetime: derive from an absolute `exp` (epoch seconds) when the
+        // caller supplies one, otherwise default to 1 hour.
+        let duration = claims
+            .get("exp")
+            .and_then(serde_json::Value::as_u64)
+            .map(|exp| {
+                let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
+                Duration::from_secs(exp.saturating_sub(now).max(1))
+            })
+            .unwrap_or_else(|| Duration::from_secs(3600));
+
+        // Application (custom) claims = everything except the registered claims
+        // jwt-simple manages itself — otherwise those keys would appear twice in
+        // the payload. Custom claims are what downstream `VerifiedClaims.custom`
+        // reads back (e.g. Bitwarden's `sstamp`, `device`, `email`, `premium`).
+        let mut custom = claims.clone();
+        if let Some(obj) = custom.as_object_mut() {
+            for key in ["sub", "iss", "aud", "exp", "iat", "nbf", "jti"] {
+                obj.remove(key);
+            }
+        }
+
+        let mut builder = Claims::with_custom_claims(custom, duration);
 
         // Apply standard claims from the JSON value
         if let Some(sub) = claims.get("sub").and_then(|v| v.as_str()) {
