@@ -22,99 +22,142 @@ tasks:
 
 ## Overview
 
-Auto-restart daemons when source files change (native file watcher + poll fallback)
-and schedule periodic restarts via cron or fixed intervals. Reuses the existing
-foundation_nativeapis file watching and valtron task infrastructure.
+Auto-restart daemons when source files change using foundation_nativeapis's
+existing `NativeWatcher` and `FileWatcherTask`. Cron scheduling uses background
+threads that push restart events to the supervisor's event queue.
 
 [spec](../spec.md).
 
 ---
 
-## Part A — File watching
+## Part A — File watching (uses foundation_nativeapis)
 
 ```rust
 // foundation_nativeapis/src/daemon/watcher.rs
 
-use foundation_nativeapis::{NativeWatcher, WatchEvent};
+use foundation_nativeapis::{NativeWatcher, WatchEvent, CompositeReadiness};
+use concurrent_queue::ConcurrentQueue;
+use std::sync::Arc;
 
-/// File watcher for a single daemon.
+/// File watcher for a single daemon — wraps foundation_nativeapis::NativeWatcher.
 pub struct DaemonFileWatcher {
     pub daemon_id: DaemonId,
     pub patterns: Vec<String>,       // glob patterns: "src/**/*.rs"
-    pub watcher: NativeWatcher,      // inotify/FSEvents/ReadDirectoryChangesW
-    mode: WatchMode,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum WatchMode {
-    /// Platform-specific native watcher (inotify, FSEvents, etc.).
-    Native,
-    /// Periodic filesystem polling (for networked filesystems).
-    Poll(std::time::Duration),
-    /// Try native, fall back to poll if native setup fails.
-    Auto,
+    watcher: NativeWatcher,
+    event_queue: Arc<ConcurrentQueue<WatchEvent>>,
 }
 
 impl DaemonFileWatcher {
-    /// Start watching. Returns a stream of change events.
-    pub async fn watch(&self, tx: mpsc::Sender<WatchEvent>) -> Result<(), WatchError> {
-        match self.mode {
-            WatchMode::Native => self.watch_native(tx).await,
-            WatchMode::Poll(interval) => self.watch_poll(interval, tx).await,
-            WatchMode::Auto => {
-                match self.watch_native(tx.clone()).await {
-                    Ok(()) => Ok(()),
-                    Err(_) => self.watch_poll(std::time::Duration::from_secs(1), tx).await,
-                }
-            }
+    /// Create a file watcher for a daemon.
+    pub fn new(
+        daemon_id: DaemonId,
+        patterns: Vec<String>,
+    ) -> Result<Self, WatchError> {
+        let watcher = foundation_nativeapis::native_watcher()?;
+        let event_queue = Arc::new(ConcurrentQueue::unbounded());
+
+        // Add each pattern to the watcher.
+        for pattern in &patterns {
+            watcher.add_watch(pattern)?;
         }
+
+        Ok(Self {
+            daemon_id,
+            patterns,
+            watcher,
+            event_queue,
+        })
     }
 
-    /// Resolve glob patterns to concrete file paths.
-    pub fn resolve_patterns(&self) -> Vec<PathBuf> {
-        let mut paths = Vec::new();
-        for pattern in &self.patterns {
-            if let Ok(glob) = glob::glob(pattern) {
-                for entry in glob.flatten() {
-                    paths.push(entry);
-                }
-            }
+    /// Watch for events — pushes to event_queue, used by FileWatcherTask.
+    pub fn poll(&self) -> Result<(), WatchError> {
+        for event in self.watcher.poll()? {
+            let _ = self.event_queue.push(event);
         }
-        paths
+        Ok(())
+    }
+
+    /// Readiness signal — ready when event queue is non-empty.
+    pub fn readiness(&self) -> QueueReadiness<WatchEvent> {
+        QueueReadiness::new(self.event_queue.clone())
     }
 }
 ```
 
-### A.2 — Supervisor integration
+### A.2 — FileWatcherTask (TaskIterator)
+
+```rust
+use foundation_core::valtron::{TaskIterator, TaskStatus, NoAction, QueueReadiness};
+
+/// File watcher task — implements TaskIterator for valtron.
+///
+/// Returns:
+///   Ready(WatchEvent) — file changed
+///   Delayed(d) — poll again after d
+///   Depends(readiness) — park until file event arrives
+pub struct FileWatcherTask {
+    watcher: Arc<DaemonFileWatcher>,
+    state: FileWatcherState,
+}
+
+enum FileWatcherState {
+    Init,
+    Polling,
+}
+
+impl FileWatcherTask {
+    pub fn new(watcher: Arc<DaemonFileWatcher>) -> Self {
+        Self {
+            watcher,
+            state: FileWatcherState::Init,
+        }
+    }
+}
+
+impl TaskIterator for FileWatcherTask {
+    type Ready = WatchEvent;
+    type Pending = ();
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        // Check for events.
+        self.watcher.poll().ok();
+        if let Ok(event) = self.watcher.event_queue.pop() {
+            return Some(TaskStatus::Ready(event));
+        }
+
+        // No events — park on readiness.
+        self.state = FileWatcherState::Polling;
+        Some(TaskStatus::Depends(Arc::new(self.watcher.readiness())))
+    }
+}
+```
+
+### A.3 — Supervisor integration
+
+The supervisor watches file changes and restarts affected daemons:
 
 ```rust
 impl Supervisor {
     /// Install file watchers for all daemons that have watch patterns.
-    pub async fn install_watchers(&self) -> Result<(), WatchError> {
-        let daemons = self.daemons.lock().await;
+    pub fn install_watchers(&mut self) -> Result<(), WatchError> {
+        let daemons = self.daemons.lock().unwrap();
         for (id, managed) in daemons.iter() {
             if !managed.def.watch.is_empty() {
-                let watcher = DaemonFileWatcher {
-                    daemon_id: id.clone(),
-                    patterns: managed.def.watch.clone(),
-                    watcher: foundation_nativeapis::native_watcher()?,
-                    mode: WatchMode::Auto,
-                };
-                let (tx, mut rx) = foundation_core::valtron::sync::mpsc::channel(100);
-                watcher.watch(tx).await?;
-
-                // Watch → restart loop.
-                let supervisor = self.clone();
-                let daemon_id = id.clone();
-                valtron::spawn(async move {
-                    while let Some(_event) = rx.recv().await {
-                        tracing::info!(daemon = %daemon_id, "file change detected, restarting");
-                        let _ = supervisor.restart_daemon(&daemon_id).await;
-                    }
-                });
+                let watcher = Arc::new(DaemonFileWatcher::new(
+                    id.clone(),
+                    managed.def.watch.clone(),
+                )?);
+                self.file_watchers.insert(id.clone(), watcher);
             }
         }
         Ok(())
+    }
+
+    /// Handle a file change event — restart the affected daemon.
+    fn handle_file_change(&self, daemon_id: &DaemonId) {
+        tracing::info!(daemon = %daemon_id, "file change detected, restarting");
+        let _ = self.restart_daemon(daemon_id);
     }
 }
 ```
@@ -122,6 +165,8 @@ impl Supervisor {
 ---
 
 ## Part B — Cron scheduling
+
+Cron tasks run on background threads and push restart events to the supervisor.
 
 ```rust
 /// Cron-triggered restart for a daemon.
@@ -145,8 +190,8 @@ pub enum CronRetrigger {
 
 impl Supervisor {
     /// Install cron schedules for all daemons that have cron_schedule defined.
-    pub async fn install_cron_schedules(&self) {
-        let daemons = self.daemons.lock().await;
+    pub fn install_cron_schedules(&self) {
+        let daemons = self.daemons.lock().unwrap();
         for (id, managed) in daemons.iter() {
             if let Some(expr) = &managed.def.cron_schedule {
                 if let Ok(schedule) = cron::Schedule::from_str(expr) {
@@ -155,33 +200,39 @@ impl Supervisor {
                         schedule,
                         retrigger: CronRetrigger::Always, // default
                     };
-                    self.spawn_cron_task(cron).await;
+                    self.spawn_cron_thread(cron);
                 }
             }
         }
     }
 
-    async fn spawn_cron_task(&self, cron: CronSchedule) {
+    /// Spawn a background thread that waits for the cron time and triggers restart.
+    fn spawn_cron_thread(&self, cron: CronSchedule) {
+        let daemon_id = cron.daemon_id.clone();
         let supervisor = self.clone();
-        valtron::spawn(async move {
-            for datetime in cron.schedule.upcoming(chrono::Utc).take(1) {
+
+        std::thread::spawn(move || {
+            let next = cron.schedule.upcoming(chrono::Utc).next();
+            if let Some(datetime) = next {
                 let delay = datetime - chrono::Utc::now();
-                foundation_core::valtron::time::sleep(delay.to_std().unwrap()).await;
+                if let Ok(dur) = delay.to_std() {
+                    std::thread::sleep(dur);
 
-                let should_restart = match cron.retrigger {
-                    CronRetrigger::IfStopped => {
-                        let daemons = supervisor.daemons.lock().await;
-                        daemons.get(&cron.daemon_id)
-                            .map(|m| m.status == DaemonStatus::Stopped)
-                            .unwrap_or(false)
+                    let should_restart = match cron.retrigger {
+                        CronRetrigger::IfStopped => {
+                            let daemons = supervisor.daemons.lock().unwrap();
+                            daemons.get(&daemon_id)
+                                .map(|m| m.status == DaemonStatus::Stopped)
+                                .unwrap_or(false)
+                        }
+                        CronRetrigger::Always => true,
+                        CronRetrigger::OnSuccess => true,
+                        CronRetrigger::OnFailure => true,
+                    };
+
+                    if should_restart {
+                        let _ = supervisor.restart_daemon(&daemon_id);
                     }
-                    CronRetrigger::Always => true,
-                    CronRetrigger::OnSuccess => true, // simplified
-                    CronRetrigger::OnFailure => true, // simplified
-                };
-
-                if should_restart {
-                    let _ = supervisor.restart_daemon(&cron.daemon_id).await;
                 }
             }
         });
@@ -199,7 +250,8 @@ cargo test --package foundation_nativeapis --features daemon -- daemon::watcher
 
 Tests cover:
 - File watcher detects changes to matched patterns
-- Auto mode: native succeeds → watcher runs; native fails → poll fallback
+- NativeWatcher integration: add_watch, poll, event delivery
+- FileWatcherTask: returns Ready(event) on file change, Depends on idle
 - Cron schedule parses valid expressions, rejects invalid ones
 - CronRetrigger::IfStopped only restarts stopped daemons
 - Pattern resolution: glob expansion to concrete paths

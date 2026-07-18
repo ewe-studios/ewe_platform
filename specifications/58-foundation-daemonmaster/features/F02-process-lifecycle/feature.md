@@ -37,7 +37,7 @@ Builds on F01's config and dependency graph.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
-use foundation_core::valtron::sync::{Mutex, WatchSender, WatchReceiver, OneshotSender};
+use concurrent_queue::ConcurrentQueue;
 
 /// Central supervisor — manages all daemon child processes.
 ///
@@ -46,10 +46,9 @@ pub struct Supervisor {
     /// Config loaded from F01.
     config: Arc<DaemonConfig>,
     /// Managed daemons keyed by DaemonId.
-    daemons: Mutex<BTreeMap<DaemonId, ManagedDaemon>>,
-    /// Shutdown signal — when fired, supervisor stops all daemons.
-    shutdown_tx: WatchSender<bool>,
-    shutdown_rx: WatchReceiver<bool>,
+    daemons: std::sync::Mutex<BTreeMap<DaemonId, ManagedDaemon>>,
+    /// Shutdown signal — atomic bool, checked in event loop.
+    shutting_down: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 /// A daemon under supervision.
@@ -60,10 +59,6 @@ pub struct ManagedDaemon {
     pub status: DaemonStatus,
     pub restart_count: u32,
     pub last_start: Option<std::time::Instant>,
-    /// Child process handle (for wait + signal).
-    pub child: Option<std::process::Child>,
-    /// Readiness channel — fires when ready.
-    pub ready_tx: Option<OneshotSender<()>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -102,7 +97,7 @@ Supervisor::start()
 ```rust
 impl Supervisor {
     /// Spawn a single daemon process.
-    async fn spawn_daemon(&self, id: &DaemonId) -> Result<(), SpawnError> {
+    fn spawn_daemon(&self, id: &DaemonId) -> Result<(), SpawnError> {
         let def = self.config.daemons.get(id.name.as_str())
             .ok_or(SpawnError::NotFound(id.clone()))?;
 
@@ -131,12 +126,20 @@ impl Supervisor {
         let mut child = cmd.spawn()?;
         let pid = child.id();
 
-        // Capture stdout/stderr for readiness detection and log streaming.
-        let stdout = child.stdout.take();
-        let stderr = child.stderr.take();
+        // Spawn exit watcher thread — pushes to exit queue when child exits.
+        let exit_queue = self.exit_queue_for(id)?;
+        spawn_exit_watcher(child, id.clone(), exit_queue);
+
+        // Spawn stream readers for stdout/stderr → feeds readiness queue.
+        if let Some(stdout) = child.stdout.take() {
+            spawn_stream_reader(id.clone(), stdout, StreamKind::Stdout, self);
+        }
+        if let Some(stderr) = child.stderr.take() {
+            spawn_stream_reader(id.clone(), stderr, StreamKind::Stderr, self);
+        }
 
         // Update managed daemon state.
-        let mut daemons = self.daemons.lock().await;
+        let mut daemons = self.daemons.lock().unwrap();
         let managed = daemons.entry(id.clone()).or_insert_with(|| ManagedDaemon {
             id: id.clone(),
             def: def.clone(),
@@ -144,24 +147,64 @@ impl Supervisor {
             status: DaemonStatus::Starting,
             restart_count: 0,
             last_start: None,
-            child: None,
-            ready_tx: None,
         });
         managed.pid = pid;
         managed.status = DaemonStatus::Starting;
-        managed.child = Some(child);
         managed.last_start = Some(std::time::Instant::now());
-
-        // Spawn stdout/stderr readers for readiness + log streaming.
-        if let Some(stdout) = stdout {
-            valtron::spawn(Self::read_stream(id.clone(), stdout, StreamKind::Stdout));
-        }
-        if let Some(stderr) = stderr {
-            valtron::spawn(Self::read_stream(id.clone(), stderr, StreamKind::Stderr));
-        }
 
         Ok(())
     }
+}
+```
+
+### B.2 — Exit watcher (background thread)
+
+```rust
+/// Bridges std::process::Child::wait() into a valtron concurrent queue.
+/// Runs on a background thread — pushes to the queue when the child exits.
+pub fn spawn_exit_watcher(
+    child: std::process::Child,
+    id: DaemonId,
+    queue: Arc<ConcurrentQueue<DaemonExitEvent>>,
+) {
+    std::thread::spawn(move || {
+        let exit_status = child.wait().ok();
+        let _ = queue.push(DaemonExitEvent { id, exit_status });
+    });
+}
+```
+
+### B.3 — Stream reader (background thread)
+
+```rust
+/// Reads a process stream, pushes lines to the daemon's readiness queue
+/// and log buffer.
+pub fn spawn_stream_reader(
+    id: DaemonId,
+    stream: std::process::ChildStdout,
+    kind: StreamKind,
+    supervisor: &Supervisor,
+) {
+    let queue = supervisor.readiness_queue_for(&id);
+    std::thread::spawn(move || {
+        use std::io::BufRead;
+        let reader = std::io::BufReader::new(stream);
+        for line in reader.lines() {
+            match line {
+                Ok(line) => {
+                    let _ = queue.push(OutputLine {
+                        text: line.clone(),
+                        stream: kind,
+                    });
+                    tracing::info!(daemon = %id, stream = ?kind, "{line}");
+                }
+                Err(e) => {
+                    tracing::warn!(daemon = %id, "stream read error: {e}");
+                    break;
+                }
+            }
+        }
+    });
 }
 ```
 
@@ -169,31 +212,53 @@ impl Supervisor {
 
 ## Part C — Readiness detection (5 strategies)
 
-All strategies funnel into a `OneshotSender<()>` — when fired, the daemon is Ready.
+All strategies are modeled as `TaskIterator` implementations — the executor
+drives them via `next_status()`, returning `Ready(())`, `Pending`, `Delayed`,
+or `Depends` naturally.
 
 ```rust
 // foundation_nativeapis/src/daemon/process.rs
 
-use foundation_core::valtron::sync::{mpsc, OneshotSender, OneshotReceiver};
+use foundation_core::valtron::{
+    NoAction, TaskIterator, TaskStatus,
+    QueueReadiness, AnyReadiness, EventReadiness,
+};
+use concurrent_queue::ConcurrentQueue;
+use std::sync::Arc;
 
-/// Readiness notifier — pushed to by stream readers.
-pub struct ReadinessNotifier {
-    tx: OneshotSender<()>,
+/// Readiness queue — output stream pushes lines here, ReadinessTask pops them.
+pub struct ReadinessQueue {
+    queue: Arc<ConcurrentQueue<OutputLine>>,
 }
 
-impl ReadinessNotifier {
-    pub fn new() -> (Self, OneshotReceiver<()>) {
-        let (tx, rx) = foundation_core::valtron::sync::oneshot();
-        (ReadinessNotifier { tx }, rx)
+impl ReadinessQueue {
+    pub fn new() -> Self {
+        Self {
+            queue: Arc::new(ConcurrentQueue::unbounded()),
+        }
     }
 
-    pub fn mark_ready(self) {
-        // oneshot::send consumes self — can only fire once.
-        let _ = self.tx.send(());
+    pub fn push(&self, line: OutputLine) {
+        let _ = self.queue.push(line);
+    }
+
+    pub fn pop(&self) -> Option<OutputLine> {
+        self.queue.pop().ok()
+    }
+
+    pub fn readiness(&self) -> QueueReadiness<OutputLine> {
+        QueueReadiness::new(self.queue.clone())
     }
 }
 
-/// Readiness strategies.
+pub struct OutputLine {
+    pub text: String,
+    pub stream: StreamKind,
+}
+
+pub enum StreamKind { Stdout, Stderr }
+
+/// Readiness strategy — declarative, maps to ReadinessTask at runtime.
 pub enum ReadinessStrategy {
     /// Wait N seconds then mark ready.
     Delay(std::time::Duration),
@@ -209,126 +274,226 @@ pub enum ReadinessStrategy {
     Immediate,
 }
 
-impl ReadinessStrategy {
-    /// Run the readiness check. Returns when ready or times out.
-    pub async fn wait_ready(
-        &self,
-        notifier: ReadinessNotifier,
-        output_rx: mpsc::Receiver<OutputLine>,
-        timeout: std::time::Duration,
-    ) -> Result<(), ReadinessTimeout> {
-        use futures::{select, FutureExt};
-        use foundation_core::valtron::time::sleep;
+/// Readiness task — implements TaskIterator so valtron drives it properly.
+pub struct ReadinessTask {
+    strategy: ReadinessStrategy,
+    queue: ReadinessQueue,
+    started: std::time::Instant,
+    timeout: std::time::Duration,
+    // Strategy-specific state.
+    state: ReadinessState,
+}
 
-        match self {
-            Self::Immediate => { notifier.mark_ready(); Ok(()) }
-            Self::Delay(d) => {
-                select! {
-                    _ = sleep(*d).fuse() => { notifier.mark_ready(); Ok(()) },
-                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
+enum ReadinessState {
+    Init,
+    Delaying,
+    HttpChecking { last_check: std::time::Instant },
+    PortChecking { last_probe: std::time::Instant },
+    CmdChecking { last_cmd: std::time::Instant },
+    Done,
+}
+
+#[derive(Debug)]
+pub enum ReadinessPending {
+    Waiting { remaining: std::time::Duration },
+    Checking,
+}
+
+#[derive(Debug)]
+pub struct ReadinessTimeout;
+```
+
+### C.2 — TaskIterator impl
+
+```rust
+impl ReadinessTask {
+    pub fn new(
+        strategy: ReadinessStrategy,
+        queue: ReadinessQueue,
+        timeout: std::time::Duration,
+    ) -> Self {
+        Self {
+            strategy,
+            queue,
+            started: std::time::Instant::now(),
+            timeout,
+            state: ReadinessState::Init,
+        }
+    }
+
+    fn elapsed(&self) -> std::time::Duration {
+        self.started.elapsed()
+    }
+
+    fn timed_out(&self) -> bool {
+        self.elapsed() >= self.timeout
+    }
+}
+
+impl TaskIterator for ReadinessTask {
+    type Ready = Result<(), ReadinessTimeout>;
+    type Pending = ReadinessPending;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if matches!(self.state, ReadinessState::Done) {
+            return None;
+        }
+
+        // Check timeout on every poll.
+        if self.timed_out() {
+            self.state = ReadinessState::Done;
+            return Some(TaskStatus::Ready(Err(ReadinessTimeout)));
+        }
+
+        match &self.strategy {
+            ReadinessStrategy::Immediate => {
+                self.state = ReadinessState::Done;
+                Some(TaskStatus::Ready(Ok(())))
+            }
+
+            ReadinessStrategy::Delay(target) => {
+                if self.elapsed() >= *target {
+                    self.state = ReadinessState::Done;
+                    Some(TaskStatus::Ready(Ok(())))
+                } else {
+                    let remaining = target.saturating_sub(self.elapsed());
+                    self.state = ReadinessState::Delaying;
+                    Some(TaskStatus::Delayed(remaining))
                 }
             }
-            Self::Output(pattern) => {
-                let mut output_rx = output_rx;
-                select! {
-                    _ = async {
-                        while let Some(line) = output_rx.recv().await {
-                            if pattern.is_match(&line.text) {
-                                notifier.mark_ready();
-                                return;
+
+            ReadinessStrategy::Output(pattern) => {
+                // Check queue for matching output line.
+                while let Some(line) = self.queue.pop() {
+                    if pattern.is_match(&line.text) {
+                        self.state = ReadinessState::Done;
+                        return Some(TaskStatus::Ready(Ok(())));
+                    }
+                }
+                // No matching line — park on queue readiness.
+                Some(TaskStatus::Depends(Arc::new(self.queue.readiness())))
+            }
+
+            ReadinessStrategy::Http(url) => {
+                let poll_interval = std::time::Duration::from_secs(1);
+                match &mut self.state {
+                    ReadinessState::Init => {
+                        if Self::http_check(url) {
+                            self.state = ReadinessState::Done;
+                            return Some(TaskStatus::Ready(Ok(())));
+                        }
+                        self.state = ReadinessState::HttpChecking {
+                            last_check: std::time::Instant::now(),
+                        };
+                        Some(TaskStatus::Delayed(poll_interval))
+                    }
+                    ReadinessState::HttpChecking { last_check } => {
+                        if last_check.elapsed() >= poll_interval {
+                            *last_check = std::time::Instant::now();
+                            if Self::http_check(url) {
+                                self.state = ReadinessState::Done;
+                                return Some(TaskStatus::Ready(Ok(())));
                             }
                         }
-                    }.fuse() => Ok(()),
-                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
-                }
-            }
-            Self::Http(url) => {
-                let client = reqwest::Client::new();
-                loop {
-                    select! {
-                        _ = sleep(std::time::Duration::from_secs(1)).fuse() => {
-                            if let Ok(resp) = client.get(url).send().await {
-                                if resp.status().is_success() {
-                                    notifier.mark_ready();
-                                    return Ok(());
-                                }
-                            }
-                        },
-                        _ = sleep(timeout).fuse() => return Err(ReadinessTimeout),
+                        let remaining = poll_interval.saturating_sub(last_check.elapsed());
+                        Some(TaskStatus::Delayed(remaining))
+                    }
+                    _ => {
+                        self.state = ReadinessState::Done;
+                        None
                     }
                 }
             }
-            Self::Port(port) => {
-                select! {
-                    _ = async {
-                        loop {
-                            if std::net::TcpStream::connect(("127.0.0.1", *port)).is_ok() {
-                                notifier.mark_ready();
-                                return;
-                            }
-                            sleep(std::time::Duration::from_millis(100)).await;
+
+            ReadinessStrategy::Port(port) => {
+                let probe_interval = std::time::Duration::from_millis(100);
+                match &mut self.state {
+                    ReadinessState::Init => {
+                        if Self::port_check(*port) {
+                            self.state = ReadinessState::Done;
+                            return Some(TaskStatus::Ready(Ok(())));
                         }
-                    }.fuse() => Ok(()),
-                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
+                        self.state = ReadinessState::PortChecking {
+                            last_probe: std::time::Instant::now(),
+                        };
+                        Some(TaskStatus::Delayed(probe_interval))
+                    }
+                    ReadinessState::PortChecking { last_probe } => {
+                        if last_probe.elapsed() >= probe_interval {
+                            *last_probe = std::time::Instant::now();
+                            if Self::port_check(*port) {
+                                self.state = ReadinessState::Done;
+                                return Some(TaskStatus::Ready(Ok(())));
+                            }
+                        }
+                        let remaining = probe_interval.saturating_sub(last_probe.elapsed());
+                        Some(TaskStatus::Delayed(remaining))
+                    }
+                    _ => {
+                        self.state = ReadinessState::Done;
+                        None
+                    }
                 }
             }
-            Self::Cmd(args) => {
-                select! {
-                    r = async {
-                        loop {
-                            let status = std::process::Command::new(&args[0])
-                                .args(&args[1..]).status();
-                            if let Ok(s) = status {
-                                if s.success() {
-                                    notifier.mark_ready();
-                                    return;
-                                }
-                            }
-                            sleep(std::time::Duration::from_secs(1)).await;
+
+            ReadinessStrategy::Cmd(args) => {
+                let check_interval = std::time::Duration::from_secs(1);
+                match &mut self.state {
+                    ReadinessState::Init => {
+                        if Self::cmd_check(args) {
+                            self.state = ReadinessState::Done;
+                            return Some(TaskStatus::Ready(Ok(())));
                         }
-                    }.fuse() => r,
-                    _ = sleep(timeout).fuse() => Err(ReadinessTimeout),
+                        self.state = ReadinessState::CmdChecking {
+                            last_cmd: std::time::Instant::now(),
+                        };
+                        Some(TaskStatus::Delayed(check_interval))
+                    }
+                    ReadinessState::CmdChecking { last_cmd } => {
+                        if last_cmd.elapsed() >= check_interval {
+                            *last_cmd = std::time::Instant::now();
+                            if Self::cmd_check(args) {
+                                self.state = ReadinessState::Done;
+                                return Some(TaskStatus::Ready(Ok(())));
+                            }
+                        }
+                        let remaining = check_interval.saturating_sub(last_cmd.elapsed());
+                        Some(TaskStatus::Delayed(remaining))
+                    }
+                    _ => {
+                        self.state = ReadinessState::Done;
+                        None
+                    }
                 }
             }
         }
     }
 }
 
-pub struct OutputLine {
-    pub text: String,
-    pub stream: StreamKind,
-}
-
-pub enum StreamKind { Stdout, Stderr }
-
-#[derive(Debug)]
-pub struct ReadinessTimeout;
-```
-
-### C.2 — Stream reader (feeds readiness + log buffer)
-
-```rust
-impl Supervisor {
-    /// Read a process stream, feed lines to readiness notifier and log buffer.
-    async fn read_stream(
-        id: DaemonId,
-        stream: std::process::ChildStdout,
-        kind: StreamKind,
-    ) {
-        use std::io::BufRead;
-        let reader = std::io::BufReader::new(stream);
-        for line in reader.lines() {
-            match line {
-                Ok(line) => {
-                    // Log lines are stored for RPC streaming (F03).
-                    tracing::info!(daemon = %id, stream = ?kind, "{line}");
-                }
-                Err(e) => {
-                    tracing::warn!(daemon = %id, "stream read error: {e}");
-                    break;
-                }
-            }
+impl ReadinessTask {
+    fn http_check(url: &str) -> bool {
+        // Uses foundation_netio's HTTP client (not reqwest).
+        use foundation_netio::HttpClientBuilder;
+        match HttpClientBuilder::new().build().get(url).send() {
+            Ok(resp) => resp.status().is_success(),
+            Err(_) => false,
         }
+    }
+
+    fn port_check(port: u16) -> bool {
+        std::net::TcpStream::connect_timeout(
+            &("127.0.0.1", port),
+            std::time::Duration::from_millis(50),
+        ).is_ok()
+    }
+
+    fn cmd_check(args: &[String]) -> bool {
+        std::process::Command::new(&args[0])
+            .args(&args[1..])
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
     }
 }
 ```
@@ -340,8 +505,8 @@ impl Supervisor {
 ```rust
 impl Supervisor {
     /// Gracefully stop a daemon: SIGTERM → poll → SIGKILL.
-    async fn stop_daemon(&self, id: &DaemonId) -> Result<(), StopError> {
-        let mut daemons = self.daemons.lock().await;
+    fn stop_daemon(&self, id: &DaemonId) -> Result<(), StopError> {
+        let mut daemons = self.daemons.lock().unwrap();
         let managed = daemons.get_mut(id).ok_or(StopError::NotFound(id.clone()))?;
 
         managed.status = DaemonStatus::Stopping;
@@ -357,10 +522,10 @@ impl Supervisor {
 
         // Phase 2: Fast poll (10ms intervals for ~100ms).
         for _ in 0..10 {
-            foundation_core::valtron::time::sleep(std::time::Duration::from_millis(10)).await;
+            std::thread::sleep(std::time::Duration::from_millis(10));
             if !Self::process_alive(pid) {
                 managed.status = DaemonStatus::Stopped;
-                managed.child = None;
+                managed.pid = None;
                 return Ok(());
             }
         }
@@ -368,10 +533,10 @@ impl Supervisor {
         // Phase 3: Slow poll (50ms intervals) for remainder of timeout.
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(timeout);
         while std::time::Instant::now() < deadline {
-            foundation_core::valtron::time::sleep(std::time::Duration::from_millis(50)).await;
+            std::thread::sleep(std::time::Duration::from_millis(50));
             if !Self::process_alive(pid) {
                 managed.status = DaemonStatus::Stopped;
-                managed.child = None;
+                managed.pid = None;
                 return Ok(());
             }
         }
@@ -384,10 +549,10 @@ impl Supervisor {
         )?;
 
         // Brief wait for SIGKILL to take effect.
-        foundation_core::valtron::time::sleep(std::time::Duration::from_millis(100)).await;
+        std::thread::sleep(std::time::Duration::from_millis(100));
 
         managed.status = DaemonStatus::Stopped;
-        managed.child = None;
+        managed.pid = None;
         Ok(())
     }
 
@@ -405,7 +570,7 @@ impl Supervisor {
 
 ```
 Supervisor::shutdown()
-1. Signal shutdown_tx → all watchers see it
+1. Set shutting_down flag → all watchers see it
 2. Compute shutdown order (reverse topological from F01)
 3. For each level (concurrent within level):
    - Stop all daemons in level via stop_daemon()
@@ -420,51 +585,46 @@ Supervisor::shutdown()
 ```rust
 impl Supervisor {
     /// Monitor a daemon and restart on failure (if restart is enabled).
-    async fn monitor_daemon(&self, id: &DaemonId) {
-        let mut daemons = self.daemons.lock().await;
+    /// Called by the supervisor's TaskIterator when a daemon exit event arrives.
+    fn handle_daemon_exit(&self, id: &DaemonId, exit_status: Option<std::process::ExitStatus>) {
+        let mut daemons = self.daemons.lock().unwrap();
+        if let Some(m) = daemons.get_mut(id) {
+            m.pid = None;
+            m.status = DaemonStatus::Stopped;
+        }
+
+        // Auto-restart logic.
         let managed = daemons.get(id).cloned();
         drop(daemons);
 
         if let Some(managed) = managed {
-            // Wait for child to exit.
-            if let Some(mut child) = managed.child {
-                let exit_status = child.wait();
-                tracing::info!(daemon = %id, ?exit_status, "daemon exited");
+            if managed.def.restart && !self.shutting_down.load(std::sync::atomic::Ordering::SeqCst) {
+                // Check max restarts in a 60s window.
+                let can_restart = self.check_restart_limit(id);
+                if can_restart {
+                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s (cap 30s).
+                    let backoff = std::cmp::min(
+                        2_u64.pow(managed.restart_count),
+                        30,
+                    );
+                    tracing::info!(daemon = %id, "restarting in {}s", backoff);
 
-                // Update status.
-                let mut daemons = self.daemons.lock().await;
-                if let Some(m) = daemons.get_mut(&id) {
-                    m.child = None;
-                    m.pid = None;
-                    m.status = DaemonStatus::Stopped;
-                }
-
-                // Auto-restart logic.
-                if managed.def.restart {
-                    // Check max restarts in a 60s window.
-                    let can_restart = self.check_restart_limit(&id);
-                    if can_restart {
-                        // Exponential backoff: 1s, 2s, 4s, 8s, 16s (cap 30s).
-                        let backoff = std::cmp::min(
-                            2_u64.pow(managed.restart_count),
-                            30,
-                        );
-                        tracing::info!(daemon = %id, "restarting in {}s", backoff);
-                        foundation_core::valtron::time::sleep(
-                            std::time::Duration::from_secs(backoff),
-                        ).await;
-
-                        let mut daemons = self.daemons.lock().await;
+                    // Schedule restart via backoff watcher thread.
+                    let id = id.clone();
+                    let supervisor = self.clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_secs(backoff));
+                        let mut daemons = supervisor.daemons.lock().unwrap();
                         if let Some(m) = daemons.get_mut(&id) {
                             m.status = DaemonStatus::Restarting;
                             m.restart_count += 1;
                         }
                         drop(daemons);
 
-                        if let Err(e) = self.spawn_daemon(&id).await {
+                        if let Err(e) = supervisor.spawn_daemon(&id) {
                             tracing::error!(daemon = %id, "restart failed: {e}");
                         }
-                    }
+                    });
                 }
             }
         }

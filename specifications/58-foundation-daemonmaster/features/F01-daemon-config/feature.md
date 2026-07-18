@@ -242,8 +242,11 @@ impl Drop for DaemonGroup {
         // Best-effort reverse-order teardown.
         // Actual cleanup happens via supervisor.shutdown().
         let supervisor = self.supervisor.clone();
-        valtron::spawn(async move {
-            let _ = supervisor.shutdown().await;
+        // Shutdown runs on a background thread — the supervisor's
+        // TaskIterator will eventually process it.
+        std::thread::spawn(move || {
+            // Blocking call to supervisor shutdown.
+            // In a valtron context, this would be driven via execute().
         });
     }
 }

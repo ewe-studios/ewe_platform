@@ -61,7 +61,7 @@ pub struct DownloadResult {
 #[derive(Debug, thiserror::Error)]
 pub enum DownloadError {
     #[error("network error: {0}")]
-    Network(#[from] reqwest::Error),
+    Network(#[from] foundation_netio::shared::http::HttpError),
     #[error("not found: {0}")]
     NotFound(String),
     #[error("version not found: {0}")]
@@ -118,7 +118,7 @@ impl GitHubRelease {
 #[async_trait]
 impl Downloader for GitHubRelease {
     async fn download(&self, dest_dir: &PathBuf) -> Result<DownloadResult, DownloadError> {
-        let client = reqwest::Client::new();
+        let client = foundation_netio::HttpClientBuilder::new().build();
 
         // Resolve tag if not specified.
         let tag = match &self.tag {
@@ -244,7 +244,7 @@ impl CratesIoBinary {
 #[async_trait]
 impl Downloader for CratesIoBinary {
     async fn download(&self, dest_dir: &PathBuf) -> Result<DownloadResult, DownloadError> {
-        let client = reqwest::Client::new();
+        let client = foundation_netio::HttpClientBuilder::new().build();
 
         // Resolve latest version if not specified.
         let version = match &self.version {
@@ -342,7 +342,7 @@ impl UrlDownload {
 #[async_trait]
 impl Downloader for UrlDownload {
     async fn download(&self, dest_dir: &PathBuf) -> Result<DownloadResult, DownloadError> {
-        let client = reqwest::Client::new();
+        let client = foundation_netio::HttpClientBuilder::new().build();
 
         let filename = self.filename.clone()
             .unwrap_or_else(|| {

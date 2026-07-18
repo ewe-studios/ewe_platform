@@ -174,26 +174,43 @@ impl DaemonRpcServer {
     }
 
     /// Start listening on the Unix socket.
-    pub async fn serve(&self) -> Result<(), RpcError> {
+    ///
+    /// Uses foundation_connectrpc's Router + ConnectRpcServe over Unix domain
+    /// sockets (from foundation_netio). Each connection is handled on its own
+    /// thread, driven by valtron's executor.
+    pub fn serve(&self) -> Result<(), RpcError> {
+        use foundation_connectrpc::{Router, ConnectRpcServe};
+        use foundation_netio::native::unix::{UnixListener, UnixStream};
+
         // Remove stale socket from previous run.
         if self.socket_path.exists() {
             std::fs::remove_file(&self.socket_path)?;
         }
 
-        let listener = async_io::UnixListener::bind(&self.socket_path)?;
+        let listener = UnixListener::bind(&self.socket_path)?;
         tracing::info!(path = ?self.socket_path, "Daemon RPC server listening");
 
-        loop {
-            let (stream, _) = listener.accept().await?;
-            let router = self.router();
-            valtron::spawn(async move {
-                // Serve ConnectRPC over the Unix stream.
-                // Uses Connect protocol (binary or JSON) over Unix socket.
-                if let Err(e) = router.serve_unix_stream(stream).await {
-                    tracing::warn!(?e, "RPC connection error");
+        let router = self.router();
+
+        // Accept loop — runs on a dedicated thread, each connection served
+        // via ConnectRpcServe (foundation_connectrpc's Unix socket adapter).
+        std::thread::spawn(move || {
+            for stream in listener.incoming() {
+                match stream {
+                    Ok(stream) => {
+                        let serve = ConnectRpcServe::new(router.clone());
+                        if let Err(e) = serve.serve_stream(stream) {
+                            tracing::warn!(?e, "RPC connection error");
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(?e, "accept error");
+                    }
                 }
-            });
-        }
+            }
+        });
+
+        Ok(())
     }
 }
 ```
