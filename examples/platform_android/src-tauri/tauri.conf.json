@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/d7087a31f2d49c23ee95c6c2bb3ea45dd6dfedd6/crates/tauri-config-schema/schema.json",
+  "productName": "Foundation Platform",
+  "version": "0.1.0",
+  "identifier": "com.ewe.platform",
+  "build": {
+    "frontendDist": "../public",
+    "devUrl": "http://localhost:1420"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "Foundation Platform - Android",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  }
+}

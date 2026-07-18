@@ -1,0 +1,21 @@
+[package]
+name = "platform_android"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.87"
+
+[lib]
+name = "platform_android_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+foundation_platform = { path = "../../../backends/foundation_platform" }
+tauri = { version = "2.11.5", features = [] }
+serde = "1"
+serde_json = "1"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+# Opt out of parent workspace — Tauri v2 nested crate
+[workspace]

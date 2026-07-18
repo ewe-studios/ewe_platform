@@ -1,0 +1,18 @@
+[package]
+name = "platform_android"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+foundation_platform = { path = "../../backends/foundation_platform" }
+tauri = { version = "2.11.5", features = [] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[lints]
+workspace = true
