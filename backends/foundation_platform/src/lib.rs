@@ -4,10 +4,10 @@
 //! capability registry, cache manager, transport lanes, and WebView stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
-mod backend;
+pub mod backend;
 mod builder;
 mod cache;
-mod capability;
+pub mod capability;
 pub mod codegen;
 mod mutation;
 pub mod stack;
@@ -30,7 +30,7 @@ pub use stack::{SlotState, StackConfig, WebViewOps, WebViewSlot, WebViewStack};
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler};
-pub use session::PlatformSession;
+pub use session::{PlatformSession, SessionEvent};
 pub use types::{CapabilityRequest, CapabilityResponse};
 
 // Re-export all platform types from foundation_ui_traits so consumers

@@ -1,144 +1,158 @@
 # 15 — Backend query execution model (Step 5)
 
 **Date:** 2026-07-18
-**Status:** Resolved
+**Status:** Resolved (implemented)
 
 ## Decision
 
 Step 5 of the execution contract — backend query — resolves `RouteSource` to
-actual I/O. Each source variant has a concrete execution path. The session
-dispatches based on `source` and returns content bytes to the rendering lane.
+actual I/O through a pluggable `BackendTransport` trait. Each source variant
+has a concrete execution path. The session dispatches based on `source` and
+routes bytes through protocol selection + encoding to the rendering lane.
 
 ## Table of Contents
 
-1. [WebviewApp: in-process signal](#webviewapp-in-process-signal)
-2. [IpcShell: Tauri command IPC + native shell](#ipcshell-tauri-command-ipc--native-shell)
-3. [RemoteServer: HTTP fetch](#remoteserver-http-fetch)
+1. [BackendTransport trait](#backendtransport-trait)
+2. [DefaultTransport: bootstrap stub](#defaulttransport-bootstrap-stub)
+3. [ClosureTransport: production wiring](#closuretransport-production-wiring)
 4. [How the session dispatches](#how-the-session-dispatches)
-5. [Async model: valtron integration](#async-model-valtron-integration)
+5. [Offline fallback](#offline-fallback)
+6. [Implementation status](#implementation-status)
 
 ---
 
-## WebviewApp: in-process signal
-
-When `source = WebviewApp`, the app code is already running inside the WebView.
-The session doesn't fetch anything — it signals the route change via
-`postMessage` and the in-WebView code renders directly.
+## BackendTransport trait
 
 ```rust
-impl PlatformSession {
-    fn query_webview_app(&self, route: &str) -> Vec<u8> {
-        // Signal the in-WebView code: "you are now at /route"
-        // The WebView's foundation-wasm-ui.js receives the message
-        // and the WASM app renders using html! macro, signals, templates.
-        //
-        // No transport, no network, no IPC. The content comes back
-        // through the rendering lane as DomOps or HTML, generated
-        // entirely inside the WebView.
-        
-        // For now, return a status message — the actual rendering
-        // happens inside the WebView, not via this return value.
-        format!("webview_app: route={route}").into_bytes()
+/// Pluggable backend dispatch. One method per RouteSource.
+/// Tests inject a test transport; production injects an AppHandle-backed
+/// transport via session.set_backend().
+pub trait BackendTransport: Send + Sync + 'static {
+    /// Signal the WASM app running inside the WebView. Returns an
+    /// HTML page that signals the in-WebView code to render.
+    fn signal_webview(&self, route: &str) -> Vec<u8>;
+
+    /// Dispatch to the native shell via Tauri event.
+    /// `target` names the wasm_app instance; `None` means the root shell.
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8>;
+
+    /// Fetch content from a remote server over HTTP.
+    /// Auth tokens are attached by the shell — they never enter the WebView.
+    fn fetch_remote(&self, route: &str) -> Vec<u8>;
+}
+```
+
+The dispatch in `query_backend()` matches `RouteSource`:
+
+```rust
+pub fn query_backend(
+    transport: &dyn BackendTransport,
+    decision: &RouteDecision,
+    route: &str,
+) -> Vec<u8> {
+    match decision.source {
+        RouteSource::WebviewApp => transport.signal_webview(route),
+        RouteSource::IpcShell   => transport.dispatch_ipc(decision.target.as_deref(), route),
+        RouteSource::RemoteServer => transport.fetch_remote(route),
     }
 }
 ```
 
-**Key insight:** `WebviewApp` is NOT a backend query. The session signals the
-route change. The in-WebView code renders. The content doesn't pass through
-the session at all — it's generated inside the WebView and applied directly
-to the DOM by `foundation-wasm-ui.js`.
+## DefaultTransport: bootstrap stub
 
-## IpcShell: Tauri command IPC + native shell
-
-When `source = IpcShell`, content comes from the native shell. The session
-sends a request over Tauri's command IPC lane and the shell responds.
+A unit struct that returns typed signal JSON envelopes. Used when no
+real transport has been injected — apps that haven't wired `set_backend()`.
 
 ```rust
-impl PlatformSession {
-    fn query_ipc_shell(&self, decision: &RouteDecision, route: &str) -> Vec<u8> {
-        // If target is set, route to that wasm_app instance.
-        // Otherwise, default to the native shell process.
-        let target = decision.target.as_deref().unwrap_or("shell");
-        
-        // The session sends a command over Tauri IPC:
-        //   tauri::command fn platform_route(target, route, params)
-        // The shell (native Rust or wasmtime-hosted WASM) handles it,
-        // generates content, and returns bytes.
-        
-        // For now: dispatch to capability-like invocation
-        format!("ipc_shell: target={target} route={route}").into_bytes()
+pub struct DefaultTransport;
+
+impl BackendTransport for DefaultTransport {
+    fn signal_webview(&self, route: &str) -> Vec<u8> {
+        serde_json::json!({"type":"webview_app_signal","route":route}).to_string().into_bytes()
+    }
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {
+        serde_json::json!({"type":"ipc_shell_dispatch","target":target.unwrap_or("shell"),"route":route}).to_string().into_bytes()
+    }
+    fn fetch_remote(&self, route: &str) -> Vec<u8> {
+        serde_json::json!({"type":"remote_server_fetch","route":route}).to_string().into_bytes()
     }
 }
 ```
 
-## RemoteServer: HTTP fetch
+The session holds `backend_transport: RwLock<Option<Box<dyn BackendTransport>>>`.
+When `None`, `session.backend()` returns `&DEFAULT_TRANSPORT` (a static).
 
-When `source = RemoteServer`, the session opens a transport to the remote
-server and fetches content.
+## ClosureTransport: production wiring
+
+Built in `PlatformBuilder::build()` from closures capturing the Tauri `AppHandle`:
 
 ```rust
-impl PlatformSession {
-    async fn query_remote_server(&self, route: &str) -> Vec<u8> {
-        // Open an HTTP connection to the remote backend.
-        // Auth tokens attached by shell, never enter JS context.
-        // Content streamed back as response body.
-        
-        // For now: return placeholder
-        format!("remote_server: route={route}").into_bytes()
-    }
-}
+let handle = app.handle().clone();
+let wasm = move |route: &str| -> Vec<u8> {
+    // Return an HTML page signaling the WASM app to render at `route`.
+    // Post-MVP: this should emit a postMessage to foundation-wasm-ui.js
+    // and return an empty 204 response — the WASM owns rendering.
+    build_html_response("WebviewApp", route, "signal_webview")
+};
+let ipc = move |target: Option<&str>, route: &str| -> Vec<u8> {
+    let t = target.unwrap_or("shell");
+    // Emit a Tauri event: handle.emit("platform:ipc", {target: t, route})
+    // Post-MVP: dispatch to wasmtime instance or native command handler
+    build_html_response("IpcShell", route, &format!("dispatch_ipc → {t}"))
+};
+let remote = move |route: &str| -> Vec<u8> {
+    // Post-MVP: real HTTP fetch via foundation_http
+    build_html_response("RemoteServer", route, "fetch_remote")
+};
+session.set_backend(Box::new(ClosureTransport::new(wasm, ipc, remote)));
 ```
+
+This construction is the SINGLE injection point — `session.set_backend()` is
+called once at startup inside `builder.build()`. Tests call it with their own
+transport. The raw `BackendTransport` interface is fully testable without Tauri.
 
 ## How the session dispatches
 
-```rust
-impl PlatformSession {
-    /// Step 5 of the execution contract: resolve RouteSource to content.
-    pub fn query_backend(
-        &self,
-        decision: &RouteDecision,
-        route: &str,
-    ) -> Vec<u8> {
-        match decision.source {
-            RouteSource::WebviewApp => self.query_webview_app(route),
-            RouteSource::IpcShell => self.query_ipc_shell(decision, route),
-            RouteSource::RemoteServer => self.query_remote_server_sync(route),
-        }
-    }
+`session.execute_decision()` runs the full 9-step contract:
 
-    /// Synchronous wrapper for RemoteServer (blocks thread).
-    /// Post-MVP: async valtron task instead.
-    fn query_remote_server_sync(&self, route: &str) -> Vec<u8> {
-        format!("remote_server: route={route}").into_bytes()
-    }
-}
+```
+1. (done by caller) Navigation intercepted → NavigationIntent
+2. session.resolve_route() → RouteDecision
+3. Cache check — cache.should_serve_cached() → serve cached if hit
+3b. OFFLINE FALLBACK — if offline + can_serve_offline → serve stale
+5. backend::query_backend(session.backend(), decision, route)
+     → matches RouteSource → calls BackendTransport method
+6. Protocol selection: decision hint → ?proto= query → detect → default
+7. encode_protocol() → (body, content_type)
+9. session.record_navigation() → PageIdentity update
 ```
 
-## Async model: valtron integration
+## Offline fallback
 
-Post-MVP, `RemoteServer` queries use valtron async tasks:
+`execute_decision()` has an offline cache fallback between step 3 and step 5:
 
-```rust
-// Post-MVP:
-fn query_remote_server(&self, route: &str) -> impl Future<Output = Vec<u8>> {
-    let session = self.clone();
-    let route = route.to_string();
-    async move {
-        // Open HTTP connection via foundation_http
-        // Stream response bytes
-        // Return to session for protocol encoding + rendering
-        todo!("valtron async backend query")
-    }
-}
-```
+- `CacheFirst` / `LocalOnly`: always checked in step 3
+- `StaleWhileRevalidate`: served immediately in step 3, caller spawns revalidation
+- `NetworkFirst` / `OnlineOnly`: skipped in step 3, BUT when offline + stale entry
+  exists, step 3b serves it instead of calling the (unreachable) backend
 
-## Implementation priority
+## Implementation status
 
-| Source | Status |
+| Component | Status |
 |---|---|
-| WebviewApp | Signal only — content generated in-WebView, no session transport needed |
-| IpcShell | Stub — dispatches to capability-like invocation, real IPC post-MVP |
-| RemoteServer | Stub — returns placeholder content, real HTTP fetch post-MVP |
+| `BackendTransport` trait | Implemented |
+| `DefaultTransport` | Implemented (stub JSON) |
+| `ClosureTransport` | Implemented (closure-based) |
+| `session.set_backend()` | Implemented (wired in `builder.build()`) |
+| `session.backend()` fallback | Implemented (returns &DEFAULT_TRANSPORT when None) |
+| `query_backend()` dispatch | Implemented |
+| Offline fallback in `execute_decision` | Implemented |
+| Real `signal_webview` (postMessage to WASM) | Post-MVP (currently returns HTML stub) |
+| Real `dispatch_ipc` (Tauri event emit) | Partial (emits event, returns HTML stub) |
+| Real `fetch_remote` (HTTP fetch) | Post-MVP (currently returns HTML stub) |
+| `#[wasm_bin]` app/ crate loaded in WebView | Implemented (app/ compiles, loaded via JS wrapper) |
 
-All three return content through the session backbone to the rendering lane
-(steps 6-8 of the execution contract: protocol selection → encoding → view).
+The transport trait and injection model are complete. The stub implementations
+return mode-aware HTML pages with pill badges so every `RouteSource` is
+visually distinguishable. The real backend behavior (postMessage signaling,
+wasmtime IPC dispatch, HTTP fetch) layers on top without changing the interface.

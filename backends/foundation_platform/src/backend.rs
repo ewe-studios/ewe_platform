@@ -133,141 +133,49 @@ impl BackendTransport for ClosureTransport {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::route::webview_app;
+/// A test transport that returns controlled responses per mode.
+pub struct TestTransport {
+    wasm_response: Vec<u8>,
+    ipc_response: Vec<u8>,
+    remote_response: Vec<u8>,
+    pub ipc_calls: std::sync::Mutex<Vec<(Option<String>, String)>>,
+    pub remote_calls: std::sync::Mutex<Vec<String>>,
+}
 
-    // A test transport that returns controlled responses per mode.
-    struct TestTransport {
-        wasm_response: Vec<u8>,
-        ipc_response: Vec<u8>,
-        remote_response: Vec<u8>,
-        ipc_calls: std::sync::Mutex<Vec<(Option<String>, String)>>,
-        remote_calls: std::sync::Mutex<Vec<String>>,
-    }
-
-    impl TestTransport {
-        fn new() -> Self {
-            Self {
-                wasm_response: b"wasm-rendered".to_vec(),
-                ipc_response: b"ipc-result".to_vec(),
-                remote_response: b"remote-fetched".to_vec(),
-                ipc_calls: std::sync::Mutex::new(Vec::new()),
-                remote_calls: std::sync::Mutex::new(Vec::new()),
-            }
-        }
-
-        fn with_remote(mut self, response: &[u8]) -> Self {
-            self.remote_response = response.to_vec();
-            self
+impl TestTransport {
+    pub fn new() -> Self {
+        Self {
+            wasm_response: b"wasm-rendered".to_vec(),
+            ipc_response: b"ipc-result".to_vec(),
+            remote_response: b"remote-fetched".to_vec(),
+            ipc_calls: std::sync::Mutex::new(Vec::new()),
+            remote_calls: std::sync::Mutex::new(Vec::new()),
         }
     }
 
-    impl BackendTransport for TestTransport {
-        fn signal_webview(&self, route: &str) -> Vec<u8> {
-            format!("wasm:{}", route).into_bytes()
-        }
-
-        fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {
-            self.ipc_calls
-                .lock()
-                .unwrap()
-                .push((target.map(String::from), route.to_string()));
-            self.ipc_response.clone()
-        }
-
-        fn fetch_remote(&self, route: &str) -> Vec<u8> {
-            self.remote_calls.lock().unwrap().push(route.to_string());
-            self.remote_response.clone()
-        }
-    }
-
-    // ── Default transport tests ─────────────────────────────────
-
-    #[test]
-    fn default_transport_returns_typed_envelopes() {
-        let t = DefaultTransport;
-
-        let wasm = t.signal_webview("/app/home");
-        let s = String::from_utf8(wasm).unwrap();
-        assert!(s.contains("webview_app_signal"));
-        assert!(s.contains("render_in_webview"));
-
-        let ipc = t.dispatch_ipc(Some("my_app"), "/api/data");
-        let s = String::from_utf8(ipc).unwrap();
-        assert!(s.contains("ipc_shell_dispatch"));
-        assert!(s.contains("my_app"));
-
-        let remote = t.fetch_remote("/remote/dashboard");
-        let s = String::from_utf8(remote).unwrap();
-        assert!(s.contains("remote_server_fetch"));
-        assert!(s.contains("http_fetch"));
-    }
-
-    // ── query_backend dispatch ──────────────────────────────────
-
-    #[test]
-    fn query_dispatches_to_correct_transport_method() {
-        let transport = TestTransport::new()
-            .with_remote(b"fetched-from-remote");
-
-        // WebviewApp → signal_webview
-        let d = webview_app();
-        let content = query_backend(&transport, &d, "/app/home");
-        assert_eq!(content, b"wasm:/app/home");
-
-        // IpcShell → dispatch_ipc
-        let d = crate::route::ipc_shell_with("business_logic");
-        let content = query_backend(&transport, &d, "/api/data");
-        assert_eq!(content, b"ipc-result");
-        let calls = transport.ipc_calls.lock().unwrap();
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0].0.as_deref(), Some("business_logic"));
-        assert_eq!(calls[0].1, "/api/data");
-
-        // RemoteServer → fetch_remote
-        let d = crate::route::remote_fetch();
-        let content = query_backend(&transport, &d, "/remote/dash");
-        assert_eq!(content, b"fetched-from-remote");
-        let calls = transport.remote_calls.lock().unwrap();
-        assert_eq!(calls[0], "/remote/dash");
-    }
-
-    // ── Legacy tests (use DefaultTransport via query_backend) ───
-
-    #[test]
-    fn webview_app_returns_signal_response() {
-        let d = webview_app();
-        let result = query_backend(&DefaultTransport, &d, "/app/home");
-        let s = String::from_utf8(result).unwrap();
-        assert!(s.contains("webview_app_signal"));
-        assert!(s.contains("/app/home"));
-    }
-
-    #[test]
-    fn ipc_shell_returns_target_in_response() {
-        let d = crate::route::ipc_shell_with("business_logic");
-        let result = query_backend(&DefaultTransport, &d, "/api/data");
-        let s = String::from_utf8(result).unwrap();
-        assert!(s.contains("ipc_shell_dispatch"));
-        assert!(s.contains("business_logic"));
-    }
-
-    #[test]
-    fn remote_server_returns_fetched_response() {
-        let d = crate::route::remote_fetch();
-        let result = query_backend(&DefaultTransport, &d, "/remote/dashboard");
-        let s = String::from_utf8(result).unwrap();
-        assert!(s.contains("remote_server_fetch"));
-        assert!(s.contains("/remote/dashboard"));
-    }
-
-    #[test]
-    fn ipc_shell_defaults_to_shell_target() {
-        let d = crate::route::ipc_shell();
-        let result = query_backend(&DefaultTransport, &d, "/api/data");
-        let s = String::from_utf8(result).unwrap();
-        assert!(s.contains("shell")); // default target
+    pub fn with_remote(mut self, response: &[u8]) -> Self {
+        self.remote_response = response.to_vec();
+        self
     }
 }
+
+impl BackendTransport for TestTransport {
+    fn signal_webview(&self, route: &str) -> Vec<u8> {
+        format!("wasm:{}", route).into_bytes()
+    }
+
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {
+        self.ipc_calls
+            .lock()
+            .unwrap()
+            .push((target.map(String::from), route.to_string()));
+        self.ipc_response.clone()
+    }
+
+    fn fetch_remote(&self, route: &str) -> Vec<u8> {
+        self.remote_calls.lock().unwrap().push(route.to_string());
+        self.remote_response.clone()
+    }
+}
+
+// Tests moved to tests/backend_suite.rs

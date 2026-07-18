@@ -324,3 +324,41 @@ All three can coexist in the same app. The session backbone is the universal
 message bus between them. A route handler dispatches to the right context
 based on `RouteSource` — it doesn't know or care whether the backend is WASM
 in the WebView, WASM in wasmtime, or native code.
+
+---
+
+## App crate convention vs. `#[wasm_app]` (revised 2026-07-18)
+
+Two different concepts share the word "app":
+
+| Concept | Annotation | Compiles to | Runs in | Crate location |
+|---|---|---|---|---|
+| WASM UI app | `#[wasm_bin]` | `wasm32-unknown-unknown` | WebView JS context | `app/` (alongside `src-tauri/`) |
+| WASM shell app | `#[wasm_app]` | `wasm32-wasip1` | wasmtime in native shell | Separate crate (post-MVP) |
+
+### `#[wasm_bin]` in `app/` crate (MVP — implemented)
+
+The `app/` crate lives alongside `src-tauri/`. It contains `#[wasm_bin]`,
+`#[wasm_worker]`, and `#[wasm_service]` functions that compile to
+`wasm32-unknown-unknown` and run inside the WebView's JavaScript context.
+The `.wasm` binaries and generated JS wrappers land in `src-tauri/public/`
+as static assets, bundled by Tauri into the app package.
+
+This is NOT optional — foundation_wasm_ui's `html!` macro, `App::mount()`,
+and the columnar v1 protocol all require compilation to `wasm32-unknown-unknown`.
+Since `src-tauri/` targets native machine code, the UI code MUST be in a
+separate crate.
+
+### `#[wasm_app]` in wasip1 crate (post-MVP)
+
+`#[wasm_app]` functions run in wasmtime inside the native shell. They compile
+to `wasm32-wasip1` and are loaded by `foundation_wasmtime`. The WASM exports
+functions; the session calls them. This is for back-end logic that needs
+WASM isolation + hot-swap but NOT the WebView's JS runtime.
+
+The template in this decision describes BOTH:
+- `app/` crate → `#[wasm_bin]` for the WebView UI (MVP)
+- `wasm_app/` or `src/bin/` → `#[wasm_app]` for shell-hosted WASM (post-MVP)
+
+The `src/generated/` directory and `WasmtimeBuilder` pattern are post-MVP
+for `#[wasm_app]` only. The `app/` crate convention is MVP and implemented now.

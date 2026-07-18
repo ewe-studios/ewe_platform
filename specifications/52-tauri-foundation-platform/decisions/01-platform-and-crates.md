@@ -314,3 +314,83 @@ This is the whole point of the crate: deeply integrated with Tauri, tying the
 entire foundation stack together for cross-platform apps. Every other
 foundation crate does one thing well. `foundation_platform` is the crate that
 makes them all work together on desktop and mobile.
+
+---
+
+## Physical project structure: `platform-app/` convention
+
+Every platform app follows this layout (revised 2026-07-18):
+
+```
+my-platform-app/
+├── src-tauri/              ← native .so / binary (one target per platform)
+│   ├── build.rs            ← generate_platform_code() — orchestrates app/ build
+│   ├── Cargo.toml          ← crate-type=["lib","cdylib","staticlib"], [workspace]
+│   ├── tauri.conf.json     ← Tauri config (identifier, bundle, permissions)
+│   ├── public/             ← Tauri-bundled assets (HTML, .wasm, JS runtimes)
+│   └── src/
+│       ├── lib.rs          ← #[mobile_entry_point] + platform_run!
+│       └── main.rs         ← desktop entrypoint → lib::run()
+├── app/                    ← WASM UI (separate crate, wasm32-unknown-unknown)
+│   ├── Cargo.toml          ← [workspace], crate-type=["cdylib"]
+│   └── src/
+│       └── lib.rs          ← #[wasm_bin] fn my_app() — uses foundation_wasm_ui
+├── icons/                  ← App icons
+├── assets/                 ← Static assets (images, fonts, config)
+└── README.md
+```
+
+### Why `app/` is a separate crate
+
+`src-tauri/` compiles to native machine code (aarch64-linux-android, x86_64-linux-gnu, etc.).
+Foundat ion_wasm_ui code must compile to `wasm32-unknown-unknown` — WebAssembly
+bytecode that runs in the browser/WebView. One Rust crate = one target
+architecture. They CANNOT share a `Cargo.toml`.
+
+The `build.rs` in `src-tauri/` orchestrates the wasm build:
+1. Discovers `#[wasm_bin]`/`#[wasm_worker]`/`#[wasm_service]` in `app/src/`
+2. Runs `cargo build --target wasm32-unknown-unknown` on `app/`
+3. Copies `.wasm` → `public/`
+4. Generates JS wrapper → `public/`
+5. Copies JS runtimes (foundation-wasm.js, foundation-wasm-ui.js, platform-scheme-interceptor.js) → `public/`
+
+The `.wasm` + `.js` land in `public/` as static assets. Tauri bundles them
+into the APK/IPA/binary. The WebView loads them at runtime — no linking
+between the native `.so` and the `.wasm`.
+
+### What lives in the `app/` crate
+
+| Annotation | Target | Where it runs | Generated output |
+|---|---|---|---|
+| `#[wasm_bin]` | `wasm32-unknown-unknown` | WebView main thread | `{name}.js` + `{name}.wasm` |
+| `#[wasm_worker]` | `wasm32-unknown-unknown` | WebView web worker | `{name}-worker.js` + `{name}.wasm` |
+| `#[wasm_service]` | `wasm32-unknown-unknown` | WebView service worker | `{name}-sw.js` + `{name}.wasm` |
+
+### Platform-native annotations (post-MVP)
+
+| Annotation | Where defined | Runs in |
+|---|---|---|
+| `#[platform_bin]` | `src-tauri/src/lib.rs` | Native shell (boots session + routes) |
+| `#[platform_worker]` | `src-tauri/` or a native crate | Native shell background thread |
+| `#[platform_service]` | `src-tauri/` or a native crate | In-process HTTP/router server |
+| `#[wasm_app]` | Separate crate (wasm32-wasip1) | wasmtime inside native shell |
+
+### BackendTransport trait (added 2026-07-18)
+
+`foundation_platform` defines a `BackendTransport` trait that plugs into the
+session. It has one method per `RouteSource`:
+
+```rust
+pub trait BackendTransport: Send + Sync + 'static {
+    fn signal_webview(&self, route: &str) -> Vec<u8>;
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8>;
+    fn fetch_remote(&self, route: &str) -> Vec<u8>;
+}
+```
+
+Three implementations:
+- **`DefaultTransport`** — returns signal JSON stubs for testing/bootstrapping
+- **`ClosureTransport`** — built from closures, injected via `session.set_backend()`.
+  The Tauri setup hook constructs this with closures capturing the `AppHandle`
+  for real IPC dispatch and (post-MVP) HTTP fetch.
+- **Test transport** — returns controlled responses in integration tests

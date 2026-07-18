@@ -2,7 +2,7 @@ use foundation_platform::*;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let builder: PlatformBuilder = PlatformBuilder::new()
+    platform_run!(PlatformBuilder::new()
         .route("/app/*", webview_app().with_profile(Profile::App))
         .route("/remote/*", remote_fetch()
             .with_profile(Profile::TrustedRemote)
@@ -14,14 +14,5 @@ pub fn run() {
         .route("/api/*", ipc_shell_with("shell"))
         .setup(|session| {
             println!("[platform_android] Session: {:?}", session.session_id());
-        });
-
-    builder
-        .build(tauri::generate_context!())
-        .expect("failed to build platform_android")
-        .run(|_handle, event| {
-            if let tauri::RunEvent::Exit = event {
-                std::process::exit(0);
-            }
-        });
+        }));
 }

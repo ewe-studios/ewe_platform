@@ -123,6 +123,130 @@ impl WasmBundleGenerator {
         })
     }
 
+    /// Construct from raw annotation + function name pairs.
+    ///
+    /// This is THE entry point for callers that scan source code directly
+    /// (e.g. `foundation_platform::codegen`). Each pair `("wasm_bin",
+    /// "my_app")` is converted into:
+    ///
+    /// 1. A [`foundation_wasm::build_tools::WasmEntrypoint`] — feeds the
+    ///    inner `WasmBinGenerator` so it can generate `src/bin/{name}/main.rs`
+    ///    stubs (with the correct function import) and Cargo `[[bin]]` entries.
+    /// 2. A [`BundleEntrypoint`] — feeds the JS wrapper stage after compilation.
+    ///
+    /// No `CrateScanner` is used. No expansion into the source file.
+    /// The proc macro `#[wasm_bin]` is a validator + passthrough — this
+    /// constructor does all the build-time work.
+    ///
+    /// # Errors
+    /// Propagates crate validation failure.
+    pub fn from_annotations(
+        crate_dir: &Path,
+        output_dir: &Path,
+        annotations: &[(&str, &str)],  // &[(mode_str, fn_name)]
+    ) -> Result<Self, WasmBinError> {
+        let crate_name = WasmBinGenerator::from_crate_only(crate_dir)?
+            .crate_name()
+            .to_string();
+
+        // Build WasmEntrypoints for the bin generator (planner needs
+        // function_name, qualified_path, source_file, line).
+        let wasm_eps: Vec<_> = annotations
+            .iter()
+            .map(|&(_, fn_name)| {
+                foundation_wasm::build_tools::wasm_entrypoint_from_fn(&crate_name, fn_name)
+            })
+            .collect();
+
+        let inner = WasmBinGenerator::from_entrypoints(crate_dir, wasm_eps)?;
+
+        // Build BundleEntrypoints for the JS wrapper stage
+        let mut bundle_eps = Vec::with_capacity(annotations.len());
+        for &(mode, fn_name) in annotations {
+            let (bundle_mode, routes) = match mode {
+                "wasm_bin" => (BundleMode::Bin, Vec::new()),
+                "wasm_worker" => (BundleMode::Worker, Vec::new()),
+                "wasm_service" => (BundleMode::Service, Vec::new()),
+                _ => continue,
+            };
+            bundle_eps.push(BundleEntrypoint {
+                name: fn_name.to_string(),
+                mode: bundle_mode,
+                packaging: JsPackaging::Separate,
+                routes,
+            });
+        }
+
+        Ok(Self {
+            inner,
+            entrypoints: bundle_eps,
+            crate_dir: crate_dir.to_path_buf(),
+            output_dir: output_dir.to_path_buf(),
+        })
+    }
+
+    /// Construct from pre-built entrypoints — skips `CrateScanner`.
+    ///
+    /// Use this when the caller has already built [`BundleEntrypoint`]
+    /// structs (e.g. from parsed annotation attributes).
+    ///
+    /// # Errors
+    /// Propagates crate validation failure from the inner generator.
+    pub fn from_entrypoints(
+        crate_dir: &Path,
+        output_dir: &Path,
+        entrypoints: Vec<BundleEntrypoint>,
+    ) -> Result<Self, WasmBinError> {
+        let inner = WasmBinGenerator::from_crate_only(crate_dir)?;
+        Ok(Self {
+            inner,
+            entrypoints,
+            crate_dir: crate_dir.to_path_buf(),
+            output_dir: output_dir.to_path_buf(),
+        })
+    }
+
+    /// Execute for a cdylib (lib) crate — skips `self.inner.generate()`
+    /// (no per-entrypoint `src/bin/*.rs` or `[[bin]]` needed).
+    /// The wasm binary is assumed to already be compiled to
+    /// `target/wasm32-unknown-unknown/{profile}/{crate_name}.wasm`.
+    pub fn execute_for_lib_crate(
+        &self,
+        crate_name: &str,
+        release: bool,
+        skip_runtimes: bool,
+        runtime_assets: &[(&str, &Path)],
+    ) -> Result<Vec<PlannedFile>, WasmBinError> {
+        std::fs::create_dir_all(&self.output_dir)
+            .map_err(|e| io_err(&self.output_dir, e))?;
+
+        let profile_dir = if release { "release" } else { "uat" };
+        let wasm_path = self
+            .crate_dir
+            .join("target/wasm32-unknown-unknown")
+            .join(profile_dir)
+            .join(format!("{crate_name}.wasm"));
+        let wasm_bytes =
+            std::fs::read(&wasm_path).map_err(|e| io_err(&wasm_path, e))?;
+
+        let mut written = Vec::new();
+        for ep in &self.entrypoints {
+            written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
+        }
+
+        if !skip_runtimes {
+            for (file_name, source) in runtime_assets {
+                let dest = self.output_dir.join(file_name);
+                std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile {
+                    path: dest,
+                    kind: "runtime asset",
+                });
+            }
+        }
+        Ok(written)
+    }
+
     #[must_use]
     pub fn entrypoints(&self) -> &[BundleEntrypoint] {
         &self.entrypoints
@@ -180,6 +304,10 @@ impl WasmBundleGenerator {
 
         let mut cargo = Command::new("cargo");
         cargo
+            // Host RUSTFLAGS (e.g. -fuse-ld=lld) may leak from parent
+            // build scripts and aren't valid for the wasm32 backend.
+            .env_remove("RUSTFLAGS")
+            .env_remove("CARGO_ENCODED_RUSTFLAGS")
             .arg("build")
             .arg("--target")
             .arg("wasm32-unknown-unknown")

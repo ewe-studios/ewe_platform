@@ -15,13 +15,18 @@ tauri = { version = "2.11.5", features = [] }
 # Shared types (dependency-free, compiles for wasm32)
 foundation_ui_traits = { path = "../foundation_ui_traits" }
 
+# WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
+foundation_wasm_ui = { path = "../foundation_wasm_ui" }
+
 # Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
-# User's build.rs: fn main() { foundation_platform::codegen::generate_platform_code(); }
 tauri-build = { version = "2" }
+
+[dev-dependencies]
+tauri = { version = "2.11.5", features = [] }
 
 [lints]
 workspace = true
