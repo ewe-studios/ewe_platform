@@ -99,9 +99,16 @@ pub struct RouteDecision {
     pub capabilities: Vec<CapabilityId>,
 
     /// Auth origin for this route. Only meaningful when profile is Auth.
-    /// The session uses this to restrict HTTP requests to the auth provider's
-    /// origin (e.g., OAuth endpoints, token endpoints).
     pub auth_origin: Option<String>,
+
+    /// Handler identity — the session looks up this name in the handler registry
+    /// and delegates `respond()` to it. Set by the route constructor.
+    pub handler_id: Option<String>,
+
+    /// The path portion of the URL after stripping the matched route prefix.
+    /// If the pattern is `/app/*` and the URL is `/app/v1/something`,
+    /// this is `v1/something`. Set by the router during resolution.
+    pub sub_path: Option<String>,
 }
 
 // ── Route source ────────────────────────────────────────────────────────────

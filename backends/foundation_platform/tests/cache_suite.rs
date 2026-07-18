@@ -9,7 +9,7 @@ fn decision_with(policy: CachePolicy, profile: Profile) -> RouteDecision {
         source: RouteSource::RemoteServer, presentation: Presentation::Morph,
         view_kind: ViewKind::WebView, protocol: ProtocolHint::Default,
         cache_policy: policy, profile, native_view_id: None, target: None,
-        capabilities: vec![], auth_origin: None,
+        capabilities: vec![], auth_origin: None, handler_id: None, sub_path: None,
     }
 }
 

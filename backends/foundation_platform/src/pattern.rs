@@ -92,6 +92,53 @@ impl Pattern {
 // ── Matching ─────────────────────────────────────────────────────────
 
 impl Pattern {
+    /// Returns the suffix (portion of path after the matched prefix) if
+    /// the pattern matches, or `None` if it doesn't. For `/app/*` matching
+    /// `/app/v1/something`, returns `"v1/something"`. For exact matches
+    /// (no wildcards), returns an empty string.
+    pub fn match_suffix(&self, path: &str) -> Option<String> {
+        let path_segments: Vec<&str> = path
+            .trim_matches('/')
+            .split('/')
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        let consumed = self.match_count(&path_segments, 0, 0)?;
+        Some(path_segments[consumed..].join("/"))
+    }
+
+    fn match_count(&self, path: &[&str], pat_idx: usize, path_idx: usize) -> Option<usize> {
+        if pat_idx >= self.segments.len() {
+            return Some(path_idx); // fully matched, return consumed count
+        }
+        match &self.segments[pat_idx] {
+            PatternSegment::DoubleWildcard => {
+                // `**` matches zero or more — return the furthest match
+                let mut best: Option<usize> = None;
+                for i in path_idx..=path.len() {
+                    if let Some(c) = self.match_count(path, pat_idx + 1, i) {
+                        best = Some(c);
+                    }
+                }
+                best
+            }
+            PatternSegment::SingleWildcard => {
+                if path_idx < path.len() {
+                    self.match_count(path, pat_idx + 1, path_idx + 1)
+                } else {
+                    None
+                }
+            }
+            PatternSegment::Literal(lit) => {
+                if path_idx < path.len() && path[path_idx] == lit.as_str() {
+                    self.match_count(path, pat_idx + 1, path_idx + 1)
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
     /// Test whether a URL path matches this pattern.
     ///
     /// The path may or may not have a leading `/` — both are accepted.
@@ -217,11 +264,14 @@ impl PatternRouter {
     }
 
     /// Try to match a URL path against registered patterns.
-    /// Returns the decision from the first matching pattern, or `None`.
+    /// Returns the decision from the first matching pattern with `sub_path` set
+    /// to the portion of the URL after the matched prefix, or `None`.
     pub fn resolve_path(&self, path: &str) -> Option<RouteDecision> {
         for (pattern, decision) in &self.patterns {
-            if pattern.matches(path) {
-                return Some(decision.clone());
+            if let Some(suffix) = pattern.match_suffix(path) {
+                let mut d = decision.clone();
+                d.sub_path = Some(suffix);
+                return Some(d);
             }
         }
         None

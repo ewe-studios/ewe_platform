@@ -23,7 +23,28 @@ pub fn generate_platform_code() {
         std::fs::write(generated_dir.join("mod.rs"), "// Auto-generated\n").ok();
     }
 
-    copy_public_to_android_assets(&public_dir, &manifest_dir);
+    // Tauri bundles public/ via frontendDist in tauri.conf.json — no manual copy needed.
+    // Patch the initial window URL to bypass WebViewAssetLoader (which strips scripts).
+    patch_tauri_conf_for_ewe(&manifest_dir);
+}
+
+fn patch_tauri_conf_for_ewe(manifest_dir: &Path) {
+    let conf_path = manifest_dir.join("tauri.conf.json");
+    if let Ok(content) = std::fs::read_to_string(&conf_path) {
+        let patched = content.replace(
+            r#""url": "index.html""#,
+            r#""url": "http://ewe.localhost/__platform__/index.html""#
+        );
+        let patched = patched.replace(
+            r#""url":"index.html""#,
+            r#""url":"http://ewe.localhost/__platform__/index.html""#
+        );
+        if patched != content {
+            std::fs::write(&conf_path, &patched)
+                .unwrap_or_else(|e| eprintln!("cargo:warning=failed to patch tauri.conf.json: {e}"));
+            println!("cargo:warning=patched tauri.conf.json → External URL");
+        }
+    }
 }
 
 /// Compile the wasm crate and copy artifacts to public/.

@@ -48,7 +48,7 @@ fn ewe_handler<R: tauri::Runtime>(
         return serve_platform_asset(&ewe_url.path);
     }
 
-    // 3. Resolve route through session handler chain
+    // 3. Resolve route → dispatch to handler → return Response directly
     let session = ctx.app_handle().state::<std::sync::Arc<PlatformSession>>();
     let intent = NavigationIntent {
         url: uri,
@@ -58,21 +58,9 @@ fn ewe_handler<R: tauri::Runtime>(
     };
     let decision = session.resolve_route(&intent);
 
-    // 3-9. Run the full execution contract through the session
-    let (body, _content_type) = session.execute_decision(&decision, &intent);
-
-    // Wrap backend response in a mode-aware HTML dashboard page.
-    // On Android WebView, custom-scheme fetch() is blocked, so we
-    // can only use link navigation. Every response must be HTML.
-    let body_str = String::from_utf8_lossy(&body);
-    let (badge_cls, badge_label) = mode_badge_for(&decision);
-    let html = build_mode_page(&ewe_url.path, &(badge_cls, badge_label), &decision, &body_str);
-
-    Response::builder()
-        .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
-        .body(html.into_bytes())
-        .unwrap()
+    // 3-9. Execute the full contract — the handler returns a Response.
+    // Pass it straight to the WebView, no wrapping.
+    session.execute_decision(&decision, &intent)
 }
 
 // ── Asset serving ──────────────────────────────────────────────────────
@@ -256,6 +244,8 @@ mod mode_page_tests {
             target: None,
             capabilities: vec![],
             auth_origin: None,
+            handler_id: None,
+            sub_path: None,
         };
         let (cls, label) = mode_badge_for(&d);
         let html = build_mode_page("/app/home", &(cls, label), &d, r#"{"type":"wasm_signal"}"#);
@@ -278,6 +268,8 @@ mod mode_page_tests {
             target: None,
             capabilities: vec![],
             auth_origin: None,
+            handler_id: None,
+            sub_path: None,
         };
         let (cls, label) = mode_badge_for(&d);
         let html = build_mode_page("/remote/data", &(cls, label), &d, "<script>alert('xss')</script>");

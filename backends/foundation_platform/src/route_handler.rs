@@ -7,18 +7,30 @@
 use foundation_ui_traits::*;
 use crate::session::PlatformSession;
 
-/// Route policy is code, not a config file. The platform intercepts every
-/// navigation intent and delegates decisions to user-provided handlers.
-///
-/// Patterned after `foundation_http`'s `Serve` trait: trait object, user
-/// implements, registers with the platform. Handlers return `Some(decision)`
-/// to claim a navigation, or `None` to fall through.
+/// Route policy is code. Handlers return `Some(decision)` to claim
+/// a navigation, or `None` to fall through.
 pub trait RouteHandler: Send + Sync + 'static {
     fn resolve(
         &self,
         intent: &NavigationIntent,
         session: &PlatformSession,
     ) -> Option<RouteDecision>;
+}
+
+/// A registered handler that receives the resolved `RouteDecision` and
+/// `NavigationIntent` and responds with the content to serve. Each
+/// `webview_app()`, `ipc_shell()`, etc. registers its own responder.
+///
+/// Registered on the session by `handler_id`. `execute_decision()`
+/// looks up the handler and calls `respond()` instead of going through
+/// a central `BackendTransport`.
+pub trait RouteResponder: Send + Sync + 'static {
+    fn respond(
+        &self,
+        intent: &NavigationIntent,
+        decision: &RouteDecision,
+        session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>>;
 }
 
 /// Wraps a closure as a `RouteHandler`. Use when the policy is simple.

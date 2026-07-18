@@ -9,10 +9,11 @@
 //! clone. Internally, `RwLock` + `Atomic` fields keep things lock-free
 //! where possible.
 
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
-use crate::backend::{BackendTransport, DEFAULT_TRANSPORT};
+use crate::route_handler::RouteResponder;
 use crate::route::RouteDecisionExt;
 use foundation_ui_traits::*;
 
@@ -70,9 +71,10 @@ pub struct PlatformSession {
     /// Listeners return `true` to stay subscribed, `false` to unsubscribe.
     event_listeners: RwLock<Vec<EventListener>>,
 
-    /// Pluggable backend transport. Injected at startup; falls back to
-    /// [`DefaultTransport`] if not set. Tests inject their own transport.
-    backend_transport: RwLock<Option<Box<dyn BackendTransport>>>,
+    /// Per-route responder registry. Maps `handler_id` → responder.
+    /// Each `webview_app()` / `ipc_shell()` registers its own responder.
+    /// `execute_decision()` looks up the handler and calls `respond()`.
+    handler_registry: RwLock<HashMap<String, Box<dyn super::route_handler::RouteResponder>>>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -98,7 +100,7 @@ impl PlatformSession {
             active_page: RwLock::new(None),
             online: AtomicBool::new(true),
             event_listeners: RwLock::new(Vec::new()),
-            backend_transport: RwLock::new(None),
+            handler_registry: RwLock::new(HashMap::new()),
         })
     }
 }
@@ -172,62 +174,60 @@ impl PlatformSession {
 
     /// Execute a RouteDecision through the full 9-step contract.
     ///
-    /// Steps 2-9 of the execution contract (step 1 = interception, done by caller):
+    /// Steps 2-9 of the execution contract:
     /// 2. Handler chain — already resolved, decision passed in
     /// 3. Cache check
     /// 4. Presentation — record navigation for stack manager
-    /// 5. Backend query
-    /// 6. Protocol selection
-    /// 7. Content encoding
+    /// 5. Handler dispatch — calls registered RouteResponder::respond()
+    ///    or falls back to DefaultTransport if no handler registered
+    /// 6-7. Protocol selection + encoding (only for fallback transport path)
     /// 8-9. Post-render — page identity tracking
     ///
-    /// Returns the encoded response (body, content_type) ready for delivery.
+    /// Returns the `tauri::http::Response` directly when a route handler
+    /// is registered. The caller passes it straight to the WebView.
     pub fn execute_decision(
         &self,
         decision: &RouteDecision,
         intent: &NavigationIntent,
-    ) -> (Vec<u8>, String) {
-        // Step 3: Cache check — serves cached content when policy allows.
-        // StaleWhileRevalidate: serve cache immediately, caller spawns background
-        // revalidation via cache.needs_revalidation() if needed.
+    ) -> tauri::http::Response<Vec<u8>> {
+        // Step 3: Cache check
         let route = crate::pattern::extract_path(&intent.url);
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
-                return (entry.body, entry.content_type);
+                return tauri::http::Response::builder()
+                    .status(200)
+                    .header("Content-Type", entry.content_type.as_str())
+                    .body(entry.body).unwrap();
             }
         }
 
-        // Offline fallback: NetworkFirst/OnlineOnly skip cache normally, but when
-        // offline and a stale entry exists, serve it instead of failing.
+        // Offline fallback
         if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
-                return (entry.body, entry.content_type);
+                return tauri::http::Response::builder()
+                    .status(200)
+                    .header("Content-Type", entry.content_type.as_str())
+                    .body(entry.body).unwrap();
             }
         }
 
-        // Step 5: Backend query through the registered transport
-        let content = crate::backend::query_backend(self.backend(), decision, &route);
+        // Step 5: Handler dispatch or fallback
+        let response = if let Some(ref handler_id) = decision.handler_id {
+            if let Some(handler) = self.get_responder(handler_id) {
+                handler.respond(intent, decision, self)
+            } else {
+                let body = format!("No handler for '{handler_id}'").into_bytes();
+                tauri::http::Response::builder().status(500).header("Content-Type", "text/plain").body(body).unwrap()
+            }
+        } else {
+            let body = crate::backend::query_backend(&crate::backend::DEFAULT_TRANSPORT, decision, &route);
+            tauri::http::Response::builder().status(200).header("Content-Type", "text/html").body(body).unwrap()
+        };
 
-        // Step 6: Protocol selection
-        // Extract proto query param if present
-        let proto_hint: Option<String> = intent.url.split('?').nth(1)
-            .and_then(|q| q.split('&')
-                .find(|p| p.starts_with("proto="))
-                .map(|p| p[6..].to_string()));
-
-        let protocol = super::ewe::select_protocol(
-            &decision.protocol,
-            proto_hint.as_ref(),
-            &content,
-        );
-
-        // Step 7: Content encoding
-        let (body, content_type) = super::ewe::encode_protocol(&protocol, &content);
-
-        // Step 9: Post-render — record navigation
+        // Step 9: Record navigation
         self.record_navigation(&route);
 
-        (body, content_type.to_string())
+        response
     }
 }
 
@@ -315,28 +315,24 @@ impl PlatformSession {
         &self.mutation_queue
     }
 
-    /// Inject a backend transport. Called once at startup (or in tests).
-    /// All subsequent [`execute_decision`] calls will use this transport.
-    pub fn set_backend(&self, transport: Box<dyn BackendTransport>) {
-        *self.backend_transport.write().unwrap() = Some(transport);
+    /// Register a per-route responder. Called once at startup (or in tests).
+    /// When a `RouteDecision` with `handler_id` is resolved, this responder's
+    /// `respond()` is called instead of the central `BackendTransport`.
+    pub fn register_responder(&self, handler_id: &str, responder: Box<dyn RouteResponder>) {
+        self.handler_registry
+            .write()
+            .unwrap()
+            .insert(handler_id.to_string(), responder);
     }
 
-    /// Return the active backend transport, or the default.
-    fn backend(&self) -> &dyn BackendTransport {
-        // Safety: we leak a reference to the DefaultTransport static.
-        // This is fine — DefaultTransport is a unit struct living in a static.
-        // We need a reference with a stable address; the RwLock guard would
-        // be temporary. The &*Box<dyn> inside the option lives as long as the
-        // option, but we can't return that from a method without GATs.
-        // Instead, always return &DefaultTransport when no custom transport
-        // is set, since DefaultTransport is stateless.
-        if let Some(ref t) = *self.backend_transport.read().unwrap() {
-            // SAFETY: The Box lives as long as self. We're returning a
-            // reference with the same lifetime as &self.
-            unsafe { &*(t.as_ref() as *const dyn BackendTransport) }
-        } else {
-            &DEFAULT_TRANSPORT
-        }
+    /// Look up a responder by handler_id. Returns `None` if not found.
+    pub fn get_responder(&self, handler_id: &str) -> Option<&dyn RouteResponder> {
+        // SAFETY: Extending the lifetime of the Box<dyn> inside the RwLock.
+        // The registry lives as long as the session, so this is safe.
+        let guard = self.handler_registry.read().unwrap();
+        guard.get(handler_id).map(|b| {
+            unsafe { &*(b.as_ref() as *const dyn RouteResponder) }
+        })
     }
 }
 

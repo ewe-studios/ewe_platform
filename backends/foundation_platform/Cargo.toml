@@ -12,11 +12,14 @@ keywords.workspace = true
 # Host platform (generic R: Runtime — works on Wry, Android, iOS)
 tauri = { version = "2.11.5", features = [] }
 
+# Embedded assets (EmbeddableDirectory trait + #[derive(EmbedDirectoryAs)])
+foundation_nostd = { path = "../foundation_nostd" }
+
 # Shared types (dependency-free, compiles for wasm32)
 foundation_ui_traits = { path = "../foundation_ui_traits" }
 
 # WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
-foundation_wasm_ui = { path = "../foundation_wasm_ui" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", features = ["embedded-js"] }
 
 # Standard deps
 serde = { workspace = true }

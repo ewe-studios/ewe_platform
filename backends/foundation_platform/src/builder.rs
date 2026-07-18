@@ -1,6 +1,8 @@
 use tauri::{App, Context, Manager, Runtime};
+use foundation_ui_traits::*;
 
 use crate::ewe;
+use crate::responder::WebviewApp;
 use crate::session::PlatformSession;
 
 struct RouteEntry {
@@ -10,22 +12,8 @@ struct RouteEntry {
 
 type SetupCallback = Box<dyn Fn(&PlatformSession) + Send + Sync + 'static>;
 
-const PLATFORM_SCHEME_INTERCEPTOR_JS: &str = r#"
-;(function(){'use strict';var S=['ewe','foundation','platform'],P='http://';
-function m(h){if(!h)return null;for(var i=0;i<S.length;i++){var p=S[i]+'://';
-if(h.indexOf(p)===0)return S[i];}return null;}
-function r(h){var s=m(h);if(!s)return null;return h.replace(s+'://',P+s+'.');}
-function a(){return/android/i.test(navigator.userAgent);}
-if(!a())return;
-document.addEventListener('click',function(e){var el=e.target.closest('a');
-if(!el)return;var href=el.getAttribute('href')||el.href;var n=r(href);if(!n)return;
-e.preventDefault();e.stopImmediatePropagation();location.href=n;},true);
-(function(){var A=location.assign,R=location.replace,H=Object.getOwnPropertyDescriptor(Location.prototype,'href');
-location.assign=function(u){var w=r(u);return A.call(this,w||u);};
-location.replace=function(u){var w=r(u);return R.call(this,w||u);};
-if(H&&H.set){var s=H.set;Object.defineProperty(location,'href',{get:H.get,set:function(u){s.call(this,r(u)||u);},configurable:true,enumerable:true});}})();
-})();
-"#;
+const PLATFORM_SCHEME_INTERCEPTOR_JS: &str =
+    foundation_wasm_ui::embedded::PLATFORM_SCHEME_INTERCEPTOR_JS;
 
 pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     inner: tauri::Builder<R>,
@@ -59,42 +47,30 @@ impl<R: Runtime> PlatformBuilder<R> {
             let session = PlatformSession::new();
             let handle = app.handle().clone();
 
-            // Route registration
-            for entry in &routes { session.route(&entry.pattern, entry.decision.clone()); }
-            for setup in &setups { setup(&session); }
+            // Route registration — each WebviewApp route gets a file-serving responder.
+            // IpcShell and RemoteServer routes expect the user to register their own
+            // responder via session.register_responder() in .setup().
+            let public_dir = std::path::PathBuf::from(
+                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default()
+            ).join("public");
 
-            // Wire real backend transport via Tauri AppHandle.
-            // WASM: returns an HTML page that signals the in-WebView WASM
-            //   app (already loaded from initial index.html). The page
-            //   contains a <script type=module> that imports and calls
-            //   init() on the WASM wrapper — the wasm entrypoint renders.
-            let wasm = move |route: &str| -> Vec<u8> {
-                let wasm_bin = "platform_dashboard";
-                format!(
-                    "<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
-                     <meta name=viewport content='width=device-width,initial-scale=1'>\
-                     <style>body{{margin:0;padding:0;background:#0a0a1a}}</style></head>\
-                     <body><div id=s style='color:#8892b0;font-family:sans-serif;font-size:12px;padding:16px'>Loading {route}...</div>\
-                     <script type=module src='./{wasm_bin}.js'></script>\
-                     <script type=module>import{{init}}from'./{wasm_bin}.js';init().then(function(){{document.getElementById('s').textContent='OK-{route}'}}).catch(function(e){{document.getElementById('s').textContent=String(e)}})</script></body></html>"
-                ).into_bytes()
-            };
-            let h2 = handle.clone();
-            let ipc = move |target: Option<&str>, route: &str| -> Vec<u8> {
-                let t = target.unwrap_or("shell");
-                use tauri::Emitter; let _ = h2.emit("platform:ipc", serde_json::json!({"target":t,"route":route}));
-                format!("<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
-                         <style>body{{font-family:sans-serif;padding:16px;background:#0a1a2a;color:#ccd6f6}}\
-                         h1{{color:#64ffda;font-size:18px}}</style></head>\
-                         <body><h1>{route}</h1><p>IPC Shell → {t}</p></body></html>").into_bytes()
-            };
-            let remote = move |route: &str| -> Vec<u8> {
-                format!("<!DOCTYPE html><html><head><meta charset=utf-8><title>{route}</title>\
-                         <style>body{{font-family:sans-serif;padding:16px;background:#0a1a2a;color:#ccd6f6}}\
-                         h1{{color:#64ffda;font-size:18px}}</style></head>\
-                         <body><h1>{route}</h1><p>Remote Server fetch</p></body></html>").into_bytes()
-            };
-            session.set_backend(Box::new(crate::backend::ClosureTransport::new(wasm, ipc, remote)));
+            for entry in &routes {
+                let pattern = entry.pattern.clone();
+                let mut d = entry.decision.clone();
+
+                if matches!(d.source, RouteSource::WebviewApp) {
+                    let id = format!("handler_{}", entry.pattern);
+                    let responder: Box<dyn crate::route_handler::RouteResponder> =
+                        Box::new(WebviewApp::new(public_dir.clone()));
+                    d.handler_id = Some(id.clone());
+                    session.register_responder(&id, responder);
+                }
+                // IpcShell/RemoteServer: handler_id already set by user via .with_handler()
+                // User registers responder in .setup() callback.
+
+                session.route(&pattern, d);
+            }
+            for setup in &setups { setup(&session); }
 
             app.manage(session);
 
