@@ -29,6 +29,8 @@ impl<KV: KeyValueStore + 'static> IdpServer<KV> {
         app.route::<ServeAdapter>(SimpleMethod::GET, &format!("{p}/userinfo"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/introspect"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/device/authorize"));
+        // F011 — social login callback (authorize is already registered above)
+        app.route::<ServeAdapter>(SimpleMethod::GET, &format!("{p}/callback"));
         // F02 — auth endpoints (unified login, MFA, logout)
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/authorize");
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/mfa");

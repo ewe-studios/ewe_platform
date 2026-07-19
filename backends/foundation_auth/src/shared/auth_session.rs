@@ -31,6 +31,8 @@ pub struct UpstreamAuthSession {
     pub code_verifier: Option<String>,
     /// Where to redirect the user after successful authentication.
     pub redirect_to: Option<String>,
+    /// The app's original `state` query parameter — passed through unchanged on the final redirect.
+    pub app_state: Option<String>,
     /// OIDC nonce (for OIDC providers).
     pub nonce: Option<String>,
     /// Creation time (epoch millis).
@@ -42,7 +44,6 @@ pub struct UpstreamAuthSession {
 }
 
 impl UpstreamAuthSession {
-    /// Create a new session.
     #[must_use]
     pub fn new(
         state: String,
@@ -51,6 +52,19 @@ impl UpstreamAuthSession {
         nonce: Option<String>,
         redirect_to: Option<String>,
         ttl_seconds: u64,
+    ) -> Self {
+        Self::with_app_state(state, provider_id, code_verifier, nonce, redirect_to, ttl_seconds, None)
+    }
+
+    #[must_use]
+    pub fn with_app_state(
+        state: String,
+        provider_id: String,
+        code_verifier: Option<String>,
+        nonce: Option<String>,
+        redirect_to: Option<String>,
+        ttl_seconds: u64,
+        app_state: Option<String>,
     ) -> Self {
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
@@ -61,6 +75,7 @@ impl UpstreamAuthSession {
             provider_id,
             code_verifier,
             redirect_to,
+            app_state,
             nonce,
             created_at: now,
             ttl_seconds,
