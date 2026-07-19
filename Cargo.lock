@@ -4660,11 +4660,14 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_netio",
+ "js-sys",
  "serde",
  "serde_json",
  "sha2 0.10.9",
  "tracing",
  "urlencoding",
+ "wasm-bindgen",
+ "worker",
 ]
 
 [[package]]
