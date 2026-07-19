@@ -1,3 +1,8 @@
+//! Configuration types for customizing the REPL.
+//!
+//! [`ReplConfig`] holds prompt strings, banners, and limits.
+//! [`ReplColors`] (behind the `colors` feature) controls ANSI colors.
+
 #[cfg(feature = "colors")]
 use crossterm::style::Color;
 

@@ -1,3 +1,9 @@
+//! Main REPL loop and builder.
+//!
+//! The [`Repl`] struct owns input, display, commands, and history.
+//! Call [`Repl::messages()`] to get an iterator that blocks on user input,
+//! and [`Repl::reply()`] to print responses.
+
 use std::io::Write;
 use crate::shared::config::ReplConfig;
 use crate::shared::traits::{ReplInput, ReplDisplay};

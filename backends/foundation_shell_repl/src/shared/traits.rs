@@ -1,3 +1,10 @@
+//! Platform-agnostic I/O traits.
+//!
+//! [`ReplInput`] reads keystrokes and assembles multiline input.
+//! [`ReplDisplay`] renders prompts, responses, and cursor movements.
+//! Both traits are implemented by the native (crossterm) and wasm (stub)
+//! backends.
+
 /// Reads keystrokes and assembles multiline input.
 pub trait ReplInput {
     fn new() -> Self

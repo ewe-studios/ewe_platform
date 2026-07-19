@@ -1,3 +1,10 @@
+//! Command registry and dispatch.
+//!
+//! Lines starting with `/` are intercepted by [`CommandRegistry`] and
+//! handled before reaching the [`ReplMessageIter`](super::repl::ReplMessageIter).
+//! Built-in commands: `/help`, `/clear`, `/exit`, `/version`.
+//! Custom commands are registered via [`Repl::register_command()`].
+
 use std::collections::BTreeMap;
 
 /// A command handler — receives the full command text (e.g. `/greet Alice`)
