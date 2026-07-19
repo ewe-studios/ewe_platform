@@ -70,6 +70,17 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F13 | Cross-platform builds (Desktop, Android, iOS) | Critical | F12 |
 | F14 | Android example app (platform_android) | Critical | F13 |
 | F15 | iOS example app (platform_ios) | Critical | F13 |
+| F16 | App crate structure | High | F00, F11 |
+| F17 | App build pipeline | High | F16 |
+| F18 | Backend transport | High | F02, F03 |
+| F19 | WASM annotation target | High | F11, F16 |
+| F20 | Test extraction and public API | Medium | F10 |
+| F21 | Multi-app distribution and WebView | Critical | F14, F16, F17 |
+| F22 | MobileDirectory: disk-backed asset serving | Critical | F21 |
+| F23 | WASM-Native Capabilities | Critical | F05, F19 |
+| F24 | ScriptInjector: auto-inject runtimes | Critical | F03, F19, F21 |
+| F25 | IPC Registry: central IPC mechanism | Critical | F02, F23, F24 |
+| F26 | Streaming Channels: Tauri Channels | Medium | F25 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
