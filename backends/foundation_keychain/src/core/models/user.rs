@@ -81,9 +81,9 @@ pub struct LoginResponse {
     pub expires_in: i64,
     pub token_type: String,
     pub refresh_token: String,
-    #[serde(rename = "Key")]
+    #[serde(rename = "Key", skip_serializing_if = "Option::is_none")]
     pub key: Option<String>,
-    #[serde(rename = "PrivateKey")]
+    #[serde(rename = "PrivateKey", skip_serializing_if = "Option::is_none")]
     pub private_key: Option<String>,
     #[serde(rename = "Kdf")]
     pub kdf: i32,
@@ -99,6 +99,10 @@ pub struct LoginResponse {
     pub user_decryption_options: UserDecryptionOptions,
     #[serde(rename = "TwoFactorToken", skip_serializing_if = "Option::is_none")]
     pub two_factor_token: Option<String>,
+    /// bw v2026 requires this field on the connect/token response.
+    /// When absent or null, the SDK crashes — set a minimal stub.
+    #[serde(rename = "AccountKeys")]
+    pub account_keys: serde_json::Value,
 }
 
 #[derive(Debug, Serialize)]

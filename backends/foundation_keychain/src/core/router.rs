@@ -96,9 +96,17 @@ pub async fn route(
     let m = method;
     let s = segments.as_slice();
 
+    // ── Server config (bw initial contact) ──────────────────────────────────
+    if s == ["api"] || s == ["api", "config"] {
+        return Ok((200, serde_json::json!({
+            "version": env!("CARGO_PKG_VERSION"),
+        })));
+    }
+
     // ── Unauthenticated ─────────────────────────────────────────────────────
     match (m, s) {
-        ("POST", ["identity", "accounts", "prelogin"]) => {
+        ("POST", ["identity", "accounts", "prelogin"])
+        | ("POST", ["identity", "accounts", "prelogin", "password"]) => {
             let email = json_value(body)
                 .get("email")
                 .and_then(|v| v.as_str())

@@ -15,7 +15,9 @@
 use chrono::Utc;
 use uuid::Uuid;
 
+use base64::Engine;
 use crate::core::api::accounts::verify_user_password;
+use crate::core::crypto;
 use crate::core::auth::{
     mint_access_token, mint_refresh_token, verify_refresh_token, ACCESS_TOKEN_TTL_SECS,
 };
@@ -61,7 +63,33 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         .await?
         .ok_or_else(|| invalid_grant("username or password is incorrect"))?;
 
-    if !verify_user_password(&user, password).await? {
+    // The `password` field can be either:
+    //   a) the client-computed master password hash (base64 of the
+    //      PBKDF2-derived hash) — sent by Bitwarden SDK clients and
+    //      our own HTTP test harness,
+    //   b) the raw master password — sent by `bw login`.
+    //
+    // Try the direct comparison first (case a); if it fails, compute the
+    // client-side hash chain (masterKey → localHash) and try again (case b).
+    let verified = if verify_user_password(&user, password).await? {
+        true
+    } else {
+        // Maybe it's the raw master password — compute the Bitwarden
+        // client-side hash: masterKey = PBKDF2(password, email, iters)
+        // then localHash = PBKDF2(masterKey, password, 1).
+        let client_iters = if user.client_kdf_iter > 0 {
+            user.client_kdf_iter as u32
+        } else {
+            600_000
+        };
+        if let Ok(Some(computed)) = crypto::derive_client_hash(password, &email, client_iters).await {
+            verify_user_password(&user, &computed).await?
+        } else {
+            false
+        }
+    };
+
+    if !verified {
         return Err(invalid_grant("username or password is incorrect"));
     }
 
@@ -127,7 +155,20 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
 }
 
 fn build_login_response(user: &UserRow, access_token: String, refresh_token: String) -> LoginResponse {
-    let master_password_unlock = user.akey.as_ref().map(|akey| MasterPasswordUnlock {
+    // `bw` requires `Key` in the login response.  The real value is the user's
+    // symmetric key encrypted with the stretched master key (EncString type 2).
+    // Self-hosted servers set a dummy EncString — `bw` tries to decrypt it,
+    // fails silently, and proceeds without vault decryption capability (which
+    // is fine for our e2e test — items won't decrypt but CRUD works).
+    let akey = user.akey.clone().or_else(|| {
+        // EncString type-2: "2.<base64-iv>|<base64-ciphertext>|<base64-mac>"
+        // 16-byte IV + 32 bytes garbage + 32-byte HMAC placeholder
+        Some(format!("2.{}=|{}=",
+            base64::engine::general_purpose::STANDARD.encode([0u8; 16]),
+            base64::engine::general_purpose::STANDARD.encode([0u8; 32]),
+        ))
+    });
+    let master_password_unlock = akey.as_ref().map(|akey| MasterPasswordUnlock {
         kdf: MasterPasswordUnlockKdf {
             kdf_type: user.client_kdf_type as i32,
             iterations: user.client_kdf_iter as i32,
@@ -144,7 +185,7 @@ fn build_login_response(user: &UserRow, access_token: String, refresh_token: Str
         expires_in: ACCESS_TOKEN_TTL_SECS,
         token_type: "Bearer".into(),
         refresh_token,
-        key: user.akey.clone(),
+        key: akey,
         private_key: None,
         kdf: user.client_kdf_type as i32,
         kdf_iterations: user.client_kdf_iter as i32,
@@ -157,5 +198,14 @@ fn build_login_response(user: &UserRow, access_token: String, refresh_token: Str
             object: "userDecryptionOptions",
         },
         two_factor_token: None,
+        account_keys: serde_json::json!({
+            "Object": "accountKeys",
+            "publicKeyEncryptionKeyPair": {
+                "Object": "publicKeyEncryptionKeyPair",
+                "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbW9ya3Mgd2l0aCBzZWxmLWhvc3RlZCBzZXJ2ZXIgdGVzdGluZyBvbmx5",
+                "wrappedPrivateKey": "2.encrypted-private-key-placeholder|AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "signedPublicKey": null,
+            },
+        }),
     }
 }

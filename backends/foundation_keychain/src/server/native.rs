@@ -59,9 +59,13 @@ impl KeychainServer {
 
 fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>) {
     use SimpleMethod::{DELETE, GET, POST, PUT};
+    app.route_any::<ServeAdapter>("/api");
+    app.route_any::<ServeAdapter>("/api/config");
     app.route::<ServeAdapter>(POST, "/identity/accounts/prelogin");
     app.route::<ServeAdapter>(POST, "/identity/accounts/register");
     app.route::<ServeAdapter>(POST, "/identity/connect/token");
+    // bw v2026 uses /prelogin/password for master password prelogin (BWSDK path).
+    app.route::<ServeAdapter>(POST, "/identity/accounts/prelogin/password");
     app.route::<ServeAdapter>(GET, "/api/accounts/profile");
     app.route::<ServeAdapter>(PUT, "/api/accounts/profile");
     app.route::<ServeAdapter>(POST, "/api/accounts/verify-password");

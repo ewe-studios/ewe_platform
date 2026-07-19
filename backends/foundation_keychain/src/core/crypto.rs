@@ -79,3 +79,51 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 pub fn random_salt() -> Vec<u8> {
     uuid::Uuid::new_v4().as_bytes().to_vec()
 }
+
+/// Compute the Bitwarden client-side master password hash from a raw password.
+///
+/// `bw login` sends the raw master password; `localhost/register` sends the
+/// pre-hashed value.  This function computes the hash chain `bw` uses so the
+/// server can verify it against the stored verifier:
+/// ```text
+///   masterKey  = PBKDF2-SHA256(password, email_lower, client_iterations, 256)
+///   localHash  = PBKDF2-SHA256(masterKey, password, 1, 256)
+/// ```
+/// Returns `Some(base64(localHash))` on success, `None` if the password is too
+/// short to be a real master password.
+pub async fn derive_client_hash(
+    password: &str,
+    email: &str,
+    client_iterations: u32,
+) -> Result<Option<String>, crate::core::error::AppError> {
+    use base64::Engine;
+    use pbkdf2::pbkdf2_hmac;
+    use sha2::Sha256;
+
+    let email_lower = email.trim().to_lowercase();
+    if password.len() < 8 {
+        return Ok(None);
+    }
+    let mut mk = vec![0u8; 32];
+    pbkdf2_hmac::<Sha256>(password.as_bytes(), email_lower.as_bytes(), client_iterations, &mut mk);
+    let mut lh = vec![0u8; 32];
+    pbkdf2_hmac::<Sha256>(&mk, password.as_bytes(), 1, &mut lh);
+    Ok(Some(base64::engine::general_purpose::STANDARD.encode(&lh)))
+}
+
+/// A fresh 32-byte random key (base64-encoded string).
+///
+/// Used as a placeholder `akey` when no client-provided key is sent at
+/// registration — ensures `Key` in the login response is always non-null
+/// so the `bw` CLI doesn't refuse to proceed.
+#[must_use]
+pub fn random_key() -> String {
+    use base64::Engine;
+    // Two UUID v4 values give us 32 random bytes.
+    let a = uuid::Uuid::new_v4();
+    let b = uuid::Uuid::new_v4();
+    let mut bytes = [0u8; 32];
+    bytes[..16].copy_from_slice(a.as_bytes());
+    bytes[16..].copy_from_slice(b.as_bytes());
+    base64::engine::general_purpose::STANDARD.encode(bytes)
+}
