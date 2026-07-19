@@ -93,6 +93,7 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 008: Keychain vault + backends (staged) | 1 | ✅ S1-4 (native verified) | 64 core + 1 e2e; wasm compiles |
 | 009: SSH key provisioning | 1 | ✅ Complete | 3 (provisioning) |
 | 010: Workers DO + WebSocket machinery | 1 | ✅ Complete | — (wasm32 + native compile; worker-build green; bindings verified) |
+| 011: Social login provider integration tests | 1 | 🔲 Spec written — pending | 4 Docker provider tests planned |
 
 ## Test Results (2026-07-19)
 
