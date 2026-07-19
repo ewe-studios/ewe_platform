@@ -349,7 +349,10 @@ pub struct IpcStream {
 }
 
 pub enum IpcStreamReceiver {
-    Sync(std::sync::mpsc::Receiver<Result<IpcStreamChunk, IpcError>>),
+    /// Lock-free concurrent queue. Already a workspace dep (foundation_core,
+    /// foundation_ai use `concurrent_queue::ConcurrentQueue`). Works on wasm32
+    /// and native. No `std::sync::mpsc` needed.
+    Sync(concurrent_queue::ConcurrentQueue<Result<IpcStreamChunk, IpcError>>),
     #[cfg(feature = "async")]
     Async(Box<dyn Stream<Item = Result<IpcStreamChunk, IpcError>> + Send + Unpin>),
 }
@@ -464,14 +467,13 @@ async fn __ewe_ipc_stream(
 
     // Drain receiver into the Tauri channel.
     // Channel::send() is synchronous. Loop blocks until done or cancelled.
+    // ConcurrentQueue::pop() blocks until an item is available.
     loop {
-        match ipc_stream.receiver.recv() {
+        match ipc_stream.receiver.0.pop() {
             Ok(Ok(chunk)) => {
-                // send() returns Err if JS side cancelled (channel closed)
                 stream.send(chunk).map_err(|_| "channel closed".to_string())?;
             }
             Ok(Err(e)) => {
-                // Stream error — still try to send it so JS gets context
                 let _ = stream.send(IpcStreamChunk {
                     data: e.to_string().into_bytes(),
                     sequence: u64::MAX,
@@ -480,7 +482,7 @@ async fn __ewe_ipc_stream(
                 return Err(e.to_string());
             }
             Err(_) => {
-                // Receiver dropped — handler side cancelled.
+                // Queue closed — all producers dropped.
                 return Ok(());
             }
         }
@@ -508,19 +510,11 @@ async fn __ewe_ipc_stream_accept(
     let handler = session.stream_registry().get(&request.ipc)
         .ok_or_else(|| format!("unknown streaming ipc: {}", request.ipc))?;
 
-    // Collect chunks from the input channel into an mpsc receiver.
-    let (tx, rx) = std::sync::mpsc::channel();
-    // We can't set onmessage on a Channel that was deserialized from JS.
-    // Instead, we use a different approach: the command function itself
-    // receives each chunk via the Channel's internal callback mechanism.
-    //
-    // Actually: Tauri doesn't let us set onmessage from Rust for a
-    // JS-created Channel. The flow is reversed — each JS channel.send()
-    // becomes a separate invoke() call under the hood.
-    //
-    // For client→server streaming, see the accept_stream design below.
+    // Collect chunks from the input channel into a ConcurrentQueue.
+    let queue = concurrent_queue::ConcurrentQueue::unbounded();
+    // See design note below about client→server streaming limitations.
 
-    let response = handler.accept_stream(&session, request, IpcStreamReceiver::Sync(rx))
+    let response = handler.accept_stream(&session, request, IpcStreamReceiver::Sync(queue))
         .map_err(|e| e.to_string())?;
 
     Ok(response.payload)
@@ -557,8 +551,8 @@ Tauri's `Channel::send()` is synchronous (`channel.rs:292-298`). It calls
 `on_message` directly — no async, no tokio. The `async` on `#[tauri::command]
 async fn __ewe_ipc_stream` is a Tauri framework requirement for all commands
 (they're spawned on `tauri::async_runtime`), but our handler code inside
-the function body uses `std::sync::mpsc` and blocking `recv()`. This is
-valtron-compatible.
+the function body uses `concurrent_queue::ConcurrentQueue` (lock-free, wasm32-safe,
+already a workspace dep). This is valtron-compatible.
 
 For truly async streaming (e.g., proxying a WebSocket), `IpcStreamReceiver::Async`
 uses valtron primitives (not tokio) behind an `async` feature flag.
@@ -579,7 +573,7 @@ uses valtron primitives (not tokio) behind an `async` feature flag.
 - `Ipc::kind()` returns `IpcKind::Query`.
 - `IpcStreamChunk`: `data`, `sequence`, `progress` — NO `is_last` (Tauri Channel drop handles it).
 - `IpcStreamChunk` implements `Serialize` for `Channel::send()`.
-- `IpcStreamReceiver::Sync` via `std::sync::mpsc`. No tokio.
+- `IpcStreamReceiver::Sync` via `concurrent_queue::ConcurrentQueue` (lock-free, wasm32-safe). No tokio.
 
 ### 3. Tauri commands
 - `__ewe_ipc_stream(channel: Channel<IpcStreamChunk>)` — server → client
@@ -608,7 +602,7 @@ uses valtron primitives (not tokio) behind an `async` feature flag.
 - Uses Tauri `Channel` class internally for wire transport
 
 ### 7. Concrete streaming IPCs
-- `FileReaderIpc`: `stream()` reads file in 4KB chunks via `std::sync::mpsc`
+- `FileReaderIpc`: `stream()` reads file in 4KB chunks via `ConcurrentQueue::unbounded()`
 - MVP client→server: chunked upload via multiple `invoke()` calls
 
 ### 8. Testing
