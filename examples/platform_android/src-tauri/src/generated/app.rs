@@ -1,6 +1,7 @@
-// Generated — WebviewApp for "app"
+// Generated — AppAssets for "app" (F22)
 // Route prefix: /app/
-// Usage: builder.route_with("/app/", webview_app(), generated::app::AppAssets::build());
+// Embedded: AppAssets::build() — for APK builds (release bytes in .so)
+// Mobile:    AppAssets::new(root) — for desktop dev / OTA (disk-backed)
 
 use foundation_macros::EmbedDirectoryAs;
 use foundation_platform::WebviewApp;

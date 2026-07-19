@@ -26,7 +26,7 @@ pub fn platform_test(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let output = quote! {
         #[test]
         #vis fn #fn_name() {
-            let session = ::std::sync::Arc::new(::foundation_platform::PlatformSession::new());
+            let session = ::std::sync::Arc::new(::foundation_platform::PlatformSession::new(::std::path::PathBuf::from(".")));
             // Allow dead code for session if the test doesn't use the arg name
             #[allow(unused)]
             let session = session;

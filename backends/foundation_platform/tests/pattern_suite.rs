@@ -196,7 +196,7 @@ fn router_as_route_handler() {
     let mut router = PatternRouter::new();
     router.route("/app/*", webview_app());
 
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
     let d = router.resolve(&intent("/app/dashboard"), &session).unwrap();
     assert_eq!(d.source, RouteSource::WebviewApp);
 }

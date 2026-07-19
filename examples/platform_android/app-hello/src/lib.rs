@@ -13,6 +13,16 @@ fn hello_dashboard() {
         <div style="padding:16px;font-family:sans-serif;background:#0a0a1a;color:#ccd6f6">
             <h1 style="color:#64ffda;font-size:22px;margin:0 0 4px">"Hello App"</h1>
             <p style="color:#8892b0;font-size:12px;margin:0 0 16px">"Second WASM UI app — multi-app works"</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px">
+                <a href="ewe://localhost/app/"
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🏠 App"</a>
+                <a href="ewe://localhost/app-hello/home"
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"👋 Hello"</a>
+                <a href="ewe://localhost/api/status"
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"⚡ API"</a>
+                <a href="ewe://localhost/remote/news"
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🌐 Remote"</a>
+            </div>
             <div style="background:#112240;border:1px solid #233554;border-radius:8px;padding:10px;margin:8px 0">
                 <h3 style="color:#64ffda;font-size:13px;margin:0 0 6px">"Info"</h3>
                 <p style="color:#8892b0;font-size:12px;margin:0">"app-hello crate in public/app-hello/"</p>

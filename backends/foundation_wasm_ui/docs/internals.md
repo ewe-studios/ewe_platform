@@ -117,4 +117,4 @@ assert!(matches!(sent.borrow()[0][0], DomOp::CreateElement { .. }));
 For real-browser assertions, see **[server & protocols](./server-and-protocols.md#live-browser-testing)**.
 
 See also: **[shipping](./shipping.md)** · the JS suite:
-`node --test backends/foundation_wasm_ui/integration/test/`.
+`node --test backends/foundation_wasm_ui/integration/test/` · **[incidents](./incidents/)**.

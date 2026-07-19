@@ -15,7 +15,7 @@ use foundation_platform::*;
 
 #[test]
 fn full_system_bootstrap() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     // All subsystems available immediately
     assert_eq!(session.visit_count(), 0);
@@ -31,7 +31,7 @@ fn full_system_bootstrap() {
 
 #[test]
 fn multi_handler_route_resolution() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     // Register routes for different surfaces
     session.route("/app/*", webview_app().with_profile(Profile::App));
@@ -65,7 +65,7 @@ fn multi_handler_route_resolution() {
 
 #[test]
 fn cache_connectivity_lifecycle() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     // Cache content while "online"
     session.cache().store(Profile::App, "/data", b"live-data", "text/html");
@@ -93,7 +93,7 @@ fn cache_connectivity_lifecycle() {
 
 #[test]
 fn offline_mutation_replay_on_reconnect() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     // Go offline, enqueue mutations
     session.set_online(false);
@@ -115,7 +115,7 @@ fn offline_mutation_replay_on_reconnect() {
 
 #[test]
 fn capability_invocation_with_profile_gating() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     struct Cam;
     impl Capability for Cam {
@@ -200,7 +200,7 @@ fn webview_stack_navigation_cycle() {
 
 #[test]
 fn session_lifecycle_events() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
     let events = Arc::new(std::sync::Mutex::new(Vec::new()));
     let e = events.clone();
     session.on_event(move |ev| {
@@ -223,7 +223,7 @@ fn session_lifecycle_events() {
 
 #[test]
 fn pattern_router_in_session_chain() {
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
 
     // Register via session.route() shorthand
     session.route("/app/*", webview_app().with_profile(Profile::App));
@@ -274,7 +274,7 @@ fn profile_gate_full_matrix() {
 #[test]
 fn protocol_selection_integration() {
     // Priority: decision hint → query param → content detection → default
-    let session = PlatformSession::new();
+    let session = PlatformSession::new(std::path::PathBuf::from("."));
     session.route("/api/*", remote_fetch());
 
     // Client requests JSON via query param

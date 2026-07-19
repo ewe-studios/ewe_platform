@@ -261,7 +261,7 @@ impl WasmBundleGenerator {
                 written.push(PlannedFile { path: dest, kind: "runtime bundle" });
             }
         }
-        if !skip_runtimes {
+        if !skip_runtimes && !do_single_js {
             for (file_name, source) in runtime_assets {
                 let dest = self.output_dir.join(file_name);
                 std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
@@ -392,7 +392,7 @@ impl WasmBundleGenerator {
                 written.push(PlannedFile { path: dest, kind: "runtime bundle" });
             }
         }
-        if !skip_runtimes {
+        if !skip_runtimes && !do_single_js {
             for (file_name, source) in runtime_assets {
                 let dest = self.output_dir.join(file_name);
                 std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
@@ -412,27 +412,14 @@ impl WasmBundleGenerator {
             for ep in &bins {
                 let name = &ep.name;
                 init_blocks.push_str(&format!(
-                    r#"  <script>
+                    r#"  <script type="module">
     // ── {name} ──
-    (function() {{
-      var WASM_URL = './{name}.wasm';
-      var status = document.getElementById('__ewe_status');
-      fetch(WASM_URL)
-        .then(function(r) {{ return r.arrayBuffer(); }})
-        .then(function(wasmBytes) {{
-          var rt = new FoundationWasmRuntime.FoundationWasm();
-          return WebAssembly.instantiate(wasmBytes, {{ abi: rt.web_abi }})
-            .then(function(mod) {{
-              rt.init(mod.instance);
-              FoundationWasmUiRuntime.registerWasmApp(rt);
-              mod.instance.exports.{name}();
-              status.textContent = 'WASM active';
-            }});
-        }})
-        .catch(function(err) {{
-          status.textContent = 'Error: ' + String(err);
-        }});
-    }})();
+    import {{ init }} from './{name}.js';
+    init().then(function() {{
+      console.log('[platform] {name}: WASM active');
+    }}).catch(function(err) {{
+      console.error('[platform] {name}:', err);
+    }});
   </script>
 "#
                 ));
@@ -452,21 +439,10 @@ impl WasmBundleGenerator {
       background: #0a0a1a;
       color: #ccd6f6;
     }}
-    h1 {{
-      color: #64ffda;
-      font-size: 20px;
-    }}
-    #__ewe_status {{
-      margin: 8px 0;
-      font-size: 12px;
-      color: #8892b0;
-    }}
   </style>
+  <script src="bundle.js"></script>
 </head>
 <body>
-  <h1>Foundation Platform</h1>
-  <div id="__ewe_status">Loading WASM runtime...</div>
-  <script src="bundle.js"></script>
 {init_blocks}
 </body>
 </html>

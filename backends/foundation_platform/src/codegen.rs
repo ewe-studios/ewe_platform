@@ -85,14 +85,17 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     for app in apps {
         let module_name = app.name.replace('-', "_");
         let content = format!(
-            "// Generated — WebviewApp for \"{name}\"\n// Route prefix: {route_prefix}\n\
-             // Usage: builder.route_with(\"{route_prefix}\", webview_app(), generated::{module_name}::AppAssets::build());\n\n\
+            "// Generated — AppAssets for \"{name}\" (F22)\n\
+             // Route prefix: {route_prefix}\n\
+             // Embedded: AppAssets::build() — for APK builds (release bytes in .so)\n\
+             // Mobile:    AppAssets::new(root) — for desktop dev / OTA (disk-backed)\n\n\
              use foundation_macros::EmbedDirectoryAs;\n\
              use foundation_platform::WebviewApp;\n\n\
              #[derive(EmbedDirectoryAs)]\n#[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
              pub struct AppAssets;\n\n\
-             impl AppAssets {{\n    pub fn build() -> WebviewApp<AppAssets> {{ WebviewApp::new(AppAssets {{}}) }}\n}}\n",
-            module_name = module_name, name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
+             impl AppAssets {{\n    pub fn build() -> WebviewApp<AppAssets> {{ WebviewApp::new(AppAssets {{}}) }}\n\
+             }}\n",
+             name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
         );
         std::fs::write(generated_dir.join(format!("{module_name}.rs")), &content).ok();
         mod_lines.push_str(&format!("pub mod {module_name};\n"));

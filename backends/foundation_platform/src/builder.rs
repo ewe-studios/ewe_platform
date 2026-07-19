@@ -1,3 +1,5 @@
+use std::env;
+
 use foundation_ui_traits::*;
 use tauri::{App, Context, Manager, Runtime};
 
@@ -65,7 +67,13 @@ impl<R: Runtime> PlatformBuilder<R> {
         let index_url = self.index_url.clone();
 
         self.inner = self.inner.setup(move |app| {
-            let session = PlatformSession::new();
+            // Resolve the platform resource directory for MobileDirectory (F22).
+            let resource_root = app
+                .path()
+                .resource_dir()
+                .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
+
+            let session = PlatformSession::new(resource_root);
 
             // Register routes + their inline responders.
             // For patterns like /app/*, also register /app and /app/

@@ -14,6 +14,12 @@
     "devUrl": "http://localhost:1420",
     "frontendDist": "public"
   },
+  "bundle": {
+    "resources": {
+      "public/app-hello/*": "app-hello/",
+      "public/app/*": "app/"
+    }
+  },
   "identifier": "com.ewe.platform",
   "productName": "Foundation Platform",
   "version": "0.1.0"

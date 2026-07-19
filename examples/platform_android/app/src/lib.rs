@@ -17,11 +17,13 @@ fn platform_dashboard() {
             <p style="color:#8892b0;font-size:12px;margin:0 0 16px">"Android — WASM UI"</p>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px">
                 <a href="ewe://localhost/app/home"
-                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"Home"</a>
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🏠 App"</a>
+                <a href="ewe://localhost/app-hello/"
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"👋 Hello"</a>
                 <a href="ewe://localhost/api/status"
-                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"API"</a>
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"⚡ API"</a>
                 <a href="ewe://localhost/remote/news"
-                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"Remote"</a>
+                   style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🌐 Remote"</a>
             </div>
             <div style="background:#112240;border:1px solid #233554;border-radius:8px;padding:10px;margin:8px 0">
                 <h3 style="color:#64ffda;font-size:13px;margin:0 0 6px">"Session"</h3>

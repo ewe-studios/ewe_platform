@@ -23,8 +23,6 @@ use alloc::vec::Vec;
 use foundation_signals::{Context, Runtime as SignalsRuntime};
 use foundation_theme::GeneratedTheme;
 use foundation_ui_traits::DomOp;
-use foundation_wasm::MemoryAllocations;
-
 use foundation_ui_traits::Html;
 
 use crate::theme::{inject_theme_css, BODY_NODE_ID};
@@ -120,7 +118,7 @@ impl App {
         let ctx = Context::new(Rc::clone(&signals));
         let runtime = Runtime::builder()
             .protocol(protocol)
-            .memory(MemoryAllocations::new())
+            .global_arena()
             .build();
         runtime.attach(&signals);
         let receiver = runtime.receiver();

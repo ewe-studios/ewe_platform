@@ -10,6 +10,7 @@
 //! where possible.
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
@@ -75,14 +76,20 @@ pub struct PlatformSession {
     /// Each `webview_app()` / `ipc_shell()` registers its own responder.
     /// `execute_decision()` looks up the handler and calls `respond()`.
     handler_registry: RwLock<HashMap<String, Box<dyn super::route_handler::RouteResponder>>>,
+
+    /// Resolved resource directory for MobileDirectory-backed assets.
+    /// Set by PlatformBuilder at startup. On Android this is the Tauri-extracted
+    /// resource path; on desktop it's the app bundle resource dir.
+    pub resource_root: PathBuf,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
 
 impl PlatformSession {
-    /// Initialize the session. Called once at app launch.
+    /// Initialize the session with the resolved resource root directory.
+    /// Called once at app launch.
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
-    pub fn new() -> Arc<Self> {
+    pub fn new(resource_root: PathBuf) -> Arc<Self> {
         let session_id = SessionId(
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -101,6 +108,7 @@ impl PlatformSession {
             online: AtomicBool::new(true),
             event_listeners: RwLock::new(Vec::new()),
             handler_registry: RwLock::new(HashMap::new()),
+            resource_root,
         })
     }
 }
@@ -112,6 +120,26 @@ impl PlatformSession {
     /// on every navigation. First `Some(decision)` wins.
     pub fn register_handler(&self, handler: impl super::route_handler::RouteHandler) {
         self.route_handlers.write().unwrap().push(Box::new(handler));
+    }
+
+    /// Register a pattern + decision + responder at setup time (F22).
+    /// Like `PlatformBuilder::route_with` but usable from `.setup()` callbacks
+    /// where `self.resource_root` is already resolved.
+    pub fn register_route_with(
+        &self,
+        pattern: &str,
+        mut decision: foundation_ui_traits::RouteDecision,
+        responder: impl super::route_handler::RouteResponder,
+    ) {
+        let handler_id = format!("__route_{pattern}");
+        self.register_responder(&handler_id, Box::new(responder));
+        decision.handler_id = Some(handler_id);
+        self.route(pattern, decision.clone());
+
+        if pattern.ends_with("/*") {
+            let prefix = pattern.trim_end_matches('*').trim_end_matches('/');
+            self.route(prefix, decision);
+        }
     }
 
     /// Resolve a navigation intent through the handler chain.

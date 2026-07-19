@@ -29,7 +29,7 @@ pub use capability::{Capability, CapabilityRegistry};
 pub use mutation::{MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError, ReplayResult};
 pub use stack::{SlotState, StackConfig, WebViewOps, WebViewSlot, WebViewStack};
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
-pub use responder::WebviewApp;
+pub use responder::{MobileApp, MobileDisk, WebviewApp};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler, RouteResponder};
 pub use session::{PlatformSession, SessionEvent};

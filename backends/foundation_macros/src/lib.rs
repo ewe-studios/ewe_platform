@@ -7,6 +7,7 @@ mod crate_paths;
 mod docker_container;
 mod proxy;
 mod embedders;
+mod mobile_directory;
 mod from_arrow;
 mod platform_test;
 mod json_hash;
@@ -88,6 +89,29 @@ mod wireguard;
 )]
 pub fn embed_directory_as(item: TokenStream) -> TokenStream {
     embedders::embed_directory_on_struct(item)
+}
+
+/// `MobileDirectory` — runtime disk-backed asset serving (F22).
+///
+/// Like [`EmbedDirectoryAs`] for metadata (scans the source directory at
+/// expansion time to build [`FILES_METADATA`]), but serves file content at
+/// **runtime** from a `root: PathBuf` field — no compile-time byte embedding.
+/// Designed for mobile platforms where app bundles are updated over the wire
+/// and must be servable without rebuilding the native `.so`.
+///
+/// The struct MUST have a `root: PathBuf` field.
+///
+/// ```ignore
+/// use foundation_macros::MobileDirectory;
+/// use std::path::PathBuf;
+///
+/// #[derive(MobileDirectory)]
+/// #[source = "$CARGO_MANIFEST_DIR/public/app"]
+/// pub struct AppAssets { root: PathBuf }
+/// ```
+#[proc_macro_derive(MobileDirectory, attributes(source))]
+pub fn mobile_directory(item: TokenStream) -> TokenStream {
+    mobile_directory::mobile_directory_on_struct(item)
 }
 
 /// [`embed_file_as`] specifies a proc macro for embedding files into

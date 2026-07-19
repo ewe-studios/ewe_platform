@@ -2669,6 +2669,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "foundation_platform",
+ "foundation_wasm_ui",
  "serde",
  "serde_json",
  "tauri",
