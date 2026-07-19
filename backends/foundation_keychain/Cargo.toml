@@ -47,6 +47,8 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-feat
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
 # worker-rs: `#[event(fetch)]` entry point + Request/Response/Env/D1.
 worker = { version = "0.8.3", features = ["d1"] }
+# Needed by the #[durable_object] / #[wasm_bindgen] proc macros for DO structs.
+wasm-bindgen = "0.2"
 # `default-features = false` required: without it cargo's default-features union re-enables
 # foundation_auth's native `turso` default (→ foundation_db/turso → multi) on wasm.
 # `wasm-pbkdf2` brings the WebCrypto PBKDF2 path (js-sys/web-sys) the keychain uses for
@@ -55,6 +57,9 @@ worker = { version = "0.8.3", features = ["d1"] }
 # stage that actually uses it — the vault-CRUD stages talk to foundation_db's D1 directly.
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["wasm-pbkdf2"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false, features = ["wasm-fetch"] }
+# Workers DO/WebSocket machinery (spec-57 F010). Pulls the general DurableObject
+# helpers + WebSocket accept primitives built in foundation_deployment_cloudflare.
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.0", default-features = false, features = ["workers"] }
 
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]

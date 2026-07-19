@@ -6,3 +6,11 @@ compatibility_date = "2025-07-19"
 binding = "KEYCHAIN_DB"
 database_name = "keychain-db"
 database_id = "keychain-db-local"
+
+[[durable_objects.bindings]]
+name = "SIGNALR_HUB"
+class_name = "SignalRHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalRHub"]

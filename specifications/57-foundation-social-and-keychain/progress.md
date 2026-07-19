@@ -3,7 +3,7 @@
 ## Status: In Progress
 
 Phase 0 (social login): F001-F007 complete
-Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done
+Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done; 010 (DO+WS) done
 
 **2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
 is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on
@@ -63,14 +63,13 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    - **✅ STAGE 3 — Workers backend transport compiles on wasm32** (`server/cloudflare.rs`):
      `#[event(fetch)]` builds a D1-backed `KeychainContext` (foundation_db `workers-rs` interop) and
      `.await`s the SHARED `core/router::route` (extracted so native single-polls it, Workers awaits it).
-     Deferred: SignalR notifications DO (foundation_deployment_cloudflare::workers is empty stubs),
-     signing-key KV persistence, Miniflare runtime tests (need JS runtime).
+     Deferred: signing-key KV persistence, Miniflare runtime tests (need JS runtime).
+     ✅ **F010 complete (2026-07-19):** workers module + SignalR DO implemented and verified.
    - **✅ STAGE 4 (native) — server binary `src/bin/keychain.rs` VERIFIED**: boots valtron pool, opens
      Turso, applies schema, serves; smoke-tested with real `curl` (register → connect/token login return
      correct Bitwarden JSON). `Dockerfile` (multi-stage) + `docker-compose.yml` written.
    - Remaining (need external runtime, can't verify here): Bitwarden-CLI e2e (needs `bw` + running
-     server), Miniflare Workers runtime test, SignalR notifications Durable Object, Workers signing-key
-     KV persistence, `foundation_deployment_cloudflare::workers` module implementation (empty stubs).
+     server), Miniflare Workers runtime test, Workers signing-key KV persistence.
 4. ✅ 009 SSH key provisioning (former 012) — app registry (Argon2id secrets) + Ed25519/RSA keygen
    (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
    wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
@@ -94,6 +93,7 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 007: Cross-platform upstream client | 0 | ✅ Complete | 10 (5 unit + 5 integration) |
 | 008: Keychain vault + backends (staged) | 1 | ✅ S1-4 (native verified) | 64 core + 1 e2e; wasm compiles |
 | 009: SSH key provisioning | 1 | ✅ Complete | 3 (provisioning) |
+| 010: Workers DO + WebSocket machinery | 1 | ✅ Complete | — (wasm32 + native compile; worker-build green; bindings verified) |
 
 ## Test Results (2026-07-19)
 

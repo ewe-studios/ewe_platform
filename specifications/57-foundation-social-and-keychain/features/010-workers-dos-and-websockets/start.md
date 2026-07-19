@@ -2,7 +2,7 @@
 feature: "010-workers-dos-and-websockets"
 spec: "57-foundation-social-and-keychain"
 depends: "none"
-status: "in-progress"
+status: "complete"
 stages:
   - "1-general-do-machinery"
   - "2-websocket-pair-accept"
