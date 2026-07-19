@@ -11,10 +11,10 @@ created: 2026-07-20
 depends_on: ["F01-core-repl"]
 
 tasks:
-  completed: 0
+  completed: 4
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 4
+  completion_percentage: 100%
 ---
 
 # F02 — Command history: ring buffer + up/down navigation + disk persistence

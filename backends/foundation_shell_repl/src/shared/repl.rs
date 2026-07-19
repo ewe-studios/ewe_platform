@@ -114,6 +114,7 @@ impl Iterator for ReplMessageIter<'_> {
             &self.repl.config.continuation_prompt,
             &mut *self.repl.display,
             self.repl.config.max_input_length,
+            Some(&mut self.repl.history),
         );
 
         match result {

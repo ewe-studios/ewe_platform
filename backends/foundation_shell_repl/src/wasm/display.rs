@@ -57,4 +57,8 @@ impl ReplDisplay for WasmDisplay {
 
     fn move_cursor_left(&mut self) {}
     fn move_cursor_right(&mut self) {}
+
+    fn replace_line(&mut self, content: &str, prompt: &str) {
+        log_wasm!("REPLACE: {prompt}{content}");
+    }
 }

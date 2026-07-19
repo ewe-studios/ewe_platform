@@ -26,6 +26,7 @@ impl ReplInput for NativeInput {
         continuation_prompt: &str,
         display: &mut dyn ReplDisplay,
         max_len: Option<usize>,
+        mut history: Option<&mut crate::shared::history::ReplHistory>,
     ) -> io::Result<String> {
         crossterm::terminal::enable_raw_mode()?;
 
@@ -123,10 +124,29 @@ impl ReplInput for NativeInput {
                 (_, KeyCode::Left) => display.move_cursor_left(),
                 (_, KeyCode::Right) => display.move_cursor_right(),
 
-                // Up/Down — history navigation (F02)
-                // Handled at the REPL level via trait callbacks
-                (_, KeyCode::Up) => {}
-                (_, KeyCode::Down) => {}
+                // Up/Down — history navigation
+                (_, KeyCode::Up) => {
+                    if let Some(hist) = history.as_mut() {
+                        if let Some(entry) = hist.up() {
+                            self.buffer = entry.to_string();
+                            display.replace_line(&self.buffer, prompt);
+                        }
+                    }
+                }
+                (_, KeyCode::Down) => {
+                    if let Some(hist) = history.as_mut() {
+                        match hist.down() {
+                            Some(entry) => {
+                                self.buffer = entry.to_string();
+                                display.replace_line(&self.buffer, prompt);
+                            }
+                            None => {
+                                self.buffer.clear();
+                                display.replace_line("", prompt);
+                            }
+                        }
+                    }
+                }
 
                 _ => {}
             }

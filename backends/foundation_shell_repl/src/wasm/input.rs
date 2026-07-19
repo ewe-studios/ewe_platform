@@ -23,6 +23,7 @@ impl ReplInput for WasmInput {
         _continuation_prompt: &str,
         _display: &mut dyn ReplDisplay,
         _max_len: Option<usize>,
+        mut _history: Option<&mut crate::shared::history::ReplHistory>,
     ) -> io::Result<String> {
         Err(io::Error::new(
             io::ErrorKind::Unsupported,

@@ -130,7 +130,7 @@ path. The disk persistence feature is `native`-only (wasm has no filesystem).
 | ID | Title | Status |
 |----|-------|--------|
 | [F01-core-repl](features/F01-core-repl/feature.md) | Shared traits + native input/display + wasm stubs + REPL loop | implemented |
-| [F02-command-history](features/F02-command-history/feature.md) | In-memory history ring buffer + up/down navigation + optional disk persistence (native-only) | planned |
+| [F02-command-history](features/F02-command-history/feature.md) | In-memory history ring buffer + up/down navigation + optional disk persistence (native-only) | implemented |
 | [F03-prompt-customization](features/F03-prompt-customization/feature.md) | Customizable prompt strings, continuation prompt, color/styling config | planned |
 | [F04-builtin-commands](features/F04-builtin-commands/feature.md) | Help, clear, exit, version — caller-extensible command registration | planned |
 

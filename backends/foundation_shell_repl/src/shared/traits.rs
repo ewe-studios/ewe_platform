@@ -11,6 +11,7 @@ pub trait ReplInput {
         continuation_prompt: &str,
         display: &mut dyn ReplDisplay,
         max_len: Option<usize>,
+        history: Option<&mut super::history::ReplHistory>,
     ) -> std::io::Result<String>;
 
     /// Check if the last read was EOF (Ctrl+D or equivalent).
@@ -55,4 +56,7 @@ pub trait ReplDisplay {
 
     /// Move cursor right (basic line editing).
     fn move_cursor_right(&mut self);
+
+    /// Replace the entire input line with new content (used by history navigation).
+    fn replace_line(&mut self, content: &str, prompt: &str);
 }

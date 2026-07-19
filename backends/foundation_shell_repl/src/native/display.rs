@@ -130,4 +130,21 @@ impl ReplDisplay for NativeDisplay {
         let _ = w.queue(MoveToColumn(self.cursor_col));
         let _ = w.flush();
     }
+
+    fn replace_line(&mut self, content: &str, prompt: &str) {
+        let mut w = io::stderr().lock();
+        let _ = w
+            .queue(MoveToColumn(0))
+            .and_then(|w| w.queue(Clear(ClearType::UntilNewLine)));
+        #[cfg(feature = "colors")]
+        let _ = w
+            .queue(SetForegroundColor(self.colors.prompt_color))
+            .and_then(|w| w.queue(Print(prompt)))
+            .and_then(|w| w.queue(ResetColor))
+            .and_then(|w| w.queue(Print(content)));
+        #[cfg(not(feature = "colors"))]
+        let _ = write!(w, "{prompt}{content}");
+        let _ = w.flush();
+        self.cursor_col = (prompt.len() + content.len()) as u16;
+    }
 }
