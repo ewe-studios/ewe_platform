@@ -11,10 +11,10 @@ created: 2026-07-20
 depends_on: []
 
 tasks:
-  completed: 0
+  completed: 8
   uncompleted: 0
-  total: 0
-  completion_percentage: 0%
+  total: 8
+  completion_percentage: 100%
 ---
 
 # F01 — Core REPL: shared traits + native input/display + wasm stubs + REPL loop

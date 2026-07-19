@@ -1,0 +1,29 @@
+[package]
+name = "foundation_shell_repl"
+version = "0.1.0"
+description = "A lightweight, general-purpose REPL framework for interactive terminal sessions"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["foundation_shell_repl", "repl", "tui", "terminal"]
+
+[dependencies]
+crossterm = { version = "0.28", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = ["console"], optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[dev-dependencies]
+
+[features]
+default = ["native"]
+native = ["dep:crossterm"]
+colors = ["native"]
+history-file = ["dep:serde", "dep:serde_json"]
+wasm = ["dep:js-sys", "dep:web-sys"]
+
+[lints]
+workspace = true
