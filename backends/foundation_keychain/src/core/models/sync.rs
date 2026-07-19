@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use super::cipher::Cipher;
 use super::folder::Folder;
-use super::org::Organization;
+
 use super::send::Send;
 use super::user::UserAccount;
 

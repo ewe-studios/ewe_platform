@@ -175,19 +175,12 @@ impl StorageProvider {
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageBackend::D1Wasm { db, table_prefix } => {
                 let storage = D1WasmStorage::new(db, &table_prefix);
-                // Init schema via valtron single-threaded executor.
-                let storage_ref = storage.clone();
-                let mut driven = foundation_core::valtron::drive_future(async move {
-                    storage_ref.init_schema_async().await
-                });
-                let mut init_result: Option<Result<(), StorageError>> = None;
-                for status in driven.by_ref() {
-                    if let foundation_core::valtron::TaskStatus::Ready(v) = status {
-                        init_result = Some(v.map_err(|e| StorageError::Backend(format!("Init failed: {e:?}"))));
-                        break;
-                    }
-                }
-                init_result.ok_or_else(|| StorageError::Generic("No result from init".into()))??;
+                // Schema init is the caller's responsibility — the Workers
+                // entry point drives it with `.await` (JS Promise, no valtron),
+                // and the native binary uses `block_on_future` (valtron pool).
+                // We do NOT call `drive_future` here because it requires an
+                // initialized valtron pool and blocks the JS event loop on
+                // wasm32, preventing D1 Promises from resolving.
                 Ok(Self {
                     inner: StorageProviderInner::D1Wasm(storage),
                 })
@@ -236,6 +229,21 @@ impl StorageProvider {
         Ok(Self {
             inner: StorageProviderInner::JsonFile(storage),
         })
+    }
+    /// Initialize the D1-backed key-value schema (creates the `kv_store`
+    /// table if it does not exist). Must be called once before any
+    /// key-value operations on wasm Workers, where the constructor can't
+    /// block.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError::Backend` if the D1 statement fails.
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+    pub async fn init_schema_async(&self) -> StorageResult<()> {
+        match &self.inner {
+            StorageProviderInner::D1Wasm(storage) => storage.init_schema_async().await,
+            _ => Ok(()),
+        }
     }
 }
 

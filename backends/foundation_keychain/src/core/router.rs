@@ -20,7 +20,7 @@ use crate::core::models::org::{
     CollectionCreateRequest, ConfirmMemberRequest, InviteMemberRequest, OrganizationCreateRequest,
 };
 use crate::core::models::send::{SendCreateRequest, SendUpdateRequest};
-use crate::core::models::user::{RegisterRequest, TokenRequest, UpdateProfileRequest};
+use crate::core::models::user::{TokenRequest, UpdateProfileRequest};
 
 /// Serialize a handler result into `(200, json)`.
 fn ok<T: serde::Serialize>(value: T) -> AppResult<(u16, serde_json::Value)> {

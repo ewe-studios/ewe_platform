@@ -11,9 +11,10 @@
 //! `worker::Response`.
 //!
 //! HOW: `foundation_db`'s `workers-rs` interop converts the env's
-//! `worker::D1Database` into a [`StorageBackend::D1Wasm`]. All crypto/JWT is
-//! `foundation_auth` (decision 01). The schema is applied by wrangler D1
-//! migrations (not per-request).
+//! `worker::D1Database` into a [`StorageBackend::D1Wasm`]. The key-value and
+//! vault schemas are applied at cold-start via `init_schema_async()` +
+//! `apply_schema()` — real async (JS Promises), zero valtron. All crypto/JWT is
+//! `foundation_auth` (decision 01).
 //!
 //! NOTE (Stage-3 remainder): the JWT signing key is currently generated per cold
 //! start — tokens don't survive an isolate recycle. Production must persist it in
@@ -28,14 +29,20 @@ use worker::{event, Context, Env, Request, Response, Result as WorkerResult};
 
 use crate::core::context::KeychainContext;
 use crate::core::router::route;
+use crate::core::store::apply_schema;
 
 /// D1 binding name in `wrangler.toml`.
 const D1_BINDING: &str = "KEYCHAIN_DB";
 
 /// The Workers HTTP entry point.
+///
+/// Builds a D1-backed [`KeychainContext`] from the env binding, initialises the
+/// key-value schema (async — no valtron pool needed), and dispatches every
+/// request through the portable [`route`](crate::core::router::route) function.
 #[event(fetch)]
 pub async fn fetch(mut req: Request, env: Env, _ctx: Context) -> WorkerResult<Response> {
-    let ctx = match build_context(&env) {
+    // Build the D1 storage provider + keychain context.
+    let ctx = match build_context(&env).await {
         Ok(ctx) => ctx,
         Err(e) => return Response::error(format!("keychain init failed: {e}"), 500),
     };
@@ -58,8 +65,12 @@ pub async fn fetch(mut req: Request, env: Env, _ctx: Context) -> WorkerResult<Re
     Ok(Response::from_json(&json)?.with_status(status))
 }
 
-/// Build a D1-backed context from the Worker env.
-fn build_context(env: &Env) -> Result<KeychainContext, String> {
+/// Build a D1-backed [`KeychainContext`] from the Worker env.
+///
+/// Calls [`StorageProvider::init_schema_async`] (which creates `kv_store` if
+/// absent) and then creates the context with a fresh ephemeral Ed25519 JWT
+/// signing key.
+async fn build_context(env: &Env) -> Result<KeychainContext, String> {
     let d1 = env.d1(D1_BINDING).map_err(|e| e.to_string())?;
     let db: foundation_db::D1Database = d1.into();
     let provider = StorageProvider::new(StorageBackend::D1Wasm {
@@ -67,6 +78,19 @@ fn build_context(env: &Env) -> Result<KeychainContext, String> {
         table_prefix: String::new(),
     })
     .map_err(|e| e.to_string())?;
+
+    // Schema init — uses JS Promise (no valtron pool needed).
+    provider
+        .init_schema_async()
+        .await
+        .map_err(|e| format!("schema init: {e:?}"))?;
+
     let store: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+
+    // Apply the keychain vault schema (accounts, ciphers, folders, etc.).
+    apply_schema(store.as_ref())
+        .await
+        .map_err(|e| format!("vault schema: {e}"))?;
+
     Ok(KeychainContext::new(store))
 }

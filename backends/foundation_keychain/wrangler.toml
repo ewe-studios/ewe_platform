@@ -1,0 +1,8 @@
+name = "foundation-keychain"
+main = "build/index.js"
+compatibility_date = "2025-07-19"
+
+[[d1_databases]]
+binding = "KEYCHAIN_DB"
+database_name = "keychain-db"
+database_id = "keychain-db-local"
