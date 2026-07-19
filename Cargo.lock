@@ -4912,6 +4912,7 @@ dependencies = [
  "foundation_auth",
  "foundation_core",
  "foundation_db",
+ "foundation_deployment_cloudflare",
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
@@ -4929,6 +4930,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "uuid",
+ "wasm-bindgen",
  "worker",
 ]
 

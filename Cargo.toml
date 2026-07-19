@@ -22,6 +22,8 @@ exclude = [
   # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
+  "backends/node_modules",
+  "backends/*/node_modules",
   # tests members
   "integrations/nodejs/integrations/*",
   "backends/foundation_wasm/integration/module",

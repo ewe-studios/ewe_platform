@@ -53,5 +53,5 @@ Builds a platform-agnostic upstream OIDC/OAuth2 client that can authenticate wit
 - **PKCE is always used.** Even for providers that don't require it, the client sends `code_challenge`/`code_verifier` (S256).
 - **10-second timeout on upstream HTTP calls.** If the upstream provider doesn't respond, the client fails fast.
 - **Nonce is always generated.** For OIDC providers it's validated in the ID token; for OAuth2-only providers it's generated but ignored.
-- **exchange_code is platform-gated.** The `UpstreamOidcClient` doc comments reference `NativeOAuth` and `WasmOAuth`, but the actual gating lives in the callers. The wasm path (F007) is not yet fully wired.
+- **exchange_code is platform-gated.** The `UpstreamOidcClient` uses `default_http_client()` (cross-platform via `Arc<dyn HttpClient>`). F007 completed the wasm path — both native and Workers work.
 - Google, GitHub, and Facebook backends are documented in the spec but implemented as configuration profiles rather than separate `ProviderBackend` trait impls -- the normalized `UpstreamProfile` + `mapping_config` handles all standard OIDC/OAuth2 providers without per-provider code.

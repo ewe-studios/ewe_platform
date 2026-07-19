@@ -322,6 +322,40 @@ impl JwtSigningKey {
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
     }
+
+    /// Serialise the full key pair (private key) as a PEM string for
+    /// persistence in KV / secrets manager.
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::GenerationError` if PEM encoding fails.
+    pub fn to_pem(&self) -> Result<String, JwtError> {
+        match self {
+            Self::Ed25519(kp) => Ok(kp.to_pem()),
+            Self::RS256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+            Self::ES256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+        }
+    }
+
+    /// Deserialise a key pair from a PEM string previously produced by
+    /// [`to_pem`](Self::to_pem).
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::InvalidPrivateKey` if the PEM cannot be parsed.
+    pub fn from_pem(pem: &str) -> Result<Self, JwtError> {
+        use jwt_simple::prelude::Ed25519KeyPair;
+
+        // Try Ed25519 first (the default for keychain + IdP).
+        if let Ok(kp) = Ed25519KeyPair::from_pem(pem) {
+            return Ok(Self::Ed25519(kp));
+        }
+        Err(JwtError::InvalidPrivateKey(
+            "could not parse PEM as Ed25519, RS256, or ES256 key".into(),
+        ))
+    }
 }
 
 // ===========================================================================
@@ -754,6 +788,9 @@ pub enum JwtError {
     /// Public key could not be parsed.
     #[from(ignore)]
     InvalidPublicKey(String),
+    /// Private key could not be parsed from PEM/DER.
+    #[from(ignore)]
+    InvalidPrivateKey(String),
     /// Subject claim is missing or empty.
     #[from(ignore)]
     InvalidSubject,
@@ -782,6 +819,7 @@ impl core::fmt::Display for JwtError {
             JwtError::InvalidAudience(s) => write!(f, "JWT invalid audience: {s}"),
             JwtError::TokenNotYetValid(s) => write!(f, "JWT not yet valid: {s}"),
             JwtError::InvalidPublicKey(s) => write!(f, "JWT invalid public key: {s}"),
+            JwtError::InvalidPrivateKey(s) => write!(f, "JWT invalid private key: {s}"),
             JwtError::InvalidSubject => write!(f, "JWT missing subject claim"),
         }
     }

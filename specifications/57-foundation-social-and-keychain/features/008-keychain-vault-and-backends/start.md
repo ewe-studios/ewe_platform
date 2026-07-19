@@ -20,9 +20,8 @@ Consolidates former F008/F009/F010/F011. See `feature.md` for the stage plan and
 
 `foundation_keychain` compiles (native + wasm core) with error types, models
 (cipher, folder, org, send, user, sync), auth adapters, notification framing. **26
-tests pass.** The `core/api/*` handlers are still 1-line stubs — implementing that
-portable business logic over `foundation_db` (+ `foundation_auth` crypto) is the
-remaining Stage-1 work, then Stages 2–4.
+tests pass.** All `core/api/*` handlers are implemented; native + Workers backends
+shipped; KV-backed signing key persistence; SignalR DO wired.
 
 ## Stage order (each unlocks the next)
 

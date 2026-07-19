@@ -20,7 +20,7 @@ over a real server. Native + wasm32 compile clean.
 > `#[tracing_test::traced_test]` + `#[valtron_test]` global-subscriber conflict (fails at
 > test setup, unrelated to F007) — a separate test-harness issue to fix.
 
-**Spec quality:** All 11 decisions have `Status:` fields. All 12 features have
+**Spec quality:** All 11 decisions have `Status:` fields. All 10 features (001-010) have
 `feature.md` + `start.md` with frontmatter. `foundation_cronjobs` crate
 compiles (3 tests). `foundation_deployment_cloudflare::workers::websocket`
 verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`.
@@ -63,13 +63,12 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
    - **✅ STAGE 3 — Workers backend transport compiles on wasm32** (`server/cloudflare.rs`):
      `#[event(fetch)]` builds a D1-backed `KeychainContext` (foundation_db `workers-rs` interop) and
      `.await`s the SHARED `core/router::route` (extracted so native single-polls it, Workers awaits it).
-     Deferred: signing-key KV persistence, Miniflare runtime tests (need JS runtime).
+     ✅ All deferred items delivered 2026-07-19: signing-key KV persistence, Miniflare runtime tests (16 tests).
      ✅ **F010 complete (2026-07-19):** workers module + SignalR DO implemented and verified.
    - **✅ STAGE 4 (native) — server binary `src/bin/keychain.rs` VERIFIED**: boots valtron pool, opens
      Turso, applies schema, serves; smoke-tested with real `curl` (register → connect/token login return
      correct Bitwarden JSON). `Dockerfile` (multi-stage) + `docker-compose.yml` written.
-   - Remaining (need external runtime, can't verify here): Bitwarden-CLI e2e (needs `bw` + running
-     server), Miniflare Workers runtime test, Workers signing-key KV persistence.
+   - Remaining (needs external tooling): Bitwarden-CLI e2e (needs `bw` + running server).
 4. ✅ 009 SSH key provisioning (former 012) — app registry (Argon2id secrets) + Ed25519/RSA keygen
    (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
    wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
@@ -99,33 +98,36 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 
 - **foundation_auth**: 37 lib + integration (provider/upstream/auth_session/provisioning/admin)
 - **foundation_keychain**: ~72 tests — 22 core + 42 vertical (folders/accounts/identity/ciphers/sends/2fa/icons/events/orgs/sync) + 1 native-e2e + 3 provisioning; native binary curl-verified; native + wasm32 compile
-- **spec-57 phase 1 (keychain): features 008 (all 4 stages) + 009 COMPLETE**
+- **spec-57 phase 1 (keychain): features 008 (all 4 stages) + 009 + 010 COMPLETE**
 
 ## Keychain Crate Structure
 
 ```
-foundation_keychain/              (✅ created, compiles on native + wasm)
+foundation_keychain/              (✅ complete, native + wasm32)
 ├── src/core/
-│   ├── error.rs                  # AppError, AppResult, ValidationError
-│   ├── util.rs                   # SSRF icon guard, helpers
-│   ├── models/
-│   │   ├── cipher.rs             # Cipher, Login, Card, Identity, SecureNote
-│   │   ├── folder.rs             # Folder, create/update requests
-│   │   ├── org.rs                # Organization, membership types
-│   │   ├── send.rs               # Send, time-limited sharing
-│   │   ├── user.rs               # Prelogin, Register, Profile, KDF
-│   │   └── sync.rs               # SyncData, EquivalentDomains
-│   ├── auth/mod.rs               # BitwardenClaims, security stamp verify
-│   ├── notifications/mod.rs      # SignalR MessagePack framing, UpdateType
-│   └── api/                      # Handler stubs (accounts, ciphers, folders, orgs, sends, 2FA, sync, events, emergency, icons)
+│   ├── error.rs / util.rs        # AppError, SSRF icon guard
+│   ├── models/                   # Cipher, Folder, Org, Send, User, Sync models
+│   ├── auth/mod.rs               # Bitwarden JWT claims, security stamp
+│   ├── notifications/mod.rs      # SignalR MessagePack framing
+│   ├── router.rs                 # Portable method+path dispatch
+│   ├── context.rs                # KeychainContext (D1 + JWT key)
+│   ├── crypto.rs                 # Cross-platform PBKDF2 wrapper
+│   ├── store/                    # SQL queries (accounts, ciphers, folders, etc.)
+│   ├── api/                      # All handlers implemented (11 modules)
+│   └── provisioning/             # SSH key generation (native-gated)
 ├── src/server/
-│   ├── native.rs                 # 🔲 Stage 2 (native: foundation_http)
-│   └── cloudflare.rs             # 🔲 Stage 3 (cloudflare/workers router)
-└── tests/core_tests.rs           # 22 integration tests
+│   ├── native.rs                 # ✅ Stage 2: foundation_http backend
+│   ├── cloudflare.rs             # ✅ Stage 3: Workers fetch + KV signing key persistence
+│   └── signalr_do.rs             # ✅ F010: SignalR Durable Object hub
+├── tests/                        # 16 test files, 68+ tests
+├── wrangler.toml                 # Workers config (D1 + KV + DO)
+├── package.json                  # worker-build + Miniflare test scripts
+└── test.mjs                      # 16 Miniflare integration tests
 ```
 
 ## Foundation Reuse (no custom traits)
 
-- `foundation_db`: QueryStore, AsyncQueryStore, KeyValueStore, BlobStore, RateLimiterStore, StorageProvider
-- `foundation_auth`: JwtSigningKey, TOTPSecret, require_auth, IdpServer, ProviderService, ProvisioningService, UpstreamOidcClient, UpstreamAuthSession
-- `foundation_http`, `foundation_netio`: native HTTP + WebSocket (Stage 2)
+- `foundation_db`: QueryStore, AsyncQueryStore, KeyValueStore, BlobStore, RateLimiterStore, StorageProvider, D1WasmStorage
+- `foundation_auth`: JwtSigningKey (with KV persistence), TOTPSecret, PBKDF2
+- `foundation_deployment_cloudflare::workers`: DO machinery (durable_object, websocket, env, context)
+- `foundation_http`, `foundation_netio`: native HTTP + WebSocket (native backend)
