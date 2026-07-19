@@ -36,13 +36,15 @@ pub fn generate_platform_code() {
         generate_app_modules(&apps, &generated_dir);
     }
 
-    tauri_build::build();
-
+    // Patch tauri.conf.json BEFORE tauri_build reads it.
+    // Sets the initial window URL to bypass WebViewAssetLoader.
     if let Some(first) = apps.first() {
         patch_tauri_conf_for_ewe(&manifest_dir, &first.route_prefix);
     } else {
         patch_tauri_conf_for_ewe(&manifest_dir, "/__platform__/");
     }
+
+    tauri_build::build();
 }
 
 pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
@@ -51,7 +53,7 @@ pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
     }
 }
 
-fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
+pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     use foundation_wasm_ui::build_tools::WasmBundleGenerator;
 
     let wasm: Vec<_> = scan_for_annotations(&app_dir.join("src"))
@@ -87,7 +89,7 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
              // Usage: builder.route_with(\"{route_prefix}\", webview_app(), generated::{module_name}::AppAssets::build());\n\n\
              use foundation_macros::EmbedDirectoryAs;\n\
              use foundation_platform::WebviewApp;\n\n\
-             #[derive(EmbedDirectoryAs)]\n#[source = \"public/{public_subdir}\"]\n\
+             #[derive(EmbedDirectoryAs)]\n#[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
              pub struct AppAssets;\n\n\
              impl AppAssets {{\n    pub fn build() -> WebviewApp<AppAssets> {{ WebviewApp::new(AppAssets {{}}) }}\n}}\n",
             module_name = module_name, name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
@@ -100,10 +102,25 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
 }
 
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
-    let target_url = format!("http://ewe.localhost{}", route_prefix.trim_end_matches('/'));
-    if let Ok(c) = std::fs::read_to_string(&manifest_dir.join("tauri.conf.json")) {
-        let patched = c.replace(r#""url": "index.html""#, &format!(r#""url": "{target_url}""#));
-        if patched != c { std::fs::write(&manifest_dir.join("tauri.conf.json"), &patched).ok(); }
+    let conf_path = manifest_dir.join("tauri.conf.json");
+    if let Ok(content) = std::fs::read_to_string(&conf_path) {
+        // Parse the JSON, add url to the first window, write back
+        if let Ok(mut val) = serde_json::from_str::<serde_json::Value>(&content) {
+            let target_url = format!("ewe://localhost{}", route_prefix);
+            if let Some(windows) = val.get_mut("app")
+                .and_then(|a| a.get_mut("windows"))
+                .and_then(|w| w.as_array_mut())
+                .and_then(|arr| arr.first_mut())
+            {
+                windows["url"] = serde_json::Value::String(target_url);
+                if let Ok(patched) = serde_json::to_string_pretty(&val) {
+                    if patched != content {
+                        std::fs::write(&conf_path, &patched).ok();
+                        println!("cargo:warning=patched tauri.conf.json url");
+                    }
+                }
+            }
+        }
     }
 }
 

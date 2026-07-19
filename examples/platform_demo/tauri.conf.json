@@ -1,20 +1,21 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/d7087a31f2d49c23ee95c6c2bb3ea45dd6dfedd6/crates/tauri-config-schema/schema.json",
-  "productName": "Platform Demo",
-  "version": "0.1.0",
-  "identifier": "com.ewe.platform-demo",
-  "build": {
-    "frontendDist": "./public",
-    "devUrl": "http://localhost:1420"
-  },
   "app": {
-    "withGlobalTauri": false,
     "windows": [
       {
+        "height": 600,
         "title": "Foundation Platform Demo",
-        "width": 800,
-        "height": 600
+        "url": "ewe://localhost/__platform__/",
+        "width": 800
       }
-    ]
-  }
+    ],
+    "withGlobalTauri": false
+  },
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "./public"
+  },
+  "identifier": "com.ewe.platform-demo",
+  "productName": "Platform Demo",
+  "version": "0.1.0"
 }

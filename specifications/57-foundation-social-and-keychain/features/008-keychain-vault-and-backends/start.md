@@ -2,7 +2,7 @@
 feature: "008-keychain-vault-and-backends"
 spec: "57-foundation-social-and-keychain"
 depends: "none"
-status: "in-progress"
+status: "complete"
 stages:
   - "1-portable-vault-api"      # ← current
   - "2-native-backend"

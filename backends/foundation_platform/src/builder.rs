@@ -67,28 +67,35 @@ impl<R: Runtime> PlatformBuilder<R> {
         self.inner = self.inner.setup(move |app| {
             let session = PlatformSession::new();
 
-            // Register routes + their inline responders
+            // Register routes + their inline responders.
+            // For patterns like /app/*, also register /app and /app/
+            // so the initial URL ewe://localhost/app matches.
             for entry in routes.drain(..) {
-                let mut d = entry.decision;
-                if let Some(responder) = entry.responder {
-                    let id = format!("__route_{}", entry.pattern);
-                    d.handler_id = Some(id.clone());
-                    session.register_responder(&id, responder);
+                let mut d = entry.decision.clone();
+                let handler_id = entry.responder.map(|r| {
+                    let rid = format!("__route_{}", entry.pattern);
+                    session.register_responder(&rid, r);
+                    rid
+                });
+                d.handler_id = handler_id;
+                session.route(&entry.pattern, d.clone());
+
+                // Also register prefix-only routes for wildcard patterns
+                if entry.pattern.ends_with("/*") {
+                    let prefix = entry.pattern.trim_end_matches('*');
+                    session.route(prefix.trim_end_matches('/'), d.clone());
                 }
-                session.route(&entry.pattern, d);
             }
 
             for setup in &setups { setup(&session); }
 
             app.manage(session);
 
+            // Inject platform scheme interceptor. The initial URL is set
+            // via tauri.conf.json (patched by codegen), so this is for
+            // subsequent link-click handling only.
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.eval(interceptor);
-                let initial = index_url.as_deref().unwrap_or("/__platform__/");
-                let _ = window.eval(&format!(
-                    "location.replace('http://ewe.localhost{}')",
-                    initial.trim_end_matches('/')
-                ));
             }
             Ok(())
         });

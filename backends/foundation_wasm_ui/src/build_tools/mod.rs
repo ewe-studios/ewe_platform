@@ -415,13 +415,19 @@ impl WasmBundleGenerator {
                     r#"  <script>
     // ── {name} ──
     (function() {{
+      var WASM_URL = './{name}.wasm';
       var status = document.getElementById('__ewe_status');
-      var loader = new FoundationWasmRuntime.WasmLoader();
-      loader
-        .loadURL('./{name}.wasm')
-        .then(function(result) {{
-          result.instance.exports.{name}();
-          status.textContent = 'WASM active';
+      fetch(WASM_URL)
+        .then(function(r) {{ return r.arrayBuffer(); }})
+        .then(function(wasmBytes) {{
+          var rt = new FoundationWasmRuntime.FoundationWasm();
+          return WebAssembly.instantiate(wasmBytes, {{ abi: rt.web_abi }})
+            .then(function(mod) {{
+              rt.init(mod.instance);
+              FoundationWasmUiRuntime.registerWasmApp(rt);
+              mod.instance.exports.{name}();
+              status.textContent = 'WASM active';
+            }});
         }})
         .catch(function(err) {{
           status.textContent = 'Error: ' + String(err);

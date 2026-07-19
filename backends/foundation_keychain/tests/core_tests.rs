@@ -132,7 +132,8 @@ fn all_update_types_are_distinct() {
 
 #[test]
 fn cipher_create_request_deserializes() {
-    let json = r#"{"type": "login", "name": "My Login", "login": {"username": "alice", "password": "secret"}}"#;
+    // Bitwarden type codes are integers (CipherType::Login == 1).
+    let json = r#"{"type": 1, "name": "My Login", "login": {"username": "alice", "password": "secret"}}"#;
     let req: CipherCreateRequest = serde_json::from_str(json).expect("deserialize");
     assert_eq!(req.cipher_type, CipherType::Login);
     assert_eq!(req.name, "My Login");
@@ -172,7 +173,8 @@ fn folder_create_request_deserializes() {
 
 #[test]
 fn send_create_request_with_password() {
-    let json = r#"{"name": "Shared doc", "type": "text", "password": "pw123", "maxAccessCount": 5}"#;
+    // SendType::Text == 0 on the wire.
+    let json = r#"{"name": "Shared doc", "type": 0, "password": "pw123", "maxAccessCount": 5}"#;
     let req: SendCreateRequest = serde_json::from_str(json).expect("deserialize");
     assert_eq!(req.send_type, SendType::Text);
     assert_eq!(req.password.unwrap(), "pw123");
@@ -200,7 +202,8 @@ fn prelogin_response_has_kdf_fields() {
         kdf_parallelism: None,
     };
     let json = serde_json::to_string(&resp).expect("serialize");
-    assert!(json.contains("pbkdf2Sha256"), "json: {json}");
+    // KdfType serializes as its integer code (Pbkdf2Sha256 == 0), Bitwarden-style.
+    assert!(json.contains("\"kdf\":0"), "json: {json}");
 }
 
 #[test]

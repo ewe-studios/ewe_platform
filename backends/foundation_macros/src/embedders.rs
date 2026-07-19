@@ -1080,7 +1080,7 @@ fn impl_embeddable_directory(
                 true,
             );
 
-            const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
+            pub const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
         }
 
         impl foundation_nostd::embeddable::FileData for #struct_name {

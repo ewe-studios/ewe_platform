@@ -4433,6 +4433,56 @@ function registerWebComponents() {
 }
 
 /**
+ * Wire a `FoundationWasm` runtime for direct WASM→DOM UI (mode 1 / client-side).
+ *
+ * The `FoundationWasm` core only registers protocol byte 0 (batch instructions).
+ * `App::new()` (the compact columnar wire, protocol byte 1) needs an explicit
+ * `columnarHandler` on the dispatcher — otherwise `host_apply` throws
+ * `"unknown protocol: 1"` and every `stabilize()` drops its DomOps.
+ *
+ * This ONE call sets up the full DOM path:
+ *   NodeRegistry(seed document) → DomOpApplicator → EventDispatcher → rAF scan
+ * and registers `columnarHandler(applicator)` on protocol byte 1.
+ *
+ * ```js
+ * import { FoundationWasm } from './foundation-wasm.js';
+ * import { registerWasmApp } from './foundation-wasm-ui.js';
+ *
+ * const rt = new FoundationWasm();
+ * const imports = { abi: rt.web_abi };
+ * const { instance } = await WebAssembly.instantiate(wasmBytes, imports);
+ * rt.init(instance);
+ * registerWasmApp(rt);          // ← wires protocol 1 → DOM
+ * instance.exports.myapp();     // ← Rust code can now stabilize() into the DOM
+ * ```
+ *
+ * @param {{dispatcher: ProtocolDispatcher}} runtime  a FoundationWasm instance
+ *   (anything with `.dispatcher.setHandler(protocol, handler)`)
+ * @param {{document?: Document}} [opts]  override for tests/SSR
+ */
+function registerWasmApp(runtime, opts = {}) {
+  const doc = opts.document ?? globalThis.document;
+  if (!doc) {
+    console.error("registerWasmApp: no document available (non-browser environment)");
+    return;
+  }
+  const registry = new NodeRegistry().seedDocument(doc);
+  const dispatcher = new EventDispatcher(
+    (_id, _data) => {}, // registry callback delivery handled by signalDeliver below
+    { deliverSignal: signalDeliver(runtime, jsonEncodeEventData) },
+  );
+  const applicator = new DomOpApplicator(registry, doc, (eventName, nodeId, event, el) => {
+    dispatcher.deliver(
+      parseCallbackId(el.getAttribute?.("primal:setter") ?? ""),
+      buildEventData(eventName, event, el),
+    );
+  });
+  runtime.dispatcher.setHandler(1, columnarHandler(applicator));
+  // Initial scan + observer: wires primal:on* attrs that exist on page load.
+  initEventRuntime(dispatcher, doc);
+}
+
+/**
  * Register the Apache Arrow IPC (wire v2) reader so streamed `arrow-ipc` frames
  * decode through {@link decodeEnvelopeFrame}. `arrow` defaults to the global the
  * bundled `apache-arrow.js` UMD sets (`globalThis.Arrow`); pass a module if you
@@ -4537,6 +4587,7 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   MountDataComponent,
   MountStreamComponent,
   registerWebComponents,
+  registerWasmApp,
   createPrimal,
   DomHeap,
   domAbi,
@@ -4621,8 +4672,30 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
     };
   }
 
-  location.assign = wrap(_origAssign);
-  location.replace = wrap(_origReplace);
+  // Android WebView may make location.assign / location.replace read-only.
+  // Try direct assignment first; fall back to defineProperty if that throws.
+  try {
+    location.assign = wrap(_origAssign);
+  } catch (_) {
+    try {
+      Object.defineProperty(location, 'assign', {
+        value: wrap(_origAssign),
+        writable: true,
+        configurable: true,
+      });
+    } catch (__) { /* best-effort */ }
+  }
+  try {
+    location.replace = wrap(_origReplace);
+  } catch (_) {
+    try {
+      Object.defineProperty(location, 'replace', {
+        value: wrap(_origReplace),
+        writable: true,
+        configurable: true,
+      });
+    } catch (__) { /* best-effort */ }
+  }
 
   if (_origSetHref && _origSetHref.set) {
     var _set = _origSetHref.set;

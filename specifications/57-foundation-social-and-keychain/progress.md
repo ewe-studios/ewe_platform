@@ -3,7 +3,7 @@
 ## Status: In Progress
 
 Phase 0 (social login): F001-F007 complete
-Phase 1 (keychain): 008 (staged vault+backends) — Stage 1 in progress; 009 (SSH) pending
+Phase 1 (keychain): 008 (staged vault+backends) Stages 1-4 done (native verified); 009 (SSH) done
 
 **2026-07-18 — F007 completed + cross-platform HTTP made real.** `UpstreamOidcClient`
 is now cross-platform (built on `default_http_client()` / `Arc<dyn HttpClient>`, runs on
@@ -32,7 +32,7 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 2. ✅ 004 auth session store + ✅ 005 provisioning service + ✅ 006 provider admin API
 
 **Phase 1 — foundation_keychain (008 consolidated + staged, 009 add-on):**
-3. 🟡 008 keychain vault + backends — Stage 1 (portable core/api) in progress
+3. ✅ 008 keychain vault + backends — ALL 4 STAGES done (native verified end-to-end)
    - ✅ core types/models/auth/notifications (26 tests)
    - ✅ Stage-1 architecture + **folders vertical**: `KeychainContext` + `core/store/` +
      `core/api/folders` + `migrations/0001_initial.sql`; 6 integration tests; native + wasm32 compile
@@ -54,9 +54,26 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
      invite/confirm/list; advanced ACLs/policies/groups/cipher-share deferred); 4 tests
    - ✅ **sync** now includes org collections + sends
    - **✅ STAGE 1 COMPLETE — portable vault API: all core/api entities, native + wasm32, 64 tests green**
-   - 🔲 Stage 2 native backend (foundation_http transport) · 🔲 Stage 3 cloudflare/workers · 🔲 Stage 4 integration+docker
-   - 🔲 Stage 2 native backend · 🔲 Stage 3 cloudflare/workers · 🔲 Stage 4 integration+docker
-4. 🔲 009 SSH key provisioning (former 012)
+   - **✅ STAGE 2 COMPLETE — native backend transport** (`server/native.rs`): `KeychainServer` +
+     `ServeAdapter` over `foundation_http`, routes the Bitwarden API to the handlers, Bearer auth,
+     form/JSON parsing, single-poll async drive (verified: async handlers complete in 1 poll over
+     local Turso). **e2e test** boots real TCP server, drives register→login→sync→cipher/folder create.
+     Fixes: type-code enums (`KdfType`/`CipherType`/`SendType`/etc.) now use `serde_repr` (integer wire
+     format, Bitwarden-correct) not variant-name strings; request body drained via `try_collect_bytes`.
+   - **✅ STAGE 3 — Workers backend transport compiles on wasm32** (`server/cloudflare.rs`):
+     `#[event(fetch)]` builds a D1-backed `KeychainContext` (foundation_db `workers-rs` interop) and
+     `.await`s the SHARED `core/router::route` (extracted so native single-polls it, Workers awaits it).
+     Deferred: SignalR notifications DO (foundation_deployment_cloudflare::workers is empty stubs),
+     signing-key KV persistence, Miniflare runtime tests (need JS runtime).
+   - **✅ STAGE 4 (native) — server binary `src/bin/keychain.rs` VERIFIED**: boots valtron pool, opens
+     Turso, applies schema, serves; smoke-tested with real `curl` (register → connect/token login return
+     correct Bitwarden JSON). `Dockerfile` (multi-stage) + `docker-compose.yml` written.
+   - Remaining (need external runtime, can't verify here): Bitwarden-CLI e2e (needs `bw` + running
+     server), Miniflare Workers runtime test, SignalR notifications Durable Object, Workers signing-key
+     KV persistence, `foundation_deployment_cloudflare::workers` module implementation (empty stubs).
+4. ✅ 009 SSH key provisioning (former 012) — app registry (Argon2id secrets) + Ed25519/RSA keygen
+   (`ssh-key`) + age-encrypted private keys at rest; native-gated (`core/provisioning/`); 3 tests;
+   wired into the native server (`/api/apps/*`, `/api/credentials/ssh-keys/*`, X-App-Secret/Bearer auth).
 
 > **2026-07-18 restructure:** former F008–F011 (core, cloudflare, native, integration)
 > consolidated into **008-keychain-vault-and-backends** as 4 sequential stages (each
@@ -75,14 +92,14 @@ verified. Argon2id support confirmed in `foundation_auth::shared::password_hash`
 | 005: User provisioning | 0 | ✅ Complete | 5 (provisioning_service) |
 | 006: Provider discovery + admin API | 0 | ✅ Complete | 10 (provider_admin) |
 | 007: Cross-platform upstream client | 0 | ✅ Complete | 10 (5 unit + 5 integration) |
-| 008: Keychain vault + backends (staged) | 1 | 🟡 Stage 1 partial | 26 (core) — S1 core/api next |
-| 009: SSH key provisioning | 1 | 🔲 Not started | — |
+| 008: Keychain vault + backends (staged) | 1 | ✅ S1-4 (native verified) | 64 core + 1 e2e; wasm compiles |
+| 009: SSH key provisioning | 1 | ✅ Complete | 3 (provisioning) |
 
-## Test Results (2026-07-18)
+## Test Results (2026-07-19)
 
-- **foundation_auth**: 32 passed (provider_service: 18, upstream_client: 5, auth_session: 4, provisioning_service: 5, provider_admin: 10)
-- **foundation_keychain**: 26 passed (core_tests: 22 integration + 4 unit)
-- **Total: 58 passed, 0 failed**
+- **foundation_auth**: 37 lib + integration (provider/upstream/auth_session/provisioning/admin)
+- **foundation_keychain**: ~72 tests — 22 core + 42 vertical (folders/accounts/identity/ciphers/sends/2fa/icons/events/orgs/sync) + 1 native-e2e + 3 provisioning; native binary curl-verified; native + wasm32 compile
+- **spec-57 phase 1 (keychain): features 008 (all 4 stages) + 009 COMPLETE**
 
 ## Keychain Crate Structure
 

@@ -15,6 +15,7 @@ crate-type = ["rlib", "cdylib"]
 # Core
 serde = { workspace = true }
 serde_json = "1"
+serde_repr = "0.1"
 base64 = "0.22"
 base32 = "0.5"
 uuid = { version = "1", features = ["v4"] }
@@ -24,10 +25,7 @@ rmp-serde = "1"
 tracing = { workspace = true }
 thiserror = { workspace = true }
 
-# SSH key generation (F012 — enable with ssh-keys feature)
-ssh-key = { version = "0.6", features = ["ed25519", "rsa"], optional = true }
-# At-rest encryption for stored private keys (F012 — enable with ssh-keys feature)
-age = { version = "0.10", optional = true }
+# (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
@@ -44,7 +42,11 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-feat
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["wasm-bindgen-storage"] }
+# `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
+# build a D1-backed StorageProvider from the env binding.
+foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
+# worker-rs: `#[event(fetch)]` entry point + Request/Response/Env/D1.
+worker = { version = "0.8.3", features = ["d1"] }
 # `default-features = false` required: without it cargo's default-features union re-enables
 # foundation_auth's native `turso` default (→ foundation_db/turso → multi) on wasm.
 # `wasm-pbkdf2` brings the WebCrypto PBKDF2 path (js-sys/web-sys) the keychain uses for
@@ -62,6 +64,11 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-fe
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false, features = ["turso"] }
+# Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
+ssh-key = { version = "0.6", features = ["ed25519", "rsa"] }
+age = { version = "0.10" }
+secrecy = "0.8"
+rand = "0.8"
 
 [dev-dependencies]
 tempfile = "3"

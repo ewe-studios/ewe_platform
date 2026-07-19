@@ -66,25 +66,27 @@ pub fn run() {
 
     platform_run!(PlatformBuilder::new()
         // ── WASM app: embedded assets from public/app/ ──
-        .route_with("/app/*",
+        .route_with(
+            "/app/*",
             webview_app().with_profile(Profile::App),
-            app_responder)
-
+            app_responder
+        )
         // ── Second WASM app: embedded assets from public/app-hello/ ──
-        .route_with("/app-hello/*",
+        .route_with(
+            "/app-hello/*",
             webview_app().with_profile(Profile::App),
-            hello_responder)
-
+            hello_responder
+        )
         // ── Remote server: fetches from a backend URL ──
-        .route_with("/remote/*",
+        .route_with(
+            "/remote/*",
             remote_fetch().with_profile(Profile::TrustedRemote),
-            RemoteFetch { base_url: "https://api.example.com".into() })
-
+            RemoteFetch {
+                base_url: "https://api.example.com".into()
+            }
+        )
         // ── IPC shell: dispatches to native shell process ──
-        .route_with("/api/*",
-            ipc_shell_with("shell"),
-            IpcEmit)
-
+        .route_with("/api/*", ipc_shell_with("shell"), IpcEmit)
         .setup(|session| {
             println!("[platform_android] Session: {:?}", session.session_id());
         }));

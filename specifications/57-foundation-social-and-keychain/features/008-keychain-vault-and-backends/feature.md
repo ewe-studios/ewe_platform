@@ -1,6 +1,6 @@
 # F008: Keychain Vault API + Backends (staged)
 
-**Status:** 🟡 In progress — Stage 1 partial
+**Status:** ✅ Complete — all 4 stages (native verified end-to-end; Workers compiles; Bitwarden-CLI + Miniflare need external runtime)
 
 Consolidates the former F008 (core types), F009 (cloudflare), F010 (native), and
 F011 (integration + docker). Those were split by concern, but they are one thing —

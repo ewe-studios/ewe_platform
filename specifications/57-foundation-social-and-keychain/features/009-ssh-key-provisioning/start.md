@@ -2,7 +2,7 @@
 feature: "009-ssh-key-provisioning"
 spec: "57-foundation-social-and-keychain"
 depends: "008-keychain-vault-and-backends"
-status: "pending"
+status: "complete"
 ---
 
 # Feature 009: SSH Key Provisioning + App Registry

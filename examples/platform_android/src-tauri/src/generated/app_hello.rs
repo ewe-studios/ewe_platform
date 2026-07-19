@@ -6,7 +6,7 @@ use foundation_macros::EmbedDirectoryAs;
 use foundation_platform::WebviewApp;
 
 #[derive(EmbedDirectoryAs)]
-#[source = "public/app-hello"]
+#[source = "$CARGO_MANIFEST_DIR/public/app-hello"]
 pub struct AppAssets;
 
 impl AppAssets {

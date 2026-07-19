@@ -205,26 +205,25 @@ impl PlatformSession {
             }
         }
 
-        // Step 5: Handler dispatch or fallback
-        let response = if let Some(ref handler_id) = decision.handler_id {
-            if let Some(handler) = self.get_responder(handler_id) {
-                handler.respond(intent, decision, self)
-            } else {
-                let body = format!("No handler for '{handler_id}'").into_bytes();
+        // Step 5: Handler dispatch
+        let response = match decision.handler_id.as_ref() {
+            Some(handler_id) => match self.get_responder(handler_id) {
+                Some(handler) => handler.respond(intent, decision, self),
+                None => {
+                    let body = format!("No handler for '{handler_id}'").into_bytes();
+                    tauri::http::Response::builder()
+                        .status(500)
+                        .header("Content-Type", "text/plain")
+                        .body(body).unwrap()
+                }
+            },
+            None => {
+                let body = format!("No handler_id on decision for route: {route}").into_bytes();
                 tauri::http::Response::builder()
                     .status(500)
                     .header("Content-Type", "text/plain")
-                    .body(body)
-                    .unwrap()
+                    .body(body).unwrap()
             }
-        } else {
-            let body =
-                crate::backend::query_backend(&crate::backend::DEFAULT_TRANSPORT, decision, &route);
-            tauri::http::Response::builder()
-                .status(200)
-                .header("Content-Type", "text/html")
-                .body(body)
-                .unwrap()
         };
 
         // Step 9: Record navigation

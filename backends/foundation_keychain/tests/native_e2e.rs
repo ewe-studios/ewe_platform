@@ -73,6 +73,10 @@ fn client(addr: std::net::SocketAddr) -> SimpleHttpClient<StaticSocketAddr> {
         .connect_timeout(Duration::from_secs(5))
         .read_timeout(Duration::from_secs(20))
         .write_timeout(Duration::from_secs(5))
+        // Send the body with the headers rather than waiting for 100 Continue —
+        // exercises the common client path (and the foundation_http server's
+        // Expect-continue body read is a separate known gap).
+        .expect_continue(false)
 }
 
 fn read_body(body: SendSafeBody) -> String {

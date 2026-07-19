@@ -74,8 +74,30 @@
     };
   }
 
-  location.assign = wrap(_origAssign);
-  location.replace = wrap(_origReplace);
+  // Android WebView may make location.assign / location.replace read-only.
+  // Try direct assignment first; fall back to defineProperty if that throws.
+  try {
+    location.assign = wrap(_origAssign);
+  } catch (_) {
+    try {
+      Object.defineProperty(location, 'assign', {
+        value: wrap(_origAssign),
+        writable: true,
+        configurable: true,
+      });
+    } catch (__) { /* best-effort */ }
+  }
+  try {
+    location.replace = wrap(_origReplace);
+  } catch (_) {
+    try {
+      Object.defineProperty(location, 'replace', {
+        value: wrap(_origReplace),
+        writable: true,
+        configurable: true,
+      });
+    } catch (__) { /* best-effort */ }
+  }
 
   if (_origSetHref && _origSetHref.set) {
     var _set = _origSetHref.set;

@@ -1,19 +1,20 @@
 {
-  "productName": "Foundation Platform",
-  "version": "0.1.0",
-  "identifier": "com.ewe.platform",
-  "build": {
-    "frontendDist": "public",
-    "devUrl": "http://localhost:1420"
-  },
   "app": {
-    "withGlobalTauri": false,
     "windows": [
       {
+        "height": 600,
         "title": "Foundation Platform - Android",
-        "width": 800,
-        "height": 600
+        "url": "ewe://localhost/app/",
+        "width": 800
       }
-    ]
-  }
+    ],
+    "withGlobalTauri": false
+  },
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "public"
+  },
+  "identifier": "com.ewe.platform",
+  "productName": "Foundation Platform",
+  "version": "0.1.0"
 }
