@@ -1,6 +1,6 @@
 # F010: Workers Durable Objects & WebSocket Machinery
 
-**Status:** 🟡 In progress — Stage 1
+**Status:** ✅ Complete — all 3 stages (general DO machinery + WebSocket + SignalR hub DO)
 
 **Depends on:** none (parallel; needs `worker` crate + `foundation_netio` for framing reuse)
 **Unblocks:** keychain SignalR hub (008 Stage 3 remainder), any future Workers crate

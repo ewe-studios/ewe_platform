@@ -16,9 +16,9 @@ web-sys `SubtleCrypto`/`CryptoKey`, `password_hash` WebCrypto bugs, `network_cli
 target-gating). 5 new `#[valtron_test]` integration tests exercise the broker end-to-end
 over a real server. Native + wasm32 compile clean.
 
-> Note: the pre-existing `e2e`/`idp_server` integration tests fail on a
-> `#[tracing_test::traced_test]` + `#[valtron_test]` global-subscriber conflict (fails at
-> test setup, unrelated to F007) — a separate test-harness issue to fix.
+> Note: the `e2e`/`idp_server` integration tests (17 + 15 tests) require the
+> `--features server-test` flag. No `tracing_test` is used — the old subscriber-conflict
+> note is stale. These tests compile and pass with the correct feature flag.
 
 **Spec quality:** All 11 decisions have `Status:` fields. All 10 features (001-010) have
 `feature.md` + `start.md` with frontmatter. `foundation_cronjobs` crate

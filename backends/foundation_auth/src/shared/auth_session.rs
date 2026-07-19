@@ -14,7 +14,7 @@
 //! consumed (one-time use).
 
 use serde::{Deserialize, Serialize};
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -151,7 +151,6 @@ pub const DEFAULT_AUTH_SESSION_TTL_SECS: u64 = 600;
 // In-memory store (for tests)
 // ---------------------------------------------------------------------------
 
-#[cfg(feature = "server-test")]
 pub mod memory {
     use super::*;
     use std::collections::HashMap;
