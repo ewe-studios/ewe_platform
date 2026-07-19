@@ -21,6 +21,9 @@ foundation_ui_traits = { path = "../foundation_ui_traits" }
 # WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
 foundation_wasm_ui = { path = "../foundation_wasm_ui", features = ["embedded-js"] }
 
+# Portable WASM primitives — WasmCapability trait + CapabilityRegistry (F23)
+foundation_wasm = { path = "../foundation_wasm" }
+
 # Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }

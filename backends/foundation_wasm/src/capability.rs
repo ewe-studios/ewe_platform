@@ -141,26 +141,29 @@ impl CapabilityRegistry {
         }
     }
 
-    /// Register a capability. Returns `None` if a capability with the same
-    /// name was already registered (it is replaced).
+    /// Register a capability. Returns the previous capability registered under
+    /// the same name, if any.
+    ///
+    /// Takes `&self` — on native the internal `Mutex` provides interior
+    /// mutability. On wasm32 (single-threaded, no Mutex), this still requires
+    /// `&mut self`.
     ///
     /// # Panics
     ///
     /// On native: panics if the mutex is poisoned.
+    #[cfg(not(target_family = "wasm"))]
+    pub fn register(&self, capability: impl WasmCapability) -> Option<DynCapability> {
+        let mut map = self
+            .inner
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        map.insert(String::from(capability.name()), Box::new(capability))
+    }
+
+    #[cfg(target_family = "wasm")]
     pub fn register(&mut self, capability: impl WasmCapability) -> Option<DynCapability> {
-        #[cfg(not(target_family = "wasm"))]
-        {
-            let mut map = self
-                .inner
-                .lock()
-                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-            map.insert(capability.name().to_string(), Box::new(capability))
-        }
-        #[cfg(target_family = "wasm")]
-        {
-            self.inner
-                .insert(capability.name().to_string(), Box::new(capability))
-        }
+        self.inner
+            .insert(String::from(capability.name()), Box::new(capability))
     }
 
     /// Look up a capability by name.

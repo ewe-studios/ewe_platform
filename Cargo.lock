@@ -5148,6 +5148,7 @@ version = "0.0.1"
 dependencies = [
  "foundation_nostd",
  "foundation_ui_traits",
+ "foundation_wasm",
  "foundation_wasm_ui",
  "serde",
  "serde_json",

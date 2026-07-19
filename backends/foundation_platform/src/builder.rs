@@ -1,6 +1,8 @@
 use std::env;
+use std::sync::Arc;
 
 use foundation_ui_traits::*;
+use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 
 use crate::ewe;
@@ -108,6 +110,10 @@ impl<R: Runtime> PlatformBuilder<R> {
             Ok(())
         });
 
+        // Register the F23 __ewe_capabilities Tauri command.
+        // This is the bridge: JS invokeCapability() → __TAURI_INTERNALS__.invoke('__ewe_capabilities', ...) → Rust handler.
+        self.inner = self.inner.invoke_handler(tauri::generate_handler![__ewe_capabilities]);
+
         self.inner = ewe::register_ewe_protocol(self.inner);
         self.inner.build(context)
     }
@@ -120,3 +126,31 @@ impl<R: Runtime> PlatformBuilder<R> {
 }
 
 impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::new() } }
+
+// ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
+
+/// The Tauri command bridge for portable WasmCapability invocations (F23).
+///
+/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`
+/// which lands here. The command looks up the capability in the
+/// `CapabilityRegistry` and delegates to the handler.
+#[tauri::command]
+fn __ewe_capabilities(
+    session: tauri::State<'_, Arc<PlatformSession>>,
+    capability: String,
+    action: String,
+    payload: String,
+) -> Result<String, String> {
+    let request = CapabilityRequest {
+        capability,
+        action,
+        payload: payload.into_bytes(),
+        content_type: CapabilityContentType::Json,
+    };
+
+    let response = session
+        .invoke_wasm_capability(&request)
+        .map_err(|e| format!("capability error: {:?}", e))?;
+
+    String::from_utf8(response.payload).map_err(|e| format!("invalid UTF-8 response: {e}"))
+}

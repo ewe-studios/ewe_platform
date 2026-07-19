@@ -47,8 +47,13 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
-    /// Capability registry — registered at startup, invoked at runtime.
+    /// F05 Capability registry — registered at startup, invoked at runtime.
     capability_registry: crate::capability::CapabilityRegistry,
+
+    /// F23 WasmCapability registry — portable, works on wasm32 + native.
+    /// Separate from F05; bridges to it. Registered capabilities go through
+    /// the full 5-layer defense.
+    wasm_capability_registry: foundation_wasm::CapabilityRegistry,
 
     /// Cache manager — protocol-transparent, profile-scoped, per-route policies.
     cache: crate::cache::CacheManager,
@@ -100,6 +105,7 @@ impl PlatformSession {
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
             capability_registry: crate::capability::CapabilityRegistry::new(),
+            wasm_capability_registry: foundation_wasm::CapabilityRegistry::new(),
             cache: crate::cache::CacheManager::in_memory(),
             mutation_queue: crate::mutation::MutationQueue::in_memory(),
             session_id,
@@ -335,9 +341,37 @@ impl PlatformSession {
         &self.cache
     }
 
-    /// Access the capability registry for invoking native capabilities.
+    /// Access the F05 capability registry for invoking native capabilities.
     pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
         &self.capability_registry
+    }
+
+    /// Register a portable WasmCapability (F23).
+    ///
+    /// These capabilities can be invoked from JS via `invokeCapability()`
+    /// (which routes through `__ewe_capabilities`) or programmatically from
+    /// route handlers via `get_wasm_capability()`.
+    pub fn register_wasm_capability<C: foundation_wasm::WasmCapability>(&self, cap: C) {
+        self.wasm_capability_registry.register(cap);
+    }
+
+    /// Look up a registered WasmCapability by name (F23).
+    ///
+    /// Returns `None` if no capability is registered under that name.
+    /// Route handlers use this for programmatic invocation.
+    pub fn get_wasm_capability(&self, name: &str) -> Option<&dyn foundation_wasm::WasmCapability> {
+        self.wasm_capability_registry.get(name)
+    }
+
+    /// Invoke a WasmCapability through the registry (F23).
+    ///
+    /// Called by the `__ewe_capabilities` Tauri command. Performs name
+    /// lookup and delegates to the capability's `invoke_capability()`.
+    pub fn invoke_wasm_capability(
+        &self,
+        request: &foundation_wasm::CapabilityRequest,
+    ) -> Result<foundation_wasm::CapabilityResponse, foundation_wasm::CapabilityError> {
+        self.wasm_capability_registry.invoke(request)
     }
 
     /// Access the mutation queue for enqueuing/replaying offline mutations.

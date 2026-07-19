@@ -36,6 +36,7 @@ pub mod cli;
 extern crate alloc;
 
 mod base;
+mod capability;
 mod error;
 mod frames;
 mod host_runtime;
@@ -57,6 +58,7 @@ pub mod wasi_host;
 pub mod embedded;
 
 pub use base::*;
+pub use capability::*;
 pub use error::*;
 pub use frames::*;
 pub use host_runtime::*;
