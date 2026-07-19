@@ -4,6 +4,7 @@
 //! Call [`Repl::messages()`] to get an iterator that blocks on user input,
 //! and [`Repl::reply()`] to print responses.
 
+use std::cell::{Cell, RefCell};
 use std::io::Write;
 use crate::shared::config::ReplConfig;
 use crate::shared::traits::{ReplInput, ReplDisplay};
@@ -11,13 +12,17 @@ use crate::shared::commands::{CommandRegistry, CommandResult};
 use crate::shared::history::ReplHistory;
 
 /// Main REPL handle.
+///
+/// Uses interior mutability so that [`Repl::reply()`] and
+/// [`Repl::register_command()`] can be called from inside a `for input in
+/// repl.messages()` loop without conflicting with the mutable borrow.
 pub struct Repl {
     config: ReplConfig,
-    input: Box<dyn ReplInput>,
-    display: Box<dyn ReplDisplay>,
-    commands: CommandRegistry,
-    history: ReplHistory,
-    exited: bool,
+    input: RefCell<Box<dyn ReplInput>>,
+    display: RefCell<Box<dyn ReplDisplay>>,
+    commands: RefCell<CommandRegistry>,
+    history: RefCell<ReplHistory>,
+    exited: Cell<bool>,
 }
 
 impl Repl {
@@ -31,11 +36,11 @@ impl Repl {
         let (input, display) = Self::make_backend();
         Self {
             config,
-            input: Box::new(input),
-            display: Box::new(display),
-            commands: CommandRegistry::new(),
-            history: ReplHistory::new(1000),
-            exited: false,
+            input: RefCell::new(Box::new(input)),
+            display: RefCell::new(Box::new(display)),
+            commands: RefCell::new(CommandRegistry::new()),
+            history: RefCell::new(ReplHistory::new(1000)),
+            exited: Cell::new(false),
         }
     }
 
@@ -61,30 +66,30 @@ impl Repl {
     }
 
     /// Returns an iterator over user messages.
-    pub fn messages(&mut self) -> ReplMessageIter<'_> {
+    pub fn messages(&self) -> ReplMessageIter<'_> {
         if let Some(ref banner) = self.config.banner {
-            self.display.print_banner(banner);
+            self.display.borrow_mut().print_banner(banner);
         }
         ReplMessageIter { repl: self }
     }
 
     /// Display a response from the caller.
-    pub fn reply(&mut self, response: impl AsRef<str>) {
-        self.display.print_response(response.as_ref());
+    pub fn reply(&self, response: impl AsRef<str>) {
+        self.display.borrow_mut().print_response(response.as_ref());
     }
 
     /// Register a custom `/command`.
     pub fn register_command(
-        &mut self,
+        &self,
         name: impl Into<String>,
         handler: impl Fn(&str) -> String + Send + 'static,
     ) {
-        self.commands.register(name, handler);
+        self.commands.borrow_mut().register(name, handler);
     }
 
     /// Signal that the REPL should exit after the current message.
-    pub fn exit(&mut self) {
-        self.exited = true;
+    pub fn exit(&self) {
+        self.exited.set(true);
     }
 }
 
@@ -104,40 +109,48 @@ impl Drop for Repl {
 
 /// Iterator that yields complete user messages.
 pub struct ReplMessageIter<'a> {
-    repl: &'a mut Repl,
+    repl: &'a Repl,
 }
 
 impl Iterator for ReplMessageIter<'_> {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.repl.exited {
+        if self.repl.exited.get() {
             return None;
         }
 
-        let result = self.repl.input.read_message(
+        let mut input = self.repl.input.borrow_mut();
+        let mut display = self.repl.display.borrow_mut();
+        let mut history = self.repl.history.borrow_mut();
+
+        let result = input.read_message(
             &self.repl.config.prompt,
             &self.repl.config.continuation_prompt,
-            &mut *self.repl.display,
+            &mut **display,
             self.repl.config.max_input_length,
-            Some(&mut self.repl.history),
+            Some(&mut history),
         );
 
+        // Drop borrows before processing command results
+        drop(history);
+        drop(display);
+        drop(input);
+
         match result {
-            Ok(msg) if msg.is_empty() && self.repl.input.eof() => None,
+            Ok(msg) if msg.is_empty() && self.repl.input.borrow().eof() => None,
             Ok(msg) => {
                 // Check for commands before yielding
-                if let Some(cmd_result) = self.repl.commands.try_handle(&msg) {
+                if let Some(cmd_result) = self.repl.commands.borrow().try_handle(&msg) {
                     match cmd_result {
                         CommandResult::Output(text) => {
-                            self.repl.display.print_response(&text);
+                            self.repl.display.borrow_mut().print_response(&text);
                             if !text.starts_with("Unknown command") {
-                                return None; // Don't yield command outputs
+                                return None;
                             }
-                            return Some(msg); // Yield unknown command input
+                            return Some(msg);
                         }
                         CommandResult::Terminal(escapes) => {
-                            // Write raw escape sequences to terminal
                             print!("{escapes}");
                             let _ = std::io::stdout().flush();
                             return None;
@@ -149,7 +162,7 @@ impl Iterator for ReplMessageIter<'_> {
                     }
                 }
                 // Push to history
-                self.repl.history.push(msg.clone());
+                self.repl.history.borrow_mut().push(msg.clone());
                 Some(msg)
             }
             Err(_) => None,
