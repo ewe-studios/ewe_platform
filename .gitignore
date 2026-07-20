@@ -166,6 +166,14 @@ wrangler.log
 .wrangler/
 
 artefacts/temples/output_directory
+
+# Downloaded model artefacts — weights, tokenizers, configs and partial
+# downloads are fetched at test/run time and must never be committed (a single
+# tokenizer.json is ~98k lines; GGUF weights are hundreds of MB).
+# `.nofiles` keeps the directory present; whisper.cpp is a submodule.
+artefacts/models/*
+!artefacts/models/.nofiles
+!artefacts/models/whisper.cpp
 !.claude
 !.claude/settings.local.json
 
