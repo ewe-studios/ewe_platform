@@ -112,6 +112,23 @@
     return await browserInvokeCapability(name, action, payload);
   }
 
+  // F27: Register capability and IPC trigger handlers with the FoundationWasm
+  // runtime. Called by WASM app startup code after setting up TriggerRegistry.
+  function registerTriggerHandlers(onCapability, onIpc) {
+    if (typeof FoundationWasm === 'undefined' || !FoundationWasm.prototype) {
+      console.warn('registerTriggerHandlers: FoundationWasm runtime not loaded');
+      return;
+    }
+    // FoundationWasm.triggerCapability / triggerIpc are called by the host.
+    // Register callbacks that forward to the WASM-side TriggerRegistry.
+    if (onCapability) {
+      FoundationWasm.prototype._capTriggerHandler = onCapability;
+    }
+    if (onIpc) {
+      FoundationWasm.prototype._ipcTriggerHandler = onIpc;
+    }
+  }
+
   // ── Export ──────────────────────────────────────────────────────────────
 
   // ESM binding
@@ -122,10 +139,12 @@
   // Classic global
   if (typeof window !== 'undefined') {
     window.invokeCapability = invokeCapability;
+    window.registerTriggerHandlers = registerTriggerHandlers;
   }
 
   // For module consumers
   if (typeof exports !== 'undefined') {
     exports.invokeCapability = invokeCapability;
+    exports.registerTriggerHandlers = registerTriggerHandlers;
   }
 })();
