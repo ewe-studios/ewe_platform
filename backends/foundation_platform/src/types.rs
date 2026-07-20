@@ -1,16 +1,15 @@
-//! Capability contract types — live in `foundation_platform` (not
-//! `foundation_ui_traits`) because they carry `serde_json::Value` payloads
-//! which don't belong in a `no_std` crate.
+//! F05 native capability request/response types — carry `serde_json::Value`
+//! payloads which don't belong in `foundation_wasm` (no_std).
 //!
-//! Serialize/Deserialize derives are deferred to F05 (capability registry).
-//! For F00, these are plain structs that compile without serde on PageIdentity.
+//! F23 moved portable bytes-based types to `foundation_wasm::capability`.
+//! These are renamed with the `Native` prefix to avoid collision.
 
 use foundation_ui_traits::PageIdentity;
 
-/// A request from the web side for a native capability.
+/// A request from the web side for a native capability (F05).
 /// Routed through the session backbone to the registered handler.
 #[derive(Debug, Clone)]
-pub struct CapabilityRequest {
+pub struct NativeCapabilityRequest {
     /// Unique request ID for matching response to caller.
     pub id: String,
 
@@ -27,10 +26,10 @@ pub struct CapabilityRequest {
     pub payload: serde_json::Value,
 }
 
-/// The result of a capability invocation.
+/// The result of a capability invocation (F05).
 /// Delivered scoped to the requesting page via the session backbone.
 #[derive(Debug, Clone)]
-pub struct CapabilityResponse {
+pub struct NativeCapabilityResponse {
     /// Matches the request's `id` for correlation.
     pub id: String,
 

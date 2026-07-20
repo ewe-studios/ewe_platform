@@ -1,6 +1,6 @@
-//! ScriptInjector — platform runtime script injection (F24).
+//! `ScriptInjector` — platform runtime script injection (F24).
 //!
-//! WHY: foundation_wasm, foundation_wasm_ui, and polyfill runtimes need to
+//! WHY: `foundation_wasm`, `foundation_wasm_ui`, and polyfill runtimes need to
 //! be injected into every webview before page scripts run. The platform owns
 //! this — apps only ship their own code. The injector supports OTA-updatable
 //! runtimes via a disk→embedded fallback chain.
@@ -29,7 +29,7 @@ pub enum ScriptSource {
 /// A script registered for injection into every webview.
 #[derive(Debug, Clone)]
 pub struct InjectedScript {
-    /// Unique identifier (e.g. "foundation_wasm", "scheme_interceptor").
+    /// Unique identifier (e.g. `"foundation_wasm"`, `"scheme_interceptor"`).
     pub id: String,
     /// Resolution chain — first source that resolves wins.
     pub sources: Vec<ScriptSource>,
@@ -86,7 +86,7 @@ impl ScriptInjector {
                     if full_path.exists() && full_path.is_file() {
                         match std::fs::read_to_string(&full_path) {
                             Ok(content) => return Some(content),
-                            Err(_) => continue, // unreadable → try next source
+                            Err(_) => {} // unreadable → try next source
                         }
                     }
                 }

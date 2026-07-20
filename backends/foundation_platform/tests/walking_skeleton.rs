@@ -124,7 +124,7 @@ fn capability_invocation_through_registry() {
 
     // Register a test capability
     struct GreetCap;
-    impl Capability for GreetCap {
+    impl NativeCapability for GreetCap {
         fn id(&self) -> &CapabilityId {
             // Leak a static for testing — fine for tests
             Box::leak(Box::new(CapabilityId("greet".into())))
@@ -144,7 +144,7 @@ fn capability_invocation_through_registry() {
     session.record_navigation("/app");
     let page = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
+    let request = NativeCapabilityRequest {
         id: "req-1".into(),
         page_identity: page,
         capability: "greet".into(),

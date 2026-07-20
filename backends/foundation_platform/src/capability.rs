@@ -3,6 +3,10 @@
 //! Capabilities are registered at build time and invoked at runtime through
 //! the session backbone. Five defense layers: profile gate → registration
 //! gate → per-route allowlist → OS permission → stale-page guard.
+//!
+//! NOTE: These are the F05 native `serde_json::Value`-based types. F23 moved
+//! portable capability primitives to `foundation_wasm::capability`. The F05
+//! types are renamed with the `Native` prefix to avoid collision.
 
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -11,21 +15,23 @@ use foundation_ui_traits::*;
 
 use crate::profiles::{Access, ProfileGate, Service};
 use crate::session::PlatformSession;
-use crate::types::{CapabilityRequest, CapabilityResponse};
+use crate::types::{NativeCapabilityRequest, NativeCapabilityResponse};
 
-// ── Capability trait ─────────────────────────────────────────────────
+// ── NativeCapability trait ─────────────────────────────────────────────
 
-/// A native platform capability. Registered with the capability registry
-/// and invoked through the session backbone.
+/// A native platform capability (F05). Registered with the capability registry
+/// and invoked through the session backbone with the 5-layer defense.
 ///
 /// Patterned after `WGPU`/`WASI` — the platform provides the trait,
 /// the user implements it, the shell orchestrates.
-pub trait Capability: Send + Sync + 'static {
+///
+/// For portable (wasm32+native) capabilities, use
+/// `foundation_wasm::WasmCapability` (F23).
+pub trait NativeCapability: Send + Sync + 'static {
     /// Unique identifier (e.g. "camera", "biometric_auth").
     fn id(&self) -> &CapabilityId;
 
     /// Minimum WebView profile required to invoke this capability.
-    /// The session checks this before execution.
     fn min_profile(&self) -> Profile;
 
     /// Execute the capability with the given action and payload.
@@ -37,24 +43,23 @@ pub trait Capability: Send + Sync + 'static {
     ) -> Result<serde_json::Value, String>;
 }
 
-// ── Capability registry (on PlatformSession) ─────────────────────────
+// ── Capability registry (on PlatformSession) ───────────────────────────
 
-/// Registry of all registered capabilities. Wrapped in RwLock for
-/// thread-safe concurrent access (read-heavy: many invocations, few
-/// registrations).
-pub struct CapabilityRegistry {
-    handlers: RwLock<HashMap<String, Box<dyn Capability>>>,
+/// Registry of all registered native capabilities (F05). Wrapped in RwLock
+/// for thread-safe concurrent access.
+pub struct NativeCapabilityRegistry {
+    handlers: RwLock<HashMap<String, Box<dyn NativeCapability>>>,
 }
 
-impl CapabilityRegistry {
+impl NativeCapabilityRegistry {
     pub fn new() -> Self {
         Self {
             handlers: RwLock::new(HashMap::new()),
         }
     }
 
-    /// Register a capability. Called at startup.
-    pub fn register(&self, cap: impl Capability) {
+    /// Register a native capability. Called at startup.
+    pub fn register(&self, cap: impl NativeCapability) {
         self.handlers
             .write()
             .unwrap()
@@ -62,20 +67,13 @@ impl CapabilityRegistry {
     }
 
     /// Invoke a capability through the full five-layer defense chain.
-    ///
-    /// 1. Stale-page guard — is the requesting page still active?
-    /// 2. Registration — is the capability registered?
-    /// 3. Profile gate — does the route's profile allow native APIs?
-    ///    Does the profile meet the capability's minimum?
-    /// 4. Per-route allowlist — is the capability in the route's list?
-    /// 5. Execute — call the handler
     pub fn invoke(
         &self,
         session: &PlatformSession,
-        request: &CapabilityRequest,
+        request: &NativeCapabilityRequest,
         current_route: Option<&RouteDecision>,
-    ) -> CapabilityResponse {
-        let respond = |status| CapabilityResponse {
+    ) -> NativeCapabilityResponse {
+        let respond = |status| NativeCapabilityResponse {
             id: request.id.clone(),
             page_identity: request.page_identity.clone(),
             status,
@@ -86,8 +84,6 @@ impl CapabilityRegistry {
             return respond(Err("stale page — request from navigated-away page".into()));
         }
 
-        // Hold the read lock for the entire invocation so the handler
-        // reference remains valid. Registrations are rare (startup only).
         let guard = self.handlers.read().unwrap();
 
         // Layer 2: Look up the capability handler
@@ -97,7 +93,9 @@ impl CapabilityRegistry {
         };
 
         // Layer 3: Profile-level gate
-        let profile = current_route.map(|r| r.profile).unwrap_or(Profile::UntrustedRemote);
+        let profile = current_route
+            .map(|r| r.profile)
+            .unwrap_or(Profile::UntrustedRemote);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
             return respond(Err(e.to_string()));
@@ -123,7 +121,7 @@ impl CapabilityRegistry {
             }
         }
 
-        // Layer 5: Execute — guard held until here, then dropped
+        // Layer 5: Execute
         let result = handler.execute(session, &request.action, request.payload.clone());
         drop(guard);
 
@@ -131,46 +129,41 @@ impl CapabilityRegistry {
     }
 }
 
-impl Default for CapabilityRegistry {
+impl Default for NativeCapabilityRegistry {
     fn default() -> Self {
         Self::new()
     }
 }
 
 /// Check if a profile meets or exceeds a minimum required profile.
-/// Trust hierarchy: App > TrustedRemote > UntrustedRemote.
-/// Auth and Devtools are special — checked separately by ProfileGate.
 fn profile_satisfies(actual: Profile, required: Profile) -> bool {
     fn rank(p: Profile) -> u8 {
         match p {
             Profile::UntrustedRemote => 0,
             Profile::TrustedRemote => 1,
             Profile::App => 2,
-            Profile::Auth => 3,    // special — not in trust hierarchy
-            Profile::Devtools => 4, // special — not in trust hierarchy
+            Profile::Auth => 3,
+            Profile::Devtools => 4,
         }
     }
-    // Only comparable within the trust hierarchy
     if matches!(actual, Profile::Auth | Profile::Devtools)
         || matches!(required, Profile::Auth | Profile::Devtools)
     {
-        // Auth and Devtools don't participate in the trust hierarchy.
-        // Auth satisfies Auth only. Devtools satisfies everything (in debug).
         return actual == required
             || (actual == Profile::Devtools && cfg!(debug_assertions));
     }
     rank(actual) >= rank(required)
 }
 
-// ── Test helpers ─────────────────────────────────────────────────────
+// ── Test helpers ───────────────────────────────────────────────────────
 
 /// Test capability for integration tests.
-pub struct TestCap {
+pub struct TestNativeCap {
     pub id: CapabilityId,
     pub min_profile: Profile,
 }
 
-impl Capability for TestCap {
+impl NativeCapability for TestNativeCap {
     fn id(&self) -> &CapabilityId { &self.id }
     fn min_profile(&self) -> Profile { self.min_profile }
     fn execute(&self, _: &PlatformSession, action: &str, _: serde_json::Value) -> Result<serde_json::Value, String> {
@@ -179,13 +172,11 @@ impl Capability for TestCap {
 }
 
 /// Create a test registry with a camera capability registered.
-pub fn test_registry() -> CapabilityRegistry {
-    let reg = CapabilityRegistry::new();
-    reg.register(TestCap {
+pub fn test_native_registry() -> NativeCapabilityRegistry {
+    let reg = NativeCapabilityRegistry::new();
+    reg.register(TestNativeCap {
         id: CapabilityId("camera".into()),
         min_profile: Profile::TrustedRemote,
     });
     reg
 }
-
-// Tests moved to tests/capability_suite.rs

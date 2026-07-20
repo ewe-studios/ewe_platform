@@ -49,7 +49,8 @@ pub trait WirePayload: Sized {
     fn into_wire_bytes(self) -> (Vec<u8>, CapabilityContentType);
 
     /// Deserialise from wire bytes with a known content type.
-    fn from_wire_bytes(data: &[u8], content_type: CapabilityContentType) -> Result<Self, WireError>;
+    fn from_wire_bytes(data: &[u8], content_type: CapabilityContentType)
+        -> Result<Self, WireError>;
 }
 
 impl WirePayload for Vec<u8> {
@@ -59,7 +60,10 @@ impl WirePayload for Vec<u8> {
         (self, CapabilityContentType::Json)
     }
 
-    fn from_wire_bytes(data: &[u8], _content_type: CapabilityContentType) -> Result<Self, WireError> {
+    fn from_wire_bytes(
+        data: &[u8],
+        _content_type: CapabilityContentType,
+    ) -> Result<Self, WireError> {
         Ok(data.to_vec())
     }
 }
@@ -126,13 +130,18 @@ impl<T: WirePayload> CapabilityRequest<T> {
 
     /// Create a wire request from typed parts. Convenience: equivalent to
     /// `CapabilityRequest { .. }.into_wire()`.
-    pub fn wire(capability: impl Into<String>, action: impl Into<String>, payload: T) -> CapabilityRequest<Vec<u8>> {
+    pub fn wire(
+        capability: impl Into<String>,
+        action: impl Into<String>,
+        payload: T,
+    ) -> CapabilityRequest<Vec<u8>> {
         CapabilityRequest {
             capability: capability.into(),
             action: action.into(),
             payload,
             content_type: CapabilityContentType::Json,
-        }.into_wire()
+        }
+        .into_wire()
     }
 }
 
@@ -166,13 +175,18 @@ impl<T: WirePayload> CapabilityResponse<T> {
     }
 
     /// Create a wire response from typed parts.
-    pub fn wire(capability: impl Into<String>, action: impl Into<String>, payload: T) -> CapabilityResponse<Vec<u8>> {
+    pub fn wire(
+        capability: impl Into<String>,
+        action: impl Into<String>,
+        payload: T,
+    ) -> CapabilityResponse<Vec<u8>> {
         CapabilityResponse {
             capability: capability.into(),
             action: action.into(),
             payload,
             content_type: CapabilityContentType::Json,
-        }.into_wire()
+        }
+        .into_wire()
     }
 }
 

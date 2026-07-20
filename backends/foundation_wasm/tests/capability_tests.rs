@@ -1,4 +1,4 @@
-//! WHY: F23 — WasmCapability trait + CapabilityRegistry must work on native
+//! WHY: F23 — `WasmCapability` trait + `CapabilityRegistry` must work on native
 //! and carry the correct payloads through register → invoke → response.
 //!
 //! WHAT: registry registration, lookup, invoke (ok + error), name validation.
@@ -17,7 +17,7 @@ struct EchoCapability {
 }
 
 impl WasmCapability for EchoCapability {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         self.name
     }
 
@@ -37,7 +37,7 @@ impl WasmCapability for EchoCapability {
 struct FailingCapability;
 
 impl WasmCapability for FailingCapability {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "fail"
     }
 
@@ -81,7 +81,7 @@ fn registry_unknown_capability() {
 
     match reg.invoke(&req) {
         Err(CapabilityError::UnknownCapability(name)) => assert_eq!(name, "nonexistent"),
-        other => panic!("expected UnknownCapability, got {:?}", other),
+        other => panic!("expected UnknownCapability, got {other:?}"),
     }
 }
 
@@ -99,7 +99,7 @@ fn registry_execution_error() {
 
     match reg.invoke(&req) {
         Err(CapabilityError::ExecutionFailed(msg)) => assert!(msg.contains("intentional")),
-        other => panic!("expected ExecutionFailed, got {:?}", other),
+        other => panic!("expected ExecutionFailed, got {other:?}"),
     }
 }
 
@@ -158,5 +158,5 @@ fn content_type_roundtrip() {
 
     assert_eq!(json, json.clone());
     assert_ne!(json, arrow);
-    assert_eq!(format!("{:?}", json), "Json");
+    assert_eq!(format!("{json:?}"), "Json");
 }

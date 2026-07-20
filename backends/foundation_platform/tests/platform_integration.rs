@@ -118,7 +118,7 @@ fn capability_invocation_with_profile_gating() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     struct Cam;
-    impl Capability for Cam {
+    impl NativeCapability for Cam {
         fn id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("camera".into())))
         }
@@ -137,7 +137,7 @@ fn capability_invocation_with_profile_gating() {
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
 
-    let resp = session.capabilities().invoke(&session, &CapabilityRequest {
+    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
         id: "r1".into(), page_identity: page.clone(),
         capability: "camera".into(), action: "capture".into(),
         payload: serde_json::Value::Null,
@@ -151,7 +151,7 @@ fn capability_invocation_with_profile_gating() {
 
     session.record_navigation("/bad");
     let page2 = session.active_page_identity().unwrap();
-    let resp = session.capabilities().invoke(&session, &CapabilityRequest {
+    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
         id: "r2".into(), page_identity: page2,
         capability: "camera".into(), action: "capture".into(),
         payload: serde_json::Value::Null,
@@ -160,7 +160,7 @@ fn capability_invocation_with_profile_gating() {
 
     // Stale page → denied
     session.record_navigation("/other"); // page is now stale
-    let resp = session.capabilities().invoke(&session, &CapabilityRequest {
+    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
         id: "r3".into(), page_identity: page, // stale!
         capability: "camera".into(), action: "capture".into(),
         payload: serde_json::Value::Null,

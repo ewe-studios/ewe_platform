@@ -30,6 +30,7 @@ pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             inner: tauri::Builder::new(),
@@ -41,12 +42,14 @@ impl<R: Runtime> PlatformBuilder<R> {
         }
     }
 
+    #[must_use]
     pub fn route(mut self, pattern: &str, decision: foundation_ui_traits::RouteDecision) -> Self {
         self.routes.push(RouteEntry { pattern: pattern.to_string(), decision, responder: None });
         self
     }
 
     /// Register a route WITH its responder — all in one declarative call.
+    #[must_use]
     pub fn route_with(
         mut self,
         pattern: &str,
@@ -61,31 +64,36 @@ impl<R: Runtime> PlatformBuilder<R> {
         self
     }
 
+    #[must_use]
     pub fn setup<F: Fn(&PlatformSession) + Send + Sync + 'static>(mut self, f: F) -> Self {
         self.setups.push(Box::new(f));
         self
     }
 
+    #[must_use]
     pub fn index_as(mut self, route: &str) -> Self {
         self.index_url = Some(route.to_string());
         self
     }
 
     /// Set the resource root for disk-based script resolution (F24).
+    #[must_use]
     pub fn resource_root(mut self, root: PathBuf) -> Self {
         self.script_injector.resource_root = root;
         self
     }
 
     /// Register a custom script for injection into every webview (F24).
+    #[must_use]
     pub fn inject_script(mut self, script: InjectedScript) -> Self {
         self.script_injector.register(script);
         self
     }
 
     /// Inject all standard platform runtime scripts with disk→static fallback
-    /// chains (F24). Registers: scheme_interceptor, foundation_wasm,
-    /// foundation_wasm_ui, capability_bridge.
+    /// chains (F24). Registers: `scheme_interceptor`, `foundation_wasm`,
+    /// `foundation_wasm_ui`, `capability_bridge`.
+    #[must_use]
     pub fn inject_platform_runtimes(mut self) -> Self {
         self.runtimes_injected = true;
         let old = std::mem::replace(
@@ -100,7 +108,8 @@ impl<R: Runtime> PlatformBuilder<R> {
         self
     }
 
-    /// Register a ScriptInjectorPlugin (F24).
+    /// Register a `ScriptInjectorPlugin` (F24).
+    #[must_use]
     pub fn register_plugin(mut self, plugin: impl ScriptInjectorPlugin) -> Self {
         plugin.inject_scripts(&mut self.script_injector);
         self
@@ -109,7 +118,7 @@ impl<R: Runtime> PlatformBuilder<R> {
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
-        let index_url = self.index_url.clone();
+        let _index_url = self.index_url.clone();
         let script_injector = std::mem::take(&mut self.script_injector);
 
         self.inner = self.inner.setup(move |app| {
@@ -167,8 +176,9 @@ impl<R: Runtime> PlatformBuilder<R> {
         self.inner.build(context)
     }
 
-    pub fn invoke_handler<H: Send + Sync + 'static>(mut self, handler: H) -> Self
-    where H: Fn(tauri::ipc::Invoke<R>) -> bool,
+    #[must_use]
+    pub fn invoke_handler<H>(mut self, handler: H) -> Self
+    where H: Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static,
     { self.inner = self.inner.invoke_handler(handler); self }
 
     pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> { &mut self.inner }
@@ -178,11 +188,11 @@ impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::n
 
 // ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
 
-/// The Tauri command bridge for portable WasmCapability invocations (F23).
+/// The Tauri command bridge for portable `WasmCapability` invocations (F23).
 ///
 /// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`
 /// which lands here. The command looks up the capability in the
-/// `CapabilityRegistry` and delegates to the handler.
+/// registry and delegates to the handler.
 #[tauri::command]
 fn __ewe_capabilities(
     session: tauri::State<'_, Arc<PlatformSession>>,
@@ -220,10 +230,10 @@ fn __ewe_ipc(
     content_type: Option<String>,
 ) -> Result<Vec<u8>, String> {
     let ct = match content_type.as_deref() {
-        Some("arrow") | Some("application/vnd.apache.arrow.batch") => {
+        Some("arrow" | "application/vnd.apache.arrow.batch") => {
             foundation_wasm::ipc::IpcContentType::Arrow
         }
-        Some("binary") | Some("application/octet-stream") => {
+        Some("binary" | "application/octet-stream") => {
             foundation_wasm::ipc::IpcContentType::Binary
         }
         _ => foundation_wasm::ipc::IpcContentType::Json,

@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F23-wasm-capabilities"
 this_file: "specifications/52-tauri-foundation-platform/features/F23-wasm-capabilities/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-20
 
@@ -13,312 +13,194 @@ depends_on:
   - "F19-wasm-annotation-target"
 
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 3
+  total: 9
+  completion_percentage: 67%
+
+implementation_notes: |
+  The trait was split across crates — `WasmCapability` (base, no `'static`)
+  in `foundation_wasm`, platform extension in `foundation_platform`.
+  'static bound only on registry storage, not the trait.
+  CapabilityRequest<T>/CapabilityResponse<T> are generic with default T=Vec<u8>.
+  WirePayload trait enables typed⇄wire round-trips without Arrow deps.
 ---
 # F23 — WASM-Native Capabilities
 
 ## Problem
 
-Capabilities (decision 07, F05) are currently a `foundation_platform`-only
-concept. They're tied to `PlatformSession`, the Tauri runtime, and the
-`serde_json::Value` wire format. This means:
-
-- **WASM apps running outside the platform** (browser, Deno, testbed) can't
-  use capabilities. Every app that wants to read clipboard, access filesystem,
-  or use biometrics must be inside a Tauri shell.
-- **Route handlers can't programmatically invoke capabilities.** They're only
-  reachable via the WebView → session → registry path. A Rust route handler
-  that wants to read a file or query secure storage must either duplicate the
-  logic or work around the capability system entirely.
-- **The wire format is JSON-only.** Arrow/columnar data paths are closed to
-  capabilities, even for high-throughput sensor or camera streams.
-- **No standard `invoke_capability` API at the WASM level.** Every platform
-  invents its own bridge. WASM apps can't write portable capability calls.
+Capabilities (decision 07, F05) are `foundation_platform`-only. WASM apps
+outside the platform (browser, Deno, testbed) can't use them. The wire format
+is JSON-only. No standard `invoke_capability` API at the WASM level.
 
 ## Solution
 
-Elevate the Capability concept to **`foundation_wasm`** as a platform-agnostic
-primitive. `foundation_platform` inherits, extends, and provides the Tauri
-bridge. WASM apps get a standard `invoke_capability(name, payload)` API that
-works everywhere — browser, Deno, Tauri, testbed — with the same contract.
+Three layers, same pattern as IPC (F25):
 
-### Core trait — `foundation_wasm::capability::WasmCapability`
+```
+foundation_wasm (no_std, wasm32 + native)
+├── WirePayload trait        — into_wire_bytes() / from_wire_bytes()
+├── CapabilityContentType    — Json | Arrow | Binary
+├── CapabilityRequest<T>     — T = Vec<u8> default, into_wire() / into_typed()
+├── CapabilityResponse<T>    — same
+├── WasmCapability trait     — name(), invoke_capability()
+├── CapabilityRegistry       — portable, works on wasm32 + native
+
+foundation_platform (native)
+└── PlatformCapability       — extends WasmCapability with session + security
+      invoke_with_session(&PlatformSession, request) → 5-layer defense
+```
+
+### `WirePayload` trait — the typed⇄wire bridge
+
+No serde or Arrow dependency in `foundation_wasm`. Higher crates add blanket
+impls for `Serialize + DeserializeOwned` (→ Json) and `ToArrow + FromArrow`
+(→ Arrow). `Vec<u8>` has a passthrough impl.
 
 ```rust
-/// A capability that can be invoked from WASM or native code.
-///
-/// Unlike F05's platform-specific `Capability` trait, this lives in
-/// `foundation_wasm` and is available to all targets (wasm32, native).
-pub trait WasmCapability: Send + Sync + 'static {
-    /// Unique capability name. Used as the lookup key in registries.
+pub trait WirePayload: Sized {
+    fn into_wire_bytes(self) -> (Vec<u8>, CapabilityContentType);
+    fn from_wire_bytes(data: &[u8], content_type: CapabilityContentType) -> Result<Self, WireError>;
+}
+```
+
+### Generic wire types
+
+```rust
+pub struct CapabilityRequest<T = Vec<u8>> {
+    pub capability: String,
+    pub action: String,
+    pub payload: T,
+    pub content_type: CapabilityContentType,
+}
+
+pub struct CapabilityResponse<T = Vec<u8>> {
+    pub capability: String,
+    pub action: String,
+    pub payload: T,
+    pub content_type: CapabilityContentType,
+}
+```
+
+`into_wire()` on `CapabilityRequest<T>` calls `T::into_wire_bytes()`, returns
+`CapabilityRequest<Vec<u8>>`. `into_typed<T>()` reverses it. Same for responses.
+
+### `WasmCapability` trait — no `'static`
+
+`'static` bound lives on the registry's `Box<dyn WasmCapability + 'static>` and
+on `register()`'s generic parameter — never on the trait itself.
+
+```rust
+#[cfg(not(target_family = "wasm"))]
+pub trait WasmCapability: Send + Sync {
     fn name(&self) -> &str;
-
-    /// Invoke the capability with a serialized request.
-    ///
-    /// Both `Request` and `Response` must implement:
-    /// - `serde::Serialize` + `serde::DeserializeOwned` (JSON path)
-    /// - `ToArrow` + `FromArrow` (columnar path)
     fn invoke_capability(
-        &self,
-        request: CapabilityRequest,
-    ) -> Result<CapabilityResponse, CapabilityError>;
-}
-
-/// A serialized capability invocation.
-///
-/// Protocol-agnostic: carries either JSON bytes or Arrow record batches.
-/// The dispatcher chooses the codec based on the request's content type.
-pub struct CapabilityRequest {
-    /// Matches a registered `WasmCapability::name()`.
-    pub capability: String,
-    /// The action to perform (e.g. "read", "write", "capture").
-    pub action: String,
-    /// Serialized payload. Encoding indicated by `content_type`.
-    pub payload: Vec<u8>,
-    /// `application/json` or `application/vnd.apache.arrow.batch`.
-    pub content_type: CapabilityContentType,
-}
-
-pub struct CapabilityResponse {
-    /// Echoes the request capability + action for correlation.
-    pub capability: String,
-    pub action: String,
-    /// Serialized result. Encoding indicated by `content_type`.
-    pub payload: Vec<u8>,
-    pub content_type: CapabilityContentType,
-}
-
-pub enum CapabilityContentType {
-    Json,
-    Arrow,
-}
-
-pub enum CapabilityError {
-    UnknownCapability(String),
-    InvalidPayload(String),
-    ExecutionFailed(String),
-    PermissionDenied(String),
+        &self, request: &CapabilityRequest<Vec<u8>>
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>;
 }
 ```
 
-### Registry — `foundation_wasm::capability::CapabilityRegistry`
+### Registry — portable, Mutex-guarded on native
 
 ```rust
-/// A portable capability registry. Works on wasm32 and native.
-///
-/// `foundation_platform` wraps this in its own registry that adds
-/// profile gating, per-route allowlisting, and stale-page guards.
 pub struct CapabilityRegistry {
-    capabilities: HashMap<String, Box<dyn WasmCapability>>,
-}
-
-impl CapabilityRegistry {
-    pub fn new() -> Self { ... }
-    pub fn register<C: WasmCapability>(&mut self, capability: C) { ... }
-    pub fn invoke(&self, request: CapabilityRequest) -> Result<CapabilityResponse, CapabilityError> { ... }
-    pub fn get(&self, name: &str) -> Option<&dyn WasmCapability> { ... }
-    pub fn names(&self) -> impl Iterator<Item = &str> { ... }
+    #[cfg(not(target_family = "wasm"))]
+    inner: Mutex<BTreeMap<String, Box<dyn WasmCapability + Send + Sync + 'static>>>,
+    #[cfg(target_family = "wasm")]
+    inner: BTreeMap<String, Box<dyn WasmCapability + 'static>>,
 }
 ```
 
-### WASM JS bridge — `invoke_capability`
+`register(&self, cap: impl WasmCapability + 'static)` — interior mutability on
+native (Mutex). `invoke()` takes `&CapabilityRequest<Vec<u8>>`. `invoke_typed<T>()`
+converts through wire format.
 
-```typescript
-// foundation_wasm runtime provides this globally
-function invokeCapability(name: string, action: string, payload: any): Promise<any>
+### Platform integration — `PlatformCapability` trait
 
-// Usage in a WASM app:
-const result = await invokeCapability("clipboard", "read", { format: "text" });
-// → { text: "Hello from clipboard" }
-
-const image = await invokeCapability("camera", "capture", { resolution: "1080p" });
-// → { data: ArrayBuffer, mime: "image/jpeg" }
-```
-
-On **Tauri/Android**, `invokeCapability` routes through a dedicated Tauri command `__ewe_capabilities`
-(separate from `__ewe_ipc` — capabilities have their own security model, registry, and contract).
-On **browser**, it routes through the WASM JS bridge directly.
-On **Deno**, it routes through `Deno.core.opAsync`.
-
-### Platform integration — `foundation_platform`
-
-`foundation_platform` wraps `CapabilityRegistry` with its existing security model:
+Platform extension adds session-aware invocation through the 5-layer defense:
 
 ```rust
-// foundation_platform/src/capability.rs
-
-pub struct PlatformCapabilityRegistry {
-    /// The portable WASM-level registry.
-    inner: CapabilityRegistry,
-    /// Profile gates, route allowlists, stale-page guards (F05).
-    security: CapabilitySecurityLayer,
-}
-
-impl PlatformSession {
-    /// Register a WASM-native capability with platform security.
-    pub fn register_capability<C: WasmCapability>(&self, capability: C) { ... }
-
-    /// Invoke a capability through the full 5-layer defense.
-    pub fn invoke_capability(&self, request: CapabilityRequest) -> Result<CapabilityResponse, CapabilityError> { ... }
-
-    /// Get a capability handle for programmatic use from route handlers.
-    pub fn get_capability(&self, name: &str) -> Option<&dyn WasmCapability> { ... }
+pub trait PlatformCapability: foundation_wasm::WasmCapability {
+    fn invoke_with_session(
+        &self, session: &PlatformSession, request: &CapabilityRequest<Vec<u8>>
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>;
 }
 ```
 
-**Route handlers can now get and invoke capabilities directly:**
+### JS bridge — `capability-bridge.js`
 
-```rust
-fn my_route_handler(session: &PlatformSession, intent: &NavigationIntent) -> RouteResult {
-    // Programmatic invocation — no WebView round-trip needed.
-    let clip = session.get_capability("clipboard").unwrap();
-    let response = clip.invoke_capability(CapabilityRequest {
-        capability: "clipboard".into(),
-        action: "read".into(),
-        payload: serde_json::to_vec(&json!({"format": "text"})).unwrap(),
-        content_type: CapabilityContentType::Json,
-    }).unwrap();
+Pure JS, injected via ScriptInjector (F24). Detects host at runtime:
+- Tauri → `__TAURI_INTERNALS__.invoke('__ewe_capabilities', ...)`
+- Deno → `Deno.core.opAsync`
+- Browser → direct WASM bridge
 
-    let text: ClipboardContent = serde_json::from_slice(&response.payload).unwrap();
-    RouteResult::Html(format!("<p>Clipboard: {}</p>", text.data))
-}
-```
+### Tauri command — `__ewe_capabilities`
 
-### Tauri command bridge — `__ewe_capabilities`
-
-The platform registers a dedicated `#[tauri::command] fn __ewe_capabilities` —
-separate from `__ewe_ipc` (F25). Capabilities have their own security model,
-registry, and contract. Merging them into the IPC command would conflate two
-different namespaces and weaken the security boundary:
-
-```
- JS invokeCapability("clipboard", "read", payload)
-   → window.__TAURI_INTERNALS__.invoke("__ewe_capabilities", { capability, action, payload })
-     → Rust: #[tauri::command] fn __ewe_capabilities(state, capability, action, payload)
-       → PlatformSession::invoke_capability(request)
-         → 1. Stale-page guard
-         → 2. Look up in CapabilityRegistry
-         → 3. Profile gate (min_profile check)
-         → 4. Per-route allowlist (RouteDecision.capabilities)
-         → 5. Execute capability
-         → CapabilityResponse
-       → Result<Vec<u8>, String> back to JS
-```
-
-```rust
-#[tauri::command]
-fn __ewe_capabilities(
-    app_handle: tauri::AppHandle,
-    capability: String,
-    action: String,
-    payload: Vec<u8>,
-    content_type: String,
-) -> Result<Vec<u8>, String> {
-    let session = app_handle.state::<PlatformSession>();
-    let request = CapabilityRequest {
-        capability,
-        action,
-        payload,
-        content_type: content_type.parse().unwrap_or(CapabilityContentType::Json),
-    };
-    session.invoke_capability(request)
-        .map(|r| r.payload)
-        .map_err(|e| e.to_string())
-}
-```
-
-**Why a separate command and not folded into `__ewe_ipc`:**
-
-| Concern | `__ewe_capabilities` | `__ewe_ipc` (F25) |
-|---------|---------------------|---------------------|
-| Registry | `CapabilityRegistry` (F23, portable) | `IpcRegistry` (F25, platform-only) |
-| Trait | `WasmCapability` (foundation_wasm) | `Ipc` (foundation_platform) |
-| Security | 5-layer defense (F05) | Basic namespace lookup |
-| Contract | `CapabilityRequest` → `CapabilityResponse` | `IpcRequest` → `IpcResponse` |
-| JS API | `invokeCapability(name, action, payload)` | `invokeIpc(name, action, payload)` |
-| Works on | wasm32 + native (portable) | native only (platform-specific) |
-| Permission errors | `CapabilityError::PermissionDenied` | `IpcError::PermissionDenied` (different model) |
-
-The separation means a capability can be invoked from either JS path — the
-dedicated `invokeCapability` (which goes through security) or a route handler
-via `session.get_capability(name)?.invoke_capability(request)` (which also
-goes through the same security layer). Neither path goes near the IPC registry.
+Dedicated command, separate from `__ewe_ipc`. Different registry, different
+security model.
 
 ## Requirements
 
-### 1. `WasmCapability` trait — `foundation_wasm`
-- File: `backends/foundation_wasm/src/capability.rs` (NEW)
-- Trait: `WasmCapability` with `name()`, `invoke_capability()`
-- Types: `CapabilityRequest`, `CapabilityResponse`, `CapabilityContentType`, `CapabilityError`
-- All request/response types implement `Serialize` + `DeserializeOwned`
-- Arrow support via `ToArrow`/`FromArrow` traits (when arrow feature enabled)
-- Re-exported from `foundation_wasm::capability`
+### 1. `WirePayload` trait — `foundation_wasm`
+- `into_wire_bytes()` / `from_wire_bytes()`
+- `WireError` enum: EncodeFailed, DecodeFailed, UnsupportedContentType
+- Passthrough impl for `Vec<u8>`
+- Higher crates add blanket impls for Serialize/Deserialize and Arrow
 
-### 2. `CapabilityRegistry` — `foundation_wasm`
-- Portable registry working on wasm32 + native
-- `register()`, `invoke()`, `get()`, `names()` methods
-- Thread-safe: `Send + Sync` on native, `RefCell` on wasm32
-- No platform dependencies (no Tauri, no tokio)
+### 2. `CapabilityContentType` — `foundation_wasm`
+- Json | Arrow | Binary (shared with IPC)
 
-### 3. WASM JS bridge
-- `invokeCapability(name, action, payload)` function in foundation_wasm runtime
-- Returns `Promise<any>`
-- Protocol: JSON by default, Arrow when `contentType: 'arrow'` specified
-- On Tauri: routes through `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', ...)`
-- On browser: routes through the WASM JS bridge directly
-- On Deno: routes through `Deno.core.opAsync`
+### 3. `CapabilityRequest<T>` / `CapabilityResponse<T>` — `foundation_wasm`
+- Default `T = Vec<u8>` for wire form
+- `into_wire()` / `into_typed()` on both
+- `wire()` convenience constructor
 
-### 3.5. Tauri command `__ewe_capabilities`
-- Dedicated `#[tauri::command] fn __ewe_capabilities(...)` registered by PlatformBuilder
-- Separate from `__ewe_ipc` (F25) — different registry, different security model
-- Routes through `PlatformSession::invoke_capability()` → full 5-layer defense
-- Returns `Result<Vec<u8>, String>` (serialized `CapabilityResponse` on success)
-- Command name is NOT configurable — `__ewe_capabilities` is the contract
+### 4. `WasmCapability` trait — `foundation_wasm`
+- No `'static` on the trait
+- `Send + Sync` on native, no bounds on wasm32
+- `name()`, `invoke_capability(&CapabilityRequest<Vec<u8>>)`
 
-### 4. Platform integration
-- `PlatformCapabilityRegistry` wraps `CapabilityRegistry` + F05 security layers
-- `PlatformSession::register_capability()` accepts `WasmCapability` impls
-- `PlatformSession::get_capability(name)` returns `Option<&dyn WasmCapability>`
-- Existing F05 `#[platform_capability]` macro updated to generate `WasmCapability` impls
-- Backward compatible: existing F05 capabilities continue to work
+### 5. `CapabilityRegistry` — `foundation_wasm`
+- `register(&self, impl WasmCapability + 'static)` (interior mutability on native via Mutex)
+- `get(&self, name) -> Option<&dyn WasmCapability>`
+- `invoke(&self, &CapabilityRequest<Vec<u8>>) -> Result`
+- `invoke_typed<T: WirePayload>(&self, CapabilityRequest<T>) -> Result<CapabilityResponse<T>>`
+- `names() -> Vec<String>`
 
-### 5. Migration path
-- F05 `Capability` trait gains blanket impl bridge to `WasmCapability`
-- Existing capabilities work through both old and new APIs during transition
-- `serde_json::Value` → `Vec<u8>` conversion in the bridge layer
-- Deprecation warning on old API after F25 IPC Registry lands
+### 6. JS bridge
+- `capability-bridge.js`: `window.invokeCapability(name, action, payload)`
+- Embedded as `CAPABILITY_BRIDGE_JS` in `foundation_wasm_ui::embedded`
+- Detects Tauri/Deno/browser at runtime
+
+### 7. Tauri command `__ewe_capabilities`
+- Registered by PlatformBuilder via `generate_handler!`
+- Extracts `CapabilityRequest` from JSON args, delegates to `PlatformSession::invoke_wasm_capability()`（已读入，当前状态已折叠）
+
+### 8. PlatformCapability trait
+- Extends WasmCapability with invoke_with_session(&PlatformSession, ...)
+- PlatformSession has register_platform_capability(), get_platform_capability()
+
+### 9. No duplication
+- foundation_platform's old Capability types renamed to avoid collision
+- foundation_platform re-exports foundation_wasm types, doesn't shadow them
 
 ## Verification
 
 ```bash
-# Native-side: standard #[test] in tests/ (trait + types + registry logic)
-cargo test -p foundation_wasm -- capability
-
-# WASM runtime tests via foundation_testbed (Deno + browser CDP/BiDi)
-cargo test -p foundation_testbed --features wasm -- wasm_capability
-
-# Platform integration tests
-cargo test -p foundation_platform -- capability
-
-# Tauri command bridge — dedicated __ewe_capabilities command
+cargo test -p foundation_wasm -- capability      # 8 tests
+cargo test -p foundation_platform -- capability   # platform integration
 cargo test -p foundation_platform -- __ewe_capabilities
-
-# Existing F05 tests still pass
-cargo test -p foundation_platform -- platform_capability
-
-# Browser console (manual smoke): invokeCapability from a wasm app page
 ```
 
 ## Files
 
 | File | Action |
 |------|--------|
-| `backends/foundation_wasm/src/capability.rs` | **NEW** — `WasmCapability` trait + types + `CapabilityRegistry` |
-| `backends/foundation_wasm/src/lib.rs` | Add `pub mod capability;` |
-| `backends/foundation_wasm/runtimes/capability-bridge.js` | **NEW** — `invokeCapability` JS bridge |
-| `backends/foundation_platform/src/capability.rs` | Update — wrap `CapabilityRegistry`, bridge F05 |
-| `backends/foundation_platform/src/session.rs` | Add `get_capability()`, update `register_capability()` |
-| `backends/foundation_macros/src/platform_capability.rs` | Update — generate `WasmCapability` impl |
+| `backends/foundation_wasm/src/capability.rs` | **NEW** — WirePayload, CapabilityRequest<T>, CapabilityResponse<T>, WasmCapability, CapabilityRegistry |
+| `backends/foundation_wasm/src/lib.rs` | Add `mod capability; pub use capability::*;` |
+| `backends/foundation_wasm/tests/capability_tests.rs` | **NEW** — 8 tests |
+| `backends/foundation_wasm_ui/runtimes/capability-bridge.js` | **NEW** — invokeCapability JS bridge |
+| `backends/foundation_wasm_ui/src/embedded.rs` | Add CAPABILITY_BRIDGE_JS constant |
+| `backends/foundation_platform/src/capability.rs` | Rename old types, add PlatformCapability trait |
+| `backends/foundation_platform/src/builder.rs` | Register __ewe_capabilities command |
+| `backends/foundation_platform/src/session.rs` | Add wasm_capability_registry, register/get/invoke methods |

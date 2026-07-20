@@ -47,8 +47,8 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
-    /// F05 Capability registry — registered at startup, invoked at runtime.
-    capability_registry: crate::capability::CapabilityRegistry,
+    /// F05 native capability registry — registered at startup, invoked at runtime.
+    capability_registry: crate::capability::NativeCapabilityRegistry,
 
     /// F23 WasmCapability registry — portable, works on wasm32 + native.
     /// Separate from F05; bridges to it. Registered capabilities go through
@@ -119,7 +119,7 @@ impl PlatformSession {
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
-            capability_registry: crate::capability::CapabilityRegistry::new(),
+            capability_registry: crate::capability::NativeCapabilityRegistry::new(),
             wasm_capability_registry: foundation_wasm::CapabilityRegistry::new(),
             cache: crate::cache::CacheManager::in_memory(),
             mutation_queue: crate::mutation::MutationQueue::in_memory(),
@@ -368,7 +368,8 @@ impl PlatformSession {
     }
 
     /// Access the F05 capability registry for invoking native capabilities.
-    pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
+    /// Access the F05 native capability registry.
+    pub fn capabilities(&self) -> &crate::capability::NativeCapabilityRegistry {
         &self.capability_registry
     }
 

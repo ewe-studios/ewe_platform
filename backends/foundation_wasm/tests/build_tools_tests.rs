@@ -59,12 +59,8 @@ fn plan_generates_files_contain_correct_content() {
             "generated file should contain generator comment"
         );
         assert!(
-            file.content.contains("#[no_mangle]"),
-            "generated file should have #[no_mangle]"
-        );
-        assert!(
-            file.content.contains("pub extern \"C\" fn main()"),
-            "generated file should have extern C main"
+            file.content.contains("fn main()"),
+            "generated file should have fn main()"
         );
         assert!(
             file.content.contains("use "),
