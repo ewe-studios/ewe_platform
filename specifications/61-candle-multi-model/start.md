@@ -71,11 +71,12 @@ always fails. **Candle is not the constraint; our wrapper is.**
 
 | Workstream | Status | Notes |
 |-----------|--------|-------|
-| A: architecture coverage | Not started | Initial set is decision 02 |
-| B: prompt construction | Not started | Blocked on decision 03 (template source) |
+| A: architecture coverage | Not started | Initial set is decision 02; needs decision 06 first |
+| B: prompt construction | Not started | Unblocked — minijinja (decision 03) |
 | C: sampling | Not started | Straightforward — adopt LogitsProcessor |
-| D: offline test models | Not started | Synthetic weights; spike needed |
+| D: offline test models | **Partial** | Tiers 2+3 landed and verified; tier 1 (generator) not started |
 | E: tests | Not started | Feeds spec 60 workstream D |
+| Candle 0.11 bump | Not started | Decision 07 |
 
 ## Decisions
 
@@ -84,9 +85,11 @@ always fails. **Candle is not the constraint; our wrapper is.**
 | 00 | Candle backend is a first-class provider, not a fallback — it is the in-process test provider for spec 60 | Resolved |
 | 01 | `CandleArchitecture::Custom(String)` must not remain a hardcoded error — either implement dispatch or remove the variant | Resolved |
 | 02 | Which architectures ship in the first cut | **Open** |
-| 03 | Where chat templates come from — `tokenizer_config.json` needs a Jinja renderer; candle has none, llama.cpp's minja is C++ | **Open** |
-| 04 | Whether synthetic random-weight models are the default test tier (needs the spike) | **Open** |
+| 03 | Chat templates render with **minijinja** — already a workspace dependency (`foundation_packager`), pure Rust, no FFI | Resolved |
+| 04 | **Three model tiers**, not one: generated KB-scale weights + two committed tiny-random fixtures | Resolved |
 | 05 | Whether `ModelParams` gains a `seed` field or candle takes it from config | **Open** |
+| 06 | Per-architecture state (KV cache vs recurrent) moves **into the model abstraction** — no Llama-shaped assumption in `forward`/`CandleStream` | Resolved |
+| 07 | Bump candle 0.10.2 → 0.11.0 | Resolved |
 
 ## Non-goals
 

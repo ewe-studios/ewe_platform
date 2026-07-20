@@ -51,13 +51,22 @@ pub enum CandleArchitecture {
    deliberately excluded from the first cut — their state handling differs from
    the KV-cache shape the current `forward`/`CandleStream` assumes.
 
-### Note on state handling
+### Decision 06 — state handling moves into the model
 
 `forward()` and `CandleStream` currently assume a Llama-style `cache` argument.
-Architectures differ here (Mistral/Qwen use similar KV caches; Mamba/RWKV carry
-recurrent state). The per-architecture state must be part of the model
-abstraction rather than assumed by the stream, or adding the second architecture
-will fight the first.
+Architectures differ: Mistral/Qwen use similar KV caches, Gemma2 adds sliding
+window/attention logit softcapping, and Mamba/RWKV carry recurrent state with no
+KV cache at all.
+
+**The per-architecture state is part of the model abstraction, not something the
+stream assumes.** Concretely: the model owns its own state type and exposes a
+uniform step interface; `CandleStream` drives that interface without knowing
+which architecture it holds. No architecture may be forced into a Llama-shaped
+cache it does not fit.
+
+Doing this **before** workstream A is deliberate — adding the second
+architecture on top of the current Llama-shaped assumption would entrench it,
+and each subsequent architecture would fight the first.
 
 ---
 
@@ -80,9 +89,17 @@ The tokenizer parameter is unused. The function concatenates `system_prompt` and
 2. The template lives in `tokenizer_config.json` (`chat_template`) as a Jinja
    string. Rendering it needs a Jinja engine: `tokenizers` does not do chat
    templates, and llama.cpp's minja is C++ behind our FFI shim, so it is not
-   reachable from the candle path. Decision 03 picks the approach —
-   candidates: a Rust Jinja crate (`minijinja`), a hand-written renderer for the
-   subset chat templates use, or per-architecture formatters in Rust.
+   reachable from the candle path.
+
+   **Decision 03: use `minijinja`.** It is already a workspace dependency —
+   `foundation_packager` uses `minijinja = { version = "2.0.0" }` for its file
+   generation stack (`files.rs`, `TemplateKind::Jinja`), so the engine is proven
+   here and adds no new vendor surface. Pure Rust, so unlike minja it works on
+   every target including wasm.
+
+   Note the committed fixtures make this testable offline:
+   `tiny-random-Gemma2ForCausalLM` ships a real `tokenizer_config.json` with a
+   real chat template.
 3. Whatever is chosen, `generate()` and `stream()` must use the **same** prompt
    construction. The llama.cpp bug was precisely that they diverged.
 4. Tool definitions must be carried into the prompt (`ToolShed`), as the
@@ -115,7 +132,30 @@ Supports temperature and top-k. No top-p, no repeat penalty, no seed.
 
 ---
 
-## D. Offline test models
+## D. Offline test models — three tiers (decision 04)
+
+All three, because each covers what the others cannot:
+
+| Tier | What | Size | Covers |
+|------|------|------|--------|
+| 1 | **Generated** at test run | KB | Every architecture uniformly, zero repo cost; the default for breadth |
+| 2 | **`tiny-random-LlamaForCausalLM`**, committed | 5.7 MB | A **real tokenizer** — which generated weights can never provide |
+| 3 | **`tiny-random-Gemma2ForCausalLM`**, committed | 48 MB | A **large-vocab** architecture (256k) and a real chat template |
+
+Tiers 2 and 3 live in `artefacts/test-models/`, deliberately version-controlled
+with the `*.safetensors` ignore rule negated for that directory. The ~54 MB is an
+accepted trade: it buys real tokenizers and real chat templates offline, which is
+precisely the surface `docs/fixes/006` proved we were getting wrong.
+
+Tier 3 exists because Gemma2's 256k vocab makes the embedding matrix dominate —
+no *published* "tiny" Gemma can be small, so committing one is the only way to
+cover a large-vocab architecture without a download.
+
+**Status: tiers 2 and 3 are landed and verified** — a smoke test loads the Llama
+fixture through `CandleBackend` offline in 0.21s. Tier 1 (the generator) is not
+started and is the remaining work here.
+
+### Tier 1 — the generator
 
 ### Why
 
@@ -178,3 +218,19 @@ required. But weights do not have to be *downloaded*: they can be generated.
    `ModelParams` knob, with a seed for reproducibility.
 5. The agentic suite (spec 60 workstream D) can run against candle with no
    network access.
+
+---
+
+## F. Candle version bump (decision 07)
+
+Bump `candle-core` / `candle-nn` / `candle-transformers` from **0.10.2** to
+**0.11.0** (latest stable, released 2026-06-26).
+
+1. Land this **before** workstreams A and B, not after: adding architectures and
+   a chat-template renderer on top of 0.10 and then bumping would mix API
+   churn with new behaviour, making a regression hard to attribute.
+2. Candle takes breaking changes across minor versions; expect `VarBuilder`,
+   model constructor, and `Cache` signatures to move. The existing Llama loader
+   and `CandleStream` are the blast radius.
+3. The tier-2 fixture smoke test is the gate: it must still load the Llama
+   fixture offline after the bump.
