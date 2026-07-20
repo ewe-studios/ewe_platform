@@ -35,7 +35,7 @@ impl Default for ReplColors {
 /// Full configuration for a REPL session.
 #[derive(Debug, Clone)]
 pub struct ReplConfig {
-    /// Primary prompt string (e.g. ">>> ").
+    /// Primary prompt string (e.g. "| ").
     pub prompt: String,
     /// Continuation prompt for multiline input (e.g. "... ").
     pub continuation_prompt: String,
@@ -52,8 +52,8 @@ pub struct ReplConfig {
 impl Default for ReplConfig {
     fn default() -> Self {
         Self {
-            prompt: ">>> ".into(),
-            continuation_prompt: "... ".into(),
+            prompt: "| ".into(),
+            continuation_prompt: "|... ".into(),
             banner: None,
             goodbye: None,
             max_input_length: Some(64 * 1024),

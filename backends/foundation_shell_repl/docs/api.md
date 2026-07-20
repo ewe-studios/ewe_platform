@@ -13,7 +13,7 @@ pub struct Repl { /* opaque */ }
 ### Construction
 
 ```rust
-// Default: >>> prompt, no banner, 64KB max input
+// Default: | prompt, no banner, 64KB max input
 let repl = Repl::new();
 
 // Custom config
@@ -96,7 +96,7 @@ pub struct ReplBuilder { /* opaque */ }
 
 | Method | Default | Description |
 |--------|---------|-------------|
-| `prompt(s)` | `">>> "` | Primary prompt string |
+| `prompt(s)` | `"| "` | Primary prompt string |
 | `continuation_prompt(s)` | `"... "` | Multiline continuation prompt |
 | `banner(s)` | `None` | Welcome message on startup |
 | `goodbye(s)` | `None` | Farewell message on drop |
@@ -123,7 +123,7 @@ pub struct ReplConfig {
 impl Default for ReplConfig {
     fn default() -> Self {
         Self {
-            prompt: ">>> ".into(),
+            prompt: "| ".into(),
             continuation_prompt: "... ".into(),
             banner: None,
             goodbye: None,

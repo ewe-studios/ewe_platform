@@ -103,8 +103,8 @@ fn command_strips_args() {
 #[test]
 fn default_config_has_defaults() {
     let cfg = ReplConfig::default();
-    assert_eq!(cfg.prompt, ">>> ");
-    assert_eq!(cfg.continuation_prompt, "... ");
+    assert_eq!(cfg.prompt, "| ");
+    assert_eq!(cfg.continuation_prompt, "|... ");
     assert!(cfg.banner.is_none());
     assert!(cfg.goodbye.is_none());
     assert!(cfg.max_input_length.is_some());

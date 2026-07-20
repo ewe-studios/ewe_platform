@@ -22,14 +22,14 @@ Run it:
 
 ```
 $ cargo run
->>> hello
+| hello
   You said: hello
->>> world
+| world
   You said: world
->>>
+|
 ```
 
-The REPL starts with `>>> ` as the prompt. Type anything and press **Enter**
+The REPL starts with `| ` as the prompt. Type anything and press **Enter**
 to submit. The response appears indented below, followed by a fresh prompt.
 
 ## 2. Multiline Input
@@ -43,15 +43,15 @@ The REPL handles this with two keys:
 | **Shift+Enter** | Insert a newline and keep editing |
 
 ```
->>> SELECT name, email
-... FROM users
-... WHERE active = 1;
+| SELECT name, email
+|... FROM users
+|... WHERE active = 1;
   You said: SELECT name, email
   FROM users
   WHERE active = 1;
 ```
 
-After Shift+Enter, the prompt changes from `>>> ` to `... ` to indicate
+After Shift+Enter, the prompt changes from `| ` to `|... ` to indicate
 continuation mode. This is configurable via `ReplBuilder::continuation_prompt()`.
 
 ## 3. Command Registration

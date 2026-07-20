@@ -54,7 +54,7 @@ repl.register_command("time", |_| {
 
 Output:
 ```
->>> /time
+| /time
   1753123456
 
 >>>

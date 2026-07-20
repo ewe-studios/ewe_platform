@@ -43,9 +43,9 @@ Press **Shift+Enter** (or Ctrl+Enter) to insert a newline and keep editing.
 Plain **Enter** submits the full buffer:
 
 ```
->>> def greet(name):
-...     return f"Hello, {name}!"
-...
+| def greet(name):
+|...     return f"Hello, {name}!"
+|...
   You said: def greet(name):
       return f"Hello, {name}!"
 ```
