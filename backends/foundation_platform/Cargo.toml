@@ -31,8 +31,8 @@ concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-# HTTP client for remote fetch (F29 Stage 2)
-reqwest = { workspace = true }
+# HTTP client + networking (use foundation_netio, not external HTTP dep)
+foundation_netio = { path = "../foundation_netio" }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }

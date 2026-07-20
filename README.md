@@ -69,3 +69,49 @@ See the [crates](./crates) and [backend](./backends) directories.
 ## Project Templates
 
 See the [templates](./templates) directory.
+
+## Development Environments
+
+Virtual machines for cross-platform testing and artifact builds, all managed via `docker compose`.
+Each VM runs as a **profile** so you can start only what you need.
+
+### Quick Start
+
+```bash
+# Start individual VMs
+docker compose up macos -d       # macOS Sequoia (iOS build + simulator)
+docker compose up android -d     # Android emulator
+docker compose up windows -d     # Windows 11 VM (testing + artifacts)
+
+# Start all at once
+docker compose up -d
+```
+
+### Accessing the VMs
+
+| VM      | Web UI                    | VNC             | RDP              |
+|---------|---------------------------|-----------------|------------------|
+| macOS   | http://localhost:8006/    | localhost:5900  | —                |
+| Android | http://localhost:8007/    | —               | —                |
+| Windows | http://localhost:8008/    | —               | localhost:3389   |
+
+**Windows RDP credentials:** user `Docker`, password `admin`
+
+### Requirements
+
+- KVM support — verify with `sudo kvm-ok` (should report "KVM acceleration can be used")
+- At least 4 GB RAM and 64 GB free disk per VM
+- Hardware virtualization (Intel VT-x / AMD-V) enabled in BIOS
+
+### Persistent Storage
+
+| VM      | Disk Location                          | Shared Folder                     |
+|---------|----------------------------------------|-----------------------------------|
+| macOS   | `~/Boxxed/@dev/macos/`                 | project root → `/shared`          |
+| Android | `./android_shared/`                    | `./android_shared/shared`         |
+| Windows | `~/Boxxed/@dev/windows/`               | project root → `Shared` on desktop|
+
+### Notes
+
+- First boot takes 10–15 minutes — base images are downloaded automatically.
+- Use `docker compose stop <vm>` to pause; `docker compose down <vm>` to remove.

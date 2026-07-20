@@ -2,10 +2,12 @@
 #
 #   docker compose up macos -d     # macOS Sequoia (iOS build + simulator)
 #   docker compose up android -d   # Android emulator
-#   docker compose up -d           # both
+#   docker compose up windows -d   # Windows VM (testing + artifacts)
+#   docker compose up -d           # all active services
 #
-# First boot takes 10-15 minutes — macOS downloads the base image.
-# Access: VNC to localhost:5900 (macOS), web UI at localhost:8006 (android).
+# First boot takes 10-15 minutes — macOS/Windows download base images.
+# Access: VNC to localhost:5900 (macOS), web UI at localhost:8007 (android) / localhost:8008 (windows),
+#         RDP to localhost:3389 (windows, user: Docker, pass: admin).
 
 services:
   macos:
@@ -30,6 +32,7 @@ services:
       - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
     restart: unless-stopped
     stop_grace_period: 2m
+    profiles: [macos]
 
   android:
     image: dockurr/android
@@ -45,3 +48,27 @@ services:
     volumes:
       - ./android_shared:/shared
     profiles: [android]
+
+  windows:
+    image: dockurr/windows
+    container_name: ewe_windows
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "8G"
+      CPU_CORES: "4"
+      DISK_SIZE: "128G"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8008:8006"       # web UI (VNC viewer)
+      - "3389:3389/tcp"   # RDP (preferred after install)
+      - "3389:3389/udp"   # RDP (UDP for better performance)
+    volumes:
+      - /home/darkvoid/Boxxed/@dev/windows:/storage
+      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
+    profiles: [windows]
