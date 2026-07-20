@@ -368,3 +368,51 @@ pub extern "C" fn capture_mixed_params() {
         Params::Float64(2.5),
     ]);
 }
+
+// ── F27: Trigger dispatch through host_apply ───────────────────────────────
+
+/// Frames a JSON payload as a capability trigger (protocol byte 3) and ships
+/// it through `host_apply`. The JS ProtocolDispatcher routes to the registered
+/// capability trigger handler (set up via `FoundationWasm._capTriggerHandler`).
+///
+/// # Safety
+///
+/// Caller must ensure `json_ptr`/`json_len` point to valid UTF-8 JSON.
+#[no_mangle]
+pub extern "C" fn e2e_trigger_capability(json_ptr: u64, json_len: u32) {
+    let payload = unsafe { core::slice::from_raw_parts(json_ptr as *const u8, json_len as usize) };
+
+    let total = (foundation_wasm::WasmEnvelope::HEADER_LEN + payload.len()) as u64;
+    let mem_id = foundation_wasm::exposed_runtime::create_allocation(total);
+
+    let framed = foundation_wasm::WasmEnvelope::write(3, 0, mem_id, payload);
+    let slot =
+        foundation_wasm::internal_api::get_memory(foundation_wasm::MemoryId::from_u64(mem_id));
+    slot.apply(|m| {
+        m.clear();
+        m.extend_from_slice(&framed);
+    });
+
+    let (ptr, len) = slot.as_address().expect("slot address");
+    unsafe { foundation_wasm::abi::web::host_apply(mem_id, ptr as u64, len) };
+}
+
+/// Same as e2e_trigger_capability but uses protocol byte 4 (IPC trigger).
+#[no_mangle]
+pub extern "C" fn e2e_trigger_ipc(json_ptr: u64, json_len: u32) {
+    let payload = unsafe { core::slice::from_raw_parts(json_ptr as *const u8, json_len as usize) };
+
+    let total = (foundation_wasm::WasmEnvelope::HEADER_LEN + payload.len()) as u64;
+    let mem_id = foundation_wasm::exposed_runtime::create_allocation(total);
+
+    let framed = foundation_wasm::WasmEnvelope::write(4, 0, mem_id, payload);
+    let slot =
+        foundation_wasm::internal_api::get_memory(foundation_wasm::MemoryId::from_u64(mem_id));
+    slot.apply(|m| {
+        m.clear();
+        m.extend_from_slice(&framed);
+    });
+
+    let (ptr, len) = slot.as_address().expect("slot address");
+    unsafe { foundation_wasm::abi::web::host_apply(mem_id, ptr as u64, len) };
+}

@@ -304,7 +304,8 @@ impl ProviderRouter {
         let provider = self.resolve(model_id)?;
         println!(
             "Resolved to provider for model: {:?} with provider: {:?}",
-            &model_id, &provider
+            &model_id,
+            provider.name()
         );
         provider
             .get_model(model_id)

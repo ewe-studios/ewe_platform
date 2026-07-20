@@ -1917,7 +1917,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
+    const { bridge, memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -2020,7 +2020,7 @@ export class FoundationWasm {
       // F28: Stream FFI — WASM pushes data through JS stream objects.
       // WASM → host (outgoing): call host_sender_send / host_sender_end.
       host_sender_send(streamId, dataPtr, dataLen, seq) {
-        var data = new Uint8Array(this.bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+        var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
         WasmStreamSender._send(Number(streamId), data, Number(seq));
       },
       host_sender_end(streamId) {
@@ -2028,7 +2028,7 @@ export class FoundationWasm {
       },
       // Host → WASM (incoming): call host_receiver_push to deliver chunks.
       host_receiver_push(receiverId, dataPtr, dataLen, seq, isLast) {
-        var data = new Uint8Array(this.bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+        var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
         WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
       },
     };

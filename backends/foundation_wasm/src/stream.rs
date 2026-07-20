@@ -60,7 +60,7 @@ pub struct StreamRegistry {
 impl StreamRegistry {
     /// Create an empty stream registry.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             next_id: Mutex::new(1),
             streams: Mutex::new(BTreeMap::new()),
@@ -127,5 +127,47 @@ impl StreamRegistry {
 impl Default for StreamRegistry {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+// ── WASM exports (F28) ──────────────────────────────────────────────────
+
+#[cfg(feature = "web")]
+mod wasm_ffi {
+    use alloc::vec::Vec;
+    use foundation_nostd::comp::basic::Mutex;
+    use super::{StreamChunk, StreamId, StreamRegistry};
+
+    static STREAM_REGISTRY: Mutex<StreamRegistry> = Mutex::new(StreamRegistry::new());
+
+    /// Create a new stream. Returns the stream ID as u64.
+    #[no_mangle]
+    pub extern "C" fn stream_create() -> u64 {
+        let (id, _queue) = STREAM_REGISTRY
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .create();
+        id.0
+    }
+
+    /// Push a chunk onto a stream. `data_ptr`/`data_len` point to the chunk bytes.
+    /// Returns 1 on success, 0 on failure (stream not found or queue closed).
+    #[no_mangle]
+    pub extern "C" fn stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) -> u32 {
+        let data = unsafe { alloc::slice::from_raw_parts(data_ptr, data_len as usize) };
+        let chunk = StreamChunk::new(data.to_vec(), seq);
+        u32::from(STREAM_REGISTRY
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .send(StreamId(stream_id), chunk))
+    }
+
+    /// Close and deregister a stream. Returns 1 on success, 0 if already closed.
+    #[no_mangle]
+    pub extern "C" fn stream_close(stream_id: u64) -> u32 {
+        u32::from(STREAM_REGISTRY
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .close(StreamId(stream_id)))
     }
 }
