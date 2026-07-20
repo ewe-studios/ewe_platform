@@ -345,8 +345,10 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // meaning). Async: empty — the body is driven via `run_call` below.
             #inner_def
 
-            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            // Before `initialize_pool` — workers pin the ambient dispatcher at
+            // spawn time, so a later init leaves every worker thread silent.
             #tracing_init;
+            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
             let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
@@ -379,15 +381,21 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // meaning). Async: empty — the body is driven via `run_call` below.
             #inner_def
 
+            // Wire up tracing so #[valtron_test] diagnostics land on stderr.
+            // Idempotent — safe to call in every test. Macro args like
+            // `tracing = "debug"` and `tracing_targets = true` feed the config.
+            //
+            // MUST precede `initialize_pool`: worker threads capture the ambient
+            // dispatcher at spawn time and pin it thread-locally for their whole
+            // life. Spawning first pins the NO-OP dispatcher, and a thread-local
+            // default beats the global one — so every worker would go silent no
+            // matter what subscriber is installed afterwards.
+            #tracing_init;
+
             // Engine up — the guard is a NAMED local so it provably lives across
             // the whole body (a `let _ =` would drop it immediately and kill the
             // pool before anything ran).
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
-
-            // Wire up tracing so #[valtron_test] diagnostics land on stderr.
-            // Idempotent — safe to call in every test. Macro args like
-            // `tracing = "debug"` and `tracing_targets = true` feed the config.
-            #tracing_init;
 
             // Sync: call the inner fn. Async: drive the body future to completion
             // (`.await` points park on the engine — Decision 00).
