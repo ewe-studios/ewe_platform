@@ -26,7 +26,7 @@ use foundation_compact::SystemTime;
 use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use foundation_core::valtron::Stream;
 
@@ -390,6 +390,36 @@ impl LlamaModels {
         }
     }
 
+    /// A handle over the SAME loaded weights, with independent accounting.
+    ///
+    /// WHY: the load cache must not hand the identical wrapper to every caller —
+    /// `cumulative_cost` lives in the wrapper, so a shared wrapper would merge
+    /// the token/cost totals of unrelated agents into one accumulator.
+    ///
+    /// WHAT: shares the read-only `Arc<LlamaModel>` weights and the MTP draft
+    /// cache (both immutable-after-load, safe to share), while giving the caller
+    /// a fresh `CostAccumulator`.
+    ///
+    /// HOW: inference state is NOT shared by this handle — every `generate()`
+    /// and every stream builds its own `llama_context` (and its own KV cache and
+    /// sampler) from the shared weights, which is what makes concurrent agents
+    /// safe.
+    fn share_weights(&self) -> Self {
+        let inner = self.inner.lock().expect("model inner poisoned");
+        Self {
+            inner: Arc::new(Mutex::new(LlamaModelsInner {
+                model: Arc::clone(&inner.model),
+                context: inner.context.clone(),
+                sampler: None,
+                spec: inner.spec.clone(),
+                pricing: inner.pricing.clone(),
+                cumulative_cost: CostAccumulator::new(),
+                config: inner.config.clone(),
+                mtp_model: Arc::clone(&inner.mtp_model),
+            })),
+        }
+    }
+
     /// Get the model spec.
     #[must_use]
     /// # Errors
@@ -610,43 +640,24 @@ impl LlamaCppStream {
         )] // FFI boundary: llama.cpp uses i32 for token counts
         let max_tokens = params.max_tokens as i32;
 
-        // Build system prompt from system_prompt + soul + tool definitions
-        let mut prompt = String::new();
-        if let Some(sys) = &interaction.system_prompt {
-            prompt.push_str(sys);
-        }
-        if let Some(soul) = &interaction.soul {
-            if !prompt.is_empty() {
-                prompt.push_str("\n\n");
-            }
-            prompt.push_str(soul);
-        }
-        let shed = &interaction.tools_shed;
-        {
-            let all_tools = flatten_tools(shed);
-            if !all_tools.is_empty() {
-                if !prompt.is_empty() {
-                    prompt.push_str("\n\n");
-                }
-                let formatter = TextBasedFormatter;
-                if let Some(instructions) = formatter.tool_calling_instructions() {
-                    prompt.push_str(&instructions);
-                    prompt.push_str("\n\nAvailable tools:\n");
-                } else {
-                    prompt.push_str("Available tools:\n");
-                }
-                for tool in &all_tools {
-                    let args = tool
-                        .arguments
-                        .as_ref()
-                        .and_then(|a| a.schema.get("properties"))
-                        .and_then(|p| p.as_object())
-                        .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
-                        .unwrap_or_default();
-                    let _ = writeln!(prompt, "- {}({})", tool.name, args);
-                }
-            }
-        }
+        // Build the prompt through the SAME chat-template path `generate()` and
+        // the MTP stream use.
+        //
+        // This block previously assembled `system_prompt + soul + tools` by hand
+        // and never read `interaction.messages` at all — so streaming prompted
+        // the model with the system text alone and never showed it the user's
+        // question, and no chat template was applied (docs/fixes/006). Modern
+        // GGUF models (Gemma 4, Qwen3-Next, GLM, …) need their Jinja template
+        // applied or the model has no turn structure to answer into.
+        let model_arc = {
+            let model_inner = model.inner.lock().unwrap();
+            Arc::clone(&model_inner.model)
+        };
+        let prompt = if interaction.messages.is_empty() {
+            interaction.system_prompt.clone().unwrap_or_default()
+        } else {
+            apply_chat_template(&model_arc, interaction)?
+        };
 
         // If MTP is engaged (config selects Mtp with a separate head path), build
         // a per-stream engine and a chat-templated prompt. On init failure we
@@ -670,6 +681,25 @@ impl LlamaCppStream {
             })),
         })
     }
+}
+
+/// Report a stream failure on the channel the agent loop actually watches.
+///
+/// WHY: every failure in this stream used to terminate with
+/// `ModelState::Finished` (or a bare `None`), which is indistinguishable from a
+/// model that simply finished generating. A dead stream then read as an empty
+/// but successful turn — the `(no response)` bug in docs/fixes/006.
+///
+/// WHAT: logs the failure and returns `ModelState::Error`, which
+/// `progress::lift_model_item` converts into a `FailedAction` record, which in
+/// turn makes `AgentSession::run_turn` return `Err`.
+///
+/// HOW: callers must still set `inner.finished = true` before returning this —
+/// the helper only builds the item.
+fn stream_error(msg: impl std::fmt::Display) -> Stream<Messages, ModelState> {
+    let msg = msg.to_string();
+    tracing::error!("llamacpp stream failed: {msg}");
+    Stream::Pending(ModelState::Error(msg))
 }
 
 impl Iterator for LlamaCppStream {
@@ -706,17 +736,34 @@ impl Iterator for LlamaCppStream {
             return mtp_stream_next(&mut inner);
         }
 
-        // Create backend and context on second call if not exists
-        if inner.backend.is_none() {
-            let Ok(backend) = LlamaBackend::init_or_get() else {
-                inner.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
-            };
+        // Create the inference context on the first real poll, if absent.
+        //
+        // The context is `!Send`: it MUST be born on whichever thread ends up
+        // polling this stream, never in the constructor (see docs/fixes/005).
+        // Gate on `ctx` — the field this block actually initialises. Gating on
+        // `backend` silently disabled the whole block once the constructor
+        // began creating the backend eagerly, leaving `ctx` forever `None`
+        // and killing every stream on its second poll (docs/fixes/006).
+        if inner.ctx.is_none() {
+            if inner.backend.is_none() {
+                let Ok(backend) = LlamaBackend::init_or_get() else {
+                    inner.finished = true;
+                    return Some(stream_error("failed to initialize llama.cpp backend"));
+                };
+                inner.backend = Some(backend);
+            }
 
             let (model, ctx_params) = {
                 let model_inner = inner.model.inner.lock().unwrap();
                 (Arc::clone(&model_inner.model), model_inner.context.clone())
             };
+
+            // Move the backend out so the context can borrow it without also
+            // holding a borrow of `inner`; it goes straight back below.
+            let backend = inner
+                .backend
+                .take()
+                .expect("backend is Some — ensured immediately above");
 
             let ctx = match model.new_context(&backend, ctx_params) {
                 Ok(ctx) => {
@@ -731,9 +778,12 @@ impl Iterator for LlamaCppStream {
                         )
                     }
                 }
-                Err(_) => {
+                Err(err) => {
+                    inner.backend = Some(backend);
                     inner.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
+                    return Some(stream_error(format!(
+                        "failed to create llama.cpp inference context: {err}"
+                    )));
                 }
             };
             inner.backend = Some(backend);
@@ -747,10 +797,24 @@ impl Iterator for LlamaCppStream {
             return Some(Stream::Pending(ModelState::Finished));
         }
 
-        // Clone context at the beginning - Clone is cheap (pointer copy + Vec clone)
-        let Some(mut ctx) = inner.ctx.clone() else {
+        // Reborrow the guard so the fields below can be split-borrowed.
+        let inner = &mut *inner;
+
+        // Borrow the context in place — NEVER clone it.
+        //
+        // `LlamaModelContext::clone` is a shallow pointer copy of an *owning*
+        // handle, so the clone's `Drop` ran the C++ `~llama_context` destructor
+        // at the end of every poll and freed the context this stream still
+        // holds. The next poll then dereferenced freed memory (SIGSEGV). It
+        // stayed hidden only because `ctx` was never created at all — see
+        // docs/fixes/006.
+        //
+        // A missing context here is a bug, not an end of stream.
+        let Some(ctx) = inner.ctx.as_mut() else {
             inner.finished = true;
-            return None;
+            return Some(stream_error(
+                "inference context missing after init — cannot generate",
+            ));
         };
         let model = {
             let model_inner = inner.model.inner.lock().unwrap();
@@ -762,7 +826,7 @@ impl Iterator for LlamaCppStream {
         // Check if sampler exists
         if inner.sampler.is_none() {
             inner.finished = true;
-            return None;
+            return Some(stream_error("sampler missing — cannot generate"));
         }
 
         // On first token generation, tokenize and evaluate the prompt
@@ -772,23 +836,23 @@ impl Iterator for LlamaCppStream {
             let prompt = inner.prompt.take().unwrap_or_default();
             let Ok(tokens) = model.str_to_token(&prompt, AddBos::Always) else {
                 inner.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
+                return Some(stream_error("failed to tokenize prompt"));
             };
             inner.input_tokens = tokens.len();
 
             // Create batch and evaluate prompt
             let mut batch = LlamaBatch::new(tokens.len(), 1);
             tracing::trace!("stream_next: evaluating prompt Batch: LlamaBatch");
-            if batch.add_sequence(&tokens, 0, true).is_err() {
+            if let Err(err) = batch.add_sequence(&tokens, 0, true) {
                 inner.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
+                return Some(stream_error(format!("failed to build prompt batch: {err}")));
             }
 
             // Decode with cloned context
             tracing::trace!("stream_next: decoding Batch with ctx");
-            if ctx.decode(&mut batch).is_err() {
+            if let Err(err) = ctx.decode(&mut batch) {
                 inner.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
+                return Some(stream_error(format!("failed to decode prompt batch: {err}")));
             }
 
             inner.current_pos = tokens.len() as i32;
@@ -797,7 +861,7 @@ impl Iterator for LlamaCppStream {
         // Sample next token
         let Some(sampler) = inner.sampler.as_mut() else {
             inner.finished = true;
-            return None;
+            return Some(stream_error("sampler missing — cannot sample next token"));
         };
         let next_token = sampler.sample(&ctx, 0);
         tracing::trace!("stream_next: generated next token: {:?}", &next_token);
@@ -817,6 +881,25 @@ impl Iterator for LlamaCppStream {
         };
 
         tracing::trace!("stream_next: get token str?: {:?}", &token_str);
+
+        // Feed the sampled token back into the context so the next poll attends
+        // to it — mirrors `generate_text`'s decode loop. Without this the KV
+        // cache never advances past the prompt and the stream re-samples the
+        // same position forever.
+        let mut next_batch = LlamaBatch::new(1, 1);
+        if let Err(err) = next_batch.add(next_token, inner.current_pos, &[0], true) {
+            inner.finished = true;
+            return Some(stream_error(format!(
+                "failed to add sampled token to batch: {err}"
+            )));
+        }
+        if let Err(err) = ctx.decode(&mut next_batch) {
+            inner.finished = true;
+            return Some(stream_error(format!(
+                "failed to decode sampled token: {err}"
+            )));
+        }
+
         inner.tokens_generated += 1;
         inner.current_pos += 1;
 
@@ -928,9 +1011,8 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
                 Some(Stream::Pending(ModelState::GeneratingTokens(None)))
             }
             Err(err) => {
-                tracing::warn!(error = %err, "MTP stream begin failed");
                 inner.finished = true;
-                Some(Stream::Pending(ModelState::Finished))
+                Some(stream_error(format!("MTP stream begin failed: {err}")))
             }
         };
     }
@@ -959,9 +1041,8 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
             Some(Stream::Next(msg))
         }
         Err(err) => {
-            tracing::warn!(error = %err, "MTP stream step failed");
             inner.finished = true;
-            Some(Stream::Pending(ModelState::Finished))
+            Some(stream_error(format!("MTP stream step failed: {err}")))
         }
     }
 }
@@ -1505,6 +1586,7 @@ fn generate_text(
             .add(next_token, current_pos, &[0], true)
             .map_err(|e| GenerationError::Generic(format!("Failed to add token to batch: {e}")))?;
 
+        tracing::trace!("generate: token: adding to next batch");
         ctx.decode(&mut batch)
             .map_err(Into::<GenerationError>::into)?;
     }
@@ -1512,6 +1594,8 @@ fn generate_text(
     // Calculate token counts
     let input_tokens = tokens.len() as f64;
     let output_tokens = generated_tokens.len() as f64;
+
+    tracing::trace!("generate: input tokens: {input_tokens}, output tokens: {output_tokens}");
 
     // Local model: $0 pricing
     let zero_pricing = ModelUsageCosting::default();
@@ -1643,6 +1727,11 @@ impl ModelProvider for LlamaBackends {
     }
 }
 
+/// Process-wide cache of loaded model weights, keyed by model path + spec name
+/// + the config that affects loading. See [`LlamaBackends::load_model`].
+static LOADED_MODELS: OnceLock<Mutex<std::collections::HashMap<String, LlamaModels>>> =
+    OnceLock::new();
+
 impl LlamaBackends {
     /// Load a model, applying a [`LlamaBackendConfig`] (GPU layers, context
     /// length, batch size, threads) and its optional speculative (MTP) config.
@@ -1667,6 +1756,37 @@ impl LlamaBackends {
             ))
         })?;
 
+        // Reuse already-loaded weights.
+        //
+        // WHY: `AgentLoop` calls `router.get_model()` on every inner iteration,
+        // so without this the full GGUF (multi-GB) was re-read from disk and
+        // re-quantized (`repack`) on EVERY turn — the visible "model reloading
+        // each message" behaviour in the REPL.
+        //
+        // WHAT: process-wide map of load-key -> `LlamaModels`. `LlamaModels` is
+        // an `Arc` handle over `Arc<LlamaModel>`, so a hit is a pointer clone.
+        //
+        // HOW: keyed by model path + the config that affects how the weights and
+        // contexts are built, so changing GPU offload/context sizing still
+        // forces a genuine reload rather than silently reusing a mismatched
+        // model. Inference contexts are NOT shared — each stream still builds
+        // its own from the shared weights (they are `!Send`, see docs/fixes/005).
+        let cache_key = format!(
+            "{}|{}|{config:?}",
+            model_path.display(),
+            model_spec.name
+        );
+        let cache = LOADED_MODELS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
+        if let Some(cached) = cache
+            .lock()
+            .expect("loaded-model cache poisoned")
+            .get(&cache_key)
+        {
+            tracing::debug!(model = %model_spec.name, "load_model: reusing cached model weights");
+            // Share the weights, not the wrapper — see `share_weights`.
+            return Ok(cached.share_weights());
+        }
+
         let backend = LlamaBackend::init_or_get().map_err(|e| {
             ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
         })?;
@@ -1674,6 +1794,7 @@ impl LlamaBackends {
         // Apply model params from config (GPU offload, …) — previously these
         // were silently dropped and defaults were used.
         let model_params = config.to_model_params();
+        tracing::debug!(model = %model_spec.name, "load_model: loading model weights from disk");
         let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
             .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
 
@@ -1697,11 +1818,14 @@ impl LlamaBackends {
         // Apply context params from config (context length, batch, threads).
         let context_params = config.to_context_params();
 
-        Ok(LlamaModels::new_with_config(
-            model,
-            context_params,
-            model_spec,
-            config.clone(),
-        ))
+        let loaded =
+            LlamaModels::new_with_config(model, context_params, model_spec, config.clone());
+
+        cache
+            .lock()
+            .expect("loaded-model cache poisoned")
+            .insert(cache_key, loaded.clone());
+
+        Ok(loaded)
     }
 }
