@@ -10,6 +10,9 @@
 services:
   macos:
     image: dockurr/macos:latest
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     container_name: ewe_macos
     environment:
       VERSION: "15.4"
@@ -22,7 +25,8 @@ services:
       - "8006:8006"   # web viewer
       - "5900:5900"   # VNC
     volumes:
-      - ./macos_shared:/shared
+      - /home/darkvoid/Boxxed/@dev/macos:/storage
+      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
     restart: unless-stopped
     stop_grace_period: 2m
 
