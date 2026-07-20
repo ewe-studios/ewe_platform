@@ -38,7 +38,7 @@ fn model_dir() -> PathBuf {
 #[valtron]
 fn main() {
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(Level::TRACE)
         .finish();
 
     tracing::subscriber::set_global_default(subscriber)
@@ -120,7 +120,7 @@ fn main() {
 
 /// Extract the assistant's reply text from a list of session records.
 fn extract_assistant_text(records: &[SessionRecord]) -> String {
-    eprintln!("DEBUG: received {} records", records.len());
+    tracing::trace!("DEBUG: received {} records", records.len());
     let mut parts = Vec::new();
     for record in records {
         match record {

@@ -702,6 +702,7 @@ impl Iterator for LlamaCppStream {
         // drive the MTP engine one step per poll instead of the standard
         // single-token decode. The standard `ctx` is never created in this mode.
         if inner.mtp.is_some() {
+            tracing::trace!("mtp_stream_next: mtp is some, driving MTP engine one step");
             return mtp_stream_next(&mut inner);
         }
 
@@ -756,6 +757,8 @@ impl Iterator for LlamaCppStream {
             Arc::clone(&model_inner.model)
         };
 
+        tracing::trace!("stream_next: get model for interaction");
+
         // Check if sampler exists
         if inner.sampler.is_none() {
             inner.finished = true;
@@ -764,6 +767,7 @@ impl Iterator for LlamaCppStream {
 
         // On first token generation, tokenize and evaluate the prompt
         if inner.tokens_generated == 0 {
+            tracing::trace!("stream_next: evaluating token generation count");
             // Extract prompt early to avoid lock conflicts
             let prompt = inner.prompt.take().unwrap_or_default();
             let Ok(tokens) = model.str_to_token(&prompt, AddBos::Always) else {
@@ -774,12 +778,14 @@ impl Iterator for LlamaCppStream {
 
             // Create batch and evaluate prompt
             let mut batch = LlamaBatch::new(tokens.len(), 1);
+            tracing::trace!("stream_next: evaluating prompt Batch: LlamaBatch");
             if batch.add_sequence(&tokens, 0, true).is_err() {
                 inner.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             }
 
             // Decode with cloned context
+            tracing::trace!("stream_next: decoding Batch with ctx");
             if ctx.decode(&mut batch).is_err() {
                 inner.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
@@ -794,9 +800,11 @@ impl Iterator for LlamaCppStream {
             return None;
         };
         let next_token = sampler.sample(&ctx, 0);
+        tracing::trace!("stream_next: generated next token: {:?}", &next_token);
 
         // Check for end of sequence
         if model.is_eog_token(next_token) {
+            tracing::trace!("stream_next: is it eog token?: {:?}", &next_token);
             inner.finished = true;
             return Some(Stream::Pending(ModelState::Finished));
         }
@@ -808,6 +816,7 @@ impl Iterator for LlamaCppStream {
             Err(_) => String::new(),
         };
 
+        tracing::trace!("stream_next: get token str?: {:?}", &token_str);
         inner.tokens_generated += 1;
         inner.current_pos += 1;
 
@@ -853,11 +862,7 @@ impl Iterator for LlamaCppStream {
 }
 
 /// Build a streaming `Assistant` message for a text `piece` (local model → $0).
-fn build_stream_assistant(
-    input_tokens: usize,
-    output_tokens: usize,
-    piece: String,
-) -> Messages {
+fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: String) -> Messages {
     #[allow(clippy::cast_precision_loss)]
     let usage = UsageReport {
         input: input_tokens as f64,
@@ -907,6 +912,8 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
         None => return None,
     };
 
+    tracing::trace!("mtp_stream_next: need_begin: {:?}", need_begin);
+
     if need_begin {
         let res = {
             let mtp = inner.mtp.as_ref().unwrap();
@@ -916,6 +923,8 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
             Ok(n) => {
                 inner.mtp.as_mut().unwrap().started = true;
                 inner.input_tokens = n.max(0) as usize;
+
+                tracing::trace!("mtp_stream_next: get next token");
                 Some(Stream::Pending(ModelState::GeneratingTokens(None)))
             }
             Err(err) => {
@@ -926,6 +935,7 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
         };
     }
 
+    tracing::trace!("mtp_stream_next: get next step");
     let res = inner.mtp.as_ref().unwrap().engine.step();
     match res {
         Ok(step) => {
@@ -942,6 +952,7 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
                 inner.tokens_generated as usize,
                 step.piece,
             );
+            tracing::trace!("mtp_stream_next: get msg: {:?}", &msg);
             if step.done {
                 inner.finished = true;
             }
@@ -1087,8 +1098,9 @@ fn apply_chat_template(
     // if the Jinja render fails, so models whose templates the legacy API
     // handles keep working.
     if let Some(custom_template) = &interaction.chat_template {
-        let template = LlamaChatTemplate::new(custom_template)
-            .map_err(|e| GenerationError::Generic(format!("Failed to create chat template: {e}")))?;
+        let template = LlamaChatTemplate::new(custom_template).map_err(|e| {
+            GenerationError::Generic(format!("Failed to create chat template: {e}"))
+        })?;
         return model
             .apply_chat_template(&template, &chat_messages, true)
             .map_err(Into::<GenerationError>::into);
@@ -1186,7 +1198,11 @@ fn generate_embeddings(
 }
 
 /// Marshal `ModelParams` into the shim's [`MtpSampling`].
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap
+)]
 fn mtp_sampling_from_params(params: &ModelParams) -> MtpSampling {
     MtpSampling {
         temperature: params.temperature,
@@ -1200,7 +1216,11 @@ fn mtp_sampling_from_params(params: &ModelParams) -> MtpSampling {
 /// Build the per-stream MTP engine + state when speculative (MTP) decoding is
 /// engaged for `model`. Returns `None` (→ standard streaming) when MTP is not
 /// configured, or when the engine fails to initialize (logged as a `warn!`).
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap
+)]
 fn build_mtp_stream_state(
     model: &LlamaModels,
     interaction: &ModelInteraction,
@@ -1281,7 +1301,11 @@ fn get_or_load_mtp_model(
 
 /// Build a fresh per-generation MTP engine (contexts + speculator) from the
 /// shared target + draft models — cheap, and independent from any other engine.
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap
+)]
 fn build_mtp_engine(
     model: &LlamaModel,
     draft_model: Arc<LlamaMtpModel>,
@@ -1426,6 +1450,7 @@ fn generate_text(
         .str_to_token(prompt, AddBos::Always)
         .map_err(Into::<GenerationError>::into)?;
 
+    tracing::trace!("generae: prompt={prompt}");
     // Create batch and add sequence for prompt
     let mut batch = LlamaBatch::new(tokens.len(), 1);
     batch
@@ -1436,6 +1461,8 @@ fn generate_text(
     ctx.decode(&mut batch)
         .map_err(Into::<GenerationError>::into)?;
 
+    tracing::trace!("generate: decode prompt");
+
     // Generate tokens up to max_tokens or until stop token
     let max_tokens = params.max_tokens;
     let mut generated_tokens: Vec<LlamaToken> = Vec::new();
@@ -1443,12 +1470,15 @@ fn generate_text(
     let start_pos = tokens.len() as i32;
 
     for current_pos in (start_pos..).take(max_tokens) {
+        tracing::trace!("generate: current pos: {current_pos}");
+
         // Sample the next token (idx=0 for single sequence)
         let next_token = sampler.sample(ctx, 0);
         generated_tokens.push(next_token);
 
         // Check for end of sequence
         if model.is_eog_token(next_token) {
+            tracing::trace!("generate: eog stopping: {current_pos}");
             break;
         }
 
@@ -1456,6 +1486,8 @@ fn generate_text(
         let token_str = model
             .token_to_str(next_token, Special::Tokenize)
             .map_err(Into::<GenerationError>::into)?;
+
+        tracing::trace!("generate: token: {token_str}: {current_pos}");
         output_text.push_str(&token_str);
 
         // Check for stop tokens
