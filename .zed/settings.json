@@ -12,9 +12,7 @@
         "cargo": {
           "allFeatures": false,
           "loadOutDirsFromCheck": true,
-          "buildScripts": {
-            "enable": true
-          }
+          "runBuildScripts": true
         },
         "check": {
           "command": "clippy",

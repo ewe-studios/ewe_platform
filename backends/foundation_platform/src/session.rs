@@ -385,13 +385,12 @@ impl PlatformSession {
     }
 
     /// Register an IPC handler (F25).
-    pub fn register_ipc<I: crate::ipc::Ipc>(&self, ipc: I) {
+    pub fn register_ipc<I: crate::ipc::PlatformIpc + 'static>(&self, ipc: I) {
         self.ipc_registry.register(ipc);
     }
 
     /// Look up an IPC handler by name (F25).
-    /// Route handlers use this for programmatic invocation.
-    pub fn get_ipc(&self, name: &str) -> Option<&dyn crate::ipc::Ipc> {
+    pub fn get_ipc(&self, name: &str) -> Option<&dyn crate::ipc::PlatformIpc> {
         self.ipc_registry.get(name)
     }
 
@@ -401,7 +400,7 @@ impl PlatformSession {
     }
 
     /// Register a streaming IPC handler (F26).
-    pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc>(&self, ipc: S) {
+    pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc + 'static>(&self, ipc: S) {
         self.stream_registry.register(ipc);
     }
 
@@ -410,7 +409,7 @@ impl PlatformSession {
     /// These capabilities can be invoked from JS via `invokeCapability()`
     /// (which routes through `__ewe_capabilities`) or programmatically from
     /// route handlers via `get_wasm_capability()`.
-    pub fn register_wasm_capability<C: foundation_wasm::WasmCapability>(&self, cap: C) {
+    pub fn register_wasm_capability<C: foundation_wasm::WasmCapability + 'static>(&self, cap: C) {
         self.wasm_capability_registry.register(cap);
     }
 

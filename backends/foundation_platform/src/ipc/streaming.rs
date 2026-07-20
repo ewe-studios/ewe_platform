@@ -14,9 +14,8 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use foundation_wasm::ipc::{IpcError, IpcRequest, IpcResponse};
+use foundation_wasm::ipc::{Ipc, IpcError, IpcRequest, IpcResponse};
 
-use crate::ipc::{Ipc, IpcKind};
 use crate::session::PlatformSession;
 
 // ── StreamingIpc trait ────────────────────────────────────────────────
@@ -112,7 +111,7 @@ impl PlatformStreamRegistry {
     }
 
     /// Register a streaming IPC handler.
-    pub fn register<S: StreamingIpc>(&self, ipc: S) -> Option<Box<dyn StreamingIpc>> {
+    pub fn register<S: StreamingIpc + 'static>(&self, ipc: S) -> Option<Box<dyn StreamingIpc>> {
         self.handlers.write().unwrap().insert(ipc.name().to_string(), Box::new(ipc))
     }
 
@@ -147,35 +146,29 @@ impl Default for PlatformStreamRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use foundation_wasm::ipc::{IpcContentType, IpcKind};
 
     struct TestStreamIpc;
 
     impl Ipc for TestStreamIpc {
         fn name(&self) -> &str { "test_stream" }
         fn kind(&self) -> IpcKind { IpcKind::Query }
-        fn invoke(&self, _: &PlatformSession, _: &IpcRequest) -> Result<IpcResponse, IpcError> {
+        fn invoke(&self, _: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
             Err(IpcError::ExecutionFailed("use stream()".into()))
         }
     }
 
     impl StreamingIpc for TestStreamIpc {
-        fn stream(&self, _: &PlatformSession, _: &IpcRequest) -> Result<IpcStream, IpcError> {
+        fn stream(&self, _: &PlatformSession, _: &IpcRequest<Vec<u8>>) -> Result<IpcStream, IpcError> {
             let queue = concurrent_queue::ConcurrentQueue::unbounded();
             let _ = queue.push(Ok(IpcStreamChunk::new(b"chunk1".to_vec(), 0)));
             let _ = queue.push(Ok(IpcStreamChunk::new(b"chunk2".to_vec(), 1)));
-            // Closing the queue signals end-of-stream
             queue.close();
-            Ok(IpcStream {
-                receiver: IpcStreamReceiver::Sync(queue),
-                total_hint: None,
-            })
+            Ok(IpcStream { receiver: IpcStreamReceiver::Sync(queue), total_hint: None })
         }
 
-        fn accept_stream(&self, _: &PlatformSession, _: &IpcRequest, _: IpcStreamReceiver) -> Result<IpcResponse, IpcError> {
-            Ok(IpcResponse {
-                payload: b"accepted".to_vec(),
-                content_type: foundation_wasm::ipc::IpcContentType::Json,
-            })
+        fn accept_stream(&self, _: &PlatformSession, _: &IpcRequest<Vec<u8>>, _: IpcStreamReceiver) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+            Ok(IpcResponse { payload: b"accepted".to_vec(), content_type: IpcContentType::Json })
         }
     }
 
@@ -199,7 +192,7 @@ mod tests {
             ipc: "test_stream".into(),
             action: "read".into(),
             payload: vec![],
-            content_type: foundation_wasm::ipc::IpcContentType::Json,
+            content_type: IpcContentType::Json,
             target: None,
         }).unwrap();
 
@@ -213,7 +206,6 @@ mod tests {
                 assert_eq!(c2.data, b"chunk2");
                 assert_eq!(c2.sequence, 1);
 
-                // Queue was closed → next pop should be Err
                 assert!(queue.pop().is_err());
             }
         }

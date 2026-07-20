@@ -9,4 +9,4 @@ targets = [
     "aarch64-linux-android",
     "x86_64-apple-ios",
 ]
-profile = "minimal"
+profile = "default"

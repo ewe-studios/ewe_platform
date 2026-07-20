@@ -14,7 +14,7 @@
 //! with their disk→static fallback chains. `inject_script()` adds custom
 //! scripts. Resolution happens in `resolve_all()` at build time.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 /// Where a script's source comes from.
 #[derive(Debug, Clone)]

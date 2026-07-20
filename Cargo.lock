@@ -234,6 +234,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "answerme-agent"
+version = "0.0.1"
+dependencies = [
+ "foundation_ai",
+ "foundation_shell_repl",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "antithesis_sdk"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
