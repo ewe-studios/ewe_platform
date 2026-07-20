@@ -20,6 +20,18 @@ use alloc::vec::Vec;
 use crate::capability::{CapabilityError, CapabilityRequest, CapabilityResponse};
 use crate::ipc::{IpcError, IpcRequest, IpcResponse};
 
+// ── Internal handler types ─────────────────────────────────────────────
+
+#[cfg(not(target_family = "wasm"))]
+type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + Send + Sync + 'static>;
+#[cfg(target_family = "wasm")]
+type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + 'static>;
+
+#[cfg(not(target_family = "wasm"))]
+type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static>;
+#[cfg(target_family = "wasm")]
+type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>;
+
 // ── TriggerRegistry ─────────────────────────────────────────────────────
 
 /// Host→WASM trigger registry.
@@ -28,15 +40,8 @@ use crate::ipc::{IpcError, IpcRequest, IpcResponse};
 /// (`static Mutex<TriggerRegistry>`, `Arc<RwLock<...>>`, or plain
 /// stack ownership on wasm32).
 pub struct TriggerRegistry {
-    #[cfg(not(target_family = "wasm"))]
-    capability: Option<Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + Send + Sync + 'static>>,
-    #[cfg(target_family = "wasm")]
-    capability: Option<Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + 'static>>,
-
-    #[cfg(not(target_family = "wasm"))]
-    ipc: Option<Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static>>,
-    #[cfg(target_family = "wasm")]
-    ipc: Option<Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>>,
+    capability: Option<CapHandler>,
+    ipc: Option<IpcHandlerBox>,
 }
 
 impl TriggerRegistry {
@@ -85,6 +90,9 @@ impl TriggerRegistry {
     }
 
     /// Dispatch a capability trigger. Returns an error if no handler is registered.
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError::ExecutionFailed`] if no handler is registered.
     pub fn dispatch_capability(
         &self,
         request: CapabilityRequest<Vec<u8>>,
@@ -98,6 +106,9 @@ impl TriggerRegistry {
     }
 
     /// Dispatch an IPC trigger. Returns an error if no handler is registered.
+    /// # Errors
+    ///
+    /// Returns [`IpcError::ExecutionFailed`] if no handler is registered.
     pub fn dispatch_ipc(
         &self,
         request: IpcRequest<Vec<u8>>,

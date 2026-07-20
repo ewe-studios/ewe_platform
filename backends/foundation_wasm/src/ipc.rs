@@ -83,6 +83,9 @@ impl<T: WirePayload> IpcRequest<T> {
 
 impl IpcRequest<Vec<u8>> {
     /// Convert a wire request back into a typed request.
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     pub fn into_typed<T: WirePayload>(self) -> Result<IpcRequest<T>, WireError> {
         let payload = T::from_wire_bytes(&self.payload, self.content_type)?;
         Ok(IpcRequest {
@@ -115,6 +118,9 @@ impl<T: WirePayload> IpcResponse<T> {
 
 impl IpcResponse<Vec<u8>> {
     /// Convert a wire response back into a typed response.
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     pub fn into_typed<T: WirePayload>(self) -> Result<IpcResponse<T>, WireError> {
         let payload = T::from_wire_bytes(&self.payload, self.content_type)?;
         Ok(IpcResponse { payload, content_type: self.content_type })
@@ -183,6 +189,9 @@ pub enum IpcKind {
 pub trait Ipc {
     fn name(&self) -> &str;
     fn kind(&self) -> IpcKind;
+    /// # Errors
+    ///
+    /// Returns [`IpcError`] if invocation fails.
     fn invoke(
         &self,
         request: &IpcRequest<Vec<u8>>,
@@ -193,6 +202,9 @@ pub trait Ipc {
 pub trait Ipc: Send + Sync {
     fn name(&self) -> &str;
     fn kind(&self) -> IpcKind;
+    /// # Errors
+    ///
+    /// Returns [`IpcError`] if invocation fails.
     fn invoke(
         &self,
         request: &IpcRequest<Vec<u8>>,

@@ -49,6 +49,9 @@ pub trait WirePayload: Sized {
     fn into_wire_bytes(self) -> (Vec<u8>, CapabilityContentType);
 
     /// Deserialise from wire bytes with a known content type.
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     fn from_wire_bytes(data: &[u8], content_type: CapabilityContentType)
         -> Result<Self, WireError>;
 }
@@ -149,6 +152,9 @@ impl CapabilityRequest<Vec<u8>> {
     /// Convert a wire request back into a typed request.
     ///
     /// Calls `WirePayload::from_wire_bytes`.
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     pub fn into_typed<T: WirePayload>(self) -> Result<CapabilityRequest<T>, WireError> {
         let payload = T::from_wire_bytes(&self.payload, self.content_type)?;
         Ok(CapabilityRequest {
@@ -191,7 +197,13 @@ impl<T: WirePayload> CapabilityResponse<T> {
 }
 
 impl CapabilityResponse<Vec<u8>> {
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     /// Convert a wire response back into a typed response.
+    /// # Errors
+    ///
+    /// Returns [`WireError`] if deserialisation fails.
     pub fn into_typed<T: WirePayload>(self) -> Result<CapabilityResponse<T>, WireError> {
         let payload = T::from_wire_bytes(&self.payload, self.content_type)?;
         Ok(CapabilityResponse {
@@ -244,6 +256,9 @@ pub trait WasmCapability {
     fn name(&self) -> &str;
 
     /// Invoke the capability with a wire request.
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError`] if invocation fails.
     fn invoke_capability(
         &self,
         request: &CapabilityRequest<Vec<u8>>,
@@ -256,6 +271,9 @@ pub trait WasmCapability: Send + Sync {
     fn name(&self) -> &str;
 
     /// Invoke the capability with a wire request.
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError`] if invocation fails.
     fn invoke_capability(
         &self,
         request: &CapabilityRequest<Vec<u8>>,
@@ -360,6 +378,10 @@ impl CapabilityRegistry {
     /// # Panics
     ///
     /// On native: panics if the mutex is poisoned.
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError`] if the capability is not registered or
+    /// invocation fails.
     pub fn invoke(
         &self,
         request: &CapabilityRequest<Vec<u8>>,
@@ -375,6 +397,11 @@ impl CapabilityRegistry {
     /// Invoke a capability by name with a typed request.
     ///
     /// Converts through `into_wire()` → invoke → `into_typed()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError`] if the capability is not found or
+    /// invocation (including wire conversion) fails.
     pub fn invoke_typed<T: WirePayload>(
         &self,
         request: CapabilityRequest<T>,

@@ -90,6 +90,11 @@ impl StreamRegistry {
     /// Push a chunk onto a stream.
     ///
     /// Returns `false` if the stream doesn't exist or the queue is closed.
+    ///
+    /// # Errors
+    ///
+    /// This function cannot error. It returns `false` for non-existent/closed
+    /// streams rather than panicking.
     pub fn send(&self, id: StreamId, chunk: StreamChunk) -> bool {
         let map = self
             .streams
