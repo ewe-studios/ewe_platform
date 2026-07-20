@@ -59,6 +59,7 @@ fn main() {
 
     // Build the router preset and agent session.
     let preset = RouterMix::new().primary(provider, model_id.clone()).build();
+
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> = preset
         .into_agent_builder(session_id)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
