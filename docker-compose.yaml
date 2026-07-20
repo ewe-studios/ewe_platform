@@ -1,0 +1,42 @@
+# ewe_platform development environment
+#
+#   docker compose up macos -d     # macOS Sequoia (iOS build + simulator)
+#   docker compose up android -d   # Android emulator
+#   docker compose up -d           # both
+#
+# First boot takes 10-15 minutes — macOS downloads the base image.
+# Access: VNC to localhost:5900 (macOS), web UI at localhost:8006 (android).
+
+services:
+  macos:
+    image: dockurr/macos:latest
+    container_name: ewe_macos
+    environment:
+      VERSION: "15.4"
+      RAM_SIZE: "8G"
+      CPU_CORES: "4"
+      DISK_SIZE: "64G"
+    devices:
+      - /dev/kvm
+    ports:
+      - "8006:8006"   # web viewer
+      - "5900:5900"   # VNC
+    volumes:
+      - ./macos_shared:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
+
+  android:
+    image: dockurr/android
+    container_name: ewe_android
+    environment:
+      ANDROID_VERSION: "14.0"
+      RAM_SIZE: "4G"
+      CPU_CORES: "2"
+    devices:
+      - /dev/kvm
+    ports:
+      - "8007:8006"   # web UI (VNC viewer)
+    volumes:
+      - ./android_shared:/shared
+    profiles: [android]
