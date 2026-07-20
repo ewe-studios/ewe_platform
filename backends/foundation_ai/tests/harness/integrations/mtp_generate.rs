@@ -28,7 +28,6 @@ use foundation_ai::types::{
     TextContent, ToolShed, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
-use tracing_test::traced_test;
 
 fn project_root() -> std::path::PathBuf {
     let manifest_dir =
@@ -75,7 +74,6 @@ fn hello_interaction() -> ModelInteraction {
 
 /// End-to-end: Gemma 4 E2B + MTP head → non-empty generated text.
 #[valtron_test]
-#[traced_test]
 fn test_mtp_generate_gemma4_e2b_end_to_end() {
     let Some((target_path, draft_path)) = gemma_paths() else {
         eprintln!(
@@ -138,7 +136,6 @@ fn test_mtp_generate_gemma4_e2b_end_to_end() {
 /// Streaming MTP: `Model::stream` drives the engine step-by-step and yields
 /// non-empty assistant pieces (spec-51 #1 follow-up).
 #[valtron_test]
-#[traced_test]
 fn test_mtp_stream_gemma4_e2b() {
     let Some((target_path, draft_path)) = gemma_paths() else {
         eprintln!("skipping MTP stream test: cached Gemma 4 E2B or MTP head not found");
@@ -200,7 +197,6 @@ fn test_mtp_stream_gemma4_e2b() {
 /// generation builds its own independent engine (contexts + speculator). If the
 /// design regressed to a single shared engine, this would deadlock or corrupt.
 #[valtron_test]
-#[traced_test]
 fn test_mtp_concurrent_generations_share_model() {
     let Some((target_path, draft_path)) = gemma_paths() else {
         eprintln!("skipping MTP concurrency test: cached Gemma 4 E2B or MTP head not found");

@@ -18,7 +18,6 @@ use foundation_ai::types::{
     ModelParams, ModelProvider, TextContent, ThinkingLevels, ToolShed, UserModelContent,
 };
 use foundation_core::valtron;
-use tracing_test::traced_test;
 
 fn init_valtron() -> valtron::PoolGuard {
     valtron::initialize_pool(42, Some(4))
@@ -97,7 +96,6 @@ fn test_candle_provider_describe() {
 /// Uses `HuggingFaceTB/SmolLM2-135M` — a small model (~270MB safetensors).
 /// Downloaded to `artefacts/models/`.
 #[test]
-#[traced_test]
 #[ignore = "requires HF_TOKEN and downloads ~270MB safetensors model"]
 fn test_candle_provider_download_smollm_safetensors() {
     let _guard = init_valtron();
@@ -154,7 +152,6 @@ fn test_candle_provider_download_smollm_safetensors() {
 ///
 /// Downloads the model, loads it, and performs text generation.
 #[test]
-#[traced_test]
 #[ignore = "requires HF_TOKEN and downloads ~270MB model for inference"]
 fn test_candle_provider_smollm_inference() {
     let _guard = init_valtron();
@@ -230,7 +227,6 @@ fn test_candle_provider_smollm_inference() {
 /// This test first downloads the model, then loads it via get_model_by_spec
 /// to verify the spec-based loading path works independently.
 #[test]
-#[traced_test]
 #[ignore = "requires HF_TOKEN and downloads model"]
 fn test_candle_provider_load_by_spec() {
     let _guard = init_valtron();

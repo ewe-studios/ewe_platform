@@ -112,7 +112,6 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
 }
 
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_provider_generate() {
     let chat_response = br#"{
         "id": "chatcmpl-123",
@@ -154,7 +153,6 @@ fn test_provider_generate() {
 
 /// Verify SSE streaming yields incremental text and a final message with usage.
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_provider_streaming_text() {
     let sse_body = b"data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"Hello\"},\"finish_reason\":null}]}\n\n\
 data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" world\"},\"finish_reason\":null}]}\n\n\
@@ -206,7 +204,6 @@ data: [DONE]\n\n";
 
 /// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_abc\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}\n\n\
 data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"location\\\"\"}}]},\"finish_reason\":null}]}\n\n\
@@ -276,7 +273,6 @@ data: [DONE]\n\n";
 /// 4. SSE events are parsed and text is accumulated
 /// 5. [DONE] terminates the stream with the final message
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_provider_streaming_sends_post_with_body_and_parses_events() {
     #[derive(Clone, Default)]
     struct CapturedRequests {

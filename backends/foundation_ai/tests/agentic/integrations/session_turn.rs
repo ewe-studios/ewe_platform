@@ -286,9 +286,9 @@ fn run_turn_persists_the_user_prompt() {
 /// WHAT: runs two independent sessions concurrently, each doing several turns,
 /// and asserts every turn on both threads produced a reply and that neither
 /// thread panicked or crashed (a shared KV cache would corrupt state or fault).
-// No `#[traced_test]`: it installs a THREAD-LOCAL subscriber, which the OS
-// threads spawned below would not inherit — capturing nothing from the very
-// threads under test while looking like it worked.
+// No `#[traced_test]` anywhere in this crate: it sets the GLOBAL subscriber and
+// panics if one exists, which collides with `#[valtron_test]`. Nothing here
+// asserted on captured logs, so it was removed crate-wide.
 #[valtron_test]
 fn concurrent_agents_share_one_model_safely() {
     use std::thread;

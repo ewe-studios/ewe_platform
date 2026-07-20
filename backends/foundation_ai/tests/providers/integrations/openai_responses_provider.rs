@@ -18,7 +18,6 @@ use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::client::http_client::HttpClient;
-use tracing_test::traced_test;
 
 fn setup_responses_provider() -> impl Model {
     let base_url =
@@ -45,7 +44,6 @@ fn setup_responses_provider() -> impl Model {
 
 /// Test: generate a response via the Responses API.
 #[valtron_test]
-#[traced_test]
 fn test_llama_server_responses_generate() {
     let _llama_server_guard = start_llama_server();
     let model = setup_responses_provider();
@@ -90,7 +88,6 @@ fn test_llama_server_responses_generate() {
 
 /// Test: streaming via the Responses API.
 #[valtron_test]
-#[traced_test]
 fn test_llama_server_responses_stream() {
     let _llama_server_guard = start_llama_server();
     let model = setup_responses_provider();

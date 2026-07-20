@@ -13,7 +13,6 @@ use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{ModelId, ModelSpec};
 use foundation_core::valtron::valtron_test;
 use foundation_testing::huggingface::TestHarness;
-use tracing_test::traced_test;
 
 fn project_root() -> std::path::PathBuf {
     let manifest_dir =
@@ -41,7 +40,6 @@ fn smollm_spec() -> ModelSpec {
 
 /// Enabling MTP on a model without an MTP head must error at load time.
 #[valtron_test]
-#[traced_test]
 fn test_mtp_on_unsupported_model_errors() {
     let backend = LlamaBackends::LLamaCPU;
     let config = LlamaBackendConfig::builder().mtp(None, 4).build();
@@ -61,7 +59,6 @@ fn test_mtp_on_unsupported_model_errors() {
 
 /// The same model loads fine with MTP disabled (control).
 #[valtron_test]
-#[traced_test]
 fn test_no_mtp_loads_normally() {
     let backend = LlamaBackends::LLamaCPU;
     let result = backend.load_model(smollm_spec(), &LlamaBackendConfig::default());

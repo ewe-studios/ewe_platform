@@ -11,10 +11,8 @@ use foundation_ai::types::{
 use foundation_core::valtron::valtron_test;
 use foundation_testing::huggingface::TestHarness;
 use std::os::unix::fs::MetadataExt;
-use tracing_test::traced_test;
 
 #[valtron_test]
-#[traced_test]
 fn test_llama_backend_creation() {
     let backend = LlamaBackends::LLamaCPU;
     let config = LlamaBackendConfig::builder()
@@ -33,7 +31,6 @@ fn test_llama_backend_creation() {
 /// This test downloads the model if not present and then verifies
 /// the backend can load it.
 #[valtron_test]
-#[traced_test]
 fn test_llama_model_loading() {
     // Get the project root
     let manifest_dir =
@@ -80,7 +77,6 @@ fn test_llama_model_loading() {
 /// from `HuggingFace` Hub for testing the llama.cpp backend.
 /// The model is cached in the `.artifacts` directory.
 #[valtron_test]
-#[traced_test]
 fn test_download_smollm_model() {
     // Get the project root (workspace directory)
     let manifest_dir =
@@ -112,7 +108,6 @@ fn test_download_smollm_model() {
 /// This test downloads the model if not present and then verifies
 /// the backend can load and use it for generation.
 #[valtron_test]
-#[traced_test]
 fn test_llama_with_smollm_model() {
     // Get the project root
     let manifest_dir =
