@@ -343,42 +343,159 @@ let provider = HuggingFaceCandleProvider::new(config)?;
 
 ## 3. Level 3 — Persisted Sessions
 
-### 3.1. In-Memory Stores (Default)
+`AgentSession<D, M>` is generic over two store types. `foundation_db` ships
+with several — pick what fits your deployment.
+
+### 3.1. DocumentStore Backends (Message History)
+
+| Type | Backend | Feature | Target |
+|------|---------|---------|--------|
+| `MemoryDocumentStore` | `Vec<SessionRecord>` in RAM | (always) | dev / test |
+| `SqlDocumentStore<Q>` | Any `QueryStore` (sync SQL) | `turso` / `libsql` | embedded |
+| `AsyncSqlDocumentStore<Q>` | Any `AsyncQueryStore` | `turso` / `libsql` | native server |
+| `D1R2DocumentStore<Q, B>` | D1 (query) + R2 (blobs) | `d1` + `r2` | Cloudflare Workers |
+
+#### In-Memory (Default)
 
 ```rust
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-use foundation_ai::agentic::KvMemoryStore;
-
-type Doc = MemoryDocumentStore;       // append-only message log
-type Mem = KvMemoryStore<MemoryStorage>;  // latest memory per tier
+use foundation_db::MemoryDocumentStore;
+let store = MemoryDocumentStore::default();
 ```
 
-The builder uses `D::default()` and `M::default()` when you omit stores.
+#### Turso (Embedded SQLite with libSQL sync API)
 
-### 3.2. Persistent Stores
-
-| Store | Backed by | Feature |
-|-------|-----------|---------|
-| `MemoryDocumentStore` | `Vec<SessionRecord>` | (always) |
-| `MemoryStorage` | `HashMap<String, Vec<u8>>` | (always) |
-| Turso `DocumentStore` | SQLite / libSQL | `turso` |
-| Turso `KeyValueStore` | SQLite / libSQL | `turso` |
-| R2-backed stores | Cloudflare R2 | `r2` |
-| D1-backed stores | Cloudflare D1 | `d1` |
+Requires `turso` feature on `foundation_db`.
 
 ```rust
-// type Doc = TursoDocumentStore;
-// type Mem = KvMemoryStore<TursoKeyValueStore>;
+use foundation_db::{TursoStorage, SqlDocumentStore};
+
+// Local embedded SQLite:
+let turso = TursoStorage::builder()
+    .url("file:my_app.db")  // or a remote libSQL URL
+    .build()?;
+let store = SqlDocumentStore::new(turso);
+```
+
+#### libSQL (Local or Remote)
+
+Requires `libsql` feature on `foundation_db`.
+
+```rust
+use foundation_db::{LibsqlStore, SqlDocumentStore};
+
+// Local file:
+let store = SqlDocumentStore::new(LibsqlStore::new("file:my_app.db")?);
+
+// Remote (Turso Cloud):
+let store = SqlDocumentStore::new(
+    LibsqlStore::new_with_auth("https://my-db.turso.io", auth_token)?,
+);
+```
+
+#### Cloudflare D1 + R2 (Edge / Workers)
+
+Requires `d1` + `r2` features. Splits small records into D1, large blobs into R2.
+
+```rust
+use foundation_db::{D1R2DocumentStore, D1Store, R2Store};
+
+let doc_store = D1R2DocumentStore::new(
+    D1Store::new(d1_client),   // small records (D1 edge SQLite)
+    R2Store::new(r2_bucket),   // large blobs (Cloudflare R2)
+);
+```
+
+### 3.2. KeyValueStore Backends (Memory Cache)
+
+The `MemoryStore` trait wraps a `KeyValueStore`. `KvMemoryStore<K>` adapts
+any KV store.
+
+| Type | Backend | Feature | Target |
+|------|---------|---------|--------|
+| `MemoryStorage` | `HashMap<String, Vec<u8>>` | (always) | dev / test |
+| `TursoStorage` | SQLite via libSQL | `turso` | native |
+| `LibsqlStore` | Local/remote libSQL | `libsql` | native |
+| `D1Store` | Cloudflare D1 edge SQLite | `d1` | native |
+| `JsonFileStorage` | Single JSON file on disk | (always) | native, simple |
+| `R2Store` | Cloudflare R2 object store | `r2` | native |
+
+#### In-Memory (Default)
+
+```rust
+use foundation_db::MemoryStorage;
+use foundation_ai::agentic::KvMemoryStore;
+
+let mem_store = KvMemoryStore::<MemoryStorage>::default();
+```
+
+#### JsonFileStorage (Simple Disk Persistence)
+
+No dependencies — writes everything to a single JSON file.
+
+```rust
+use foundation_db::JsonFileStorage;
+use foundation_ai::agentic::KvMemoryStore;
+
+let kv = JsonFileStorage::new("data/stores.json")?;
+let mem_store = KvMemoryStore::new(kv);
+```
+
+#### Turso / libSQL
+
+```rust
+use foundation_db::{TursoStorage, LibsqlStore};
+use foundation_ai::agentic::KvMemoryStore;
+
+let kv = TursoStorage::builder().url("file:my_app.db").build()?;
+let mem_store = KvMemoryStore::new(kv);
+
+// Or libSQL remote:
+let kv = LibsqlStore::new_with_auth("https://my-db.turso.io", token)?;
+let mem_store = KvMemoryStore::new(kv);
+```
+
+#### Cloudflare D1 (Edge)
+
+```rust
+use foundation_db::D1Store;
+use foundation_ai::agentic::KvMemoryStore;
+
+let kv = D1Store::new(d1_client);
+let mem_store = KvMemoryStore::new(kv);
+```
+
+### 3.3. Wiring Stores Into a Session
+
+```rust
+// Pick your concrete types:
+// type Doc = SqlDocumentStore<TursoStorage>;          // Turso messages
+// type Doc = D1R2DocumentStore<D1Store, R2Store>;    // Cloudflare edge
+// type Mem = KvMemoryStore<TursoStorage>;            // Turso memory cache
+// type Mem = KvMemoryStore<JsonFileStorage>;         // JSON file cache
 
 let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
-    .with_doc_store(my_doc_store)
-    .with_memory_store(KvMemoryStore::new(my_kv_store))
+    .with_doc_store(doc_store)         // your concrete DocumentStore
+    .with_memory_store(mem_store)      // KvMemoryStore wrapping a KeyValueStore
     .with_model(primary_model_id)
-    .with_system_prompt("...")
+    .with_system_prompt("You are a helpful assistant.")
     .build()?;
 ```
 
-### 3.3. Session Resume
+### 3.4. Feature Flag Matrix
+
+| Store | Feature on `foundation_db` | Notes |
+|-------|---------------------------|-------|
+| `MemoryDocumentStore` | (always) | Ephemeral, zero setup |
+| `MemoryStorage` | (always) | Ephemeral HashMap |
+| `JsonFileStorage` | (always) | Single JSON file, native only |
+| `TursoStorage` | `turso` | Embedded SQLite + sync |
+| `LibsqlStore` | `libsql` | Local/remote libSQL |
+| `D1Store` | `d1` | Cloudflare D1 (HTTP) |
+| `R2Store` | `r2` | Cloudflare R2 blobs |
+
+The `default` feature on `foundation_db` enables `turso`, `d1`, and `r2`.
+
+### 3.5. Session Resume
 
 ```rust
 let agent = AgentSession::<Doc, Mem>::resume(

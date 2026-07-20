@@ -241,7 +241,7 @@ let records = agent.run_turn(prompt)?;
 
 for record in &records {
     match record {
-        SessionRecord::Generation { content, .. } => {
+        SessionRecord::Conversation { message: Messages::Assistant { content, .. } } => {
             if let ModelOutput::Text(tc) = content {
                 println!("Assistant: {}", tc.content);
             }
@@ -320,28 +320,43 @@ agent.follow_up(Messages::User {
 | **Observation** | Time-scoped structured observations |
 | **Reflection** | Condensed reflections over observations |
 
-### 5.2. MemoryStore
+### 5.2. Available Store Backends
+
+`AgentSession<D, M>` is generic over a `DocumentStore` (message history) and
+a `MemoryStore` (latest memory per tier via a `KeyValueStore`).
+
+**DocumentStore backends:**
+
+| Type | Backend | Feature |
+|------|---------|---------|
+| `MemoryDocumentStore` | RAM (`Vec<SessionRecord>`) | (always) |
+| `SqlDocumentStore<Q>` | Sync SQL (`QueryStore`) | `turso` / `libsql` |
+| `AsyncSqlDocumentStore<Q>` | Async SQL | `turso` / `libsql` |
+| `D1R2DocumentStore<Q, B>` | D1 + R2 | `d1` + `r2` |
+
+**KeyValueStore backends (wrap into `KvMemoryStore`):**
+
+| Type | Backend | Feature |
+|------|---------|---------|
+| `MemoryStorage` | RAM (`HashMap`) | (always) |
+| `TursoStorage` | Embedded/remote SQLite | `turso` |
+| `LibsqlStore` | Local/remote libSQL | `libsql` |
+| `D1Store` | Cloudflare D1 | `d1` |
+| `JsonFileStorage` | Single JSON file | (always) |
+| `R2Store` | Cloudflare R2 objects | `r2` |
+
+See **Doc 00-1** (Getting Started: Providers, §3) for construction details
+and feature flag matrix for every backend.
+
+### 5.3. Wiring Stores
 
 ```rust
-use foundation_ai::agentic::KvMemoryStore;
-use foundation_db::MemoryStorage;
+// Quick picks:
+// type Doc = SqlDocumentStore<TursoStorage>;       // embedded SQLite
+// type Doc = D1R2DocumentStore<D1Store, R2Store>; // Cloudflare edge
+// type Mem = KvMemoryStore<TursoStorage>;         // Turso memory cache
+// type Mem = KvMemoryStore<JsonFileStorage>;      // JSON file cache
 
-let mem_store = KvMemoryStore::<MemoryStorage>::default();  // in-memory
-// KvMemoryStore::new(turso_kv_store)  // persistent
-```
-
-### 5.3. DocumentStore
-
-```rust
-use foundation_db::MemoryDocumentStore;
-
-let doc_store = MemoryDocumentStore::default();  // in-memory
-// TursoDocumentStore::new(url, token)?  // persistent
-```
-
-### 5.4. Wiring Stores (Manual)
-
-```rust
 let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
     .with_doc_store(doc_store)
     .with_memory_store(KvMemoryStore::new(kv_store))
