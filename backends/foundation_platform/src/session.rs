@@ -47,15 +47,10 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
-    /// F05 native capability registry — registered at startup, invoked at runtime.
-    capability_registry: crate::capability::NativeCapabilityRegistry,
+    /// Platform capability registry (WasmCapability + 5-layer defense).
+    capability_registry: crate::capability::CapabilityRegistry,
 
-    /// F23 `WasmCapability` registry — portable, works on wasm32 + native.
-    /// Separate from F05; bridges to it. Registered capabilities go through
-    /// the full 5-layer defense.
-    wasm_capability_registry: foundation_wasm::CapabilityRegistry,
-
-    /// Cache manager — protocol-transparent, profile-scoped, per-route policies.
+    /// Cache manager.
     cache: crate::cache::CacheManager,
 
     /// Mutation queue — offline mutations replayed on connectivity restore.
@@ -121,8 +116,7 @@ impl PlatformSession {
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
-            capability_registry: crate::capability::NativeCapabilityRegistry::new(),
-            wasm_capability_registry: foundation_wasm::CapabilityRegistry::new(),
+            capability_registry: crate::capability::CapabilityRegistry::new(),
             cache: crate::cache::CacheManager::in_memory(),
             mutation_queue: crate::mutation::MutationQueue::in_memory(),
             session_id,
@@ -399,73 +393,40 @@ impl PlatformSession {
 
     /// Access the F05 capability registry for invoking native capabilities.
     /// Access the F05 native capability registry.
-    pub fn capabilities(&self) -> &crate::capability::NativeCapabilityRegistry {
+    pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
         &self.capability_registry
     }
 
-    /// Access the `ScriptInjector` (F24). Resolved scripts are available
-    /// via `resolve_all()`. Used at startup to eval runtime scripts into
-    /// every webview.
+    pub fn register_capability<C: crate::capability::PlatformCapability + 'static>(&self, cap: C) {
+        self.capability_registry.register(cap);
+    }
+
+    pub fn get_capability(&self, name: &str) -> Option<&dyn crate::capability::PlatformCapability> {
+        self.capability_registry.get(name)
+    }
+
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
         &self.script_injector
     }
 
-    /// Access the IPC registry (F25).
     pub fn ipc_registry(&self) -> &crate::ipc::IpcRegistry {
         &self.ipc_registry
     }
 
-    /// Register an IPC handler (F25).
     pub fn register_ipc<I: crate::ipc::PlatformIpc + 'static>(&self, ipc: I) {
         self.ipc_registry.register(ipc);
     }
 
-    /// Look up an IPC handler by name (F25).
     pub fn get_ipc(&self, name: &str) -> Option<&dyn crate::ipc::PlatformIpc> {
         self.ipc_registry.get(name)
     }
 
-    /// Access the streaming IPC registry (F26).
     pub fn stream_registry(&self) -> &crate::ipc::streaming::PlatformStreamRegistry {
         &self.stream_registry
     }
 
-    /// Register a streaming IPC handler (F26).
     pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc + 'static>(&self, ipc: S) {
         self.stream_registry.register(ipc);
-    }
-
-    /// Register a portable `WasmCapability` (F23).
-    ///
-    /// These capabilities can be invoked from JS via `invokeCapability()`
-    /// (which routes through `__ewe_capabilities`) or programmatically from
-    /// route handlers via `get_wasm_capability()`.
-    pub fn register_wasm_capability<C: foundation_wasm::WasmCapability + 'static>(&self, cap: C) {
-        self.wasm_capability_registry.register(cap);
-    }
-
-    /// Look up a registered `WasmCapability` by name (F23).
-    ///
-    /// Returns `None` if no capability is registered under that name.
-    /// Route handlers use this for programmatic invocation.
-    pub fn get_wasm_capability(&self, name: &str) -> Option<&dyn foundation_wasm::WasmCapability> {
-        self.wasm_capability_registry.get(name)
-    }
-
-    /// Invoke a `WasmCapability` through the registry (F23).
-    ///
-    /// Called by the `__ewe_capabilities` Tauri command. Performs name
-    /// lookup and delegates to the capability's `invoke_capability()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CapabilityError`] if the capability is not registered or
-    /// the invocation fails.
-    pub fn invoke_wasm_capability(
-        &self,
-        request: &foundation_wasm::CapabilityRequest,
-    ) -> Result<foundation_wasm::CapabilityResponse, foundation_wasm::CapabilityError> {
-        self.wasm_capability_registry.invoke(request)
     }
 
     /// Access the mutation queue for enqueuing/replaying offline mutations.

@@ -1,33 +1,33 @@
-//! Tests for the capability registry and 5-layer defense chain.
+//! Tests for the platform capability registry with 5-layer defense.
 
 use std::sync::Arc;
 
-use foundation_platform::capability::{test_native_registry, TestNativeCap};
+use foundation_platform::capability::{test_registry, TestPlatformCap};
 use foundation_platform::*;
+use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 
 #[test]
 fn invoke_unknown_capability_returns_error() {
-    let reg = test_native_registry();
+    let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: PageIdentity { session_id: session.session_id(), route: "/app".into(), visit_id: 0 },
+    session.record_navigation("/app");
+    let active = session.active_page_identity().unwrap();
+
+    let request = CapabilityRequest {
         capability: "unknown".into(),
         action: "test".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    // We need the session to have an active page for stale-page guard to pass
-    session.record_navigation("/app");
-
-    let response = reg.invoke(&session, &request, None);
-    assert!(response.status.is_err());
-    assert!(response.status.unwrap_err().contains("unknown capability"));
+    let result = reg.invoke(&session, &request, &active, None);
+    assert!(result.is_err());
+    assert!(format!("{result:?}").contains("UnknownCapability"));
 }
 
 #[test]
 fn invoke_with_correct_capability_succeeds() {
-    let reg = test_native_registry();
+    let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
     let route = remote_fetch()
         .with_profile(Profile::App)
@@ -36,84 +36,75 @@ fn invoke_with_correct_capability_succeeds() {
     session.record_navigation("/camera");
     let active = session.active_page_identity().unwrap();
 
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: active,
+    let request = CapabilityRequest {
         capability: "camera".into(),
         action: "capture".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    let response = reg.invoke(&session, &request, Some(&route));
-    assert!(response.status.is_ok());
+    assert!(reg.invoke(&session, &request, &active, Some(&route)).is_ok());
 }
 
 #[test]
 fn profile_too_low_denies_capability() {
-    let reg = test_native_registry();
+    let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
-    // UntrustedRemote is below the camera's min_profile (TrustedRemote)
-    let route = remote_fetch()
-        .with_profile(Profile::UntrustedRemote);
+    let route = remote_fetch().with_profile(Profile::UntrustedRemote);
 
     session.record_navigation("/app");
     let active = session.active_page_identity().unwrap();
 
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: active,
+    let request = CapabilityRequest {
         capability: "camera".into(),
         action: "capture".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    let response = reg.invoke(&session, &request, Some(&route));
-    assert!(response.status.is_err());
-    assert!(response.status.unwrap_err().contains("profile"));
+    let result = reg.invoke(&session, &request, &active, Some(&route));
+    assert!(result.is_err());
+    assert!(format!("{result:?}").contains("profile"));
 }
 
 #[test]
 fn per_route_allowlist_blocks_unlisted_capability() {
-    let reg = test_native_registry();
+    let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
-    // App profile allows NativeApi, but camera is NOT in the allowlist
     let route = webview_app()
-        .with_allowed_capabilities(&[CapabilityId("microphone".into())]); // camera not here
+        .with_allowed_capabilities(&[CapabilityId("microphone".into())]);
 
     session.record_navigation("/chat");
     let active = session.active_page_identity().unwrap();
 
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: active,
+    let request = CapabilityRequest {
         capability: "camera".into(),
         action: "capture".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    let response = reg.invoke(&session, &request, Some(&route));
-    assert!(response.status.is_err());
-    assert!(response.status.unwrap_err().contains("not allowed on this route"));
+    let result = reg.invoke(&session, &request, &active, Some(&route));
+    assert!(result.is_err());
+    assert!(format!("{result:?}").contains("not allowed"));
 }
 
 #[test]
 fn stale_page_guard_rejects_old_request() {
-    let reg = test_native_registry();
+    let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
 
-    // Record a page visit, then navigate away
     let old_page = session.record_navigation("/app/old");
-    session.record_navigation("/app/new"); // old_page is now stale
+    session.record_navigation("/app/new");
 
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: old_page, // stale!
+    let request = CapabilityRequest {
         capability: "camera".into(),
         action: "capture".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    let response = reg.invoke(&session, &request, None);
-    assert!(response.status.is_err());
-    assert!(response.status.unwrap_err().contains("stale page"));
+    let result = reg.invoke(&session, &request, &old_page, None);
+    assert!(result.is_err());
+    assert!(format!("{result:?}").contains("stale page"));
 }

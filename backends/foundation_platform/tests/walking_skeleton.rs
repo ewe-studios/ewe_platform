@@ -120,19 +120,35 @@ fn cache_is_profile_scoped() {
 
 #[test]
 fn capability_invocation_through_registry() {
+    use foundation_platform::capability::PlatformCapability;
+    use foundation_wasm::{
+        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
+    };
+
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
-    // Register a test capability
     struct GreetCap;
-    impl NativeCapability for GreetCap {
-        fn id(&self) -> &CapabilityId {
-            // Leak a static for testing — fine for tests
+    impl WasmCapability for GreetCap {
+        fn name(&self) -> &str { "greet" }
+        fn invoke_capability(
+            &self,
+            request: &CapabilityRequest<Vec<u8>>,
+        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+            let action = &request.action;
+            let payload = format!("hello, {action}");
+            Ok(CapabilityResponse {
+                capability: request.capability.clone(),
+                action: request.action.clone(),
+                payload: payload.into_bytes(),
+                content_type: request.content_type,
+            })
+        }
+    }
+    impl PlatformCapability for GreetCap {
+        fn capability_id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("greet".into())))
         }
         fn min_profile(&self) -> Profile { Profile::App }
-        fn execute(&self, _session: &PlatformSession, action: &str, _payload: serde_json::Value) -> Result<serde_json::Value, String> {
-            Ok(serde_json::Value::String(format!("hello, {action}")))
-        }
     }
 
     session.capabilities().register(GreetCap);
@@ -144,17 +160,17 @@ fn capability_invocation_through_registry() {
     session.record_navigation("/app");
     let page = session.active_page_identity().unwrap();
 
-    let request = NativeCapabilityRequest {
-        id: "req-1".into(),
-        page_identity: page,
+    let request = CapabilityRequest {
         capability: "greet".into(),
         action: "world".into(),
-        payload: serde_json::Value::Null,
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
 
-    let response = session.capabilities().invoke(&session, &request, Some(&route));
-    assert!(response.status.is_ok());
-    assert_eq!(response.status.unwrap(), serde_json::Value::String("hello, world".into()));
+    let result = session.capabilities().invoke(&session, &request, &page, Some(&route));
+    assert!(result.is_ok());
+    let resp = result.unwrap();
+    assert_eq!(resp.payload, b"hello, world");
 }
 
 // ── Mutation queue integration ──────────────────────────────────────

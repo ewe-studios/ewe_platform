@@ -27,7 +27,7 @@ pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate
 pub use backend::{query_backend, BackendTransport, ClosureTransport, DefaultTransport};
 pub use builder::PlatformBuilder;
 pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
-pub use capability::{NativeCapability, NativeCapabilityRegistry};
+pub use capability::{CapabilityRegistry, PlatformCapability};
 pub use mutation::{MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError, ReplayResult};
 pub use stack::{SlotState, StackConfig, WebViewOps, WebViewSlot, WebViewStack};
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
@@ -35,7 +35,7 @@ pub use responder::{MobileApp, MobileDisk, WebviewApp};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler, RouteResponder};
 pub use session::{PlatformSession, SessionEvent};
-pub use types::{NativeCapabilityRequest, NativeCapabilityResponse};
+pub use foundation_wasm::{CapabilityRequest, CapabilityResponse};
 
 // Re-export all platform types from foundation_ui_traits so consumers
 // only need one `use foundation_platform::*` import.

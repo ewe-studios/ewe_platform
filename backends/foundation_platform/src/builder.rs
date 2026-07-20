@@ -194,11 +194,10 @@ impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::n
 
 // ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
 
-/// The Tauri command bridge for portable `WasmCapability` invocations (F23).
+/// The Tauri command bridge for capability invocations (F23).
 ///
-/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`
-/// which lands here. The command looks up the capability in the
-/// registry and delegates to the handler.
+/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`.
+/// Looks up the capability in the `CapabilityRegistry` and delegates to the handler.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 fn __ewe_capabilities(
@@ -214,8 +213,13 @@ fn __ewe_capabilities(
         content_type: CapabilityContentType::Json,
     };
 
-    let response = session
-        .invoke_wasm_capability(&request)
+    // Look up the handler in the platform registry and invoke with session access.
+    let handler = session
+        .get_capability(&request.capability)
+        .ok_or_else(|| format!("unknown capability: {}", request.capability))?;
+
+    let response = handler
+        .invoke_with_session(&session, &request)
         .map_err(|e| format!("capability error: {e:?}"))?;
 
     String::from_utf8(response.payload).map_err(|e| format!("invalid UTF-8 response: {e}"))

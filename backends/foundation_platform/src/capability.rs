@@ -1,78 +1,80 @@
-//! Capability trait and registry for native platform capabilities.
+//! Platform capability security layer. Wraps `foundation_wasm::WasmCapability`
+//! with the 5-layer defense: profile gate → registration → per-route allowlist
+//! → OS permission → stale-page guard.
 //!
-//! Capabilities are registered at build time and invoked at runtime through
-//! the session backbone. Five defense layers: profile gate → registration
-//! gate → per-route allowlist → OS permission → stale-page guard.
-//!
-//! NOTE: These are the F05 native `serde_json::Value`-based types. F23 moved
-//! portable capability primitives to `foundation_wasm::capability`. The F05
-//! types are renamed with the `Native` prefix to avoid collision.
+//! The wire types live in `foundation_wasm::capability` (F23). This module
+//! provides the platform-specific security checks and registry.
 
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use foundation_ui_traits::{CapabilityId, Profile, RouteDecision};
+use foundation_ui_traits::{CapabilityId, PageIdentity, Profile, RouteDecision};
+use foundation_wasm::{
+    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse,
+};
 
 use crate::profiles::{Access, ProfileGate, Service};
 use crate::session::PlatformSession;
-use crate::types::{NativeCapabilityRequest, NativeCapabilityResponse};
 
-// ── NativeCapability trait ─────────────────────────────────────────────
+// ── PlatformCapability trait ────────────────────────────────────────────
 
-/// A native platform capability (F05). Registered with the capability registry
-/// and invoked through the session backbone with the 5-layer defense.
+/// A platform-native capability. Extends `foundation_wasm::WasmCapability`.
 ///
-/// Patterned after `WGPU`/`WASI` — the platform provides the trait,
-/// the user implements it, the shell orchestrates.
+/// The registry calls `invoke_with_session()` — which receives both the
+/// wire-format request AND a `&PlatformSession`. This lets handlers look up
+/// IPCs, check online state, or access other registries at runtime.
 ///
-/// For portable (wasm32+native) capabilities, use
-/// `foundation_wasm::WasmCapability` (F23).
-pub trait NativeCapability: Send + Sync + 'static {
-    /// Unique identifier (e.g. "camera", "`biometric_auth`").
-    fn id(&self) -> &CapabilityId;
+/// Implement this for platform-specific capabilities (camera, clipboard,
+/// biometrics). The base trait handles wire-format invocation for non-platform
+/// contexts; the `invoke_with_session` method adds session access.
+pub trait PlatformCapability: foundation_wasm::WasmCapability {
+    /// The platform capability ID (e.g. "camera", "`biometric_auth`").
+    fn capability_id(&self) -> &CapabilityId;
 
     /// Minimum `WebView` profile required to invoke this capability.
     fn min_profile(&self) -> Profile;
 
-    /// Execute the capability with the given action and payload.
+    /// Invoke the capability with session access.
     ///
-    /// # Errors
-    ///
-    /// Returns an error string if the capability execution fails.
-    fn execute(
+    /// The session provides access to other registries (IPC, state), online
+    /// state, page identity, etc. The platform security checks complete
+    /// before this is called.
+    /// The registry passes session to the handler AFTER security checks.
+    /// Override to access IPCs, state, or other registries at invoke time.
+    fn invoke_with_session(
         &self,
         session: &PlatformSession,
-        action: &str,
-        payload: serde_json::Value,
-    ) -> Result<serde_json::Value, String>;
+        request: &CapabilityRequest<Vec<u8>>,
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        let _ = session; // unused by default — override to access session
+        self.invoke_capability(request)
+    }
 }
 
-// ── Capability registry (on PlatformSession) ───────────────────────────
+// ── Registry ────────────────────────────────────────────────────────────
 
-/// Registry of all registered native capabilities (F05). Wrapped in `RwLock`
-/// for thread-safe concurrent access.
-pub struct NativeCapabilityRegistry {
-    handlers: RwLock<HashMap<String, Box<dyn NativeCapability>>>,
+/// Registry of platform capabilities with the full 5-layer defense chain.
+///
+/// Each registered capability implements both `WasmCapability` (wire format)
+/// and `PlatformCapability` (security metadata).
+pub struct CapabilityRegistry {
+    handlers: RwLock<HashMap<String, Box<dyn PlatformCapability>>>,
 }
 
-impl NativeCapabilityRegistry {
+impl CapabilityRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            handlers: RwLock::new(HashMap::new()),
-        }
+        Self { handlers: RwLock::new(HashMap::new()) }
     }
 
-    /// Register a native capability. Called at startup.
+    /// Register a platform capability.
     ///
     /// # Panics
     ///
     /// Panics if the internal `RwLock` is poisoned.
-    pub fn register(&self, cap: impl NativeCapability) {
-        self.handlers
-            .write()
-            .unwrap()
-            .insert(cap.id().0.clone(), Box::new(cap));
+    pub fn register(&self, cap: impl PlatformCapability + 'static) {
+        let name = cap.capability_id().0.clone();
+        self.handlers.write().unwrap().insert(name, Box::new(cap));
     }
 
     /// Invoke a capability through the full five-layer defense chain.
@@ -83,39 +85,36 @@ impl NativeCapabilityRegistry {
     pub fn invoke(
         &self,
         session: &PlatformSession,
-        request: &NativeCapabilityRequest,
+        request: &CapabilityRequest<Vec<u8>>,
+        page_identity: &PageIdentity,
         current_route: Option<&RouteDecision>,
-    ) -> NativeCapabilityResponse {
-        let respond = |status| NativeCapabilityResponse {
-            id: request.id.clone(),
-            page_identity: request.page_identity.clone(),
-            status,
-        };
-
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
         // Layer 1: Stale-page guard
-        if !session.is_active_page(&request.page_identity) {
-            return respond(Err("stale page — request from navigated-away page".into()));
+        if !session.is_active_page(page_identity) {
+            return Err(CapabilityError::PermissionDenied(
+                "stale page — request from navigated-away page".into(),
+            ));
         }
 
         let guard = self.handlers.read().unwrap();
 
         // Layer 2: Look up the capability handler
-        let Some(handler) = guard.get(&request.capability) else {
-            return respond(Err(format!("unknown capability: {}", request.capability)));
-        };
+        let handler = guard
+            .get(&request.capability)
+            .ok_or_else(|| CapabilityError::UnknownCapability(request.capability.clone()))?;
 
         // Layer 3: Profile-level gate
         let profile = current_route
-            .map_or(Profile::UntrustedRemote, |r| r.profile);
+            .map(|r| r.profile)
+            .unwrap_or(Profile::UntrustedRemote);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
-            return respond(Err(e.to_string()));
+            return Err(CapabilityError::PermissionDenied(e.to_string()));
         }
         if !profile_satisfies(profile, handler.min_profile()) {
-            return respond(Err(format!(
-                "profile {:?} too low for capability '{}' (requires {:?})",
-                profile,
-                handler.id().0,
+            return Err(CapabilityError::PermissionDenied(format!(
+                "profile {profile:?} too low for capability '{}' (requires {:?})",
+                handler.capability_id().0,
                 handler.min_profile()
             )));
         }
@@ -123,27 +122,61 @@ impl NativeCapabilityRegistry {
         // Layer 4: Per-route allowlist gate
         if let Some(route) = current_route {
             if !route.capabilities.is_empty()
-                && !route.capabilities.iter().any(|c| c == handler.id())
+                && !route.capabilities.iter().any(|c| c == handler.capability_id())
             {
-                return respond(Err(format!(
+                return Err(CapabilityError::PermissionDenied(format!(
                     "capability '{}' not allowed on this route",
-                    handler.id().0
+                    handler.capability_id().0
                 )));
             }
         }
 
-        // Layer 5: Execute
-        let result = handler.execute(session, &request.action, request.payload.clone());
-        drop(guard);
+        // Layer 5: Execute — delegate to the WasmCapability trait impl
+        handler.invoke_capability(request)
+    }
 
-        respond(result)
+    /// Invoke a capability through the security layer with a JSON payload.
+    /// Convenience method that serializes JSON → wire bytes → invoke → deserialize.
+    pub fn invoke_json(
+        &self,
+        session: &PlatformSession,
+        capability: &str,
+        action: &str,
+        payload: &serde_json::Value,
+        page_identity: &PageIdentity,
+        current_route: Option<&RouteDecision>,
+    ) -> Result<serde_json::Value, CapabilityError> {
+        let payload_bytes = serde_json::to_vec(payload)
+            .map_err(|e| CapabilityError::InvalidPayload(e.to_string()))?;
+
+        let request = CapabilityRequest {
+            capability: capability.to_string(),
+            action: action.to_string(),
+            payload: payload_bytes,
+            content_type: CapabilityContentType::Json,
+        };
+
+        let response = self.invoke(session, &request, page_identity, current_route)?;
+
+        serde_json::from_slice(&response.payload)
+            .map_err(|e| CapabilityError::InvalidPayload(e.to_string()))
+    }
+
+    /// Look up a capability by name.
+    #[must_use]
+    pub fn get(&self, name: &str) -> Option<&dyn PlatformCapability> {
+        let guard = self.handlers.read().unwrap();
+        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
+    }
+
+    #[must_use]
+    pub fn names(&self) -> Vec<String> {
+        self.handlers.read().unwrap().keys().cloned().collect()
     }
 }
 
-impl Default for NativeCapabilityRegistry {
-    fn default() -> Self {
-        Self::new()
-    }
+impl Default for CapabilityRegistry {
+    fn default() -> Self { Self::new() }
 }
 
 /// Check if a profile meets or exceeds a minimum required profile.
@@ -169,24 +202,37 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
 // ── Test helpers ───────────────────────────────────────────────────────
 
 /// Test capability for integration tests.
-pub struct TestNativeCap {
+pub struct TestPlatformCap {
     pub id: CapabilityId,
     pub min_profile: Profile,
 }
 
-impl NativeCapability for TestNativeCap {
-    fn id(&self) -> &CapabilityId { &self.id }
-    fn min_profile(&self) -> Profile { self.min_profile }
-    fn execute(&self, _: &PlatformSession, action: &str, _: serde_json::Value) -> Result<serde_json::Value, String> {
-        Ok(serde_json::Value::String(format!("executed: {action}")))
+impl foundation_wasm::WasmCapability for TestPlatformCap {
+    fn name(&self) -> &str { &self.id.0 }
+
+    fn invoke_capability(
+        &self,
+        request: &CapabilityRequest<Vec<u8>>,
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        Ok(CapabilityResponse {
+            capability: request.capability.clone(),
+            action: request.action.clone(),
+            payload: request.payload.clone(),
+            content_type: request.content_type,
+        })
     }
+}
+
+impl PlatformCapability for TestPlatformCap {
+    fn capability_id(&self) -> &CapabilityId { &self.id }
+    fn min_profile(&self) -> Profile { self.min_profile }
 }
 
 /// Create a test registry with a camera capability registered.
 #[must_use]
-pub fn test_native_registry() -> NativeCapabilityRegistry {
-    let reg = NativeCapabilityRegistry::new();
-    reg.register(TestNativeCap {
+pub fn test_registry() -> CapabilityRegistry {
+    let reg = CapabilityRegistry::new();
+    reg.register(TestPlatformCap {
         id: CapabilityId("camera".into()),
         min_profile: Profile::TrustedRemote,
     });

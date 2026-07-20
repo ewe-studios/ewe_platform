@@ -115,17 +115,33 @@ fn offline_mutation_replay_on_reconnect() {
 
 #[test]
 fn capability_invocation_with_profile_gating() {
+    use foundation_platform::capability::PlatformCapability;
+    use foundation_wasm::{
+        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
+    };
+
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     struct Cam;
-    impl NativeCapability for Cam {
-        fn id(&self) -> &CapabilityId {
+    impl WasmCapability for Cam {
+        fn name(&self) -> &str { "camera" }
+        fn invoke_capability(
+            &self, request: &CapabilityRequest<Vec<u8>>,
+        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+            let action = &request.action;
+            Ok(CapabilityResponse {
+                capability: request.capability.clone(),
+                action: request.action.clone(),
+                payload: format!("shot-{action}").into_bytes(),
+                content_type: request.content_type,
+            })
+        }
+    }
+    impl PlatformCapability for Cam {
+        fn capability_id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("camera".into())))
         }
         fn min_profile(&self) -> Profile { Profile::TrustedRemote }
-        fn execute(&self, _: &PlatformSession, action: &str, _: serde_json::Value) -> Result<serde_json::Value, String> {
-            Ok(serde_json::Value::String(format!("shot-{action}")))
-        }
     }
 
     session.capabilities().register(Cam);
@@ -137,35 +153,23 @@ fn capability_invocation_with_profile_gating() {
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
 
-    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
-        id: "r1".into(), page_identity: page.clone(),
+    let req = CapabilityRequest {
         capability: "camera".into(), action: "capture".into(),
-        payload: serde_json::Value::Null,
-    }, Some(&route));
-    assert!(resp.status.is_ok());
+        payload: vec![], content_type: CapabilityContentType::Json,
+    };
+    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_ok());
 
     // UntrustedRemote profile → denied
     let bad_route = remote_fetch()
         .with_profile(Profile::UntrustedRemote)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
-
     session.record_navigation("/bad");
     let page2 = session.active_page_identity().unwrap();
-    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
-        id: "r2".into(), page_identity: page2,
-        capability: "camera".into(), action: "capture".into(),
-        payload: serde_json::Value::Null,
-    }, Some(&bad_route));
-    assert!(resp.status.is_err());
+    assert!(session.capabilities().invoke(&session, &req, &page2, Some(&bad_route)).is_err());
 
     // Stale page → denied
-    session.record_navigation("/other"); // page is now stale
-    let resp = session.capabilities().invoke(&session, &NativeCapabilityRequest {
-        id: "r3".into(), page_identity: page, // stale!
-        capability: "camera".into(), action: "capture".into(),
-        payload: serde_json::Value::Null,
-    }, Some(&route));
-    assert!(resp.status.is_err());
+    session.record_navigation("/other");
+    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_err());
 }
 
 // ── WebView stack navigation ─────────────────────────────────────────
