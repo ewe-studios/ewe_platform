@@ -9,21 +9,22 @@
 
 services:
   macos:
-    image: dockurr/macos:latest
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    container_name: ewe_macos
+    image: dockurr/macos
+    container_name: macos
     environment:
-      VERSION: "15.4"
+      VERSION: "15"
       RAM_SIZE: "8G"
       CPU_CORES: "4"
       DISK_SIZE: "64G"
     devices:
       - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
     ports:
-      - "8006:8006"   # web viewer
-      - "5900:5900"   # VNC
+      - 8006:8006
+      - 5900:5900/tcp
+      - 5900:5900/udp
     volumes:
       - /home/darkvoid/Boxxed/@dev/macos:/storage
       - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
