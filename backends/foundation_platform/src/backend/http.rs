@@ -1,7 +1,7 @@
 //! HTTP backend for remote fetch (F29 Stage 2).
 //!
-//! Uses `foundation_netio::HttpClientBuilder` — the same HTTP stack
-//! used across the platform. No external HTTP dependencies.
+//! Uses `foundation_netio::HttpClientBuilder` with rustls-ring TLS —
+//! our own HTTP stack. Compiles for desktop, Android, iOS, and wasm.
 
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -11,9 +11,6 @@ use foundation_netio::shared::http::SimpleMethod;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 
 /// HTTP client for remote content fetching.
-///
-/// Wraps `foundation_netio::DynNetClient`. Auth tokens injected
-/// from session state — they never cross the WASM boundary.
 pub struct HttpBackend {
     client: DynNetClient,
     auth_tokens: Mutex<HashMap<String, String>>,
@@ -48,11 +45,6 @@ impl HttpBackend {
         let body = collect_bytes_from_send_safe(response.take_body());
         Ok((body, "text/html".to_string()))
     }
-}
-
-fn extract_host(url: &str) -> Option<String> {
-    let without = url.strip_prefix("https://").or_else(|| url.strip_prefix("http://"))?;
-    Some(without.split('/').next()?.to_string())
 }
 
 impl Default for HttpBackend {

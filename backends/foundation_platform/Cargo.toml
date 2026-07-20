@@ -31,8 +31,13 @@ concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-# HTTP client + networking (use foundation_netio, not external HTTP dep)
-foundation_netio = { path = "../foundation_netio" }
+# HTTP client for remote fetch (F29 Stage 2)
+# Uses rustls-tls for cross-platform TLS — no native openssl dependency.
+# blocking + json features for sync fetch in route handlers.
+# HTTP client + networking — only need the client, not all of netcap/TCP
+# We explicitly enable only what HttpClientBuilder::build() requires.
+# `multi` enables NativeHttpClient; `ssl-rustls-ring` provides TLS.
+foundation_netio = { path = "../foundation_netio", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }
