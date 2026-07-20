@@ -57,15 +57,15 @@ infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = 
 
 # Candle ML framework (optional, behind feature flags)
 [dependencies.candle-core]
-version = "0.10"
+version = "0.11"
 optional = true
 
 [dependencies.candle-nn]
-version = "0.10"
+version = "0.11"
 optional = true
 
 [dependencies.candle-transformers]
-version = "0.10"
+version = "0.11"
 optional = true
 
 [dependencies.tokenizers]
@@ -78,7 +78,7 @@ optional = true
 
 # Candle with Metal — Apple only.
 [target.'cfg(target_vendor = "apple")'.dependencies]
-candle-core = { version = "0.10", features = ["metal"] }
+candle-core = { version = "0.11", features = ["metal"] }
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing", version = "0.0.1", features = ["huggingface"] }
