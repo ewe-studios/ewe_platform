@@ -95,6 +95,11 @@ pub struct PlatformSession {
     /// All IPCs (query, emit, page) are registered here and invoked
     /// from JS via `__ewe_ipc` or programmatically from route handlers.
     ipc_registry: crate::ipc::IpcRegistry,
+
+    /// Streaming IPC registry (F26) — separate from IpcRegistry because
+    /// streaming handlers need `stream()` and `accept_stream()` methods
+    /// that the standard `Ipc` trait doesn't provide.
+    stream_registry: crate::ipc::streaming::PlatformStreamRegistry,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -127,6 +132,7 @@ impl PlatformSession {
             resource_root,
             script_injector,
             ipc_registry: crate::ipc::IpcRegistry::new(),
+            stream_registry: crate::ipc::streaming::PlatformStreamRegistry::new(),
         })
     }
 }
@@ -387,6 +393,16 @@ impl PlatformSession {
     /// Route handlers use this for programmatic invocation.
     pub fn get_ipc(&self, name: &str) -> Option<&dyn crate::ipc::Ipc> {
         self.ipc_registry.get(name)
+    }
+
+    /// Access the streaming IPC registry (F26).
+    pub fn stream_registry(&self) -> &crate::ipc::streaming::PlatformStreamRegistry {
+        &self.stream_registry
+    }
+
+    /// Register a streaming IPC handler (F26).
+    pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc>(&self, ipc: S) {
+        self.stream_registry.register(ipc);
     }
 
     /// Register a portable WasmCapability (F23).

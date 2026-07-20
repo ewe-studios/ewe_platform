@@ -63,6 +63,8 @@ pub trait Ipc: Send + Sync + 'static {
 
 // ── IpcRegistry ────────────────────────────────────────────────────────
 
+pub mod streaming;
+
 /// Registry of all IPC handlers. Thread-safe via `RwLock`.
 ///
 /// Registered on `PlatformSession` at startup. IPCs are invoked from JS

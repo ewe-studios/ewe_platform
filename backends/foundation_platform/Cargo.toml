@@ -24,6 +24,9 @@ foundation_wasm_ui = { path = "../foundation_wasm_ui", features = ["embedded-js"
 # Portable WASM primitives — WasmCapability trait + CapabilityRegistry (F23)
 foundation_wasm = { path = "../foundation_wasm" }
 
+# Lock-free queue for streaming IPC chunks (F26)
+concurrent-queue = { workspace = true }
+
 # Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }

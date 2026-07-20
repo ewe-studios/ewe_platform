@@ -5146,6 +5146,7 @@ dependencies = [
 name = "foundation_platform"
 version = "0.0.1"
 dependencies = [
+ "concurrent-queue",
  "foundation_nostd",
  "foundation_ui_traits",
  "foundation_wasm",

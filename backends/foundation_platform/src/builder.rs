@@ -159,7 +159,8 @@ impl<R: Runtime> PlatformBuilder<R> {
 
         self.inner = self.inner.invoke_handler(tauri::generate_handler![
             __ewe_capabilities,
-            __ewe_ipc
+            __ewe_ipc,
+            __ewe_ipc_stream
         ]);
 
         self.inner = ewe::register_ewe_protocol(self.inner);
@@ -242,4 +243,60 @@ fn __ewe_ipc(
         .map_err(|e| format!("ipc error: {e:?}"))?;
 
     Ok(response.payload)
+}
+
+// ── F26 Tauri command: __ewe_ipc_stream ──────────────────────────────────
+
+/// The Tauri command for server→client streaming IPC (F26).
+///
+/// JS creates a `Channel<IpcStreamChunk>`, passes it via `invoke()`, and
+/// Tauri deserializes it from the `"__CHANNEL__:ID"` wire format.
+/// The command looks up the `StreamingIpc` handler, calls `stream()`,
+/// and drains the receiver into the Tauri Channel.
+#[tauri::command]
+async fn __ewe_ipc_stream(
+    session: tauri::State<'_, Arc<PlatformSession>>,
+    ipc: String,
+    action: String,
+    payload: Vec<u8>,
+    stream_channel: tauri::ipc::Channel<crate::ipc::streaming::IpcStreamChunk>,
+) -> Result<(), String> {
+    use foundation_wasm::ipc::{IpcContentType, IpcRequest};
+    use crate::ipc::streaming::IpcStreamReceiver;
+
+    let request = IpcRequest {
+        ipc: ipc.clone(),
+        action,
+        payload,
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+
+    let handler = session.stream_registry().get(&request.ipc)
+        .ok_or_else(|| format!("unknown streaming ipc: {ipc}"))?;
+
+    let ipc_stream = handler.stream(&session, &request)
+        .map_err(|e| format!("stream error: {e:?}"))?;
+
+    loop {
+        match &ipc_stream.receiver {
+            IpcStreamReceiver::Sync(queue) => {
+                match queue.pop() {
+                    Ok(Ok(chunk)) => {
+                        stream_channel.send(chunk)
+                            .map_err(|_| "channel closed".to_string())?;
+                    }
+                    Ok(Err(e)) => {
+                        let _ = stream_channel.send(crate::ipc::streaming::IpcStreamChunk {
+                            data: format!("error: {e:?}").into_bytes(),
+                            sequence: u64::MAX,
+                            progress: None,
+                        });
+                        return Err(format!("stream error: {e:?}"));
+                    }
+                    Err(_) => return Ok(()),
+                }
+            }
+        }
+    }
 }
