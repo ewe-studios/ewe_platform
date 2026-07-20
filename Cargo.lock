@@ -239,6 +239,7 @@ version = "0.0.1"
 dependencies = [
  "foundation_ai",
  "foundation_compact",
+ "foundation_core",
  "foundation_db",
  "foundation_repl",
 ]
@@ -5404,6 +5405,7 @@ name = "foundation_wasm"
 version = "0.0.3"
 dependencies = [
  "clap",
+ "concurrent-queue",
  "foundation_codegen",
  "foundation_macros",
  "foundation_nostd",

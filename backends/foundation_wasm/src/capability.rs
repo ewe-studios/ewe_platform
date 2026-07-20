@@ -2,7 +2,7 @@
 //!
 //! WHY: Capabilities (camera, clipboard, filesystem, biometrics) need a
 //! portable trait + registry that works on wasm32 and native. The platform
-//! (foundation_platform) wraps this with Tauri-specific security (profile
+//! (`foundation_platform`) wraps this with Tauri-specific security (profile
 //! gates, per-route allowlists, stale-page guards). Non-platform hosts
 //! (browser, Deno, testbed) get a plain registry with no overhead.
 //!
@@ -12,7 +12,7 @@
 //! through `into_wire()` / `into_typed()` — higher-level crates enforce
 //! `serde::Serialize + Deserialize` or `ToArrow + FromArrow` on `T`.
 //!
-//! HOW: no_std compatible — uses `alloc` types. On native: `Send + Sync`
+//! HOW: `no_std` compatible — uses `alloc` types. On native: `Send + Sync`
 //! trait bounds + `Mutex`. On wasm32: no thread bounds, single-threaded.
 
 use alloc::boxed::Box;
@@ -43,7 +43,7 @@ pub enum CapabilityContentType {
 /// `ToArrow + FromArrow` gets `CapabilityContentType::Arrow`.
 ///
 /// `Vec<u8>` has a built-in impl (passthrough, `CapabilityContentType::Json`
-/// by default — callers should set content_type explicitly when building).
+/// by default — callers should set `content_type` explicitly when building).
 pub trait WirePayload: Sized {
     /// Serialise `self` into wire bytes and declare its content type.
     fn into_wire_bytes(self) -> (Vec<u8>, CapabilityContentType);
@@ -343,7 +343,7 @@ impl CapabilityRegistry {
                 .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
             guard
                 .get(name)
-                .map(|b| unsafe { &*(b.as_ref() as *const dyn WasmCapability) })
+                .map(|b| unsafe { &*core::ptr::from_ref::<dyn WasmCapability>(b.as_ref()) })
         }
         #[cfg(target_family = "wasm")]
         {

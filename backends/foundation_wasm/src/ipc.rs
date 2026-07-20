@@ -10,8 +10,8 @@
 //! Default `T = Vec<u8>` is the on-wire form. Any `T: WirePayload` can
 //! round-trip through `into_wire()` / `into_typed()`.
 //!
-//! HOW: no_std compatible. The `Ipc` trait + registry live in
-//! `foundation_platform` (they need PlatformSession).
+//! HOW: `no_std` compatible. The `Ipc` trait + registry live in
+//! `foundation_platform` (they need `PlatformSession`).
 
 use alloc::format;
 use alloc::string::String;

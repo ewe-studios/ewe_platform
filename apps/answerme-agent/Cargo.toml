@@ -15,6 +15,7 @@ foundation_ai = {
     features=["multi"],
 }
 foundation_compact = { path = "../../backends/foundation_compact" }
+foundation_core = { path = "../../backends/foundation_core" }
 foundation_db = { path = "../../backends/foundation_db" }
 foundation_repl = { path = "../../backends/foundation_repl" }
 

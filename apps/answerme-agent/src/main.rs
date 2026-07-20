@@ -9,13 +9,16 @@ use std::path::PathBuf;
 use foundation_ai::agentic::{
     AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
-use foundation_ai::harness::RouterMix;
-use foundation_ai::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
+use foundation_ai::backends::huggingface_gguf_provider::{
+    HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
+};
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::harness::RouterMix;
 use foundation_ai::types::{Messages, ModelId, SessionId, SessionRecord};
 use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::Repl;
+use foundation_core::valtron::valtron;
 
 /// Model cache directory — defaults to the workspace `artefacts/models`,
 /// overridden at runtime by `ANSWERME_MODEL_DIR`.
@@ -30,12 +33,13 @@ fn model_dir() -> PathBuf {
         })
 }
 
+#[valtron]
 fn main() {
     let session_id = SessionId::new();
 
     // Configure the local llama.cpp backend.
     let llama_config = LlamaBackendConfig::builder()
-        .n_gpu_layers(0)       // CPU-only; bump for GPU
+        .n_gpu_layers(0) // CPU-only; bump for GPU
         .context_length(4096)
         .batch_size(512)
         .n_threads(4)
@@ -48,8 +52,8 @@ fn main() {
         .llama_config(llama_config)
         .build();
 
-    let provider = HuggingFaceGGUFProvider::new(hf_config)
-        .expect("failed to initialize GGUF provider");
+    let provider =
+        HuggingFaceGGUFProvider::new(hf_config).expect("failed to initialize GGUF provider");
 
     let model_id = ModelId::Name("gemma-2-2b-it".into(), None);
 
@@ -73,7 +77,9 @@ fn main() {
     let repl = Repl::builder()
         .prompt("| ")
         .continuation_prompt("|... ")
-        .banner("answerme-agent — Gemma-2-2b local session\nType /help for commands, /exit to quit.\n")
+        .banner(
+            "answerme-agent — Gemma-2-2b local session\nType /help for commands, /exit to quit.\n",
+        )
         .goodbye("Goodbye!")
         .build();
 

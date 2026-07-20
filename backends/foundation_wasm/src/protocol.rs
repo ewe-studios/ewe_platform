@@ -213,7 +213,7 @@ impl ProtocolHandlerRegistry {
 /// WHAT: Reads the 14-byte [`WasmEnvelope`] header and calls `handle_from_js` on
 /// the matching handler.
 ///
-/// HOW: Parses protocol/version/memory_id/length, slices the payload, and matches
+/// HOW: Parses `protocol/version/memory_id/length`, slices the payload, and matches
 /// the protocol byte to a handler in `handlers`.
 ///
 /// # Panics

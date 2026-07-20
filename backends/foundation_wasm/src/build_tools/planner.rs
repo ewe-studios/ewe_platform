@@ -106,11 +106,5 @@ fn generate_main_rs(ep: &WasmEntrypoint) -> String {
          fn main() {{\n\
          {indent}{func_name}();\n\
          }}\n",
-        name = name,
-        desc = desc,
-        qualified_path = qualified_path,
-        func_name = func_name,
-        module_path = module_path,
-        indent = indent,
     )
 }

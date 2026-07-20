@@ -462,8 +462,7 @@ pub mod internal_api {
                         .expect("should have called callback");
                 }
                 _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {:?}",
-                    err
+                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
                 ),
             },
         }

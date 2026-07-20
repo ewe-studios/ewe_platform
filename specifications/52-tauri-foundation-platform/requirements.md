@@ -81,6 +81,8 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F24 | ScriptInjector: auto-inject runtimes | Critical | F03, F19, F21 |
 | F25 | IPC Registry: central IPC mechanism | Critical | F02, F23, F24 |
 | F26 | Streaming Channels: Tauri Channels | Medium | F25 |
+| F27 | WASM Runtime IPC & Capability Triggers (host→wasm) | Critical | F23, F25 |
+| F28 | WASM ConcurrentQueue Stream Registry + JS Stream Objects | High | F25, F26, F27 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
