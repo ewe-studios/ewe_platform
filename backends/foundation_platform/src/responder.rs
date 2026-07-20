@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use foundation_nostd::embeddable::EmbeddableDirectory;
 use foundation_nostd::mobile::MobileDirectory;
-use foundation_ui_traits::*;
+use foundation_ui_traits::{NavigationIntent, RouteDecision};
 use tauri::http::{header, Response, StatusCode};
 
 use crate::pattern;

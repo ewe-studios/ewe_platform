@@ -1,5 +1,5 @@
 [package]
-name = "foundation_shell_repl"
+name = "foundation_repl"
 version = "0.1.0"
 description = "A lightweight, general-purpose REPL framework for interactive terminal sessions"
 edition.workspace = true

@@ -1,10 +1,10 @@
-//! WebView profiles and access gates.
+//! `WebView` profiles and access gates.
 //!
 //! Five profiles gate access to platform services at runtime. Every
 //! platform service call checks the active profile before executing.
 //! Profiles are assigned per-route in `RouteDecision.profile`.
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{Profile, RouteSource};
 
 // ── Service taxonomy ─────────────────────────────────────────────────
 
@@ -55,12 +55,20 @@ pub struct ProfileGate {
 }
 
 impl ProfileGate {
+    #[must_use]
     pub fn new(profile: Profile) -> Self {
         Self { profile }
     }
 
     /// Check whether the active profile permits the given service access.
     /// Returns `Ok(())` if allowed, `Err(ProfileError)` if denied.
+#[allow(clippy::match_same_arms)]
+    /// Check if a profile is allowed to access a service.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ProfileError` if the profile is not permitted for the
+    /// requested service and access level.
     pub fn check(&self, service: Service, access: Access) -> Result<(), ProfileError> {
         use Access::{Execute, Read, Write};
         use Service::{
@@ -105,6 +113,7 @@ impl ProfileGate {
         }
     }
 
+    #[must_use]
     pub fn profile(&self) -> Profile {
         self.profile
     }
@@ -113,7 +122,9 @@ impl ProfileGate {
 // ── Default profile assignment ────────────────────────────────────────
 
 /// Default profile for a given route source, if no explicit profile
-/// is set in the RouteDecision.
+/// is set in the `RouteDecision`.
+#[must_use]
+#[allow(clippy::match_same_arms)]
 pub fn default_profile_for_source(source: RouteSource) -> Profile {
     match source {
         RouteSource::WebviewApp => Profile::App,

@@ -31,6 +31,10 @@ pub trait StreamingIpc: Ipc {
     /// `IpcStreamReceiver` into the Tauri Channel, delivering each
     /// chunk to JS via `onChunk`. End-of-stream is signaled when
     /// the Tauri Channel drops (sends `{ end: true }`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IpcError`] if the handler cannot initiate the stream.
     fn stream(
         &self,
         session: &PlatformSession,
@@ -42,6 +46,10 @@ pub trait StreamingIpc: Ipc {
     /// The platform collects chunks from JS into an `IpcStreamReceiver`,
     /// then calls this method to process them. Returns a single `IpcResponse`
     /// when the input stream is complete.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IpcError`] if the handler cannot process the stream.
     fn accept_stream(
         &self,
         session: &PlatformSession,
@@ -61,7 +69,7 @@ pub struct IpcStream {
 /// Receiver half for streaming chunks.
 ///
 /// Uses `concurrent_queue::ConcurrentQueue` — lock-free, wasm32-safe,
-/// already a workspace dependency (used in foundation_core, foundation_ai).
+/// already a workspace dependency (used in `foundation_core`, `foundation_ai`).
 pub enum IpcStreamReceiver {
     Sync(concurrent_queue::ConcurrentQueue<Result<IpcStreamChunk, IpcError>>),
 }
@@ -111,20 +119,32 @@ impl PlatformStreamRegistry {
     }
 
     /// Register a streaming IPC handler.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register<S: StreamingIpc + 'static>(&self, ipc: S) -> Option<Box<dyn StreamingIpc>> {
         self.handlers.write().unwrap().insert(ipc.name().to_string(), Box::new(ipc))
     }
 
     /// Look up a streaming IPC by name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn StreamingIpc> {
         let guard = self.handlers.read().unwrap();
         guard.get(name).map(|b| {
-            unsafe { &*(b.as_ref() as *const dyn StreamingIpc) }
+            unsafe { &*std::ptr::from_ref::<dyn StreamingIpc>(b.as_ref()) }
         })
     }
 
     /// Return all registered streaming IPC names.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.handlers.read().unwrap().keys().cloned().collect()

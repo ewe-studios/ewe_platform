@@ -110,11 +110,17 @@ impl<R: Runtime> PlatformBuilder<R> {
 
     /// Register a `ScriptInjectorPlugin` (F24).
     #[must_use]
-    pub fn register_plugin(mut self, plugin: impl ScriptInjectorPlugin) -> Self {
+    pub fn register_plugin(mut self, plugin: &impl ScriptInjectorPlugin) -> Self {
         plugin.inject_scripts(&mut self.script_injector);
         self
     }
 
+    /// Build the platform application.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`tauri::Error`] if Tauri initialisation fails.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
@@ -194,6 +200,7 @@ impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::n
 /// which lands here. The command looks up the capability in the
 /// registry and delegates to the handler.
 #[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
 fn __ewe_capabilities(
     session: tauri::State<'_, Arc<PlatformSession>>,
     capability: String,
@@ -209,7 +216,7 @@ fn __ewe_capabilities(
 
     let response = session
         .invoke_wasm_capability(&request)
-        .map_err(|e| format!("capability error: {:?}", e))?;
+        .map_err(|e| format!("capability error: {e:?}"))?;
 
     String::from_utf8(response.payload).map_err(|e| format!("invalid UTF-8 response: {e}"))
 }
@@ -222,6 +229,7 @@ fn __ewe_capabilities(
 /// which lands here. The command looks up the IPC in the `IpcRegistry`
 /// and delegates to the handler.
 #[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
 fn __ewe_ipc(
     session: tauri::State<'_, Arc<PlatformSession>>,
     ipc: String,
@@ -264,6 +272,7 @@ fn __ewe_ipc(
 /// The command looks up the `StreamingIpc` handler, calls `stream()`,
 /// and drains the receiver into the Tauri Channel.
 #[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
 async fn __ewe_ipc_stream(
     session: tauri::State<'_, Arc<PlatformSession>>,
     ipc: String,

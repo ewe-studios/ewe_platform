@@ -1,4 +1,4 @@
-//! RouteDecision convenience constructors and builder methods.
+//! `RouteDecision` convenience constructors and builder methods.
 //!
 //! `RouteDecision` is defined in `foundation_ui_traits` (orphan rule — we
 //! can't add inherent `impl` blocks here). These free functions and the
@@ -9,12 +9,12 @@
 //! Builder methods let callers override specific fields without touching
 //! the others.
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{RouteDecision, RouteSource, Presentation, ViewKind, ProtocolHint, CachePolicy, Profile, CapabilityId};
 
 // ── Constructors (free functions) ───────────────────────────────────────────
 
-/// Creates a RouteDecision for a WebviewApp handler.
-/// `source = WebviewApp`, profile = App, cache = CacheFirst.
+/// Creates a `RouteDecision` for a `WebviewApp` handler.
+/// `source = WebviewApp`, profile = App, cache = `CacheFirst`.
 #[must_use]
 pub fn webview_app() -> RouteDecision {
     RouteDecision {
@@ -53,8 +53,8 @@ pub fn ipc_shell() -> RouteDecision {
     }
 }
 
-/// Content from the native shell, explicitly targeting a named wasm_app
-/// instance. The session looks up `target` in the wasm_app registry.
+/// Content from the native shell, explicitly targeting a named `wasm_app`
+/// instance. The session looks up `target` in the `wasm_app` registry.
 #[must_use]
 pub fn ipc_shell_with(target: impl Into<String>) -> RouteDecision {
     RouteDecision {
@@ -90,15 +90,25 @@ pub fn remote_fetch() -> RouteDecision {
 /// constructors and builder pattern are platform-level API surface, not
 /// pure type definitions.
 pub trait RouteDecisionExt {
+    #[must_use]
     fn with_presentation(self, p: Presentation) -> Self;
+    #[must_use]
     fn with_view_kind(self, v: ViewKind) -> Self;
+    #[must_use]
     fn with_protocol(self, p: ProtocolHint) -> Self;
+    #[must_use]
     fn with_cache_policy(self, c: CachePolicy) -> Self;
+    #[must_use]
     fn with_profile(self, p: Profile) -> Self;
+    #[must_use]
     fn with_native_view(self, id: impl Into<String>) -> Self;
+    #[must_use]
     fn with_target(self, target: impl Into<String>) -> Self;
+    #[must_use]
     fn with_allowed_capabilities(self, caps: &[CapabilityId]) -> Self;
+    #[must_use]
     fn with_auth_origin(self, origin: &str) -> Self;
+    #[must_use]
     fn with_handler(self, id: &str) -> Self;
 }
 

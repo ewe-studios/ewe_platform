@@ -15,6 +15,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+#[allow(clippy::cast_possible_truncation)]
 fn generate_id() -> String {
     let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
     let ts = SystemTime::now()
@@ -35,7 +36,7 @@ pub struct Mutation {
     /// When the mutation was created (Unix timestamp, milliseconds).
     pub created_at: u64,
 
-    /// The mutation kind (e.g. "order_update", "item_delete").
+    /// The mutation kind (e.g. "`order_update`", "`item_delete`").
     /// Used by conflict resolvers to dispatch to the correct strategy.
     pub mutation_type: String,
 
@@ -68,7 +69,14 @@ pub struct ReplayResult {
     pub failed: Vec<(String, String)>,
 }
 
+impl Default for ReplayResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReplayResult {
+    #[must_use]
     pub fn new() -> Self {
         Self { applied: vec![], conflicts: vec![], failed: vec![] }
     }
@@ -77,7 +85,7 @@ impl ReplayResult {
 // ── Queue storage trait ──────────────────────────────────────────────
 
 /// Backend storage for the mutation queue. Default is in-memory.
-/// Swappable for SQLite via `foundation_db`.
+/// Swappable for `SQLite` via `foundation_db`.
 pub trait QueueStorage: Send + Sync + 'static {
     fn enqueue(&self, mutation: &Mutation);
     fn pending(&self) -> Vec<Mutation>;
@@ -92,7 +100,14 @@ pub struct MemoryQueueStorage {
     order: Mutex<Vec<String>>,
 }
 
+impl Default for MemoryQueueStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryQueueStorage {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             mutations: RwLock::new(HashMap::new()),
@@ -146,14 +161,17 @@ impl MutationQueue {
         Self { storage: Box::new(storage) }
     }
 
+    #[must_use]
     pub fn in_memory() -> Self {
         Self::new(MemoryQueueStorage::new())
     }
 
     /// Enqueue a mutation. Generates a UUID and timestamp.
     /// Validates the mutation locally before enqueuing.
+    #[must_use]
     pub fn enqueue(&self, mutation_type: &str, payload: serde_json::Value) -> String {
         let id = generate_id();
+        #[allow(clippy::cast_possible_truncation)]
         let created_at = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -172,6 +190,7 @@ impl MutationQueue {
     }
 
     /// Return all pending mutations in FIFO order.
+    #[must_use]
     pub fn pending_count(&self) -> usize {
         self.storage.pending().len()
     }
@@ -228,11 +247,13 @@ impl MutationQueue {
     }
 
     /// Return all pending mutations in FIFO order.
+    #[must_use]
     pub fn pending_items(&self) -> Vec<Mutation> {
         self.storage.pending()
     }
 
     /// Return all mutations (for inspection in tests).
+    #[must_use]
     pub fn all(&self) -> Vec<Mutation> {
         self.storage.all()
     }

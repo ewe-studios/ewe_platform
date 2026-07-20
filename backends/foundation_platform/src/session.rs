@@ -1,4 +1,4 @@
-//! PlatformSession — the central coordination bus.
+//! `PlatformSession` — the central coordination bus.
 //!
 //! Everything plugs into the session as a peer. No subsystem talks directly
 //! to another without the session knowing. The session is NOT generic over
@@ -16,7 +16,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::route::RouteDecisionExt;
 use crate::route_handler::RouteResponder;
-use foundation_ui_traits::*;
+use foundation_ui_traits::{SessionId, PageIdentity, NavigationIntent, RouteDecision, Presentation, Profile, CachePolicy};
 
 // ── Session event types ───────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ pub enum SessionEvent {
     Background,
     /// App entered foreground (mobile: willEnterForeground).
     Foreground,
-    /// App is shutting down (RunEvent::Exit).
+    /// App is shutting down (`RunEvent::Exit`).
     Shutdown,
     /// Device connectivity changed.
     OnlineChanged(bool),
@@ -50,7 +50,7 @@ pub struct PlatformSession {
     /// F05 native capability registry — registered at startup, invoked at runtime.
     capability_registry: crate::capability::NativeCapabilityRegistry,
 
-    /// F23 WasmCapability registry — portable, works on wasm32 + native.
+    /// F23 `WasmCapability` registry — portable, works on wasm32 + native.
     /// Separate from F05; bridges to it. Registered capabilities go through
     /// the full 5-layer defense.
     wasm_capability_registry: foundation_wasm::CapabilityRegistry,
@@ -83,7 +83,7 @@ pub struct PlatformSession {
     handler_registry: RwLock<HashMap<String, Box<dyn super::route_handler::RouteResponder>>>,
 
     /// Resolved resource directory for MobileDirectory-backed assets.
-    /// Set by PlatformBuilder at startup. On Android this is the Tauri-extracted
+    /// Set by `PlatformBuilder` at startup. On Android this is the Tauri-extracted
     /// resource path; on desktop it's the app bundle resource dir.
     pub resource_root: PathBuf,
 
@@ -96,7 +96,7 @@ pub struct PlatformSession {
     /// from JS via `__ewe_ipc` or programmatically from route handlers.
     ipc_registry: crate::ipc::IpcRegistry,
 
-    /// Streaming IPC registry (F26) — separate from IpcRegistry because
+    /// Streaming IPC registry (F26) — separate from `IpcRegistry` because
     /// streaming handlers need `stream()` and `accept_stream()` methods
     /// that the standard `Ipc` trait doesn't provide.
     stream_registry: crate::ipc::streaming::PlatformStreamRegistry,
@@ -109,6 +109,8 @@ impl PlatformSession {
     /// a pre-configured [`ScriptInjector`] (F24).
     /// Called once at app launch.
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn new(resource_root: PathBuf, script_injector: crate::injector::ScriptInjector) -> Arc<Self> {
         let session_id = SessionId(
             std::time::SystemTime::now()
@@ -140,6 +142,7 @@ impl PlatformSession {
 impl PlatformSession {
     /// TEST ONLY: create a session with an empty ScriptInjector.
     #[doc(hidden)]
+    #[must_use]
     pub fn new_test(resource_root: PathBuf) -> Arc<Self> {
         Self::new(resource_root, crate::injector::ScriptInjector::new(PathBuf::from(".")))
     }
@@ -150,6 +153,11 @@ impl PlatformSession {
 impl PlatformSession {
     /// Register a route handler. Handlers are checked in registration order
     /// on every navigation. First `Some(decision)` wins.
+    /// Register a route handler.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register_handler(&self, handler: impl super::route_handler::RouteHandler) {
         self.route_handlers.write().unwrap().push(Box::new(handler));
     }
@@ -157,6 +165,9 @@ impl PlatformSession {
     /// Register a pattern + decision + responder at setup time (F22).
     /// Like `PlatformBuilder::route_with` but usable from `.setup()` callbacks
     /// where `self.resource_root` is already resolved.
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register_route_with(
         &self,
         pattern: &str,
@@ -178,6 +189,9 @@ impl PlatformSession {
     /// Returns the first `Some(decision)` or the platform default.
     ///
     /// This is step 2 of the 9-step execution contract from decision 02.
+    /// # Panics
+    ///
+    /// Panics if the route handler `RwLock` is poisoned.
     pub fn resolve_route(&self, intent: &NavigationIntent) -> RouteDecision {
         let handlers = self.route_handlers.read().unwrap();
         for handler in handlers.iter() {
@@ -185,7 +199,7 @@ impl PlatformSession {
                 return decision;
             }
         }
-        self.default_decision_for(intent)
+        Self::default_decision_for(intent)
     }
 
     /// Register a pattern-based route handler.
@@ -197,6 +211,10 @@ impl PlatformSession {
     ///
     /// # Panics
     /// Panics if the pattern string is invalid.
+    /// # Panics
+    ///
+    /// Panics if the pattern string is invalid or the internal `RwLock`
+    /// is poisoned.
     pub fn route(&self, pattern: &str, decision: RouteDecision) {
         let mut router = crate::pattern::PatternRouter::new();
         router.route(pattern, decision);
@@ -205,6 +223,11 @@ impl PlatformSession {
 
     /// Register a closure-based route handler.
     /// Convenience wrapper around `FnRouteHandler` + `register_handler`.
+    /// Register a closure-based route handler.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn on_navigate(
         &self,
         f: impl Fn(&NavigationIntent, &PlatformSession) -> Option<RouteDecision> + Send + Sync + 'static,
@@ -212,7 +235,7 @@ impl PlatformSession {
         self.register_handler(super::route_handler::FnRouteHandler::new(f));
     }
 
-    fn default_decision_for(&self, intent: &NavigationIntent) -> RouteDecision {
+    fn default_decision_for(intent: &NavigationIntent) -> RouteDecision {
         // External URLs → system browser
         if intent.url.starts_with("http://") || intent.url.starts_with("https://") {
             return super::route::webview_app().with_presentation(Presentation::External);
@@ -224,19 +247,23 @@ impl PlatformSession {
             .with_cache_policy(CachePolicy::OnlineOnly)
     }
 
-    /// Execute a RouteDecision through the full 9-step contract.
+    /// Execute a `RouteDecision` through the full 9-step contract.
     ///
     /// Steps 2-9 of the execution contract:
     /// 2. Handler chain — already resolved, decision passed in
     /// 3. Cache check
     /// 4. Presentation — record navigation for stack manager
-    /// 5. Handler dispatch — calls registered RouteResponder::respond()
-    ///    or falls back to DefaultTransport if no handler registered
+    /// 5. Handler dispatch — calls registered `RouteResponder::respond()`
+    ///    or falls back to `DefaultTransport` if no handler registered
     /// 6-7. Protocol selection + encoding (only for fallback transport path)
     /// 8-9. Post-render — page identity tracking
     ///
     /// Returns the `tauri::http::Response` directly when a route handler
-    /// is registered. The caller passes it straight to the WebView.
+    /// is registered. The caller passes it straight to the `WebView`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the response builder fails (e.g. invalid header values).
     pub fn execute_decision(
         &self,
         decision: &RouteDecision,
@@ -266,24 +293,18 @@ impl PlatformSession {
         }
 
         // Step 5: Handler dispatch
-        let response = match decision.handler_id.as_ref() {
-            Some(handler_id) => match self.get_responder(handler_id) {
-                Some(handler) => handler.respond(intent, decision, self),
-                None => {
-                    let body = format!("No handler for '{handler_id}'").into_bytes();
-                    tauri::http::Response::builder()
-                        .status(500)
-                        .header("Content-Type", "text/plain")
-                        .body(body).unwrap()
-                }
-            },
-            None => {
-                let body = format!("No handler_id on decision for route: {route}").into_bytes();
-                tauri::http::Response::builder()
-                    .status(500)
-                    .header("Content-Type", "text/plain")
-                    .body(body).unwrap()
-            }
+        let response = if let Some(handler_id) = decision.handler_id.as_ref() { if let Some(handler) = self.get_responder(handler_id) { handler.respond(intent, decision, self) } else {
+            let body = format!("No handler for '{handler_id}'").into_bytes();
+            tauri::http::Response::builder()
+                .status(500)
+                .header("Content-Type", "text/plain")
+                .body(body).unwrap()
+        } } else {
+            let body = format!("No handler_id on decision for route: {route}").into_bytes();
+            tauri::http::Response::builder()
+                .status(500)
+                .header("Content-Type", "text/plain")
+                .body(body).unwrap()
         };
 
         // Step 9: Record navigation
@@ -298,6 +319,9 @@ impl PlatformSession {
 impl PlatformSession {
     /// Increment the visit counter and update the active page.
     /// Called after every navigation. Returns the new `PageIdentity`.
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn record_navigation(&self, route: &str) -> PageIdentity {
         let visit_id = self.visit_counter.fetch_add(1, Ordering::SeqCst);
         let identity = PageIdentity {
@@ -311,6 +335,9 @@ impl PlatformSession {
 
     /// Check if a request is from the currently active page.
     /// Stale-page guard: requests from navigated-away pages are dropped.
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn is_active_page(&self, page: &PageIdentity) -> bool {
         self.active_page
             .read()
@@ -320,6 +347,9 @@ impl PlatformSession {
     }
 
     /// Return the currently active page identity, if any.
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn active_page_identity(&self) -> Option<PageIdentity> {
         self.active_page.read().unwrap().clone()
     }
@@ -343,7 +373,7 @@ impl PlatformSession {
     pub fn update_online(&self, online: bool) -> bool {
         let changed = self.set_online(online) != online;
         if changed {
-            self.emit(SessionEvent::OnlineChanged(online));
+            self.emit(&SessionEvent::OnlineChanged(online));
         }
         changed
     }
@@ -373,7 +403,7 @@ impl PlatformSession {
         &self.capability_registry
     }
 
-    /// Access the ScriptInjector (F24). Resolved scripts are available
+    /// Access the `ScriptInjector` (F24). Resolved scripts are available
     /// via `resolve_all()`. Used at startup to eval runtime scripts into
     /// every webview.
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
@@ -405,7 +435,7 @@ impl PlatformSession {
         self.stream_registry.register(ipc);
     }
 
-    /// Register a portable WasmCapability (F23).
+    /// Register a portable `WasmCapability` (F23).
     ///
     /// These capabilities can be invoked from JS via `invokeCapability()`
     /// (which routes through `__ewe_capabilities`) or programmatically from
@@ -414,7 +444,7 @@ impl PlatformSession {
         self.wasm_capability_registry.register(cap);
     }
 
-    /// Look up a registered WasmCapability by name (F23).
+    /// Look up a registered `WasmCapability` by name (F23).
     ///
     /// Returns `None` if no capability is registered under that name.
     /// Route handlers use this for programmatic invocation.
@@ -422,10 +452,15 @@ impl PlatformSession {
         self.wasm_capability_registry.get(name)
     }
 
-    /// Invoke a WasmCapability through the registry (F23).
+    /// Invoke a `WasmCapability` through the registry (F23).
     ///
     /// Called by the `__ewe_capabilities` Tauri command. Performs name
     /// lookup and delegates to the capability's `invoke_capability()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError`] if the capability is not registered or
+    /// the invocation fails.
     pub fn invoke_wasm_capability(
         &self,
         request: &foundation_wasm::CapabilityRequest,
@@ -441,6 +476,10 @@ impl PlatformSession {
     /// Register a per-route responder. Called once at startup (or in tests).
     /// When a `RouteDecision` with `handler_id` is resolved, this responder's
     /// `respond()` is called instead of the central `BackendTransport`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register_responder(&self, handler_id: &str, responder: Box<dyn RouteResponder>) {
         self.handler_registry
             .write()
@@ -448,14 +487,18 @@ impl PlatformSession {
             .insert(handler_id.to_string(), responder);
     }
 
-    /// Look up a responder by handler_id. Returns `None` if not found.
+    /// Look up a responder by `handler_id`. Returns `None` if not found.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn get_responder(&self, handler_id: &str) -> Option<&dyn RouteResponder> {
         // SAFETY: Extending the lifetime of the Box<dyn> inside the RwLock.
         // The registry lives as long as the session, so this is safe.
         let guard = self.handler_registry.read().unwrap();
         guard
             .get(handler_id)
-            .map(|b| unsafe { &*(b.as_ref() as *const dyn RouteResponder) })
+            .map(|b| unsafe { &*std::ptr::from_ref::<dyn RouteResponder>(b.as_ref()) })
     }
 }
 
@@ -465,19 +508,19 @@ impl PlatformSession {
     /// Called when the app enters background.
     /// Emits `Background` event to all listeners.
     pub fn on_suspend(&self) {
-        self.emit(SessionEvent::Background);
+        self.emit(&SessionEvent::Background);
     }
 
     /// Called when the app enters foreground.
     /// Emits `Foreground` event to all listeners.
     pub fn on_resume(&self) {
-        self.emit(SessionEvent::Foreground);
+        self.emit(&SessionEvent::Foreground);
     }
 
     /// Called on app shutdown.
     /// Emits `Shutdown` event to all listeners.
     pub fn on_shutdown(&self) {
-        self.emit(SessionEvent::Shutdown);
+        self.emit(&SessionEvent::Shutdown);
     }
 }
 
@@ -487,6 +530,10 @@ impl PlatformSession {
     /// Register an event listener. The callback receives every session
     /// event. Return `true` to stay subscribed, `false` to unsubscribe
     /// after this event (one-shot listeners).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn on_event(&self, f: impl Fn(&SessionEvent) -> bool + Send + Sync + 'static) {
         self.event_listeners.write().unwrap().push(Box::new(f));
     }
@@ -494,11 +541,15 @@ impl PlatformSession {
     /// Emit an event to all registered listeners.
     /// Dead listeners (those that returned `false` on a previous call)
     /// are cleaned up during emission.
-    fn emit(&self, event: SessionEvent) {
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    fn emit(&self, event: &SessionEvent) {
         let mut listeners = self.event_listeners.write().unwrap();
         let mut i = 0;
         while i < listeners.len() {
-            let keep = (listeners[i])(&event);
+            let keep = (listeners[i])(event);
             if keep {
                 i += 1;
             } else {
@@ -508,6 +559,10 @@ impl PlatformSession {
     }
 
     /// Return the number of active event listeners.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn listener_count(&self) -> usize {
         self.event_listeners.read().unwrap().len()
     }

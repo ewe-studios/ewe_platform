@@ -30,8 +30,10 @@ pub mod streaming;
 pub trait PlatformIpc: foundation_wasm::ipc::Ipc {
     /// Execute the IPC with platform session context.
     ///
-    /// The session provides security gates, state access, registry lookups,
-    /// and route context. This is the primary invocation path on the platform.
+    /// # Errors
+    ///
+    /// Returns [`IpcError`] if the handler encounters a domain or platform-level
+    /// failure.
     fn invoke_with_session(
         &self,
         session: &PlatformSession,
@@ -39,8 +41,6 @@ pub trait PlatformIpc: foundation_wasm::ipc::Ipc {
     ) -> Result<IpcResponse<Vec<u8>>, IpcError>;
 
     /// Optional: serve this IPC as an HTTP route handler.
-    /// When `Some`, the IPC can be registered via
-    /// `session.register_route_with("/api/system/*", ipc_shell(), &handler)`.
     fn as_route_handler(&self) -> Option<&dyn RouteResponder> { None }
 }
 
@@ -58,20 +58,33 @@ impl IpcRegistry {
     }
 
     /// Register a platform IPC handler.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register<I: PlatformIpc + 'static>(&self, ipc: I) -> Option<Box<dyn PlatformIpc>> {
         self.handlers.write().unwrap().insert(ipc.name().to_string(), Box::new(ipc))
     }
 
     /// Look up an IPC by name. Returns the platform trait object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn PlatformIpc> {
         let guard = self.handlers.read().unwrap();
         guard.get(name).map(|b| {
-            unsafe { &*(b.as_ref() as *const dyn PlatformIpc) }
+            unsafe { &*std::ptr::from_ref::<dyn PlatformIpc>(b.as_ref()) }
         })
     }
 
     /// Invoke an IPC through the registry with session context.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IpcError::UnknownIpc`] if no handler is registered under
+    /// the given name, or the handler's error if invocation fails.
     pub fn invoke(
         &self,
         session: &PlatformSession,
@@ -83,6 +96,11 @@ impl IpcRegistry {
         }
     }
 
+    /// Return all registered IPC names.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.handlers.read().unwrap().keys().cloned().collect()
@@ -95,7 +113,7 @@ impl Default for IpcRegistry {
 
 // ── Convenience ────────────────────────────────────────────────────────
 
-/// Create an IPC route decision (IpcShell, TrustedRemote profile).
+/// Create an IPC route decision (`IpcShell`, `TrustedRemote` profile).
 #[must_use]
 pub fn ipc_route() -> RouteDecision {
     crate::route::ipc_shell()
@@ -106,7 +124,7 @@ pub fn ipc_route() -> RouteDecision {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_wasm::ipc::{IpcContentType, IpcKind, IpcRequest, IpcResponse};
+    use foundation_wasm::ipc::{IpcContentType, IpcKind};
 
     struct EchoIpc;
 

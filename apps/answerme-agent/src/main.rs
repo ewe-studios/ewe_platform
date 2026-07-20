@@ -1,32 +1,39 @@
-//! answerme-agent — interactive REPL backed by a Gemma-4 model via llama.cpp.
+//! answerme-agent — interactive REPL backed by a Gemma model via llama.cpp.
 //!
-//! Starts a `foundation_shell_repl` session, sends each user input to an
-//! `AgentSession` running on the local `gemma-4b` model, and prints the
-//! assistant's response back into the REPL.
+//! Starts a `foundation_repl` session, sends each user input to an
+//! `AgentSession` running on a local model, and prints the assistant's
+//! response back into the REPL.
 
-use std::sync::Arc;
+use std::path::PathBuf;
 
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, AgentProgress, ContextConfig, ErrorPolicy, MemoryConfig,
+    AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
-use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends, LlamaModels};
-use foundation_ai::backends::huggingface_gguf_provider::HuggingfaceGgufProvider;
-use foundation_ai::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, Stream};
-use foundation_ai::errors::AgenticError;
+use foundation_ai::harness::RouterMix;
+use foundation_ai::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
+use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::types::{Messages, ModelId, SessionId, SessionRecord};
+use foundation_ai::types::{ModelOutput, TextContent, UserModelContent};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
-use foundation_shell_repl::Repl;
+use foundation_repl::Repl;
+
+/// Model cache directory — defaults to the workspace `artefacts/models`,
+/// overridden at runtime by `ANSWERME_MODEL_DIR`.
+fn model_dir() -> PathBuf {
+    std::env::var("ANSWERME_MODEL_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../artefacts/models")
+                .canonicalize()
+                .unwrap_or_else(|e| panic!("model dir not found: {e}"))
+        })
+}
 
 fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
-        )
-        .init();
-
     let session_id = SessionId::new();
 
-    // Build the provider router with a local Gemma-4b model.
+    // Configure the local llama.cpp backend.
     let llama_config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)       // CPU-only; bump for GPU
         .context_length(4096)
@@ -34,45 +41,54 @@ fn main() {
         .n_threads(4)
         .build();
 
-    let provider = HuggingfaceGgufProvider::builder()
-        .repo("bartowski/gemma-2-2b-it-GGUF")
-        .filename("gemma-2-2b-it-Q4_K_M.gguf")
+    // Configure the HuggingFace GGUF provider with our model cache dir.
+    let hf_config = HuggingFaceGGUFConfig::builder()
+        .cache_dir(model_dir())
         .llama_backend(LlamaBackends::LLamaCPU)
         .llama_config(llama_config)
-        .build()
-        .unwrap();
-
-    let router = ProviderRouter::builder()
-        .model(ModelId::Name("gemma-2-2b-it".into(), None), Arc::new(provider))
         .build();
 
-    // Build the agent session.
-    let session: AgentSession<MemoryDocumentStore, foundation_ai::agentic::KvMemoryStore> =
-        AgentSession::builder(session_id, router)
-            .with_system_prompt("You are a helpful assistant. Be concise and direct.")
-            .with_model(ModelId::Name("gemma-2-2b-it".into(), None))
-            .with_config(AgentConfig {
-                primary_model: ModelId::Name("gemma-2-2b-it".into(), None),
-                ..Default::default()
-            })
-            .with_context_config(ContextConfig::default())
-            .with_memory_config(MemoryConfig::default())
-            .with_error_policy(ErrorPolicy::new())
-            .build()
-            .expect("failed to build agent session");
+    let provider = HuggingFaceGGUFProvider::new(hf_config)
+        .expect("failed to initialize GGUF provider");
+
+    let model_id = ModelId::Name("gemma-2-2b-it".into(), None);
+
+    // Build the router preset and agent session.
+    let preset = RouterMix::new().primary(provider, model_id.clone()).build();
+    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> = preset
+        .into_agent_builder(session_id)
+        .with_system_prompt("You are a helpful assistant. Be concise and direct.")
+        .with_model(model_id.clone())
+        .with_config(AgentConfig {
+            primary_model: model_id.clone(),
+            ..Default::default()
+        })
+        .with_context_config(ContextConfig::default())
+        .with_memory_config(MemoryConfig::default())
+        .with_error_policy(ErrorPolicy::new())
+        .build()
+        .expect("failed to build agent session");
 
     // Launch the REPL.
     let mut repl = Repl::builder()
         .prompt("| ")
         .continuation_prompt("|... ")
-        .banner("answerme-agent — Gemma-4b local session\nType /help for commands, /exit to quit.\n")
+        .banner("answerme-agent — Gemma-2-2b local session\nType /help for commands, /exit to quit.\n")
         .goodbye("Goodbye!")
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-2-2b-it)".into());
 
     for input in repl.messages() {
-        let prompt = Messages::user(&input);
+        let prompt = Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
+            content: foundation_ai::types::UserModelContent::Text(TextContent {
+                content: input,
+                signature: None,
+            }),
+            signature: None,
+        };
 
         match session.run_turn(prompt) {
             Ok(records) => {
@@ -92,10 +108,8 @@ fn extract_assistant_text(records: &[SessionRecord]) -> String {
     for record in records {
         if let SessionRecord::Conversation { message } = record {
             if let Messages::Assistant { content, .. } = message {
-                for item in content {
-                    if let foundation_ai::types::TextContent::Text(t) = item {
-                        parts.push(t.text.clone());
-                    }
+                if let ModelOutput::Text(text) = content {
+                    parts.push(text.content.clone());
                 }
             }
         }

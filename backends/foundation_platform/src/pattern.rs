@@ -17,7 +17,7 @@
 
 use std::fmt;
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{RouteDecision, NavigationIntent};
 
 // ── Pattern ──────────────────────────────────────────────────────────
 
@@ -96,6 +96,7 @@ impl Pattern {
     /// the pattern matches, or `None` if it doesn't. For `/app/*` matching
     /// `/app/v1/something`, returns `"v1/something"`. For exact matches
     /// (no wildcards), returns an empty string.
+    #[must_use]
     pub fn match_suffix(&self, path: &str) -> Option<String> {
         let path_segments: Vec<&str> = path
             .trim_matches('/')
@@ -107,6 +108,7 @@ impl Pattern {
         Some(path_segments[consumed..].join("/"))
     }
 
+    #[allow(clippy::similar_names)]
     fn match_count(&self, path: &[&str], pat_idx: usize, path_idx: usize) -> Option<usize> {
         if pat_idx >= self.segments.len() {
             return Some(path_idx); // fully matched, return consumed count
@@ -143,6 +145,7 @@ impl Pattern {
     ///
     /// The path may or may not have a leading `/` — both are accepted.
     /// Empty path segments (from double slashes) are skipped.
+    #[must_use]
     pub fn matches(&self, path: &str) -> bool {
         let path_segments: Vec<&str> = path
             .trim_matches('/')
@@ -154,6 +157,7 @@ impl Pattern {
     }
 
     /// Recursive matching with backtracking for `**`.
+    #[allow(clippy::similar_names)]
     fn match_recursive(&self, path: &[&str], pat_idx: usize, path_idx: usize) -> bool {
         // All pattern segments consumed — path must also be fully consumed.
         if pat_idx >= self.segments.len() {
@@ -239,12 +243,15 @@ impl std::error::Error for PatternError {}
 
 /// Declarative route pattern table. Implements `RouteHandler` — iterates
 /// registered patterns in registration order, returns the first match.
+#[derive(Default)]
 pub struct PatternRouter {
     patterns: Vec<(Pattern, RouteDecision)>,
 }
 
+#[allow(clippy::similar_names)]
 impl PatternRouter {
     /// Create an empty pattern router.
+    #[must_use]
     pub fn new() -> Self {
         Self { patterns: Vec::new() }
     }
@@ -266,6 +273,7 @@ impl PatternRouter {
     /// Try to match a URL path against registered patterns.
     /// Returns the decision from the first matching pattern with `sub_path` set
     /// to the portion of the URL after the matched prefix, or `None`.
+    #[must_use]
     pub fn resolve_path(&self, path: &str) -> Option<RouteDecision> {
         for (pattern, decision) in &self.patterns {
             if let Some(suffix) = pattern.match_suffix(path) {
@@ -279,6 +287,7 @@ impl PatternRouter {
 
     /// Try to match a navigation intent against registered patterns.
     /// Extracts the path from the URL and calls `resolve_path`.
+    #[must_use]
     pub fn resolve_intent(&self, intent: &NavigationIntent) -> Option<RouteDecision> {
         let path = extract_path(&intent.url);
         self.resolve_path(&path)
@@ -305,6 +314,7 @@ impl crate::route_handler::RouteHandler for PatternRouter {
 /// assert_eq!(extract_path("https://example.com/remote/dashboard"), "/remote/dashboard");
 /// assert_eq!(extract_path("/app/items"), "/app/items");
 /// ```
+#[must_use]
 pub fn extract_path(url: &str) -> String {
     // Find first '/' after scheme + authority, or use as-is for bare paths.
     if let Some(scheme_end) = url.find("://") {

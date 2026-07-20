@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
 pub struct AppDistribution {
@@ -6,6 +7,11 @@ pub struct AppDistribution {
     pub route_prefix: String,
 }
 
+/// Scan the project for WASM app crates and generate platform glue code.
+///
+/// # Panics
+///
+/// Panics if `CARGO_MANIFEST_DIR` is not set.
 pub fn generate_platform_code() {
     let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let project_root = manifest_dir.parent().unwrap().to_path_buf();
@@ -19,11 +25,11 @@ pub fn generate_platform_code() {
         apps.push(AppDistribution { name: "app".into(), crate_dir: app_dir, route_prefix: "/app/".into() });
     }
     if let Ok(entries) = std::fs::read_dir(&project_root) {
-        for e in entries.filter_map(|e| e.ok()) {
+        for e in entries.filter_map(std::result::Result::ok) {
             let p = e.path();
             let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
             if n.starts_with("app-") && p.is_dir() && p.join("Cargo.toml").exists() {
-                apps.push(AppDistribution { name: n.clone(), crate_dir: p, route_prefix: format!("/{}/", n) });
+                apps.push(AppDistribution { name: n.clone(), crate_dir: p, route_prefix: format!("/{n}/") });
             }
         }
     }
@@ -47,12 +53,22 @@ pub fn generate_platform_code() {
     tauri_build::build();
 }
 
+/// Build all discovered WASM app bundles.
+///
+/// # Panics
+///
+/// Panics if a WASM app build fails.
 pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
     for app in apps {
         build_wasm_app(&app.crate_dir, &public_dir.join(&app.name));
     }
 }
 
+/// Build a single WASM app from its crate directory.
+///
+/// # Panics
+///
+/// Panics if the WASM build pipeline fails.
 pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     use foundation_wasm_ui::build_tools::WasmBundleGenerator;
 
@@ -80,6 +96,11 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     ]);
 }
 
+/// Generate per-app Rust module files inside `generated/`.
+///
+/// # Panics
+///
+/// Panics if file I/O fails.
 fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     let mut mod_lines = String::from("// Auto-generated\n\n");
     for app in apps {
@@ -98,7 +119,7 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
              name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
         );
         std::fs::write(generated_dir.join(format!("{module_name}.rs")), &content).ok();
-        mod_lines.push_str(&format!("pub mod {module_name};\n"));
+        let _ = writeln!(mod_lines, "pub mod {module_name};");
     }
     std::fs::write(generated_dir.join("mod.rs"), &mod_lines).ok();
     println!("cargo:warning=generated {} app modules", apps.len());
@@ -109,7 +130,7 @@ fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
     if let Ok(content) = std::fs::read_to_string(&conf_path) {
         // Parse the JSON, add url to the first window, write back
         if let Ok(mut val) = serde_json::from_str::<serde_json::Value>(&content) {
-            let target_url = format!("ewe://localhost{}", route_prefix);
+            let target_url = format!("ewe://localhost{route_prefix}");
             if let Some(windows) = val.get_mut("app")
                 .and_then(|a| a.get_mut("windows"))
                 .and_then(|w| w.as_array_mut())
@@ -133,13 +154,14 @@ fn mode_str(k: AnnotationKind) -> &'static str {
     match k { AnnotationKind::WasmBin => "wasm_bin", AnnotationKind::WasmWorker => "wasm_worker", AnnotationKind::WasmService => "wasm_service", AnnotationKind::PlatformBin => "platform_bin" }
 }
 
+#[must_use]
 pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
     let mut v = Vec::new();
     let Ok(es) = std::fs::read_dir(dir) else { return v };
-    for e in es.filter_map(|e| e.ok()) {
+    for e in es.filter_map(std::result::Result::ok) {
         let p = e.path();
-        if p.is_dir() && p.file_name().map_or(false, |n| n != "target" && !n.to_string_lossy().starts_with('.')) { v.extend(scan_for_annotations(&p)); }
-        else if p.extension().map_or(false, |x| x == "rs") {
+        if p.is_dir() && p.file_name().is_some_and(|n| n != "target" && !n.to_string_lossy().starts_with('.')) { v.extend(scan_for_annotations(&p)); }
+        else if p.extension().is_some_and(|x| x == "rs") {
             if let Ok(c) = std::fs::read_to_string(&p) {
                 let ls: Vec<&str> = c.lines().collect();
                 for i in 0..ls.len() {
@@ -149,11 +171,11 @@ pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
                     else if t.starts_with("#[wasm_service") { Some(AnnotationKind::WasmService) }
                     else if t.starts_with("#[platform_bin") { Some(AnnotationKind::PlatformBin) }
                     else { None };
-                    if kind.is_some() {
+                    if let Some(k) = kind {
                         let name = (i..ls.len()).find_map(|j| ls[j].find("fn ").map(|p2| {
                             ls[j][p2+3..].split(|c: char| !c.is_alphanumeric() && c != '_').find(|s| !s.is_empty()).unwrap_or("unknown").to_string()
                         }));
-                        if let Some(n) = name { v.push(Annotation { name: n, kind: kind.unwrap(), file: p.clone(), target: String::from("unknown") }); }
+                        if let Some(n) = name { v.push(Annotation { name: n, kind: k, file: p.clone(), target: String::from("unknown") }); }
                     }
                 }
             }

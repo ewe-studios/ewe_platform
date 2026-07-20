@@ -5,11 +5,11 @@
 //! The session dispatches here after the handler chain resolves and
 //! cache check passes.
 //!
-//! - WebviewApp: signal in-WebView WASM code via transport
-//! - IpcShell: dispatch to native shell via Tauri command IPC
-//! - RemoteServer: fetch from remote via HTTP
+//! - `WebviewApp`: signal in-WebView WASM code via transport
+//! - `IpcShell`: dispatch to native shell via Tauri command IPC
+//! - `RemoteServer`: fetch from remote via HTTP
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{RouteDecision, RouteSource};
 
 // ── Backend transport trait ─────────────────────────────────────────────
 
@@ -19,17 +19,17 @@ use foundation_ui_traits::*;
 /// `AppHandle`-backed transport. The session delegates to whichever
 /// transport is registered.
 pub trait BackendTransport: Send + Sync + 'static {
-    /// Signal the WASM app running inside the WebView. The platform
-    /// returns a JSON signal envelope that the WebView's bootstrap JS
+    /// Signal the WASM app running inside the `WebView`. The platform
+    /// returns a JSON signal envelope that the `WebView`'s bootstrap JS
     /// dispatches to the WASM app's route handler.
     fn signal_webview(&self, route: &str) -> Vec<u8>;
 
     /// Dispatch to the native shell via Tauri command IPC.
-    /// `target` names the wasm_app instance; `None` means the root shell.
+    /// `target` names the `wasm_app` instance; `None` means the root shell.
     fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8>;
 
     /// Fetch content from a remote server over HTTP.
-    /// Auth tokens are attached by the shell — they never enter the WebView.
+    /// Auth tokens are attached by the shell — they never enter the `WebView`.
     fn fetch_remote(&self, route: &str) -> Vec<u8>;
 }
 
@@ -77,7 +77,7 @@ impl BackendTransport for DefaultTransport {
 
 // ── Backend-aware query ─────────────────────────────────────────────────
 
-/// Resolve a RouteSource to content bytes through the registered transport.
+/// Resolve a `RouteSource` to content bytes through the registered transport.
 /// Called after cache check determines we need fresh content.
 pub fn query_backend(
     transport: &dyn BackendTransport,
@@ -96,13 +96,18 @@ pub static DEFAULT_TRANSPORT: DefaultTransport = DefaultTransport;
 
 // ── Closure-based transport ──────────────────────────────────────────────
 
+type WasmQueryFn = Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>;
+type IpcQueryFn = Box<dyn Fn(Option<&str>, &str) -> Vec<u8> + Send + Sync>;
+type RemoteQueryFn = Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>;
+
 /// A [`BackendTransport`] built from closures. The Tauri setup hook
 /// constructs this with closures that capture the `AppHandle` for real
 /// IPC dispatch and HTTP fetch.
+#[allow(clippy::struct_field_names)]
 pub struct ClosureTransport {
-    wasm_fn: Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>,
-    ipc_fn: Box<dyn Fn(Option<&str>, &str) -> Vec<u8> + Send + Sync>,
-    remote_fn: Box<dyn Fn(&str) -> Vec<u8> + Send + Sync>,
+    wasm: WasmQueryFn,
+    ipc: IpcQueryFn,
+    remote: RemoteQueryFn,
 }
 
 impl ClosureTransport {
@@ -112,28 +117,29 @@ impl ClosureTransport {
         remote: impl Fn(&str) -> Vec<u8> + Send + Sync + 'static,
     ) -> Self {
         Self {
-            wasm_fn: Box::new(wasm),
-            ipc_fn: Box::new(ipc),
-            remote_fn: Box::new(remote),
+            wasm: Box::new(wasm),
+            ipc: Box::new(ipc),
+            remote: Box::new(remote),
         }
     }
 }
 
 impl BackendTransport for ClosureTransport {
     fn signal_webview(&self, route: &str) -> Vec<u8> {
-        (self.wasm_fn)(route)
+        (self.wasm)(route)
     }
 
     fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {
-        (self.ipc_fn)(target, route)
+        (self.ipc)(target, route)
     }
 
     fn fetch_remote(&self, route: &str) -> Vec<u8> {
-        (self.remote_fn)(route)
+        (self.remote)(route)
     }
 }
 
 /// A test transport that returns controlled responses per mode.
+#[allow(clippy::struct_field_names, dead_code)]
 pub struct TestTransport {
     wasm_response: Vec<u8>,
     ipc_response: Vec<u8>,
@@ -142,7 +148,14 @@ pub struct TestTransport {
     pub remote_calls: std::sync::Mutex<Vec<String>>,
 }
 
+impl Default for TestTransport {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestTransport {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             wasm_response: b"wasm-rendered".to_vec(),
@@ -153,6 +166,7 @@ impl TestTransport {
         }
     }
 
+    #[must_use]
     pub fn with_remote(mut self, response: &[u8]) -> Self {
         self.remote_response = response.to_vec();
         self
@@ -161,7 +175,7 @@ impl TestTransport {
 
 impl BackendTransport for TestTransport {
     fn signal_webview(&self, route: &str) -> Vec<u8> {
-        format!("wasm:{}", route).into_bytes()
+        format!("wasm:{route}").into_bytes()
     }
 
     fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8> {

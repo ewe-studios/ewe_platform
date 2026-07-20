@@ -1,26 +1,26 @@
 //! Single-WebView stack manager (v1 — Basecamp model).
 //!
-//! One shared WebView per window. Screenshots captured on deactivation,
+//! One shared `WebView` per window. Screenshots captured on deactivation,
 //! displayed instantly on back navigation. Navigation flows: push, pop,
 //! morph, replace, root.
 //!
 //! Multi-WebView (desktop+unstable) is post-MVP per decision 10.
 //!
-//! WebView operations (navigate, screenshot, eval) are behind a trait
+//! `WebView` operations (navigate, screenshot, eval) are behind a trait
 //! so the stack manager can be unit tested without a running Tauri app.
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::PageIdentity;
 
 // ── WebView trait (testable abstraction) ─────────────────────────────
 
-/// Operations the stack manager needs from a WebView.
+/// Operations the stack manager needs from a `WebView`.
 /// Trait lets us unit-test navigation logic without a running Tauri app.
 pub trait WebViewOps: Send + Sync + 'static {
-    /// Navigate the WebView to a URL.
+    /// Navigate the `WebView` to a URL.
     fn navigate(&self, url: &str);
     /// Capture a screenshot as PNG bytes.
     fn screenshot(&self) -> Vec<u8>;
-    /// Execute JavaScript in the WebView.
+    /// Execute JavaScript in the `WebView`.
     fn eval(&self, script: &str);
     /// Reload the current page.
     fn reload(&self);
@@ -30,15 +30,15 @@ pub trait WebViewOps: Send + Sync + 'static {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SlotState {
-    /// Screenshot-only. No live WebView. Shows a frozen image.
+    /// Screenshot-only. No live `WebView`. Shows a frozen image.
     Screenshot,
-    /// WebView is loading in the background.
+    /// `WebView` is loading in the background.
     Preloading,
-    /// WebView is loaded and ready but not visible.
+    /// `WebView` is loaded and ready but not visible.
     Ready,
-    /// WebView is visible and active.
+    /// `WebView` is visible and active.
     Active,
-    /// WebView is being transitioned (animation in progress).
+    /// `WebView` is being transitioned (animation in progress).
     Transitioning,
 }
 
@@ -54,6 +54,7 @@ pub struct WebViewSlot {
 }
 
 impl WebViewSlot {
+    #[must_use]
     pub fn new(route: &str) -> Self {
         Self {
             route: route.to_string(),
@@ -98,7 +99,7 @@ impl Default for StackConfig {
 
 // ── WebView stack ────────────────────────────────────────────────────
 
-/// Manages a navigation stack of `WebViewSlot`s with a shared WebView.
+/// Manages a navigation stack of `WebViewSlot`s with a shared `WebView`.
 /// v1: Basecamp single-WebView + screenshot model.
 pub struct WebViewStack {
     slots: Vec<WebViewSlot>,
@@ -109,6 +110,7 @@ pub struct WebViewStack {
 }
 
 impl WebViewStack {
+    #[must_use]
     pub fn new(config: StackConfig) -> Self {
         Self {
             slots: Vec::new(),
@@ -124,16 +126,19 @@ impl WebViewStack {
     }
 
     /// Number of slots in the stack.
+    #[must_use]
     pub fn depth(&self) -> usize {
         self.slots.len()
     }
 
     /// The currently active slot index.
+    #[must_use]
     pub fn active(&self) -> usize {
         self.active_index
     }
 
     /// Get the active slot's route.
+    #[must_use]
     pub fn active_route(&self) -> Option<&str> {
         self.slots.get(self.active_index).map(|s| s.route.as_str())
     }
@@ -145,7 +150,7 @@ impl WebViewStack {
     /// 1. Capture screenshot of current active screen
     /// 2. Deactivate current: state → Screenshot
     /// 3. Create new slot, set Active
-    /// 4. Navigate shared WebView to new route
+    /// 4. Navigate shared `WebView` to new route
     pub fn push(
         &mut self,
         route: &str,
@@ -156,7 +161,7 @@ impl WebViewStack {
             let ss = webview.screenshot();
             slot.set_screenshot(ss);
             slot.state = SlotState::Screenshot;
-            self.screenshot_bytes += slot.screenshot.as_ref().map_or(0, |s| s.len());
+            self.screenshot_bytes += slot.screenshot.as_ref().map_or(0, std::vec::Vec::len);
         }
 
         // 2. Create new slot
@@ -178,7 +183,7 @@ impl WebViewStack {
     ///
     /// 1. Drop the top slot
     /// 2. Previous slot has a screenshot → show it instantly
-    /// 3. Navigate WebView to the previous route
+    /// 3. Navigate `WebView` to the previous route
     /// 4. If content is stale → reload after visible
     pub fn pop(&mut self, webview: &dyn WebViewOps) -> Option<String> {
         if self.slots.len() <= 1 {
@@ -188,7 +193,7 @@ impl WebViewStack {
         // Drop top slot, free its screenshot memory
         if let Some(top) = self.slots.get(self.active_index) {
             self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                top.screenshot.as_ref().map_or(0, |s| s.len()),
+                top.screenshot.as_ref().map_or(0, std::vec::Vec::len),
             );
         }
         self.slots.pop();
@@ -218,7 +223,7 @@ impl WebViewStack {
     // ── Navigation: morph ─────────────────────────────────────────
 
     /// Replace the current screen's content in-place. No stack change.
-    /// The WebView stays active; only the route changes.
+    /// The `WebView` stays active; only the route changes.
     pub fn morph(&mut self, route: &str, webview: &dyn WebViewOps) {
         if let Some(slot) = self.slots.get_mut(self.active_index) {
             slot.route = route.to_string();
@@ -267,7 +272,7 @@ impl WebViewStack {
     pub fn mark_screenshot_stale(&mut self, index: usize) {
         if let Some(slot) = self.slots.get_mut(index) {
             self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                slot.screenshot.as_ref().map_or(0, |s| s.len()),
+                slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
             );
             slot.clear_screenshot();
         }
@@ -284,7 +289,7 @@ impl WebViewStack {
                 .find(|s| s.screenshot.is_some());
             if let Some(slot) = evicted {
                 self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                    slot.screenshot.as_ref().map_or(0, |s| s.len()),
+                    slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
                 );
                 slot.clear_screenshot();
             } else {
@@ -298,11 +303,13 @@ impl WebViewStack {
     }
 
     /// Return total screenshot memory usage in bytes.
+    #[must_use]
     pub fn screenshot_memory_usage(&self) -> usize {
         self.screenshot_bytes
     }
 
     /// Get a reference to all slots (for inspection in tests).
+    #[must_use]
     pub fn slots(&self) -> &[WebViewSlot] {
         &self.slots
     }

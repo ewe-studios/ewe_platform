@@ -5,7 +5,9 @@
 
 use std::collections::HashMap;
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{NavigationIntent, IntentSource, Method, RouteDecision, RouteSource, ProtocolHint, Protocol};
+#[allow(unused_imports)]
+use foundation_ui_traits::{Presentation, ViewKind, CachePolicy, Profile};
 use tauri::{
     http::{header, Request, Response, StatusCode},
     Manager, UriSchemeContext,
@@ -16,6 +18,7 @@ use crate::session::PlatformSession;
 // ── ewe:// registration ──────────────────────────────────────────────
 
 /// Register `ewe://` with Tauri. One scheme, no sub-schemes.
+#[allow(clippy::needless_pass_by_value)]
 pub fn register_ewe_protocol<R: tauri::Runtime>(
     builder: tauri::Builder<R>,
 ) -> tauri::Builder<R> {
@@ -23,6 +26,7 @@ pub fn register_ewe_protocol<R: tauri::Runtime>(
 }
 
 /// The handler for every `ewe://` request.
+#[allow(clippy::needless_pass_by_value, clippy::match_same_arms)]
 fn ewe_handler<R: tauri::Runtime>(
     ctx: UriSchemeContext<'_, R>,
     request: Request<Vec<u8>>,
@@ -99,6 +103,11 @@ pub struct EweUrl {
 }
 
 impl EweUrl {
+    /// Parse an `ewe://` URI into an `EweUrl`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the URI is not a valid `ewe://` URL.
     pub fn parse(uri: &str) -> Result<Self, String> {
         // Accept ewe://<any-host>/path — strip the scheme+authority.
         let without_scheme = uri
@@ -281,6 +290,8 @@ mod mode_page_tests {
 // ── Protocol selection ────────────────────────────────────────────────
 
 /// Select wire protocol. Priority: decision hint → query param → detect → default.
+#[must_use]
+#[allow(clippy::needless_pass_by_value)]
 pub fn select_protocol(
     decision_hint: &ProtocolHint,
     query_hint: Option<&String>,
@@ -300,6 +311,8 @@ pub fn select_protocol(
     Protocol::Columnar
 }
 
+#[must_use]
+#[allow(clippy::match_same_arms)]
 pub fn protocol_from_hint(hint: &ProtocolHint) -> Protocol {
     match hint {
         ProtocolHint::Columnar => Protocol::Columnar,
@@ -311,6 +324,7 @@ pub fn protocol_from_hint(hint: &ProtocolHint) -> Protocol {
     }
 }
 
+#[must_use]
 pub fn protocol_from_query(hint: &str) -> Option<Protocol> {
     match hint {
         "columnar" => Some(Protocol::Columnar),
@@ -341,6 +355,8 @@ fn detect_protocol(content: &[u8]) -> Option<Protocol> {
 // ── Protocol encoding ─────────────────────────────────────────────────
 
 /// Encode bytes with the correct Content-Type.
+#[must_use]
+#[allow(clippy::needless_pass_by_value)]
 pub fn encode_protocol(protocol: &Protocol, content: &[u8]) -> (Vec<u8>, &'static str) {
     (content.to_vec(), protocol.content_type())
 }
@@ -359,11 +375,12 @@ pub enum Transport {
 }
 
 /// Transport implied by route source.
+#[must_use]
+#[allow(clippy::needless_pass_by_value)]
 pub fn transport_for_source(source: RouteSource) -> Transport {
     match source {
-        RouteSource::WebviewApp => Transport::CustomProtocol,
         RouteSource::IpcShell => Transport::CommandIpc,
-        RouteSource::RemoteServer => Transport::CustomProtocol,
+        RouteSource::WebviewApp | RouteSource::RemoteServer => Transport::CustomProtocol,
     }
 }
 

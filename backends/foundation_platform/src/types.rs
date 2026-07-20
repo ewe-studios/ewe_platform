@@ -1,5 +1,5 @@
 //! F05 native capability request/response types — carry `serde_json::Value`
-//! payloads which don't belong in `foundation_wasm` (no_std).
+//! payloads which don't belong in `foundation_wasm` (`no_std`).
 //!
 //! F23 moved portable bytes-based types to `foundation_wasm::capability`.
 //! These are renamed with the `Native` prefix to avoid collision.
@@ -16,7 +16,7 @@ pub struct NativeCapabilityRequest {
     /// Which page made the request (for stale-page guard).
     pub page_identity: PageIdentity,
 
-    /// The capability being invoked (e.g. "camera", "biometric_auth").
+    /// The capability being invoked (e.g. "camera", "`biometric_auth`").
     pub capability: String,
 
     /// What action to perform (e.g. "capture", "authenticate").

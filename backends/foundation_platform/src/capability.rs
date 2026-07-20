@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{CapabilityId, Profile, RouteDecision};
 
 use crate::profiles::{Access, ProfileGate, Service};
 use crate::session::PlatformSession;
@@ -28,13 +28,17 @@ use crate::types::{NativeCapabilityRequest, NativeCapabilityResponse};
 /// For portable (wasm32+native) capabilities, use
 /// `foundation_wasm::WasmCapability` (F23).
 pub trait NativeCapability: Send + Sync + 'static {
-    /// Unique identifier (e.g. "camera", "biometric_auth").
+    /// Unique identifier (e.g. "camera", "`biometric_auth`").
     fn id(&self) -> &CapabilityId;
 
-    /// Minimum WebView profile required to invoke this capability.
+    /// Minimum `WebView` profile required to invoke this capability.
     fn min_profile(&self) -> Profile;
 
     /// Execute the capability with the given action and payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the capability execution fails.
     fn execute(
         &self,
         session: &PlatformSession,
@@ -45,13 +49,14 @@ pub trait NativeCapability: Send + Sync + 'static {
 
 // ── Capability registry (on PlatformSession) ───────────────────────────
 
-/// Registry of all registered native capabilities (F05). Wrapped in RwLock
+/// Registry of all registered native capabilities (F05). Wrapped in `RwLock`
 /// for thread-safe concurrent access.
 pub struct NativeCapabilityRegistry {
     handlers: RwLock<HashMap<String, Box<dyn NativeCapability>>>,
 }
 
 impl NativeCapabilityRegistry {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             handlers: RwLock::new(HashMap::new()),
@@ -59,6 +64,10 @@ impl NativeCapabilityRegistry {
     }
 
     /// Register a native capability. Called at startup.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn register(&self, cap: impl NativeCapability) {
         self.handlers
             .write()
@@ -67,6 +76,10 @@ impl NativeCapabilityRegistry {
     }
 
     /// Invoke a capability through the full five-layer defense chain.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn invoke(
         &self,
         session: &PlatformSession,
@@ -87,15 +100,13 @@ impl NativeCapabilityRegistry {
         let guard = self.handlers.read().unwrap();
 
         // Layer 2: Look up the capability handler
-        let handler = match guard.get(&request.capability) {
-            Some(h) => h,
-            None => return respond(Err(format!("unknown capability: {}", request.capability))),
+        let Some(handler) = guard.get(&request.capability) else {
+            return respond(Err(format!("unknown capability: {}", request.capability)));
         };
 
         // Layer 3: Profile-level gate
         let profile = current_route
-            .map(|r| r.profile)
-            .unwrap_or(Profile::UntrustedRemote);
+            .map_or(Profile::UntrustedRemote, |r| r.profile);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
             return respond(Err(e.to_string()));
@@ -172,6 +183,7 @@ impl NativeCapability for TestNativeCap {
 }
 
 /// Create a test registry with a camera capability registered.
+#[must_use]
 pub fn test_native_registry() -> NativeCapabilityRegistry {
     let reg = NativeCapabilityRegistry::new();
     reg.register(TestNativeCap {

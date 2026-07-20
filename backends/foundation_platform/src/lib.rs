@@ -1,7 +1,7 @@
 //! `foundation_platform` — Tauri-based cross-platform coordination layer.
 //!
 //! Wraps `tauri::Builder` with a session backbone, route policy engine,
-//! capability registry, cache manager, transport lanes, and WebView stack
+//! capability registry, cache manager, transport lanes, and `WebView` stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 pub mod backend;
@@ -42,7 +42,7 @@ pub use types::{NativeCapabilityRequest, NativeCapabilityResponse};
 pub use foundation_ui_traits::*;
 
 
-/// Build and launch a foundation_platform app.
+/// Build and launch a `foundation_platform` app.
 ///
 /// Wraps `PlatformBuilder::build()` with `tauri::generate_context!()` called
 /// internally. The user never touches Tauri directly.

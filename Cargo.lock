@@ -238,9 +238,9 @@ name = "answerme-agent"
 version = "0.0.1"
 dependencies = [
  "foundation_ai",
- "foundation_shell_repl",
- "tracing",
- "tracing-subscriber",
+ "foundation_compact",
+ "foundation_db",
+ "foundation_repl",
 ]
 
 [[package]]
@@ -5201,6 +5201,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_repl"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "js-sys",
+ "serde",
+ "serde_json",
+ "web-sys",
+]
+
+[[package]]
 name = "foundation_runtimes"
 version = "0.0.3"
 dependencies = [
@@ -5227,17 +5238,6 @@ dependencies = [
  "tracing",
  "tracing-test",
  "uuid",
-]
-
-[[package]]
-name = "foundation_shell_repl"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "js-sys",
- "serde",
- "serde_json",
- "web-sys",
 ]
 
 [[package]]

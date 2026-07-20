@@ -14,9 +14,9 @@ foundation_ai = {
     version="0.0.1",
     features=["multi"],
 }
-foundation_shell_repl = { path = "../../backends/foundation_shell_repl" }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+foundation_compact = { path = "../../backends/foundation_compact" }
+foundation_db = { path = "../../backends/foundation_db" }
+foundation_repl = { path = "../../backends/foundation_repl" }
 
 [lints]
 workspace = true

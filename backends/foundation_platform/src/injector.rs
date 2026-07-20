@@ -84,10 +84,10 @@ impl ScriptInjector {
                 ScriptSource::Disk { relative_path } => {
                     let full_path = self.resource_root.join(relative_path);
                     if full_path.exists() && full_path.is_file() {
-                        match std::fs::read_to_string(&full_path) {
-                            Ok(content) => return Some(content),
-                            Err(_) => {} // unreadable → try next source
+                        if let Ok(content) = std::fs::read_to_string(&full_path) {
+                            return Some(content);
                         }
+                        // unreadable → try next source
                     }
                 }
                 ScriptSource::Static { source } => {
@@ -108,7 +108,7 @@ impl ScriptInjector {
             .collect()
     }
 
-    /// Create a ScriptInjector pre-loaded with the four standard platform
+    /// Create a `ScriptInjector` pre-loaded with the four standard platform
     /// runtime scripts: scheme interceptor, foundation-wasm, foundation-wasm-ui,
     /// and capability bridge. Each has a disk → static fallback chain.
     #[must_use]

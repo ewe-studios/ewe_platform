@@ -1,10 +1,10 @@
-//! RouteHandler trait and FnRouteHandler closure wrapper.
+//! `RouteHandler` trait and `FnRouteHandler` closure wrapper.
 //!
 //! NON-GENERIC — `PlatformSession` has no `R: Runtime` parameter.
-//! Three API surfaces compose together (trait impl, closure, PatternRouter),
+//! Three API surfaces compose together (trait impl, closure, `PatternRouter`),
 //! all implementing this single trait.
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{NavigationIntent, RouteDecision};
 use crate::session::PlatformSession;
 
 /// Route policy is code. Handlers return `Some(decision)` to claim

@@ -1,4 +1,4 @@
-//! Cache tiers — per-route cache with foundation_db StorageProvider backend.
+//! Cache tiers — per-route cache with `foundation_db` `StorageProvider` backend.
 //!
 //! Two-tier offline model from decision 05:
 //!   Tier 1: Local WASM execution (offline by default — no cache needed)
@@ -7,21 +7,21 @@
 //! Protocol-transparent: stores responses as-encoded (same bytes, same
 //! Content-Type). Replay is identical to the original response.
 //!
-//! Profile-scoped: UntrustedRemote pages cannot read App cache entries.
-//! Backends: MemoryCacheStorage (tests), DbCacheStorage (foundation_db).
+//! Profile-scoped: `UntrustedRemote` pages cannot read App cache entries.
+//! Backends: `MemoryCacheStorage` (tests), `DbCacheStorage` (`foundation_db`).
 
 use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use foundation_ui_traits::*;
+use foundation_ui_traits::{Profile, RouteDecision, CachePolicy};
 
 use crate::session::PlatformSession;
 
 // ── Storage trait ────────────────────────────────────────────────────
 
-/// Backend storage for cached responses. Default is MemoryCacheStorage.
-/// Swappable for foundation_db::StorageProvider via DbCacheStorage.
+/// Backend storage for cached responses. Default is `MemoryCacheStorage`.
+/// Swappable for `foundation_db::StorageProvider` via `DbCacheStorage`.
 pub trait CacheStorage: Send + Sync + 'static {
     fn get(&self, key: &str) -> Option<CachedEntry>;
     fn set(&self, key: &str, entry: CachedEntry);
@@ -36,6 +36,7 @@ pub struct MemoryCacheStorage {
 }
 
 impl MemoryCacheStorage {
+    #[must_use]
     pub fn new() -> Self {
         Self { data: RwLock::new(HashMap::new()) }
     }
@@ -67,6 +68,7 @@ pub struct CachedEntry {
 }
 
 impl CachedEntry {
+    #[must_use]
     pub fn new(body: Vec<u8>, content_type: &str, profile: Profile) -> Self {
         let cached_at = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -89,12 +91,13 @@ impl CacheManager {
         Self { storage: Box::new(storage) }
     }
 
+    #[must_use]
     pub fn in_memory() -> Self {
         Self::new(MemoryCacheStorage::new())
     }
 
     fn scoped_key(profile: Profile, route: &str) -> String {
-        format!("{:?}:{route}", profile)
+        format!("{profile:?}:{route}")
     }
 
     pub fn store(&self, profile: Profile, route: &str, body: &[u8], content_type: &str) {
@@ -102,6 +105,7 @@ impl CacheManager {
         self.storage.set(&key, CachedEntry::new(body.to_vec(), content_type, profile));
     }
 
+    #[must_use]
     pub fn get(&self, profile: Profile, route: &str) -> Option<CachedEntry> {
         self.storage.get(&Self::scoped_key(profile, route))
     }
@@ -123,36 +127,42 @@ impl CacheManager {
 
     /// Check whether the cache should serve this request.
     ///
-    /// Returns `true` when: CacheFirst + has entry, LocalOnly + has entry,
-    /// StaleWhileRevalidate + has entry. Returns `false` for NetworkFirst
-    /// and OnlineOnly (go to network regardless).
+    /// Returns `true` when: `CacheFirst` + has entry, `LocalOnly` + has entry,
+    /// `StaleWhileRevalidate` + has entry. Returns `false` for `NetworkFirst`
+    /// and `OnlineOnly` (go to network regardless).
+    #[must_use]
     pub fn should_serve_cached(&self, decision: &RouteDecision, route: &str) -> bool {
         let has_entry = self.get(decision.profile, route).is_some();
         match decision.cache_policy {
-            CachePolicy::CacheFirst | CachePolicy::LocalOnly => has_entry,
-            CachePolicy::StaleWhileRevalidate => has_entry,
+            CachePolicy::CacheFirst
+            | CachePolicy::LocalOnly
+            | CachePolicy::StaleWhileRevalidate => has_entry,
             CachePolicy::NetworkFirst | CachePolicy::OnlineOnly => false,
         }
     }
 
     /// Whether this policy needs background revalidation after serving cache.
-    /// Returns true ONLY for StaleWhileRevalidate when an entry exists.
+    /// Returns true ONLY for `StaleWhileRevalidate` when an entry exists.
+    #[must_use]
     pub fn needs_revalidation(&self, decision: &RouteDecision, route: &str) -> bool {
         decision.cache_policy == CachePolicy::StaleWhileRevalidate
             && self.get(decision.profile, route).is_some()
     }
 
     /// Determine if the route can work offline.
+    #[must_use]
     pub fn can_serve_offline(&self, decision: &RouteDecision, route: &str) -> bool {
         let has_entry = self.get(decision.profile, route).is_some();
         match decision.cache_policy {
-            CachePolicy::CacheFirst | CachePolicy::LocalOnly
-            | CachePolicy::StaleWhileRevalidate => has_entry,
-            CachePolicy::NetworkFirst => has_entry,
+            CachePolicy::CacheFirst
+            | CachePolicy::LocalOnly
+            | CachePolicy::StaleWhileRevalidate
+            | CachePolicy::NetworkFirst => has_entry,
             CachePolicy::OnlineOnly => false,
         }
     }
 
+    #[must_use]
     pub fn entry_count(&self) -> usize {
         self.storage.keys().len()
     }
