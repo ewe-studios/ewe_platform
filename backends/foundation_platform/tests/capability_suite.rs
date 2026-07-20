@@ -8,7 +8,7 @@ use foundation_platform::*;
 #[test]
 fn invoke_unknown_capability_returns_error() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
     let request = CapabilityRequest {
         id: "req-1".into(),
         page_identity: PageIdentity { session_id: session.session_id(), route: "/app".into(), visit_id: 0 },
@@ -28,7 +28,7 @@ fn invoke_unknown_capability_returns_error() {
 #[test]
 fn invoke_with_correct_capability_succeeds() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
     let route = remote_fetch()
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
@@ -51,7 +51,7 @@ fn invoke_with_correct_capability_succeeds() {
 #[test]
 fn profile_too_low_denies_capability() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
     // UntrustedRemote is below the camera's min_profile (TrustedRemote)
     let route = remote_fetch()
         .with_profile(Profile::UntrustedRemote);
@@ -75,7 +75,7 @@ fn profile_too_low_denies_capability() {
 #[test]
 fn per_route_allowlist_blocks_unlisted_capability() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
     // App profile allows NativeApi, but camera is NOT in the allowlist
     let route = webview_app()
         .with_allowed_capabilities(&[CapabilityId("microphone".into())]); // camera not here
@@ -99,7 +99,7 @@ fn per_route_allowlist_blocks_unlisted_capability() {
 #[test]
 fn stale_page_guard_rejects_old_request() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
 
     // Record a page visit, then navigate away
     let old_page = session.record_navigation("/app/old");

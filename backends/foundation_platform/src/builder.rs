@@ -1,11 +1,12 @@
 use std::env;
+use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_ui_traits::*;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 
 use crate::ewe;
+use crate::injector::{InjectedScript, ScriptInjector, ScriptInjectorPlugin};
 use crate::route_handler::RouteResponder;
 use crate::session::PlatformSession;
 
@@ -17,19 +18,27 @@ struct RouteEntry {
 
 type SetupCallback = Box<dyn Fn(&PlatformSession) + Send + Sync + 'static>;
 
-const PLATFORM_SCHEME_INTERCEPTOR_JS: &str =
-    foundation_wasm_ui::embedded::PLATFORM_SCHEME_INTERCEPTOR_JS;
-
 pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     inner: tauri::Builder<R>,
     routes: Vec<RouteEntry>,
     setups: Vec<SetupCallback>,
     index_url: Option<String>,
+    /// Scripts to inject into every webview (F24).
+    script_injector: ScriptInjector,
+    /// Whether platform runtimes have been auto-registered.
+    runtimes_injected: bool,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
     pub fn new() -> Self {
-        Self { inner: tauri::Builder::new(), routes: Vec::new(), setups: Vec::new(), index_url: None }
+        Self {
+            inner: tauri::Builder::new(),
+            routes: Vec::new(),
+            setups: Vec::new(),
+            index_url: None,
+            script_injector: ScriptInjector::new(PathBuf::new()),
+            runtimes_injected: false,
+        }
     }
 
     pub fn route(mut self, pattern: &str, decision: foundation_ui_traits::RouteDecision) -> Self {
@@ -62,24 +71,62 @@ impl<R: Runtime> PlatformBuilder<R> {
         self
     }
 
+    /// Set the resource root for disk-based script resolution (F24).
+    pub fn resource_root(mut self, root: PathBuf) -> Self {
+        self.script_injector.resource_root = root;
+        self
+    }
+
+    /// Register a custom script for injection into every webview (F24).
+    pub fn inject_script(mut self, script: InjectedScript) -> Self {
+        self.script_injector.register(script);
+        self
+    }
+
+    /// Inject all standard platform runtime scripts with disk→static fallback
+    /// chains (F24). Registers: scheme_interceptor, foundation_wasm,
+    /// foundation_wasm_ui, capability_bridge.
+    pub fn inject_platform_runtimes(mut self) -> Self {
+        self.runtimes_injected = true;
+        let old = std::mem::replace(
+            &mut self.script_injector,
+            ScriptInjector::new(PathBuf::new()),
+        );
+        let root = old.resource_root.clone();
+        self.script_injector = ScriptInjector::with_platform_runtimes(root);
+        for script in old.scripts {
+            self.script_injector.register(script);
+        }
+        self
+    }
+
+    /// Register a ScriptInjectorPlugin (F24).
+    pub fn register_plugin(mut self, plugin: impl ScriptInjectorPlugin) -> Self {
+        plugin.inject_scripts(&mut self.script_injector);
+        self
+    }
+
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
-        let interceptor = PLATFORM_SCHEME_INTERCEPTOR_JS;
         let index_url = self.index_url.clone();
+        let script_injector = std::mem::take(&mut self.script_injector);
 
         self.inner = self.inner.setup(move |app| {
-            // Resolve the platform resource directory for MobileDirectory (F22).
             let resource_root = app
                 .path()
                 .resource_dir()
                 .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
 
-            let session = PlatformSession::new(resource_root);
+            // Use resolved resource root if none set explicitly
+            let injector = if script_injector.resource_root == PathBuf::new() {
+                ScriptInjector::with_platform_runtimes(resource_root.clone())
+            } else {
+                script_injector
+            };
 
-            // Register routes + their inline responders.
-            // For patterns like /app/*, also register /app and /app/
-            // so the initial URL ewe://localhost/app matches.
+            let session = PlatformSession::new(resource_root, injector);
+
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();
                 let handler_id = entry.responder.map(|r| {
@@ -90,7 +137,6 @@ impl<R: Runtime> PlatformBuilder<R> {
                 d.handler_id = handler_id;
                 session.route(&entry.pattern, d.clone());
 
-                // Also register prefix-only routes for wildcard patterns
                 if entry.pattern.ends_with("/*") {
                     let prefix = entry.pattern.trim_end_matches('*');
                     session.route(prefix.trim_end_matches('/'), d.clone());
@@ -99,19 +145,18 @@ impl<R: Runtime> PlatformBuilder<R> {
 
             for setup in &setups { setup(&session); }
 
-            app.manage(session);
-
-            // Inject platform scheme interceptor. The initial URL is set
-            // via tauri.conf.json (patched by codegen), so this is for
-            // subsequent link-click handling only.
+            // F24: resolve and eval all platform runtime scripts
+            let scripts = session.script_injector().resolve_all();
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.eval(interceptor);
+                for script in &scripts {
+                    let _ = window.eval(script);
+                }
             }
+
+            app.manage(session);
             Ok(())
         });
 
-        // Register the F23 __ewe_capabilities Tauri command.
-        // This is the bridge: JS invokeCapability() → __TAURI_INTERNALS__.invoke('__ewe_capabilities', ...) → Rust handler.
         self.inner = self.inner.invoke_handler(tauri::generate_handler![__ewe_capabilities]);
 
         self.inner = ewe::register_ewe_protocol(self.inner);

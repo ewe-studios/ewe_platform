@@ -10,7 +10,7 @@ use foundation_platform::*;
 /// Parse URI → resolve route → query backend → select protocol → encode
 #[test]
 fn full_ewe_pipeline_webview_app() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     session.route("/app/*", webview_app().with_profile(Profile::App));
 
     // Step 1-2: Parse URI, resolve route
@@ -47,7 +47,7 @@ fn full_ewe_pipeline_webview_app() {
 
 #[test]
 fn full_ewe_pipeline_remote_server() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     session.route("/remote/*", remote_fetch()
         .with_profile(Profile::TrustedRemote)
         .with_cache_policy(CachePolicy::NetworkFirst));
@@ -75,7 +75,7 @@ fn full_ewe_pipeline_remote_server() {
 
 #[test]
 fn full_ewe_pipeline_ipc_shell_with_target() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     // Route that explicitly targets a wasm_app
     session.route("/api/*", ipc_shell_with("business_logic"));
 
@@ -96,7 +96,7 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
 
 #[test]
 fn cache_intercepts_before_backend_query() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     session.route("/cached/*", remote_fetch()
         .with_cache_policy(CachePolicy::CacheFirst));
 
@@ -122,7 +122,7 @@ fn cache_intercepts_before_backend_query() {
 
 #[test]
 fn capability_gating_in_full_pipeline() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     session.route("/camera/*", webview_app()
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]));
@@ -140,7 +140,7 @@ fn capability_gating_in_full_pipeline() {
 
 #[test]
 fn offline_route_fails_with_online_only() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     session.route("/live/*", remote_fetch()
         .with_cache_policy(CachePolicy::OnlineOnly));
 
@@ -164,7 +164,7 @@ fn offline_route_fails_with_online_only() {
 
 #[test]
 fn mutation_queue_integrates_with_connectivity() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Go offline, enqueue
     session.set_online(false);

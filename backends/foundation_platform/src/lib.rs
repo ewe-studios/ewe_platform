@@ -9,6 +9,7 @@ mod builder;
 mod cache;
 pub mod capability;
 pub mod codegen;
+mod injector;
 mod mutation;
 pub mod stack;
 pub mod ewe;

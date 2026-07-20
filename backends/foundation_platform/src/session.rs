@@ -86,15 +86,20 @@ pub struct PlatformSession {
     /// Set by PlatformBuilder at startup. On Android this is the Tauri-extracted
     /// resource path; on desktop it's the app bundle resource dir.
     pub resource_root: PathBuf,
+
+    /// Script injector (F24) — resolves platform runtime scripts with
+    /// disk→embedded fallback chains. Evaluated on every webview at startup.
+    script_injector: crate::injector::ScriptInjector,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
 
 impl PlatformSession {
-    /// Initialize the session with the resolved resource root directory.
+    /// Initialize the session with the resolved resource root directory and
+    /// a pre-configured [`ScriptInjector`] (F24).
     /// Called once at app launch.
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
-    pub fn new(resource_root: PathBuf) -> Arc<Self> {
+    pub fn new(resource_root: PathBuf, script_injector: crate::injector::ScriptInjector) -> Arc<Self> {
         let session_id = SessionId(
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -115,7 +120,16 @@ impl PlatformSession {
             event_listeners: RwLock::new(Vec::new()),
             handler_registry: RwLock::new(HashMap::new()),
             resource_root,
+            script_injector,
         })
+    }
+}
+
+impl PlatformSession {
+    /// TEST ONLY: create a session with an empty ScriptInjector.
+    #[doc(hidden)]
+    pub fn new_test(resource_root: PathBuf) -> Arc<Self> {
+        Self::new(resource_root, crate::injector::ScriptInjector::new(PathBuf::from(".")))
     }
 }
 
@@ -344,6 +358,13 @@ impl PlatformSession {
     /// Access the F05 capability registry for invoking native capabilities.
     pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
         &self.capability_registry
+    }
+
+    /// Access the ScriptInjector (F24). Resolved scripts are available
+    /// via `resolve_all()`. Used at startup to eval runtime scripts into
+    /// every webview.
+    pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
+        &self.script_injector
     }
 
     /// Register a portable WasmCapability (F23).

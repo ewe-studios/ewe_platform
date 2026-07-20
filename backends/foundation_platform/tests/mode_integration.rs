@@ -28,7 +28,7 @@ impl RouteResponder for TestResponder {
     }
 }
 
-fn session() -> Arc<PlatformSession> { PlatformSession::new(std::path::PathBuf::from(".")) }
+fn session() -> Arc<PlatformSession> { PlatformSession::new_test(std::path::PathBuf::from(".")) }
 fn intent(url: &str) -> NavigationIntent {
     NavigationIntent { url: url.to_string(), method: Method::Get, source: IntentSource::LinkClick, referrer: None }
 }

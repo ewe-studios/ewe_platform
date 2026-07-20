@@ -23,7 +23,7 @@ use foundation_platform::*;
 
 #[test]
 fn session_bootstraps_with_all_subsystems() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // All subsystems are immediately available
     let _cache = session.cache();
@@ -40,7 +40,7 @@ fn session_bootstraps_with_all_subsystems() {
 
 #[test]
 fn route_through_handler_chain_with_protocol_selection() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Step 1-2: Register routes and resolve
     session.route("/app/*", webview_app().with_profile(Profile::App));
@@ -74,7 +74,7 @@ fn route_through_handler_chain_with_protocol_selection() {
 
 #[test]
 fn cache_serves_cached_content_with_correct_policy() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Cache a response for /cached/data
     session.cache().store(Profile::App, "/cached/data", b"cached-response", "text/html");
@@ -103,7 +103,7 @@ fn cache_serves_cached_content_with_correct_policy() {
 
 #[test]
 fn cache_is_profile_scoped() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     session.cache().store(Profile::App, "/shared", b"app-data", "text/plain");
     session.cache().store(Profile::UntrustedRemote, "/shared", b"untrusted-data", "text/plain");
@@ -120,7 +120,7 @@ fn cache_is_profile_scoped() {
 
 #[test]
 fn capability_invocation_through_registry() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Register a test capability
     struct GreetCap;
@@ -161,7 +161,7 @@ fn capability_invocation_through_registry() {
 
 #[test]
 fn mutation_queue_enqueue_and_replay() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Enqueue mutations while "offline"
     session.set_online(false);
@@ -232,7 +232,7 @@ fn webview_stack_navigation_flow() {
 
 #[test]
 fn session_events_notify_listeners() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
     let fired = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let f = fired.clone();
     session.on_event(move |_| { f.store(true, std::sync::atomic::Ordering::SeqCst); true });
@@ -245,7 +245,7 @@ fn session_events_notify_listeners() {
 
 #[test]
 fn full_execution_contract_walking_skeleton() {
-    let session = PlatformSession::new(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Step 1: Navigation interception — simulate a link click
     // (in production: Tauri's on_navigation fires, constructs NavigationIntent)

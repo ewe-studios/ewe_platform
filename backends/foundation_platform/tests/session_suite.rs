@@ -6,7 +6,7 @@ use std::sync::{Arc, RwLock};
 use foundation_platform::*;
 
 fn session() -> Arc<PlatformSession> {
-    PlatformSession::new(std::path::PathBuf::from("."))
+    PlatformSession::new_test(std::path::PathBuf::from("."))
 }
 
 fn intent(url: &str) -> NavigationIntent {
