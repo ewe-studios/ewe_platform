@@ -973,6 +973,14 @@ pub mod abi {
                 returns_start: *const u8,
                 returns_length: u64,
             ) -> u64;
+
+            // ── F28: Stream FFI (WASM → JS) ────────────────────────────
+
+            /// Push a chunk into a JS `WasmStreamSender` identified by `stream_id`.
+            pub fn host_sender_send(stream_id: u64, data_start: *const u8, data_len: u32, seq: u64);
+
+            /// Signal end-of-stream on a JS `WasmStreamSender` identified by `stream_id`.
+            pub fn host_sender_end(stream_id: u64);
         }
 
         #[cfg(not(target_family = "wasm"))]
@@ -1118,6 +1126,11 @@ pub mod abi {
             ) -> u64 {
                 0
             }
+
+            // ── F28: Stream FFI ────────────────────────────────────────
+
+            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_sender_end(_stream_id: u64) {}
         }
 
         // Re-export stubs with same names as extern functions for non-wasm targets

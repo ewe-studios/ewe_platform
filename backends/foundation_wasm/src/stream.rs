@@ -131,41 +131,51 @@ impl Default for StreamRegistry {
 }
 
 // ── WASM exports (F28) ──────────────────────────────────────────────────
+///
+/// Four functions, two on each side:
+///
+///   WASM exports (JS calls these):
+///     stream_create() -> u64          — create a stream, return its ID
+///     stream_send(id, ptr, len, seq) — push a chunk to a stream by ID
+///     stream_close(id)               — close a stream by ID
+///
+///   JS provides to WASM (WASM calls via FFI):
+///     host_stream_send(id, ptr, len, seq) — WASM pushes chunk to JS
+///     host_stream_end(id)                 — WASM signals end to JS
 
 #[cfg(feature = "web")]
-mod wasm_ffi {
+pub mod wasm_exports {
     use alloc::vec::Vec;
     use foundation_nostd::comp::basic::Mutex;
     use super::{StreamChunk, StreamId, StreamRegistry};
 
-    static STREAM_REGISTRY: Mutex<StreamRegistry> = Mutex::new(StreamRegistry::new());
+    static REGISTRY: Mutex<StreamRegistry> = Mutex::new(StreamRegistry::new());
 
-    /// Create a new stream. Returns the stream ID as u64.
+    /// Create a stream. Returns the stream ID.
     #[no_mangle]
     pub extern "C" fn stream_create() -> u64 {
-        let (id, _queue) = STREAM_REGISTRY
+        REGISTRY
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .create();
-        id.0
+            .create()
+            .0
+             .0
     }
 
-    /// Push a chunk onto a stream. `data_ptr`/`data_len` point to the chunk bytes.
-    /// Returns 1 on success, 0 on failure (stream not found or queue closed).
+    /// Push a chunk to a stream by ID. Returns 1 on success, 0 on failure.
     #[no_mangle]
     pub extern "C" fn stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) -> u32 {
-        let data = unsafe { alloc::slice::from_raw_parts(data_ptr, data_len as usize) };
-        let chunk = StreamChunk::new(data.to_vec(), seq);
-        u32::from(STREAM_REGISTRY
+        let data = unsafe { core::slice::from_raw_parts(data_ptr, data_len as usize) };
+        u32::from(REGISTRY
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .send(StreamId(stream_id), chunk))
+            .send(StreamId(stream_id), StreamChunk::new(data.to_vec(), seq)))
     }
 
-    /// Close and deregister a stream. Returns 1 on success, 0 if already closed.
+    /// Close a stream by ID. Returns 1 on success, 0 if already closed.
     #[no_mangle]
     pub extern "C" fn stream_close(stream_id: u64) -> u32 {
-        u32::from(STREAM_REGISTRY
+        u32::from(REGISTRY
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
             .close(StreamId(stream_id)))
