@@ -138,6 +138,9 @@ impl WasmBinGenerator {
     /// scanning. Used when the caller (e.g. `WasmBundleGenerator`) already
     /// discovered `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]` via
     /// its own scanner and feeds entrypoints through `from_annotations`.
+    /// # Errors
+    ///
+    /// Returns [`WasmBinError`] if the crate name cannot be extracted.
     pub fn from_crate_only(crate_dir: &Path) -> Result<Self, WasmBinError> {
         let crate_name = extract_crate_name(crate_dir)?;
         Ok(Self {
@@ -151,6 +154,11 @@ impl WasmBinGenerator {
     /// scan. The entrypoints carry all needed fields (`function_name`,
     /// `qualified_path`, `source_file`, `line`) for the planner to generate
     /// `src/bin/{name}/main.rs` stubs.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WasmBinError`] if the crate name cannot be extracted from
+    /// the crate directory.
     pub fn from_entrypoints(
         crate_dir: &Path,
         entrypoints: Vec<WasmEntrypoint>,

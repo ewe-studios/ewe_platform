@@ -342,6 +342,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         let model = match self.router.get_model(&self.current_model) {
             Ok(m) => m,
             Err(e) => {
+                println!("Router failed to get model: {:?}", &e);
                 let err = AgenticError::from(e);
                 return self.handle_error(err);
             }

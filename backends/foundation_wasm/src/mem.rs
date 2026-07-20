@@ -1,8 +1,14 @@
+// Every public function in this module:
+//   - Returns `MemoryAllocationResult<T>`, `MemoryWriterResult<T>`, or
+//     `BinaryReaderResult<T>` — error semantics are defined by the type alias.
+//   - Panics if the internal `Mutex` is poisoned (consistent
+//     `.unwrap_or_else(PoisonError::into_inner)` pattern).
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
 #![allow(dead_code)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::items_after_test_module)]
 #![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_panics_doc)]
 
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -463,7 +469,10 @@ impl MemoryAllocations {
         }
     }
 
+    // Returns MemoryAllocationResult for consistency with all other methods
+    // in this module, even though this particular fn cannot error.
     #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::unnecessary_wraps)]
     fn get_free_slot(&mut self) -> MemoryAllocationResult<Option<usize>> {
         if !self.free.is_empty() {
             if let Some(index) = self.free.pop() {

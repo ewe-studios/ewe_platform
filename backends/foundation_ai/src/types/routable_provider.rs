@@ -225,12 +225,32 @@ impl ProviderRouter {
 
         // 1. Explicit rule.
         for rule in &self.inner.rules {
+            println!(
+                "Rule: {:?} - key: {:?} - model_id: {:?} -- match(rule_model_name: {}, model_id_name: {}): {}",
+                &rule,
+                &key,
+                &model_id,
+                rule.model.name(),
+                model_id.name(),
+                rule.model.name() == model_id.name()
+            );
             if rule.model.name() == model_id.name() {
                 for (idx, p) in self.inner.providers.iter().enumerate() {
+                    println!(
+                        "Considering provider: {} for rule: {}",
+                        p.name(),
+                        rule.provider_name
+                    );
                     if p.name() == rule.provider_name {
+                        println!("Returning index: {}", idx);
                         return Ok(idx);
                     }
                 }
+                println!(
+                    "Considering a msmatch occured for: rule_model_name: {} model_id_name: {}",
+                    rule.model.name(),
+                    model_id.name()
+                );
                 return Err(RouterError::RuleMismatch {
                     model: key,
                     provider: rule.provider_name.clone(),
@@ -282,6 +302,10 @@ impl ProviderRouter {
     /// Returns `RouterError` if no provider can serve or create the model.
     pub fn get_model(&self, model_id: &ModelId) -> Result<BoxModel, RouterError> {
         let provider = self.resolve(model_id)?;
+        println!(
+            "Resolved to provider for model: {:?} with provider: {:?}",
+            &model_id, &provider
+        );
         provider
             .get_model(model_id)
             .ok_or_else(|| RouterError::NoProviderForModel(model_id.name().to_owned()))

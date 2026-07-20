@@ -1,5 +1,7 @@
-#![allow(clippy::must_use_candidate)]
+// Every public function: returns type-aliased Results; panics on Mutex poison.
+#![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
+#![allow(clippy::must_use_candidate)]
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -47,6 +49,7 @@ static SCHEDULED_CALLBACKS: Mutex<ScheduleRegistry> = ScheduleRegistry::create()
 /// You should never place a function in here that needs to be exposed to the host or host function
 /// we want to define but instead use the [`exposed_runtime`] or [`abi`] modules.
 pub mod internal_api {
+    #![allow(clippy::missing_errors_doc)]
     use alloc::boxed::Box;
 
     use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
@@ -95,8 +98,17 @@ pub mod internal_api {
 
     // Callback return parsers
 
-    /// [`parse_replies`] will attempt to parse the replies encoded into the giving
-    /// memory location referenced by the provided [`MemoryId`].
+    /// Parse the replies encoded in the memory location referenced by the
+    /// provided [`MemoryId`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MemoryAllocationError`] if the allocation is invalid or
+    /// the reply binary cannot be deserialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn parse_callback_replies(
         memory_id: MemoryId,
         returns: ReturnTypeHints,
@@ -230,8 +242,15 @@ pub mod internal_api {
             .expect("should be registered");
     }
 
-    /// [`run_schedule_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered scheduled callback by ID (oneshot timeout).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has already fired.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
         match SCHEDULED_CALLBACKS
             .lock()
@@ -299,8 +318,15 @@ pub mod internal_api {
 
     // interval function registration with the host.
 
-    /// [`run_interval_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered interval callback by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has been deregistered.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
         match RECURRING_INTERVAL_CALLBACKS
             .lock()
@@ -496,6 +522,7 @@ pub mod internal_api {
 /// the system. These are functions the runtime exposes to the host to be able
 /// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
+    #![allow(clippy::missing_errors_doc)]
     use super::{internal_api, InternalPointer, MemoryId, ALLOCATIONS};
 
     #[no_mangle]

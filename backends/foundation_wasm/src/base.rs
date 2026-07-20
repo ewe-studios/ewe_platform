@@ -1457,7 +1457,7 @@ impl core::fmt::Display for MemOpError {
 ///
 ///          println!("ValueAs16: {:?} -> {:?}", as_bit, as_bit_bytes);
 ///      }
-///      65536..=4294967295 => {
+///      65536..=4_294_967_295 => {
 ///          let as_bit = n_u8_pointer as u32;
 ///          let as_bit_bytes = as_bit.to_le_bytes();
 ///
@@ -1568,6 +1568,10 @@ pub mod value_quantitization {
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
     #[must_use]
+    // value_msb/value_lsb are the most/least significant halves of a split 128-bit value.
+    #[allow(clippy::similar_names)]
+    // value_msb/value_lsb are most/least significant halves of a 128-bit split.
+    #[allow(clippy::similar_names)]
     pub fn qi128(value: i128) -> (Vec<u8>, TypeOptimization) {
         match value {
             -128..=127 => {
@@ -1741,6 +1745,10 @@ pub mod value_quantitization {
     /// the binary in little endian and the [`TypeOptimization`]
     /// applied to the value.
     #[must_use]
+    // value_msb/value_lsb are the most/least significant halves of a split 128-bit value.
+    #[allow(clippy::similar_names)]
+    // value_msb/value_lsb are most/least significant halves of a 128-bit split.
+    #[allow(clippy::similar_names)]
     pub fn qu128(value: u128) -> (Vec<u8>, TypeOptimization) {
         match value {
             0..=255 => {
@@ -1824,7 +1832,7 @@ pub mod value_quantitization {
 
                 (as_bit_bytes.to_vec(), TypeOptimization::QuantizedPtrAsU16)
             }
-            65536..=4294967295 => {
+            65536..=4_294_967_295 => {
                 let as_bit = ptr as u32;
                 let as_bit_bytes = as_bit.to_le_bytes();
 
@@ -1921,6 +1929,8 @@ impl From<u32> for JSEncoding {
 }
 
 impl From<f32> for JSEncoding {
+    // 8.0 and 16.0 are exact integer constants from JS runtime parameters.
+    #[allow(clippy::float_cmp)]
     fn from(value: f32) -> Self {
         if value == 8.0 {
             return JSEncoding::UTF8;
@@ -1933,6 +1943,8 @@ impl From<f32> for JSEncoding {
 }
 
 impl From<f64> for JSEncoding {
+    // 8.0 and 16.0 are exact integer constants from JS runtime parameters.
+    #[allow(clippy::float_cmp)]
     fn from(value: f64) -> Self {
         if value == 8.0 {
             return JSEncoding::UTF8;

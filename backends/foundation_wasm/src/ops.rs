@@ -1,7 +1,16 @@
+// Codec functions: return type-aliased Results; panics on Mutex poison.
+// Large generated serialization module — functions grouped by type.
+// MSB/LSB naming, identical match arms (const discriminants), and
+// pass-by-value are structural characteristics of the binary encoding.
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::too_many_lines)]
 #![allow(dead_code)]
 #![allow(clippy::items_after_test_module)]
 #![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_panics_doc)]
 
 use alloc::vec::Vec;
 
@@ -192,7 +201,7 @@ impl ToBinary for Params<'_> {
             }
             Params::Int128(value) => {
                 // nice trick to switch all bits to 1 for a 64bit number.
-                const MASK: i128 = 0xFFFFFFFFFFFFFFFF;
+                const MASK: i128 = 0xFFFF_FFFF_FFFF_FFFF;
 
                 // get the MSB by shifting right 64 bits
                 let value_msb = (value >> 64) as i64;
@@ -210,7 +219,7 @@ impl ToBinary for Params<'_> {
             }
             Params::Uint128(value) => {
                 // nice trick to switch all bits to 1 for a 64bit number.
-                const MASK: u128 = 0xFFFFFFFFFFFFFFFF;
+                const MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
 
                 // get the MSB by shifting right 64 bits
                 let value_msb = (value >> 64) as u64;
@@ -1429,12 +1438,16 @@ impl Instructions {
         Ok(())
     }
 
+    // Hot codec path — avoids function call overhead in serialization hot loop.
+    #[allow(clippy::inline_always)]
     #[inline(always)]
     pub fn encode_return_hints(&self, hint: ReturnTypeHints) -> MemoryWriterResult<()> {
         hint.encode(self, self.optimized)?;
         Ok(())
     }
 
+    // Hot codec path — avoids function call overhead in serialization hot loop.
+    #[allow(clippy::inline_always)]
     #[inline(always)]
     pub fn encode_params<'a>(&self, params: Option<&'a [Params<'a>]>) -> MemoryWriterResult<()> {
         if let Some(pm) = params {
