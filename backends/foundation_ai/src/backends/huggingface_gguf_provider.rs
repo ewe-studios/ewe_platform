@@ -477,6 +477,8 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     }
 
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {
+        println!("Requesting model: {model_id:?} from huggingface");
+
         // Parse the ModelId
         let parsed = self.parse_model_id(&model_id).ok_or_else(|| {
             ModelProviderErrors::NotFound(format!(
@@ -499,7 +501,8 @@ impl ModelProvider for HuggingFaceGGUFProvider {
         // Delegate to LlamaBackends for actual model loading, carrying the full
         // llama.cpp config (GPU layers, context length, …) and the opt-in
         // speculative (MTP) config so they are applied + capability-checked.
-        self.llama_backend.load_model(model_spec, &self.llama_config)
+        self.llama_backend
+            .load_model(model_spec, &self.llama_config)
     }
 
     fn get_model_by_spec(&self, _model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {

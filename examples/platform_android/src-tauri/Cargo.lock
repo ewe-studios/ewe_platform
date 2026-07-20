@@ -506,6 +506,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "concurrent-queue"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "const-random"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1145,8 +1154,10 @@ version = "0.0.4"
 name = "foundation_platform"
 version = "0.0.1"
 dependencies = [
+ "concurrent-queue",
  "foundation_nostd",
  "foundation_ui_traits",
+ "foundation_wasm",
  "foundation_wasm_ui",
  "serde",
  "serde_json",
@@ -1177,6 +1188,7 @@ name = "foundation_wasm"
 version = "0.0.3"
 dependencies = [
  "clap",
+ "concurrent-queue",
  "foundation_codegen",
  "foundation_macros",
  "foundation_nostd",
@@ -2669,6 +2681,8 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "foundation_platform",
+ "foundation_ui_traits",
+ "foundation_wasm",
  "foundation_wasm_ui",
  "serde",
  "serde_json",

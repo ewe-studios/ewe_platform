@@ -145,7 +145,6 @@ impl Default for StreamRegistry {
 
 #[cfg(feature = "web")]
 pub mod wasm_exports {
-    use alloc::vec::Vec;
     use foundation_nostd::comp::basic::Mutex;
     use super::{StreamChunk, StreamId, StreamRegistry};
 

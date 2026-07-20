@@ -10,6 +10,8 @@ crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 foundation_platform = { path = "../../../backends/foundation_platform" }
+foundation_ui_traits = { path = "../../../backends/foundation_ui_traits" }
+foundation_wasm = { path = "../../../backends/foundation_wasm" }
 foundation_macros = { path = "../../../backends/foundation_macros" }
 foundation_nostd = { path = "../../../backends/foundation_nostd" }
 foundation_wasm_ui = { path = "../../../backends/foundation_wasm_ui" }
