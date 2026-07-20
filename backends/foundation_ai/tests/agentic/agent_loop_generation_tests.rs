@@ -45,6 +45,16 @@ struct Harness {
 
 /// Build a loop wired to `router`, so generation actually happens.
 fn harness_with(router: ProviderRouter, config: AgentConfig) -> Harness {
+    harness_with_tools(router, config, Vec::new())
+}
+
+/// As `harness_with`, plus tools registered on the `ToolCallManager` so the
+/// `InnerToolCalls -> InnerExecuting -> InnerEmitResults` states can run.
+fn harness_with_tools(
+    router: ProviderRouter,
+    config: AgentConfig,
+    tools: Vec<Arc<dyn foundation_ai::agentic::tool_impl::ToolImpl>>,
+) -> Harness {
     let session_id = SessionId::new();
     let ledger = TokenLedger::new();
     let memory_store = Arc::new(KvMemoryStore::new(MemoryStorage::new()));
@@ -74,10 +84,15 @@ fn harness_with(router: ProviderRouter, config: AgentConfig) -> Harness {
         MemoryConfig::default(),
     );
 
+    let tool_manager = ToolCallManager::new(session_id.clone());
+    for tool in tools {
+        tool_manager.register(tool);
+    }
+
     let agent = AgentLoop::new(
         session_id.clone(),
         context_provider,
-        ToolCallManager::new(session_id),
+        tool_manager,
         queues,
         memory,
         message_api,
@@ -340,5 +355,120 @@ fn assistant_reply_is_persisted_to_message_api() {
     assert!(
         !assistant_texts(&records).is_empty(),
         "precondition: the turn produced a reply"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Tool path — matrix 1.15-1.19, 4.3-4.9
+//
+// A registered tool lets the loop run InnerToolCalls -> InnerExecuting ->
+// InnerEmitResults, the states no prior test reached.
+
+/// Matrix 4.3 / 4.4 / 1.16 — a called tool executes and its result is emitted.
+#[test]
+fn registered_tool_executes_and_emits_its_result() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_tool_call("echo", HashMap::new())]);
+    mock.on_any(vec![mock_text("finished")]);
+
+    let tool = Arc::new(MockTool::returning("echo", "tool output here"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("call the tool"));
+
+    let records = drive(&mut h);
+
+    let has_tool_result = records.iter().any(|r| {
+        matches!(
+            r,
+            SessionRecord::Conversation {
+                message: Messages::ToolResult { .. }
+            }
+        )
+    });
+    assert!(
+        has_tool_result,
+        "the executed tool's result must be emitted as a record: {records:?}"
+    );
+}
+
+/// Matrix 4.6 / 1.17 — a failing tool is recorded without killing the turn.
+#[test]
+fn failing_tool_does_not_kill_the_turn() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_tool_call("broken", HashMap::new())]);
+    mock.on_any(vec![mock_text("recovered")]);
+
+    let tool = Arc::new(MockTool::failing("broken", "tool exploded"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("call the broken tool"));
+
+    // drive() panics if the loop wedges — a failing tool must not hang it.
+    let records = drive(&mut h);
+    assert!(
+        !records.is_empty(),
+        "a failing tool must still produce records: {records:?}"
+    );
+}
+
+/// Matrix 4.7 — an unknown tool name errors rather than panicking.
+#[test]
+fn unknown_tool_name_errors_without_panic() {
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_tool_call("does_not_exist", HashMap::new())]);
+    mock.on_any(vec![mock_text("moved on")]);
+
+    // No tools registered at all.
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("call a missing tool"));
+
+    let records = drive(&mut h);
+    assert!(
+        !records.is_empty(),
+        "an unknown tool must terminate the turn cleanly: {records:?}"
+    );
+}
+
+/// Matrix 4.9 — several tool calls in one turn all execute.
+#[test]
+fn multiple_tool_calls_all_execute() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(
+        0,
+        vec![
+            mock_tool_call("alpha", HashMap::new()),
+            mock_tool_call("beta", HashMap::new()),
+        ],
+    );
+    mock.on_any(vec![mock_text("both done")]);
+
+    let tools: Vec<Arc<dyn foundation_ai::agentic::tool_impl::ToolImpl>> = vec![
+        Arc::new(MockTool::returning("alpha", "A")),
+        Arc::new(MockTool::returning("beta", "B")),
+    ];
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), tools);
+    let _ = h.follow_up.push(user_msg("call both"));
+
+    let records = drive(&mut h);
+
+    let tool_results = records
+        .iter()
+        .filter(|r| {
+            matches!(
+                r,
+                SessionRecord::Conversation {
+                    message: Messages::ToolResult { .. }
+                }
+            )
+        })
+        .count();
+    assert_eq!(
+        tool_results, 2,
+        "both tool calls must execute and emit results: {records:?}"
     );
 }

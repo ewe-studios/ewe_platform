@@ -41,11 +41,11 @@ Every state and every edge out of it.
 | 1.12 | `InnerGenerate` on stream end with no tool calls → `OutputProcessing` | mock | todo |
 | 1.13 | `InnerGenerate` on stream end with tool calls → `InnerToolCalls` | mock | **done** |
 | 1.14 | `InnerGenerate` on provider error → `FailedAction`, `run_turn` returns `Err` | both | **done** |
-| 1.15 | `InnerToolCalls` extracts calls into `InnerExecuting` | mock | todo |
-| 1.16 | `InnerExecuting` drives each call, collects results | mock | todo |
-| 1.17 | `InnerExecuting` tool failure → recorded, loop continues per policy | mock | todo |
+| 1.15 | `InnerToolCalls` extracts calls into `InnerExecuting` | mock | **done** |
+| 1.16 | `InnerExecuting` drives each call, collects results | mock | **done** |
+| 1.17 | `InnerExecuting` tool failure → recorded, loop continues per policy | mock | **done** |
 | 1.18 | `InnerExecuting` cancellation signal → aborts in-flight tools | mock | todo |
-| 1.19 | `InnerEmitResults` emits results and returns to `InnerAssemble` | mock | todo |
+| 1.19 | `InnerEmitResults` emits results and returns to `InnerAssemble` | mock | **done** |
 | 1.20 | `InnerAssemble` past `max_inner_iterations` → breaks out | mock | todo |
 | 1.21 | `OutputProcessing` fires memory triggers and persists | mock | todo |
 | 1.22 | `Ending` emits `Summary` with accurate `message_count` + usage | mock | **done** |
@@ -84,13 +84,13 @@ Every state and every edge out of it.
 |---|-----------|------|--------|
 | 4.1 | `ToolShed` definitions reach the prompt | both | todo |
 | 4.2 | Tool call parsed from model output | mock | **done** |
-| 4.3 | Tool executed with parsed arguments | mock | todo |
-| 4.4 | Tool result emitted as a record | mock | todo |
+| 4.3 | Tool executed with parsed arguments | mock | **done** |
+| 4.4 | Tool result emitted as a record | mock | **done** |
 | 4.5 | Tool result fed back into the next assemble | mock | todo |
-| 4.6 | Tool failure surfaces without killing the turn | mock | todo |
-| 4.7 | Unknown tool name → error, not panic | mock | todo |
+| 4.6 | Tool failure surfaces without killing the turn | mock | **done** |
+| 4.7 | Unknown tool name → error, not panic | mock | **done** |
 | 4.8 | Malformed tool arguments → error, not panic | mock | todo |
-| 4.9 | Multiple tool calls in one turn all execute | mock | todo |
+| 4.9 | Multiple tool calls in one turn all execute | mock | **done** |
 | 4.10 | Tool cancellation mid-flight | mock | todo |
 
 ## 5. Errors, circuit breaker, loop detection
