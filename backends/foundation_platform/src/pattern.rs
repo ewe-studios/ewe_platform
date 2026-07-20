@@ -108,32 +108,31 @@ impl Pattern {
         Some(path_segments[consumed..].join("/"))
     }
 
-    #[allow(clippy::similar_names)]
-    fn match_count(&self, path: &[&str], pat_idx: usize, path_idx: usize) -> Option<usize> {
-        if pat_idx >= self.segments.len() {
-            return Some(path_idx); // fully matched, return consumed count
+    fn match_count(&self, path: &[&str], seg: usize, pos: usize) -> Option<usize> {
+        if seg >= self.segments.len() {
+            return Some(pos); // fully matched, return consumed count
         }
-        match &self.segments[pat_idx] {
+        match &self.segments[seg] {
             PatternSegment::DoubleWildcard => {
                 // `**` matches zero or more — return the furthest match
                 let mut best: Option<usize> = None;
-                for i in path_idx..=path.len() {
-                    if let Some(c) = self.match_count(path, pat_idx + 1, i) {
+                for i in pos..=path.len() {
+                    if let Some(c) = self.match_count(path, seg + 1, i) {
                         best = Some(c);
                     }
                 }
                 best
             }
             PatternSegment::SingleWildcard => {
-                if path_idx < path.len() {
-                    self.match_count(path, pat_idx + 1, path_idx + 1)
+                if pos < path.len() {
+                    self.match_count(path, seg + 1, pos + 1)
                 } else {
                     None
                 }
             }
             PatternSegment::Literal(lit) => {
-                if path_idx < path.len() && path[path_idx] == lit.as_str() {
-                    self.match_count(path, pat_idx + 1, path_idx + 1)
+                if pos < path.len() && path[pos] == lit.as_str() {
+                    self.match_count(path, seg + 1, pos + 1)
                 } else {
                     None
                 }
@@ -157,19 +156,17 @@ impl Pattern {
     }
 
     /// Recursive matching with backtracking for `**`.
-    #[allow(clippy::similar_names)]
-    fn match_recursive(&self, path: &[&str], pat_idx: usize, path_idx: usize) -> bool {
+    fn match_recursive(&self, path: &[&str], seg: usize, pos: usize) -> bool {
         // All pattern segments consumed — path must also be fully consumed.
-        if pat_idx >= self.segments.len() {
-            return path_idx >= path.len();
+        if seg >= self.segments.len() {
+            return pos >= path.len();
         }
 
-        match &self.segments[pat_idx] {
+        match &self.segments[seg] {
             PatternSegment::DoubleWildcard => {
                 // `**` matches zero or more remaining segments.
-                // Try each possibility: consume 0, 1, 2, ... all remaining segments.
-                for i in path_idx..=path.len() {
-                    if self.match_recursive(path, pat_idx + 1, i) {
+                for i in pos..=path.len() {
+                    if self.match_recursive(path, seg + 1, i) {
                         return true;
                     }
                 }
@@ -177,16 +174,16 @@ impl Pattern {
             }
             PatternSegment::SingleWildcard => {
                 // `*` matches exactly one segment.
-                if path_idx < path.len() {
-                    self.match_recursive(path, pat_idx + 1, path_idx + 1)
+                if pos < path.len() {
+                    self.match_recursive(path, seg + 1, pos + 1)
                 } else {
                     false
                 }
             }
             PatternSegment::Literal(lit) => {
                 // Exact character match on this segment.
-                if path_idx < path.len() && path[path_idx] == lit.as_str() {
-                    self.match_recursive(path, pat_idx + 1, path_idx + 1)
+                if pos < path.len() && path[pos] == lit.as_str() {
+                    self.match_recursive(path, seg + 1, pos + 1)
                 } else {
                     false
                 }
@@ -248,7 +245,6 @@ pub struct PatternRouter {
     patterns: Vec<(Pattern, RouteDecision)>,
 }
 
-#[allow(clippy::similar_names)]
 impl PatternRouter {
     /// Create an empty pattern router.
     #[must_use]
