@@ -121,7 +121,7 @@ fn no_handler_returns_500() {
     let s = session();
     let d = s.resolve_route(&intent("ewe://localhost/unknown/path"));
     let resp = s.execute_decision(&d, &intent("ewe://localhost/unknown/path"));
-    assert_eq!(resp.status().as_u16(), 200); // falls through to default transport
+    assert_eq!(resp.status().as_u16(), 500); // no handler → 500
 }
 
 // ── Offline cache fallback ────────────────────────────────────────────
