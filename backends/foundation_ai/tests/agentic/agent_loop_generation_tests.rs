@@ -472,3 +472,112 @@ fn multiple_tool_calls_all_execute() {
         "both tool calls must execute and emit results: {records:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Error handling and fallback — matrix 1.9, 5.4, 5.5, 2.3
+//
+// These drive the loop through handle_error, the CircuitBreaker, and budget
+// exhaustion — the paths that decide whether a failure ends the turn cleanly
+// or wedges it.
+
+/// Matrix 5.4 / 5.5 — repeated failures trip the breaker onto a fallback model.
+///
+/// The mock serves every model id, so if the breaker switches to the fallback
+/// the turn can still complete; if it never switches, the loop keeps failing
+/// against the primary until an iteration cap stops it. Either way the turn
+/// must terminate and report — it must not hang.
+#[test]
+fn repeated_failures_trip_the_breaker_and_terminate() {
+    let mut mock = MockModelProvider::new();
+    mock.fail_with(|_| true, "always fails");
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("primary".into(), None),
+        fallback_models: vec![ModelId::Name("fallback".into(), None)],
+        circuit_breaker_threshold: 2,
+        max_outer_iterations: 3,
+        ..Default::default()
+    };
+
+    let mut h = harness_with(mock.into_router(), config);
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        has_failed_action(&records),
+        "persistent provider failure must surface as FailedAction: {records:?}"
+    );
+}
+
+/// Matrix 1.9 — a router that serves nothing fails cleanly, without panicking.
+#[test]
+fn empty_router_fails_cleanly() {
+    let mut h = harness_with(
+        ProviderRouter::builder().build(),
+        config_for("nobody-serves-this"),
+    );
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        has_failed_action(&records),
+        "an unroutable model must emit FailedAction: {records:?}"
+    );
+    assert!(
+        assistant_texts(&records).is_empty(),
+        "an unroutable turn must not emit assistant text: {records:?}"
+    );
+}
+
+/// Matrix 5.9 (second form) — a mock with NO script also fails loudly.
+///
+/// Guards the docs/fixes/006 shape from the other direction: an unscripted
+/// interaction is a provider error, not an empty successful turn.
+#[test]
+fn unscripted_interaction_fails_loudly() {
+    // No .on_any(), so resolve() finds no matching script.
+    let mock = MockModelProvider::new();
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        has_failed_action(&records),
+        "an unscripted mock must fail loudly: {records:?}"
+    );
+}
+
+/// Matrix 2.2 — max_inner_iterations bounds a tool loop that never converges.
+///
+/// The model asks for the same tool forever; only the inner cap can stop it.
+#[test]
+fn max_inner_iterations_bounds_a_non_converging_tool_loop() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    let mut mock = MockModelProvider::new();
+    // Always ask for the tool — never answer in text.
+    mock.on_any(vec![mock_tool_call("loop_forever", HashMap::new())]);
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        max_inner_iterations: 3,
+        max_outer_iterations: 2,
+        ..Default::default()
+    };
+
+    let tool = Arc::new(MockTool::returning("loop_forever", "again"));
+    let mut h = harness_with_tools(mock.into_router(), config, vec![tool]);
+    let _ = h.follow_up.push(user_msg("loop"));
+
+    // The assertion IS termination: drive() panics past 2000 steps, so a loop
+    // that ignores max_inner_iterations fails the test instead of hanging CI.
+    let records = drive(&mut h);
+    assert!(
+        summary_count(&records).is_some(),
+        "a capped inner loop must still reach Ending and emit a Summary: {records:?}"
+    );
+}

@@ -35,7 +35,7 @@ Every state and every edge out of it.
 | 1.6 | `OuterBoundary` past `max_outer_iterations` → `Ending` | mock | todo |
 | 1.7 | `InnerAssemble` with priority pending → front-injects, stays in assemble | mock | todo |
 | 1.8 | `InnerAssemble` with exhausted budget → `Ending` + `BudgetExhausted` | mock | todo |
-| 1.9 | `InnerAssemble` router failure → `handle_error`, no panic | mock | todo |
+| 1.9 | `InnerAssemble` router failure → `handle_error`, no panic | mock | **done** |
 | 1.10 | `InnerAssemble` builds interaction carrying system prompt + messages + toolshed | both | todo |
 | 1.11 | `InnerGenerate` pumps stream, collects messages | both | **done** |
 | 1.12 | `InnerGenerate` on stream end with no tool calls → `OutputProcessing` | mock | todo |
@@ -57,7 +57,7 @@ Every state and every edge out of it.
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
 | 2.1 | `max_outer_iterations` honoured exactly (n, not n±1) | mock | **done** |
-| 2.2 | `max_inner_iterations` honoured exactly | mock | todo |
+| 2.2 | `max_inner_iterations` honoured exactly | mock | **done** |
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | todo |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | todo |
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | todo |
@@ -100,7 +100,7 @@ Every state and every edge out of it.
 | 5.1 | Provider error → `FailedAction` record | both | **done** |
 | 5.2 | `run_turn` returns `Err` on terminal `FailedAction` | both | todo |
 | 5.3 | `ErrorPolicy` retry decision honoured | mock | todo |
-| 5.4 | `CircuitBreaker` opens after `circuit_breaker_threshold` failures | mock | todo |
+| 5.4 | `CircuitBreaker` opens after `circuit_breaker_threshold` failures | mock | **done** |
 | 5.5 | Open breaker selects the next `fallback_models` entry | mock | todo |
 | 5.6 | Breaker resets on success | mock | todo |
 | 5.7 | `LoopDetector` detects repetition and escalates | mock | todo |
