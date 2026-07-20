@@ -168,16 +168,14 @@ window.eval(&trigger_js)?;
 - IPC trigger: protocol byte 4
 - Registered in `foundation_wasm_ui` (or `capability-bridge.js`)
 
-### 4. Platform uses `window.eval()` for trigger delivery
-- `foundation_platform` route handlers call `window.eval(trigger_js)` to deliver
-  capability/IPC triggers to the WASM app
-- Same pattern as the existing interceptor injection
-
-### 5. JS stream objects for incoming data (F28 bridge)
-- `WasmStreamSender` JS object: `send(chunk)`, `close()`, `onError(cb)`
-- `WasmStreamReceiver` JS object: `onData(cb)`, `onEnd(cb)`, `onError(cb)`
-  - Created by the host and passed to WASM via trigger
-  - WASM side can push data through the receiver's callback
+### 4. Works on any host
+- `foundation_platform` already has Tauri-based host→wasm delivery (route
+  handlers, `window.eval()`, WRY bridge) — no changes needed there.
+- This feature gives `foundation_wasm` the *wasm-side* infrastructure to
+  receive and dispatch capability/IPC triggers regardless of the host.
+- Browser host calls `FoundationWasm.triggerCapability(...)` directly.
+- Deno host calls through the WASM bridge.
+- Tauri host calls through the existing platform delivery → JS runtime.
 
 ## Verification
 

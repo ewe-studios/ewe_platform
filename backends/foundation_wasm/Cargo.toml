@@ -20,7 +20,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 # Lock-free queue for stream registry (F28) — no_std + wasm32 compatible
-concurrent-queue = { workspace = true, default-features = false }
+concurrent-queue = { version = "2.5.0", default-features = false }
 
 # Build tooling (feature 20): scanning #[wasm_entrypoint] fns and generating
 # bin/ sources — a std, native-only concern, so target-gated rather than

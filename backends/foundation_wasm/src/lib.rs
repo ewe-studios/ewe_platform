@@ -29,14 +29,16 @@ mod error;
 mod frames;
 mod host_runtime;
 mod intervals;
-pub mod ipc;
 mod mem;
 mod ops;
 mod protocol;
 mod registry;
 mod schedule;
-pub mod stream;
+mod trigger;
 mod wrapped;
+
+pub mod ipc;
+pub mod stream;
 
 #[cfg(feature = "web")]
 pub mod testing;
@@ -59,6 +61,7 @@ pub use protocol::*;
 pub use registry::*;
 pub use schedule::*;
 pub use stream::*;
+pub use trigger::*;
 pub use wrapped::*;
 
 // Re-export the raw-parts helper so dependent crates (e.g. foundation_wasm_ui)

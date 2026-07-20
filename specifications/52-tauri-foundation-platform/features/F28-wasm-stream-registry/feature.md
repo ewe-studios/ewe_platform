@@ -222,9 +222,18 @@ to the WASM `StreamRegistry` when running inside a webview.
 - Reactive wrappers around `WasmStreamSender`/`WasmStreamReceiver`
 - `reactiveStreamSender(signal)` — binds WASM stream to reactive signal
 
-### 7. Platform bridge (future, not this feature)
-- PlatformStreamRegistry handlers can delegate to WASM StreamRegistry
-- Not implemented in this feature — documented as future direction
+### 7. Relationship to `foundation_platform` (F26)
+- `foundation_platform` already has Tauri Channels (F26) for streaming —
+  `__ewe_ipc_stream` command, `PlatformStreamRegistry`, `StreamingIpc` trait.
+  No changes needed there.
+- This feature provides the *wasm-side equivalent* for non-Tauri hosts
+  (browser, Deno, testbed): `StreamRegistry` for WASM→host, and
+  `WasmStreamReceiver`/`WasmStreamSender` JS objects for host↔WASM.
+- Tauri hosts use their native Channel infrastructure to talk to WASM;
+  non-Tauri hosts use these JS stream objects as the bridge.
+- A future integration layer could let `PlatformStreamRegistry` handlers
+  delegate to the WASM `StreamRegistry` when running inside a webview,
+  unifying the two paths — but this is not in scope for F28.
 
 ### 8. No std::sync::mpsc
 - `concurrent_queue::ConcurrentQueue` only — lock-free, wasm32-safe
