@@ -1,9 +1,11 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
+use foundation_core::valtron::valtron;
 use foundation_platform::backend::http::HttpBackend;
+use foundation_platform::capability::PlatformCapability;
 use foundation_platform::*;
-use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile};
+use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile, RouteDecision};
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
@@ -52,22 +54,40 @@ fn html_response(html: String) -> tauri::http::Response<Vec<u8>> {
 
 struct EchoIpc;
 impl foundation_wasm::ipc::Ipc for EchoIpc {
-    fn name(&self) -> &str { "echo" }
-    fn kind(&self) -> IpcKind { IpcKind::Query }
+    fn name(&self) -> &str {
+        "echo"
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Query
+    }
     fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type })
+        Ok(IpcResponse {
+            payload: request.payload.clone(),
+            content_type: request.content_type,
+        })
     }
 }
 impl foundation_platform::ipc::PlatformIpc for EchoIpc {
-    fn invoke_with_session(&self, _: &PlatformSession, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type })
+    fn invoke_with_session(
+        &self,
+        _: &PlatformSession,
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        Ok(IpcResponse {
+            payload: request.payload.clone(),
+            content_type: request.content_type,
+        })
     }
 }
 
 struct SystemInfoIpc;
 impl foundation_wasm::ipc::Ipc for SystemInfoIpc {
-    fn name(&self) -> &str { "system" }
-    fn kind(&self) -> IpcKind { IpcKind::Query }
+    fn name(&self) -> &str {
+        "system"
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Query
+    }
     fn invoke(&self, _request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         let info = serde_json::json!({
             "os": std::env::consts::OS,
@@ -82,17 +102,27 @@ impl foundation_wasm::ipc::Ipc for SystemInfoIpc {
     }
 }
 impl foundation_platform::ipc::PlatformIpc for SystemInfoIpc {
-    fn invoke_with_session(&self, _session: &PlatformSession, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    fn invoke_with_session(
+        &self,
+        _session: &PlatformSession,
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         self.invoke(request)
     }
 }
 
 /// A ticker IPC — returns an incrementing counter on each invoke.
 /// Used by the /api/events page to demonstrate polling-based updates.
-struct TickerIpc { counter: AtomicU64 }
+struct TickerIpc {
+    counter: AtomicU64,
+}
 impl foundation_wasm::ipc::Ipc for TickerIpc {
-    fn name(&self) -> &str { "ticker" }
-    fn kind(&self) -> IpcKind { IpcKind::Query }
+    fn name(&self) -> &str {
+        "ticker"
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Query
+    }
     fn invoke(&self, _request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         let count = self.counter.fetch_add(1, Ordering::Relaxed);
         let payload = serde_json::json!({ "tick": count });
@@ -103,7 +133,11 @@ impl foundation_wasm::ipc::Ipc for TickerIpc {
     }
 }
 impl foundation_platform::ipc::PlatformIpc for TickerIpc {
-    fn invoke_with_session(&self, _session: &PlatformSession, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    fn invoke_with_session(
+        &self,
+        _session: &PlatformSession,
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         self.invoke(request)
     }
 }
@@ -112,8 +146,13 @@ impl foundation_platform::ipc::PlatformIpc for TickerIpc {
 
 struct EchoCap;
 impl WasmCapability for EchoCap {
-    fn name(&self) -> &str { "echo_cap" }
-    fn invoke_capability(&self, request: &CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+    fn name(&self) -> &str {
+        "echo_cap"
+    }
+    fn invoke_capability(
+        &self,
+        request: &CapabilityRequest<Vec<u8>>,
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
         Ok(CapabilityResponse {
             capability: request.capability.clone(),
             action: request.action.clone(),
@@ -126,14 +165,23 @@ impl PlatformCapability for EchoCap {
     fn capability_id(&self) -> &CapabilityId {
         Box::leak(Box::new(CapabilityId("echo".into())))
     }
-    fn min_profile(&self) -> Profile { Profile::TrustedRemote }
+    fn min_profile(&self) -> Profile {
+        Profile::TrustedRemote
+    }
 }
 
 // ── IPC Demo page responders ─────────────────────────────────────────
 
-struct RemoteProxy { http: Arc<HttpBackend> }
+struct RemoteProxy {
+    http: Arc<HttpBackend>,
+}
 impl RouteResponder for RemoteProxy {
-    fn respond(&self, intent: &NavigationIntent, _: &RouteDecision, _: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+    fn respond(
+        &self,
+        intent: &NavigationIntent,
+        _: &RouteDecision,
+        _: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
         let path = foundation_platform::pattern::extract_path(&intent.url);
         // Map ewe://localhost/remote/{url_path} → https://{url_path}
         let remote_path = path.strip_prefix("/remote/").unwrap_or(&path);
@@ -193,7 +241,12 @@ fn html_escape(s: &str) -> String {
 
 struct IpcInvokePage;
 impl RouteResponder for IpcInvokePage {
-    fn respond(&self, _intent: &NavigationIntent, _decision: &RouteDecision, _session: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+    fn respond(
+        &self,
+        _intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        _session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
         let body = r##"
 <h1>⚡ IPC Invoke — /api/invoke</h1>
 <button onclick="pingEcho()">Ping Echo IPC</button>
@@ -212,16 +265,27 @@ async function _invoke(ipc, action, payload) {
 function pingEcho() { _invoke('echo', 'ping', { msg: 'hello from ewe://' }); }
 function getSystem() { _invoke('system', 'get_info'); }
 </script>"##;
-        html_response(page_html("IPC Invoke", body, &nav_buttons("/api/invoke"), ""))
+        html_response(page_html(
+            "IPC Invoke",
+            body,
+            &nav_buttons("/api/invoke"),
+            "",
+        ))
     }
 }
 
 struct IpcSystemPage;
 impl RouteResponder for IpcSystemPage {
-    fn respond(&self, _intent: &NavigationIntent, _decision: &RouteDecision, session: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+    fn respond(
+        &self,
+        _intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
         let ids = session.ipc_registry().names().join(", ");
         let caps = session.capabilities().names().join(", ");
-        let body = format!(r##"
+        let body = format!(
+            r##"
 <h1>💻 System — /api/system</h1>
 <p>Registered IPCs: <b>{ids}</b></p>
 <p>Registered capabilities: <b>{caps}</b></p>
@@ -242,13 +306,23 @@ async function invokeSystem() {{
             caps = caps,
             sid = session.session_id(),
         );
-        html_response(page_html("System Info", &body, &nav_buttons("/api/system"), ""))
+        html_response(page_html(
+            "System Info",
+            &body,
+            &nav_buttons("/api/system"),
+            "",
+        ))
     }
 }
 
 struct IpcEventsPage;
 impl RouteResponder for IpcEventsPage {
-    fn respond(&self, _intent: &NavigationIntent, _decision: &RouteDecision, _session: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+    fn respond(
+        &self,
+        _intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        _session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
         let body = r##"
 <h1>📡 Events — /api/events</h1>
 <p>Polling the ticker IPC every second to simulate push-based updates.</p>
@@ -283,7 +357,12 @@ function stopPolling() {
 
 struct IpcCapabilityPage;
 impl RouteResponder for IpcCapabilityPage {
-    fn respond(&self, _intent: &NavigationIntent, _decision: &RouteDecision, _session: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+    fn respond(
+        &self,
+        _intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        _session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
         let body = r##"
 <h1>🔐 Capability — /api/capability</h1>
 <p>Invoke the echo capability through the security gated path.</p>
@@ -299,7 +378,12 @@ async function invokeCap() {
     } catch(e) { out.textContent = 'Capability Error: ' + e; }
 }
 </script>"##;
-        html_response(page_html("Capability", body, &nav_buttons("/api/capability"), ""))
+        html_response(page_html(
+            "Capability",
+            body,
+            &nav_buttons("/api/capability"),
+            "",
+        ))
     }
 }
 
@@ -309,13 +393,23 @@ fn setup_routes(session: &PlatformSession) {
     let app_responder = generated::app::AppAssets::build();
     let hello_responder = generated::app_hello::AppAssets::build();
 
-    session.register_route_with("/app/*", webview_app().with_profile(Profile::App), app_responder);
-    session.register_route_with("/app-hello/*", webview_app().with_profile(Profile::App), hello_responder);
+    session.register_route_with(
+        "/app/*",
+        webview_app().with_profile(Profile::App),
+        app_responder,
+    );
+    session.register_route_with(
+        "/app-hello/*",
+        webview_app().with_profile(Profile::App),
+        hello_responder,
+    );
 
     // Register IPC handlers on the session.
     session.register_ipc(EchoIpc);
     session.register_ipc(SystemInfoIpc);
-    session.register_ipc(TickerIpc { counter: AtomicU64::new(0) });
+    session.register_ipc(TickerIpc {
+        counter: AtomicU64::new(0),
+    });
 
     // Register a capability on the session.
     session.register_capability(EchoCap);
@@ -325,11 +419,19 @@ fn setup_routes(session: &PlatformSession) {
     session.register_route_with("/api/invoke", ipc_shell_with("invoke"), IpcInvokePage);
     session.register_route_with("/api/system", ipc_shell_with("system"), IpcSystemPage);
     session.register_route_with("/api/events", ipc_shell_with("events"), IpcEventsPage);
-    session.register_route_with("/api/capability", ipc_shell_with("capability"), IpcCapabilityPage);
+    session.register_route_with(
+        "/api/capability",
+        ipc_shell_with("capability"),
+        IpcCapabilityPage,
+    );
 
     // Real remote proxy — fetches external URLs via HTTP and wraps in iframe.
     let http = Arc::new(HttpBackend::new());
-    session.register_route_with("/remote/*", remote_fetch().with_profile(Profile::TrustedRemote), RemoteProxy { http });
+    session.register_route_with(
+        "/remote/*",
+        remote_fetch().with_profile(Profile::TrustedRemote),
+        RemoteProxy { http },
+    );
 
     // API fallback
     session.register_route_with("/api/*", ipc_shell_with("shell"), IpcInvokePage);
@@ -338,6 +440,7 @@ fn setup_routes(session: &PlatformSession) {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[valtron]
 pub fn run() {
     platform_run!(PlatformBuilder::new()
         .inject_platform_runtimes()
