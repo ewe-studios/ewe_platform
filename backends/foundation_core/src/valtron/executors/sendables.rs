@@ -838,7 +838,7 @@ where
         return Err("empty tasks not allowed".into());
     }
 
-    let mut stream = execute_collect_all(tasks, None)?;
+    let stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
     // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream

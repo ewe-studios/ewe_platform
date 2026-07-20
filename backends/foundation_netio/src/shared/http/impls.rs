@@ -5310,35 +5310,6 @@ impl ChunkState {
         }
     }
 
-    fn eat_newlines_pointer<T: Read>(
-        acc: &mut ByteBufferPointer<T>,
-    ) -> Result<(), ChunkStateError> {
-        let newline = b"\n";
-        while let Ok(b) = acc.nextby2(1) {
-            if b[0] == newline[0] {
-                continue;
-            }
-
-            // move backwards
-            let _ = acc.unforward();
-            acc.skip();
-
-            return Ok(());
-        }
-        Ok(())
-    }
-
-    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
-        while let Ok(b) = acc.nextby2(1) {
-            if b[0] != b'\r' && b[0] != b'\n' {
-                let _ = acc.unforward();
-                acc.skip();
-                break;
-            }
-        }
-        Ok(())
-    }
-
     fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
@@ -5351,14 +5322,6 @@ impl ChunkState {
             return Ok(());
         }
         Ok(())
-    }
-
-    fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
-    }
-
-    fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding))
     }
 
     fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {

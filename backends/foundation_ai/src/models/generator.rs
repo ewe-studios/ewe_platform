@@ -6,7 +6,7 @@ use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::shared::client::body_reader;
 use foundation_netio::http::HttpRequestPending;
 use foundation_netio::http::RequestIntro;
-use foundation_netio::http::{SendRequestTask, SimpleHttpClient};
+use foundation_netio::http::{SendRequestTask, NativeHttpClient};
 use serde::Deserialize;
 
 use crate::types::base_types::{
@@ -1223,7 +1223,7 @@ pub fn model_descriptors() -> &'static [ModelProviderDescriptor] {{
 
 #[allow(clippy::too_many_lines)]
 fn create_fetch_task<F>(
-    client: &mut SimpleHttpClient,
+    client: &mut NativeHttpClient,
     source: &'static str,
     url: &'static str,
     parser: F,
@@ -1442,7 +1442,7 @@ fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntr
 pub fn generate_model_descriptors() -> Result<GenerationResult, BoxedError> {
     let _guard = valtron::initialize_pool(100, None);
 
-    let mut client = SimpleHttpClient::from_system()
+    let mut client = NativeHttpClient::from_system()
         .max_body_size(None)
         .batch_size(8192 * 2)
         .read_timeout(Duration::from_secs(1))

@@ -35,7 +35,7 @@ use foundation_netio::shared::client::{
     body_reader, DnsResolver,
 };
 use foundation_netio::http::{ClientRequestBuilder, RequestIntro};
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -49,7 +49,7 @@ pub struct HFClient {
 }
 
 struct HFClientInner {
-    client: SimpleHttpClient,
+    client: NativeHttpClient,
     endpoint: String,
     token: Option<String>,
 }
@@ -105,7 +105,7 @@ impl HFClientBuilder {
 
         // Configure client to preserve auth headers on redirects
         // HuggingFace redirects to CDN (cas-bridge.xethub.hf.co) for file downloads
-        let client = SimpleHttpClient::from_system().preserve_auth_on_redirect(true);
+        let client = NativeHttpClient::from_system().preserve_auth_on_redirect(true);
 
         Ok(HFClient {
             inner: Arc::new(HFClientInner {
@@ -216,8 +216,8 @@ impl HFClient {
             .unwrap_or(false)
     }
 
-    /// Get a clone of the underlying `SimpleHttpClient`.
-    pub(crate) fn simple_http(&self) -> SimpleHttpClient {
+    /// Get a clone of the underlying `NativeHttpClient`.
+    pub(crate) fn simple_http(&self) -> NativeHttpClient {
         self.inner.client.clone()
     }
 
