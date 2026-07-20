@@ -13,7 +13,7 @@ use foundation_ai::harness::RouterMix;
 use foundation_ai::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{Messages, ModelId, SessionId, SessionRecord};
-use foundation_ai::types::{ModelOutput, TextContent, UserModelContent};
+use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::Repl;
 
@@ -70,7 +70,7 @@ fn main() {
         .expect("failed to build agent session");
 
     // Launch the REPL.
-    let mut repl = Repl::builder()
+    let repl = Repl::builder()
         .prompt("| ")
         .continuation_prompt("|... ")
         .banner("answerme-agent — Gemma-2-2b local session\nType /help for commands, /exit to quit.\n")
