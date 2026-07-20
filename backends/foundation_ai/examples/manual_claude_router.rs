@@ -23,11 +23,13 @@ use foundation_ai::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
+use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 
+#[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")
         .expect("ANTHROPIC_API_KEY must be set");

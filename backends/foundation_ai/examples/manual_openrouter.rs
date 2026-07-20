@@ -23,6 +23,7 @@ use foundation_ai::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
+use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type Doc = MemoryDocumentStore;
@@ -72,6 +73,7 @@ fn build_openrouter_router(
     builder.build()
 }
 
+#[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("OPENROUTER_API_KEY")
         .expect("OPENROUTER_API_KEY must be set");

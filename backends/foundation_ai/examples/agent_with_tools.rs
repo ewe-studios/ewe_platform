@@ -15,12 +15,14 @@ use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness;
 use foundation_ai::types::{Args, MessageRole, Messages, SessionId, TextContent, Tool, ToolShed, UserModelContent};
 use foundation_compact::ids::new_scru128;
+use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_jsonschema::scheme;
 
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 
+#[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")
         .expect("ANTHROPIC_API_KEY must be set");
