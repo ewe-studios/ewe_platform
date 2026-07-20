@@ -403,6 +403,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         prompt: Messages,
     ) -> Result<DrivenStreamIterator<AgentLoop<D, M>>, ErrorTrace<AgenticError>> {
         self.inner.queues.push_follow_up(prompt);
+        tracing::trace!(
+            follow_up_len = self.inner.queues.follow_up.len(),
+            "run_turn_stream: queued prompt for the loop"
+        );
 
         let agent_loop = AgentLoop::new(
             self.inner.session_id.clone(),

@@ -496,6 +496,8 @@ impl ModelProvider for HuggingFaceGGUFProvider {
             lora_location: None,
         };
 
+        tracing::trace!("get_model: model_spec={model_spec:?} from llamacpp");
+
         // Delegate to LlamaBackends for actual model loading, carrying the full
         // llama.cpp config (GPU layers, context length, …) and the opt-in
         // speculative (MTP) config so they are applied + capability-checked.
