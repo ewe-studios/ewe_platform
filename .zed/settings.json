@@ -8,6 +8,11 @@
       "initialization_options": {
         "check": {
           "command": "clippy"
+        },
+        "cargo": {
+          "extraEnv": {
+            "PATH": "/home/darkvoid/.local/lib/zed-bin:/home/darkvoid/.cargo/bin:/usr/lib/rustup/bin:/usr/local/bin:/usr/bin:/bin"
+          }
         }
       }
     }

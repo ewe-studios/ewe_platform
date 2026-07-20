@@ -67,7 +67,7 @@ defects lived in the gap.
 | 02 | llama.cpp logs route through `tracing`, silent unless a filter directive enables them | Resolved |
 | 03 | Coverage target ~90% of critical logic; exclusions require review, not blanket ignores | Resolved |
 | 04 | llama.cpp version bump lands last | Resolved |
-| 05 | Which candle model is the test model (size/licence/determinism) | **Open** |
+| 05 | Test model is `HuggingFaceTB/SmolLM2-135M-Instruct` (Llama arch, ~270 MB safetensors, Apache-2.0) | Resolved |
 | 06 | Coverage measurement tool (`cargo-llvm-cov` vs `tarpaulin`) and whether it gates CI | **Open** |
 | 07 | Whether generation-quality assertions can be deterministic (seeded sampler) or must be tolerant | **Open** |
 

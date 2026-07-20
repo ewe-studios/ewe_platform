@@ -23,6 +23,7 @@ fn nav_buttons(current: &str) -> String {
     let pages = [
         ("/app/", "🏠 App"),
         ("/app-hello/", "👋 Hello"),
+        ("/remote/news", "🌐 Remote"),
         ("/api/invoke", "⚡ Invoke"),
         ("/api/system", "💻 System"),
         ("/api/events", "📡 Events"),
@@ -30,7 +31,7 @@ fn nav_buttons(current: &str) -> String {
     ];
     pages
         .iter()
-        .filter(|(p, _)| *p != current)
+        .filter(|(p, _)| !current.starts_with(p) && !p.starts_with(current))
         .fold(String::new(), |s, (href, label)| {
             s + &format!("<a href=\"ewe://localhost{href}\">{label}</a>")
         })
@@ -127,6 +128,15 @@ impl PlatformCapability for EchoCap {
 }
 
 // ── IPC Demo page responders ─────────────────────────────────────────
+
+struct RemoteFetch { base_url: String }
+impl RouteResponder for RemoteFetch {
+    fn respond(&self, intent: &NavigationIntent, _: &RouteDecision, _: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
+        let route = foundation_platform::pattern::extract_path(&intent.url);
+        let body = format!("<h1>{route}</h1><p>Remote fetch from {base}</p><p>This handler simulates fetching content from a remote server over the ewe:// protocol.</p>", base = &self.base_url);
+        html_response(page_html(&route, &body, &nav_buttons("/remote/"), ""))
+    }
+}
 
 struct IpcInvokePage;
 impl RouteResponder for IpcInvokePage {
@@ -264,7 +274,10 @@ fn setup_routes(session: &PlatformSession) {
     session.register_route_with("/api/events", ipc_shell_with("events"), IpcEventsPage);
     session.register_route_with("/api/capability", ipc_shell_with("capability"), IpcCapabilityPage);
 
-    // Also handle the bare prefix for direct URL entry.
+    // Remote fetch route — simulates fetching from a remote server.
+    session.register_route_with("/remote/*", remote_fetch().with_profile(Profile::TrustedRemote), RemoteFetch { base_url: "https://api.example.com".into() });
+
+    // API fallback
     session.register_route_with("/api/*", ipc_shell_with("shell"), IpcInvokePage);
 
     println!("[platform_android] Session: {:?}", session.session_id());

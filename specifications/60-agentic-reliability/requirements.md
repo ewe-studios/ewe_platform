@@ -122,6 +122,39 @@ needs both:
 Candle is chosen over llama.cpp for the real-provider tier because it is pure
 Rust, in-process, needs no C++ build, and no multi-GB weights.
 
+### The test model (decision 05)
+
+**`HuggingFaceTB/SmolLM2-135M-Instruct`** — ~270 MB safetensors, Apache-2.0.
+
+- **Llama architecture**, which is what `CandleArchitecture` supports
+  (`Llama | Custom(String)`) — this constraint rules out Qwen/Phi/Gemma for the
+  candle tier.
+- **Smallest practical**: 135M params. Loads in-process in about a second and
+  needs no GPU.
+- **Established here already**: the existing candle suites
+  (`tests/candle/candle_backend.rs`, `tests/candle/huggingface_candle_provider.rs`)
+  use `SmolLM2-135M`, and the llama.cpp suites use `SmolLM2-360M-Instruct` via
+  `TestHarness`. Same family, no new vendor surface.
+- **Instruct, not base**: the base 135M ships no chat template, so it cannot
+  exercise turn-structured prompting — which is precisely the path that was
+  broken in `docs/fixes/006`. The instruct variant has one.
+
+### What this model can and cannot prove
+
+A 135M model produces weak text and will **not** reliably emit tool calls or
+follow instructions. Pretending otherwise would build a flaky suite. So the
+tiers divide by what each can actually establish:
+
+| Tier | Proves | Examples |
+|------|--------|----------|
+| **Mock** (`MockModelProvider`) | Deterministic branch + flow coverage. Any behaviour needing the model to emit something *specific*. | tool-call extraction/execution/results, `ErrorPolicy` decisions, `CircuitBreaker` fallback, `LoopDetector` escalation, budget exhaustion, iteration caps, steering interrupts, cancellation |
+| **Candle** (SmolLM2-135M-Instruct) | The real provider seam that mocks cannot see — where every `docs/fixes/006` defect lived. | a real turn completes end-to-end; `generate()` and `stream()` agree; a stream advances past its first token; the chat template is applied; a provider error propagates as `FailedAction` |
+
+Assertions in the candle tier are therefore **structural, not semantic** — that
+text was produced, that streaming progressed, that records have the right shape
+— never that the reply is a good answer. Semantic quality is workstream A's
+problem, on the real model.
+
 ### Coverage requirements
 
 Target ~90% of critical logic in `backends/foundation_ai/src/agentic/`. Every

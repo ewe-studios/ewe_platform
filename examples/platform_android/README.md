@@ -27,6 +27,18 @@ config — the actual binary is always nested.
 becomes the JNI entrypoint on Android. `main.rs` is the desktop entrypoint
 that calls into the same `run()` function. Same code, different entrypoints.
 
+## Run
+
+```bash
+# Start emulator (always use 1080x2160 resolution for consistent screenshots)
+emulator -avd test_x86_64 -skin 1080x2160 -dpi-device 420 -gpu swiftshader_indirect
+
+# Build and install
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk cargo tauri android build --target x86_64
+apksigner sign --ks debug.keystore --out signed.apk unsigned.apk
+adb install -r signed.apk
+```
+
 ## Build
 
 ```bash
@@ -34,3 +46,6 @@ ANDROID_HOME=~/android-sdk cargo tauri android init   # Generate Gradle project
 ANDROID_HOME=~/android-sdk cargo tauri android build  # Compile .so + APK
 adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 ```
+
+**Note:** Always run the emulator at `1080x2160` (`-skin 1080x2160 -dpi-device 420`).
+This resolution produces consistent, readable screenshots without excessive zoom.
