@@ -19,8 +19,6 @@ use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::Repl;
-use tracing::Level;
-use tracing_subscriber::FmtSubscriber;
 
 /// Model cache directory — defaults to the workspace `artefacts/models`,
 /// overridden at runtime by `ANSWERME_MODEL_DIR`.
@@ -35,15 +33,8 @@ fn model_dir() -> PathBuf {
         })
 }
 
-#[valtron]
+#[valtron(tracing = "trace", tracing_targets = true, tracing_names = true)]
 fn main() {
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default trace subscriber failed");
-
     let session_id = SessionId::new();
 
     // Configure the local llama.cpp backend.
