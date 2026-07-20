@@ -37,12 +37,12 @@ fn model_dir() -> PathBuf {
 
 #[valtron]
 fn main() {
-    // let subscriber = FmtSubscriber::builder()
-    //     .with_max_level(Level::TRACE)
-    //     .finish();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::DEBUG)
+        .finish();
 
-    // tracing::subscriber::set_global_default(subscriber)
-    //     .expect("setting default trace subscriber failed");
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default trace subscriber failed");
 
     let session_id = SessionId::new();
 
@@ -120,14 +120,28 @@ fn main() {
 
 /// Extract the assistant's reply text from a list of session records.
 fn extract_assistant_text(records: &[SessionRecord]) -> String {
+    eprintln!("DEBUG: received {} records", records.len());
     let mut parts = Vec::new();
     for record in records {
-        println!("Recieivng {:?}", &record);
-        if let SessionRecord::Conversation { message } = record {
-            if let Messages::Assistant { content, .. } = message {
-                if let ModelOutput::Text(text) = content {
-                    parts.push(text.content.clone());
+        match record {
+            SessionRecord::Conversation { message } => {
+                if let Messages::Assistant { content, .. } = message {
+                    eprintln!("  Assistant content: {:?}", content);
+                    if let ModelOutput::Text(text) = content {
+                        parts.push(text.content.clone());
+                    }
+                } else if let Messages::User { content, .. } = message {
+                    eprintln!("  User message: {:?}", content);
                 }
+            }
+            SessionRecord::Summary { message_count, .. } => {
+                eprintln!("  Summary: message_count={}", message_count);
+            }
+            SessionRecord::FailedAction { error, .. } => {
+                eprintln!("  FailedAction: {}", error);
+            }
+            other => {
+                eprintln!("  Other record: {:?}", other);
             }
         }
     }
