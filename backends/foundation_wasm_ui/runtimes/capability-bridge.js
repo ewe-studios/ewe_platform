@@ -35,6 +35,46 @@
   /**
    * Tauri transport: invoke via __TAURI_INTERNALS__.invoke('__ewe_capabilities', ...).
    */
+  // ── invokeIpc ────────────────────────────────────────────────────────
+  // Same transport logic as invokeCapability, but for IPC invocations
+  // through __ewe_ipc instead of __ewe_capabilities.
+
+  async function tauriInvokeIpc(name, action, payload) {
+    var jsonPayload = JSON.stringify(payload !== undefined ? payload : {});
+    var result = await window.__TAURI_INTERNALS__.invoke('__ewe_ipc', {
+      ipc: name,
+      action: action,
+      payload: Array.from(new TextEncoder().encode(jsonPayload)),
+      content_type: 'application/json',
+    });
+    try { return JSON.parse(new TextDecoder().decode(new Uint8Array(result))); }
+    catch (_) { return result; }
+  }
+
+  async function browserInvokeIpc(name, action, payload) {
+    if (typeof FoundationWasm === 'undefined') {
+      throw new Error('invokeIpc: no WASM runtime found.');
+    }
+    return FoundationWasm.host_apply(2, 0, new TextEncoder().encode(JSON.stringify({
+      ipc: name, action: action,
+      payload: payload !== undefined ? payload : {},
+    })));
+  }
+
+  async function invokeIpc(name, action, payload) {
+    if (!name || typeof name !== 'string') {
+      throw new Error('invokeIpc: name must be a non-empty string');
+    }
+    if (!action || typeof action !== 'string') {
+      throw new Error('invokeIpc: action must be a non-empty string');
+    }
+    if (isTauri()) return await tauriInvokeIpc(name, action, payload);
+    if (isDeno()) return await denoInvokeIpc(name, action, payload);
+    return await browserInvokeIpc(name, action, payload);
+  }
+
+  // ── invokeCapability ──────────────────────────────────────────────────
+
   async function tauriInvokeCapability(name, action, payload) {
     var jsonPayload = JSON.stringify(payload !== undefined ? payload : {});
 
@@ -57,6 +97,14 @@
   async function denoInvokeCapability(name, action, payload) {
     return await Deno.core.opAsync('ewe_capability', {
       capability: name,
+      action: action,
+      payload: payload !== undefined ? JSON.stringify(payload) : '{}',
+    });
+  }
+
+  async function denoInvokeIpc(name, action, payload) {
+    return await Deno.core.opAsync('ewe_ipc', {
+      ipc: name,
       action: action,
       payload: payload !== undefined ? JSON.stringify(payload) : '{}',
     });
@@ -134,17 +182,20 @@
   // ESM binding
   if (typeof globalThis !== 'undefined') {
     globalThis.invokeCapability = invokeCapability;
+    globalThis.invokeIpc = invokeIpc;
   }
 
   // Classic global
   if (typeof window !== 'undefined') {
     window.invokeCapability = invokeCapability;
+    window.invokeIpc = invokeIpc;
     window.registerTriggerHandlers = registerTriggerHandlers;
   }
 
   // For module consumers
   if (typeof exports !== 'undefined') {
     exports.invokeCapability = invokeCapability;
+    exports.invokeIpc = invokeIpc;
     exports.registerTriggerHandlers = registerTriggerHandlers;
   }
 })();

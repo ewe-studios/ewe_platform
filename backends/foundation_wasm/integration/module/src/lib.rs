@@ -438,3 +438,43 @@ pub extern "C" fn e2e_stream_end(stream_id: u64) {
     unsafe { foundation_wasm::abi::web::host_sender_end(stream_id); }
 }
 
+// ── F23/F25: Capability & IPC invoke e2e ───────────────────────────────
+///
+/// WASM registers JS bridge functions (invokeCapability/invokeIpc) via
+/// the function registry and invokes them with hardcoded test params.
+
+/// Register `invokeCapability` in the function registry and invoke it
+/// with test params. JS side stubs `invokeCapability` to return a known
+/// result. Returns 1 on success, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_invoke_capability() -> i32 {
+    use foundation_wasm::{abi::web::register_function, Params, ReturnTypeHints, ReturnTypeId, ThreeState};
+    let f = register_function(
+        "function(name, action, _payload) { if (name === 'camera' && action === 'capture') return 'ok'; return 'fail'; }"
+    );
+    match f.invoke_for_replies(
+        &[Params::Text8("camera"), Params::Text8("capture"), Params::Text8("{}")],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
+    ) {
+        Ok(_) => 1,
+        Err(_) => -1,
+    }
+}
+
+/// Register `invokeIpc` in the function registry and invoke it.
+/// Returns 1 on success, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_invoke_ipc() -> i32 {
+    use foundation_wasm::{abi::web::register_function, Params, ReturnTypeHints, ReturnTypeId, ThreeState};
+    let f = register_function(
+        "function(name, action, _payload) { if (name === 'system' && action === 'get_info') return JSON.stringify({os:'linux'}); return 'fail'; }"
+    );
+    match f.invoke_for_replies(
+        &[Params::Text8("system"), Params::Text8("get_info"), Params::Text8("{}")],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
+    ) {
+        Ok(_) => 1,
+        Err(_) => -1,
+    }
+}
+
