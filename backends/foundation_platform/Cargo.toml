@@ -31,6 +31,9 @@ concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# HTTP client for remote fetch (F29 Stage 2)
+reqwest = { workspace = true }
+
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }
 

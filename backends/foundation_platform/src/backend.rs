@@ -11,6 +11,8 @@
 
 use foundation_ui_traits::{RouteDecision, RouteSource};
 
+pub mod http;
+
 // ── Backend transport trait ─────────────────────────────────────────────
 
 /// Pluggable backend dispatch. One method per [`RouteSource`].

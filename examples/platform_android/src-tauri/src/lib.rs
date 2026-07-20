@@ -1,5 +1,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
+use foundation_platform::backend::http::HttpBackend;
 use foundation_platform::*;
 use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile};
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
@@ -129,13 +131,64 @@ impl PlatformCapability for EchoCap {
 
 // ── IPC Demo page responders ─────────────────────────────────────────
 
-struct RemoteFetch { base_url: String }
-impl RouteResponder for RemoteFetch {
+struct RemoteProxy { http: Arc<HttpBackend> }
+impl RouteResponder for RemoteProxy {
     fn respond(&self, intent: &NavigationIntent, _: &RouteDecision, _: &PlatformSession) -> tauri::http::Response<Vec<u8>> {
-        let route = foundation_platform::pattern::extract_path(&intent.url);
-        let body = format!("<h1>{route}</h1><p>Remote fetch from {base}</p><p>This handler simulates fetching content from a remote server over the ewe:// protocol.</p>", base = &self.base_url);
-        html_response(page_html(&route, &body, &nav_buttons("/remote/"), ""))
+        let path = foundation_platform::pattern::extract_path(&intent.url);
+        // Map ewe://localhost/remote/{url_path} → https://{url_path}
+        let remote_path = path.strip_prefix("/remote/").unwrap_or(&path);
+        let remote_url = if remote_path.starts_with("http") {
+            remote_path.to_string()
+        } else {
+            format!("https://{remote_path}")
+        };
+
+        match self.http.fetch(&remote_url) {
+            Ok((body, content_type)) => {
+                let safe_body = String::from_utf8_lossy(&body);
+                let html = iframe_wrapper(&path, &remote_url, &safe_body, &nav_buttons("/remote/"));
+                tauri::http::Response::builder()
+                    .status(200)
+                    .header("Content-Type", "text/html; charset=utf-8")
+                    .body(html.into_bytes())
+                    .unwrap()
+            }
+            Err(e) => {
+                let body = format!("<h1>Remote Fetch Error</h1><pre>{e}</pre>");
+                html_response(page_html(&path, &body, &nav_buttons("/remote/"), ""))
+            }
+        }
     }
+}
+
+/// Wrap remote content in an iframe with shared nav bar so users can
+/// navigate back to other ewe:// pages.
+fn iframe_wrapper(path: &str, remote_url: &str, body: &str, nav: &str) -> String {
+    let interceptor = foundation_wasm_ui::embedded::PLATFORM_SCHEME_INTERCEPTOR_JS;
+    // Encode the body so it renders safely inside the page.
+    // In production we would use srcdoc on the iframe, but for now
+    // we inline it with a sandbox.
+    format!(
+        "<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Remote: {path}</title>\
+         <style>body{{margin:0;padding:0;background:#0a0a1a;color:#ccd6f6;font-family:sans-serif}}iframe{{width:100%;height:calc(100vh - 60px);border:none}}#nav{{display:flex;flex-wrap:wrap;padding:8px;background:#112240;gap:4px;min-height:44px;align-items:center}}\
+         a{{padding:5px 8px;background:#1a2a4a;color:#64ffda;border:1px solid #233554;border-radius:4px;text-decoration:none;font-size:11px}}a:hover{{background:#233554}}\
+         .url{{font-size:10px;color:#8892b0;margin-left:8px}}</style>\
+         <script>{interceptor}</script></head><body>\
+         <div id=nav>{nav}<span class=url>⤷ {remote_url}</span></div>\
+         <iframe sandbox='allow-scripts allow-same-origin' srcdoc='{escaped_body}'></iframe>\
+         </body></html>",
+        interceptor = interceptor,
+        escaped_body = html_escape(&body),
+    )
+}
+
+/// Minimal HTML escaper for safe inlining into srcdoc.
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 struct IpcInvokePage;
@@ -274,8 +327,9 @@ fn setup_routes(session: &PlatformSession) {
     session.register_route_with("/api/events", ipc_shell_with("events"), IpcEventsPage);
     session.register_route_with("/api/capability", ipc_shell_with("capability"), IpcCapabilityPage);
 
-    // Remote fetch route — simulates fetching from a remote server.
-    session.register_route_with("/remote/*", remote_fetch().with_profile(Profile::TrustedRemote), RemoteFetch { base_url: "https://api.example.com".into() });
+    // Real remote proxy — fetches external URLs via HTTP and wraps in iframe.
+    let http = Arc::new(HttpBackend::new());
+    session.register_route_with("/remote/*", remote_fetch().with_profile(Profile::TrustedRemote), RemoteProxy { http });
 
     // API fallback
     session.register_route_with("/api/*", ipc_shell_with("shell"), IpcInvokePage);
