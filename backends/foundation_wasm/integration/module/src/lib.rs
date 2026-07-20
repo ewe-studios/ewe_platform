@@ -417,29 +417,24 @@ pub extern "C" fn e2e_trigger_ipc(json_ptr: u64, json_len: u32) {
     unsafe { foundation_wasm::abi::web::host_apply(mem_id, ptr as u64, len) };
 }
 
-// ── F28: Stream e2e ─────────────────────────────────────────────────────
+// ── F28: Stream create e2e (WASM → host stream) ────────────────────
 
-/// JS→WASM: push a chunk to the WASM-side stream registry.
+/// WASM calls host_stream_create() → gets a stream ID from JS.
+/// Returns the stream ID (u64).
 #[no_mangle]
-pub extern "C" fn e2e_wasm_stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) -> u32 {
-    foundation_wasm::stream::wasm_exports::stream_send(stream_id, data_ptr, data_len, seq)
+pub extern "C" fn e2e_stream_create() -> u64 {
+    unsafe { foundation_wasm::abi::web::host_stream_create() }
 }
 
-/// JS→WASM: close the WASM-side stream.
+/// WASM pushes a chunk to the host-side stream created via e2e_stream_create.
 #[no_mangle]
-pub extern "C" fn e2e_wasm_stream_close(stream_id: u64) -> u32 {
-    foundation_wasm::stream::wasm_exports::stream_close(stream_id)
+pub extern "C" fn e2e_stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) {
+    unsafe { foundation_wasm::abi::web::host_sender_send(stream_id, data_ptr, data_len, seq); }
 }
 
-/// WASM→JS: push a chunk to a JS-side stream.
+/// WASM signals end-of-stream on the host-side stream.
 #[no_mangle]
-pub extern "C" fn e2e_wasm_to_js_send(js_stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) {
-    unsafe { foundation_wasm::abi::web::host_sender_send(js_stream_id, data_ptr, data_len, seq); }
-}
-
-/// WASM→JS: signal end-of-stream on a JS-side stream.
-#[no_mangle]
-pub extern "C" fn e2e_wasm_to_js_end(js_stream_id: u64) {
-    unsafe { foundation_wasm::abi::web::host_sender_end(js_stream_id); }
+pub extern "C" fn e2e_stream_end(stream_id: u64) {
+    unsafe { foundation_wasm::abi::web::host_sender_end(stream_id); }
 }
 

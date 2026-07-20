@@ -1849,6 +1849,13 @@ export class FoundationWasm {
     this.dispatcher.setHandler(4, { apply: (mid, payload) => this._dispatchIpcTrigger(mid, payload) });
     // F28: Stream registry placeholder — WASM exports register streams here.
     this._streamRegistry = null;
+    // F28: Host-side stream registry. Streams are created by WASM via
+    // host_stream_create() → returns an ID. Chunks are buffered until
+    // callbacks are bound via host_stream_bind(). This decouples creation
+    // (WASM gets an ID it can pass as a return value) from consumption
+    // (JS binds callbacks later).
+    this._streamRegistry = {};
+    this._nextStreamId = 1;
   }
 
   /**
@@ -1917,6 +1924,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
+    const self = this;
     const { bridge, memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
@@ -2017,14 +2025,89 @@ export class FoundationWasm {
         return batches.applyReturning(opsPtr, opsLen, textPtr, textLen);
       },
 
-      // F28: Stream FFI — WASM pushes data through JS stream objects.
-      // WASM → host (outgoing): call host_sender_send / host_sender_end.
+      // F28: Stream FFI — WASM pushes data through buffered host-side streams.
+      //
+      // host_stream_create()  → returns stream ID (u64). WASM can pass this
+      //                         as a return value. Chunks are buffered until
+      //                         callbacks are bound.
+      // host_stream_bind(id, onChunk, onEnd) → bind callbacks, drain buffer.
+      // host_sender_send(id, ptr, len, seq)  → push chunk (buffer or deliver).
+      // host_sender_end(id)                  → signal end (or mark ended).
+      //
+      // This decouples stream creation from consumption:
+      //   1. WASM calls host_stream_create() → gets ID
+      //   2. WASM passes ID as return value to JS
+      //   3. JS binds callbacks via host_stream_bind(id, onChunk, onEnd)
+      //   4. WASM pushes chunks → delivered to onChunk
+      //   5. WASM calls host_sender_end → delivered to onEnd
+      host_stream_create() {
+        var id = self._nextStreamId++;
+        self._streamRegistry[id] = {
+          chunks: [],
+          onChunk: null,
+          onEnd: null,
+          ended: false,
+          bind: function (chunkFn, endFn) {
+            this.onChunk = chunkFn || null;
+            this.onEnd = endFn || null;
+            // Drain buffered chunks
+            if (this.onChunk) {
+              for (var i = 0; i < this.chunks.length; i++) {
+                this.onChunk(this.chunks[i]);
+              }
+              this.chunks.length = 0;
+            }
+            if (this.ended && this.onEnd) {
+              this.onEnd();
+            }
+          },
+        };
+        return BigInt(id);
+      },
+      host_stream_bind(streamId, cbOnChunk, cbOnEnd) {
+        var s = self._streamRegistry[Number(streamId)];
+        if (!s) return;
+        s.onChunk = typeof cbOnChunk === "function" ? cbOnChunk : null;
+        s.onEnd = typeof cbOnEnd === "function" ? cbOnEnd : null;
+        // Drain buffered chunks
+        if (s.onChunk) {
+          for (var i = 0; i < s.chunks.length; i++) {
+            s.onChunk(s.chunks[i]);
+          }
+          s.chunks.length = 0;
+        }
+        // If already ended, fire onEnd immediately
+        if (s.ended && s.onEnd) {
+          s.onEnd();
+        }
+      },
       host_sender_send(streamId, dataPtr, dataLen, seq) {
+        var id = Number(streamId);
         var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
-        WasmStreamSender._send(Number(streamId), data, Number(seq));
+        var s = self._streamRegistry[id];
+        if (s) {
+          var chunk = { data: data, sequence: Number(seq) };
+          if (s.onChunk) {
+            s.onChunk(chunk);
+          } else {
+            s.chunks.push(chunk);
+          }
+        } else {
+          // Fallback: direct WasmStreamSender (pre-F28 API)
+          WasmStreamSender._send(id, data, Number(seq));
+        }
       },
       host_sender_end(streamId) {
-        WasmStreamSender._end(Number(streamId));
+        var id = Number(streamId);
+        var s = self._streamRegistry[id];
+        if (s) {
+          s.ended = true;
+          if (s.onEnd) s.onEnd();
+          delete self._streamRegistry[id];
+        } else {
+          // Fallback: direct WasmStreamSender (pre-F28 API)
+          WasmStreamSender._end(id);
+        }
       },
       // Host → WASM (incoming): call host_receiver_push to deliver chunks.
       host_receiver_push(receiverId, dataPtr, dataLen, seq, isLast) {

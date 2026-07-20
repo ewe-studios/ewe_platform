@@ -975,11 +975,21 @@ pub mod abi {
             ) -> u64;
 
             // ── F28: Stream FFI (WASM → JS) ────────────────────────────
+            ///
+            /// WASM creates streams, pushes chunks, and ends them.
+            /// JS binds callbacks via `FoundationWasm` methods (not via
+            /// WASM FFI — callback binding is a JS-side concern).
+            ///
+            /// Buffered chunks live on the JS heap. Always bind or end
+            /// the stream within a bounded time window.
 
-            /// Push a chunk into a JS `WasmStreamSender` identified by `stream_id`.
+            /// Create a host-side stream. Returns a u64 stream ID.
+            pub fn host_stream_create() -> u64;
+
+            /// Push a chunk to a host-side stream by ID.
             pub fn host_sender_send(stream_id: u64, data_start: *const u8, data_len: u32, seq: u64);
 
-            /// Signal end-of-stream on a JS `WasmStreamSender` identified by `stream_id`.
+            /// Signal end-of-stream on a host-side stream by ID.
             pub fn host_sender_end(stream_id: u64);
         }
 
@@ -1129,6 +1139,7 @@ pub mod abi {
 
             // ── F28: Stream FFI ────────────────────────────────────────
 
+            pub fn host_stream_create() -> u64 { 0 }
             pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
             pub fn host_sender_end(_stream_id: u64) {}
         }
