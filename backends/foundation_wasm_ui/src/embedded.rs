@@ -36,3 +36,9 @@ pub const PLATFORM_SCHEME_INTERCEPTOR_JS: &str =
 
 /// The core ABI runtime, re-exported so consumers embed the set from one place.
 pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;
+
+/// Portable capability invocation bridge (`runtimes/capability-bridge.js`, F23):
+/// provides `window.invokeCapability(name, action, payload)` that routes through
+/// Tauri (`__ewe_capabilities`), browser (direct WASM bridge), or Deno.
+/// Injected by F24 ScriptInjector alongside the other platform runtimes.
+pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-bridge.js");
