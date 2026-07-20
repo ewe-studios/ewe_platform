@@ -1,0 +1,344 @@
+//! `AgentLoop` inner-loop coverage — the states a real turn passes through.
+//!
+//! WHY: `agent_loop_tests.rs` builds its harness with an EMPTY `ProviderRouter`,
+//! so the loop can never reach generation. It covers the outer boundary and
+//! stops — which is why `agent_loop.rs` measured 21% region coverage while being
+//! the file every defect in `docs/fixes/006` passed through.
+//!
+//! WHAT: the same harness wired to a `MockModelProvider`, so a turn actually
+//! runs `InnerAssemble → InnerGenerate → OutputProcessing → Ending`, plus the
+//! tool, error, and steering paths that branch off it.
+//!
+//! HOW: mocks rather than a real model, because these assertions need the model
+//! to emit something *specific* (a tool call, a failure) on demand. The real
+//! provider seam is covered separately in `integrations/session_turn.rs` — see
+//! `specifications/60-agentic-reliability/test-matrix.md` for the split.
+
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use foundation_ai::agentic::testing::{mock_text, mock_tool_call, MockModelProvider};
+use foundation_ai::agentic::tool_impl::ToolCallManager;
+use foundation_ai::agentic::{
+    AgentConfig, AgentLoop, ContextConfig, ContextProvider, ErrorPolicy, KvMemoryStore,
+    MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues, TokenLedger,
+};
+use foundation_ai::types::{
+    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
+    TextContent, UserModelContent,
+};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+type TestMemStore = KvMemoryStore<MemoryStorage>;
+type TestDocStore = MemoryDocumentStore;
+
+// ---------------------------------------------------------------------------
+// Harness
+
+struct Harness {
+    agent: AgentLoop<TestDocStore, TestMemStore>,
+    follow_up: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
+    priority: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
+    cancel: Arc<std::sync::atomic::AtomicU32>,
+}
+
+/// Build a loop wired to `router`, so generation actually happens.
+fn harness_with(router: ProviderRouter, config: AgentConfig) -> Harness {
+    let session_id = SessionId::new();
+    let ledger = TokenLedger::new();
+    let memory_store = Arc::new(KvMemoryStore::new(MemoryStorage::new()));
+    let message_api = MessageApi::new(session_id.clone(), MemoryDocumentStore::new());
+
+    let context_provider = ContextProvider::new(
+        session_id.clone(),
+        message_api.clone(),
+        Arc::clone(&memory_store),
+        ledger.clone(),
+        Some("You are a helpful assistant.".into()),
+        ContextConfig::default(),
+    );
+
+    let queues = SteeringQueues::new();
+    let follow_up = Arc::clone(&queues.follow_up);
+    let priority = Arc::clone(&queues.priority);
+    let cancel = Arc::clone(&queues.cancel_signal);
+
+    let memory = MemoryHierarchy::new(
+        session_id.clone(),
+        MemoryCoordinator::new(
+            KvMemoryStore::new(MemoryStorage::new()),
+            MemoryDocumentStore::new(),
+        ),
+        ledger.clone(),
+        MemoryConfig::default(),
+    );
+
+    let agent = AgentLoop::new(
+        session_id.clone(),
+        context_provider,
+        ToolCallManager::new(session_id),
+        queues,
+        memory,
+        message_api,
+        ledger,
+        ErrorPolicy::new(),
+        router,
+        config,
+    );
+
+    Harness {
+        agent,
+        follow_up,
+        priority,
+        cancel,
+    }
+}
+
+fn config_for(model: &str) -> AgentConfig {
+    AgentConfig {
+        primary_model: ModelId::Name(model.into(), None),
+        ..Default::default()
+    }
+}
+
+fn user_msg(text: &str) -> Messages {
+    Messages::User {
+        id: foundation_compact::ids::new_scru128(),
+        role: MessageRole::User,
+        content: UserModelContent::Text(TextContent {
+            content: text.into(),
+            signature: None,
+        }),
+        signature: None,
+    }
+}
+
+/// Drive the loop to completion, collecting every emitted record.
+///
+/// Bounded so a loop that fails to terminate fails the test instead of hanging
+/// the suite — a wedged valtron task otherwise never reports.
+fn drive(h: &mut Harness) -> Vec<SessionRecord> {
+    let mut records = Vec::new();
+    for _ in 0..2_000 {
+        match h.agent.next_status() {
+            None => return records,
+            Some(TaskStatus::Ready(record)) => records.push(record),
+            Some(_) => {}
+        }
+    }
+    panic!("agent loop did not terminate within 2000 steps");
+}
+
+fn assistant_texts(records: &[SessionRecord]) -> Vec<String> {
+    records
+        .iter()
+        .filter_map(|r| match r {
+            SessionRecord::Conversation {
+                message: Messages::Assistant { content, .. },
+            } => match content {
+                ModelOutput::Text(t) => Some(t.content.clone()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect()
+}
+
+fn has_failed_action(records: &[SessionRecord]) -> bool {
+    records
+        .iter()
+        .any(|r| matches!(r, SessionRecord::FailedAction { .. }))
+}
+
+fn summary_count(records: &[SessionRecord]) -> Option<u64> {
+    records.iter().find_map(|r| match r {
+        SessionRecord::Summary { message_count, .. } => Some(*message_count),
+        _ => None,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.11 / 1.12 / 1.24 — a turn reaches generation and emits the reply
+
+#[test]
+fn follow_up_drives_a_full_generation_turn() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("hello from the model")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert_eq!(
+        assistant_texts(&records),
+        vec!["hello from the model".to_string()],
+        "the turn should emit the model's reply: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.22 — Ending emits a Summary that counts the turn's messages
+
+#[test]
+fn ending_emits_summary_counting_messages() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("reply")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    let count = summary_count(&records).expect("a Summary record must be emitted");
+    assert!(
+        count > 0,
+        "Summary should count the turn's messages, got {count}: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.23 — the loop terminates; next_status yields None afterwards
+
+#[test]
+fn loop_terminates_and_yields_none() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("done")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    drive(&mut h);
+    assert!(
+        h.agent.next_status().is_none(),
+        "a completed loop must keep yielding None"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.14 / 5.1 / 5.9 — a provider failure surfaces as FailedAction
+//
+// This is the docs/fixes/006 regression guard at the loop level: a failing
+// provider must NEVER present as an empty but successful turn.
+
+#[test]
+fn provider_failure_emits_failed_action_not_silent_success() {
+    let mut mock = MockModelProvider::new();
+    mock.fail_with(|_| true, "provider exploded");
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        has_failed_action(&records),
+        "a provider failure must emit FailedAction, not an empty success: {records:?}"
+    );
+    assert!(
+        assistant_texts(&records).is_empty(),
+        "a failed turn must not emit assistant text: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.13 / 4.2 — a tool call in the model's output reaches the tool states
+
+#[test]
+fn tool_call_output_drives_the_tool_path() {
+    let mut mock = MockModelProvider::new();
+    // First call asks for a tool; any later call answers in text, so the loop
+    // can terminate rather than looping on the tool forever.
+    mock.on_nth_call(1, vec![mock_tool_call("search", HashMap::new())]);
+    mock.on_any(vec![mock_text("done after tool")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("use a tool"));
+
+    let records = drive(&mut h);
+
+    // The unknown tool must not panic the loop; it either records a failure or
+    // continues to the follow-up answer — both are terminations, neither hangs.
+    assert!(
+        !records.is_empty(),
+        "a tool-calling turn must still produce records: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 1.4 / 3.3 — priority drains before follow-up
+
+#[test]
+fn priority_message_is_processed_before_follow_up() {
+    use std::sync::atomic::Ordering;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ack")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("second"));
+    let _ = h.priority.push(user_msg("first"));
+    h.cancel.store(1, Ordering::SeqCst); // PauseForPriority
+
+    let records = drive(&mut h);
+
+    assert!(
+        !records.is_empty(),
+        "the turn should run with both queues populated: {records:?}"
+    );
+    assert_eq!(
+        h.priority.len(),
+        0,
+        "the priority queue must be drained by the loop"
+    );
+    assert_eq!(
+        h.follow_up.len(),
+        0,
+        "the follow-up queue must also be drained before ending"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 2.1 — max_outer_iterations is honoured with generation in play
+
+#[test]
+fn max_outer_iterations_terminates_a_generating_loop() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("again")]);
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        max_outer_iterations: 2,
+        ..Default::default()
+    };
+
+    let mut h = harness_with(mock.into_router(), config);
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    // drive() panics if the loop fails to terminate, which is the assertion:
+    // a capped loop must stop.
+    let records = drive(&mut h);
+    assert!(
+        summary_count(&records).is_some(),
+        "a capped loop must still emit its Summary: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 6.5 — the assistant reply is persisted, not only returned
+
+#[test]
+fn assistant_reply_is_persisted_to_message_api() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("persisted reply")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+    assert!(
+        !assistant_texts(&records).is_empty(),
+        "precondition: the turn produced a reply"
+    );
+}

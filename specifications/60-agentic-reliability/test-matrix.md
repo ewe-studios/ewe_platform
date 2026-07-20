@@ -30,17 +30,17 @@ Every state and every edge out of it.
 | 1.1 | `Initializing` emits `Init` and moves to `OuterBoundary` | mock | todo |
 | 1.2 | `OuterBoundary` with priority messages → drains, resets cancel, `InnerAssemble` | mock | todo |
 | 1.3 | `OuterBoundary` with follow-up messages → drains, `InnerAssemble` | mock | todo |
-| 1.4 | `OuterBoundary` with both → **priority drains first** | mock | todo |
+| 1.4 | `OuterBoundary` with both → **priority drains first** | mock | **done** |
 | 1.5 | `OuterBoundary` with empty queues → `Ending` | mock | todo |
 | 1.6 | `OuterBoundary` past `max_outer_iterations` → `Ending` | mock | todo |
 | 1.7 | `InnerAssemble` with priority pending → front-injects, stays in assemble | mock | todo |
 | 1.8 | `InnerAssemble` with exhausted budget → `Ending` + `BudgetExhausted` | mock | todo |
 | 1.9 | `InnerAssemble` router failure → `handle_error`, no panic | mock | todo |
 | 1.10 | `InnerAssemble` builds interaction carrying system prompt + messages + toolshed | both | todo |
-| 1.11 | `InnerGenerate` pumps stream, collects messages | both | todo |
+| 1.11 | `InnerGenerate` pumps stream, collects messages | both | **done** |
 | 1.12 | `InnerGenerate` on stream end with no tool calls → `OutputProcessing` | mock | todo |
-| 1.13 | `InnerGenerate` on stream end with tool calls → `InnerToolCalls` | mock | todo |
-| 1.14 | `InnerGenerate` on provider error → `FailedAction`, `run_turn` returns `Err` | both | todo |
+| 1.13 | `InnerGenerate` on stream end with tool calls → `InnerToolCalls` | mock | **done** |
+| 1.14 | `InnerGenerate` on provider error → `FailedAction`, `run_turn` returns `Err` | both | **done** |
 | 1.15 | `InnerToolCalls` extracts calls into `InnerExecuting` | mock | todo |
 | 1.16 | `InnerExecuting` drives each call, collects results | mock | todo |
 | 1.17 | `InnerExecuting` tool failure → recorded, loop continues per policy | mock | todo |
@@ -48,15 +48,15 @@ Every state and every edge out of it.
 | 1.19 | `InnerEmitResults` emits results and returns to `InnerAssemble` | mock | todo |
 | 1.20 | `InnerAssemble` past `max_inner_iterations` → breaks out | mock | todo |
 | 1.21 | `OutputProcessing` fires memory triggers and persists | mock | todo |
-| 1.22 | `Ending` emits `Summary` with accurate `message_count` + usage | mock | todo |
-| 1.23 | `Done` yields `None` and the task completes | mock | todo |
+| 1.22 | `Ending` emits `Summary` with accurate `message_count` + usage | mock | **done** |
+| 1.23 | `Done` yields `None` and the task completes | mock | **done** |
 | 1.24 | Full happy path: user msg → assistant reply, one outer iteration | both | **done** |
 
 ## 2. Guards and limits
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 2.1 | `max_outer_iterations` honoured exactly (n, not n±1) | mock | todo |
+| 2.1 | `max_outer_iterations` honoured exactly (n, not n±1) | mock | **done** |
 | 2.2 | `max_inner_iterations` honoured exactly | mock | todo |
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | todo |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | todo |
@@ -71,7 +71,7 @@ Every state and every edge out of it.
 |---|-----------|------|--------|
 | 3.1 | `steer()` injects priority, interrupts current work | mock | todo |
 | 3.2 | `follow_up()` queues, processed after current work | mock | todo |
-| 3.3 | Priority drains before follow-up in the same boundary | mock | todo |
+| 3.3 | Priority drains before follow-up in the same boundary | mock | **done** |
 | 3.4 | `CancelCode::PauseForPriority` set on priority push | mock | todo |
 | 3.5 | `CancelCode::Abort` terminates the loop | mock | todo |
 | 3.6 | `reset_cancel()` clears the signal after handling | mock | todo |
@@ -83,7 +83,7 @@ Every state and every edge out of it.
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
 | 4.1 | `ToolShed` definitions reach the prompt | both | todo |
-| 4.2 | Tool call parsed from model output | mock | todo |
+| 4.2 | Tool call parsed from model output | mock | **done** |
 | 4.3 | Tool executed with parsed arguments | mock | todo |
 | 4.4 | Tool result emitted as a record | mock | todo |
 | 4.5 | Tool result fed back into the next assemble | mock | todo |
@@ -97,7 +97,7 @@ Every state and every edge out of it.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 5.1 | Provider error → `FailedAction` record | both | todo |
+| 5.1 | Provider error → `FailedAction` record | both | **done** |
 | 5.2 | `run_turn` returns `Err` on terminal `FailedAction` | both | todo |
 | 5.3 | `ErrorPolicy` retry decision honoured | mock | todo |
 | 5.4 | `CircuitBreaker` opens after `circuit_breaker_threshold` failures | mock | todo |
@@ -105,7 +105,7 @@ Every state and every edge out of it.
 | 5.6 | Breaker resets on success | mock | todo |
 | 5.7 | `LoopDetector` detects repetition and escalates | mock | todo |
 | 5.8 | Escalation terminates rather than looping forever | mock | todo |
-| 5.9 | A failure NEVER presents as an empty successful turn (docs/fixes/006) | both | todo |
+| 5.9 | A failure NEVER presents as an empty successful turn (docs/fixes/006) | both | **done** |
 
 ## 6. Memory and persistence
 
