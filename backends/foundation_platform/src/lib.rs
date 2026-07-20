@@ -10,6 +10,7 @@ mod cache;
 pub mod capability;
 pub mod codegen;
 mod injector;
+pub mod ipc;
 mod mutation;
 pub mod stack;
 pub mod ewe;

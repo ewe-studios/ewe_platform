@@ -90,6 +90,11 @@ pub struct PlatformSession {
     /// Script injector (F24) — resolves platform runtime scripts with
     /// disk→embedded fallback chains. Evaluated on every webview at startup.
     script_injector: crate::injector::ScriptInjector,
+
+    /// IPC registry (F25) — central backend communication hub.
+    /// All IPCs (query, emit, page) are registered here and invoked
+    /// from JS via `__ewe_ipc` or programmatically from route handlers.
+    ipc_registry: crate::ipc::IpcRegistry,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -121,6 +126,7 @@ impl PlatformSession {
             handler_registry: RwLock::new(HashMap::new()),
             resource_root,
             script_injector,
+            ipc_registry: crate::ipc::IpcRegistry::new(),
         })
     }
 }
@@ -365,6 +371,22 @@ impl PlatformSession {
     /// every webview.
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
         &self.script_injector
+    }
+
+    /// Access the IPC registry (F25).
+    pub fn ipc_registry(&self) -> &crate::ipc::IpcRegistry {
+        &self.ipc_registry
+    }
+
+    /// Register an IPC handler (F25).
+    pub fn register_ipc<I: crate::ipc::Ipc>(&self, ipc: I) {
+        self.ipc_registry.register(ipc);
+    }
+
+    /// Look up an IPC handler by name (F25).
+    /// Route handlers use this for programmatic invocation.
+    pub fn get_ipc(&self, name: &str) -> Option<&dyn crate::ipc::Ipc> {
+        self.ipc_registry.get(name)
     }
 
     /// Register a portable WasmCapability (F23).

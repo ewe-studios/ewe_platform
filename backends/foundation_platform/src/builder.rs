@@ -157,7 +157,10 @@ impl<R: Runtime> PlatformBuilder<R> {
             Ok(())
         });
 
-        self.inner = self.inner.invoke_handler(tauri::generate_handler![__ewe_capabilities]);
+        self.inner = self.inner.invoke_handler(tauri::generate_handler![
+            __ewe_capabilities,
+            __ewe_ipc
+        ]);
 
         self.inner = ewe::register_ewe_protocol(self.inner);
         self.inner.build(context)
@@ -198,4 +201,45 @@ fn __ewe_capabilities(
         .map_err(|e| format!("capability error: {:?}", e))?;
 
     String::from_utf8(response.payload).map_err(|e| format!("invalid UTF-8 response: {e}"))
+}
+
+// ── F25 Tauri command: __ewe_ipc ────────────────────────────────────────
+
+/// The Tauri command bridge for IPC invocations (F25).
+///
+/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_ipc', { ipc, action, payload })`
+/// which lands here. The command looks up the IPC in the `IpcRegistry`
+/// and delegates to the handler.
+#[tauri::command]
+fn __ewe_ipc(
+    session: tauri::State<'_, Arc<PlatformSession>>,
+    ipc: String,
+    action: String,
+    payload: Vec<u8>,
+    content_type: Option<String>,
+) -> Result<Vec<u8>, String> {
+    let ct = match content_type.as_deref() {
+        Some("arrow") | Some("application/vnd.apache.arrow.batch") => {
+            foundation_wasm::ipc::IpcContentType::Arrow
+        }
+        Some("binary") | Some("application/octet-stream") => {
+            foundation_wasm::ipc::IpcContentType::Binary
+        }
+        _ => foundation_wasm::ipc::IpcContentType::Json,
+    };
+
+    let request = foundation_wasm::ipc::IpcRequest {
+        ipc,
+        action,
+        payload,
+        content_type: ct,
+        target: None,
+    };
+
+    let response = session
+        .ipc_registry()
+        .invoke(&session, &request)
+        .map_err(|e| format!("ipc error: {e:?}"))?;
+
+    Ok(response.payload)
 }

@@ -41,6 +41,7 @@ mod error;
 mod frames;
 mod host_runtime;
 mod intervals;
+pub mod ipc;
 mod mem;
 mod ops;
 mod protocol;
