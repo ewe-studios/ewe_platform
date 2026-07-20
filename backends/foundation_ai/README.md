@@ -1,11 +1,44 @@
 # foundation_ai
 
-A unified AI inference framework for Rust. Talk to Anthropic Claude, OpenAI GPT,
-any OpenAI-compatible API (Ollama, OpenRouter, vLLM, llama.cpp server), and run
-local models via llama.cpp or Candle — all through the same `Model` trait.
+A unified AI inference framework for the ewe-platform. Talk to Anthropic Claude,
+OpenAI GPT, any OpenAI-compatible API (Ollama, OpenRouter, vLLM, llama.cpp
+server), and run local models via llama.cpp or Candle — all through the same
+`Model` trait and the higher-level **agentic** session system.
 
 No tokio. No async-trait. Zero heap allocations in the hot path. Built on
 Valtron's `StreamIterator` pattern for sync APIs with threaded execution.
+
+---
+
+## Getting Started
+
+Start here — these guides walk you from zero to a working agent, with both
+harness shortcuts and manual (no-helpers) setups:
+
+| Guide | What it covers |
+|-------|---------------|
+| [**01. Providers**](docs/getting-started/01-providers.md) | Setup for Llama.cpp, OpenAI, Anthropic, OpenRouter — harness *and* manual paths |
+| [**02. Agent Harness**](docs/getting-started/02-agent-harness.md) | Agent lifecycle: sessions, turns, steering, memory, tools, resume |
+
+### Runnable Examples
+
+```bash
+# Harness shortcuts — one-call setup:
+cargo run -p foundation_ai --example hello_claude --features agentic
+cargo run -p foundation_ai --example hello_openai --features agentic
+cargo run -p foundation_ai --example hello_openrouter --features agentic
+cargo run -p foundation_ai --example hello_llamacpp --features "agentic llamacpp"
+
+# Manual (no helpers) — full ProviderRouter setup:
+cargo run -p foundation_ai --example manual_claude_router --features agentic
+cargo run -p foundation_ai --example manual_openrouter --features agentic
+
+# Advanced:
+cargo run -p foundation_ai --example custom_router --features agentic
+cargo run -p foundation_ai --example agent_with_tools --features agentic
+```
+
+---
 
 ## Features
 

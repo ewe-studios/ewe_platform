@@ -167,5 +167,49 @@ testing = ["toolbox"]
 # Integration tests: E2E integration tests for providers and others
 integration_tests = ["testing", "llamacpp", "candle"]
 
+# ===========================================================================
+# Examples — runnable with `cargo run -p foundation_ai --example <name>`
+# ===========================================================================
+
+[[example]]
+name = "hello_claude"
+path = "examples/hello_claude.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_openai"
+path = "examples/hello_openai.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_openrouter"
+path = "examples/hello_openrouter.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_llamacpp"
+path = "examples/hello_llamacpp.rs"
+required-features = ["agentic", "llamacpp"]
+
+[[example]]
+name = "custom_router"
+path = "examples/custom_router.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "agent_with_tools"
+path = "examples/agent_with_tools.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "manual_claude_router"
+path = "examples/manual_claude_router.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "manual_openrouter"
+path = "examples/manual_openrouter.rs"
+required-features = ["agentic"]
+
 [lints]
 workspace = true
