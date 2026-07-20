@@ -19,5 +19,9 @@ foundation_core = { path = "../../backends/foundation_core" }
 foundation_db = { path = "../../backends/foundation_db" }
 foundation_repl = { path = "../../backends/foundation_repl" }
 
+# -- tracing crates
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+
 [lints]
 workspace = true

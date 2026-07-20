@@ -477,8 +477,6 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     }
 
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {
-        println!("Requesting model: {model_id:?} from huggingface");
-
         // Parse the ModelId
         let parsed = self.parse_model_id(&model_id).ok_or_else(|| {
             ModelProviderErrors::NotFound(format!(

@@ -242,6 +242,8 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_repl",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

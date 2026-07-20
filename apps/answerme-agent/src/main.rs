@@ -19,6 +19,8 @@ use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::Repl;
+use tracing::Level;
+use tracing_subscriber::FmtSubscriber;
 
 /// Model cache directory — defaults to the workspace `artefacts/models`,
 /// overridden at runtime by `ANSWERME_MODEL_DIR`.
@@ -35,6 +37,13 @@ fn model_dir() -> PathBuf {
 
 #[valtron]
 fn main() {
+    // let subscriber = FmtSubscriber::builder()
+    //     .with_max_level(Level::TRACE)
+    //     .finish();
+
+    // tracing::subscriber::set_global_default(subscriber)
+    //     .expect("setting default trace subscriber failed");
+
     let session_id = SessionId::new();
 
     // Configure the local llama.cpp backend.
@@ -55,7 +64,7 @@ fn main() {
     let provider =
         HuggingFaceGGUFProvider::new(hf_config).expect("failed to initialize GGUF provider");
 
-    let model_id = ModelId::Name("gemma-2-2b-it".into(), None);
+    let model_id = ModelId::Name("unsloth/gemma-4-E2B-it-GGUF".into(), None);
 
     // Build the router preset and agent session.
     let preset = RouterMix::new().primary(provider, model_id.clone()).build();
@@ -113,6 +122,7 @@ fn main() {
 fn extract_assistant_text(records: &[SessionRecord]) -> String {
     let mut parts = Vec::new();
     for record in records {
+        println!("Recieivng {:?}", &record);
         if let SessionRecord::Conversation { message } = record {
             if let Messages::Assistant { content, .. } = message {
                 if let ModelOutput::Text(text) = content {
