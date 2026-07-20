@@ -1,11 +1,15 @@
-//! answerme-agent — interactive REPL backed by a Gemma model via llama.cpp.
+//! answerme-agent — talk to a Gemma model via llama.cpp.
 //!
-//! Starts a `foundation_repl` session, sends each user input to an
-//! `AgentSession` running on a local model, and prints the assistant's
-//! response back into the REPL.
+//! Two entry points, both driving the same `AgentSession`:
+//!
+//! * `ask "<question>"` — one-shot; sends the question, prints the answer, exits.
+//!   This is the quick path for validating a change (including tracing output)
+//!   without driving a terminal UI.
+//! * `agent` — starts a `foundation_repl` session for an interactive chat.
 
 use std::path::PathBuf;
 
+use clap::{Parser, Subcommand};
 use foundation_ai::agentic::{
     AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
@@ -20,6 +24,28 @@ use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::Repl;
 
+/// The concrete session type — spelled once so both commands share it.
+type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
+
+#[derive(Parser)]
+#[command(name = "answerme-agent", about = "Local Gemma agent over llama.cpp")]
+struct Cli {
+    /// Defaults to `agent` so a bare invocation still opens the REPL.
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Send a single question, print the answer, and exit.
+    Ask {
+        /// The question, as one quoted argument.
+        question: String,
+    },
+    /// Start the interactive REPL.
+    Agent,
+}
+
 /// Model cache directory — defaults to the workspace `artefacts/models`,
 /// overridden at runtime by `ANSWERME_MODEL_DIR`.
 fn model_dir() -> PathBuf {
@@ -33,8 +59,26 @@ fn model_dir() -> PathBuf {
         })
 }
 
-#[valtron(tracing = "trace", tracing_targets = true, tracing_names = true)]
+// Scoped filter, not a bare `trace`: a global trace level pulls in `mio`'s
+// per-poll events, which fire continuously under the REPL's raw-mode input loop
+// and shred the prompt. Trace what we own, silence the transport churn.
+#[valtron(
+    tracing = "info,answerme_agent=trace,foundation_ai=trace,mio=off,polling=off",
+    tracing_targets = true,
+    tracing_names = true
+)]
 fn main() {
+    let cli = Cli::parse();
+    let session = build_session();
+
+    match cli.command.unwrap_or(Command::Agent) {
+        Command::Ask { question } => run_ask(&session, question),
+        Command::Agent => run_repl(&session),
+    }
+}
+
+/// Build the llama.cpp-backed agent session shared by both commands.
+fn build_session() -> Session {
     let session_id = SessionId::new();
 
     // Configure the local llama.cpp backend.
@@ -60,7 +104,7 @@ fn main() {
     // Build the router preset and agent session.
     let preset = RouterMix::new().primary(provider, model_id.clone()).build();
 
-    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> = preset
+    preset
         .into_agent_builder(session_id)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .with_model(model_id.clone())
@@ -72,67 +116,84 @@ fn main() {
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())
         .build()
-        .expect("failed to build agent session");
+        .expect("failed to build agent session")
+}
 
-    // Launch the REPL.
+/// One-shot: run a single turn and print the reply on stdout.
+fn run_ask(session: &Session, question: String) {
+    tracing::trace!("ask: sending question to model: {question}");
+
+    match session.run_turn(user_message(question)) {
+        Ok(records) => println!("{}", extract_assistant_text(&records)),
+        Err(e) => {
+            tracing::error!("ask turn failed: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Interactive: drive the REPL loop, one turn per line of input.
+fn run_repl(session: &Session) {
     let repl = Repl::builder()
         .prompt("| ")
         .continuation_prompt("|... ")
-        .banner(
-            "answerme-agent — Gemma-2-2b local session\nType /help for commands, /exit to quit.\n",
-        )
+        .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.\n")
         .goodbye("Goodbye!")
         .build();
 
-    repl.register_command("status", |_| "agent: running (gemma-2-2b-it)".into());
+    repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());
 
     for input in repl.messages() {
-        let prompt = Messages::User {
-            id: foundation_compact::ids::new_scru128(),
-            role: foundation_ai::types::MessageRole::User,
-            content: foundation_ai::types::UserModelContent::Text(TextContent {
-                content: input,
-                signature: None,
-            }),
-            signature: None,
-        };
-
-        match session.run_turn(prompt) {
-            Ok(records) => {
-                let response = extract_assistant_text(&records);
-                repl.reply(&response);
-            }
-            Err(e) => {
-                repl.reply(&format!("error: {e}"));
-            }
+        if input.is_empty() {
+            continue;
         }
+
+        tracing::trace!("agent: sending message to model: {input}");
+
+        match session.run_turn(user_message(input)) {
+            Ok(records) => repl.reply(&extract_assistant_text(&records)),
+            Err(e) => repl.reply(&format!("error: {e}")),
+        }
+    }
+}
+
+/// Wrap raw input text as a user message for the session.
+fn user_message(input: String) -> Messages {
+    Messages::User {
+        id: foundation_compact::ids::new_scru128(),
+        role: foundation_ai::types::MessageRole::User,
+        content: foundation_ai::types::UserModelContent::Text(TextContent {
+            content: input,
+            signature: None,
+        }),
+        signature: None,
     }
 }
 
 /// Extract the assistant's reply text from a list of session records.
 fn extract_assistant_text(records: &[SessionRecord]) -> String {
-    tracing::trace!("DEBUG: received {} records", records.len());
+    tracing::trace!("received {} records", records.len());
     let mut parts = Vec::new();
     for record in records {
         match record {
             SessionRecord::Conversation { message } => {
                 if let Messages::Assistant { content, .. } = message {
-                    eprintln!("  Assistant content: {:?}", content);
+                    tracing::debug!("assistant content: {content:?}");
                     if let ModelOutput::Text(text) = content {
                         parts.push(text.content.clone());
                     }
                 } else if let Messages::User { content, .. } = message {
-                    eprintln!("  User message: {:?}", content);
+                    tracing::debug!("user message: {content:?}");
                 }
             }
             SessionRecord::Summary { message_count, .. } => {
-                eprintln!("  Summary: message_count={}", message_count);
+                tracing::debug!("summary: message_count={message_count}");
             }
             SessionRecord::FailedAction { error, .. } => {
-                eprintln!("  FailedAction: {}", error);
+                tracing::error!("failed action: {error}");
             }
             other => {
-                eprintln!("  Other record: {:?}", other);
+                tracing::debug!("other record: {other:?}");
             }
         }
     }

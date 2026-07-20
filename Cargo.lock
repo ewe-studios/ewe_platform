@@ -237,6 +237,7 @@ dependencies = [
 name = "answerme-agent"
 version = "0.0.1"
 dependencies = [
+ "clap",
  "foundation_ai",
  "foundation_compact",
  "foundation_core",
