@@ -110,6 +110,9 @@ pub struct PlatformSession {
     /// Per-app isolation registry (F21). Maps route prefixes to WebView labels,
     /// profiles, capability allowlists. Resolved during route dispatch.
     app_isolation: crate::multi_app::AppIsolation,
+
+    /// Worker registry (F34). Named typed channels for background workers.
+    pub(crate) workers_: crate::worker::WorkerRegistry,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -149,6 +152,7 @@ impl PlatformSession {
                 crate::stack::StackConfig::default(),
             )),
             app_isolation: crate::multi_app::AppIsolation::new(),
+            workers_: crate::worker::WorkerRegistry::new(),
         })
     }
 }
