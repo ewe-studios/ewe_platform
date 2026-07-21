@@ -1161,3 +1161,63 @@ fn test_text_only_message_serialization() {
     // Text variant serializes as simple string, not object
     assert!(json.contains(r#""content":"Hello""#));
 }
+
+// ---------------------------------------------------------------------------
+// Responses provider — config builder gaps + retry helpers + constructors (F04)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn responses_config_builder_full_chain_and_clone() {
+    use foundation_ai::backends::openai_responses_provider::ResponsesConfig;
+
+    let config = ResponsesConfig::new()
+        .with_base_url("https://example.test/v2")
+        .with_api_version("2024-10")
+        .with_timeout_secs(42)
+        .with_max_retries(7)
+        .with_streaming(true)
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "sk-test".to_string(),
+        )));
+
+    assert_eq!(config.base_url, "https://example.test/v2");
+    assert_eq!(config.api_version, "2024-10");
+    assert_eq!(config.timeout_secs, 42);
+    assert_eq!(config.max_retries, 7);
+    assert!(config.streaming);
+    assert!(config.auth.is_some());
+
+    // build_url joins base + endpoint; Clone preserves every field.
+    let url = config.build_url("/responses");
+    assert!(url.contains("example.test"), "build_url: {url}");
+    let cloned = config.clone();
+    assert_eq!(cloned.base_url, config.base_url);
+    assert_eq!(cloned.max_retries, config.max_retries);
+}
+
+#[test]
+fn responses_retry_helpers() {
+    use foundation_ai::backends::openai_responses_provider::{
+        exponential_backoff, is_retryable_status,
+    };
+
+    assert!(is_retryable_status(429));
+    assert!(is_retryable_status(503));
+    assert!(!is_retryable_status(400));
+    assert!(!is_retryable_status(200));
+
+    // Doubles per attempt, capped at 30s.
+    assert_eq!(exponential_backoff(0), 1);
+    assert_eq!(exponential_backoff(1), 2);
+    assert!(exponential_backoff(10) <= 30);
+}
+
+#[test]
+fn responses_provider_constructors() {
+    use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
+
+    // Default constructor + config-carrying constructor both build.
+    let _default = ResponsesProvider::new();
+    let cfg = ResponsesConfig::new().with_max_retries(3);
+    let _with_config = ResponsesProvider::with_config(cfg);
+}
