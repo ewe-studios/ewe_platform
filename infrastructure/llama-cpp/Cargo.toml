@@ -21,7 +21,9 @@ tracing-core = { workspace = true }
 
 [dev-dependencies]
 encoding_rs = { workspace = true }
-tracing-subscriber = { workspace = true }
+# `env-filter` is needed by tests/log_filtering.rs, which asserts our native-log
+# tracing target is actually silenceable by an EnvFilter directive.
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 [features]
 sampler = []

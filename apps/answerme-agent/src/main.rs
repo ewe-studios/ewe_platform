@@ -63,12 +63,18 @@ fn model_dir() -> PathBuf {
 // per-poll events, which fire continuously under the REPL's raw-mode input loop
 // and shred the prompt. Trace what we own, silence the transport churn.
 //
-// llama.cpp/ggml now route their native logs through tracing (targets
-// `llama.cpp` and `ggml`), so the model-loader dump and per-tensor `repack:`
-// spam is silenced here by default. To see it, add e.g. `llama.cpp=debug` to
-// this directive (or the RUST_LOG env, which overrides it).
+// llama.cpp/ggml route their native logs through tracing, and the target for
+// BOTH is the literal `llama-cpp-2` — see the `log_cs!` macro in
+// infrastructure/llama-cpp/src/log.rs, which hard-codes it in `Metadata::new`.
+// `llama.cpp` and `ggml` are only the `module` FIELD value on those events, so
+// directives like `llama.cpp=off` match nothing and silence nothing; that is
+// why the model-loader dump and per-tensor `repack:` spam kept flooding the
+// REPL. `llama-cpp-2=off` is the directive that actually works.
+// Regression-locked by infrastructure/llama-cpp/tests/log_filtering.rs.
+// To see the native logs again, use `llama-cpp-2=debug` (or RUST_LOG, which
+// overrides this directive entirely).
 #[valtron(
-    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off,llama.cpp=off,ggml=off",
+    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off",
     tracing_targets = true,
     tracing_names = true
 )]
