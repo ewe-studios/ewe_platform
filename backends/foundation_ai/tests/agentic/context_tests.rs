@@ -125,3 +125,108 @@ fn recent_message_count_is_capped_by_config() {
         .count();
     assert_eq!(count, 1, "recent_message_count must cap the included messages");
 }
+
+// ---------------------------------------------------------------------------
+// Reflection + observation injection (INCON-03) — matrix 6.2 full.
+
+use foundation_ai::types::{ObservationEntry, ObservationKind, ReflectionEntry};
+type CId = Id;
+
+fn observation(seq: u8) -> SessionRecord {
+    // A larger scru128 id => "newer". Encode seq into the first byte.
+    let mut bytes = [0u8; 16];
+    bytes[0] = seq;
+    SessionRecord::Observation {
+        id: CId::from(bytes),
+        observations: vec![ObservationEntry {
+            kind: ObservationKind::Assertion,
+            content: "user likes tea".into(),
+            timestamp: SystemTime::UNIX_EPOCH,
+            source_message_id: CId::default(),
+            scope: None,
+        }],
+        token_count: 4,
+        timestamp: SystemTime::UNIX_EPOCH,
+    }
+}
+
+fn reflection(seq: u8) -> SessionRecord {
+    let mut bytes = [0u8; 16];
+    bytes[0] = seq;
+    SessionRecord::Reflection {
+        id: CId::from(bytes),
+        reflections: vec![ReflectionEntry {
+            summary: "prefers tea over coffee".into(),
+            time_range: None,
+            observation_refs: vec![],
+            importance: 0.8,
+        }],
+        generated_at: SystemTime::UNIX_EPOCH,
+        observation_token_count_before: 10,
+        reflection_token_count_after: 4,
+    }
+}
+
+fn assistant_texts_of(ctx: &foundation_ai::agentic::AgentContext) -> String {
+    ctx.messages
+        .iter()
+        .map(|m| format!("{m:?}"))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+#[test]
+fn reflection_memory_is_injected() {
+    let memory = SessionMemory {
+        reflection: Some(reflection(1)),
+        ..SessionMemory::default()
+    };
+    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    assert!(
+        assistant_texts_of(&ctx).contains("prefers tea"),
+        "reflection memory must be injected: {ctx:?}"
+    );
+}
+
+#[test]
+fn observation_injected_when_newer_than_reflection() {
+    // obs seq 5 > refl seq 2 => observation is newer, so it IS injected.
+    let memory = SessionMemory {
+        reflection: Some(reflection(2)),
+        observation: Some(observation(5)),
+        ..SessionMemory::default()
+    };
+    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    assert!(
+        assistant_texts_of(&ctx).contains("likes tea"),
+        "a newer observation must be injected alongside the reflection: {ctx:?}"
+    );
+}
+
+#[test]
+fn observation_skipped_when_older_than_reflection() {
+    // obs seq 1 < refl seq 9 => observation is older, so it is NOT injected.
+    let memory = SessionMemory {
+        reflection: Some(reflection(9)),
+        observation: Some(observation(1)),
+        ..SessionMemory::default()
+    };
+    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    assert!(
+        !assistant_texts_of(&ctx).contains("likes tea"),
+        "an observation older than the latest reflection must be skipped (INCON-03): {ctx:?}"
+    );
+}
+
+#[test]
+fn observation_injected_when_no_reflection() {
+    let memory = SessionMemory {
+        observation: Some(observation(1)),
+        ..SessionMemory::default()
+    };
+    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    assert!(
+        assistant_texts_of(&ctx).contains("likes tea"),
+        "with no reflection, the observation is always injected: {ctx:?}"
+    );
+}

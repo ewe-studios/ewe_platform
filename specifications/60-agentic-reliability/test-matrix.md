@@ -113,7 +113,7 @@ Every state and every edge out of it.
 |---|-----------|------|--------|
 | 6.1 | `hydrate_sync` loads working memory into context | mock | **done** |
 | 6.2 | Context assembled in documented order (system → working → reflection → recent) | mock | **done** |
-| 6.3 | Memory triggers fire on `OutputProcessing` | mock | todo |
+| 6.3 | Memory triggers fire on `OutputProcessing` | mock | **done** |
 | 6.4 | User prompt persisted via `MessageApi` | both | **done** |
 | 6.5 | Assistant reply persisted | mock | **done** |
 | 6.6 | `MessageApi::recent(n)` returns the last n | mock | **done** |
