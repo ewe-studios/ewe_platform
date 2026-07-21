@@ -28,3 +28,7 @@ pub mod bindgen;
 // F30: Docker-based cross-platform test environments.
 #[cfg(feature = "docker-tests")]
 pub mod docker;
+
+// F32: QEMU Monitor Protocol client — universal agentic control (Tier 1).
+// Always available (not feature-gated) — uses serde_json + Unix sockets.
+pub mod qmp;

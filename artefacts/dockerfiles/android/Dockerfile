@@ -50,6 +50,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     wget \
     unzip \
     jq \
+    # ── Agentic control (F32 Tier 1) ────────────────────────────────
+    socat \
+    imagemagick \
     # Android-specific
     openjdk-17-jdk-headless \
     cpu-checker \

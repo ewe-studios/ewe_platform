@@ -45,6 +45,23 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     novnc \
     websockify \
     nginx \
+    # ── Agentic control (F32 Tier 2) ──────────────────────────────
+    # xdotool: X11 keyboard/mouse simulation from CLI
+    xdotool \
+    # ydotool: Wayland/uinput keyboard/mouse (for Wayland hosts)
+    ydotool \
+    # scrot: X11 screenshot from CLI (scrot -z for active window)
+    scrot \
+    # imagemagick: convert/crop/annotate/compare screenshots
+    imagemagick \
+    # xclip: read/write X11 clipboard from CLI
+    xclip \
+    # wmctrl: query/control window manager (list windows, focus, resize)
+    wmctrl \
+    # dbus-x11: D-Bus session bus (needed for desktop notifications, Tauri events)
+    dbus-x11 \
+    # xdotool needs an X server — already provided by xvfb above
+    # ydotool needs uinput kernel module — mounted from host at runtime
     # SSH server for test command dispatch
     openssh-server \
     # Docker CLI (socket mounted from host at /var/run/docker.sock)

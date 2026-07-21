@@ -23,7 +23,11 @@ RUN <<EOF
     dos2unix \
     cabextract \
     libxml2-utils \
-    libarchive-tools
+    libarchive-tools \
+    socat \
+    imagemagick \
+    python3 \
+    jq
 
   # Install wsdd
   wget "https://github.com/gershnik/wsdd-native/releases/download/v${VERSION_WSDD}/wsddn_${VERSION_WSDD}_${TARGETARCH}.deb" -O /tmp/wsddn.deb -q --timeout=10

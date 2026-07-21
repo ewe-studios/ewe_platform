@@ -39,7 +39,11 @@ RUN <<EOF
   apt-get update
   apt-get --no-install-recommends -y install \
     7zip \
-    mtools
+    mtools \
+    socat \
+    imagemagick \
+    python3 \
+    jq
 
   apt-get clean
 

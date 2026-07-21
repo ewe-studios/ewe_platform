@@ -87,6 +87,8 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F30 | Docker-based test infrastructure | High | F29, F13 |
 | F31 | Platform UI components (remote_page, floating_nav) | High | F29, F24 |
 
+| F32 | Docker agentic control: mouse, keyboard, display | Critical | F30, F14, F15 |
+
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
 - `#[wasm_app]` + `foundation_wasmtime` (decision 13)

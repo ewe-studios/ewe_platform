@@ -77,8 +77,37 @@ if exist "\\host.lan\Data\dev\authorized_keys" (
     echo [ewe-test-windows] no \\host.lan\Data\dev\authorized_keys — SSH key auth not configured
 )
 
+REM ── AutoHotkey v2 — keyboard/mouse scripting engine ──────────────────────
+echo [ewe-test-windows] installing AutoHotkey v2
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "Invoke-WebRequest -Uri 'https://www.autohotkey.com/download/ahk-v2.exe' -OutFile '$env:TEMP\ahk-setup.exe';" ^
+  "& $env:TEMP\ahk-setup.exe /S;" ^
+  "Remove-Item $env:TEMP\ahk-setup.exe"
+
+REM ── nircmd — CLI for window control, screenshot, mouse, keyboard ─────────
+echo [ewe-test-windows] installing nircmd
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "Invoke-WebRequest -Uri 'https://www.nirsoft.net/utils/nircmd.zip' -OutFile '$env:TEMP\nircmd.zip';" ^
+  "Expand-Archive -Force '$env:TEMP\nircmd.zip' 'C:\Windows\';" ^
+  "Remove-Item $env:TEMP\nircmd.zip"
+where nircmd >nul 2>&1 && echo [ewe-test-windows] nircmd installed || echo [ewe-test-windows] nircmd install FAILED
+
+REM ── Imagemagick — convert/screenshot/annotate ────────────────────────────
+echo [ewe-test-windows] installing ImageMagick
+winget install ImageMagick.ImageMagick --silent --accept-package-agreements --accept-source-agreements 2>nul
+REM Fallback: install via direct download if winget fails
+where magick >nul 2>&1 && echo [ewe-test-windows] ImageMagick installed || (
+    echo [ewe-test-windows] winget failed, direct download ImageMagick
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+      "Invoke-WebRequest -Uri 'https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-43-Q16-HDRI-x64-dll.exe' -OutFile '$env:TEMP\im-setup.exe';" ^
+      "& $env:TEMP\im-setup.exe /VERYSILENT /DIR=C:\ImageMagick;" ^
+      "Remove-Item $env:TEMP\im-setup.exe"
+    set PATH=%PATH%;C:\ImageMagick
+)
+
 echo [ewe-test-windows] provisioning complete.
-echo   Rust:  rustup installed (stable-x86_64-pc-windows-msvc)
-echo   WebView2: Edge WebView2 Runtime (Evergreen)
-echo   MSVC: Visual Studio Build Tools (VCTools workload)
-echo   SSH:   OpenSSH Server running on port 22
+echo   Rust:       rustup installed (stable-x86_64-pc-windows-msvc)
+echo   WebView2:   Edge WebView2 Runtime (Evergreen)
+echo   MSVC:       Visual Studio Build Tools (VCTools workload)
+echo   SSH:        OpenSSH Server running on port 22
+echo   Agentic:    AutoHotkey v2, nircmd, ImageMagick
