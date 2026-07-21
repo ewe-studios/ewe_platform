@@ -1221,3 +1221,87 @@ fn responses_provider_constructors() {
     let cfg = ResponsesConfig::new().with_max_retries(3);
     let _with_config = ResponsesProvider::with_config(cfg);
 }
+
+// ---------------------------------------------------------------------------
+// OpenAI config builder gaps + build_metadata (via parse_chat_response) — F04
+// ---------------------------------------------------------------------------
+
+#[test]
+fn openai_config_builder_remaining_setters() {
+    let config = OpenAIConfig::new()
+        .with_timeout_secs(55)
+        .with_max_retries(9)
+        .with_proxy_url("http://proxy.local:8080")
+        .with_streaming(true)
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "sk-x".to_string(),
+        )));
+    assert_eq!(config.timeout_secs, 55);
+    assert_eq!(config.max_retries, 9);
+    assert_eq!(config.proxy_url.as_deref(), Some("http://proxy.local:8080"));
+    assert!(config.streaming);
+    assert!(config.auth.is_some());
+}
+
+#[test]
+fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
+    use foundation_ai::types::GenerationMetadata;
+
+    // A response carrying logprobs (with top_logprobs), a system fingerprint,
+    // and a message-level refusal — drives build_metadata's three branches.
+    let response: ChatCompletionResponse = serde_json::from_value(serde_json::json!({
+        "id": "cmpl-1",
+        "object": "chat.completion",
+        "created": 1,
+        "model": "gpt-4o-mini",
+        "system_fingerprint": "fp_test_123",
+        "choices": [{
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "hi",
+                "refusal": "I can't help with that"
+            },
+            "finish_reason": "stop",
+            "logprobs": {
+                "content": [{
+                    "token": "hi",
+                    "logprob": -0.25,
+                    "bytes": [104, 105],
+                    "top_logprobs": [{"token": "hi", "logprob": -0.25, "bytes": [104, 105]}]
+                }],
+                "refusal": [{"token": "no", "logprob": -1.0, "bytes": null}]
+            }
+        }],
+        "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4}
+    }))
+    .expect("response deserializes");
+
+    let model_id = ModelId::Name("gpt-4o-mini".to_string(), None);
+    let (msg, _usage) =
+        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+
+    let Messages::Assistant { metadata, .. } = msg else {
+        panic!("expected assistant message");
+    };
+    let metadata = metadata.expect("metadata present");
+
+    assert!(
+        metadata
+            .iter()
+            .any(|m| matches!(m, GenerationMetadata::LogProbs { .. })),
+        "logprobs mapped: {metadata:?}"
+    );
+    assert!(
+        metadata
+            .iter()
+            .any(|m| matches!(m, GenerationMetadata::SystemFingerprint(fp) if fp == "fp_test_123")),
+        "fingerprint mapped"
+    );
+    assert!(
+        metadata
+            .iter()
+            .any(|m| matches!(m, GenerationMetadata::RefusalReason(_))),
+        "refusal mapped"
+    );
+}
