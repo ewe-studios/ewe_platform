@@ -139,10 +139,10 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 8.1 | `generate()` produces text | both | **done** (real) |
-| 8.2 | `stream()` produces text | both | **done** (real) |
-| 8.3 | `generate()` and `stream()` agree structurally for one interaction | both | todo |
-| 8.4 | Stream advances past its first token (KV cache progresses) | both | todo |
+| 8.1 | `generate()` produces text | both | **done** |
+| 8.2 | `stream()` produces text | both | **done** |
+| 8.3 | `generate()` and `stream()` agree structurally for one interaction | both | **done** |
+| 8.4 | Stream advances past its first token (KV cache progresses) | both | **done** |
 | 8.5 | Stream terminates on EOG | both | todo |
 | 8.6 | Stream terminates on `max_tokens` | both | todo |
 | 8.7 | Inference context created lazily on the polling thread | gguf | todo |

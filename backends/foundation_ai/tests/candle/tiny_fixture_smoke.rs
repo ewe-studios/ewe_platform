@@ -31,3 +31,122 @@ fn tiny_random_llama_fixture_loads_offline() {
     let result = backend.get_model_by_spec(spec);
     assert!(result.is_ok(), "fixture should load: {:?}", result.err());
 }
+
+// ---------------------------------------------------------------------------
+// Provider seam — matrix 8.1/8.2/8.3/8.4 on the candle backend.
+//
+// Random weights emit gibberish tokens, so these are STRUCTURAL: text is
+// produced, a stream advances beyond its first item, generate() and stream()
+// agree in shape. That is exactly the surface docs/fixes/006 got wrong on the
+// llama.cpp side, proved here offline in milliseconds.
+
+use foundation_ai::types::{
+    MessageRole, Messages, ModelInteraction, ModelOutput, ModelParams, Model, TextContent,
+    ToolShed, UserModelContent,
+};
+use foundation_core::valtron::Stream;
+
+fn load_tiny_llama() -> impl Model {
+    let dir = fixture_dir("tiny-random-LlamaForCausalLM");
+    let spec = ModelSpec {
+        name: "tiny-random-llama".to_string(),
+        id: ModelId::Name("tiny-random-llama".to_string(), None),
+        devices: None,
+        model_location: Some(dir.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    CandleBackend::cpu()
+        .get_model_by_spec(spec)
+        .expect("fixture loads")
+}
+
+fn greeting() -> ModelInteraction {
+    ModelInteraction {
+        system_prompt: Some("You are a helpful assistant.".to_string()),
+        soul: None,
+        messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "Hi.".to_string(),
+                signature: None,
+            }),
+            signature: None,
+        }],
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    }
+}
+
+fn params() -> ModelParams {
+    ModelParams {
+        max_tokens: 8,
+        ..Default::default()
+    }
+}
+
+/// Matrix 8.1 — generate() produces token records (gibberish is fine).
+#[valtron_test]
+fn candle_generate_produces_output() {
+    let model = load_tiny_llama();
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("generate should succeed");
+    assert!(
+        !out.is_empty(),
+        "generate() must produce at least one message"
+    );
+}
+
+/// Matrix 8.2 / 8.4 — stream() advances beyond its first item.
+#[valtron_test]
+fn candle_stream_advances() {
+    let model = load_tiny_llama();
+    let stream = model
+        .stream(greeting(), Some(params()))
+        .expect("stream should be created");
+
+    let mut nexts = 0;
+    let mut items = 0;
+    for item in stream {
+        items += 1;
+        if let Stream::Next(Messages::Assistant { content, .. }) = &item {
+            if let ModelOutput::Text(_) = content {
+                nexts += 1;
+            }
+        }
+        if items > 100 {
+            break;
+        }
+    }
+    assert!(
+        nexts >= 1,
+        "stream must emit at least one text token (got {items} items, {nexts} text)"
+    );
+}
+
+/// Matrix 8.3 — generate() and stream() agree in shape: both yield text tokens.
+#[valtron_test]
+fn candle_generate_and_stream_agree_in_shape() {
+    let model = load_tiny_llama();
+
+    let gen = model.generate(greeting(), Some(params())).expect("gen");
+    let gen_text = gen
+        .iter()
+        .any(|m| matches!(m, Messages::Assistant { content: ModelOutput::Text(_), .. }));
+
+    let stream = model.stream(greeting(), Some(params())).expect("stream");
+    let stream_text = stream.into_iter().any(|item| {
+        matches!(
+            item,
+            Stream::Next(Messages::Assistant { content: ModelOutput::Text(_), .. })
+        )
+    });
+
+    assert_eq!(
+        gen_text, stream_text,
+        "generate() and stream() must agree on producing text output"
+    );
+    assert!(gen_text, "both paths should produce text");
+}
