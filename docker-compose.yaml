@@ -20,8 +20,6 @@ services:
       CPU_CORES: "4"
       DISK_SIZE: "64G"
       CLIPBOARD: "Y"
-      # F32: Enable QMP (JSON monitor) alongside HMP for agentic control
-      ARGUMENTS: "-qmp unix:/run/shm/qmp.sock,server=on,wait=off,nodelay=on"
     devices:
       - /dev/kvm
       - /dev/net/tun
@@ -63,8 +61,6 @@ services:
       CPU_CORES: "4"
       DISK_SIZE: "128G"
       CLIPBOARD: "Y"
-      # F32: Enable QMP (JSON monitor) alongside HMP for agentic control
-      ARGUMENTS: "-qmp unix:/run/shm/qmp.sock,server=on,wait=off,nodelay=on"
     devices:
       - /dev/kvm
       - /dev/net/tun
