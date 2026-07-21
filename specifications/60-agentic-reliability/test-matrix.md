@@ -89,7 +89,7 @@ Every state and every edge out of it.
 | 4.5 | Tool result fed back into the next assemble | mock | **done** |
 | 4.6 | Tool failure surfaces without killing the turn | mock | **done** |
 | 4.7 | Unknown tool name → error, not panic | mock | **done** |
-| 4.8 | Malformed tool arguments → error, not panic | mock | n/a |
+| 4.8 | Malformed tool arguments → error, not panic | mock | **done** |
 | 4.9 | Multiple tool calls in one turn all execute | mock | **done** |
 | 4.10 | Tool cancellation mid-flight | mock | n/a |
 
@@ -236,9 +236,9 @@ These are not test gaps but discoveries recorded honestly rather than faked:
   synchronously, so there is no deterministic way to inject a priority *during*
   a tool's execution in the step-driven harness. Reproducible only with a slow
   real tool (manual/live).
-- **4.8 malformed tool arguments** — needs a tool that performs real JSON-Schema
-  argument validation; `MockTool` ignores its arguments, so it cannot exercise
-  the rejection path.
+- **4.8 malformed tool arguments** — RESOLVED: a strict test tool that requires
+  a 'path' argument rejects a call missing it with `ToolError::InvalidArguments`
+  (the framework delegates schema validation to the tool). Tested.
 - **9.6 preset provider build** — building a harness preset (`Gemma4E2b`, …)
   downloads a real model; covered under `live-model-tests`, not the default
   offline suite.

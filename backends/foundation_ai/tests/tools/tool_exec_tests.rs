@@ -492,3 +492,56 @@ fn panicking_tool_is_contained_as_error() {
         );
     });
 }
+
+/// Matrix 4.8 — malformed tool arguments produce a clean error, not a panic.
+/// The framework delegates schema validation to the tool; a tool that requires
+/// a specific argument rejects a call missing it with InvalidArguments.
+struct StrictTool;
+
+#[async_trait]
+impl ToolImpl for StrictTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "strict".into(),
+            description: "Requires a 'path' argument".into(),
+            arguments: Args::from_value(serde_json::json!({
+                "type": "object",
+                "properties": { "path": { "type": "string" } },
+                "required": ["path"]
+            })),
+            category: "read".into(),
+        }
+    }
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        if !arguments.contains_key("path") {
+            return Err(ToolError::InvalidArguments {
+                tool: "strict".into(),
+                reason: "missing required argument 'path'".into(),
+            });
+        }
+        Ok(ToolCallResult {
+            content: foundation_ai::types::UserModelContent::Text(
+                foundation_ai::types::TextContent { content: "ok".into(), signature: None },
+            ),
+            error_detail: None,
+        })
+    }
+}
+
+#[test]
+fn malformed_tool_arguments_error_cleanly() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(StrictTool));
+        // Call with EMPTY args — the required 'path' is missing.
+        let request = req("a", "strict", vec![], ExecutionHint::Unspecified);
+        let result = m.execute_one(&request).await;
+        assert!(
+            matches!(result, Err(ToolError::InvalidArguments { .. })),
+            "missing required args must be a clean InvalidArguments error: {result:?}"
+        );
+    });
+}
