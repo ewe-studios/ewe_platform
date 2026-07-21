@@ -13,7 +13,6 @@ use foundation_ai::types::{
     Quantization, TextContent, ToolShed, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
-use tracing_test::traced_test;
 
 fn get_token() -> Option<String> {
     std::env::var("HF_TOKEN").ok()
@@ -73,7 +72,6 @@ fn test_huggingface_gguf_provider_parsing() {
 }
 
 #[valtron_test]
-#[traced_test]
 #[ignore = "requires HF_TOKEN and downloads SmolLM2 model"]
 fn test_huggingface_gguf_provider_download_smollm() {
     let token = get_token().expect("HF_TOKEN must be set for integration tests");
@@ -156,7 +154,6 @@ fn test_huggingface_gguf_provider_describe() {
 /// This test downloads the SmolLM2 model (Q2_K quantization) to artefacts/models,
 /// then verifies the provider can load it and perform inference.
 #[valtron_test]
-#[traced_test]
 #[ignore = "requires HF_TOKEN and downloads a ~150MB model for inference"]
 fn test_huggingface_gguf_provider_with_smollm_inference() {
     let token = get_token().expect("HF_TOKEN must be set for integration tests");

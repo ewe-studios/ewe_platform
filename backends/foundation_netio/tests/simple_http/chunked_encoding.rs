@@ -14,57 +14,44 @@ use foundation_netio::shared::http::{ChunkedData, SimpleHeaders, SimpleHttpChunk
 use std::io::Cursor;
 use tracing_test::traced_test;
 
-/// Test fixture: Simulated GCP-like response with CR bytes embedded
-/// in JSON content.
+/// The JSON payload the GCP-style fixture below carries, CRs and all.
 ///
-/// This fixture replicates the issue where GCP Discovery API sends stray
-/// CR (0x0D) bytes inside JSON string values, breaking downstream parsing.
-///
-/// Format: Raw chunked body only (no HTTP headers) - headers are passed
-/// separately to [`SimpleHttpChunkIterator`].
-const GCP_STYLE_CHUNKED_BODY: &[u8] = &[
-    // Chunk 1: 49 bytes (0x31)
-    // JSON with CR embedded in "required" field
-    b'3', b'1', b'\r', b'\n', b'{', b'\r', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':',
-    b' ', b'"', b'd', b'i', b's', b'c', b'o', b'v', b'e', b'r', b'y', b'"', b',', b'\r', b'\n',
-    b' ', b'"', b'r', b'e', b'q', b'u', b'i', b'\r', b'r', b'e', b'd', b'"', b':', b' ', b'"',
-    b'v', b'a', b'l', b'u', b'e', b'"', b'\r', b'\n',
-    // Chunk 2: 61 bytes (0x3d)
-    // More content with CR in enumDescriptions
-    b'3', b'd', b'\r', b'\n', b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ', b'[',
-    b'{', b'"', b'n', b'a', b'm', b'e', b'"', b':', b'"', b'c', b'o', b'm', b'p', b'u', b't', b'e',
-    b'"', b'}', b']', b'\r', b'\n', b' ', b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c',
-    b'r', b'i', b'p', b't', b'i', b'o', b'n', b's', b'"', b':', b'"', b't', b'e', b's', b't', b'"',
-    b'\r', b'\n', // Final chunk (size 0)
-    b'0', b'\r', b'\n', b'\r', b'\n',
-];
+/// It contains a stray CR inside a string value (`"requi\rred"`) — the thing
+/// the GCP Discovery API was observed sending. That CR is *content*: the
+/// transport must hand it over untouched, and it is the caller parsing the JSON
+/// that has to decide what to do about it.
+const GCP_STYLE_PAYLOAD: &[u8] =
+    b"{\n \"kind\": \"discovery\",\n \"requi\rred\": \"value\"\n \"enumDescriptions\":\"test\"\n";
 
-/// Expected output after CR stripping - all 0x0D bytes removed from
-/// chunk data.
+/// Builds a well-formed chunked body carrying `payload` split into two chunks.
 ///
-/// Note: Includes the '0' from final chunk marker due to how the parser
-/// handles the termination sequence - this is expected behavior being tested.
-const EXPECTED_OUTPUT: &[u8] = &[
-    b'{', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':', b' ', b'"', b'd', b'i', b's',
-    b'c', b'o', b'v', b'e', b'r', b'y', b'"', b',', b'\n', b' ', b'"', b'r', b'e', b'q', b'u',
-    b'i', b'r', b'e', b'd', b'"', b':', b' ', b'"', b'v', b'a', b'l', b'u', b'e', b'"', b'\n',
-    b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ', b'[', b'{', b'"', b'n', b'a', b'm',
-    b'e', b'"', b':', b'"', b'c', b'o', b'm', b'p', b'u', b't', b'e', b'"', b'}', b']', b'\n',
-    b' ', b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c', b'r', b'i', b'p', b't', b'i', b'o',
-    b'n', b's', b'"', b':', b'"', b't', b'e', b's', b't', b'"', b'\n', b'0',
-];
+/// The previous hand-written fixture folded each chunk's trailing CRLF *into*
+/// its declared size and left out the inter-chunk delimiter, so its expected
+/// output ended with the `0` of the terminator — parser bugs frozen as
+/// "expected". This generates correct framing: `<hex size>CRLF <data> CRLF`,
+/// terminated by `0CRLFCRLF`.
+fn chunked_body(payload: &[u8]) -> Vec<u8> {
+    let (first, second) = payload.split_at(payload.len() / 2);
+    let mut raw = Vec::new();
+    for chunk in [first, second] {
+        raw.extend(format!("{:x}\r\n", chunk.len()).as_bytes());
+        raw.extend_from_slice(chunk);
+        raw.extend_from_slice(b"\r\n");
+    }
+    raw.extend_from_slice(b"0\r\n\r\n");
+    raw
+}
 
-/// Integration test: GCP-style response with CR bytes in content.
+/// Integration test: a GCP-style response with a CR inside JSON content.
 ///
-/// Verifies that our chunk parser strips CR bytes from chunk data,
-/// ensuring downstream JSON parsing succeeds.
-///
-/// Background: GCP Discovery API sends different API spec versions to different
-/// clients. The version sent to our client contains stray CR bytes in JSON
-/// string values (e.g., "requi\rred" instead of "required").
+/// The parser used to strip every CR from chunk data so this JSON would parse.
+/// That corrupted all binary chunked bodies — Docker's log frames put the
+/// payload length in the header, so a 13-byte log line carries a literal 0x0D
+/// and stripping it desynchronised the stream. Chunk data is opaque octets;
+/// the size field says how many bytes to take, and CRLF only frames them.
 #[test]
-fn test_gcp_style_cr_stripping() {
-    let cursor = Cursor::new(GCP_STYLE_CHUNKED_BODY);
+fn test_gcp_style_cr_in_json_is_preserved() {
+    let cursor = Cursor::new(chunked_body(GCP_STYLE_PAYLOAD));
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
@@ -83,32 +70,24 @@ fn test_gcp_style_cr_stripping() {
         }
     }
 
-    // Verify no CR bytes in output
+    assert_eq!(
+        &collected_bytes, GCP_STYLE_PAYLOAD,
+        "the body must be reassembled byte-for-byte across chunk boundaries"
+    );
+
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(
-        cr_count, 0,
-        "All CR bytes should be stripped. Found: {}",
-        cr_count
-    );
+    assert_eq!(cr_count, 1, "the CR inside the JSON string is content");
 
-    // Verify content matches expected output
-    assert_eq!(
-        &collected_bytes, EXPECTED_OUTPUT,
-        "Output should match expected (CRs stripped, LFs preserved)"
-    );
-
-    // Verify JSON would be parseable (no control characters)
-    let output_str = String::from_utf8_lossy(&collected_bytes);
-    assert!(output_str.starts_with('{'), "Should be valid JSON");
+    // And the terminator's `0` must not leak into the body.
     assert!(
-        output_str.contains("\"required\""),
-        "Field name should be intact"
+        !collected_bytes.ends_with(b"0"),
+        "the final chunk marker is framing, not data"
     );
 }
 
-/// Test: Verify CR stripping is a no-op for clean content.
+/// Test: content with no CRs is unaffected (a plain round-trip check).
 #[test]
-fn test_cr_stripping_no_op_on_clean_content() {
+fn test_clean_content_round_trips() {
     let chunk_data = b"{\"status\": \"ok\", \"count\": 42}";
 
     let mut raw_response = Vec::new();
@@ -145,7 +124,7 @@ fn test_cr_stripping_no_op_on_clean_content() {
 
 /// Test: Multi-chunk response with CR at various positions.
 #[test]
-fn test_cr_stripping_at_various_positions() {
+fn test_cr_in_chunk_data_preserved_at_various_positions() {
     // Build chunks with CR at start, middle, and end of data
     let chunk1: &[u8] = b"\rstart"; // CR at start
     let chunk2: &[u8] = b"mid\rdle"; // CR in middle
@@ -180,15 +159,15 @@ fn test_cr_stripping_at_various_positions() {
         }
     }
 
-    // All CRs should be stripped
+    // Every CR was inside chunk data, so every CR must survive — including the
+    // one at the very end of a chunk, right against the framing delimiter.
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(cr_count, 0, "All CRs should be stripped");
+    assert_eq!(cr_count, 3, "CRs in chunk data are content and must be kept");
 
-    // Content should be intact (minus CRs)
-    let expected = b"startmiddleend";
+    let expected = b"\rstartmid\rdleend\r";
     assert_eq!(
         &collected_bytes, expected,
-        "Content should be concatenated without CRs"
+        "chunk data must round-trip byte-for-byte"
     );
 }
 
@@ -229,25 +208,25 @@ fn test_gcp_chunked_fixture_from_file() {
         }
     }
 
-    // Verify no CR bytes in output
-    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(
-        cr_count, 0,
-        "All CR bytes should be stripped. Found: {cr_count}"
-    );
-
-    // Verify output matches expected
+    // The expected fixture is the exact concatenation of the chunk payloads, as
+    // declared by each chunk's size field — CRs included. (It previously held the
+    // CR-stripped bytes, 162 of the 171 the daemon actually sent.)
     assert_eq!(
         &collected_bytes, expected_bytes,
-        "Output should match expected fixture (CRs stripped)"
+        "the captured body must be reassembled byte-for-byte"
     );
 
-    // Verify JSON structure is valid
+    // The capture carries stray CRs inside JSON strings; they are content and
+    // survive. Cleaning them up is the JSON caller's business, not the
+    // transport's.
+    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
+    assert_eq!(cr_count, 9, "every CR in the captured payload is preserved");
+
     let output_str = String::from_utf8_lossy(&collected_bytes);
-    assert!(output_str.starts_with('{'), "Should be valid JSON object");
+    assert!(output_str.starts_with('{'), "should be the JSON object");
     assert!(
-        output_str.contains("\"required\""),
-        "Field name should be restored (CR removed from middle)"
+        output_str.contains("\"requi\rred\""),
+        "the stray CR the server sent is still exactly where it was"
     );
 }
 
@@ -460,29 +439,33 @@ fn test_mixed_line_endings() {
     );
 }
 
-/// Test: Double LF line endings (\n\n) as mentioned in edge case testing.
+/// Test: with LF-only framing, chunk data that itself begins with LF survives.
 ///
-/// Some servers might use double-LF as chunk terminators. This test validates
-/// the parser handles such edge cases correctly.
+/// This replaces an earlier `test_double_lf_line_endings`, which framed chunks as
+/// `<size>\n\n<data>\n\n` and asserted the parser skipped both LFs. That framing
+/// is not something any server sends (Docker and the captured GCP response both
+/// use CRLF), and supporting it is *unavoidably* in conflict with binary
+/// correctness: given LF-only framing, `<size>\n` followed by data starting with
+/// `\n` is byte-identical to `<size>\n\n` followed by data. The parser resolves
+/// that ambiguity in favour of the data — it consumes exactly one terminator,
+/// because the chunk-size already says precisely how many bytes of data follow.
 #[test]
-fn test_double_lf_line_endings() {
-    let chunk1: &[u8] = b"Data part 1, ";
+fn test_lf_framing_keeps_leading_lf_in_data() {
+    let chunk1: &[u8] = b"\nData part 1, ";
     let chunk2: &[u8] = b"Data part 2.";
 
     let mut raw_response = Vec::new();
 
-    // Chunk 1 with double-LF framing
-    raw_response.extend(format!("{:x}\n\n", chunk1.len()).as_bytes());
+    // LF-only framing: one LF after the size, one after the data.
+    raw_response.extend(format!("{:x}\n", chunk1.len()).as_bytes());
     raw_response.extend_from_slice(chunk1);
-    raw_response.extend_from_slice(b"\n\n");
+    raw_response.extend_from_slice(b"\n");
 
-    // Chunk 2 with double-LF framing
-    raw_response.extend(format!("{:x}\n\n", chunk2.len()).as_bytes());
+    raw_response.extend(format!("{:x}\n", chunk2.len()).as_bytes());
     raw_response.extend_from_slice(chunk2);
-    raw_response.extend_from_slice(b"\n\n");
+    raw_response.extend_from_slice(b"\n");
 
-    // Final chunk with double-LF
-    raw_response.extend_from_slice(b"0\n\n\n");
+    raw_response.extend_from_slice(b"0\n\n");
 
     let cursor = Cursor::new(raw_response);
     let stream = SharedByteBufferStream::ref_cell(cursor);
@@ -503,10 +486,10 @@ fn test_double_lf_line_endings() {
         }
     }
 
-    // Verify content is correct
-    let expected = b"Data part 1, Data part 2.";
+    // The leading LF belongs to chunk 1's data — the size field counted it.
+    let expected = b"\nData part 1, Data part 2.";
     assert_eq!(
         &collected_bytes, expected,
-        "Content should be correctly parsed with double-LF line endings"
+        "LF-only framing must not eat an LF that is part of the chunk data"
     );
 }

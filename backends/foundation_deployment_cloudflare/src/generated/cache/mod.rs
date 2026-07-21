@@ -21,6 +21,221 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `MqApiV4Error` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Error {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Message {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqApiV4Success` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Success {
+    /// errors property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// messages property.
+    pub messages: Option<Vec<String>>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `MqBatchSize` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqBatchSize {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqConsumerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqConsumerResponse {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqHttpConsumerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqHttpConsumerResponse {
+    /// consumer_id property.
+    pub consumer_id: Option<MqIdentifier>,
+    /// created_on property.
+    pub created_on: Option<String>,
+    /// dead_letter_queue property.
+    pub dead_letter_queue: Option<String>,
+    /// queue_name property.
+    pub queue_name: Option<MqQueueName>,
+    /// settings property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqMaxConcurrency` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqMaxConcurrency {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqMaxRetries` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqMaxRetries {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqMaxWaitTime` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqMaxWaitTime {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqProducer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqProducer {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqQueue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqQueue {
+    /// consumers property.
+    pub consumers: Option<Vec<MqConsumerResponse>>,
+    /// consumers_total_count property.
+    pub consumers_total_count: Option<f64>,
+    /// created_on property.
+    pub created_on: Option<String>,
+    /// modified_on property.
+    pub modified_on: Option<String>,
+    /// producers property.
+    pub producers: Option<Vec<MqProducer>>,
+    /// producers_total_count property.
+    pub producers_total_count: Option<f64>,
+    /// queue_id property.
+    pub queue_id: Option<String>,
+    /// queue_name property.
+    pub queue_name: Option<MqQueueName>,
+    /// settings property.
+    pub settings: Option<MqQueueSettings>,
+}
+
+/// `MqQueueName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqQueueName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqQueueSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqQueueSettings {
+    /// delivery_delay property.
+    pub delivery_delay: Option<f64>,
+    /// delivery_paused property.
+    pub delivery_paused: Option<bool>,
+    /// message_retention_period property.
+    pub message_retention_period: Option<f64>,
+}
+
+/// `MqR2Producer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqR2Producer {
+    /// bucket_name property.
+    pub bucket_name: Option<String>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqRetryDelay` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqRetryDelay {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqScriptName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqScriptName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqVisibilityTimeout` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqVisibilityTimeout {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqWorkerConsumerResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqWorkerConsumerResponse {
+    /// consumer_id property.
+    pub consumer_id: Option<MqIdentifier>,
+    /// created_on property.
+    pub created_on: Option<String>,
+    /// dead_letter_queue property.
+    pub dead_letter_queue: Option<String>,
+    /// queue_name property.
+    pub queue_name: Option<MqQueueName>,
+    /// script_name property.
+    pub script_name: Option<MqScriptName>,
+    /// settings property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqWorkerProducer` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqWorkerProducer {
+    /// script property.
+    pub script: Option<String>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `QueuesPurgeGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QueuesPurgeGetResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `QueuesPurgeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QueuesPurgeRequest {
+    /// delete_messages_permanently property.
+    pub delete_messages_permanently: Option<bool>,
+}
+
+/// `QueuesPurgeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QueuesPurgeResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -41,6 +256,8 @@ pub struct QueuesPurgeArgs {
     pub queue_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: QueuesPurgeRequest,
 }
 
 // =============================================================================
@@ -72,16 +289,17 @@ pub struct QueuesPurgeArgs {
 pub async fn queues_purge_get_request<F>(
     client: DynNetClient,
     args: &QueuesPurgeGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<QueuesPurgeGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/queues/{}/purge",
+    let path = format!("/accounts/{}/queues/{}/purge",
         args.account_id,
         args.queue_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -96,9 +314,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: QueuesPurgeGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -126,18 +349,22 @@ where
 pub async fn queues_purge_request<F>(
     client: DynNetClient,
     args: &QueuesPurgeArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<QueuesPurgeResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/queues/{}/purge",
+    let path = format!("/accounts/{}/queues/{}/purge",
         args.account_id,
         args.queue_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -150,8 +377,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: QueuesPurgeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

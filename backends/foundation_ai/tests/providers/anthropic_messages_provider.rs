@@ -96,7 +96,6 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
 }
 
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_provider_generate() {
     let chat_response = br#"{
         "id": "msg_abc123",
@@ -135,7 +134,6 @@ fn test_provider_generate() {
 }
 
 /// Verify SSE streaming yields incremental text via named events.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_streaming_text() {
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":10,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
@@ -184,7 +182,6 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 }
 
 /// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":50,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
@@ -239,7 +236,6 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 }
 
 /// Verify extended thinking response parsing.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_generate_with_thinking() {
     let chat_response = br#"{
@@ -293,7 +289,6 @@ fn test_provider_generate_with_thinking() {
 }
 
 /// Verify multimodal request with image content block.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_generate_multimodal() {
     let chat_response = br#"{

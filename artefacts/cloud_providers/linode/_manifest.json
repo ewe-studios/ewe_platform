@@ -1,0 +1,21 @@
+{
+  "canonical_sha256": "39bd5d5fae0db21f5248d173d52ebf01fb9c0eb84ae4da21265ff1f3573a5700",
+  "hoisted": 1042,
+  "normalized_at": "1784275735",
+  "openapi": "3.0.1",
+  "provider": "linode",
+  "raw": "artefacts/cloud_providers/raw/linode.json",
+  "raw_sha256": "e43a0018fb486499afa73181908a3cefd68f9baf0472dd5341d6f6fd309c5754",
+  "renamed": 0,
+  "schemas": 2467,
+  "source": "https://github.com/linode/linode-api-openapi",
+  "spec_files": [
+    "linode/openapi.json"
+  ],
+  "spec_version": "4.229.1",
+  "transforms": [
+    "strip_doc_only",
+    "ensure_servers",
+    "canonicalize_operations"
+  ]
+}

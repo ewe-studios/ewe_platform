@@ -1,6 +1,7 @@
 // Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
+use std::println;
 
 use std::path::Path;
 

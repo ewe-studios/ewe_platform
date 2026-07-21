@@ -12,7 +12,7 @@
 ///    process, feeding identical stimuli to each and comparing the events.
 ///
 /// `sys::Selector` names the type this build dispatches through.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub mod selector {
     pub mod epoll;
 
@@ -43,7 +43,7 @@ pub mod selector {
     pub mod kqueue;
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub mod waker {
     /// Linux waker using eventfd.
     mod eventfd;

@@ -1,5 +1,16 @@
 # Bug Analysis: GCP Chunked HTTP Response Parsing Failure
 
+> **⚠️ Read [`CR_BYTE_INVESTIGATION.md`](./CR_BYTE_INVESTIGATION.md) →
+> "Update 2026-07-17" before acting on this file.** The CR-stripping that this
+> investigation led to has been **removed** from the shared HTTP parser: it
+> corrupted every binary chunked body (Docker log frames, tar, gzip). If GCP's
+> JSON really does carry stray CRs, clean them in **this provider's fetch layer**,
+> where the payload is known to be text — never in `foundation_netio`.
+>
+> Also note: the chunk-header parser now consumes **exactly one** terminator
+> (RFC 7230 §4.1), which is very likely where the "stray CRs" came from in the
+> first place. Re-test before adding any workaround.
+
 ## Executive Summary
 
 The GCP Discovery API fetch was failing due to incorrect handling of LF-only (`\n`) line endings in HTTP chunked transfer encoding. The chunked decoder expected strict RFC 7230 CRLF (`\r\n`) line endings, but GCP sends non-standard LF-only terminators.

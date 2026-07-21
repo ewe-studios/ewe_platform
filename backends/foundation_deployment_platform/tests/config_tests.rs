@@ -84,3 +84,31 @@ fn test_config_always_pull() {
     let cfg = ContainerConfig::new("redis:7").always_pull();
     assert!(cfg.always_pull);
 }
+
+/// `memory` accepts the `docker run --memory` forms. Before this was parsed
+/// properly, anything with a unit suffix (the documented spelling) failed an
+/// `i64` parse and was silently dropped, so the container ran unlimited.
+#[test]
+fn test_parse_memory_bytes_accepts_docker_size_suffixes() {
+    use foundation_deployment_platform::docker::parse_memory_bytes;
+
+    assert_eq!(parse_memory_bytes("1024"), Ok(1024));
+    assert_eq!(parse_memory_bytes("512b"), Ok(512));
+    assert_eq!(parse_memory_bytes("256m"), Ok(256 * 1024 * 1024));
+    assert_eq!(parse_memory_bytes("256M"), Ok(256 * 1024 * 1024));
+    assert_eq!(parse_memory_bytes("256mb"), Ok(256 * 1024 * 1024));
+    assert_eq!(parse_memory_bytes("2k"), Ok(2048));
+    assert_eq!(parse_memory_bytes("1g"), Ok(1024 * 1024 * 1024));
+    assert_eq!(parse_memory_bytes(" 1g "), Ok(1024 * 1024 * 1024));
+}
+
+/// A malformed limit is an error, never a silent "no limit".
+#[test]
+fn test_parse_memory_bytes_rejects_bad_input() {
+    use foundation_deployment_platform::docker::parse_memory_bytes;
+
+    assert!(parse_memory_bytes("").is_err());
+    assert!(parse_memory_bytes("lots").is_err());
+    assert!(parse_memory_bytes("256x").is_err());
+    assert!(parse_memory_bytes("9999999999g").is_err(), "overflow must not wrap");
+}

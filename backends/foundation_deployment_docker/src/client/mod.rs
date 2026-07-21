@@ -157,6 +157,9 @@ pub mod volumes;
 /// load, commit, prune, build, push, pull).
 pub mod images;
 
+/// Build contexts (tar streams) for `POST /build`.
+pub mod build_context;
+
 /// Exec instance operations (create, start, inspect, resize).
 pub mod exec;
 
@@ -165,6 +168,10 @@ pub mod exec;
 pub mod system;
 
 /// SSH transport (`ssh://user@host` via `docker system dial-stdio`).
+///
+/// Behind the `ssh` feature: it links libssh2/OpenSSL, which cannot share a
+/// binary with the BoringSSL the `buildkit` feature pulls in.
+#[cfg(feature = "ssh")]
 pub mod ssh;
 
 /// Docker daemon client over a Unix socket.
@@ -349,6 +356,7 @@ impl DockerClient {
     ///
     /// Never fails at construction (the SSH session is established lazily on the
     /// first request); returns [`DockerError`] only via later API calls.
+    #[cfg(feature = "ssh")]
     pub fn connect_ssh(url: &str) -> Result<Self, DockerError> {
         use foundation_sshkit::Host;
 
@@ -422,7 +430,21 @@ impl DockerClient {
             return Ok(Self::connect_tcp(addr));
         }
         if host.starts_with("ssh://") {
-            return Self::connect_ssh(&host);
+            #[cfg(feature = "ssh")]
+            {
+                return Self::connect_ssh(&host);
+            }
+            // Say so plainly rather than falling through to "unrecognized
+            // transport", which would send the caller hunting for a typo in a
+            // DOCKER_HOST that is in fact perfectly valid.
+            #[cfg(not(feature = "ssh"))]
+            {
+                return Err(DockerError::Unavailable(format!(
+                    "DOCKER_HOST is {host}, but this build has the `ssh` feature off — \
+                     enable foundation_deployment_docker/ssh (note it cannot be combined \
+                     with `buildkit`: libssh2/OpenSSL vs BoringSSL)"
+                )));
+            }
         }
         Err(DockerError::Unavailable(format!(
             "unrecognized DOCKER_HOST transport: {host}"

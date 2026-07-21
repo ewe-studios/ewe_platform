@@ -21,6 +21,6363 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `RadarGetAnnotationsOutagesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponse {
+    /// result property.
+    pub result: RadarGetAnnotationsOutagesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResult {
+    /// annotations property.
+    pub annotations: Vec<RadarGetAnnotationsOutagesResponseResultAnnotationsItem>,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItem {
+    /// asns property.
+    pub asns: Vec<i64>,
+    /// asnsDetails property.
+    #[serde(rename = "asnsDetails")]
+    pub asns_details: Vec<RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItem>,
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: Option<String>,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: Option<String>,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// id property.
+    pub id: String,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: Option<String>,
+    /// locations property.
+    pub locations: Vec<String>,
+    /// locationsDetails property.
+    #[serde(rename = "locationsDetails")]
+    pub locations_details: Vec<RadarGetAnnotationsOutagesResponseResultAnnotationsItemLocationsDetailsItem>,
+    /// origins property.
+    pub origins: Vec<String>,
+    /// originsDetails property.
+    #[serde(rename = "originsDetails")]
+    pub origins_details: Vec<RadarGetAnnotationsOutagesResponseResultAnnotationsItemOriginsDetailsItem>,
+    /// outage property.
+    pub outage: RadarGetAnnotationsOutagesResponseResultAnnotationsItemOutage,
+    /// scope property.
+    pub scope: Option<String>,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItem {
+    /// asn property.
+    pub asn: String,
+    /// locations property.
+    pub locations: Option<RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItemLocations>,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItemLocations` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItemAsnsDetailsItemLocations {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItemLocationsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItemLocationsDetailsItem {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItemOriginsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItemOriginsDetailsItem {
+    /// name property.
+    pub name: String,
+    /// origin property.
+    pub origin: String,
+}
+
+/// `RadarGetAnnotationsOutagesResponseResultAnnotationsItemOutage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesResponseResultAnnotationsItemOutage {
+    /// outageCause property.
+    #[serde(rename = "outageCause")]
+    pub outage_cause: String,
+    /// outageType property.
+    #[serde(rename = "outageType")]
+    pub outage_type: String,
+}
+
+/// `RadarGetAnnotationsOutagesTopResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesTopResponse {
+    /// result property.
+    pub result: RadarGetAnnotationsOutagesTopResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetAnnotationsOutagesTopResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesTopResponseResult {
+    /// annotations property.
+    pub annotations: Vec<RadarGetAnnotationsOutagesTopResponseResultAnnotationsItem>,
+}
+
+/// `RadarGetAnnotationsOutagesTopResponseResultAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsOutagesTopResponseResultAnnotationsItem {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetAnnotationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponse {
+    /// result property.
+    pub result: RadarGetAnnotationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetAnnotationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResult {
+    /// annotations property.
+    pub annotations: Vec<RadarGetAnnotationsResponseResultAnnotationsItem>,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItem {
+    /// asns property.
+    pub asns: Vec<i64>,
+    /// asnsDetails property.
+    #[serde(rename = "asnsDetails")]
+    pub asns_details: Vec<RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItem>,
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: Option<String>,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: Option<String>,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// id property.
+    pub id: String,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: Option<String>,
+    /// locations property.
+    pub locations: Vec<String>,
+    /// locationsDetails property.
+    #[serde(rename = "locationsDetails")]
+    pub locations_details: Vec<RadarGetAnnotationsResponseResultAnnotationsItemLocationsDetailsItem>,
+    /// origins property.
+    pub origins: Vec<String>,
+    /// originsDetails property.
+    #[serde(rename = "originsDetails")]
+    pub origins_details: Vec<RadarGetAnnotationsResponseResultAnnotationsItemOriginsDetailsItem>,
+    /// outage property.
+    pub outage: RadarGetAnnotationsResponseResultAnnotationsItemOutage,
+    /// scope property.
+    pub scope: Option<String>,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItem {
+    /// asn property.
+    pub asn: String,
+    /// locations property.
+    pub locations: Option<RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItemLocations>,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItemLocations` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItemAsnsDetailsItemLocations {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItemLocationsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItemLocationsDetailsItem {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItemOriginsDetailsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItemOriginsDetailsItem {
+    /// name property.
+    pub name: String,
+    /// origin property.
+    pub origin: String,
+}
+
+/// `RadarGetAnnotationsResponseResultAnnotationsItemOutage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAnnotationsResponseResultAnnotationsItemOutage {
+    /// outageCause property.
+    #[serde(rename = "outageCause")]
+    pub outage_cause: String,
+    /// outageType property.
+    #[serde(rename = "outageType")]
+    pub outage_type: String,
+}
+
+/// `RadarGetAsnsAsSetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsAsSetResponse {
+    /// result property.
+    pub result: RadarGetAsnsAsSetResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetAsnsAsSetResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsAsSetResponseResult {
+    /// as_sets property.
+    pub as_sets: Vec<RadarGetAsnsAsSetResponseResultAsSetsItem>,
+    /// paths property.
+    pub paths: Vec<Vec<String>>,
+}
+
+/// `RadarGetAsnsAsSetResponseResultAsSetsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsAsSetResponseResultAsSetsItem {
+    /// as_members_count property.
+    pub as_members_count: i64,
+    /// as_set_members_count property.
+    pub as_set_members_count: i64,
+    /// as_set_upstreams_count property.
+    pub as_set_upstreams_count: i64,
+    /// asn_cone_size property.
+    pub asn_cone_size: i64,
+    /// hierarchical_asn property.
+    pub hierarchical_asn: Option<i64>,
+    /// inferred_asn property.
+    pub inferred_asn: Option<i64>,
+    /// irr_sources property.
+    pub irr_sources: Vec<String>,
+    /// name property.
+    pub name: String,
+    /// peeringdb_asn property.
+    pub peeringdb_asn: Option<i64>,
+}
+
+/// `RadarGetAsnsRelResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsRelResponse {
+    /// result property.
+    pub result: RadarGetAsnsRelResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetAsnsRelResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsRelResponseResult {
+    /// meta property.
+    pub meta: RadarGetAsnsRelResponseResultMeta,
+    /// rels property.
+    pub rels: Vec<RadarGetAsnsRelResponseResultRelsItem>,
+}
+
+/// `RadarGetAsnsRelResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsRelResponseResultMeta {
+    /// data_time property.
+    pub data_time: String,
+    /// query_time property.
+    pub query_time: String,
+    /// total_peers property.
+    pub total_peers: i64,
+}
+
+/// `RadarGetAsnsRelResponseResultRelsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAsnsRelResponseResultRelsItem {
+    /// asn1 property.
+    pub asn1: i64,
+    /// asn1_country property.
+    pub asn1_country: String,
+    /// asn1_name property.
+    pub asn1_name: String,
+    /// asn2 property.
+    pub asn2: i64,
+    /// asn2_country property.
+    pub asn2_country: String,
+    /// asn2_name property.
+    pub asn2_name: String,
+    /// rel property.
+    pub rel: String,
+}
+
+/// `RadarGetCertificateAuthoritiesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthoritiesResponse {
+    /// result property.
+    pub result: RadarGetCertificateAuthoritiesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCertificateAuthoritiesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthoritiesResponseResult {
+    /// certificateAuthorities property.
+    #[serde(rename = "certificateAuthorities")]
+    pub certificate_authorities: Vec<RadarGetCertificateAuthoritiesResponseResultCertificateAuthoritiesItem>,
+}
+
+/// `RadarGetCertificateAuthoritiesResponseResultCertificateAuthoritiesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthoritiesResponseResultCertificateAuthoritiesItem {
+    /// certificateRecordType property.
+    #[serde(rename = "certificateRecordType")]
+    pub certificate_record_type: String,
+    /// country property.
+    pub country: String,
+    /// countryName property.
+    #[serde(rename = "countryName")]
+    pub country_name: String,
+    /// name property.
+    pub name: String,
+    /// owner property.
+    pub owner: String,
+    /// parentName property.
+    #[serde(rename = "parentName")]
+    pub parent_name: String,
+    /// parentSha256Fingerprint property.
+    #[serde(rename = "parentSha256Fingerprint")]
+    pub parent_sha256_fingerprint: String,
+    /// revocationStatus property.
+    #[serde(rename = "revocationStatus")]
+    pub revocation_status: String,
+    /// sha256Fingerprint property.
+    #[serde(rename = "sha256Fingerprint")]
+    pub sha256_fingerprint: String,
+}
+
+/// `RadarGetCertificateAuthorityDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthorityDetailsResponse {
+    /// result property.
+    pub result: RadarGetCertificateAuthorityDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCertificateAuthorityDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthorityDetailsResponseResult {
+    /// certificateAuthority property.
+    #[serde(rename = "certificateAuthority")]
+    pub certificate_authority: RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthority,
+}
+
+/// `RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthority` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthority {
+    /// appleStatus property.
+    #[serde(rename = "appleStatus")]
+    pub apple_status: String,
+    /// authorityKeyIdentifier property.
+    #[serde(rename = "authorityKeyIdentifier")]
+    pub authority_key_identifier: String,
+    /// certificateRecordType property.
+    #[serde(rename = "certificateRecordType")]
+    pub certificate_record_type: String,
+    /// chromeStatus property.
+    #[serde(rename = "chromeStatus")]
+    pub chrome_status: String,
+    /// country property.
+    pub country: String,
+    /// countryName property.
+    #[serde(rename = "countryName")]
+    pub country_name: String,
+    /// microsoftStatus property.
+    #[serde(rename = "microsoftStatus")]
+    pub microsoft_status: String,
+    /// mozillaStatus property.
+    #[serde(rename = "mozillaStatus")]
+    pub mozilla_status: String,
+    /// name property.
+    pub name: String,
+    /// owner property.
+    pub owner: String,
+    /// parentName property.
+    #[serde(rename = "parentName")]
+    pub parent_name: String,
+    /// parentSha256Fingerprint property.
+    #[serde(rename = "parentSha256Fingerprint")]
+    pub parent_sha256_fingerprint: String,
+    /// related property.
+    pub related: Vec<RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthorityRelatedItem>,
+    /// revocationStatus property.
+    #[serde(rename = "revocationStatus")]
+    pub revocation_status: String,
+    /// sha256Fingerprint property.
+    #[serde(rename = "sha256Fingerprint")]
+    pub sha256_fingerprint: String,
+    /// subjectKeyIdentifier property.
+    #[serde(rename = "subjectKeyIdentifier")]
+    pub subject_key_identifier: String,
+    /// validFrom property.
+    #[serde(rename = "validFrom")]
+    pub valid_from: String,
+    /// validTo property.
+    #[serde(rename = "validTo")]
+    pub valid_to: String,
+}
+
+/// `RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthorityRelatedItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateAuthorityDetailsResponseResultCertificateAuthorityRelatedItem {
+    /// certificateRecordType property.
+    #[serde(rename = "certificateRecordType")]
+    pub certificate_record_type: String,
+    /// name property.
+    pub name: String,
+    /// revocationStatus property.
+    #[serde(rename = "revocationStatus")]
+    pub revocation_status: String,
+    /// sha256Fingerprint property.
+    #[serde(rename = "sha256Fingerprint")]
+    pub sha256_fingerprint: String,
+}
+
+/// `RadarGetCertificateLogDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponse {
+    /// result property.
+    pub result: RadarGetCertificateLogDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCertificateLogDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponseResult {
+    /// certificateLog property.
+    #[serde(rename = "certificateLog")]
+    pub certificate_log: RadarGetCertificateLogDetailsResponseResultCertificateLog,
+}
+
+/// `RadarGetCertificateLogDetailsResponseResultCertificateLog` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponseResultCertificateLog {
+    /// api property.
+    pub api: String,
+    /// avgThroughput property.
+    #[serde(rename = "avgThroughput")]
+    pub avg_throughput: f64,
+    /// description property.
+    pub description: String,
+    /// endExclusive property.
+    #[serde(rename = "endExclusive")]
+    pub end_exclusive: String,
+    /// lastUpdate property.
+    #[serde(rename = "lastUpdate")]
+    pub last_update: String,
+    /// operator property.
+    pub operator: String,
+    /// performance property.
+    pub performance: Option<RadarGetCertificateLogDetailsResponseResultCertificateLogPerformance>,
+    /// related property.
+    pub related: Vec<RadarGetCertificateLogDetailsResponseResultCertificateLogRelatedItem>,
+    /// slug property.
+    pub slug: String,
+    /// startInclusive property.
+    #[serde(rename = "startInclusive")]
+    pub start_inclusive: String,
+    /// state property.
+    pub state: String,
+    /// stateTimestamp property.
+    #[serde(rename = "stateTimestamp")]
+    pub state_timestamp: String,
+    /// submittableCertCount property.
+    #[serde(rename = "submittableCertCount")]
+    pub submittable_cert_count: Option<String>,
+    /// submittedCertCount property.
+    #[serde(rename = "submittedCertCount")]
+    pub submitted_cert_count: Option<String>,
+    /// url property.
+    pub url: String,
+}
+
+/// `RadarGetCertificateLogDetailsResponseResultCertificateLogPerformance` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponseResultCertificateLogPerformance {
+    /// endpoints property.
+    pub endpoints: Vec<RadarGetCertificateLogDetailsResponseResultCertificateLogPerformanceEndpointsItem>,
+    /// responseTime property.
+    #[serde(rename = "responseTime")]
+    pub response_time: f64,
+    /// uptime property.
+    pub uptime: f64,
+}
+
+/// `RadarGetCertificateLogDetailsResponseResultCertificateLogPerformanceEndpointsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponseResultCertificateLogPerformanceEndpointsItem {
+    /// endpoint property.
+    pub endpoint: String,
+    /// responseTime property.
+    #[serde(rename = "responseTime")]
+    pub response_time: f64,
+    /// uptime property.
+    pub uptime: f64,
+}
+
+/// `RadarGetCertificateLogDetailsResponseResultCertificateLogRelatedItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogDetailsResponseResultCertificateLogRelatedItem {
+    /// description property.
+    pub description: String,
+    /// endExclusive property.
+    #[serde(rename = "endExclusive")]
+    pub end_exclusive: String,
+    /// slug property.
+    pub slug: String,
+    /// startInclusive property.
+    #[serde(rename = "startInclusive")]
+    pub start_inclusive: String,
+    /// state property.
+    pub state: String,
+}
+
+/// `RadarGetCertificateLogsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogsResponse {
+    /// result property.
+    pub result: RadarGetCertificateLogsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCertificateLogsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogsResponseResult {
+    /// certificateLogs property.
+    #[serde(rename = "certificateLogs")]
+    pub certificate_logs: Vec<RadarGetCertificateLogsResponseResultCertificateLogsItem>,
+}
+
+/// `RadarGetCertificateLogsResponseResultCertificateLogsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCertificateLogsResponseResultCertificateLogsItem {
+    /// api property.
+    pub api: String,
+    /// description property.
+    pub description: String,
+    /// endExclusive property.
+    #[serde(rename = "endExclusive")]
+    pub end_exclusive: String,
+    /// operator property.
+    pub operator: String,
+    /// slug property.
+    pub slug: String,
+    /// startInclusive property.
+    #[serde(rename = "startInclusive")]
+    pub start_inclusive: String,
+    /// state property.
+    pub state: String,
+    /// stateTimestamp property.
+    #[serde(rename = "stateTimestamp")]
+    pub state_timestamp: String,
+    /// url property.
+    pub url: String,
+}
+
+/// `RadarGetCtSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponse {
+    /// result property.
+    pub result: RadarGetCtSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCtSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetCtSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetCtSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetCtSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetCtSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetCtSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetCtSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetCtSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetCtSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetCtSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetCtSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetCtTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetCtTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetCtTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: serde_json::Value,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetCtTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetCtTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetCtTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetCtTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetCtTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetCtTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetCtTimeseriesResponseResultMeta,
+}
+
+/// `RadarGetCtTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetCtTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetCtTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetCtTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetCtTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetCtTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetCtTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetCtTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetCtTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetCtTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112SummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112SummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112SummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112SummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112SummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112SummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112SummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetDnsAs112TimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TimeseriesResponseResultMeta,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TopLocationsByDnssecResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TopLocationsByDnssecResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsAs112TopLocationsByDnssecResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByDnssecResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByDnssecResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TopLocationsByEdnsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TopLocationsByEdnsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsAs112TopLocationsByEdnsResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByEdnsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByEdnsResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TopLocationsByIpVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TopLocationsByIpVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsAs112TopLocationsByIpVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsByIpVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsByIpVersionResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponse {
+    /// result property.
+    pub result: RadarGetDnsAs112TopLocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResult {
+    /// meta property.
+    pub meta: RadarGetDnsAs112TopLocationsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetDnsAs112TopLocationsResponseResultTop0Item>,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetDnsAs112TopLocationsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetDnsAs112TopLocationsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetDnsAs112TopLocationsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetDnsAs112TopLocationsResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEntitiesAsnByIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponse {
+    /// result property.
+    pub result: RadarGetEntitiesAsnByIdResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesAsnByIdResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResult {
+    /// asn property.
+    pub asn: RadarGetEntitiesAsnByIdResponseResultAsn,
+}
+
+/// `RadarGetEntitiesAsnByIdResponseResultAsn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResultAsn {
+    /// aka property.
+    pub aka: Option<String>,
+    /// asn property.
+    pub asn: i64,
+    /// confidenceLevel property.
+    #[serde(rename = "confidenceLevel")]
+    pub confidence_level: i64,
+    /// country property.
+    pub country: String,
+    /// countryName property.
+    #[serde(rename = "countryName")]
+    pub country_name: String,
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsers,
+    /// name property.
+    pub name: String,
+    /// orgName property.
+    #[serde(rename = "orgName")]
+    pub org_name: String,
+    /// related property.
+    pub related: Vec<RadarGetEntitiesAsnByIdResponseResultAsnRelatedItem>,
+    /// source property.
+    pub source: String,
+    /// website property.
+    pub website: String,
+}
+
+/// `RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsers` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsers {
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// locations property.
+    pub locations: Vec<RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsersLocationsItem>,
+}
+
+/// `RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsersLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResultAsnEstimatedUsersLocationsItem {
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// locationAlpha2 property.
+    #[serde(rename = "locationAlpha2")]
+    pub location_alpha2: String,
+    /// locationName property.
+    #[serde(rename = "locationName")]
+    pub location_name: String,
+}
+
+/// `RadarGetEntitiesAsnByIdResponseResultAsnRelatedItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResultAsnRelatedItem {
+    /// aka property.
+    pub aka: Option<String>,
+    /// asn property.
+    pub asn: i64,
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetEntitiesAsnByIpResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponse {
+    /// result property.
+    pub result: RadarGetEntitiesAsnByIpResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesAsnByIpResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponseResult {
+    /// asn property.
+    pub asn: RadarGetEntitiesAsnByIpResponseResultAsn,
+}
+
+/// `RadarGetEntitiesAsnByIpResponseResultAsn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponseResultAsn {
+    /// aka property.
+    pub aka: Option<String>,
+    /// asn property.
+    pub asn: i64,
+    /// country property.
+    pub country: String,
+    /// countryName property.
+    #[serde(rename = "countryName")]
+    pub country_name: String,
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsers,
+    /// name property.
+    pub name: String,
+    /// orgName property.
+    #[serde(rename = "orgName")]
+    pub org_name: String,
+    /// related property.
+    pub related: Vec<RadarGetEntitiesAsnByIpResponseResultAsnRelatedItem>,
+    /// source property.
+    pub source: String,
+    /// website property.
+    pub website: String,
+}
+
+/// `RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsers` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsers {
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// locations property.
+    pub locations: Vec<RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsersLocationsItem>,
+}
+
+/// `RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsersLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponseResultAsnEstimatedUsersLocationsItem {
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// locationAlpha2 property.
+    #[serde(rename = "locationAlpha2")]
+    pub location_alpha2: String,
+    /// locationName property.
+    #[serde(rename = "locationName")]
+    pub location_name: String,
+}
+
+/// `RadarGetEntitiesAsnByIpResponseResultAsnRelatedItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIpResponseResultAsnRelatedItem {
+    /// aka property.
+    pub aka: Option<String>,
+    /// asn property.
+    pub asn: i64,
+    /// estimatedUsers property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetEntitiesAsnListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnListResponse {
+    /// result property.
+    pub result: RadarGetEntitiesAsnListResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesAsnListResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnListResponseResult {
+    /// asns property.
+    pub asns: Vec<RadarGetEntitiesAsnListResponseResultAsnsItem>,
+}
+
+/// `RadarGetEntitiesAsnListResponseResultAsnsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnListResponseResultAsnsItem {
+    /// aka property.
+    pub aka: Option<String>,
+    /// asn property.
+    pub asn: i64,
+    /// country property.
+    pub country: String,
+    /// countryName property.
+    #[serde(rename = "countryName")]
+    pub country_name: String,
+    /// name property.
+    pub name: String,
+    /// orgName property.
+    #[serde(rename = "orgName")]
+    pub org_name: Option<String>,
+    /// website property.
+    pub website: Option<String>,
+}
+
+/// `RadarGetEntitiesIpResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesIpResponse {
+    /// result property.
+    pub result: RadarGetEntitiesIpResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesIpResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesIpResponseResult {
+    /// ip property.
+    pub ip: RadarGetEntitiesIpResponseResultIp,
+}
+
+/// `RadarGetEntitiesIpResponseResultIp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesIpResponseResultIp {
+    /// asn property.
+    pub asn: String,
+    /// asnLocation property.
+    #[serde(rename = "asnLocation")]
+    pub asn_location: String,
+    /// asnName property.
+    #[serde(rename = "asnName")]
+    pub asn_name: String,
+    /// asnOrgName property.
+    #[serde(rename = "asnOrgName")]
+    pub asn_org_name: String,
+    /// ip property.
+    pub ip: String,
+    /// ipVersion property.
+    #[serde(rename = "ipVersion")]
+    pub ip_version: String,
+    /// location property.
+    pub location: String,
+    /// locationName property.
+    #[serde(rename = "locationName")]
+    pub location_name: String,
+}
+
+/// `RadarGetEntitiesLocationByAlpha2Response` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationByAlpha2Response {
+    /// result property.
+    pub result: RadarGetEntitiesLocationByAlpha2ResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesLocationByAlpha2ResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationByAlpha2ResponseResult {
+    /// location property.
+    pub location: RadarGetEntitiesLocationByAlpha2ResponseResultLocation,
+}
+
+/// `RadarGetEntitiesLocationByAlpha2ResponseResultLocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationByAlpha2ResponseResultLocation {
+    /// alpha2 property.
+    pub alpha2: String,
+    /// confidenceLevel property.
+    #[serde(rename = "confidenceLevel")]
+    pub confidence_level: i64,
+    /// continent property.
+    pub continent: String,
+    /// latitude property.
+    pub latitude: String,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// region property.
+    pub region: String,
+    /// subregion property.
+    pub subregion: String,
+}
+
+/// `RadarGetEntitiesLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationsResponse {
+    /// result property.
+    pub result: RadarGetEntitiesLocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEntitiesLocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationsResponseResult {
+    /// locations property.
+    pub locations: Vec<RadarGetEntitiesLocationsResponseResultLocationsItem>,
+}
+
+/// `RadarGetEntitiesLocationsResponseResultLocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesLocationsResponseResultLocationsItem {
+    /// alpha2 property.
+    pub alpha2: String,
+    /// continent property.
+    pub continent: String,
+    /// latitude property.
+    pub latitude: String,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// region property.
+    pub region: String,
+    /// subregion property.
+    pub subregion: String,
+}
+
+/// `RadarGetGeolocationDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponse {
+    /// result property.
+    pub result: RadarGetGeolocationDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetGeolocationDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponseResult {
+    /// geolocation property.
+    pub geolocation: RadarGetGeolocationDetailsResponseResultGeolocation,
+}
+
+/// `RadarGetGeolocationDetailsResponseResultGeolocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponseResultGeolocation {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// parent property.
+    pub parent: RadarGetGeolocationDetailsResponseResultGeolocationParent,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetGeolocationDetailsResponseResultGeolocationParent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponseResultGeolocationParent {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// parent property.
+    pub parent: RadarGetGeolocationDetailsResponseResultGeolocationParentParent,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetGeolocationDetailsResponseResultGeolocationParentParent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponseResultGeolocationParentParent {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetGeolocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationsResponse {
+    /// result property.
+    pub result: RadarGetGeolocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetGeolocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationsResponseResult {
+    /// geolocations property.
+    pub geolocations: Vec<RadarGetGeolocationsResponseResultGeolocationsItem>,
+}
+
+/// `RadarGetGeolocationsResponseResultGeolocationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationsResponseResultGeolocationsItem {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// parent property.
+    pub parent: RadarGetGeolocationsResponseResultGeolocationsItemParent,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetGeolocationsResponseResultGeolocationsItemParent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationsResponseResultGeolocationsItemParent {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// parent property.
+    pub parent: RadarGetGeolocationsResponseResultGeolocationsItemParentParent,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetGeolocationsResponseResultGeolocationsItemParentParent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationsResponseResultGeolocationsItemParentParent {
+    /// code property.
+    pub code: Option<String>,
+    /// geoId property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// latitude property.
+    pub latitude: String,
+    /// locale property.
+    pub locale: Option<String>,
+    /// longitude property.
+    pub longitude: String,
+    /// name property.
+    pub name: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetHttpSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponse {
+    /// result property.
+    pub result: RadarGetHttpSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetHttpSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetHttpSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetHttpTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetHttpTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetHttpTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetHttpTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTimeseriesResponseResultMeta,
+}
+
+/// `RadarGetHttpTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetHttpTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByBrowserFamilyResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByBrowserFamilyResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByBrowserFamilyResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByBrowserFamilyResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByDeviceTypeResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByDeviceTypeResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByDeviceTypeResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByDeviceTypeResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByDeviceTypeResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByDeviceTypeResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByHttpProtocolResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByHttpProtocolResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByHttpProtocolResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByHttpProtocolResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByHttpProtocolResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpProtocolResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByHttpRequestsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByHttpRequestsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByHttpRequestsResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByHttpRequestsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByHttpRequestsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpRequestsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByHttpVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByHttpVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByHttpVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByHttpVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByHttpVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByHttpVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByIpVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByIpVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByIpVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByIpVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByIpVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByIpVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByOperatingSystemResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByOperatingSystemResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByOperatingSystemResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByOperatingSystemResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByOperatingSystemResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByOperatingSystemResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopAsesByTlsVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopAsesByTlsVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopAsesByTlsVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopAsesByTlsVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopAsesByTlsVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopAsesByTlsVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByBrowserFamilyResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByBrowserFamilyResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByBrowserFamilyResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByBrowserFamilyResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByBrowserFamilyResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByDeviceTypeResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByDeviceTypeResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByDeviceTypeResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByDeviceTypeResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByDeviceTypeResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByHttpProtocolResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByHttpProtocolResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByHttpProtocolResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpProtocolResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpProtocolResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByHttpRequestsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByHttpRequestsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByHttpRequestsResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpRequestsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpRequestsResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByHttpVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByHttpVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByHttpVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByHttpVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByHttpVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByHttpVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByHttpVersionResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByIpVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByIpVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByIpVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByIpVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByIpVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByIpVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByIpVersionResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByOperatingSystemResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByOperatingSystemResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByOperatingSystemResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByOperatingSystemResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByOperatingSystemResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponse {
+    /// result property.
+    pub result: RadarGetHttpTopLocationsByTlsVersionResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResult {
+    /// meta property.
+    pub meta: RadarGetHttpTopLocationsByTlsVersionResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetHttpTopLocationsByTlsVersionResponseResultTop0Item>,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetHttpTopLocationsByTlsVersionResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetHttpTopLocationsByTlsVersionResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetHttpTopLocationsByTlsVersionResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetHttpTopLocationsByTlsVersionResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponse {
+    /// result property.
+    pub result: RadarGetLeakedCredentialChecksSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetLeakedCredentialChecksSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetLeakedCredentialChecksSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetLeakedCredentialChecksSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetLeakedCredentialChecksSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetLeakedCredentialChecksTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetLeakedCredentialChecksTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetNetflowsSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponse {
+    /// result property.
+    pub result: RadarGetNetflowsSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetNetflowsSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetNetflowsSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetNetflowsSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetNetflowsSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetNetflowsSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetNetflowsSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetNetflowsSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetNetflowsSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetNetflowsSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetNetflowsSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetNetflowsSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetNetflowsTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetNetflowsTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetNetflowsTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetNetflowsTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetNetflowsTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetNetflowsTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetNetflowsTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetNetflowsTimeseriesResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetNetflowsTimeseriesResponseResultSerie0,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetNetflowsTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetNetflowsTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTimeseriesResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTimeseriesResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+    /// values property.
+    pub values: Vec<String>,
+}
+
+/// `RadarGetNetflowsTopAsesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponse {
+    /// result property.
+    pub result: RadarGetNetflowsTopAsesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResult {
+    /// meta property.
+    pub meta: RadarGetNetflowsTopAsesResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetNetflowsTopAsesResponseResultTop0Item>,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetNetflowsTopAsesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetNetflowsTopAsesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTopAsesResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesResponseResultTop0Item {
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: f64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTopLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponse {
+    /// result property.
+    pub result: RadarGetNetflowsTopLocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResult {
+    /// meta property.
+    pub meta: RadarGetNetflowsTopLocationsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetNetflowsTopLocationsResponseResultTop0Item>,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetNetflowsTopLocationsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetNetflowsTopLocationsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetNetflowsTopLocationsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetNetflowsTopLocationsResponseResultTop0Item {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetOriginDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginDetailsResponse {
+    /// result property.
+    pub result: RadarGetOriginDetailsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginDetailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginDetailsResponseResult {
+    /// origin property.
+    pub origin: RadarGetOriginDetailsResponseResultOrigin,
+}
+
+/// `RadarGetOriginDetailsResponseResultOrigin` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginDetailsResponseResultOrigin {
+    /// regions property.
+    pub regions: Vec<RadarGetOriginDetailsResponseResultOriginRegionsItem>,
+    /// slug property.
+    pub slug: String,
+}
+
+/// `RadarGetOriginDetailsResponseResultOriginRegionsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginDetailsResponseResultOriginRegionsItem {
+    /// region property.
+    pub region: String,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponse {
+    /// result property.
+    pub result: RadarGetOriginPostQuantumSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetOriginPostQuantumSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetOriginPostQuantumSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetOriginPostQuantumSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetOriginPostQuantumSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponse {
+    /// result property.
+    pub result: RadarGetOriginPostQuantumTimeseriesGroupsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResult {
+    /// meta property.
+    pub meta: RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetOriginPostQuantumTimeseriesGroupsResponseResultSerie0,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetOriginPostQuantumTimeseriesGroupsResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumTimeseriesGroupsResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetOriginsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsResponse {
+    /// result property.
+    pub result: RadarGetOriginsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsResponseResult {
+    /// origins property.
+    pub origins: Vec<RadarGetOriginsResponseResultOriginsItem>,
+}
+
+/// `RadarGetOriginsResponseResultOriginsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsResponseResultOriginsItem {
+    /// regions property.
+    pub regions: Vec<RadarGetOriginsResponseResultOriginsItemRegionsItem>,
+    /// slug property.
+    pub slug: String,
+}
+
+/// `RadarGetOriginsResponseResultOriginsItemRegionsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsResponseResultOriginsItemRegionsItem {
+    /// region property.
+    pub region: String,
+}
+
+/// `RadarGetOriginsSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponse {
+    /// result property.
+    pub result: RadarGetOriginsSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginsSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetOriginsSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetOriginsSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetOriginsSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetOriginsSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetOriginsSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetOriginsSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetOriginsSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetOriginsSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetOriginsSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetOriginsSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetOriginsTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetOriginsTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetOriginsTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetOriginsTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetOriginsTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetOriginsTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetOriginsTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetOriginsTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetOriginsTimeseriesResponseResultMeta,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetOriginsTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetOriginsTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetOriginsTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetOriginsTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetPostQuantumTlsSupportResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetPostQuantumTlsSupportResponse {
+    /// result property.
+    pub result: RadarGetPostQuantumTlsSupportResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetPostQuantumTlsSupportResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetPostQuantumTlsSupportResponseResult {
+    /// host property.
+    pub host: String,
+    /// kex property.
+    pub kex: f64,
+    /// kexName property.
+    #[serde(rename = "kexName")]
+    pub kex_name: String,
+    /// pq property.
+    pub pq: bool,
+}
+
+/// `RadarGetQualitySpeedHistogramResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponse {
+    /// result property.
+    pub result: RadarGetQualitySpeedHistogramResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResult {
+    /// histogram_0 property.
+    pub histogram_0: RadarGetQualitySpeedHistogramResponseResultHistogram0,
+    /// meta property.
+    pub meta: RadarGetQualitySpeedHistogramResponseResultMeta,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultHistogram0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultHistogram0 {
+    /// bandwidthDownload property.
+    #[serde(rename = "bandwidthDownload")]
+    pub bandwidth_download: Vec<String>,
+    /// bandwidthUpload property.
+    #[serde(rename = "bandwidthUpload")]
+    pub bandwidth_upload: Vec<String>,
+    /// bucketMin property.
+    #[serde(rename = "bucketMin")]
+    pub bucket_min: Vec<String>,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultMeta {
+    /// bucketSize property.
+    #[serde(rename = "bucketSize")]
+    pub bucket_size: i64,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetQualitySpeedHistogramResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// totalTests property.
+    #[serde(rename = "totalTests")]
+    pub total_tests: Vec<i64>,
+    /// units property.
+    pub units: Vec<RadarGetQualitySpeedHistogramResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetQualitySpeedHistogramResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedHistogramResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetQualitySpeedSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponse {
+    /// result property.
+    pub result: RadarGetQualitySpeedSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetQualitySpeedSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: RadarGetQualitySpeedSummaryResponseResultSummary0,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetQualitySpeedSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetQualitySpeedSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetQualitySpeedSummaryResponseResultSummary0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedSummaryResponseResultSummary0 {
+    /// bandwidthDownload property.
+    #[serde(rename = "bandwidthDownload")]
+    pub bandwidth_download: String,
+    /// bandwidthUpload property.
+    #[serde(rename = "bandwidthUpload")]
+    pub bandwidth_upload: String,
+    /// jitterIdle property.
+    #[serde(rename = "jitterIdle")]
+    pub jitter_idle: String,
+    /// jitterLoaded property.
+    #[serde(rename = "jitterLoaded")]
+    pub jitter_loaded: String,
+    /// latencyIdle property.
+    #[serde(rename = "latencyIdle")]
+    pub latency_idle: String,
+    /// latencyLoaded property.
+    #[serde(rename = "latencyLoaded")]
+    pub latency_loaded: String,
+    /// packetLoss property.
+    #[serde(rename = "packetLoss")]
+    pub packet_loss: String,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponse {
+    /// result property.
+    pub result: RadarGetQualitySpeedTopAsesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResult {
+    /// meta property.
+    pub meta: RadarGetQualitySpeedTopAsesResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetQualitySpeedTopAsesResponseResultTop0Item>,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetQualitySpeedTopAsesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetQualitySpeedTopAsesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetQualitySpeedTopAsesResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesResponseResultTop0Item {
+    /// bandwidthDownload property.
+    #[serde(rename = "bandwidthDownload")]
+    pub bandwidth_download: String,
+    /// bandwidthUpload property.
+    #[serde(rename = "bandwidthUpload")]
+    pub bandwidth_upload: String,
+    /// clientASN property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: f64,
+    /// clientASName property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// jitterIdle property.
+    #[serde(rename = "jitterIdle")]
+    pub jitter_idle: String,
+    /// jitterLoaded property.
+    #[serde(rename = "jitterLoaded")]
+    pub jitter_loaded: String,
+    /// latencyIdle property.
+    #[serde(rename = "latencyIdle")]
+    pub latency_idle: String,
+    /// latencyLoaded property.
+    #[serde(rename = "latencyLoaded")]
+    pub latency_loaded: String,
+    /// numTests property.
+    #[serde(rename = "numTests")]
+    pub num_tests: f64,
+    /// rankPower property.
+    #[serde(rename = "rankPower")]
+    pub rank_power: f64,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponse {
+    /// result property.
+    pub result: RadarGetQualitySpeedTopLocationsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResult {
+    /// meta property.
+    pub meta: RadarGetQualitySpeedTopLocationsResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetQualitySpeedTopLocationsResponseResultTop0Item>,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetQualitySpeedTopLocationsResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetQualitySpeedTopLocationsResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetQualitySpeedTopLocationsResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopLocationsResponseResultTop0Item {
+    /// bandwidthDownload property.
+    #[serde(rename = "bandwidthDownload")]
+    pub bandwidth_download: String,
+    /// bandwidthUpload property.
+    #[serde(rename = "bandwidthUpload")]
+    pub bandwidth_upload: String,
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// jitterIdle property.
+    #[serde(rename = "jitterIdle")]
+    pub jitter_idle: String,
+    /// jitterLoaded property.
+    #[serde(rename = "jitterLoaded")]
+    pub jitter_loaded: String,
+    /// latencyIdle property.
+    #[serde(rename = "latencyIdle")]
+    pub latency_idle: String,
+    /// latencyLoaded property.
+    #[serde(rename = "latencyLoaded")]
+    pub latency_loaded: String,
+    /// numTests property.
+    #[serde(rename = "numTests")]
+    pub num_tests: f64,
+    /// rankPower property.
+    #[serde(rename = "rankPower")]
+    pub rank_power: f64,
+}
+
+/// `RadarGetRankingInternetServicesCategoriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesCategoriesResponse {
+    /// result property.
+    pub result: RadarGetRankingInternetServicesCategoriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingInternetServicesCategoriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesCategoriesResponseResult {
+    /// categories_0 property.
+    pub categories_0: Vec<RadarGetRankingInternetServicesCategoriesResponseResultCategories0Item>,
+}
+
+/// `RadarGetRankingInternetServicesCategoriesResponseResultCategories0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesCategoriesResponseResultCategories0Item {
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponse {
+    /// result property.
+    pub result: RadarGetRankingInternetServicesTimeseriesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResult {
+    /// meta property.
+    pub meta: RadarGetRankingInternetServicesTimeseriesResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetRankingInternetServicesTimeseriesResponseResultSerie0,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRankingInternetServicesTimeseriesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetRankingInternetServicesTimeseriesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRankingInternetServicesTimeseriesResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingInternetServicesTimeseriesResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetRankingTopInternetServicesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponse {
+    /// result property.
+    pub result: RadarGetRankingTopInternetServicesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResult {
+    /// meta property.
+    pub meta: RadarGetRankingTopInternetServicesResponseResultMeta,
+    /// top_0 property.
+    pub top_0: Vec<RadarGetRankingTopInternetServicesResponseResultTop0Item>,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: Option<RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfo>,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetRankingTopInternetServicesResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetRankingTopInternetServicesResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetRankingTopInternetServicesResponseResultTop0Item` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetRankingTopInternetServicesResponseResultTop0Item {
+    /// rank property.
+    pub rank: i64,
+    /// service property.
+    pub service: String,
+}
+
+/// `RadarGetReportsDatasetsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetReportsDatasetsResponse {
+    /// result property.
+    pub result: RadarGetReportsDatasetsResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetReportsDatasetsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetReportsDatasetsResponseResult {
+    /// datasets property.
+    pub datasets: Vec<RadarGetReportsDatasetsResponseResultDatasetsItem>,
+}
+
+/// `RadarGetReportsDatasetsResponseResultDatasetsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetReportsDatasetsResponseResultDatasetsItem {
+    /// description property.
+    pub description: String,
+    /// id property.
+    pub id: i64,
+    /// meta property.
+    pub meta: serde_json::Value,
+    /// tags property.
+    pub tags: Vec<String>,
+    /// title property.
+    pub title: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetSearchGlobalResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetSearchGlobalResponse {
+    /// result property.
+    pub result: RadarGetSearchGlobalResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetSearchGlobalResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetSearchGlobalResponseResult {
+    /// search property.
+    pub search: Vec<RadarGetSearchGlobalResponseResultSearchItem>,
+}
+
+/// `RadarGetSearchGlobalResponseResultSearchItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetSearchGlobalResponseResultSearchItem {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponse {
+    /// result property.
+    pub result: RadarGetTcpResetsTimeoutsSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetTcpResetsTimeoutsSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: RadarGetTcpResetsTimeoutsSummaryResponseResultSummary0,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetTcpResetsTimeoutsSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetTcpResetsTimeoutsSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsSummaryResponseResultSummary0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsSummaryResponseResultSummary0 {
+    /// later_in_flow property.
+    pub later_in_flow: String,
+    /// no_match property.
+    pub no_match: String,
+    /// post_ack property.
+    pub post_ack: String,
+    /// post_psh property.
+    pub post_psh: String,
+    /// post_syn property.
+    pub post_syn: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupResponseResultSerie0 {
+    /// later_in_flow property.
+    pub later_in_flow: Vec<String>,
+    /// no_match property.
+    pub no_match: Vec<String>,
+    /// post_ack property.
+    pub post_ack: Vec<String>,
+    /// post_psh property.
+    pub post_psh: Vec<String>,
+    /// post_syn property.
+    pub post_syn: Vec<String>,
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetTrafficAnomaliesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponse {
+    /// result property.
+    pub result: RadarGetTrafficAnomaliesResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResult {
+    /// trafficAnomalies property.
+    #[serde(rename = "trafficAnomalies")]
+    pub traffic_anomalies: Vec<RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItem>,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItem {
+    /// asnDetails property.
+    #[serde(rename = "asnDetails")]
+    pub asn_details: Option<RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetails>,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: Option<String>,
+    /// locationDetails property.
+    #[serde(rename = "locationDetails")]
+    pub location_details: Option<RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemLocationDetails>,
+    /// originDetails property.
+    #[serde(rename = "originDetails")]
+    pub origin_details: Option<RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemOriginDetails>,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+    /// status property.
+    pub status: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// uuid property.
+    pub uuid: String,
+    /// visibleInDataSources property.
+    #[serde(rename = "visibleInDataSources")]
+    pub visible_in_data_sources: Option<Vec<String>>,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetails {
+    /// asn property.
+    pub asn: String,
+    /// locations property.
+    pub locations: Option<RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetailsLocations>,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetailsLocations` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemAsnDetailsLocations {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemLocationDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemLocationDetails {
+    /// code property.
+    pub code: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemOriginDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesResponseResultTrafficAnomaliesItemOriginDetails {
+    /// name property.
+    pub name: String,
+    /// origin property.
+    pub origin: String,
+}
+
+/// `RadarGetTrafficAnomaliesTopResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesTopResponse {
+    /// result property.
+    pub result: RadarGetTrafficAnomaliesTopResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetTrafficAnomaliesTopResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesTopResponseResult {
+    /// trafficAnomalies property.
+    #[serde(rename = "trafficAnomalies")]
+    pub traffic_anomalies: Vec<RadarGetTrafficAnomaliesTopResponseResultTrafficAnomaliesItem>,
+}
+
+/// `RadarGetTrafficAnomaliesTopResponseResultTrafficAnomaliesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetTrafficAnomaliesTopResponseResultTrafficAnomaliesItem {
+    /// clientCountryAlpha2 property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// clientCountryName property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarPostReportsDatasetDownloadUrlRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarPostReportsDatasetDownloadUrlRequest {
+    /// datasetId property.
+    #[serde(rename = "datasetId")]
+    pub dataset_id: i64,
+}
+
+/// `RadarPostReportsDatasetDownloadUrlResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarPostReportsDatasetDownloadUrlResponse {
+    /// result property.
+    pub result: RadarPostReportsDatasetDownloadUrlResponseResult,
+}
+
+/// `RadarPostReportsDatasetDownloadUrlResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarPostReportsDatasetDownloadUrlResponseResult {
+    /// dataset property.
+    pub dataset: RadarPostReportsDatasetDownloadUrlResponseResultDataset,
+}
+
+/// `RadarPostReportsDatasetDownloadUrlResponseResultDataset` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarPostReportsDatasetDownloadUrlResponseResultDataset {
+    /// url property.
+    pub url: String,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -478,6 +6835,8 @@ pub struct RadarGetReportsDatasetsArgs {
 pub struct RadarPostReportsDatasetDownloadUrlArgs {
     /// Query parameter: `format`.
     pub format: Option<String>,
+    /// Request body.
+    pub body: RadarPostReportsDatasetDownloadUrlRequest,
 }
 
 /// Arguments for [`radar-get-reports-dataset-download_request`].
@@ -1996,14 +8355,15 @@ pub struct RadarGetTrafficAnomaliesTopArgs {
 pub async fn radar_get_annotations_request<F>(
     client: DynNetClient,
     args: &RadarGetAnnotationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetAnnotationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/annotations",
+    let path = format!("/radar/annotations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2030,9 +8390,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetAnnotationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2060,14 +8425,15 @@ where
 pub async fn radar_get_annotations_outages_request<F>(
     client: DynNetClient,
     args: &RadarGetAnnotationsOutagesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetAnnotationsOutagesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/annotations/outages",
+    let path = format!("/radar/annotations/outages",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2092,9 +8458,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetAnnotationsOutagesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2122,14 +8493,15 @@ where
 pub async fn radar_get_annotations_outages_top_request<F>(
     client: DynNetClient,
     args: &RadarGetAnnotationsOutagesTopArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetAnnotationsOutagesTopResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/annotations/outages/locations",
+    let path = format!("/radar/annotations/outages/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2150,9 +8522,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetAnnotationsOutagesTopResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2180,15 +8557,16 @@ where
 pub async fn radar_get_dns_as112_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112SummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112SummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/summary/{}",
+    let path = format!("/radar/as112/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2215,9 +8593,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112SummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2245,14 +8628,15 @@ where
 pub async fn radar_get_dns_as112_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/timeseries",
+    let path = format!("/radar/as112/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2279,9 +8663,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2309,15 +8698,16 @@ where
 pub async fn radar_get_dns_as112_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/{}",
+    let path = format!("/radar/as112/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2345,9 +8735,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2375,14 +8770,15 @@ where
 pub async fn radar_get_dns_as112_top_locations_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TopLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TopLocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/top/locations",
+    let path = format!("/radar/as112/top/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2406,9 +8802,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TopLocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2436,15 +8837,16 @@ where
 pub async fn radar_get_dns_as112_top_locations_by_dnssec_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TopLocationsByDnssecArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TopLocationsByDnssecResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/top/locations/dnssec/{}",
+    let path = format!("/radar/as112/top/locations/dnssec/{}",
         args.dnssec,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2468,9 +8870,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TopLocationsByDnssecResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2498,15 +8905,16 @@ where
 pub async fn radar_get_dns_as112_top_locations_by_edns_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TopLocationsByEdnsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TopLocationsByEdnsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/top/locations/edns/{}",
+    let path = format!("/radar/as112/top/locations/edns/{}",
         args.edns,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2530,9 +8938,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TopLocationsByEdnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2560,15 +8973,16 @@ where
 pub async fn radar_get_dns_as112_top_locations_by_ip_version_request<F>(
     client: DynNetClient,
     args: &RadarGetDnsAs112TopLocationsByIpVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetDnsAs112TopLocationsByIpVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/top/locations/ip_version/{}",
+    let path = format!("/radar/as112/top/locations/ip_version/{}",
         args.ip_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2592,9 +9006,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetDnsAs112TopLocationsByIpVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2622,14 +9041,15 @@ where
 pub async fn radar_get_certificate_authorities_request<F>(
     client: DynNetClient,
     args: &RadarGetCertificateAuthoritiesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCertificateAuthoritiesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/authorities",
+    let path = format!("/radar/ct/authorities",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2648,9 +9068,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCertificateAuthoritiesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2678,15 +9103,16 @@ where
 pub async fn radar_get_certificate_authority_details_request<F>(
     client: DynNetClient,
     args: &RadarGetCertificateAuthorityDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCertificateAuthorityDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/authorities/{}",
+    let path = format!("/radar/ct/authorities/{}",
         args.ca_slug,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2703,9 +9129,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCertificateAuthorityDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2733,14 +9164,15 @@ where
 pub async fn radar_get_certificate_logs_request<F>(
     client: DynNetClient,
     args: &RadarGetCertificateLogsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCertificateLogsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/logs",
+    let path = format!("/radar/ct/logs",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2759,9 +9191,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCertificateLogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2789,15 +9226,16 @@ where
 pub async fn radar_get_certificate_log_details_request<F>(
     client: DynNetClient,
     args: &RadarGetCertificateLogDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCertificateLogDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/logs/{}",
+    let path = format!("/radar/ct/logs/{}",
         args.log_slug,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2814,9 +9252,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCertificateLogDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2844,15 +9287,16 @@ where
 pub async fn radar_get_ct_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetCtSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCtSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/summary/{}",
+    let path = format!("/radar/ct/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2890,9 +9334,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCtSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2920,14 +9369,15 @@ where
 pub async fn radar_get_ct_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetCtTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCtTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/timeseries",
+    let path = format!("/radar/ct/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2964,9 +9414,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCtTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2994,15 +9449,16 @@ where
 pub async fn radar_get_ct_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetCtTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetCtTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ct/timeseries_groups/{}",
+    let path = format!("/radar/ct/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3041,9 +9497,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetCtTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3071,14 +9532,15 @@ where
 pub async fn radar_get_reports_datasets_request<F>(
     client: DynNetClient,
     args: &RadarGetReportsDatasetsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetReportsDatasetsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/datasets",
+    let path = format!("/radar/datasets",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3099,9 +9561,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetReportsDatasetsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3129,19 +9596,23 @@ where
 pub async fn radar_post_reports_dataset_download_url_request<F>(
     client: DynNetClient,
     args: &RadarPostReportsDatasetDownloadUrlArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarPostReportsDatasetDownloadUrlResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/datasets/download",
+    let path = format!("/radar/datasets/download",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("format", args.format.as_deref());
+
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -3153,9 +9624,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarPostReportsDatasetDownloadUrlResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3183,15 +9659,16 @@ where
 pub async fn radar_get_reports_dataset_download_request<F>(
     client: DynNetClient,
     args: &RadarGetReportsDatasetDownloadArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/datasets/{}",
+    let path = format!("/radar/datasets/{}",
         args.alias,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3206,7 +9683,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -3236,14 +9716,15 @@ where
 pub async fn radar_get_entities_asn_list_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesAsnListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesAsnListResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/asns",
+    let path = format!("/radar/entities/asns",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3265,9 +9746,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesAsnListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3295,14 +9781,15 @@ where
 pub async fn radar_get_entities_asn_by_ip_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesAsnByIpArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesAsnByIpResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/asns/ip",
+    let path = format!("/radar/entities/asns/ip",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3320,9 +9807,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesAsnByIpResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3350,15 +9842,16 @@ where
 pub async fn radar_get_entities_asn_by_id_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesAsnByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesAsnByIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/asns/{}",
+    let path = format!("/radar/entities/asns/{}",
         args.asn,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3375,9 +9868,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesAsnByIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3405,15 +9903,16 @@ where
 pub async fn radar_get_asns_as_set_request<F>(
     client: DynNetClient,
     args: &RadarGetAsnsAsSetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetAsnsAsSetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/asns/{}/as_set",
+    let path = format!("/radar/entities/asns/{}/as_set",
         args.asn,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3430,9 +9929,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetAsnsAsSetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3460,15 +9964,16 @@ where
 pub async fn radar_get_asns_rel_request<F>(
     client: DynNetClient,
     args: &RadarGetAsnsRelArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetAsnsRelResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/asns/{}/rel",
+    let path = format!("/radar/entities/asns/{}/rel",
         args.asn,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3486,9 +9991,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetAsnsRelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3516,14 +10026,15 @@ where
 pub async fn radar_get_entities_ip_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesIpArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesIpResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/ip",
+    let path = format!("/radar/entities/ip",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3541,9 +10052,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesIpResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3571,14 +10087,15 @@ where
 pub async fn radar_get_entities_locations_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesLocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/locations",
+    let path = format!("/radar/entities/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3601,9 +10118,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesLocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3631,15 +10153,16 @@ where
 pub async fn radar_get_entities_location_by_alpha2_request<F>(
     client: DynNetClient,
     args: &RadarGetEntitiesLocationByAlpha2Args,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEntitiesLocationByAlpha2Response>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/entities/locations/{}",
+    let path = format!("/radar/entities/locations/{}",
         args.location,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3656,9 +10179,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEntitiesLocationByAlpha2Response = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3686,14 +10214,15 @@ where
 pub async fn radar_get_geolocations_request<F>(
     client: DynNetClient,
     args: &RadarGetGeolocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetGeolocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/geolocations",
+    let path = format!("/radar/geolocations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3714,9 +10243,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetGeolocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3744,15 +10278,16 @@ where
 pub async fn radar_get_geolocation_details_request<F>(
     client: DynNetClient,
     args: &RadarGetGeolocationDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetGeolocationDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/geolocations/{}",
+    let path = format!("/radar/geolocations/{}",
         args.geo_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3769,9 +10304,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetGeolocationDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3799,15 +10339,16 @@ where
 pub async fn radar_get_http_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/summary/{}",
+    let path = format!("/radar/http/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3840,9 +10381,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3870,14 +10416,15 @@ where
 pub async fn radar_get_http_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/timeseries",
+    let path = format!("/radar/http/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3912,9 +10459,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3942,15 +10494,16 @@ where
 pub async fn radar_get_http_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/{}",
+    let path = format!("/radar/http/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3985,9 +10538,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4015,14 +10573,15 @@ where
 pub async fn radar_get_http_top_ases_by_http_requests_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByHttpRequestsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByHttpRequestsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases",
+    let path = format!("/radar/http/top/ases",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4056,9 +10615,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByHttpRequestsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4086,15 +10650,16 @@ where
 pub async fn radar_get_http_top_ases_by_browser_family_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByBrowserFamilyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByBrowserFamilyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/browser_family/{}",
+    let path = format!("/radar/http/top/ases/browser_family/{}",
         args.browser_family,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4127,9 +10692,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByBrowserFamilyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4157,15 +10727,16 @@ where
 pub async fn radar_get_http_top_ases_by_device_type_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByDeviceTypeArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByDeviceTypeResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/device_type/{}",
+    let path = format!("/radar/http/top/ases/device_type/{}",
         args.device_type,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4198,9 +10769,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByDeviceTypeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4228,15 +10804,16 @@ where
 pub async fn radar_get_http_top_ases_by_http_protocol_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByHttpProtocolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByHttpProtocolResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/http_protocol/{}",
+    let path = format!("/radar/http/top/ases/http_protocol/{}",
         args.http_protocol,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4269,9 +10846,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByHttpProtocolResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4299,15 +10881,16 @@ where
 pub async fn radar_get_http_top_ases_by_http_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByHttpVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByHttpVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/http_version/{}",
+    let path = format!("/radar/http/top/ases/http_version/{}",
         args.http_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4340,9 +10923,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByHttpVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4370,15 +10958,16 @@ where
 pub async fn radar_get_http_top_ases_by_ip_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByIpVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByIpVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/ip_version/{}",
+    let path = format!("/radar/http/top/ases/ip_version/{}",
         args.ip_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4411,9 +11000,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByIpVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4441,15 +11035,16 @@ where
 pub async fn radar_get_http_top_ases_by_operating_system_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByOperatingSystemArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByOperatingSystemResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/os/{}",
+    let path = format!("/radar/http/top/ases/os/{}",
         args.os,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4482,9 +11077,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByOperatingSystemResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4512,15 +11112,16 @@ where
 pub async fn radar_get_http_top_ases_by_tls_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopAsesByTlsVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopAsesByTlsVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/ases/tls_version/{}",
+    let path = format!("/radar/http/top/ases/tls_version/{}",
         args.tls_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4553,9 +11154,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopAsesByTlsVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4583,14 +11189,15 @@ where
 pub async fn radar_get_http_top_locations_by_http_requests_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByHttpRequestsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByHttpRequestsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations",
+    let path = format!("/radar/http/top/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4624,9 +11231,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByHttpRequestsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4654,15 +11266,16 @@ where
 pub async fn radar_get_http_top_locations_by_browser_family_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByBrowserFamilyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByBrowserFamilyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/browser_family/{}",
+    let path = format!("/radar/http/top/locations/browser_family/{}",
         args.browser_family,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4695,9 +11308,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByBrowserFamilyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4725,15 +11343,16 @@ where
 pub async fn radar_get_http_top_locations_by_device_type_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByDeviceTypeArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByDeviceTypeResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/device_type/{}",
+    let path = format!("/radar/http/top/locations/device_type/{}",
         args.device_type,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4766,9 +11385,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByDeviceTypeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4796,15 +11420,16 @@ where
 pub async fn radar_get_http_top_locations_by_http_protocol_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByHttpProtocolArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByHttpProtocolResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/http_protocol/{}",
+    let path = format!("/radar/http/top/locations/http_protocol/{}",
         args.http_protocol,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4837,9 +11462,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByHttpProtocolResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4867,15 +11497,16 @@ where
 pub async fn radar_get_http_top_locations_by_http_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByHttpVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByHttpVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/http_version/{}",
+    let path = format!("/radar/http/top/locations/http_version/{}",
         args.http_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4908,9 +11539,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByHttpVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4938,15 +11574,16 @@ where
 pub async fn radar_get_http_top_locations_by_ip_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByIpVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByIpVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/ip_version/{}",
+    let path = format!("/radar/http/top/locations/ip_version/{}",
         args.ip_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4979,9 +11616,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByIpVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5009,15 +11651,16 @@ where
 pub async fn radar_get_http_top_locations_by_operating_system_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByOperatingSystemArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByOperatingSystemResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/os/{}",
+    let path = format!("/radar/http/top/locations/os/{}",
         args.os,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5050,9 +11693,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByOperatingSystemResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5080,15 +11728,16 @@ where
 pub async fn radar_get_http_top_locations_by_tls_version_request<F>(
     client: DynNetClient,
     args: &RadarGetHttpTopLocationsByTlsVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetHttpTopLocationsByTlsVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/top/locations/tls_version/{}",
+    let path = format!("/radar/http/top/locations/tls_version/{}",
         args.tls_version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5121,9 +11770,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetHttpTopLocationsByTlsVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5151,15 +11805,16 @@ where
 pub async fn radar_get_leaked_credential_checks_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetLeakedCredentialChecksSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetLeakedCredentialChecksSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/summary/{}",
+    let path = format!("/radar/leaked_credential_checks/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5186,9 +11841,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetLeakedCredentialChecksSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5216,15 +11876,16 @@ where
 pub async fn radar_get_leaked_credential_checks_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetLeakedCredentialChecksTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetLeakedCredentialChecksTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/timeseries_groups/{}",
+    let path = format!("/radar/leaked_credential_checks/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5254,9 +11915,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetLeakedCredentialChecksTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5284,15 +11950,16 @@ where
 pub async fn radar_get_netflows_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetNetflowsSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetNetflowsSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/netflows/summary/{}",
+    let path = format!("/radar/netflows/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5319,9 +11986,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetNetflowsSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5349,14 +12021,15 @@ where
 pub async fn radar_get_netflows_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetNetflowsTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetNetflowsTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/netflows/timeseries",
+    let path = format!("/radar/netflows/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5384,9 +12057,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetNetflowsTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5414,15 +12092,16 @@ where
 pub async fn radar_get_netflows_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetNetflowsTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetNetflowsTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/netflows/timeseries_groups/{}",
+    let path = format!("/radar/netflows/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5451,9 +12130,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetNetflowsTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5481,14 +12165,15 @@ where
 pub async fn radar_get_netflows_top_ases_request<F>(
     client: DynNetClient,
     args: &RadarGetNetflowsTopAsesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetNetflowsTopAsesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/netflows/top/ases",
+    let path = format!("/radar/netflows/top/ases",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5514,9 +12199,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetNetflowsTopAsesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5544,14 +12234,15 @@ where
 pub async fn radar_get_netflows_top_locations_request<F>(
     client: DynNetClient,
     args: &RadarGetNetflowsTopLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetNetflowsTopLocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/netflows/top/locations",
+    let path = format!("/radar/netflows/top/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5577,9 +12268,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetNetflowsTopLocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5607,14 +12303,15 @@ where
 pub async fn radar_get_origins_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/origins",
+    let path = format!("/radar/origins",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5633,9 +12330,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5663,15 +12365,16 @@ where
 pub async fn radar_get_origins_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginsSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginsSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/origins/summary/{}",
+    let path = format!("/radar/origins/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5696,9 +12399,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginsSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5726,14 +12434,15 @@ where
 pub async fn radar_get_origins_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginsTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginsTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/origins/timeseries",
+    let path = format!("/radar/origins/timeseries",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5758,9 +12467,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginsTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5788,15 +12502,16 @@ where
 pub async fn radar_get_origins_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginsTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginsTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/origins/timeseries_groups/{}",
+    let path = format!("/radar/origins/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5823,9 +12538,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginsTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5853,15 +12573,16 @@ where
 pub async fn radar_get_origin_details_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/origins/{}",
+    let path = format!("/radar/origins/{}",
         args.slug,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5878,9 +12599,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5908,15 +12634,16 @@ where
 pub async fn radar_get_origin_post_quantum_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginPostQuantumSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginPostQuantumSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/post_quantum/origin/summary/{}",
+    let path = format!("/radar/post_quantum/origin/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5937,9 +12664,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginPostQuantumSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5967,15 +12699,16 @@ where
 pub async fn radar_get_origin_post_quantum_timeseries_groups_request<F>(
     client: DynNetClient,
     args: &RadarGetOriginPostQuantumTimeseriesGroupsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetOriginPostQuantumTimeseriesGroupsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/post_quantum/origin/timeseries_groups/{}",
+    let path = format!("/radar/post_quantum/origin/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5996,9 +12729,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetOriginPostQuantumTimeseriesGroupsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6026,14 +12764,15 @@ where
 pub async fn radar_get_post_quantum_tls_support_request<F>(
     client: DynNetClient,
     args: &RadarGetPostQuantumTlsSupportArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetPostQuantumTlsSupportResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/post_quantum/tls/support",
+    let path = format!("/radar/post_quantum/tls/support",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6050,9 +12789,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetPostQuantumTlsSupportResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6080,14 +12824,15 @@ where
 pub async fn radar_get_quality_speed_histogram_request<F>(
     client: DynNetClient,
     args: &RadarGetQualitySpeedHistogramArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetQualitySpeedHistogramResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/quality/speed/histogram",
+    let path = format!("/radar/quality/speed/histogram",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6111,9 +12856,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetQualitySpeedHistogramResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6141,14 +12891,15 @@ where
 pub async fn radar_get_quality_speed_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetQualitySpeedSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetQualitySpeedSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/quality/speed/summary",
+    let path = format!("/radar/quality/speed/summary",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6170,9 +12921,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetQualitySpeedSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6200,14 +12956,15 @@ where
 pub async fn radar_get_quality_speed_top_ases_request<F>(
     client: DynNetClient,
     args: &RadarGetQualitySpeedTopAsesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetQualitySpeedTopAsesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/quality/speed/top/ases",
+    let path = format!("/radar/quality/speed/top/ases",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6232,9 +12989,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetQualitySpeedTopAsesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6262,14 +13024,15 @@ where
 pub async fn radar_get_quality_speed_top_locations_request<F>(
     client: DynNetClient,
     args: &RadarGetQualitySpeedTopLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetQualitySpeedTopLocationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/quality/speed/top/locations",
+    let path = format!("/radar/quality/speed/top/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6294,9 +13057,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetQualitySpeedTopLocationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6324,14 +13092,15 @@ where
 pub async fn radar_get_ranking_internet_services_categories_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingInternetServicesCategoriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingInternetServicesCategoriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/internet_services/categories",
+    let path = format!("/radar/ranking/internet_services/categories",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6351,9 +13120,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingInternetServicesCategoriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6381,14 +13155,15 @@ where
 pub async fn radar_get_ranking_internet_services_timeseries_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingInternetServicesTimeseriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingInternetServicesTimeseriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/internet_services/timeseries_groups",
+    let path = format!("/radar/ranking/internet_services/timeseries_groups",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6411,9 +13186,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingInternetServicesTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6441,14 +13221,15 @@ where
 pub async fn radar_get_ranking_top_internet_services_request<F>(
     client: DynNetClient,
     args: &RadarGetRankingTopInternetServicesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetRankingTopInternetServicesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/ranking/internet_services/top",
+    let path = format!("/radar/ranking/internet_services/top",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6469,9 +13250,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetRankingTopInternetServicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6499,14 +13285,15 @@ where
 pub async fn radar_get_search_global_request<F>(
     client: DynNetClient,
     args: &RadarGetSearchGlobalArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetSearchGlobalResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/search/global",
+    let path = format!("/radar/search/global",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6528,9 +13315,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetSearchGlobalResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6558,14 +13350,15 @@ where
 pub async fn radar_get_tcp_resets_timeouts_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetTcpResetsTimeoutsSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTcpResetsTimeoutsSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/tcp_resets_timeouts/summary",
+    let path = format!("/radar/tcp_resets_timeouts/summary",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6589,9 +13382,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTcpResetsTimeoutsSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6619,14 +13417,15 @@ where
 pub async fn radar_get_tcp_resets_timeouts_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetTcpResetsTimeoutsTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTcpResetsTimeoutsTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/tcp_resets_timeouts/timeseries_groups",
+    let path = format!("/radar/tcp_resets_timeouts/timeseries_groups",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6651,9 +13450,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTcpResetsTimeoutsTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6681,14 +13485,15 @@ where
 pub async fn radar_get_traffic_anomalies_request<F>(
     client: DynNetClient,
     args: &RadarGetTrafficAnomaliesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTrafficAnomaliesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/traffic_anomalies",
+    let path = format!("/radar/traffic_anomalies",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6715,9 +13520,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTrafficAnomaliesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6745,14 +13555,15 @@ where
 pub async fn radar_get_traffic_anomalies_top_request<F>(
     client: DynNetClient,
     args: &RadarGetTrafficAnomaliesTopArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetTrafficAnomaliesTopResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/traffic_anomalies/locations",
+    let path = format!("/radar/traffic_anomalies/locations",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6774,8 +13585,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetTrafficAnomaliesTopResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

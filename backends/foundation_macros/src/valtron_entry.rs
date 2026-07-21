@@ -185,7 +185,24 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
 /// Build a `foundation_compact::trace::try_init_tracing_with(TracingTestConfig { ... })`
 /// call from the parsed macro args. Called at macro expansion time (not inside
 /// `quote!`), so the returned tokens are spliced directly into the test body.
-fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+///
+/// For `#[valtron_test]` (is_test=true): tracing is always on (defaults to "info").
+/// For `#[valtron]` (is_test=false): tracing is OFF unless explicitly requested
+/// via `tracing = "debug"` or similar.
+fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool) -> proc_macro2::TokenStream {
+    // For #[valtron] (non-test), skip tracing unless explicitly requested.
+    // For #[valtron_test], always initialize with defaults.
+    if !is_test && args.tracing.is_none()
+        && args.tracing_targets.is_none()
+        && args.tracing_ids.is_none()
+        && args.tracing_names.is_none()
+        && args.tracing_files.is_none()
+        && args.tracing_lines.is_none()
+        && args.tracing_ansi.is_none()
+    {
+        return quote! {};
+    }
+
     // env_filter: None → None. Some(filter_str) → Some(filter_str.to_string()).
     let env_filter = match &args.tracing {
         None => quote! { ::core::option::Option::None },
@@ -290,7 +307,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
 
     // Pre-compute the tracing init call BEFORE any moves out of `args`
     // (seed/threads below consume those fields via map_or_else / match).
-    let tracing_init = expand_tracing_init(&args, &fc);
+    let tracing_init = expand_tracing_init(&args, &fc, is_test);
 
     // Seed: explicit expression, or a RandomState-derived u64 (no rand dep —
     // see the module docs). `hash_one` is BuildHasher's one-shot hashing API.
@@ -328,8 +345,10 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // meaning). Async: empty — the body is driven via `run_call` below.
             #inner_def
 
-            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            // Before `initialize_pool` — workers pin the ambient dispatcher at
+            // spawn time, so a later init leaves every worker thread silent.
             #tracing_init;
+            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
             let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
@@ -362,15 +381,21 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // meaning). Async: empty — the body is driven via `run_call` below.
             #inner_def
 
+            // Wire up tracing so #[valtron_test] diagnostics land on stderr.
+            // Idempotent — safe to call in every test. Macro args like
+            // `tracing = "debug"` and `tracing_targets = true` feed the config.
+            //
+            // MUST precede `initialize_pool`: worker threads capture the ambient
+            // dispatcher at spawn time and pin it thread-locally for their whole
+            // life. Spawning first pins the NO-OP dispatcher, and a thread-local
+            // default beats the global one — so every worker would go silent no
+            // matter what subscriber is installed afterwards.
+            #tracing_init;
+
             // Engine up — the guard is a NAMED local so it provably lives across
             // the whole body (a `let _ =` would drop it immediately and kill the
             // pool before anything ran).
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
-
-            // Wire up tracing so #[valtron_test] diagnostics land on stderr.
-            // Idempotent — safe to call in every test. Macro args like
-            // `tracing = "debug"` and `tracing_targets = true` feed the config.
-            #tracing_init;
 
             // Sync: call the inner fn. Async: drive the body future to completion
             // (`.await` points park on the engine — Decision 00).

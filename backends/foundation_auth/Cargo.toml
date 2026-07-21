@@ -22,9 +22,10 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 # Cryptography
 zeroize = { version = "1" }
 argon2 = "0.5"            # Password hashing (memory-hard)
+pbkdf2 = "0.12"           # PBKDF2-HMAC-SHA256 (native)
 chacha20poly1305 = "0.10" # Encrypted session data
-sha2 = "0.10"             # SHA256 for PKCE
-hmac = "0.12"             # TOTP, HMAC
+sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
+hmac = "0.12"             # TOTP, HMAC, PBKDF2
 rand = "0.8"              # Secure random generation
 getrandom = { version = "0.2", optional = true }
 
@@ -76,19 +77,25 @@ web-sys = { version = "0.3", features = [
   "ServiceWorkerGlobalScope",
   "Window",
   "Crypto",
+  "SubtleCrypto",
+  "CryptoKey",
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["multi"] }
 
+# NOTE: `default-features = false` is required here. Cargo unions default-features
+# across a crate's dependency declarations, so without it this target line would
+# re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
+# all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"
+foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }
-tracing-test = "0.2"
 tracing = "0.1"
 
 [lints]
@@ -106,6 +113,15 @@ server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "fou
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API
 wasm-bindgen-oauth = [
+  "wasm",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
+
+# PBKDF2 on WASM (needs web-sys for SubtleCrypto, js-sys/wasm-bindgen-futures for JS interop)
+wasm-pbkdf2 = [
   "wasm",
   "dep:wasm-bindgen",
   "dep:wasm-bindgen-futures",

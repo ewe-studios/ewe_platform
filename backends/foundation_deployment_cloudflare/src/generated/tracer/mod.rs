@@ -21,6 +21,108 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `AccountRequestTracerRequestTraceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountRequestTracerRequestTraceRequest {
+    /// body property.
+    pub body: Option<AccountRequestTracerRequestTraceRequestBody>,
+    /// context property.
+    pub context: Option<AccountRequestTracerRequestTraceRequestContext>,
+    /// cookies property.
+    pub cookies: Option<serde_json::Value>,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// method property.
+    pub method: String,
+    /// protocol property.
+    pub protocol: Option<String>,
+    /// skip_response property.
+    pub skip_response: Option<bool>,
+    /// url property.
+    pub url: String,
+}
+
+/// `AccountRequestTracerRequestTraceRequestBody` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountRequestTracerRequestTraceRequestBody {
+    /// base64 property.
+    pub base64: Option<String>,
+    /// json property.
+    pub json: Option<serde_json::Value>,
+    /// plain_text property.
+    pub plain_text: Option<String>,
+}
+
+/// `AccountRequestTracerRequestTraceRequestContext` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountRequestTracerRequestTraceRequestContext {
+    /// bot_score property.
+    pub bot_score: Option<i64>,
+    /// geoloc property.
+    pub geoloc: Option<AccountRequestTracerRequestTraceRequestContextGeoloc>,
+    /// skip_challenge property.
+    pub skip_challenge: Option<bool>,
+    /// threat_score property.
+    pub threat_score: Option<i64>,
+}
+
+/// `AccountRequestTracerRequestTraceRequestContextGeoloc` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountRequestTracerRequestTraceRequestContextGeoloc {
+    /// city property.
+    pub city: Option<String>,
+    /// continent property.
+    pub continent: Option<String>,
+    /// is_eu_country property.
+    pub is_eu_country: Option<bool>,
+    /// iso_code property.
+    pub iso_code: Option<String>,
+    /// latitude property.
+    pub latitude: Option<f64>,
+    /// longitude property.
+    pub longitude: Option<f64>,
+    /// postal_code property.
+    pub postal_code: Option<String>,
+    /// region_code property.
+    pub region_code: Option<String>,
+    /// subdivision_2_iso_code property.
+    pub subdivision_2_iso_code: Option<String>,
+    /// timezone property.
+    pub timezone: Option<String>,
+}
+
+/// `AccountRequestTracerRequestTraceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountRequestTracerRequestTraceResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `RequestTracerApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RequestTracerMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RequestTracerTrace` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerTrace {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -30,6 +132,8 @@ use super::shared::ApiResponse;
 pub struct AccountRequestTracerRequestTraceArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: AccountRequestTracerRequestTraceRequest,
 }
 
 // =============================================================================
@@ -61,17 +165,21 @@ pub struct AccountRequestTracerRequestTraceArgs {
 pub async fn account_request_tracer_request_trace_request<F>(
     client: DynNetClient,
     args: &AccountRequestTracerRequestTraceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<AccountRequestTracerRequestTraceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/request-tracer/trace",
+    let path = format!("/accounts/{}/request-tracer/trace",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -84,8 +192,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: AccountRequestTracerRequestTraceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

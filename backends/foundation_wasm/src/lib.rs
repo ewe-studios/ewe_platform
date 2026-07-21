@@ -1,21 +1,9 @@
-#![allow(clippy::pedantic)]
+// wasm32 memory ops inherently require narrowing casts — these are correct
+// and unavoidable for the wasm ABI.
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_possible_wrap)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::cast_sign_loss)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::too_many_lines)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::needless_continue)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::unnested_or_patterns)]
-#![allow(clippy::unreadable_literal)]
-#![allow(clippy::type_complexity)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::must_use_candidate)]
 #![no_std]
 
 // std is available on native, emscripten (partial libc), and WASI (full).
@@ -36,6 +24,7 @@ pub mod cli;
 extern crate alloc;
 
 mod base;
+mod capability;
 mod error;
 mod frames;
 mod host_runtime;
@@ -45,7 +34,11 @@ mod ops;
 mod protocol;
 mod registry;
 mod schedule;
+mod trigger;
 mod wrapped;
+
+pub mod ipc;
+pub mod stream;
 
 #[cfg(feature = "web")]
 pub mod testing;
@@ -57,6 +50,7 @@ pub mod wasi_host;
 pub mod embedded;
 
 pub use base::*;
+pub use capability::*;
 pub use error::*;
 pub use frames::*;
 pub use host_runtime::*;
@@ -66,6 +60,8 @@ pub use ops::*;
 pub use protocol::*;
 pub use registry::*;
 pub use schedule::*;
+pub use stream::*;
+pub use trigger::*;
 pub use wrapped::*;
 
 // Re-export the raw-parts helper so dependent crates (e.g. foundation_wasm_ui)

@@ -19,16 +19,18 @@
 
 use std::io::Write;
 use std::sync::Arc;
+use std::time::Instant;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::{RawStream, SocketAddr as NetcapSocketAddr};
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest};
+use foundation_netio::netcap::RawStream;
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
 
 use crate::config::BackendProtocol;
-use crate::forward::{forward_http, forward_upgrade, is_upgrade_request};
+use crate::forward::{forward_http_with_headers, forward_upgrade, is_upgrade_request};
+use crate::runtime::STICKY_COOKIE;
 use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendLease;
 use crate::state::ProxyState;
@@ -60,8 +62,20 @@ impl Serve for ProxyHandler {
         req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
+        let start = std::time::Instant::now();
+
+        // Decision 22: during draining, respond 503 so clients retry elsewhere.
+        if self.state.is_draining() {
+            tracing::info!("proxy draining — returning 503");
+            let _ = respond::text(&mut conn, 503, "Service Unavailable — draining");
+            let _ = conn.flush();
+            return ConnectionResult::Close(None);
+        }
+
         let host = header_first(&req, &SimpleHeader::HOST).unwrap_or_default();
         let path = req.request_url.url.clone();
+        let method = req.method.clone();
+        let user_agent = header_first(&req, &SimpleHeader::USER_AGENT).unwrap_or_default();
 
         let Some(service) = self.state.router().route(&host, &path) else {
             tracing::debug!(%host, %path, "no service matched host/path — 404");
@@ -70,22 +84,56 @@ impl Serve for ProxyHandler {
             return ConnectionResult::Close(None);
         };
 
-        let Some(lease) = service.pick() else {
+        // Writer affinity (Decision 23): extract sticky cookie if present.
+        let sticky_idx = extract_sticky_cookie(&req);
+
+        let Some((lease, backend_idx)) = service.pick_sticky(sticky_idx) else {
             tracing::warn!(service = %service.config().name, "no available backend — 503");
             let _ = respond::text(&mut conn, 503, "Service Unavailable");
             let _ = conn.flush();
             return ConnectionResult::Close(None);
         };
 
+        // Build Set-Cookie header for stickiness (one backend: omitted).
+        let sticky_header = if service.backends().len() > 1 {
+            let mut h = foundation_netio::shared::http::SimpleHeaders::new();
+            h.insert(
+                foundation_netio::shared::http::SimpleHeader::SET_COOKIE,
+                vec![format!("{STICKY_COOKIE}={backend_idx}; Path=/; HttpOnly")],
+            );
+            Some(h)
+        } else {
+            None
+        };
+
         let client_ip = client_ip(&req);
         let scheme = self.state.scheme().to_string();
         let client = self.state.client().clone();
         let protocol = lease.backend().protocol();
+        let io_mode = self.state.io_mode();
+
+        // Access log: method, host, path, status (filled by relay), duration.
+        let log_start = Instant::now();
+        let log_host = host.clone();
+        let log_path = path.clone();
+        let log_method = method.clone();
+        let log_ua = user_agent.clone();
+        let log_ip = client_ip.clone();
 
         // Relay on a dedicated thread; keep the pool worker free. The lease moves
         // into the thread so the in-flight count is held for the whole exchange.
         std::thread::spawn(move || {
-            relay(conn, req, lease, &client_ip, &scheme, protocol, &client);
+            relay(conn, req, lease, &client_ip, &scheme, protocol, &client, sticky_header.as_ref(), io_mode);
+            let duration = log_start.elapsed();
+            tracing::info!(
+                method = %log_method,
+                host = %log_host,
+                path = %log_path,
+                client_ip = %log_ip,
+                user_agent = %log_ua,
+                duration_ms = duration.as_millis(),
+                "access"
+            );
         });
 
         ConnectionResult::Take
@@ -101,6 +149,8 @@ fn relay(
     scheme: &str,
     protocol: BackendProtocol,
     client: &crate::forward::SharedHttpClient,
+    sticky_header: Option<&foundation_netio::shared::http::SimpleHeaders>,
+    io_mode: foundation_iogate::ServerIo,
 ) {
     let backend = Arc::clone(lease.backend());
     let mut conn = conn;
@@ -127,14 +177,13 @@ fn relay(
         BackendProtocol::Http | BackendProtocol::Https => {
             if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
-                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme) {
+                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
                 }
-            } else if let Err(e) = forward_http(&mut conn, &backend, req, client_ip, scheme, client) {
+            } else if let Err(e) = forward_http_with_headers(&mut conn, &backend, req, client_ip, scheme, client, sticky_header) {
                 // The upstream was unreachable or misbehaved: never close silently,
                 // answer a well-formed 502 so the client sees a real response.
                 tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");
-                let _ = std::fs::write("/tmp/claude-1000/-home-darkvoid-Boxxed--dev-ewe-platform/964581c8-12f5-46a2-b31a-24a5ee839229/scratchpad/fwd_err.txt", format!("url={} err={e}", backend.url()));
                 let _ = respond::text(&mut conn, 502, "Bad Gateway");
                 let _ = conn.flush();
             }
@@ -164,12 +213,24 @@ fn header_first(req: &SimpleIncomingRequest, name: &SimpleHeader) -> Option<Stri
     req.headers.get(name).and_then(|v| v.first()).cloned()
 }
 
+/// Extract the `__proxy_sticky` cookie value from the request's Cookie header.
+/// Returns the backend index if found and parseable, `None` otherwise.
+fn extract_sticky_cookie(req: &SimpleIncomingRequest) -> Option<usize> {
+    let cookie_header = header_first(req, &SimpleHeader::COOKIE)?;
+    for part in cookie_header.split(';') {
+        let kv = part.trim();
+        if let Some(value) = kv.strip_prefix(&format!("{STICKY_COOKIE}=")) {
+            return value.parse::<usize>().ok();
+        }
+    }
+    None
+}
+
 /// Best-effort client IP from the connection's peer address.
 fn client_ip(req: &SimpleIncomingRequest) -> String {
-    match &req.connection.peer_addr {
-        Some(NetcapSocketAddr::Tcp(addr)) => addr.ip().to_string(),
-        #[cfg(unix)]
-        Some(NetcapSocketAddr::Unix(_)) => "unix".to_string(),
-        None => "unknown".to_string(),
-    }
+    req.connection
+        .peer_addr
+        .as_ref()
+        .map(|a| a.ip().to_string())
+        .unwrap_or_else(|| "unknown".to_string())
 }

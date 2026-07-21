@@ -67,7 +67,6 @@ fn setup_llama_server_provider() -> impl Model {
 
 /// Test: generate a short response against the real llama-server.
 #[valtron_test]
-#[tracing_test::traced_test]
 fn test_llama_server_anthropic_generate() {
     let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
@@ -119,7 +118,6 @@ fn test_llama_server_anthropic_generate() {
 }
 
 /// Test: streaming text generation against the real llama-server.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_streaming() {
     let _llama_server_guard = start_llama_server();
@@ -178,7 +176,6 @@ fn test_llama_server_anthropic_streaming() {
 }
 
 /// Test: multi-turn conversation with conversation history.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_multi_turn() {
     let _llama_server_guard = start_llama_server();
@@ -259,7 +256,6 @@ fn test_llama_server_anthropic_multi_turn() {
 }
 
 /// Test: max_tokens constraint truncates output.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_max_tokens() {
     let _llama_server_guard = start_llama_server();
@@ -298,7 +294,6 @@ fn test_llama_server_anthropic_max_tokens() {
 }
 
 /// Test: provider can resolve and connect to the running llama-server.
-#[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_resolve_model() {
     let _llama_server_guard = start_llama_server();

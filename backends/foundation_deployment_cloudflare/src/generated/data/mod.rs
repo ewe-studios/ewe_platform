@@ -21,100 +21,1049 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `DlpNewCustomProfile` response type.
+/// `DlpApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpNewCustomProfile {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DlpApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
 }
 
-/// `DlpEntryUpdate` response type.
+/// `DlpApiResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntryUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DlpApiResponseSingle {
 }
 
-/// `DlpRegexValidationQuery` response type.
+/// `DlpContextAwareness` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpRegexValidationQuery {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DlpContextAwareness {
+    /// enabled property.
+    pub enabled: bool,
+    /// skip property.
+    pub skip: DlpSkipConfig,
 }
 
-/// `DlpDlpSettingsUpdate` response type.
+/// `DlpCustomEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDlpSettingsUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DlpCustomEntry {
+    /// created_at property.
+    pub created_at: String,
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// pattern property.
+    pub pattern: DlpPattern,
+    /// profile_id property.
+    pub profile_id: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
 }
 
-/// `DlpNewEntry` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpNewEntry {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpNewPredefinedProfile` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpNewPredefinedProfile {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpPredefinedEntryUpdate` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPredefinedEntryUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpCustomProfileUpdate` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpCustomProfileUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpCustomEntryUpdate` response type.
+/// `DlpCustomEntryUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomEntryUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+    /// `enabled` property.
+    pub enabled: bool,
+}
+
+/// `DlpCustomEntryUpdateType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCustomEntryUpdateType {
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: String,
+    /// pattern property.
+    pub pattern: DlpPattern,
+}
+
+/// `DlpCustomProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCustomProfile {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: i64,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<serde_json::Value>,
+    /// context_awareness property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// created_at property.
+    pub created_at: String,
+    /// data_classes property.
+    pub data_classes: Option<Vec<String>>,
+    /// data_tags property.
+    pub data_tags: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<DlpEntry>>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// ocr_enabled property.
+    pub ocr_enabled: bool,
+    /// sensitivity_levels property.
+    pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
+    /// shared_entries property.
+    pub shared_entries: Option<Vec<DlpEntry>>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpCustomProfileArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCustomProfileArray {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DlpNewPredefinedEntry` response type.
+/// `DlpCustomProfileUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCustomProfileUpdate {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: Option<i64>,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<String>,
+    /// context_awareness property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// data_classes property.
+    pub data_classes: Option<Vec<String>>,
+    /// data_tags property.
+    pub data_tags: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<DlpProfileEntryUpdate>>,
+    /// name property.
+    pub name: String,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+    /// sensitivity_levels property.
+    pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
+    /// shared_entries property.
+    pub shared_entries: Option<Vec<DlpSharedEntryUpdate>>,
+}
+
+/// `DlpDataset` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDataset {
+    /// case_sensitive property.
+    pub case_sensitive: Option<bool>,
+    /// columns property.
+    pub columns: Vec<DlpDatasetColumn>,
+    /// created_at property.
+    pub created_at: String,
+    /// description property.
+    pub description: Option<String>,
+    /// encoding_version property.
+    pub encoding_version: i64,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// num_cells property.
+    pub num_cells: i64,
+    /// secret property.
+    pub secret: bool,
+    /// status property.
+    pub status: DlpDatasetUploadStatus,
+    /// updated_at property.
+    pub updated_at: String,
+    /// uploads property.
+    pub uploads: Vec<DlpDatasetUpload>,
+}
+
+/// `DlpDatasetArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetArray {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpDatasetColumn` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetColumn {
+    /// entry_id property.
+    pub entry_id: String,
+    /// header_name property.
+    pub header_name: String,
+    /// num_cells property.
+    pub num_cells: i64,
+    /// upload_status property.
+    pub upload_status: DlpDatasetUploadStatus,
+}
+
+/// `DlpDatasetColumnArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetColumnArray {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpDatasetCreation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetCreation {
+    /// dataset property.
+    pub dataset: DlpDataset,
+    /// encoding_version property.
+    pub encoding_version: i64,
+    /// max_cells property.
+    pub max_cells: i64,
+    /// secret property.
+    pub secret: Option<String>,
+    /// version property.
+    pub version: i64,
+}
+
+/// `DlpDatasetNewVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetNewVersion {
+    /// case_sensitive property.
+    pub case_sensitive: Option<bool>,
+    /// columns property.
+    pub columns: Option<Vec<DlpDatasetColumn>>,
+    /// encoding_version property.
+    pub encoding_version: i64,
+    /// max_cells property.
+    pub max_cells: i64,
+    /// secret property.
+    pub secret: Option<String>,
+    /// version property.
+    pub version: i64,
+}
+
+/// `DlpDatasetUpload` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetUpload {
+    /// num_cells property.
+    pub num_cells: i64,
+    /// status property.
+    pub status: DlpDatasetUploadStatus,
+    /// version property.
+    pub version: i64,
+}
+
+/// `DlpDatasetUploadStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetUploadStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpDatasetsCreateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsCreateRequest {
+    /// case_sensitive property.
+    pub case_sensitive: Option<bool>,
+    /// description property.
+    pub description: Option<String>,
+    /// encoding_version property.
+    pub encoding_version: Option<i64>,
+    /// name property.
+    pub name: String,
+    /// secret property.
+    pub secret: Option<bool>,
+}
+
+/// `DlpDatasetsCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsCreateResponse {
+    /// `result` property.
+    pub result: Option<DlpDatasetCreation>,
+}
+
+/// `DlpDatasetsCreateVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsCreateVersionResponse {
+    /// `result` property.
+    pub result: Option<DlpDatasetNewVersion>,
+}
+
+/// `DlpDatasetsDefineColumnsRequestItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsDefineColumnsRequestItem {
+    /// `header_name` property.
+    pub header_name: String,
+    /// `num_cells` property.
+    pub num_cells: i64,
+}
+
+/// `DlpDatasetsDefineColumnsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsDefineColumnsResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpDatasetColumn>>,
+}
+
+/// `DlpDatasetsReadAllResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsReadAllResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpDataset>>,
+}
+
+/// `DlpDatasetsReadResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsReadResponse {
+    /// `result` property.
+    pub result: Option<DlpDataset>,
+}
+
+/// `DlpDatasetsUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsUpdateRequest {
+    /// case_sensitive property.
+    pub case_sensitive: Option<bool>,
+    /// description property.
+    pub description: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `DlpDatasetsUpdateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsUpdateResponse {
+    /// `result` property.
+    pub result: Option<DlpDataset>,
+}
+
+/// `DlpDatasetsUploadDatasetColumnResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsUploadDatasetColumnResponse {
+    /// `result` property.
+    pub result: Option<DlpDatasetColumn>,
+}
+
+/// `DlpDatasetsUploadVersionResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDatasetsUploadVersionResponse {
+    /// `result` property.
+    pub result: Option<DlpDataset>,
+}
+
+/// `DlpDlpSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDlpSettings {
+    /// ai_context_analysis property.
+    pub ai_context_analysis: bool,
+    /// ocr property.
+    pub ocr: bool,
+    /// payload_logging property.
+    pub payload_logging: DlpPayloadLogSetting,
+}
+
+/// `DlpDlpSettingsUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDlpSettingsUpdate {
+    /// ai_context_analysis property.
+    pub ai_context_analysis: Option<bool>,
+    /// ocr property.
+    pub ocr: Option<bool>,
+    /// payload_logging property.
+    pub payload_logging: Option<serde_json::Value>,
+}
+
+/// `DlpDocumentFingerprintEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpDocumentFingerprintEntry {
+    /// created_at property.
+    pub created_at: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpEmpty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmpty {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEntriesCreateEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesCreateEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpCustomEntry>,
+}
+
+/// `DlpEntriesCreateIntegrationEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesCreateIntegrationEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpIntegrationEntry>,
+}
+
+/// `DlpEntriesCreatePredefinedEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesCreatePredefinedEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpPredefinedEntry>,
+}
+
+/// `DlpEntriesDeleteEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesDeleteEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpEntriesDeleteIntegrationEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesDeleteIntegrationEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpEntriesDeletePredefinedEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesDeletePredefinedEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpEntriesGetDlpEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesGetDlpEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpEntryWithSharedProfiles>,
+}
+
+/// `DlpEntriesListAllEntriesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesListAllEntriesResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpEntryWithUploadStatus>>,
+}
+
+/// `DlpEntriesUpdateCustomEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesUpdateCustomEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpCustomEntry>,
+}
+
+/// `DlpEntriesUpdateEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesUpdateEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpEntry>,
+}
+
+/// `DlpEntriesUpdateIntegrationEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesUpdateIntegrationEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpIntegrationEntry>,
+}
+
+/// `DlpEntriesUpdatePredefinedEntryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntriesUpdatePredefinedEntryResponse {
+    /// `result` property.
+    pub result: Option<DlpPredefinedEntry>,
+}
+
+/// `DlpEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntry {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEntryConfidence` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryConfidence {
+    /// ai_context_available property.
+    pub ai_context_available: bool,
+    /// available property.
+    pub available: bool,
+}
+
+/// `DlpEntryOfNewProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryOfNewProfile {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEntryProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryProfile {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `DlpEntryUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryUpdate {
+    /// `enabled` property.
+    pub enabled: bool,
+}
+
+/// `DlpEntryUpdateType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryUpdateType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEntryWithSharedProfiles` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryWithSharedProfiles {
+    /// `profiles` property.
+    pub profiles: Vec<DlpEntryProfile>,
+}
+
+/// `DlpEntryWithUploadStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryWithUploadStatus {
+    /// `upload_status` property.
+    pub upload_status: Option<serde_json::Value>,
+}
+
+/// `DlpExactDataEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpExactDataEntry {
+    /// case_sensitive property.
+    pub case_sensitive: bool,
+    /// created_at property.
+    pub created_at: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// secret property.
+    pub secret: bool,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpIntegrationEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpIntegrationEntry {
+    /// created_at property.
+    pub created_at: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// profile_id property.
+    pub profile_id: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpIntegrationProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpIntegrationProfile {
+    /// created_at property.
+    pub created_at: String,
+    /// description property.
+    pub description: Option<String>,
+    /// entries property.
+    pub entries: Vec<DlpEntry>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// shared_entries property.
+    pub shared_entries: Vec<DlpEntry>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpLimits` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpLimits {
+    /// max_dataset_cells property.
+    pub max_dataset_cells: i64,
+}
+
+/// `DlpLimitsGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpLimitsGetResponse {
+    /// `result` property.
+    pub result: Option<DlpLimits>,
+}
+
+/// `DlpMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpNewCustomEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewCustomEntry {
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: bool,
+    /// name property.
+    pub name: String,
+    /// pattern property.
+    pub pattern: DlpPattern,
+}
+
+/// `DlpNewCustomEntryWithId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewCustomEntryWithId {
+    /// `entry_id` property.
+    pub entry_id: String,
+}
+
+/// `DlpNewCustomProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewCustomProfile {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: Option<i64>,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<String>,
+    /// context_awareness property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// data_classes property.
+    pub data_classes: Option<Vec<String>>,
+    /// data_tags property.
+    pub data_tags: Option<Vec<String>>,
+    /// description property.
+    pub description: Option<String>,
+    /// entries property.
+    pub entries: Option<Vec<DlpEntryOfNewProfile>>,
+    /// name property.
+    pub name: String,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+    /// sensitivity_levels property.
+    pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
+    /// shared_entries property.
+    pub shared_entries: Option<Vec<DlpNewSharedEntry>>,
+}
+
+/// `DlpNewEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewEntry {
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: bool,
+    /// name property.
+    pub name: String,
+    /// pattern property.
+    pub pattern: DlpPattern,
+    /// profile_id property.
+    pub profile_id: Option<String>,
+}
+
+/// `DlpNewPredefinedEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewPredefinedEntry {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// enabled property.
+    pub enabled: bool,
+    /// entry_id property.
+    pub entry_id: String,
+    /// profile_id property.
+    pub profile_id: Option<String>,
 }
 
-/// `DlpPredefinedProfileUpdate` response type.
+/// `DlpNewPredefinedProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPredefinedProfileUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct DlpNewPredefinedProfile {
+    /// `profile_id` property.
+    pub profile_id: String,
 }
 
-/// `DlpPredefinedProfileConfigUpdate` response type.
+/// `DlpNewSharedEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewSharedEntry {
+    /// enabled property.
+    pub enabled: bool,
+    /// entry_id property.
+    pub entry_id: String,
+}
+
+/// `DlpNewWordListEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpNewWordListEntry {
+    /// enabled property.
+    pub enabled: bool,
+    /// name property.
+    pub name: String,
+    /// words property.
+    pub words: Vec<String>,
+}
+
+/// `DlpPattern` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPattern {
+    /// regex property.
+    pub regex: String,
+    /// validation property.
+    pub validation: Option<serde_json::Value>,
+}
+
+/// `DlpPatternValidateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPatternValidateResponse {
+    /// `result` property.
+    pub result: Option<DlpRegexValidationResult>,
+}
+
+/// `DlpPayloadLogSetting` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPayloadLogSetting {
+    /// masking_level property.
+    pub masking_level: Option<serde_json::Value>,
+    /// public_key property.
+    pub public_key: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpPredefinedEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedEntry {
+    /// confidence property.
+    pub confidence: DlpEntryConfidence,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// profile_id property.
+    pub profile_id: Option<String>,
+    /// variant property.
+    pub variant: Option<serde_json::Value>,
+}
+
+/// `DlpPredefinedEntryUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedEntryUpdate {
+    /// enabled property.
+    pub enabled: bool,
+}
+
+/// `DlpPredefinedProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedProfile {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: i64,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<serde_json::Value>,
+    /// context_awareness property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// entries property.
+    pub entries: Vec<DlpEntry>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+    /// open_access property.
+    pub open_access: Option<bool>,
+}
+
+/// `DlpPredefinedProfileConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedProfileConfig {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: i64,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<String>,
+    /// enabled_entries property.
+    pub enabled_entries: Vec<String>,
+    /// entries property.
+    pub entries: Vec<DlpEntry>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+    /// open_access property.
+    pub open_access: Option<bool>,
+}
+
+/// `DlpPredefinedProfileConfigUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileConfigUpdate {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: Option<i64>,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<String>,
+    /// enabled_entries property.
+    pub enabled_entries: Option<Vec<String>>,
+    /// entries property.
+    pub entries: Option<Vec<DlpPredefinedProfileEntryUpdate>>,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+}
+
+/// `DlpPredefinedProfileEntryUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedProfileEntryUpdate {
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+}
+
+/// `DlpPredefinedProfileUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedProfileUpdate {
+    /// ai_context_enabled property.
+    pub ai_context_enabled: Option<bool>,
+    /// allowed_match_count property.
+    pub allowed_match_count: Option<i64>,
+    /// confidence_threshold property.
+    pub confidence_threshold: Option<String>,
+    /// context_awareness property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// entries property.
+    pub entries: Option<Vec<DlpPredefinedProfileEntryUpdate>>,
+    /// ocr_enabled property.
+    pub ocr_enabled: Option<bool>,
+}
+
+/// `DlpProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfile {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpProfileArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfileArray {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpProfileEntryUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfileEntryUpdate {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpProfilesCreateCustomProfilesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesCreateCustomProfilesResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesCreatePredefinedProfileConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesCreatePredefinedProfileConfigResponse {
+    /// `result` property.
+    pub result: Option<DlpPredefinedProfileConfig>,
+}
+
+/// `DlpProfilesCreatePredefinedProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesCreatePredefinedProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesDeleteCustomProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesDeleteCustomProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpProfilesDeletePredefinedProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesDeletePredefinedProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpProfilesGetCustomProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesGetCustomProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesGetDlpProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesGetDlpProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesGetPredefinedProfileConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesGetPredefinedProfileConfigResponse {
+    /// `result` property.
+    pub result: Option<DlpPredefinedProfileConfig>,
+}
+
+/// `DlpProfilesGetPredefinedProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesGetPredefinedProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesListAllCustomProfilesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesListAllCustomProfilesResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpCustomProfile>>,
+}
+
+/// `DlpProfilesListAllProfilesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesListAllProfilesResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpProfile>>,
+}
+
+/// `DlpProfilesUpdateCustomProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesUpdateCustomProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpProfilesUpdatePredefinedProfileConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesUpdatePredefinedProfileConfigResponse {
+    /// `result` property.
+    pub result: Option<DlpPredefinedProfileConfig>,
+}
+
+/// `DlpProfilesUpdatePredefinedProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfilesUpdatePredefinedProfileResponse {
+    /// `result` property.
+    pub result: Option<DlpProfile>,
+}
+
+/// `DlpRegexValidationQuery` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRegexValidationQuery {
+    /// max_match_bytes property.
+    pub max_match_bytes: Option<i64>,
+    /// regex property.
+    pub regex: String,
+}
+
+/// `DlpRegexValidationResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRegexValidationResult {
+    /// valid property.
+    pub valid: bool,
+}
+
+/// `DlpSensitivityLevelRef` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSensitivityLevelRef {
+    /// group_id property.
+    pub group_id: String,
+    /// level_id property.
+    pub level_id: String,
+}
+
+/// `DlpSettingsDeleteResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSettingsDeleteResponse {
+    /// `result` property.
+    pub result: Option<DlpDlpSettings>,
+}
+
+/// `DlpSettingsEditResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSettingsEditResponse {
+    /// `result` property.
+    pub result: Option<DlpDlpSettings>,
+}
+
+/// `DlpSettingsGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSettingsGetResponse {
+    /// `result` property.
+    pub result: Option<DlpDlpSettings>,
+}
+
+/// `DlpSettingsUpdateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSettingsUpdateResponse {
+    /// `result` property.
+    pub result: Option<DlpDlpSettings>,
+}
+
+/// `DlpSharedEntryUpdate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSharedEntryUpdate {
+    /// enabled property.
+    pub enabled: bool,
+    /// entry_id property.
+    pub entry_id: String,
+}
+
+/// `DlpSkipConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpSkipConfig {
+    /// files property.
+    pub files: bool,
+}
+
+/// `DlpWordListEntry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpWordListEntry {
+    /// created_at property.
+    pub created_at: String,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// profile_id property.
+    pub profile_id: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+    /// word_list property.
+    pub word_list: serde_json::Value,
 }
 
 // =============================================================================
@@ -133,6 +1082,8 @@ pub struct DlpDatasetsReadAllArgs {
 pub struct DlpDatasetsCreateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DlpDatasetsCreateRequest,
 }
 
 /// Arguments for [`dlp-datasets-read_request`].
@@ -151,6 +1102,8 @@ pub struct DlpDatasetsUpdateArgs {
     pub account_id: String,
     /// Path parameter: `dataset_id`.
     pub dataset_id: String,
+    /// Request body.
+    pub body: DlpDatasetsUpdateRequest,
 }
 
 /// Arguments for [`dlp-datasets-delete_request`].
@@ -192,7 +1145,7 @@ pub struct DlpDatasetsDefineColumnsArgs {
     /// Path parameter: `version`.
     pub version: String,
     /// Request body.
-    pub body: Vec<serde_json::Value>,
+    pub body: Vec<DlpDatasetsDefineColumnsRequestItem>,
 }
 
 /// Arguments for [`dlp-datasets-upload-dataset-column_request`].
@@ -531,15 +1484,16 @@ pub struct DlpSettingsDeleteArgs {
 pub async fn dlp_datasets_read_all_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsReadAllArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsReadAllResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets",
+    let path = format!("/accounts/{}/dlp/datasets",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -554,9 +1508,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsReadAllResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -584,17 +1543,21 @@ where
 pub async fn dlp_datasets_create_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets",
+    let path = format!("/accounts/{}/dlp/datasets",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -607,9 +1570,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -637,16 +1605,17 @@ where
 pub async fn dlp_datasets_read_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsReadArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsReadResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -661,9 +1630,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsReadResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -691,18 +1665,22 @@ where
 pub async fn dlp_datasets_update_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsUpdateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -715,9 +1693,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -745,16 +1728,17 @@ where
 pub async fn dlp_datasets_delete_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -769,7 +1753,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -799,16 +1786,17 @@ where
 pub async fn dlp_datasets_create_version_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsCreateVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsCreateVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}/upload",
+    let path = format!("/accounts/{}/dlp/datasets/{}/upload",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -823,9 +1811,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsCreateVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -853,17 +1846,18 @@ where
 pub async fn dlp_datasets_upload_version_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsUploadVersionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsUploadVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}/upload/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}/upload/{}",
         args.account_id,
         args.dataset_id,
         args.version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -878,9 +1872,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsUploadVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -908,17 +1907,18 @@ where
 pub async fn dlp_datasets_define_columns_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsDefineColumnsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsDefineColumnsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}/versions/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}/versions/{}",
         args.account_id,
         args.dataset_id,
         args.version,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -936,9 +1936,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsDefineColumnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -966,18 +1971,19 @@ where
 pub async fn dlp_datasets_upload_dataset_column_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsUploadDatasetColumnArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpDatasetsUploadDatasetColumnResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/datasets/{}/versions/{}/entries/{}",
+    let path = format!("/accounts/{}/dlp/datasets/{}/versions/{}/entries/{}",
         args.account_id,
         args.dataset_id,
         args.version,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -992,9 +1998,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpDatasetsUploadDatasetColumnResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1022,15 +2033,16 @@ where
 pub async fn dlp_entries_list_all_entries_request<F>(
     client: DynNetClient,
     args: &DlpEntriesListAllEntriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesListAllEntriesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries",
+    let path = format!("/accounts/{}/dlp/entries",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1045,9 +2057,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesListAllEntriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1075,15 +2092,16 @@ where
 pub async fn dlp_entries_create_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesCreateEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesCreateEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries",
+    let path = format!("/accounts/{}/dlp/entries",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1101,9 +2119,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesCreateEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1131,16 +2154,17 @@ where
 pub async fn dlp_entries_update_custom_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesUpdateCustomEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesUpdateCustomEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/custom/{}",
+    let path = format!("/accounts/{}/dlp/entries/custom/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1158,9 +2182,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesUpdateCustomEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1188,15 +2217,16 @@ where
 pub async fn dlp_entries_create_integration_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesCreateIntegrationEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesCreateIntegrationEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/integration",
+    let path = format!("/accounts/{}/dlp/entries/integration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1214,9 +2244,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesCreateIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1244,16 +2279,17 @@ where
 pub async fn dlp_entries_update_integration_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesUpdateIntegrationEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesUpdateIntegrationEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/integration/{}",
+    let path = format!("/accounts/{}/dlp/entries/integration/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1271,9 +2307,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesUpdateIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1301,16 +2342,17 @@ where
 pub async fn dlp_entries_delete_integration_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesDeleteIntegrationEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesDeleteIntegrationEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/integration/{}",
+    let path = format!("/accounts/{}/dlp/entries/integration/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1325,9 +2367,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesDeleteIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1355,15 +2402,16 @@ where
 pub async fn dlp_entries_create_predefined_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesCreatePredefinedEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesCreatePredefinedEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/predefined",
+    let path = format!("/accounts/{}/dlp/entries/predefined",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1381,9 +2429,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesCreatePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1411,16 +2464,17 @@ where
 pub async fn dlp_entries_update_predefined_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesUpdatePredefinedEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesUpdatePredefinedEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/predefined/{}",
+    let path = format!("/accounts/{}/dlp/entries/predefined/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1438,9 +2492,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesUpdatePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1468,16 +2527,17 @@ where
 pub async fn dlp_entries_delete_predefined_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesDeletePredefinedEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesDeletePredefinedEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/predefined/{}",
+    let path = format!("/accounts/{}/dlp/entries/predefined/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1492,9 +2552,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesDeletePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1522,16 +2587,17 @@ where
 pub async fn dlp_entries_get_dlp_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesGetDlpEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesGetDlpEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/{}",
+    let path = format!("/accounts/{}/dlp/entries/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1546,9 +2612,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesGetDlpEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1576,16 +2647,17 @@ where
 pub async fn dlp_entries_update_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesUpdateEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesUpdateEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/{}",
+    let path = format!("/accounts/{}/dlp/entries/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1603,9 +2675,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesUpdateEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1633,16 +2710,17 @@ where
 pub async fn dlp_entries_delete_entry_request<F>(
     client: DynNetClient,
     args: &DlpEntriesDeleteEntryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEntriesDeleteEntryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/entries/{}",
+    let path = format!("/accounts/{}/dlp/entries/{}",
         args.account_id,
         args.entry_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1657,9 +2735,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEntriesDeleteEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1687,15 +2770,16 @@ where
 pub async fn dlp_limits_get_request<F>(
     client: DynNetClient,
     args: &DlpLimitsGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpLimitsGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/limits",
+    let path = format!("/accounts/{}/dlp/limits",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1710,9 +2794,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpLimitsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1740,15 +2829,16 @@ where
 pub async fn dlp_pattern_validate_request<F>(
     client: DynNetClient,
     args: &DlpPatternValidateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpPatternValidateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/patterns/validate",
+    let path = format!("/accounts/{}/dlp/patterns/validate",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1766,9 +2856,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpPatternValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1796,15 +2891,16 @@ where
 pub async fn dlp_profiles_list_all_profiles_request<F>(
     client: DynNetClient,
     args: &DlpProfilesListAllProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesListAllProfilesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles",
+    let path = format!("/accounts/{}/dlp/profiles",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1821,9 +2917,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesListAllProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1851,15 +2952,16 @@ where
 pub async fn dlp_profiles_list_all_custom_profiles_request<F>(
     client: DynNetClient,
     args: &DlpProfilesListAllCustomProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesListAllCustomProfilesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/custom",
+    let path = format!("/accounts/{}/dlp/profiles/custom",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1874,9 +2976,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesListAllCustomProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1904,15 +3011,16 @@ where
 pub async fn dlp_profiles_create_custom_profiles_request<F>(
     client: DynNetClient,
     args: &DlpProfilesCreateCustomProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesCreateCustomProfilesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/custom",
+    let path = format!("/accounts/{}/dlp/profiles/custom",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1930,9 +3038,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesCreateCustomProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1960,16 +3073,17 @@ where
 pub async fn dlp_profiles_get_custom_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesGetCustomProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesGetCustomProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/custom/{}",
+    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1984,9 +3098,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesGetCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2014,16 +3133,17 @@ where
 pub async fn dlp_profiles_update_custom_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesUpdateCustomProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesUpdateCustomProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/custom/{}",
+    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2041,9 +3161,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesUpdateCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2071,16 +3196,17 @@ where
 pub async fn dlp_profiles_delete_custom_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesDeleteCustomProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesDeleteCustomProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/custom/{}",
+    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2095,9 +3221,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesDeleteCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2125,15 +3256,16 @@ where
 pub async fn dlp_profiles_create_predefined_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesCreatePredefinedProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesCreatePredefinedProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined",
+    let path = format!("/accounts/{}/dlp/profiles/predefined",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2151,9 +3283,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesCreatePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2181,16 +3318,17 @@ where
 pub async fn dlp_profiles_get_predefined_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesGetPredefinedProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesGetPredefinedProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2205,9 +3343,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesGetPredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2235,16 +3378,17 @@ where
 pub async fn dlp_profiles_update_predefined_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesUpdatePredefinedProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesUpdatePredefinedProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2262,9 +3406,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesUpdatePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2292,16 +3441,17 @@ where
 pub async fn dlp_profiles_delete_predefined_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesDeletePredefinedProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesDeletePredefinedProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2316,9 +3466,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesDeletePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2346,16 +3501,17 @@ where
 pub async fn dlp_profiles_get_predefined_profile_config_request<F>(
     client: DynNetClient,
     args: &DlpProfilesGetPredefinedProfileConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesGetPredefinedProfileConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}/config",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2370,9 +3526,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesGetPredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2400,16 +3561,17 @@ where
 pub async fn dlp_profiles_create_predefined_profile_config_request<F>(
     client: DynNetClient,
     args: &DlpProfilesCreatePredefinedProfileConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesCreatePredefinedProfileConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}/config",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2427,9 +3589,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesCreatePredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2457,16 +3624,17 @@ where
 pub async fn dlp_profiles_update_predefined_profile_config_request<F>(
     client: DynNetClient,
     args: &DlpProfilesUpdatePredefinedProfileConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesUpdatePredefinedProfileConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/predefined/{}/config",
+    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2484,9 +3652,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesUpdatePredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2514,16 +3687,17 @@ where
 pub async fn dlp_profiles_get_dlp_profile_request<F>(
     client: DynNetClient,
     args: &DlpProfilesGetDlpProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpProfilesGetDlpProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/profiles/{}",
+    let path = format!("/accounts/{}/dlp/profiles/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2538,9 +3712,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpProfilesGetDlpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2568,15 +3747,16 @@ where
 pub async fn dlp_settings_get_request<F>(
     client: DynNetClient,
     args: &DlpSettingsGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpSettingsGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/settings",
+    let path = format!("/accounts/{}/dlp/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2591,9 +3771,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpSettingsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2621,15 +3806,16 @@ where
 pub async fn dlp_settings_update_request<F>(
     client: DynNetClient,
     args: &DlpSettingsUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpSettingsUpdateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/settings",
+    let path = format!("/accounts/{}/dlp/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2647,9 +3833,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpSettingsUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2677,15 +3868,16 @@ where
 pub async fn dlp_settings_edit_request<F>(
     client: DynNetClient,
     args: &DlpSettingsEditArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpSettingsEditResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/settings",
+    let path = format!("/accounts/{}/dlp/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2703,9 +3895,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpSettingsEditResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2733,15 +3930,16 @@ where
 pub async fn dlp_settings_delete_request<F>(
     client: DynNetClient,
     args: &DlpSettingsDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpSettingsDeleteResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/settings",
+    let path = format!("/accounts/{}/dlp/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2756,8 +3954,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpSettingsDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

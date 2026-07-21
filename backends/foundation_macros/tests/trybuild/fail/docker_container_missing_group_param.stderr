@@ -1,0 +1,5 @@
+error: #[docker_container] requires exactly one parameter to receive the started containers, but `no_group_param` declares 0. Add `containers: ContainerGroup` (or `_: ContainerGroup` if the body does not need the handles).
+ --> tests/trybuild/fail/docker_container_missing_group_param.rs:5:1
+  |
+5 | fn no_group_param() {}
+  | ^^^^^^^^^^^^^^^^^^^

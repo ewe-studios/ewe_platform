@@ -152,3 +152,27 @@ fn test_sanitize_doc_comment() {
     let doc = sanitize_doc_comment("Use returnPartialSuccess for partial results", true);
     assert!(doc.contains("`returnPartialSuccess`"));
 }
+
+#[test]
+fn sanitize_identifier_is_an_allowlist_not_a_blocklist() {
+    // These are real vendor property keys. Each one passed a blocklist of
+    // fourteen punctuation marks and landed in emitted Rust that did not compile:
+    // Cloudflare `*`/`$metadata`/`1.1.1.1`, Linode `+gt`, DigitalOcean
+    // `pg_partman_bgw.interval`. A blocklist over "whatever a vendor wrote" loses.
+    for (input, expected) in [
+        ("+gt", "_gt"),
+        ("$metadata", "_metadata"),
+        ("1.1.1.1", "1_1_1_1"),
+        ("pg_partman_bgw.interval", "pg_partman_bgw_interval"),
+        ("*", "_"),
+        ("100ms_or_greater", "100ms_or_greater"),
+    ] {
+        assert_eq!(sanitize_identifier(input), expected, "for {input:?}");
+    }
+
+    // Everything already valid is left exactly alone — so no provider's committed
+    // output moves because of this.
+    for ok in ["account_id", "zone", "AaaAlertBody", "field_1", "_leading"] {
+        assert_eq!(sanitize_identifier(ok), ok);
+    }
+}

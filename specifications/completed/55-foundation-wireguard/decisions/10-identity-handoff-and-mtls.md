@@ -3,6 +3,17 @@
 **Date:** 2026-07-12
 **Status:** Resolved (owner-confirmed)
 
+> **Amendment (2026-07-18): the optional app-layer mTLS was removed entirely.**
+> Only the **identity handoff** half of this decision ships (per-peer random identity keypairs,
+> re-pairing onto identity static keys, bootstrap-key retirement — all still in force). The
+> **optional app-layer mTLS** half was cut: it was never wired into the mesh, and it is redundant
+> with WireGuard's own Noise_IK mutual auth + forward secrecy (as this decision's own rationale
+> notes). Removed with it: `src/native/mtls.rs`, the `mtls` cargo feature, `SecurityConfig`/the
+> `security: { mtls }` config knob and `wireguard!` macro block, and the
+> `IdentityKeypair::derive_shared_psk` primitive. A service wanting app-layer mutual auth over the
+> overlay can add it in its own layer; the mesh no longer ships a half-built hook for it. (The
+> bootstrap channel's move off `boring` to pure-Rust Noise is [decision 06](06-hybrid-transport-tls-psk.md).)
+
 ## Decision
 
 After bootstrap, the mesh transitions from the **shared** bootstrap keypair to **per-peer random

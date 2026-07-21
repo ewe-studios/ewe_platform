@@ -1,0 +1,40 @@
+# ewe-test-windows — Windows test environment for foundation_platform.
+#
+# Extends ewestudios/windows (dockurr/windows). Windows 11 runs inside QEMU
+# inside this Docker container. VNC is provided by QEMU (port 8006 inside the
+# container, mapped to host 5902 by dockurr convention).
+#
+# Start:  docker compose up -d
+# VNC:    vnc://localhost:8006  (QEMU VNC — see dockurr docs)
+# RDP:    localhost:3389 (after Windows boots)
+#
+# First boot takes ~5-10 minutes (Windows setup + oem/install.bat).
+# The persistent volume keeps the VM state across restarts.
+#
+# Based on: artefact/uncloud/recipes/dev-windows/compose.yaml
+#           dockurr/windows/compose.yml (upstream)
+services:
+  windows:
+    build:
+      context: .
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "8G"         # Windows 11 + Rust compile needs RAM
+      CPU_CORES: "4"
+      DISK_SIZE: "64G"
+      KVM: "N"               # CI typically has no /dev/kvm; TCG mode (~10x slower)
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - win_storage:/storage       # Windows qcow2 disk — persists VM state
+      - win_shared:/data           # \\host.lan\Data inside Windows
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8006:8006"    # QEMU VNC (dockurr default VNC port)
+      - "3389:3389"    # RDP
+      - "2224:22"      # SSH into Windows guest (once OpenSSH starts)
+    restart: unless-stopped
+
+volumes:
+  win_storage:
+  win_shared:

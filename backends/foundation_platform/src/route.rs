@@ -1,0 +1,165 @@
+//! `RouteDecision` convenience constructors and builder methods.
+//!
+//! `RouteDecision` is defined in `foundation_ui_traits` (orphan rule — we
+//! can't add inherent `impl` blocks here). These free functions and the
+//! `RouteDecisionExt` extension trait provide the constructor and builder
+//! API surface from decision 02.
+//!
+//! Each constructor sets sensible defaults for the given `RouteSource`.
+//! Builder methods let callers override specific fields without touching
+//! the others.
+
+use foundation_ui_traits::{RouteDecision, RouteSource, Presentation, ViewKind, ProtocolHint, CachePolicy, Profile, CapabilityId};
+
+// ── Constructors (free functions) ───────────────────────────────────────────
+
+/// Creates a `RouteDecision` for a `WebviewApp` handler.
+/// `source = WebviewApp`, profile = App, cache = `CacheFirst`.
+#[must_use]
+pub fn webview_app() -> RouteDecision {
+    RouteDecision {
+        source: RouteSource::WebviewApp,
+        presentation: Presentation::Morph,
+        view_kind: ViewKind::WebView,
+        protocol: ProtocolHint::Default,
+        cache_policy: CachePolicy::CacheFirst,
+        profile: Profile::App,
+        native_view_id: None,
+        target: None,
+        capabilities: Vec::new(),
+        auth_origin: None,
+        handler_id: None,
+        sub_path: None,
+    }
+}
+
+/// Content from the native shell. `source = IpcShell`, default target
+/// (native shell process). The session dispatches via Tauri command IPC.
+#[must_use]
+pub fn ipc_shell() -> RouteDecision {
+    RouteDecision {
+        source: RouteSource::IpcShell,
+        presentation: Presentation::Morph,
+        view_kind: ViewKind::WebView,
+        protocol: ProtocolHint::Default,
+        cache_policy: CachePolicy::NetworkFirst,
+        profile: Profile::TrustedRemote,
+        native_view_id: None,
+        target: None,
+        capabilities: Vec::new(),
+        auth_origin: None,
+        handler_id: None,
+        sub_path: None,
+    }
+}
+
+/// Content from the native shell, explicitly targeting a named `wasm_app`
+/// instance. The session looks up `target` in the `wasm_app` registry.
+#[must_use]
+pub fn ipc_shell_with(target: impl Into<String>) -> RouteDecision {
+    RouteDecision {
+        target: Some(target.into()),
+        ..ipc_shell()
+    }
+}
+
+/// Content fetched from a remote server. The session opens the best
+/// available transport (HTTP fetch, SSE, WebSocket).
+#[must_use]
+pub fn remote_fetch() -> RouteDecision {
+    RouteDecision {
+        source: RouteSource::RemoteServer,
+        presentation: Presentation::Morph,
+        view_kind: ViewKind::WebView,
+        protocol: ProtocolHint::Default,
+        cache_policy: CachePolicy::NetworkFirst,
+        profile: Profile::TrustedRemote,
+        native_view_id: None,
+        target: None,
+        capabilities: Vec::new(),
+        auth_origin: None,
+        handler_id: None,
+        sub_path: None,
+    }
+}
+
+// ── Builder extension trait ─────────────────────────────────────────────────
+
+/// Extension trait adding builder methods to `RouteDecision`.
+/// Implemented here (not in `foundation_ui_traits`) because the convenience
+/// constructors and builder pattern are platform-level API surface, not
+/// pure type definitions.
+pub trait RouteDecisionExt {
+    #[must_use]
+    fn with_presentation(self, p: Presentation) -> Self;
+    #[must_use]
+    fn with_view_kind(self, v: ViewKind) -> Self;
+    #[must_use]
+    fn with_protocol(self, p: ProtocolHint) -> Self;
+    #[must_use]
+    fn with_cache_policy(self, c: CachePolicy) -> Self;
+    #[must_use]
+    fn with_profile(self, p: Profile) -> Self;
+    #[must_use]
+    fn with_native_view(self, id: impl Into<String>) -> Self;
+    #[must_use]
+    fn with_target(self, target: impl Into<String>) -> Self;
+    #[must_use]
+    fn with_allowed_capabilities(self, caps: &[CapabilityId]) -> Self;
+    #[must_use]
+    fn with_auth_origin(self, origin: &str) -> Self;
+    #[must_use]
+    fn with_handler(self, id: &str) -> Self;
+}
+
+impl RouteDecisionExt for RouteDecision {
+    fn with_presentation(mut self, p: Presentation) -> Self {
+        self.presentation = p;
+        self
+    }
+
+    fn with_view_kind(mut self, v: ViewKind) -> Self {
+        self.view_kind = v;
+        self
+    }
+
+    fn with_protocol(mut self, p: ProtocolHint) -> Self {
+        self.protocol = p;
+        self
+    }
+
+    fn with_cache_policy(mut self, c: CachePolicy) -> Self {
+        self.cache_policy = c;
+        self
+    }
+
+    fn with_profile(mut self, p: Profile) -> Self {
+        self.profile = p;
+        self
+    }
+
+    fn with_native_view(mut self, id: impl Into<String>) -> Self {
+        self.native_view_id = Some(id.into());
+        self
+    }
+
+    fn with_target(mut self, target: impl Into<String>) -> Self {
+        self.target = Some(target.into());
+        self
+    }
+
+    fn with_allowed_capabilities(mut self, caps: &[CapabilityId]) -> Self {
+        self.capabilities = caps.to_vec();
+        self
+    }
+
+    fn with_auth_origin(mut self, origin: &str) -> Self {
+        self.auth_origin = Some(origin.to_string());
+        self
+    }
+
+    fn with_handler(mut self, id: &str) -> Self {
+        self.handler_id = Some(id.to_string());
+        self
+    }
+}

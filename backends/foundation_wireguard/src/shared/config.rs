@@ -5,7 +5,7 @@
 //! reloadable) — mirroring `foundation_proxy`'s tri-config pattern (decision 13).
 //!
 //! WHAT: [`WgConfig`] and sub-configs ([`NetworkConfig`], [`NodeConfig`],
-//! [`DataPlaneConfig`], [`SecurityConfig`], [`RelayConfig`]) plus a consuming
+//! [`DataPlaneConfig`], [`RelayConfig`]) plus a consuming
 //! [`WgConfigBuilder`] and TOML loading.
 //!
 //! HOW: All types derive `serde::Serialize + Deserialize`. Endpoints accept a bare
@@ -128,7 +128,7 @@ pub struct NodeConfig {
     )]
     pub udp_listen: SocketAddr,
 
-    /// TLS-PSK bootstrap listener bind address.
+    /// Noise-PSK bootstrap listener bind address.
     #[serde(
         default = "default_bootstrap_listen",
         deserialize_with = "deser_socket_addr"
@@ -217,20 +217,6 @@ impl Default for DataPlaneConfig {
     }
 }
 
-/// Security settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityConfig {
-    /// Enable optional app-layer mTLS over overlay sockets. Default: off.
-    #[serde(default)]
-    pub mtls: bool,
-}
-
-impl Default for SecurityConfig {
-    fn default() -> Self {
-        Self { mtls: false }
-    }
-}
-
 /// Relay settings (feature 05).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelayConfig {
@@ -285,10 +271,6 @@ pub struct WgConfig {
     #[serde(default)]
     pub dataplane: DataPlaneConfig,
 
-    /// Security toggles.
-    #[serde(default)]
-    pub security: SecurityConfig,
-
     /// Relay capability advertisement.
     #[serde(default)]
     pub relay: RelayConfig,
@@ -315,7 +297,6 @@ impl WgConfig {
             },
             node: NodeConfig::default(),
             dataplane: DataPlaneConfig::default(),
-            security: SecurityConfig::default(),
             relay: RelayConfig::default(),
         }
     }
@@ -340,7 +321,6 @@ impl WgConfig {
             },
             node: NodeConfig::default(),
             dataplane: DataPlaneConfig::default(),
-            security: SecurityConfig::default(),
             relay: RelayConfig::default(),
         }
     }
@@ -478,7 +458,6 @@ impl WgConfig {
             },
             node: NodeConfig::default(),
             dataplane: DataPlaneConfig::default(),
-            security: SecurityConfig::default(),
             relay: RelayConfig {
                 advertise: relay_advertise,
                 ..RelayConfig::default()
@@ -509,7 +488,6 @@ pub struct WgConfigBuilder {
     membership_path: Option<String>,
     mtu: Option<u16>,
     keepalive_secs: Option<u16>,
-    mtls: bool,
     relay_advertise: bool,
     relay_max_sessions: u32,
     relay_rate_limit_pps: u32,
@@ -560,7 +538,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Bind the TLS-PSK bootstrap listener to this address.
+    /// Bind the Noise-PSK bootstrap listener to this address.
     #[must_use]
     pub fn bootstrap_listen(mut self, addr: SocketAddr) -> Self {
         self.bootstrap_listen = Some(addr);
@@ -602,12 +580,6 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Enable optional app-layer mTLS.
-    #[must_use]
-    pub fn mtls(mut self, on: bool) -> Self {
-        self.mtls = on;
-        self
-    }
 
     /// Advertise this node as a relay (feature 05).
     #[must_use]
@@ -687,8 +659,6 @@ impl WgConfigBuilder {
             keepalive_secs: self.keepalive_secs.unwrap_or_else(default_keepalive),
         };
 
-        let security = SecurityConfig { mtls: self.mtls };
-
         let relay = RelayConfig {
             advertise: self.relay_advertise,
             max_sessions: self.relay_max_sessions,
@@ -705,7 +675,6 @@ impl WgConfigBuilder {
             },
             node,
             dataplane,
-            security,
             relay,
         })
     }

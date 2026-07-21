@@ -77,6 +77,75 @@ fn escape_rust_keyword(ident: &str) -> String {
 
 /// Escape a Rust keyword for use in a struct field name.
 /// `r#self` and `r#Self` are NOT valid field names in Rust, so we rename instead.
+/// A property key, turned into a field name Rust will accept.
+///
+/// **Why not `escape_field_keyword(to_snake_case(key))`, which is what this was:**
+/// that handles keywords and casing but assumes the key is otherwise already an
+/// identifier. Vendors do not cooperate — Cloudflare keys properties `13335` (an
+/// ASN), `*` and `$metadata`; Linode uses `+and`/`+gt` for filter operators;
+/// DigitalOcean has `pg_partman_bgw.interval`. Those went straight into the
+/// output as `pub 13335: …`, which does not parse.
+///
+/// The wire name is preserved regardless: the caller emits `#[serde(rename)]`
+/// whenever the field name differs from the property name, which is exactly when
+/// this function changed something.
+///
+/// Names that are already valid pass through untouched, so this does not churn
+/// any provider's committed output.
+fn field_ident(prop_name: &str) -> String {
+    let snake = to_snake_case(&sanitize_identifier(prop_name));
+    // A key made entirely of punctuation sanitises to nothing — Cloudflare has a
+    // property literally named `*`, which produced `pub : Type`.
+    if snake.is_empty() {
+        return "field".to_string();
+    }
+    // No identifier may start with a digit (Cloudflare keys properties by ASN).
+    let snake = if snake.starts_with(|c: char| c.is_ascii_digit()) {
+        format!("field_{snake}")
+    } else {
+        snake
+    };
+    escape_field_keyword(&snake)
+}
+
+/// Whether the vendor says this field's value may be `null`.
+///
+/// **Follows `$ref`, and must.** Nullability lives on the *schema*, and hoisting
+/// moves the schema. Hetzner declares
+/// `"deprecation": { "type": ["object","null"], "properties": {…} }` — a required,
+/// nullable, inline object. `normalize_nullable_types` records `nullable: true` on
+/// it, then `extract_inline_schemas` lifts the whole thing into
+/// `components/schemas` and leaves the property as a bare `$ref` that says nothing
+/// about null. Checking only the property generated
+/// `pub deprecation: …IsoDeprecation`, and the first real `create_server` died with
+/// `invalid type: null, expected struct …IsoDeprecation` — after Hetzner had
+/// already built the machine.
+///
+/// Bounded rather than recursive: a `$ref` to a `$ref` is already unusual, and a
+/// cycle here would hang the generator rather than fail it.
+fn is_nullable(
+    schema: &crate::spec::Schema,
+    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+) -> bool {
+    let mut current = schema;
+    for _ in 0..8 {
+        if current.nullable == Some(true) {
+            return true;
+        }
+        let Some(ref_path) = &current.ref_path else {
+            return false;
+        };
+        let name = ref_path
+            .trim_start_matches("#/components/schemas/")
+            .trim_start_matches("#/schemas/");
+        match UnifiedGenerator::resolve_schema_key(name, schemas) {
+            Some(target) => current = target,
+            None => return false,
+        }
+    }
+    false
+}
+
 fn escape_field_keyword(ident: &str) -> String {
     if ident == "self" {
         "_self".to_string()
@@ -114,7 +183,7 @@ fn rename_std_type_conflict(type_name: &str) -> String {
 /// Adds extracted type names to the all_types set.
 fn extract_type_names_from_generic(
     type_str: &str,
-    all_types: &mut std::collections::HashSet<String>,
+    all_types: &mut std::collections::BTreeSet<String>,
 ) {
     // Skip invalid types
     if type_str == "()" || type_str == "serde_json::Value" {
@@ -153,7 +222,7 @@ fn extract_type_names_from_generic(
 /// Adds found type names (in PascalCase) to seen_types and types_to_process.
 fn collect_referenced_type_names(
     schema: &crate::spec::Schema,
-    seen_types: &mut std::collections::HashSet<String>,
+    seen_types: &mut std::collections::BTreeSet<String>,
     types_to_process: &mut Vec<String>,
 ) {
     // Check for direct $ref
@@ -884,7 +953,14 @@ impl UnifiedGenerator {
         // But organized per-endpoint for readability
 
         // First pass: collect all unique types from endpoint response/request types
-        let mut all_types: std::collections::HashSet<String> = HashSet::new();
+        // BTreeSet, not HashSet: this set's iteration order IS the order types are
+        // emitted into the file (below). Rust seeds a HashSet's hasher randomly
+        // per process, so a HashSet here meant two runs of the same command
+        // produced the same types in a different order — which made `check()`
+        // report Stale forever, had every build regenerate, and churned 833 lines
+        // of diff for nothing. Generated code that is committed must be a pure
+        // function of its inputs.
+        let mut all_types: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
         for ep in &group.endpoints {
             if let Some(rt) = &ep.response_type {
@@ -1170,7 +1246,7 @@ impl UnifiedGenerator {
                 if let Some(props) = &member.properties {
                     for (k, v) in props {
                         // Deduplicate by snake_case field name to avoid duplicates like "Version" and "version"
-                        let field_name = escape_field_keyword(&to_snake_case(k));
+                        let field_name = field_ident(k);
                         all_properties.insert(field_name, (k.clone(), v.clone()));
                     }
                 }
@@ -1183,7 +1259,12 @@ impl UnifiedGenerator {
             for (field_name, (prop_name, prop_schema)) in &all_properties {
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let rust_type = maybe_box_type(&rust_type, recursive_types);
-                let is_required = required.contains(prop_name);
+                // `required` and `nullable` say different things: the first that
+                // the key is always present, the second that its value may be
+                // null. A field can be both — Hetzner's pagination `next_page`
+                // is always there and is null on the last page. Only a field
+                // that is required AND not nullable can be a bare T.
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
                 writeln!(out, "    /// `{}` property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name
@@ -1206,7 +1287,7 @@ impl UnifiedGenerator {
             let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
 
             for (prop_name, prop_schema) in properties {
-                let field_name = escape_field_keyword(&to_snake_case(prop_name));
+                let field_name = field_ident(prop_name);
                 // Skip if we already generated this field (handles "Version" vs "version" duplicates)
                 if generated_fields.contains_key(&field_name) {
                     continue;
@@ -1215,7 +1296,9 @@ impl UnifiedGenerator {
 
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let rust_type = maybe_box_type(&rust_type, recursive_types);
-                let is_required = required.contains(prop_name);
+                // See the allOf branch above: required means "the key is there",
+                // nullable means "the value may be null". Both can hold.
+                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
                 writeln!(out, "    /// {} property.", prop_name)?;
                 // Emit per-field serde rename when the snake_cased field name
@@ -1437,13 +1520,27 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Send asynchronously and parse the response.
+        //
+        // Not `let mut`: `take_body(self)` consumes the response, and the error
+        // branch below returns — so the two `take_body` calls never coexist and
+        // no binding needs to be mutable. Marking it `mut` cost 2442 "does not
+        // need to be mutable" warnings in cloudflare alone.
         writeln!(out, "    let response = client.send_async(builder.build()).await")?;
         writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
         writeln!(out)?;
         writeln!(out, "    let status: usize = response.get_status().into();")?;
         writeln!(out, "    let headers = response.get_headers_ref().clone();")?;
         writeln!(out, "    if status < 200 || status >= 300 {{")?;
-        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body: None }});")?;
+        // Read the error body. It was `None`, unconditionally — which discarded
+        // every vendor's error detail before any caller could see it, and left
+        // ApiError::HttpStatus with a field that was structurally always empty.
+        // A status number alone does not say what to fix: Hetzner's
+        // `{"error":{"code":"invalid_input","message":"server_type cx99 does not
+        // exist"}}` is the whole diagnosis, and it was being thrown away.
+        writeln!(out, "        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
+        writeln!(out, "        let body = (!error_bytes.is_empty())")?;
+        writeln!(out, "            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());")?;
+        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body }});")?;
         writeln!(out, "    }}")?;
         if return_type == "()" {
             writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
@@ -1467,23 +1564,39 @@ impl UnifiedGenerator {
         type_name: &str,
         schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
     ) -> Option<&'a crate::spec::Schema> {
-        // 1. Direct lookup (spec may use PascalCase keys)
+        // 1. Direct lookup — the spec's key already matches the type name.
         if let Some(s) = schemas.get(type_name) {
             return Some(s);
         }
-        // 2. Convert to snake_case (Cloudflare spec uses snake_case keys)
+        // 2. Convert to snake_case (Cloudflare's spec uses snake_case keys).
         let snake = crate::to_snake_case(type_name);
         if let Some(s) = schemas.get(&snake) {
             return Some(s);
         }
-        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar")
+        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar").
         if let Some(first) = type_name.chars().next() {
             let lower_first = first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
             if let Some(s) = schemas.get(&lower_first) {
                 return Some(s);
             }
         }
-        None
+        // 4. Match on the *pascal-cased* key.
+        //
+        // The three guesses above try to invert pascal-casing, and pascal-casing
+        // is not invertible: Hetzner keys a schema `CreateServerResponseServerPublic_net`
+        // (its property is `public_net`), which the generator refers to as
+        // `…PublicNet`. No amount of snake-casing that name gets back to the
+        // original, so the lookup missed and the type fell back to an opaque
+        // `HashMap<String, Value>` blob — 52 of Hetzner's 100 types, including
+        // `public_net`, which is where the server's IP address lives.
+        //
+        // Comparing in the pascal-cased space is the direction that *is* well
+        // defined: it is exactly the transform the reference site applies.
+        let target = crate::to_pascal_case(type_name);
+        schemas
+            .iter()
+            .find(|(key, _)| crate::to_pascal_case(key) == target)
+            .map(|(_, schema)| schema)
     }
 
     /// Generate shared module for cross-group types.
@@ -1555,7 +1668,10 @@ impl UnifiedGenerator {
         // that lives only in some group module — an `E0425 cannot find type` in the
         // shared module itself. The convergence mirrors the per-group collection.
         let shared_types_to_emit: Vec<String> = {
-            let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+            // BTreeSet to match `collect_referenced_type_names`, which must not
+            // hand back a randomly-ordered set — see `all_types` below. Here it is
+            // belt-and-braces: `extras` is sorted before it is appended anyway.
+            let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             let mut to_process: Vec<String> = analysis.shared_resources.clone();
             for t in &analysis.shared_resources {
                 seen.insert(t.clone());
@@ -1721,5 +1837,95 @@ impl UnifiedGenerator {
         fs::write(generated_dir.join("mod.rs"), out)?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{field_ident, UnifiedGenerator};
+
+    /// `field_ident` is private, so this lives here rather than in `tests/`.
+    ///
+    /// Every input below is a real property key from a vendor's spec, and each one
+    /// used to be emitted verbatim into a struct definition.
+    #[test]
+    fn a_property_key_becomes_a_field_name_rust_accepts() {
+        // Cloudflare keys properties by ASN, and by a bare `*`.
+        assert_eq!(field_ident("13335"), "field_13335");
+        assert_eq!(field_ident("*"), "field", "punctuation sanitises to nothing");
+        // Leading punctuation sanitises to `_`, which to_snake_case then drops —
+        // the wire name is kept by the caller's #[serde(rename)].
+        assert_eq!(field_ident("$metadata"), "metadata");
+        // Linode's filter operators.
+        assert_eq!(field_ident("+gt"), "gt");
+        // DigitalOcean's Postgres settings.
+        assert_eq!(field_ident("pg_partman_bgw.interval"), "pg_partman_bgw_interval");
+        // Keywords still take the raw-identifier form the generator has always used.
+        assert_eq!(field_ident("type"), "r#type");
+        assert_eq!(field_ident("self"), "_self");
+    }
+
+    #[test]
+    fn a_valid_key_is_left_exactly_alone() {
+        // The guarantee that keeps every provider's committed output from moving:
+        // this function only changes names that were already broken.
+        for name in ["account_id", "zone", "result_info", "id"] {
+            assert_eq!(field_ident(name), name);
+        }
+        // Casing conversion is unchanged.
+        assert_eq!(field_ident("ApiVersion"), "api_version");
+    }
+
+    /// `resolve_schema_key` is private; this is the regression that made 52 of
+    /// Hetzner's 100 generated types opaque blobs.
+    #[test]
+    fn a_schema_key_resolves_even_when_pascal_casing_is_not_invertible() {
+        use crate::spec::Schema;
+
+        let mut schemas = std::collections::BTreeMap::new();
+        // Hetzner's real key: the property is `public_net`, so the hoisted
+        // component carries the underscore.
+        schemas.insert(
+            "CreateServerResponseServerPublic_net".to_string(),
+            Schema {
+                schema_type: Some("object".to_string()),
+                properties: Some(Default::default()),
+                ..Default::default()
+            },
+        );
+
+        // The reference site pascal-cases, giving `…PublicNet` — which no amount
+        // of snake-casing turns back into `…Public_net`. Matching in the
+        // pascal-cased space is the direction that is actually well defined.
+        assert!(
+            UnifiedGenerator::resolve_schema_key(
+                "CreateServerResponseServerPublicNet",
+                &schemas
+            )
+            .is_some(),
+            "the schema exists; failing to find it emits an opaque blob instead"
+        );
+
+        // A name nothing declares must still miss — the fallback is a real signal.
+        assert!(UnifiedGenerator::resolve_schema_key("NoSuchType", &schemas).is_none());
+    }
+
+    #[test]
+    fn a_direct_key_match_still_wins() {
+        use crate::spec::Schema;
+
+        let mut schemas = std::collections::BTreeMap::new();
+        for key in ["Exact", "exact_other"] {
+            schemas.insert(
+                key.to_string(),
+                Schema {
+                    schema_type: Some("object".to_string()),
+                    ..Default::default()
+                },
+            );
+        }
+        assert!(UnifiedGenerator::resolve_schema_key("Exact", &schemas).is_some());
+        // Cloudflare's snake_case keys, via the existing rule.
+        assert!(UnifiedGenerator::resolve_schema_key("ExactOther", &schemas).is_some());
     }
 }

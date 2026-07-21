@@ -21,136 +21,87 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `StreamMediaStatus` type.
+/// `StreamAccessRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMediaStatus {
-    /// errorReasonCode property.
-    pub error_reason_code: Option<StreamErrorReasonCode>,
-    /// errorReasonText property.
-    pub error_reason_text: Option<StreamErrorReasonText>,
-    /// pctComplete property.
-    pub pct_complete: Option<StreamPctComplete>,
-    /// state property.
-    pub state: Option<StreamMediaState>,
+pub struct StreamAccessRules {
+    /// action property.
+    pub action: Option<String>,
+    /// country property.
+    pub country: Option<Vec<String>>,
+    /// ip property.
+    pub ip: Option<Vec<String>>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
 }
 
-/// `StreamOutputResponseCollection` type.
+/// `StreamAddAudioTrackResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputResponseCollection {
+pub struct StreamAddAudioTrackResponse {
     /// `result` property.
-    pub result: Option<Vec<StreamOutput>>,
+    pub result: Option<StreamAdditionalAudio>,
 }
 
-/// `StreamKeys` type.
+/// `StreamAdditionalAudio` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamKeys {
-    /// created property.
-    pub created: Option<StreamSigningKeyCreated>,
-    /// id property.
-    pub id: Option<StreamSchemasIdentifier>,
-    /// jwk property.
-    pub jwk: Option<StreamJwk>,
-    /// pem property.
-    pub pem: Option<StreamPem>,
+pub struct StreamAdditionalAudio {
+    /// default property.
+    pub default: Option<StreamAudioDefault>,
+    /// label property.
+    pub label: Option<StreamAudioLabel>,
+    /// status property.
+    pub status: Option<StreamAudioState>,
+    /// uid property.
+    pub uid: Option<StreamIdentifier>,
 }
 
-/// `StreamLiveInputRecordingHideLiveViewerCount` response type.
+/// `StreamAllowedOrigins` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingHideLiveViewerCount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamAllowedOrigins {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamVideoResponseSingle` type.
+/// `StreamApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamVideos>,
+pub struct StreamApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
 }
 
-/// `StreamDirectUploadResponse` type.
+/// `StreamApiResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDirectUploadResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct StreamApiResponseSingle {
 }
 
-/// `StreamLiveInputRecordingDeletion` type.
+/// `StreamAudioDefault` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingDeletion {
+pub struct StreamAudioDefault {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamOutputStreamKey` response type.
+/// `StreamAudioLabel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputStreamKey {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamAudioLabel {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamLiveInputIdentifier` type.
+/// `StreamAudioState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputIdentifier {
+pub struct StreamAudioState {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamLiveInputResponseCollection` type.
+/// `StreamCaptionStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputResponseCollection {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `StreamOutputUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLabel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLabel {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamCreateInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCreateInputRequest {
-    /// defaultCreator property.
-    pub default_creator: Option<StreamLiveInputDefaultCreator>,
-    /// deleteRecordingAfterDays property.
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// recording property.
-    pub recording: Option<StreamLiveInputRecordingSettings>,
-}
-
-/// `StreamDownloadPercentComplete` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadPercentComplete {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamWidth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWidth {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamSigningKeyCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamSigningKeyCreated {
+pub struct StreamCaptionStatus {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -168,38 +119,358 @@ pub struct StreamCaptions {
     pub status: Option<StreamCaptionStatus>,
 }
 
-/// `StreamLiveInputStatus` type.
+/// `StreamClipResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamReadyToStreamAt` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamReadyToStreamAt {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamSchemasIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamWebhookResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWebhookResponseSingle {
+pub struct StreamClipResponseSingle {
     /// `result` property.
-    pub result: Option<serde_json::Value>,
+    pub result: Option<StreamClipping>,
 }
 
-/// `StreamName` type.
+/// `StreamClippedFromVideoUid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamName {
+pub struct StreamClippedFromVideoUid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamClipping` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamClipping {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// clippedFromVideoUID property.
+    #[serde(rename = "clippedFromVideoUID")]
+    pub clipped_from_video_uid: Option<StreamClippedFromVideoUid>,
+    /// created property.
+    pub created: Option<StreamClippingCreated>,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// endTimeSeconds property.
+    #[serde(rename = "endTimeSeconds")]
+    pub end_time_seconds: Option<StreamEndTimeSeconds>,
+    /// maxDurationSeconds property.
+    #[serde(rename = "maxDurationSeconds")]
+    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
+    /// meta property.
+    pub meta: Option<StreamMediaMetadata>,
+    /// modified property.
+    pub modified: Option<StreamLiveInputModified>,
+    /// playback property.
+    pub playback: Option<StreamPlayback>,
+    /// preview property.
+    pub preview: Option<StreamPreview>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// startTimeSeconds property.
+    #[serde(rename = "startTimeSeconds")]
+    pub start_time_seconds: Option<StreamStartTimeSeconds>,
+    /// status property.
+    pub status: Option<StreamMediaState>,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// watermark property.
+    pub watermark: Option<StreamWatermarkAtUpload>,
+}
+
+/// `StreamClippingCreated` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamClippingCreated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamCopyAudioTrack` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamCopyAudioTrack {
+    /// label property.
+    pub label: StreamAudioLabel,
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `StreamCreateInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamCreateInputRequest {
+    /// defaultCreator property.
+    #[serde(rename = "defaultCreator")]
+    pub default_creator: Option<StreamLiveInputDefaultCreator>,
+    /// deleteRecordingAfterDays property.
+    #[serde(rename = "deleteRecordingAfterDays")]
+    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
+    /// enabled property.
+    pub enabled: Option<StreamLiveInputEnabled>,
+    /// meta property.
+    pub meta: Option<StreamLiveInputMetadata>,
+    /// recording property.
+    pub recording: Option<StreamLiveInputRecordingSettings>,
+}
+
+/// `StreamCreateOutputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamCreateOutputRequest {
+    /// enabled property.
+    pub enabled: Option<StreamOutputEnabled>,
+    /// streamKey property.
+    #[serde(rename = "streamKey")]
+    pub stream_key: StreamOutputStreamKey,
+    /// url property.
+    pub url: StreamOutputUrl,
+}
+
+/// `StreamCreated` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamCreated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamCreator` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamCreator {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamDeletedResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDeletedResponse {
+    /// `result` property.
+    pub result: Option<String>,
+}
+
+/// `StreamDirectUploadRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDirectUploadRequest {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// expiry property.
+    pub expiry: Option<String>,
+    /// maxDurationSeconds property.
+    #[serde(rename = "maxDurationSeconds")]
+    pub max_duration_seconds: StreamMaxDurationSeconds,
+    /// meta property.
+    pub meta: Option<StreamMediaMetadata>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// scheduledDeletion property.
+    #[serde(rename = "scheduledDeletion")]
+    pub scheduled_deletion: Option<StreamScheduledDeletion>,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// watermark property.
+    pub watermark: Option<StreamWatermarkAtUpload>,
+}
+
+/// `StreamDirectUploadResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDirectUploadResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `StreamDownloadPercentComplete` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadPercentComplete {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamDownloadStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamDownloadUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamDownloadedFrom` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadedFrom {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamDownloads` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloads {
+    /// percentComplete property.
+    #[serde(rename = "percentComplete")]
+    pub percent_complete: Option<StreamDownloadPercentComplete>,
+    /// status property.
+    pub status: Option<StreamDownloadStatus>,
+    /// url property.
+    pub url: Option<StreamDownloadUrl>,
+}
+
+/// `StreamDownloadsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadsResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `StreamDownloadsResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDownloadsResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamDownloads>,
+}
+
+/// `StreamDuration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamDuration {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamEditAudioTrack` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamEditAudioTrack {
+    /// default property.
+    pub default: Option<StreamAudioDefault>,
+    /// label property.
+    pub label: Option<StreamAudioLabel>,
+}
+
+/// `StreamEndTimeSeconds` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamEndTimeSeconds {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamErrorReasonCode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamErrorReasonCode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamErrorReasonText` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamErrorReasonText {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamGeneratedCaption` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamGeneratedCaption {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamHeight` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamHeight {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInput` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInput {
+    /// height property.
+    pub height: Option<i64>,
+    /// width property.
+    pub width: Option<i64>,
+}
+
+/// `StreamInputRtmps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputRtmps {
+    /// streamKey property.
+    #[serde(rename = "streamKey")]
+    pub stream_key: Option<StreamInputRtmpsStreamKey>,
+    /// url property.
+    pub url: Option<StreamInputRtmpsUrl>,
+}
+
+/// `StreamInputRtmpsStreamKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputRtmpsStreamKey {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInputRtmpsUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputRtmpsUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInputSrt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputSrt {
+    /// passphrase property.
+    pub passphrase: Option<StreamInputSrtStreamPassphrase>,
+    /// streamId property.
+    #[serde(rename = "streamId")]
+    pub stream_id: Option<StreamInputSrtStreamId>,
+    /// url property.
+    pub url: Option<StreamInputSrtUrl>,
+}
+
+/// `StreamInputSrtStreamId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputSrtStreamId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInputSrtStreamPassphrase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputSrtStreamPassphrase {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInputSrtUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputSrtUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamInputWebrtc` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputWebrtc {
+    /// url property.
+    pub url: Option<StreamInputWebrtcUrl>,
+}
+
+/// `StreamInputWebrtcUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamInputWebrtcUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamJwk` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamJwk {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -211,229 +482,38 @@ pub struct StreamKeyGenerationResponse {
     pub result: Option<StreamKeys>,
 }
 
-/// `StreamInputWebrtcUrl` type.
+/// `StreamKeyResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputWebrtcUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamWatermarkAtUpload` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkAtUpload {
-    /// uid property.
-    pub uid: Option<String>,
-}
-
-/// `StreamWatermarkResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkResponseSingle {
+pub struct StreamKeyResponseCollection {
     /// `result` property.
-    pub result: Option<StreamWatermarks>,
+    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
-/// `StreamClipResponseSingle` response type.
+/// `StreamKeys` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamClipResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamKeys {
+    /// created property.
+    pub created: Option<StreamSigningKeyCreated>,
+    /// id property.
+    pub id: Option<StreamSchemasIdentifier>,
+    /// jwk property.
+    pub jwk: Option<StreamJwk>,
+    /// pem property.
+    pub pem: Option<StreamPem>,
+}
+
+/// `StreamLabel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLabel {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamDownloads` type.
+/// `StreamLanguage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloads {
-    /// percentComplete property.
-    pub percent_complete: Option<StreamDownloadPercentComplete>,
-    /// status property.
-    pub status: Option<StreamDownloadStatus>,
-    /// url property.
-    pub url: Option<StreamDownloadUrl>,
-}
-
-/// `StreamLiveInputEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputEnabled {
+pub struct StreamLanguage {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamUpdateOutputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamUpdateOutputRequest {
-    /// enabled property.
-    pub enabled: StreamOutputEnabled,
-}
-
-/// `StreamLanguageResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLanguageResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamCaptions>,
-}
-
-/// `StreamWatermarkResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<StreamWatermarks>>,
-}
-
-/// `StreamInputWebrtc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputWebrtc {
-    /// url property.
-    pub url: Option<StreamInputWebrtcUrl>,
-}
-
-/// `StreamAddAudioTrackResponse` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamAddAudioTrackResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamVideoUpdate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoUpdate {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// maxDurationSeconds property.
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// uploadExpiry property.
-    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
-}
-
-/// `StreamModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamModified {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamVideoClipStandard` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoClipStandard {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPem {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPosition` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPosition {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputModified {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamCopyAudioTrack` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCopyAudioTrack {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputRecordingMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingMode {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamOutput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutput {
-    /// enabled property.
-    pub enabled: Option<StreamOutputEnabled>,
-    /// streamKey property.
-    pub stream_key: Option<StreamOutputStreamKey>,
-    /// uid property.
-    pub uid: Option<StreamOutputIdentifier>,
-    /// url property.
-    pub url: Option<StreamOutputUrl>,
-}
-
-/// `StreamWebhookRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWebhookRequest {
-    /// notificationUrl property.
-    pub notification_url: StreamNotificationUrl,
-}
-
-/// `StreamApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamApiResponseSingle {
-}
-
-/// `StreamPlaybackSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrtStreamPassphrase {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPlaybackRtmps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackRtmps {
-    /// streamKey property.
-    pub stream_key: Option<StreamPlaybackRtmpsStreamKey>,
-    /// url property.
-    pub url: Option<StreamPlaybackRtmpsUrl>,
-}
-
-/// `StreamOutputResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamOutput>,
-}
-
-/// `StreamLiveInputRecordingSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingSettings {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// hideLiveViewerCount property.
-    pub hide_live_viewer_count: Option<StreamLiveInputRecordingHideLiveViewerCount>,
-    /// mode property.
-    pub mode: Option<StreamLiveInputRecordingMode>,
-    /// requireSignedURLs property.
-    pub require_signed_ur_ls: Option<StreamLiveInputRecordingRequireSignedURLs>,
-    /// timeoutSeconds property.
-    pub timeout_seconds: Option<StreamLiveInputRecordingTimeoutSeconds>,
-}
-
-/// `StreamLiveInputResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamLiveInput>,
 }
 
 /// `StreamLanguageResponseCollection` type.
@@ -443,12 +523,27 @@ pub struct StreamLanguageResponseCollection {
     pub result: Option<Vec<StreamCaptions>>,
 }
 
+/// `StreamLanguageResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLanguageResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamCaptions>,
+}
+
+/// `StreamListAudioTrackResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamListAudioTrackResponse {
+    /// `result` property.
+    pub result: Option<Vec<StreamAdditionalAudio>>,
+}
+
 /// `StreamLiveInput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInput {
     /// created property.
     pub created: Option<StreamLiveInputCreated>,
     /// deleteRecordingAfterDays property.
+    #[serde(rename = "deleteRecordingAfterDays")]
     pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
     /// enabled property.
     pub enabled: Option<StreamLiveInputEnabled>,
@@ -461,62 +556,319 @@ pub struct StreamLiveInput {
     /// rtmps property.
     pub rtmps: Option<StreamInputRtmps>,
     /// rtmpsPlayback property.
+    #[serde(rename = "rtmpsPlayback")]
     pub rtmps_playback: Option<StreamPlaybackRtmps>,
     /// srt property.
     pub srt: Option<StreamInputSrt>,
     /// srtPlayback property.
+    #[serde(rename = "srtPlayback")]
     pub srt_playback: Option<StreamPlaybackSrt>,
     /// status property.
     pub status: Option<StreamLiveInputStatus>,
     /// uid property.
     pub uid: Option<StreamLiveInputIdentifier>,
     /// webRTC property.
+    #[serde(rename = "webRTC")]
     pub web_rtc: Option<StreamInputWebrtc>,
     /// webRTCPlayback property.
+    #[serde(rename = "webRTCPlayback")]
     pub web_rtc_playback: Option<StreamPlaybackWebrtc>,
 }
 
-/// `StreamLiveInputRecordingRequireSignedURLs` response type.
+/// `StreamLiveInputCreated` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputCreated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputDefaultCreator` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputDefaultCreator {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputEnabled` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputEnabled {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputMetadata {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputModified` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputModified {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputObjectWithoutUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputObjectWithoutUrl {
+    /// created property.
+    pub created: Option<StreamLiveInputCreated>,
+    /// deleteRecordingAfterDays property.
+    #[serde(rename = "deleteRecordingAfterDays")]
+    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
+    /// enabled property.
+    pub enabled: Option<StreamLiveInputEnabled>,
+    /// meta property.
+    pub meta: Option<StreamLiveInputMetadata>,
+    /// modified property.
+    pub modified: Option<StreamLiveInputModified>,
+    /// uid property.
+    pub uid: Option<StreamLiveInputIdentifier>,
+}
+
+/// `StreamLiveInputRecordingAllowedOrigins` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingAllowedOrigins {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputRecordingDeletion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingDeletion {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputRecordingHideLiveViewerCount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingHideLiveViewerCount {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputRecordingMode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingMode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamLiveInputRecordingRequireSignedURLs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInputRecordingRequireSignedURLs {
-    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamUploaded` type.
+/// `StreamLiveInputRecordingSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamUploaded {
+pub struct StreamLiveInputRecordingSettings {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// hideLiveViewerCount property.
+    #[serde(rename = "hideLiveViewerCount")]
+    pub hide_live_viewer_count: Option<StreamLiveInputRecordingHideLiveViewerCount>,
+    /// mode property.
+    pub mode: Option<StreamLiveInputRecordingMode>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamLiveInputRecordingRequireSignedURLs>,
+    /// timeoutSeconds property.
+    #[serde(rename = "timeoutSeconds")]
+    pub timeout_seconds: Option<StreamLiveInputRecordingTimeoutSeconds>,
+}
+
+/// `StreamLiveInputRecordingTimeoutSeconds` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingTimeoutSeconds {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamDuration` type.
+/// `StreamLiveInputResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDuration {
+pub struct StreamLiveInputResponseCollection {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `StreamLiveInputResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamLiveInput>,
+}
+
+/// `StreamLiveInputStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputStatus {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamInputRtmps` type.
+/// `StreamMaxDurationSeconds` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputRtmps {
+pub struct StreamMaxDurationSeconds {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamMediaMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamMediaMetadata {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamMediaState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamMediaState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamMediaStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamMediaStatus {
+    /// errorReasonCode property.
+    #[serde(rename = "errorReasonCode")]
+    pub error_reason_code: Option<StreamErrorReasonCode>,
+    /// errorReasonText property.
+    #[serde(rename = "errorReasonText")]
+    pub error_reason_text: Option<StreamErrorReasonText>,
+    /// pctComplete property.
+    #[serde(rename = "pctComplete")]
+    pub pct_complete: Option<StreamPctComplete>,
+    /// state property.
+    pub state: Option<StreamMediaState>,
+}
+
+/// `StreamMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamModified` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamModified {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamNotificationUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamNotificationUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamOneTimeUploadExpiry` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOneTimeUploadExpiry {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamOpacity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOpacity {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamOutput` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOutput {
+    /// enabled property.
+    pub enabled: Option<StreamOutputEnabled>,
     /// streamKey property.
-    pub stream_key: Option<StreamInputRtmpsStreamKey>,
+    #[serde(rename = "streamKey")]
+    pub stream_key: Option<StreamOutputStreamKey>,
+    /// uid property.
+    pub uid: Option<StreamOutputIdentifier>,
     /// url property.
-    pub url: Option<StreamInputRtmpsUrl>,
+    pub url: Option<StreamOutputUrl>,
 }
 
-/// `StreamPlaybackWebrtc` type.
+/// `StreamOutputEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackWebrtc {
-    /// url property.
-    pub url: Option<StreamPlaybackWebrtcUrl>,
+pub struct StreamOutputEnabled {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamCreator` type.
+/// `StreamOutputIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCreator {
+pub struct StreamOutputIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamOutputResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOutputResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<StreamOutput>>,
+}
+
+/// `StreamOutputResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOutputResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamOutput>,
+}
+
+/// `StreamOutputStreamKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOutputStreamKey {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamOutputUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamOutputUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamPadding` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamPadding {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamPctComplete` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamPctComplete {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamPem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamPem {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -530,303 +882,129 @@ pub struct StreamPlayback {
     pub hls: Option<String>,
 }
 
-/// `StreamOpacity` type.
+/// `StreamPlaybackRtmps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOpacity {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamListAudioTrackResponse` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamListAudioTrackResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamCreateOutputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCreateOutputRequest {
-    /// enabled property.
-    pub enabled: Option<StreamOutputEnabled>,
+pub struct StreamPlaybackRtmps {
     /// streamKey property.
-    pub stream_key: StreamOutputStreamKey,
+    #[serde(rename = "streamKey")]
+    pub stream_key: Option<StreamPlaybackRtmpsStreamKey>,
     /// url property.
-    pub url: StreamOutputUrl,
+    pub url: Option<StreamPlaybackRtmpsUrl>,
 }
 
-/// `StreamInputRtmpsStreamKey` type.
+/// `StreamPlaybackRtmpsStreamKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputRtmpsStreamKey {
+pub struct StreamPlaybackRtmpsStreamKey {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamDownloadUrl` type.
+/// `StreamPlaybackRtmpsUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadUrl {
+pub struct StreamPlaybackRtmpsUrl {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamCreated` type.
+/// `StreamPlaybackSrt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCreated {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamKeyResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamKeyResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
-
-/// `StreamWatermarkCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkCreated {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamAllowedOrigins` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamAllowedOrigins {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamDownloadsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadsResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `StreamLiveInputMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputMetadata {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputObjectWithoutUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputObjectWithoutUrl {
-    /// created property.
-    pub created: Option<StreamLiveInputCreated>,
-    /// deleteRecordingAfterDays property.
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// modified property.
-    pub modified: Option<StreamLiveInputModified>,
-    /// uid property.
-    pub uid: Option<StreamLiveInputIdentifier>,
-}
-
-/// `StreamErrorReasonText` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamErrorReasonText {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamVideos` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideos {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// created property.
-    pub created: Option<StreamCreated>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// duration property.
-    pub duration: Option<StreamDuration>,
-    /// input property.
-    pub input: Option<StreamInput>,
-    /// liveInput property.
-    pub live_input: Option<StreamLiveInput>,
-    /// maxDurationSeconds property.
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// modified property.
-    pub modified: Option<StreamModified>,
-    /// playback property.
-    pub playback: Option<StreamPlayback>,
-    /// preview property.
-    pub preview: Option<StreamPreview>,
-    /// readyToStream property.
-    pub ready_to_stream: Option<StreamReadyToStream>,
-    /// readyToStreamAt property.
-    pub ready_to_stream_at: Option<StreamReadyToStreamAt>,
-    /// requireSignedURLs property.
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// size property.
-    pub size: Option<StreamSize>,
-    /// status property.
-    pub status: Option<StreamMediaStatus>,
-    /// thumbnail property.
-    pub thumbnail: Option<StreamThumbnailUrl>,
-    /// thumbnailTimestampPct property.
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// uid property.
-    pub uid: Option<StreamIdentifier>,
-    /// uploadExpiry property.
-    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
-    /// uploaded property.
-    pub uploaded: Option<StreamUploaded>,
-    /// watermark property.
-    pub watermark: Option<StreamWatermarks>,
-}
-
-/// `StreamAccessRules` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamAccessRules {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamThumbnailUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamThumbnailUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamJwk` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamJwk {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamThumbnailTimestampPct` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamThumbnailTimestampPct {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputCreated {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamVideoCopyRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoCopyRequest {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+pub struct StreamPlaybackSrt {
+    /// passphrase property.
+    pub passphrase: Option<StreamPlaybackSrtStreamPassphrase>,
+    /// streamId property.
+    #[serde(rename = "streamId")]
+    pub stream_id: Option<StreamPlaybackSrtStreamId>,
     /// url property.
-    pub url: String,
-    /// watermark property.
-    pub watermark: Option<StreamWatermarkAtUpload>,
+    pub url: Option<StreamPlaybackSrtUrl>,
 }
 
-/// `StreamApiResponseCommon` type.
+/// `StreamPlaybackSrtStreamId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `StreamWatermarkSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkSize {
+pub struct StreamPlaybackSrtStreamId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamLanguage` type.
+/// `StreamPlaybackSrtStreamPassphrase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLanguage {
+pub struct StreamPlaybackSrtStreamPassphrase {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamInputSrtUrl` type.
+/// `StreamPlaybackSrtUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrtUrl {
+pub struct StreamPlaybackSrtUrl {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamOutputIdentifier` type.
+/// `StreamPlaybackWebrtc` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputIdentifier {
+pub struct StreamPlaybackWebrtc {
+    /// url property.
+    pub url: Option<StreamPlaybackWebrtcUrl>,
+}
+
+/// `StreamPlaybackWebrtcUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamPlaybackWebrtcUrl {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamOneTimeUploadExpiry` response type.
+/// `StreamPosition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOneTimeUploadExpiry {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamPosition {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamGeneratedCaption` type.
+/// `StreamPreview` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamGeneratedCaption {
+pub struct StreamPreview {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamDeletedResponse` type.
+/// `StreamReadyToStream` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDeletedResponse {
-    /// `result` property.
-    pub result: Option<String>,
+pub struct StreamReadyToStream {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamInput` type.
+/// `StreamReadyToStreamAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInput {
-    /// height property.
-    pub height: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
+pub struct StreamReadyToStreamAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamSize` type.
+/// `StreamRequireSignedURLs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamSize {
+pub struct StreamRequireSignedURLs {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamScale` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamScale {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamScheduledDeletion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamScheduledDeletion {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamSchemasIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamSchemasIdentifier {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -835,6 +1013,7 @@ pub struct StreamSize {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamSignedTokenRequest {
     /// accessRules property.
+    #[serde(rename = "accessRules")]
     pub access_rules: Option<Vec<StreamAccessRules>>,
     /// downloadable property.
     pub downloadable: Option<bool>,
@@ -848,117 +1027,6 @@ pub struct StreamSignedTokenRequest {
     pub pem: Option<String>,
 }
 
-/// `StreamInputSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamInputSrtStreamPassphrase>,
-    /// streamId property.
-    pub stream_id: Option<StreamInputSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamInputSrtUrl>,
-}
-
-/// `StreamPlaybackRtmpsStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackRtmpsStreamKey {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPreview {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPlaybackRtmpsUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackRtmpsUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamEditAudioTrack` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamEditAudioTrack {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPlaybackSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamPlaybackSrtStreamPassphrase>,
-    /// streamId property.
-    pub stream_id: Option<StreamPlaybackSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamPlaybackSrtUrl>,
-}
-
-/// `StreamMaxDurationSeconds` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMaxDurationSeconds {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamMediaState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMediaState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputRecordingAllowedOrigins` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingAllowedOrigins {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamDirectUploadRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDirectUploadRequest {
-    /// allowedOrigins property.
-    pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// expiry property.
-    pub expiry: Option<String>,
-    /// maxDurationSeconds property.
-    pub max_duration_seconds: StreamMaxDurationSeconds,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// watermark property.
-    pub watermark: Option<StreamWatermarkAtUpload>,
-}
-
-/// `StreamInputSrtStreamId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrtStreamId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `StreamSignedTokenResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamSignedTokenResponse {
@@ -966,17 +1034,23 @@ pub struct StreamSignedTokenResponse {
     pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `StreamDownloadsResponseSingle` type.
+/// `StreamSigningKeyCreated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadsResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamDownloads>,
+pub struct StreamSigningKeyCreated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamNotificationUrl` response type.
+/// `StreamSize` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamNotificationUrl {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamSize {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StreamStartTimeSeconds` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamStartTimeSeconds {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -988,77 +1062,217 @@ pub struct StreamStorageUseResponse {
     pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `StreamReadyToStream` response type.
+/// `StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamReadyToStream {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse {
+    /// `result` property.
+    pub result: Option<String>,
+}
+
+/// `StreamThumbnailTimestampPct` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamThumbnailTimestampPct {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamScale` type.
+/// `StreamThumbnailUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamScale {
+pub struct StreamThumbnailUrl {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamPlaybackSrtUrl` type.
+/// `StreamUpdateInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrtUrl {
+pub struct StreamUpdateInputRequest {
+    /// defaultCreator property.
+    #[serde(rename = "defaultCreator")]
+    pub default_creator: Option<StreamLiveInputDefaultCreator>,
+    /// deleteRecordingAfterDays property.
+    #[serde(rename = "deleteRecordingAfterDays")]
+    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
+    /// enabled property.
+    pub enabled: Option<StreamLiveInputEnabled>,
+    /// meta property.
+    pub meta: Option<StreamLiveInputMetadata>,
+    /// recording property.
+    pub recording: Option<StreamLiveInputRecordingSettings>,
+}
+
+/// `StreamUpdateOutputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamUpdateOutputRequest {
+    /// enabled property.
+    pub enabled: StreamOutputEnabled,
+}
+
+/// `StreamUploaded` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamUploaded {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamDownloadStatus` type.
+/// `StreamVideoClipStandard` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamVideoClipStandard {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// clippedFromVideoUID property.
+    #[serde(rename = "clippedFromVideoUID")]
+    pub clipped_from_video_uid: StreamClippedFromVideoUid,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// endTimeSeconds property.
+    #[serde(rename = "endTimeSeconds")]
+    pub end_time_seconds: StreamEndTimeSeconds,
+    /// maxDurationSeconds property.
+    #[serde(rename = "maxDurationSeconds")]
+    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// startTimeSeconds property.
+    #[serde(rename = "startTimeSeconds")]
+    pub start_time_seconds: StreamStartTimeSeconds,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// watermark property.
+    pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
-/// `StreamErrorReasonCode` response type.
+/// `StreamVideoCopyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamErrorReasonCode {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamVideoCopyRequest {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// meta property.
+    pub meta: Option<StreamMediaMetadata>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// scheduledDeletion property.
+    #[serde(rename = "scheduledDeletion")]
+    pub scheduled_deletion: Option<StreamScheduledDeletion>,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// url property.
+    pub url: String,
+    /// watermark property.
+    pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
-/// `StreamPlaybackWebrtcUrl` type.
+/// `StreamVideoResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackWebrtcUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamVideoResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamVideos>,
 }
 
-/// `StreamInputRtmpsUrl` type.
+/// `StreamVideoUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputRtmpsUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamVideoUpdate {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// maxDurationSeconds property.
+    #[serde(rename = "maxDurationSeconds")]
+    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
+    /// meta property.
+    pub meta: Option<StreamMediaMetadata>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// scheduledDeletion property.
+    #[serde(rename = "scheduledDeletion")]
+    pub scheduled_deletion: Option<StreamScheduledDeletion>,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// uploadExpiry property.
+    #[serde(rename = "uploadExpiry")]
+    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
 }
 
-/// `StreamPctComplete` response type.
+/// `StreamVideos` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPctComplete {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamVideos {
+    /// allowedOrigins property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// created property.
+    pub created: Option<StreamCreated>,
+    /// creator property.
+    pub creator: Option<StreamCreator>,
+    /// duration property.
+    pub duration: Option<StreamDuration>,
+    /// input property.
+    pub input: Option<StreamInput>,
+    /// liveInput property.
+    #[serde(rename = "liveInput")]
+    pub live_input: Option<StreamLiveInput>,
+    /// maxDurationSeconds property.
+    #[serde(rename = "maxDurationSeconds")]
+    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
+    /// meta property.
+    pub meta: Option<StreamMediaMetadata>,
+    /// modified property.
+    pub modified: Option<StreamModified>,
+    /// playback property.
+    pub playback: Option<StreamPlayback>,
+    /// preview property.
+    pub preview: Option<StreamPreview>,
+    /// readyToStream property.
+    #[serde(rename = "readyToStream")]
+    pub ready_to_stream: Option<StreamReadyToStream>,
+    /// readyToStreamAt property.
+    #[serde(rename = "readyToStreamAt")]
+    pub ready_to_stream_at: Option<StreamReadyToStreamAt>,
+    /// requireSignedURLs property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
+    /// scheduledDeletion property.
+    #[serde(rename = "scheduledDeletion")]
+    pub scheduled_deletion: Option<StreamScheduledDeletion>,
+    /// size property.
+    pub size: Option<StreamSize>,
+    /// status property.
+    pub status: Option<StreamMediaStatus>,
+    /// thumbnail property.
+    pub thumbnail: Option<StreamThumbnailUrl>,
+    /// thumbnailTimestampPct property.
+    #[serde(rename = "thumbnailTimestampPct")]
+    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
+    /// uid property.
+    pub uid: Option<StreamIdentifier>,
+    /// uploadExpiry property.
+    #[serde(rename = "uploadExpiry")]
+    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
+    /// uploaded property.
+    pub uploaded: Option<StreamUploaded>,
+    /// watermark property.
+    pub watermark: Option<StreamWatermarks>,
 }
 
-/// `StreamLiveInputRecordingTimeoutSeconds` response type.
+/// `StreamWatermarkAtUpload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingTimeoutSeconds {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamWatermarkAtUpload {
+    /// uid property.
+    pub uid: Option<String>,
 }
 
-/// `StreamDownloadedFrom` response type.
+/// `StreamWatermarkCreated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadedFrom {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct StreamWatermarkCreated {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -1070,67 +1284,30 @@ pub struct StreamWatermarkIdentifier {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `StreamMediaMetadata` type.
+/// `StreamWatermarkProfileDeleteWatermarkProfilesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMediaMetadata {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamWatermarkProfileDeleteWatermarkProfilesResponse {
+    /// `result` property.
+    pub result: Option<String>,
 }
 
-/// `StreamHeight` type.
+/// `StreamWatermarkResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamHeight {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamWatermarkResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<StreamWatermarks>>,
 }
 
-/// `StreamOutputEnabled` type.
+/// `StreamWatermarkResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputEnabled {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct StreamWatermarkResponseSingle {
+    /// `result` property.
+    pub result: Option<StreamWatermarks>,
 }
 
-/// `StreamRequireSignedURLs` response type.
+/// `StreamWatermarkSize` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamRequireSignedURLs {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamScheduledDeletion` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamScheduledDeletion {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamInputSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrtStreamPassphrase {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamCaptionStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamCaptionStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamLiveInputDefaultCreator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputDefaultCreator {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `StreamPadding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPadding {
+pub struct StreamWatermarkSize {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -1141,6 +1318,7 @@ pub struct StreamWatermarks {
     /// created property.
     pub created: Option<StreamWatermarkCreated>,
     /// downloadedFrom property.
+    #[serde(rename = "downloadedFrom")]
     pub downloaded_from: Option<StreamDownloadedFrom>,
     /// height property.
     pub height: Option<StreamHeight>,
@@ -1162,24 +1340,24 @@ pub struct StreamWatermarks {
     pub width: Option<StreamWidth>,
 }
 
-/// `StreamUpdateInputRequest` type.
+/// `StreamWebhookRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamUpdateInputRequest {
-    /// defaultCreator property.
-    pub default_creator: Option<StreamLiveInputDefaultCreator>,
-    /// deleteRecordingAfterDays property.
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// recording property.
-    pub recording: Option<StreamLiveInputRecordingSettings>,
+pub struct StreamWebhookRequest {
+    /// notificationUrl property.
+    #[serde(rename = "notificationUrl")]
+    pub notification_url: StreamNotificationUrl,
 }
 
-/// `StreamPlaybackSrtStreamId` type.
+/// `StreamWebhookResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrtStreamId {
+pub struct StreamWebhookResponseSingle {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `StreamWidth` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamWidth {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -1646,15 +1824,16 @@ pub struct StreamVideosCreateSignedUrlTokensForVideosArgs {
 pub async fn stream_video_clipping_clip_videos_given_a_start_and_end_time_request<F>(
     client: DynNetClient,
     args: &StreamVideoClippingClipVideosGivenAStartAndEndTimeArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamClipResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/clip",
+    let path = format!("/accounts/{}/stream/clip",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1672,7 +1851,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamClipResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1704,15 +1886,16 @@ where
 pub async fn stream_videos_upload_videos_from_a_url_request<F>(
     client: DynNetClient,
     args: &StreamVideosUploadVideosFromAUrlArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamVideoResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/copy",
+    let path = format!("/accounts/{}/stream/copy",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1730,7 +1913,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1762,15 +1948,16 @@ where
 pub async fn stream_videos_upload_videos_via_direct_upload_ur_ls_request<F>(
     client: DynNetClient,
     args: &StreamVideosUploadVideosViaDirectUploadUrLsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDirectUploadResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/direct_upload",
+    let path = format!("/accounts/{}/stream/direct_upload",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1788,7 +1975,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDirectUploadResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1820,15 +2010,16 @@ where
 pub async fn stream_signing_keys_list_signing_keys_request<F>(
     client: DynNetClient,
     args: &StreamSigningKeysListSigningKeysArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamKeyResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/keys",
+    let path = format!("/accounts/{}/stream/keys",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1843,7 +2034,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamKeyResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1875,15 +2069,16 @@ where
 pub async fn stream_signing_keys_create_signing_keys_request<F>(
     client: DynNetClient,
     args: &StreamSigningKeysCreateSigningKeysArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamKeyGenerationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/keys",
+    let path = format!("/accounts/{}/stream/keys",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1898,7 +2093,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamKeyGenerationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1930,16 +2128,17 @@ where
 pub async fn stream_signing_keys_delete_signing_keys_request<F>(
     client: DynNetClient,
     args: &StreamSigningKeysDeleteSigningKeysArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDeletedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/keys/{}",
+    let path = format!("/accounts/{}/stream/keys/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1954,7 +2153,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1986,15 +2188,16 @@ where
 pub async fn stream_live_inputs_list_live_inputs_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsListLiveInputsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs",
+    let path = format!("/accounts/{}/stream/live_inputs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2011,7 +2214,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2043,15 +2249,16 @@ where
 pub async fn stream_live_inputs_create_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsCreateALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs",
+    let path = format!("/accounts/{}/stream/live_inputs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2069,7 +2276,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2101,16 +2311,17 @@ where
 pub async fn stream_live_inputs_retrieve_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsRetrieveALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}",
+    let path = format!("/accounts/{}/stream/live_inputs/{}",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2125,7 +2336,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2157,16 +2371,17 @@ where
 pub async fn stream_live_inputs_update_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsUpdateALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}",
+    let path = format!("/accounts/{}/stream/live_inputs/{}",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2184,7 +2399,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2216,16 +2434,17 @@ where
 pub async fn stream_live_inputs_delete_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsDeleteALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}",
+    let path = format!("/accounts/{}/stream/live_inputs/{}",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2240,7 +2459,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -2270,16 +2492,17 @@ where
 pub async fn stream_live_inputs_disable_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsDisableALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/disable",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/disable",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2294,7 +2517,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2326,16 +2552,17 @@ where
 pub async fn stream_live_inputs_enable_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsEnableALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLiveInputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/enable",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/enable",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2350,7 +2577,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2382,16 +2612,17 @@ where
 pub async fn stream_live_inputs_list_all_outputs_associated_with_a_specified_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamOutputResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/outputs",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2406,7 +2637,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamOutputResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2438,16 +2672,17 @@ where
 pub async fn stream_live_inputs_create_a_new_output_connected_to_a_live_input_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsCreateANewOutputConnectedToALiveInputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamOutputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/outputs",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs",
         args.account_id,
         args.live_input_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2465,7 +2700,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamOutputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2497,17 +2735,18 @@ where
 pub async fn stream_live_inputs_update_an_output_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsUpdateAnOutputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamOutputResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/outputs/{}",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs/{}",
         args.account_id,
         args.live_input_identifier,
         args.output_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2525,7 +2764,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamOutputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2557,17 +2799,18 @@ where
 pub async fn stream_live_inputs_delete_an_output_request<F>(
     client: DynNetClient,
     args: &StreamLiveInputsDeleteAnOutputArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/live_inputs/{}/outputs/{}",
+    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs/{}",
         args.account_id,
         args.live_input_identifier,
         args.output_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2582,7 +2825,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -2612,15 +2858,16 @@ where
 pub async fn stream_videos_storage_usage_request<F>(
     client: DynNetClient,
     args: &StreamVideosStorageUsageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamStorageUseResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/storage-usage",
+    let path = format!("/accounts/{}/stream/storage-usage",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2637,7 +2884,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamStorageUseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2669,15 +2919,16 @@ where
 pub async fn stream_watermark_profile_list_watermark_profiles_request<F>(
     client: DynNetClient,
     args: &StreamWatermarkProfileListWatermarkProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamWatermarkResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/watermarks",
+    let path = format!("/accounts/{}/stream/watermarks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2692,7 +2943,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamWatermarkResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2724,15 +2978,16 @@ where
 pub async fn stream_watermark_profile_create_watermark_profiles_via_basic_upload_request<F>(
     client: DynNetClient,
     args: &StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamWatermarkResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/watermarks",
+    let path = format!("/accounts/{}/stream/watermarks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2747,7 +3002,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamWatermarkResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2779,16 +3037,17 @@ where
 pub async fn stream_watermark_profile_watermark_profile_details_request<F>(
     client: DynNetClient,
     args: &StreamWatermarkProfileWatermarkProfileDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamWatermarkResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/watermarks/{}",
+    let path = format!("/accounts/{}/stream/watermarks/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2803,7 +3062,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamWatermarkResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2835,16 +3097,17 @@ where
 pub async fn stream_watermark_profile_delete_watermark_profiles_request<F>(
     client: DynNetClient,
     args: &StreamWatermarkProfileDeleteWatermarkProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<StreamWatermarkProfileDeleteWatermarkProfilesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/watermarks/{}",
+    let path = format!("/accounts/{}/stream/watermarks/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2859,9 +3122,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: StreamWatermarkProfileDeleteWatermarkProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2889,15 +3157,16 @@ where
 pub async fn stream_webhook_view_webhooks_request<F>(
     client: DynNetClient,
     args: &StreamWebhookViewWebhooksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamWebhookResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/webhook",
+    let path = format!("/accounts/{}/stream/webhook",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2912,7 +3181,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamWebhookResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2944,15 +3216,16 @@ where
 pub async fn stream_webhook_create_webhooks_request<F>(
     client: DynNetClient,
     args: &StreamWebhookCreateWebhooksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamWebhookResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/webhook",
+    let path = format!("/accounts/{}/stream/webhook",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2970,7 +3243,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamWebhookResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3002,15 +3278,16 @@ where
 pub async fn stream_webhook_delete_webhooks_request<F>(
     client: DynNetClient,
     args: &StreamWebhookDeleteWebhooksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDeletedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/webhook",
+    let path = format!("/accounts/{}/stream/webhook",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3025,7 +3302,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3057,16 +3337,17 @@ where
 pub async fn stream_videos_retrieve_video_details_request<F>(
     client: DynNetClient,
     args: &StreamVideosRetrieveVideoDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamVideoResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}",
+    let path = format!("/accounts/{}/stream/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3081,7 +3362,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3113,16 +3397,17 @@ where
 pub async fn stream_videos_update_video_details_request<F>(
     client: DynNetClient,
     args: &StreamVideosUpdateVideoDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamVideoResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}",
+    let path = format!("/accounts/{}/stream/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3140,7 +3425,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3172,16 +3460,17 @@ where
 pub async fn stream_videos_delete_video_request<F>(
     client: DynNetClient,
     args: &StreamVideosDeleteVideoArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}",
+    let path = format!("/accounts/{}/stream/{}",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3196,7 +3485,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -3226,16 +3518,17 @@ where
 pub async fn list_audio_tracks_request<F>(
     client: DynNetClient,
     args: &ListAudioTracksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamListAudioTrackResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/audio",
+    let path = format!("/accounts/{}/stream/{}/audio",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3250,7 +3543,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamListAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3282,16 +3578,17 @@ where
 pub async fn add_audio_track_request<F>(
     client: DynNetClient,
     args: &AddAudioTrackArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamAddAudioTrackResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/audio/copy",
+    let path = format!("/accounts/{}/stream/{}/audio/copy",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3309,7 +3606,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamAddAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3341,17 +3641,18 @@ where
 pub async fn edit_audio_tracks_request<F>(
     client: DynNetClient,
     args: &EditAudioTracksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamAddAudioTrackResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/audio/{}",
+    let path = format!("/accounts/{}/stream/{}/audio/{}",
         args.account_id,
         args.identifier,
         args.audio_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3369,7 +3670,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamAddAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3401,17 +3705,18 @@ where
 pub async fn delete_audio_tracks_request<F>(
     client: DynNetClient,
     args: &DeleteAudioTracksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDeletedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/audio/{}",
+    let path = format!("/accounts/{}/stream/{}/audio/{}",
         args.account_id,
         args.identifier,
         args.audio_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3426,7 +3731,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3458,16 +3766,17 @@ where
 pub async fn stream_subtitles_captions_list_captions_or_subtitles_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLanguageResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions",
+    let path = format!("/accounts/{}/stream/{}/captions",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3482,7 +3791,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLanguageResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3514,17 +3826,18 @@ where
 pub async fn stream_subtitles_captions_get_caption_or_subtitle_for_language_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLanguageResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions/{}",
+    let path = format!("/accounts/{}/stream/{}/captions/{}",
         args.account_id,
         args.identifier,
         args.language,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3539,7 +3852,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3571,17 +3887,18 @@ where
 pub async fn stream_subtitles_captions_upload_captions_or_subtitles_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsUploadCaptionsOrSubtitlesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLanguageResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions/{}",
+    let path = format!("/accounts/{}/stream/{}/captions/{}",
         args.account_id,
         args.identifier,
         args.language,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3596,7 +3913,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3628,17 +3948,18 @@ where
 pub async fn stream_subtitles_captions_delete_captions_or_subtitles_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions/{}",
+    let path = format!("/accounts/{}/stream/{}/captions/{}",
         args.account_id,
         args.identifier,
         args.language,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3653,9 +3974,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3683,17 +4009,18 @@ where
 pub async fn stream_subtitles_captions_generate_caption_or_subtitle_for_language_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsGenerateCaptionOrSubtitleForLanguageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamLanguageResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions/{}/generate",
+    let path = format!("/accounts/{}/stream/{}/captions/{}/generate",
         args.account_id,
         args.identifier,
         args.language,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3708,7 +4035,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3740,17 +4070,18 @@ where
 pub async fn stream_subtitles_captions_get_vtt_caption_or_subtitle_request<F>(
     client: DynNetClient,
     args: &StreamSubtitlesCaptionsGetVttCaptionOrSubtitleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/captions/{}/vtt",
+    let path = format!("/accounts/{}/stream/{}/captions/{}/vtt",
         args.account_id,
         args.identifier,
         args.language,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3765,7 +4096,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -3795,16 +4129,17 @@ where
 pub async fn stream_m_p_4_downloads_list_downloads_request<F>(
     client: DynNetClient,
     args: &StreamMP4DownloadsListDownloadsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDownloadsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/downloads",
+    let path = format!("/accounts/{}/stream/{}/downloads",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3819,7 +4154,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDownloadsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3851,16 +4189,17 @@ where
 pub async fn stream_m_p_4_downloads_create_downloads_request<F>(
     client: DynNetClient,
     args: &StreamMP4DownloadsCreateDownloadsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDownloadsResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/downloads",
+    let path = format!("/accounts/{}/stream/{}/downloads",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3875,7 +4214,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDownloadsResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3907,16 +4249,17 @@ where
 pub async fn stream_m_p_4_downloads_delete_downloads_request<F>(
     client: DynNetClient,
     args: &StreamMP4DownloadsDeleteDownloadsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDeletedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/downloads",
+    let path = format!("/accounts/{}/stream/{}/downloads",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3931,7 +4274,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3963,17 +4309,18 @@ where
 pub async fn stream_downloads_create_type_specific_downloads_request<F>(
     client: DynNetClient,
     args: &StreamDownloadsCreateTypeSpecificDownloadsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDownloadsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/downloads/{}",
+    let path = format!("/accounts/{}/stream/{}/downloads/{}",
         args.account_id,
         args.identifier,
         args.download_type,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3988,7 +4335,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDownloadsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4020,17 +4370,18 @@ where
 pub async fn stream_downloads_delete_type_specific_downloads_request<F>(
     client: DynNetClient,
     args: &StreamDownloadsDeleteTypeSpecificDownloadsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamDeletedResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/downloads/{}",
+    let path = format!("/accounts/{}/stream/{}/downloads/{}",
         args.account_id,
         args.identifier,
         args.download_type,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4045,7 +4396,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4077,16 +4431,17 @@ where
 pub async fn stream_videos_retreieve_embed_code_html_request<F>(
     client: DynNetClient,
     args: &StreamVideosRetreieveEmbedCodeHtmlArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/embed",
+    let path = format!("/accounts/{}/stream/{}/embed",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4101,7 +4456,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4133,16 +4491,17 @@ where
 pub async fn stream_videos_create_signed_url_tokens_for_videos_request<F>(
     client: DynNetClient,
     args: &StreamVideosCreateSignedUrlTokensForVideosArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<StreamSignedTokenResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/stream/{}/token",
+    let path = format!("/accounts/{}/stream/{}/token",
         args.account_id,
         args.identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4160,7 +4519,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: StreamSignedTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

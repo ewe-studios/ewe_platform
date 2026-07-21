@@ -21,6 +21,36 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `CloudflareIpsCloudflareIpDetailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CloudflareIpsCloudflareIpDetailsResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `PublicIpApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PublicIpApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `PublicIpApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PublicIpApiResponseSingle {
+}
+
+/// `PublicIpMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PublicIpMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -61,14 +91,15 @@ pub struct CloudflareIpsCloudflareIpDetailsArgs {
 pub async fn cloudflare_ips_cloudflare_ip_details_request<F>(
     client: DynNetClient,
     args: &CloudflareIpsCloudflareIpDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<CloudflareIpsCloudflareIpDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/ips",
+    let path = format!("/ips",
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -85,8 +116,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: CloudflareIpsCloudflareIpDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

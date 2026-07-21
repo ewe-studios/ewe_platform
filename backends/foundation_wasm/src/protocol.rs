@@ -14,6 +14,16 @@
 //! which arena slot to `dispose_allocation` after processing. One slot, one ACK,
 //! for all protocols.
 
+// Generated protocol dispatch — large matching functions by protocol byte.
+// MSB/LSB naming, identical arms (const discriminants), and pass-by-value
+// are structural characteristics of the binary protocol decoder.
+#![allow(clippy::similar_names)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -213,7 +223,7 @@ impl ProtocolHandlerRegistry {
 /// WHAT: Reads the 14-byte [`WasmEnvelope`] header and calls `handle_from_js` on
 /// the matching handler.
 ///
-/// HOW: Parses protocol/version/memory_id/length, slices the payload, and matches
+/// HOW: Parses `protocol/version/memory_id/length`, slices the payload, and matches
 /// the protocol byte to a handler in `handlers`.
 ///
 /// # Panics
@@ -1320,7 +1330,6 @@ impl FromBinary for ReturnTypeHints {
             match parsed_item {
                 Ok(item) => {
                     decoded.push(item);
-                    continue;
                 }
                 Err(err) => {
                     return Err(err);

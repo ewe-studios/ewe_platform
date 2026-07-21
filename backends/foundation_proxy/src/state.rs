@@ -9,10 +9,13 @@
 //! plus the scheme the front end terminates (used for `X-Forwarded-Proto`).
 
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use foundation_iogate::ServerIo;
 
+use crate::config::BackendState;
 use crate::forward::SharedHttpClient;
+use crate::persistence::ProxyStateStore;
 use crate::router::Router;
 
 /// Immutable-after-startup proxy state shared by every request handler.
@@ -21,6 +24,15 @@ pub struct ProxyState {
     client: SharedHttpClient,
     scheme: String,
     io_mode: ServerIo,
+    /// When true, the accept loop has stopped and in-flight requests are draining.
+    /// The handler checks this before routing new requests — if draining, it
+    /// responds 503 to signal the client to retry elsewhere (zero-downtime deploy,
+    /// Decision 22).
+    draining: AtomicBool,
+    /// Optional persistence store (Decision 21, F14). When present, admin state
+    /// changes (drain/pause/activate) are written through so they survive a
+    /// restart. `None` disables persistence.
+    store: Option<Arc<ProxyStateStore>>,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -49,7 +61,49 @@ impl ProxyState {
             client,
             scheme: scheme.into(),
             io_mode,
+            draining: AtomicBool::new(false),
+            store: None,
         }
+    }
+
+    /// Attach a persistence store (Decision 21). Admin state changes are then
+    /// written through so drain/pause survive a restart.
+    #[must_use]
+    pub fn with_store(mut self, store: Arc<ProxyStateStore>) -> Self {
+        self.store = Some(store);
+        self
+    }
+
+    /// Persist a backend's state change, if a store is attached. Best-effort:
+    /// a persistence failure is logged, never propagated to the admin caller.
+    pub fn persist_backend_state(&self, service: &str, url: &str, state: BackendState) {
+        if let Some(store) = &self.store {
+            if let Err(e) = store.save_backend_state(service, url, &state.to_string()) {
+                tracing::warn!(%service, %url, "failed to persist backend state: {e}");
+            }
+        }
+    }
+
+    /// Begin connection draining — stop routing new requests.
+    pub fn start_drain(&self) {
+        self.draining.store(true, Ordering::SeqCst);
+    }
+
+    /// Whether the proxy is currently draining.
+    #[must_use]
+    pub fn is_draining(&self) -> bool {
+        self.draining.load(Ordering::SeqCst)
+    }
+
+    /// The total in-flight request count across all services/backends.
+    #[must_use]
+    pub fn inflight_total(&self) -> u32 {
+        self.router
+            .services()
+            .iter()
+            .flat_map(|s| s.backends())
+            .map(|b| b.inflight())
+            .sum()
     }
 
     #[must_use]

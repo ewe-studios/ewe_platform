@@ -9,9 +9,41 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
+# Host platform (generic R: Runtime — works on Wry, Android, iOS)
 tauri = { version = "2.11.5", features = [] }
+
+# Embedded assets (EmbeddableDirectory trait + #[derive(EmbedDirectoryAs)])
+foundation_nostd = { path = "../foundation_nostd" }
+
+# Shared types (dependency-free, compiles for wasm32)
+foundation_ui_traits = { path = "../foundation_ui_traits" }
+
+# WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
+foundation_wasm_ui = { path = "../foundation_wasm_ui", features = ["embedded-js"] }
+
+# Portable WASM primitives — WasmCapability trait + CapabilityRegistry (F23)
+foundation_wasm = { path = "../foundation_wasm" }
+
+# Lock-free queue for streaming IPC chunks (F26)
+concurrent-queue = { workspace = true }
+
+# Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+# HTTP client for remote fetch (F29 Stage 2)
+# Uses rustls-tls for cross-platform TLS — no native openssl dependency.
+# blocking + json features for sync fetch in route handlers.
+# HTTP client + networking — only need the client, not all of netcap/TCP
+# We explicitly enable only what HttpClientBuilder::build() requires.
+# `multi` enables NativeHttpClient; `ssl-rustls-ring` provides TLS.
+foundation_netio = { path = "../foundation_netio", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
+
+# Build-time code generation — wraps tauri_build::build() + annotation scanning.
+tauri-build = { version = "2" }
+
+[dev-dependencies]
+tauri = { version = "2.11.5", features = [] }
 
 [lints]
 workspace = true

@@ -6,6 +6,10 @@ members = [
   # "crates/*",
   "backends/*",
   "infrastructure/*",
+  "examples/platform_demo",
+  "apps/answerme-agent",
+  # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
+  # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
   "tests",  # Workspace integration tests
   "benches", # Workspace benchmarks
 ]
@@ -15,9 +19,12 @@ exclude = [
   "templates/*",
   # examples are self-contained crates — build individually as needed
   "examples/*",
+  "examples/*/src-tauri",
   # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
+  "backends/node_modules",
+  "backends/*/node_modules",
   # tests members
   "integrations/nodejs/integrations/*",
   "backends/foundation_wasm/integration/module",

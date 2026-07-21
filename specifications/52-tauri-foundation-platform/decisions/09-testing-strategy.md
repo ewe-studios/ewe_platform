@@ -1,4 +1,4 @@
-# 20 — Testing strategy: macro-driven test harness, browser + device coverage
+# 09 — Testing strategy: macro-driven test harness, browser + device coverage
 
 **Date:** 2026-07-04
 **Status:** Resolved
@@ -141,7 +141,7 @@ impl PlatformTestSession {
 a real browser. This is fast — like a unit test. It covers:
 
 - Route handler chain execution (in-process session)
-- Protocol encoding/decoding (DomOps, Arrow IPC, JSON, HTML through the
+- Protocol encoding/decoding (DomOps, Arrow/ArrowIpc, JSON, HTML through the
   `UriSchemeProtocol` handler)
 - Cache store/retrieve/invalidate (in-process SQLite)
 - Capability registry and permission checks (without actual device hardware)
@@ -180,13 +180,22 @@ a real browser. This is fast — like a unit test. It covers:
 | Target | CI requirement | Runtime per test |
 |---|---|---|
 | `#[platform_test]` | Rust toolchain only | ~100ms |
-| `#[platform_test(browser)]` | Chromium installed | ~2-5s |
-| `#[platform_test(android)]` | Android SDK + emulator | ~30-60s |
-| `#[platform_test(ios)]` | macOS + Xcode + simulator | ~30-60s |
+| `#[platform_test(browser)]` | Chromium installed (uses `foundation_browser` CDP/BiDi driver) | ~2-5s |
+| `#[platform_test(docker, image = "linux")]` | Docker daemon + `ewe-test-linux` image | ~5-10s |
+| `#[platform_test(docker, image = "android")]` | Docker daemon + `ewe-test-android` image (KVM for emulator) | ~30-60s |
+| `#[platform_test(docker, image = "windows")]` | Docker daemon + `ewe-test-windows` image | ~30-60s |
+| `#[platform_test(ios)]` | Apple Silicon runner + Xcode | ~30-60s |
 
-In-process tests run on every commit. Browser tests run on PR. Mobile tests
-run on merge to main or release branch. All tests are deterministic — no
-flakiness tolerated. Flaky tests are quarantined and must be fixed before
+Test environments are provisioned as Docker containers using dockurr base
+images with platform tooling and VNC. Full details in
+[decision 14](14-docker-test-environments.md).
+
+In-process tests run on every commit. Browser tests run on PR. Docker-based
+tests (linux desktop, android, windows) run on PR — pre-built images are
+pulled from the container registry, rebuild only when Dockerfiles change.
+iOS tests run on merge to main (requires Apple Silicon). All tests are
+deterministic — no flakiness tolerated. Flaky tests are quarantined and
+must be fixed before
 un-quarantining.
 
 ### Integration with foundation_testbed
@@ -210,6 +219,8 @@ platform tests.
 | Session lifecycle | 100% state transition | In-process |
 | Stale-page guards | 100% edge case | In-process |
 | Custom protocol pipeline | 100% request/response | In-process |
+| Mutation queue | 100% branch | In-process |
+| Background workers | Key scenarios | In-process |
 | DOM rendering | Key scenarios | Browser |
 | JS runtime behavior | Key scenarios | Browser |
 | Mobile lifecycle | Key scenarios | Android/iOS |

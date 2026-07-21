@@ -395,7 +395,12 @@ fn build_connection(
 
 mod connection;
 mod h2_connection;
+#[cfg(feature = "quic")]
+mod h3_server;
 mod protocol_detect;
+
+#[cfg(feature = "quic")]
+pub use h3_server::serve_h3;
 
 use protocol_detect::ProtocolDetectHandler;
 
@@ -554,7 +559,7 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(listener, &shutdown, move |conn, addr| {
+        self.serve_loop(&listener, &shutdown, move |conn, addr| {
             let tcp = match conn {
                 foundation_netio::netcap::Connection::Tcp(t) => t,
                 _ => return Err("expected TCP connection for TLS".to_string()),

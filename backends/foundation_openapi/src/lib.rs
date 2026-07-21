@@ -32,7 +32,11 @@ pub mod classifier;
 pub mod endpoint;
 pub mod extractor;
 pub mod normalizer;
+pub mod pipeline;
+pub mod prune;
+pub mod selection;
 pub mod spec;
+pub mod transform;
 pub mod type_resolver;
 pub mod unified;
 
@@ -49,6 +53,16 @@ pub use extractor::EndpointExtractor;
 pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,
     PropertyDefinition, SpecMetadata, SpecProcessor, TypeDefinition, TypeKind,
+};
+pub use pipeline::{Pipeline, PipelineError};
+pub use prune::{
+    component_count, dangling_refs, prune_to_selection, unreachable_components, PruneStats,
+};
+pub use selection::{glob_match, operations_of, Selection};
+pub use transform::{
+    resolve_parameter_refs, resolve_response_refs, ParameterRefStats, ResponseRefStats,
+    canonicalize_operations, ensure_servers, extract_inline_schemas, normalize_nullable_types,
+    path_to_type_name, strip_doc_only, validate_canonical, CanonicalizeStats, NotCanonical,
 };
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;

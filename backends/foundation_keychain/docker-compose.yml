@@ -1,0 +1,17 @@
+# foundation_keychain — native vault server.
+# Build context is the workspace root; run: `docker compose up` from here.
+services:
+  keychain:
+    build:
+      context: ../..
+      dockerfile: backends/foundation_keychain/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - keychain-data:/data
+    environment:
+      - KEYCHAIN_DB=/data/keychain.db
+      - LISTEN_ADDR=0.0.0.0:8080
+    restart: unless-stopped
+volumes:
+  keychain-data:

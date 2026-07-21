@@ -101,7 +101,10 @@ pub fn strip_hop_by_hop(headers: &SimpleHeaders) -> SimpleHeaders {
 
 /// Build the request headers to send upstream: hop-by-hop stripped, then
 /// `X-Forwarded-For` appended and `X-Forwarded-Proto`/`-Host` set.
-fn forward_request_headers(
+///
+/// Shared with the HTTP/2 forward path ([`crate::h2_proxy`]) so both front-end
+/// protocols apply an identical hop-by-hop and forwarding-header policy.
+pub(crate) fn forward_request_headers(
     original: &SimpleHeaders,
     client_ip: &str,
     scheme: &str,
@@ -141,7 +144,7 @@ fn forward_request_headers(
 }
 
 /// Join a backend base URL with the request path+query.
-fn upstream_url(backend_url: &str, path: &str) -> String {
+pub(crate) fn upstream_url(backend_url: &str, path: &str) -> String {
     let base = backend_url.strip_suffix('/').unwrap_or(backend_url);
     if path.starts_with('/') {
         format!("{base}{path}")
@@ -167,6 +170,20 @@ pub fn forward_http(
     scheme: &str,
     client: &SharedHttpClient,
 ) -> Result<(), String> {
+    forward_http_with_headers(conn, backend, req, client_ip, scheme, client, None)
+}
+
+/// Forward a request, injecting `extra_headers` into the response (Decision 23:
+/// writer-affinity cookies, security headers, etc.).
+pub fn forward_http_with_headers(
+    conn: &mut SharedByteBufferStream<RawStream>,
+    backend: &Arc<BackendRuntime>,
+    req: SimpleIncomingRequest,
+    client_ip: &str,
+    scheme: &str,
+    client: &SharedHttpClient,
+    extra_headers: Option<&SimpleHeaders>,
+) -> Result<(), String> {
     let url = upstream_url(backend.url(), &req.request_url.url);
     let headers = forward_request_headers(&req.headers, client_ip, scheme);
     let body = req.body.unwrap_or(SendSafeBody::None);
@@ -185,7 +202,7 @@ pub fn forward_http(
         .map_err(|e| format!("send upstream request to {url}: {e}"))?;
 
     let (status, headers, body, pool, upstream_conn) = response.into_parts();
-    write_response(conn, status, &headers, body)?;
+    write_response(conn, status, &headers, body, extra_headers)?;
 
     // Return the upstream socket to the pool for reuse (drain any residue first),
     // mirroring FinalizedResponse's own drop-time pooling.
@@ -196,14 +213,21 @@ pub fn forward_http(
     Ok(())
 }
 
-/// Render a proxied response onto the client connection.
+/// Render a proxied response onto the client connection. Injects any
+/// `extra_headers` (e.g. sticky cookie) after stripping hop-by-hop.
 fn write_response(
     conn: &mut SharedByteBufferStream<RawStream>,
     status: Status,
     headers: &SimpleHeaders,
     body: SendSafeBody,
+    extra_headers: Option<&SimpleHeaders>,
 ) -> Result<(), String> {
     let mut out = strip_hop_by_hop(headers);
+    if let Some(extras) = extra_headers {
+        for (name, values) in extras.iter() {
+            out.insert(name.clone(), values.clone());
+        }
+    }
     out.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
 
     let response = SimpleOutgoingResponse::builder()
@@ -265,7 +289,7 @@ pub fn forward_upgrade(
     write_head_blocking(&mut upstream, request_bytes.as_bytes())?;
 
     // From here the connection is opaque: splice both directions.
-    splice_bidirectional(conn, upstream, io_mode.uses_reactor());
+    splice_bidirectional(conn, upstream);
     Ok(())
 }
 

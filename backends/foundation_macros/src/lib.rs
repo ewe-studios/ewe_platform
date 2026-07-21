@@ -7,7 +7,9 @@ mod crate_paths;
 mod docker_container;
 mod proxy;
 mod embedders;
+mod mobile_directory;
 mod from_arrow;
+mod platform_test;
 mod json_hash;
 mod json_schema;
 mod scaffold;
@@ -87,6 +89,29 @@ mod wireguard;
 )]
 pub fn embed_directory_as(item: TokenStream) -> TokenStream {
     embedders::embed_directory_on_struct(item)
+}
+
+/// `MobileDirectory` — runtime disk-backed asset serving (F22).
+///
+/// Like [`EmbedDirectoryAs`] for metadata (scans the source directory at
+/// expansion time to build [`FILES_METADATA`]), but serves file content at
+/// **runtime** from a `root: PathBuf` field — no compile-time byte embedding.
+/// Designed for mobile platforms where app bundles are updated over the wire
+/// and must be servable without rebuilding the native `.so`.
+///
+/// The struct MUST have a `root: PathBuf` field.
+///
+/// ```ignore
+/// use foundation_macros::MobileDirectory;
+/// use std::path::PathBuf;
+///
+/// #[derive(MobileDirectory)]
+/// #[source = "$CARGO_MANIFEST_DIR/public/app"]
+/// pub struct AppAssets { root: PathBuf }
+/// ```
+#[proc_macro_derive(MobileDirectory, attributes(source))]
+pub fn mobile_directory(item: TokenStream) -> TokenStream {
+    mobile_directory::mobile_directory_on_struct(item)
 }
 
 /// [`embed_file_as`] specifies a proc macro for embedding files into
@@ -172,6 +197,11 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 /// # Panics
 ///
 /// Never panics. Returns compile errors for invalid usage.
+#[proc_macro_attribute]
+pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    platform_test::platform_test(attr, item)
+}
+
 #[proc_macro_attribute]
 pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_entrypoint::expand(attr.into(), item.into()).into()
@@ -693,15 +723,47 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// into a `ContainerConfig`, starts the container before the function body,
 /// and stops/removes it after (even on panic — Drop cleanup).
 ///
+/// The function **must** declare exactly one parameter, which receives a
+/// `ContainerGroup` holding every started container; a fn without one is a
+/// compile error, since it could not address its own containers. Look a handle
+/// up by the logical key given with `as = "..."`, then ask it for its address.
+/// Prefer `port = N` (Docker assigns the host port, readable via
+/// `handle.address(N)`) over pinning a host port with `port_mapped`, which a
+/// parallel run may already hold.
+///
+/// Declare every container in one invocation, one `{ ... }` block each; they
+/// start in the order written and all land in the same group. The attribute
+/// cannot be stacked (that is a compile error pointing here).
+///
 /// # Examples
 ///
+/// A single container — the bare `key = value` list is shorthand:
+///
 /// ```ignore
+/// use foundation_core::valtron::valtron_test;
+/// use foundation_deployment_platform::docker::ContainerGroup;
 /// use foundation_deployment_platform::docker_container;
 ///
+/// #[docker_container(image = "redis:7", as = "cache", port = 6379)]
 /// #[valtron_test]
-/// #[docker_container(image = "redis:7", port = 6379)]
-/// fn test_redis() {
-///     // Redis is running at localhost:<auto-assigned port>
+/// fn test_redis(containers: ContainerGroup) {
+///     let addr = containers.container("cache").unwrap().address(6379).unwrap();
+///     // Redis is serving at `addr` (127.0.0.1:<auto-assigned port>).
+/// }
+/// ```
+///
+/// Several containers — one block each:
+///
+/// ```ignore
+/// #[docker_container(
+///     { image = "redis:7", as = "cache", port = 6379 },
+///     { image = "postgres:16", as = "db", port = 5432,
+///       env = [("POSTGRES_PASSWORD", "test")] }
+/// )]
+/// #[valtron_test]
+/// fn test_stack(containers: ContainerGroup) {
+///     let cache = containers.container("cache").unwrap().address(6379).unwrap();
+///     let db = containers.container("db").unwrap().address(5432).unwrap();
 /// }
 /// ```
 #[proc_macro_attribute]
@@ -722,7 +784,6 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     network_id: "deadbeef...",
 ///     udp_listen: "0.0.0.0:51820",
 ///     relay: { advertise: true },
-///     security: { mtls: false },
 /// };
 /// let node = foundation_wireguard::native::WgNode::from_config(config);
 /// ```

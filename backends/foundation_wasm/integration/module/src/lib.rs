@@ -368,3 +368,113 @@ pub extern "C" fn capture_mixed_params() {
         Params::Float64(2.5),
     ]);
 }
+
+// ── F27: Trigger dispatch through host_apply ───────────────────────────────
+
+/// Frames a JSON payload as a capability trigger (protocol byte 3) and ships
+/// it through `host_apply`. The JS ProtocolDispatcher routes to the registered
+/// capability trigger handler (set up via `FoundationWasm._capTriggerHandler`).
+///
+/// # Safety
+///
+/// Caller must ensure `json_ptr`/`json_len` point to valid UTF-8 JSON.
+#[no_mangle]
+pub extern "C" fn e2e_trigger_capability(json_ptr: u64, json_len: u32) {
+    let payload = unsafe { core::slice::from_raw_parts(json_ptr as *const u8, json_len as usize) };
+
+    let total = (foundation_wasm::WasmEnvelope::HEADER_LEN + payload.len()) as u64;
+    let mem_id = foundation_wasm::exposed_runtime::create_allocation(total);
+
+    let framed = foundation_wasm::WasmEnvelope::write(3, 0, mem_id, payload);
+    let slot =
+        foundation_wasm::internal_api::get_memory(foundation_wasm::MemoryId::from_u64(mem_id));
+    slot.apply(|m| {
+        m.clear();
+        m.extend_from_slice(&framed);
+    });
+
+    let (ptr, len) = slot.as_address().expect("slot address");
+    unsafe { foundation_wasm::abi::web::host_apply(mem_id, ptr as u64, len) };
+}
+
+/// Same as e2e_trigger_capability but uses protocol byte 4 (IPC trigger).
+#[no_mangle]
+pub extern "C" fn e2e_trigger_ipc(json_ptr: u64, json_len: u32) {
+    let payload = unsafe { core::slice::from_raw_parts(json_ptr as *const u8, json_len as usize) };
+
+    let total = (foundation_wasm::WasmEnvelope::HEADER_LEN + payload.len()) as u64;
+    let mem_id = foundation_wasm::exposed_runtime::create_allocation(total);
+
+    let framed = foundation_wasm::WasmEnvelope::write(4, 0, mem_id, payload);
+    let slot =
+        foundation_wasm::internal_api::get_memory(foundation_wasm::MemoryId::from_u64(mem_id));
+    slot.apply(|m| {
+        m.clear();
+        m.extend_from_slice(&framed);
+    });
+
+    let (ptr, len) = slot.as_address().expect("slot address");
+    unsafe { foundation_wasm::abi::web::host_apply(mem_id, ptr as u64, len) };
+}
+
+// ── F28: Stream create e2e (WASM → host stream) ────────────────────
+
+/// WASM calls host_stream_create() → gets a stream ID from JS.
+/// Returns the stream ID (u64).
+#[no_mangle]
+pub extern "C" fn e2e_stream_create() -> u64 {
+    unsafe { foundation_wasm::abi::web::host_stream_create() }
+}
+
+/// WASM pushes a chunk to the host-side stream created via e2e_stream_create.
+#[no_mangle]
+pub extern "C" fn e2e_stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) {
+    unsafe { foundation_wasm::abi::web::host_sender_send(stream_id, data_ptr, data_len, seq); }
+}
+
+/// WASM signals end-of-stream on the host-side stream.
+#[no_mangle]
+pub extern "C" fn e2e_stream_end(stream_id: u64) {
+    unsafe { foundation_wasm::abi::web::host_sender_end(stream_id); }
+}
+
+// ── F23/F25: Capability & IPC invoke e2e ───────────────────────────────
+///
+/// WASM registers JS bridge functions (invokeCapability/invokeIpc) via
+/// the function registry and invokes them with hardcoded test params.
+
+/// Register `invokeCapability` in the function registry and invoke it
+/// with test params. JS side stubs `invokeCapability` to return a known
+/// result. Returns 1 on success, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_invoke_capability() -> i32 {
+    use foundation_wasm::{abi::web::register_function, Params, ReturnTypeHints, ReturnTypeId, ThreeState};
+    let f = register_function(
+        "function(name, action, _payload) { if (name === 'camera' && action === 'capture') return 'ok'; return 'fail'; }"
+    );
+    match f.invoke_for_replies(
+        &[Params::Text8("camera"), Params::Text8("capture"), Params::Text8("{}")],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
+    ) {
+        Ok(_) => 1,
+        Err(_) => -1,
+    }
+}
+
+/// Register `invokeIpc` in the function registry and invoke it.
+/// Returns 1 on success, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_invoke_ipc() -> i32 {
+    use foundation_wasm::{abi::web::register_function, Params, ReturnTypeHints, ReturnTypeId, ThreeState};
+    let f = register_function(
+        "function(name, action, _payload) { if (name === 'system' && action === 'get_info') return JSON.stringify({os:'linux'}); return 'fail'; }"
+    );
+    match f.invoke_for_replies(
+        &[Params::Text8("system"), Params::Text8("get_info"), Params::Text8("{}")],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
+    ) {
+        Ok(_) => 1,
+        Err(_) => -1,
+    }
+}
+

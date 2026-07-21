@@ -21,6 +21,141 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `AbuseReportsEmailListItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsEmailListItem {
+    /// body property.
+    pub body: String,
+    /// id property.
+    pub id: String,
+    /// recipient property.
+    pub recipient: String,
+    /// sent_at property.
+    pub sent_at: String,
+    /// subject property.
+    pub subject: String,
+}
+
+/// `AbuseReportsMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMessage {
+    /// message property.
+    pub message: String,
+}
+
+/// `AbuseReportsMitigatedEntityType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigatedEntityType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AbuseReportsMitigationListItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationListItem {
+    /// effective_date property.
+    pub effective_date: String,
+    /// entity_id property.
+    pub entity_id: String,
+    /// entity_type property.
+    pub entity_type: AbuseReportsMitigatedEntityType,
+    /// id property.
+    pub id: String,
+    /// status property.
+    pub status: AbuseReportsMitigationStatus,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: AbuseReportsMitigationType,
+}
+
+/// `AbuseReportsMitigationStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AbuseReportsMitigationType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ListEmailsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListEmailsResponse {
+    /// errors property.
+    pub errors: Option<Vec<AbuseReportsMessage>>,
+    /// messages property.
+    pub messages: Option<Vec<AbuseReportsMessage>>,
+    /// result property.
+    pub result: Option<ListEmailsResponseResult>,
+    /// result_info property.
+    pub result_info: Option<ListEmailsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ListEmailsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListEmailsResponseResult {
+    /// emails property.
+    pub emails: Vec<AbuseReportsEmailListItem>,
+}
+
+/// `ListEmailsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListEmailsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// page property.
+    pub page: f64,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+    /// total_pages property.
+    pub total_pages: f64,
+}
+
+/// `ListMitigationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListMitigationsResponse {
+    /// errors property.
+    pub errors: Option<Vec<AbuseReportsMessage>>,
+    /// messages property.
+    pub messages: Option<Vec<AbuseReportsMessage>>,
+    /// result property.
+    pub result: Option<ListMitigationsResponseResult>,
+    /// result_info property.
+    pub result_info: Option<ListMitigationsResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ListMitigationsResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListMitigationsResponseResult {
+    /// mitigations property.
+    pub mitigations: Vec<AbuseReportsMitigationListItem>,
+}
+
+/// `ListMitigationsResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListMitigationsResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// page property.
+    pub page: f64,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+    /// total_pages property.
+    pub total_pages: f64,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -92,16 +227,17 @@ pub struct ListMitigationsArgs {
 pub async fn list_emails_request<F>(
     client: DynNetClient,
     args: &ListEmailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListEmailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/abuse-reports/{}/emails",
+    let path = format!("/accounts/{}/abuse-reports/{}/emails",
         args.account_id,
         args.report_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -119,9 +255,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListEmailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -149,16 +290,17 @@ where
 pub async fn list_mitigations_request<F>(
     client: DynNetClient,
     args: &ListMitigationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListMitigationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/abuse-reports/{}/mitigations",
+    let path = format!("/accounts/{}/abuse-reports/{}/mitigations",
         args.account_id,
         args.report_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -182,8 +324,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListMitigationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

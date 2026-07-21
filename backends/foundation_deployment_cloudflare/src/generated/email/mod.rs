@@ -21,27 +21,244 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `EmailSendingEmailBuilder` response type.
+/// `DlpAddinAccountMapping` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingEmailBuilder {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct DlpAddinAccountMapping {
+    /// addin_identifier_token property.
+    pub addin_identifier_token: String,
+    /// auth_requirements property.
+    pub auth_requirements: DlpAddinAuth,
+}
+
+/// `DlpAddinAuth` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpAddinAuth {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EmailDestinationAddressesResponseCollection` type.
+/// `DlpApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressesResponseCollection {
+pub struct DlpApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DlpApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseSingle {
+}
+
+/// `DlpCreateEmailRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCreateEmailRule {
+    /// action property.
+    pub action: DlpEmailRuleAction,
+    /// conditions property.
+    pub conditions: Vec<DlpEmailRuleCondition>,
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: bool,
+    /// name property.
+    pub name: String,
+}
+
+/// `DlpEmailRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRule {
+    /// action property.
+    pub action: DlpEmailRuleAction,
+    /// conditions property.
+    pub conditions: Vec<DlpEmailRuleCondition>,
+    /// created_at property.
+    pub created_at: String,
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: bool,
+    /// name property.
+    pub name: String,
+    /// priority property.
+    pub priority: i64,
+    /// rule_id property.
+    pub rule_id: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpEmailRuleAction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleAction {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEmailRuleArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleArray {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEmailRuleCondition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleCondition {
+    /// operator property.
+    pub operator: DlpEmailRuleOperator,
+    /// selector property.
+    pub selector: DlpEmailRuleSelector,
+    /// value property.
+    pub value: DlpEmailRuleValue,
+}
+
+/// `DlpEmailRuleOperator` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleOperator {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEmailRuleSelector` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleSelector {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEmailRuleValue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleValue {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpEmailScannerCreateAccountMappingResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerCreateAccountMappingResponse {
     /// `result` property.
-    pub result: Option<Vec<EmailAddresses>>,
+    pub result: Option<DlpAddinAccountMapping>,
+}
+
+/// `DlpEmailScannerCreateRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerCreateRuleResponse {
+    /// `result` property.
+    pub result: Option<DlpEmailRule>,
+}
+
+/// `DlpEmailScannerDeleteRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerDeleteRuleResponse {
+    /// `result` property.
+    pub result: Option<DlpEmailRule>,
+}
+
+/// `DlpEmailScannerGetAccountMappingResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerGetAccountMappingResponse {
+    /// `result` property.
+    pub result: Option<DlpAddinAccountMapping>,
+}
+
+/// `DlpEmailScannerGetRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerGetRuleResponse {
+    /// `result` property.
+    pub result: Option<DlpEmailRule>,
+}
+
+/// `DlpEmailScannerListAllRulesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerListAllRulesResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpEmailRule>>,
+}
+
+/// `DlpEmailScannerUpdateRulePrioritiesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerUpdateRulePrioritiesResponse {
+    /// `result` property.
+    pub result: Option<DlpEmailRule>,
+}
+
+/// `DlpEmailScannerUpdateRuleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailScannerUpdateRuleResponse {
+    /// `result` property.
+    pub result: Option<DlpEmailRule>,
+}
+
+/// `DlpMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpUpdateAddinAccountMapping` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpUpdateAddinAccountMapping {
+    /// auth_requirements property.
+    pub auth_requirements: DlpAddinAuth,
+}
+
+/// `DlpUpdateEmailRulePriorities` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpUpdateEmailRulePriorities {
+    /// new_priorities property.
+    pub new_priorities: serde_json::Value,
+}
+
+/// `EmailAddresses` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailAddresses {
+}
+
+/// `EmailApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailApiResponseCollection {
     /// `result_info` property.
     pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `EmailSecurityCreateDisplayName` response type.
+/// `EmailApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityCreateDisplayName {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct EmailApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailApiResponseSingle {
+}
+
+/// `EmailCreateDestinationAddressProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailCreateDestinationAddressProperties {
+    /// email property.
+    pub email: EmailEmail,
+}
+
+/// `EmailCreated` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailCreated {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailDestinationAddressIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailDestinationAddressIdentifier {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -63,59 +280,6 @@ pub struct EmailDestinationAddressProperties {
     pub verified: Option<EmailVerified>,
 }
 
-/// `EmailSecurityCreateAllowPolicy` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityCreateAllowPolicy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EmailDestinationAddressIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EmailApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `EmailModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailModified {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpUpdateEmailRulePriorities` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpUpdateEmailRulePriorities {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpCreateEmailRule` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpCreateEmailRule {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EmailSecurityCreateBlockedSender` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityCreateBlockedSender {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `EmailDestinationAddressResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailDestinationAddressResponseSingle {
@@ -123,27 +287,25 @@ pub struct EmailDestinationAddressResponseSingle {
     pub result: Option<EmailAddresses>,
 }
 
-/// `EmailEmail` type.
+/// `EmailDestinationAddressTag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailEmail {
+pub struct EmailDestinationAddressTag {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EmailApiResponseCommon` type.
+/// `EmailDestinationAddressesResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
+pub struct EmailDestinationAddressesResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<EmailAddresses>>,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `EmailVerified` type.
+/// `EmailEmail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailVerified {
+pub struct EmailEmail {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -155,67 +317,1363 @@ pub struct EmailMessages {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EmailAddresses` type.
+/// `EmailModified` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddresses {
+pub struct EmailModified {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `EmailSecurityUpdateAllowPolicy` response type.
+/// `EmailSecurityAllowPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityAllowPolicy {
+    /// `comments` property.
+    pub comments: Option<String>,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: EmailSecurityAllowPolicyId,
+    /// `is_acceptable_sender` property.
+    pub is_acceptable_sender: bool,
+    /// `is_exempt_recipient` property.
+    pub is_exempt_recipient: bool,
+    /// `is_recipient` property.
+    pub is_recipient: Option<bool>,
+    /// `is_regex` property.
+    pub is_regex: bool,
+    /// `is_sender` property.
+    pub is_sender: Option<bool>,
+    /// `is_spoof` property.
+    pub is_spoof: Option<bool>,
+    /// `is_trusted_sender` property.
+    pub is_trusted_sender: bool,
+    /// `last_modified` property.
+    pub last_modified: String,
+    /// `pattern` property.
+    pub pattern: String,
+    /// `pattern_type` property.
+    pub pattern_type: EmailSecurityPatternType,
+    /// `verify_sender` property.
+    pub verify_sender: bool,
+}
+
+/// `EmailSecurityAllowPolicyId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityAllowPolicyId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// messages property.
+    pub messages: Vec<EmailSecurityMessage>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailSecurityAttachment` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityAttachment {
+    /// content_type property.
+    pub content_type: Option<String>,
+    /// detection property.
+    pub detection: Option<serde_json::Value>,
+    /// encrypted property.
+    pub encrypted: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// size property.
+    pub size: i64,
+}
+
+/// `EmailSecurityBatchAllowPoliciesRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchAllowPoliciesRequest {
+    /// deletes property.
+    pub deletes: Vec<EmailSecurityBatchAllowPoliciesRequestDeletesItem>,
+    /// patches property.
+    pub patches: Vec<serde_json::Value>,
+    /// posts property.
+    pub posts: Vec<EmailSecurityCreateAllowPolicy>,
+    /// puts property.
+    pub puts: Vec<serde_json::Value>,
+}
+
+/// `EmailSecurityBatchAllowPoliciesRequestDeletesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchAllowPoliciesRequestDeletesItem {
+    /// id property.
+    pub id: i64,
+}
+
+/// `EmailSecurityBatchAllowPoliciesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchAllowPoliciesResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityBatchBlockedSendersRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchBlockedSendersRequest {
+    /// deletes property.
+    pub deletes: Vec<EmailSecurityBatchBlockedSendersRequestDeletesItem>,
+    /// patches property.
+    pub patches: Vec<serde_json::Value>,
+    /// posts property.
+    pub posts: Vec<EmailSecurityCreateBlockedSender>,
+    /// puts property.
+    pub puts: Vec<serde_json::Value>,
+}
+
+/// `EmailSecurityBatchBlockedSendersRequestDeletesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchBlockedSendersRequestDeletesItem {
+    /// id property.
+    pub id: i64,
+}
+
+/// `EmailSecurityBatchBlockedSendersResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBatchBlockedSendersResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityBlockedSender` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBlockedSender {
+    /// `comments` property.
+    pub comments: Option<String>,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: EmailSecurityBlockedSenderId,
+    /// `is_regex` property.
+    pub is_regex: bool,
+    /// `last_modified` property.
+    pub last_modified: String,
+    /// `pattern` property.
+    pub pattern: String,
+    /// `pattern_type` property.
+    pub pattern_type: EmailSecurityPatternType,
+}
+
+/// `EmailSecurityBlockedSenderId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityBlockedSenderId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityCreateAllowPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateAllowPolicy {
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_acceptable_sender property.
+    pub is_acceptable_sender: bool,
+    /// is_exempt_recipient property.
+    pub is_exempt_recipient: bool,
+    /// is_recipient property.
+    pub is_recipient: Option<bool>,
+    /// is_regex property.
+    pub is_regex: bool,
+    /// is_sender property.
+    pub is_sender: Option<bool>,
+    /// is_spoof property.
+    pub is_spoof: Option<bool>,
+    /// is_trusted_sender property.
+    pub is_trusted_sender: bool,
+    /// pattern property.
+    pub pattern: String,
+    /// pattern_type property.
+    pub pattern_type: EmailSecurityPatternType,
+    /// verify_sender property.
+    pub verify_sender: bool,
+}
+
+/// `EmailSecurityCreateAllowPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateAllowPolicyResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityCreateBlockedSender` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateBlockedSender {
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_regex property.
+    pub is_regex: bool,
+    /// pattern property.
+    pub pattern: String,
+    /// pattern_type property.
+    pub pattern_type: EmailSecurityPatternType,
+}
+
+/// `EmailSecurityCreateBlockedSenderResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateBlockedSenderResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityCreateDisplayName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateDisplayName {
+    /// email property.
+    pub email: String,
+    /// is_email_regex property.
+    pub is_email_regex: bool,
+    /// name property.
+    pub name: String,
+}
+
+/// `EmailSecurityCreateDisplayNameResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCreateDisplayNameResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityCursorWithLegacyResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityCursorWithLegacyResultInfo {
+    /// count property.
+    pub count: i64,
+    /// next property.
+    pub next: Option<String>,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// previous property.
+    pub previous: Option<String>,
+    /// total_count property.
+    pub total_count: i64,
+}
+
+/// `EmailSecurityDeleteAllowPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteAllowPolicyResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDeleteBlockedSenderResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteBlockedSenderResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDeleteDisplayNameResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDeleteDisplayNameResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityDisplayName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDisplayName {
+    /// `comments` property.
+    pub comments: Option<String>,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `directory_id` property.
+    pub directory_id: Option<serde_json::Value>,
+    /// `directory_node_id` property.
+    pub directory_node_id: Option<serde_json::Value>,
+    /// `email` property.
+    pub email: String,
+    /// `external_directory_node_id` property.
+    pub external_directory_node_id: Option<String>,
+    /// `id` property.
+    pub id: i64,
+    /// `is_email_regex` property.
+    pub is_email_regex: bool,
+    /// `last_modified` property.
+    pub last_modified: String,
+    /// `name` property.
+    pub name: String,
+    /// `provenance` property.
+    pub provenance: Option<String>,
+}
+
+/// `EmailSecurityDispositionLabel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityDispositionLabel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetAllowPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetAllowPolicyResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityGetBlockedSenderResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetBlockedSenderResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityGetDisplayNameResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetDisplayNameResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityGetMessageDetectionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetMessageDetectionsResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetMessagePreviewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetMessagePreviewResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetMessageRawResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetMessageRawResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetMessageResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetMessageResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetMessageTraceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetMessageTraceResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityGetPhishguardReportsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityGetPhishguardReportsResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityPhishGuardReport>,
+}
+
+/// `EmailSecurityInvestigateMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityInvestigateMessage {
+    /// action_log property.
+    pub action_log: serde_json::Value,
+    /// alert_id property.
+    pub alert_id: Option<String>,
+    /// client_recipients property.
+    pub client_recipients: Vec<String>,
+    /// delivery_mode property.
+    pub delivery_mode: Option<serde_json::Value>,
+    /// detection_reasons property.
+    pub detection_reasons: Vec<String>,
+    /// edf_hash property.
+    pub edf_hash: Option<String>,
+    /// envelope_from property.
+    pub envelope_from: Option<String>,
+    /// envelope_to property.
+    pub envelope_to: Option<Vec<String>>,
+    /// final_disposition property.
+    pub final_disposition: Option<serde_json::Value>,
+    /// findings property.
+    pub findings: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// from property.
+    pub from: Option<String>,
+    /// from_name property.
+    pub from_name: Option<String>,
+    /// htmltext_structure_hash property.
+    pub htmltext_structure_hash: Option<String>,
+    /// id property.
+    pub id: String,
+    /// is_phish_submission property.
+    pub is_phish_submission: bool,
+    /// is_quarantined property.
+    pub is_quarantined: bool,
+    /// message_id property.
+    pub message_id: Option<String>,
+    /// post_delivery_operations property.
+    pub post_delivery_operations: Option<Vec<String>>,
+    /// postfix_id property.
+    pub postfix_id: EmailSecurityPostfixId,
+    /// postfix_id_outbound property.
+    pub postfix_id_outbound: Option<String>,
+    /// properties property.
+    pub properties: std::collections::HashMap<String, serde_json::Value>,
+    /// replyto property.
+    pub replyto: Option<String>,
+    /// scanned_at property.
+    pub scanned_at: Option<String>,
+    /// sent_at property.
+    pub sent_at: Option<String>,
+    /// sent_date property.
+    pub sent_date: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+    /// threat_categories property.
+    pub threat_categories: Option<Vec<String>>,
+    /// to property.
+    pub to: Option<Vec<String>>,
+    /// to_name property.
+    pub to_name: Option<Vec<String>>,
+    /// ts property.
+    pub ts: String,
+    /// validation property.
+    pub validation: Option<serde_json::Value>,
+}
+
+/// `EmailSecurityInvestigateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityInvestigateResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityInvestigateMessage>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityCursorWithLegacyResultInfo,
+}
+
+/// `EmailSecurityLink` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityLink {
+    /// href property.
+    pub href: String,
+    /// text property.
+    pub text: Option<String>,
+}
+
+/// `EmailSecurityListAllowPoliciesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityListAllowPoliciesResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityAllowPolicy>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityListBlockedSendersResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityListBlockedSendersResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityBlockedSender>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityListDisplayNamesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityListDisplayNamesResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityDisplayName>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityMessage {
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSecurityMessageHeader` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityMessageHeader {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `EmailSecurityMoveResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityMoveResponseItem {
+    /// completed_at property.
+    pub completed_at: Option<String>,
+    /// completed_timestamp property.
+    pub completed_timestamp: String,
+    /// destination property.
+    pub destination: Option<String>,
+    /// item_count property.
+    pub item_count: i64,
+    /// message_id property.
+    pub message_id: Option<String>,
+    /// operation property.
+    pub operation: Option<String>,
+    /// recipient property.
+    pub recipient: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailSecurityPatternType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPatternType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityPhishGuardReport` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPhishGuardReport {
+    /// content property.
+    pub content: String,
+    /// created_at property.
+    pub created_at: String,
+    /// disposition property.
+    pub disposition: EmailSecurityDispositionLabel,
+    /// fields property.
+    pub fields: std::collections::HashMap<String, serde_json::Value>,
+    /// id property.
+    pub id: i64,
+    /// priority property.
+    pub priority: String,
+    /// tags property.
+    pub tags: Option<Vec<EmailSecurityPhishGuardReportTag>>,
+    /// title property.
+    pub title: String,
+    /// ts property.
+    pub ts: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `EmailSecurityPhishGuardReportTag` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPhishGuardReportTag {
+    /// category property.
+    pub category: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `EmailSecurityPostBulkMessageMoveRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostBulkMessageMoveRequest {
+    /// destination property.
+    pub destination: String,
+    /// ids property.
+    pub ids: Option<Vec<String>>,
+    /// postfix_ids property.
+    pub postfix_ids: Option<Vec<EmailSecurityPostfixId>>,
+}
+
+/// `EmailSecurityPostBulkMessageMoveResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostBulkMessageMoveResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityMoveResponseItem>,
+}
+
+/// `EmailSecurityPostMessageMoveRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostMessageMoveRequest {
+    /// destination property.
+    pub destination: String,
+}
+
+/// `EmailSecurityPostMessageMoveResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostMessageMoveResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityMoveResponseItem>,
+}
+
+/// `EmailSecurityPostPreviewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostPreviewRequest {
+    /// postfix_id property.
+    pub postfix_id: EmailSecurityPostfixId,
+}
+
+/// `EmailSecurityPostPreviewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostPreviewResponse {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityPostReclassifyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostReclassifyRequest {
+    /// eml_content property.
+    pub eml_content: Option<String>,
+    /// escalated_submission_id property.
+    pub escalated_submission_id: Option<String>,
+    /// expected_disposition property.
+    pub expected_disposition: String,
+}
+
+/// `EmailSecurityPostReclassifyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostReclassifyResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityPostReleaseResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostReleaseResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecurityReleaseResponse>,
+}
+
+/// `EmailSecurityPostfixId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityPostfixId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EmailSecurityReleaseResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityReleaseResponse {
+    /// `delivered` property.
+    pub delivered: Option<Vec<String>>,
+    /// `failed` property.
+    pub failed: Option<Vec<String>>,
+    /// `id` property.
+    pub id: String,
+    /// `postfix_id` property.
+    pub postfix_id: EmailSecurityPostfixId,
+    /// `undelivered` property.
+    pub undelivered: Option<Vec<String>>,
+}
+
+/// `EmailSecurityResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityResultInfo {
+    /// count property.
+    pub count: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// total_count property.
+    pub total_count: i64,
+}
+
+/// `EmailSecuritySubmission` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecuritySubmission {
+    /// customer_status property.
+    pub customer_status: Option<serde_json::Value>,
+    /// escalated_as property.
+    pub escalated_as: Option<serde_json::Value>,
+    /// escalated_at property.
+    pub escalated_at: Option<String>,
+    /// escalated_by property.
+    pub escalated_by: Option<String>,
+    /// escalated_submission_id property.
+    pub escalated_submission_id: Option<String>,
+    /// original_disposition property.
+    pub original_disposition: Option<serde_json::Value>,
+    /// original_edf_hash property.
+    pub original_edf_hash: Option<String>,
+    /// original_postfix_id property.
+    pub original_postfix_id: Option<String>,
+    /// outcome property.
+    pub outcome: Option<String>,
+    /// outcome_disposition property.
+    pub outcome_disposition: Option<serde_json::Value>,
+    /// requested_at property.
+    pub requested_at: Option<String>,
+    /// requested_by property.
+    pub requested_by: Option<String>,
+    /// requested_disposition property.
+    pub requested_disposition: Option<serde_json::Value>,
+    /// requested_ts property.
+    pub requested_ts: String,
+    /// status property.
+    pub status: Option<String>,
+    /// subject property.
+    pub subject: Option<String>,
+    /// submission_id property.
+    pub submission_id: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `EmailSecuritySubmissionsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecuritySubmissionsResponse {
+    /// `result` property.
+    pub result: Vec<EmailSecuritySubmission>,
+    /// `result_info` property.
+    pub result_info: EmailSecurityResultInfo,
+}
+
+/// `EmailSecurityThreatCategory` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityThreatCategory {
+    /// description property.
+    pub description: Option<String>,
+    /// id property.
+    pub id: i64,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `EmailSecurityTraceLine` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityTraceLine {
+    /// lineno property.
+    pub lineno: i64,
+    /// message property.
+    pub message: String,
+    /// ts property.
+    pub ts: String,
+}
+
+/// `EmailSecurityUpdateAllowPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateAllowPolicy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_acceptable_sender property.
+    pub is_acceptable_sender: Option<bool>,
+    /// is_exempt_recipient property.
+    pub is_exempt_recipient: Option<bool>,
+    /// is_regex property.
+    pub is_regex: Option<bool>,
+    /// is_trusted_sender property.
+    pub is_trusted_sender: Option<bool>,
+    /// pattern property.
+    pub pattern: Option<String>,
+    /// pattern_type property.
+    pub pattern_type: Option<serde_json::Value>,
+    /// verify_sender property.
+    pub verify_sender: Option<bool>,
 }
 
-/// `EmailSendingSendRawRequest` response type.
+/// `EmailSecurityUpdateAllowPolicyResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingSendRawRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct EmailSecurityUpdateAllowPolicyResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
 }
 
-/// `EmailDestinationAddressTag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressTag {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EmailCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailCreated {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpUpdateAddinAccountMapping` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpUpdateAddinAccountMapping {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EmailApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseSingle {
-}
-
-/// `EmailCreateDestinationAddressProperties` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailCreateDestinationAddressProperties {
-    /// email property.
-    pub email: EmailEmail,
-}
-
-/// `EmailSecurityUpdateBlockedSender` response type.
+/// `EmailSecurityUpdateBlockedSender` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateBlockedSender {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+    /// comments property.
+    pub comments: Option<String>,
+    /// is_regex property.
+    pub is_regex: Option<bool>,
+    /// pattern property.
+    pub pattern: Option<String>,
+    /// pattern_type property.
+    pub pattern_type: Option<serde_json::Value>,
+}
+
+/// `EmailSecurityUpdateBlockedSenderResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateBlockedSenderResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSecurityUpdateDisplayNameRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateDisplayNameRequest {
+    /// email property.
+    pub email: Option<String>,
+    /// is_email_regex property.
+    pub is_email_regex: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `EmailSecurityUpdateDisplayNameResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateDisplayNameResponse {
+    /// `result` property.
+    pub result: serde_json::Value,
+}
+
+/// `EmailSendingAccountSendBuilderResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendBuilderResponse {
+    /// errors property.
+    pub errors: Vec<EmailSendingAccountSendBuilderResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<EmailSendingAccountSendBuilderResponseMessagesItem>,
+    /// result property.
+    pub result: EmailSendingEmailSendResponse,
+    /// result_info property.
+    pub result_info: Option<EmailSendingAccountSendBuilderResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailSendingAccountSendBuilderResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendBuilderResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSendingAccountSendBuilderResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendBuilderResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSendingAccountSendBuilderResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendBuilderResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `EmailSendingAccountSendRawMessageResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendRawMessageResponse {
+    /// errors property.
+    pub errors: Vec<EmailSendingAccountSendRawMessageResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<EmailSendingAccountSendRawMessageResponseMessagesItem>,
+    /// result property.
+    pub result: EmailSendingEmailSendResponse,
+    /// result_info property.
+    pub result_info: Option<EmailSendingAccountSendRawMessageResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `EmailSendingAccountSendRawMessageResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendRawMessageResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSendingAccountSendRawMessageResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendRawMessageResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `EmailSendingAccountSendRawMessageResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingAccountSendRawMessageResponseResultInfo {
+    /// count property.
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: f64,
+    /// total_count property.
+    pub total_count: f64,
+}
+
+/// `EmailSendingEmailAttachment` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingEmailAttachment {
+    /// content property.
+    pub content: String,
+    /// disposition property.
+    pub disposition: String,
+    /// filename property.
+    pub filename: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `EmailSendingEmailBuilder` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingEmailBuilder {
+    /// attachments property.
+    pub attachments: Option<Vec<serde_json::Value>>,
+    /// bcc property.
+    pub bcc: Option<serde_json::Value>,
+    /// cc property.
+    pub cc: Option<serde_json::Value>,
+    /// from property.
+    pub from: serde_json::Value,
+    /// headers property.
+    pub headers: Option<serde_json::Value>,
+    /// html property.
+    pub html: Option<String>,
+    /// reply_to property.
+    pub reply_to: Option<serde_json::Value>,
+    /// subject property.
+    pub subject: String,
+    /// text property.
+    pub text: Option<String>,
+    /// to property.
+    pub to: serde_json::Value,
+}
+
+/// `EmailSendingEmailInlineAttachment` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingEmailInlineAttachment {
+    /// content property.
+    pub content: String,
+    /// content_id property.
+    pub content_id: String,
+    /// disposition property.
+    pub disposition: String,
+    /// filename property.
+    pub filename: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `EmailSendingEmailSendResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingEmailSendResponse {
+    /// delivered property.
+    pub delivered: Vec<String>,
+    /// permanent_bounces property.
+    pub permanent_bounces: Vec<String>,
+    /// queued property.
+    pub queued: Vec<String>,
+}
+
+/// `EmailSendingSendRawRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingSendRawRequest {
+    /// from property.
+    pub from: String,
+    /// mime_message property.
+    pub mime_message: String,
+    /// recipients property.
+    pub recipients: Vec<String>,
+}
+
+/// `EmailVerified` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailVerified {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RadarGetEmailRoutingSummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponse {
+    /// result property.
+    pub result: RadarGetEmailRoutingSummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailRoutingSummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetEmailRoutingTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailRoutingTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
+}
+
+/// `RadarGetEmailSecuritySummaryResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponse {
+    /// result property.
+    pub result: RadarGetEmailSecuritySummaryResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecuritySummaryResponseResultMeta,
+    /// summary_0 property.
+    pub summary_0: serde_json::Value,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResultMeta {
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponse {
+    /// result property.
+    pub result: RadarGetEmailSecurityTimeseriesGroupResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResult {
+    /// meta property.
+    pub meta: RadarGetEmailSecurityTimeseriesGroupResponseResultMeta,
+    /// serie_0 property.
+    pub serie_0: RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMeta {
+    /// aggInterval property.
+    #[serde(rename = "aggInterval")]
+    pub agg_interval: String,
+    /// confidenceInfo property.
+    #[serde(rename = "confidenceInfo")]
+    pub confidence_info: RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo,
+    /// dateRange property.
+    #[serde(rename = "dateRange")]
+    pub date_range: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem>,
+    /// lastUpdated property.
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
+    /// normalization property.
+    pub normalization: String,
+    /// units property.
+    pub units: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem>,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo {
+    /// annotations property.
+    pub annotations: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// level property.
+    pub level: i64,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
+    /// dataSource property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// description property.
+    pub description: String,
+    /// endDate property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// eventType property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// isInstantaneous property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// linkedUrl property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// startDate property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem {
+    /// endTime property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// startTime property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem {
+    /// name property.
+    pub name: String,
+    /// value property.
+    pub value: String,
+}
+
+/// `RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0 {
+    /// timestamps property.
+    pub timestamps: Vec<String>,
 }
 
 // =============================================================================
@@ -342,6 +1800,8 @@ pub struct EmailSecurityInvestigateArgs {
 pub struct EmailSecurityPostBulkMessageMoveArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityPostBulkMessageMoveRequest,
 }
 
 /// Arguments for [`email_security_post_preview_request`].
@@ -349,6 +1809,8 @@ pub struct EmailSecurityPostBulkMessageMoveArgs {
 pub struct EmailSecurityPostPreviewArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityPostPreviewRequest,
 }
 
 /// Arguments for [`email_security_post_release_request`].
@@ -383,6 +1845,8 @@ pub struct EmailSecurityPostMessageMoveArgs {
     pub account_id: String,
     /// Path parameter: `postfix_id`.
     pub postfix_id: String,
+    /// Request body.
+    pub body: EmailSecurityPostMessageMoveRequest,
 }
 
 /// Arguments for [`email_security_get_message_preview_request`].
@@ -410,6 +1874,8 @@ pub struct EmailSecurityPostReclassifyArgs {
     pub account_id: String,
     /// Path parameter: `postfix_id`.
     pub postfix_id: String,
+    /// Request body.
+    pub body: EmailSecurityPostReclassifyRequest,
 }
 
 /// Arguments for [`email_security_get_message_trace_request`].
@@ -485,6 +1951,8 @@ pub struct EmailSecurityCreateAllowPolicyArgs {
 pub struct EmailSecurityBatchAllowPoliciesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityBatchAllowPoliciesRequest,
 }
 
 /// Arguments for [`email_security_get_allow_policy_request`].
@@ -551,6 +2019,8 @@ pub struct EmailSecurityCreateBlockedSenderArgs {
 pub struct EmailSecurityBatchBlockedSendersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: EmailSecurityBatchBlockedSendersRequest,
 }
 
 /// Arguments for [`email_security_get_blocked_sender_request`].
@@ -626,6 +2096,8 @@ pub struct EmailSecurityUpdateDisplayNameArgs {
     pub account_id: String,
     /// Path parameter: `display_name_id`.
     pub display_name_id: String,
+    /// Request body.
+    pub body: EmailSecurityUpdateDisplayNameRequest,
 }
 
 /// Arguments for [`email_security_delete_display_name_request`].
@@ -881,15 +2353,16 @@ pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
 pub async fn dlp_email_scanner_get_account_mapping_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerGetAccountMappingArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerGetAccountMappingResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/account_mapping",
+    let path = format!("/accounts/{}/dlp/email/account_mapping",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -904,9 +2377,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerGetAccountMappingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -934,15 +2412,16 @@ where
 pub async fn dlp_email_scanner_create_account_mapping_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerCreateAccountMappingArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerCreateAccountMappingResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/account_mapping",
+    let path = format!("/accounts/{}/dlp/email/account_mapping",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -960,9 +2439,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerCreateAccountMappingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -990,15 +2474,16 @@ where
 pub async fn dlp_email_scanner_list_all_rules_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerListAllRulesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerListAllRulesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules",
+    let path = format!("/accounts/{}/dlp/email/rules",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1013,9 +2498,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerListAllRulesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1043,15 +2533,16 @@ where
 pub async fn dlp_email_scanner_create_rule_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerCreateRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerCreateRuleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules",
+    let path = format!("/accounts/{}/dlp/email/rules",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1069,9 +2560,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerCreateRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1099,15 +2595,16 @@ where
 pub async fn dlp_email_scanner_update_rule_priorities_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerUpdateRulePrioritiesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerUpdateRulePrioritiesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules",
+    let path = format!("/accounts/{}/dlp/email/rules",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1125,9 +2622,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerUpdateRulePrioritiesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1155,16 +2657,17 @@ where
 pub async fn dlp_email_scanner_get_rule_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerGetRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerGetRuleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules/{}",
+    let path = format!("/accounts/{}/dlp/email/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1179,9 +2682,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerGetRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1209,16 +2717,17 @@ where
 pub async fn dlp_email_scanner_update_rule_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerUpdateRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerUpdateRuleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules/{}",
+    let path = format!("/accounts/{}/dlp/email/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1236,9 +2745,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerUpdateRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1266,16 +2780,17 @@ where
 pub async fn dlp_email_scanner_delete_rule_request<F>(
     client: DynNetClient,
     args: &DlpEmailScannerDeleteRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpEmailScannerDeleteRuleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/email/rules/{}",
+    let path = format!("/accounts/{}/dlp/email/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1290,9 +2805,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpEmailScannerDeleteRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1320,15 +2840,16 @@ where
 pub async fn email_security_investigate_request<F>(
     client: DynNetClient,
     args: &EmailSecurityInvestigateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityInvestigateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate",
+    let path = format!("/accounts/{}/email-security/investigate",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1363,9 +2884,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityInvestigateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1393,17 +2919,21 @@ where
 pub async fn email_security_post_bulk_message_move_request<F>(
     client: DynNetClient,
     args: &EmailSecurityPostBulkMessageMoveArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityPostBulkMessageMoveResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/move",
+    let path = format!("/accounts/{}/email-security/investigate/move",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1416,9 +2946,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityPostBulkMessageMoveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1446,17 +2981,21 @@ where
 pub async fn email_security_post_preview_request<F>(
     client: DynNetClient,
     args: &EmailSecurityPostPreviewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityPostPreviewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/preview",
+    let path = format!("/accounts/{}/email-security/investigate/preview",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1469,9 +3008,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityPostPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1499,15 +3043,16 @@ where
 pub async fn email_security_post_release_request<F>(
     client: DynNetClient,
     args: &EmailSecurityPostReleaseArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityPostReleaseResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/release",
+    let path = format!("/accounts/{}/email-security/investigate/release",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1522,9 +3067,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityPostReleaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1552,16 +3102,17 @@ where
 pub async fn email_security_get_message_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetMessageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetMessageResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}",
+    let path = format!("/accounts/{}/email-security/investigate/{}",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1576,9 +3127,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetMessageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1606,16 +3162,17 @@ where
 pub async fn email_security_get_message_detections_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetMessageDetectionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetMessageDetectionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/detections",
+    let path = format!("/accounts/{}/email-security/investigate/{}/detections",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1630,9 +3187,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetMessageDetectionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1660,18 +3222,22 @@ where
 pub async fn email_security_post_message_move_request<F>(
     client: DynNetClient,
     args: &EmailSecurityPostMessageMoveArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityPostMessageMoveResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/move",
+    let path = format!("/accounts/{}/email-security/investigate/{}/move",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1684,9 +3250,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityPostMessageMoveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1714,16 +3285,17 @@ where
 pub async fn email_security_get_message_preview_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetMessagePreviewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetMessagePreviewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/preview",
+    let path = format!("/accounts/{}/email-security/investigate/{}/preview",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1738,9 +3310,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetMessagePreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1768,16 +3345,17 @@ where
 pub async fn email_security_get_message_raw_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetMessageRawArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetMessageRawResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/raw",
+    let path = format!("/accounts/{}/email-security/investigate/{}/raw",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1792,9 +3370,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetMessageRawResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1822,18 +3405,22 @@ where
 pub async fn email_security_post_reclassify_request<F>(
     client: DynNetClient,
     args: &EmailSecurityPostReclassifyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityPostReclassifyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/reclassify",
+    let path = format!("/accounts/{}/email-security/investigate/{}/reclassify",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1846,9 +3433,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityPostReclassifyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1876,16 +3468,17 @@ where
 pub async fn email_security_get_message_trace_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetMessageTraceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetMessageTraceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/investigate/{}/trace",
+    let path = format!("/accounts/{}/email-security/investigate/{}/trace",
         args.account_id,
         args.postfix_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1900,9 +3493,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetMessageTraceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1930,15 +3528,16 @@ where
 pub async fn email_security_get_phishguard_reports_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetPhishguardReportsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetPhishguardReportsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/phishguard/reports",
+    let path = format!("/accounts/{}/email-security/phishguard/reports",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1958,9 +3557,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetPhishguardReportsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1988,15 +3592,16 @@ where
 pub async fn email_security_list_allow_policies_request<F>(
     client: DynNetClient,
     args: &EmailSecurityListAllowPoliciesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityListAllowPoliciesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2026,9 +3631,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityListAllowPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2056,15 +3666,16 @@ where
 pub async fn email_security_create_allow_policy_request<F>(
     client: DynNetClient,
     args: &EmailSecurityCreateAllowPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityCreateAllowPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2082,9 +3693,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityCreateAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2112,17 +3728,21 @@ where
 pub async fn email_security_batch_allow_policies_request<F>(
     client: DynNetClient,
     args: &EmailSecurityBatchAllowPoliciesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityBatchAllowPoliciesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies/batch",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies/batch",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2135,9 +3755,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityBatchAllowPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2165,16 +3790,17 @@ where
 pub async fn email_security_get_allow_policy_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetAllowPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetAllowPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies/{}",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2189,9 +3815,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2219,16 +3850,17 @@ where
 pub async fn email_security_update_allow_policy_request<F>(
     client: DynNetClient,
     args: &EmailSecurityUpdateAllowPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityUpdateAllowPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies/{}",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2246,9 +3878,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityUpdateAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2276,16 +3913,17 @@ where
 pub async fn email_security_delete_allow_policy_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteAllowPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteAllowPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/allow_policies/{}",
+    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2300,9 +3938,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2330,15 +3973,16 @@ where
 pub async fn email_security_list_blocked_senders_request<F>(
     client: DynNetClient,
     args: &EmailSecurityListBlockedSendersArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityListBlockedSendersResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders",
+    let path = format!("/accounts/{}/email-security/settings/block_senders",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2361,9 +4005,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityListBlockedSendersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2391,15 +4040,16 @@ where
 pub async fn email_security_create_blocked_sender_request<F>(
     client: DynNetClient,
     args: &EmailSecurityCreateBlockedSenderArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityCreateBlockedSenderResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders",
+    let path = format!("/accounts/{}/email-security/settings/block_senders",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2417,9 +4067,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityCreateBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2447,17 +4102,21 @@ where
 pub async fn email_security_batch_blocked_senders_request<F>(
     client: DynNetClient,
     args: &EmailSecurityBatchBlockedSendersArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityBatchBlockedSendersResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders/batch",
+    let path = format!("/accounts/{}/email-security/settings/block_senders/batch",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2470,9 +4129,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityBatchBlockedSendersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2500,16 +4164,17 @@ where
 pub async fn email_security_get_blocked_sender_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetBlockedSenderArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetBlockedSenderResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders/{}",
+    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
         args.account_id,
         args.pattern_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2524,9 +4189,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2554,16 +4224,17 @@ where
 pub async fn email_security_update_blocked_sender_request<F>(
     client: DynNetClient,
     args: &EmailSecurityUpdateBlockedSenderArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityUpdateBlockedSenderResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders/{}",
+    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
         args.account_id,
         args.pattern_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2581,9 +4252,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityUpdateBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2611,16 +4287,17 @@ where
 pub async fn email_security_delete_blocked_sender_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteBlockedSenderArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteBlockedSenderResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/block_senders/{}",
+    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
         args.account_id,
         args.pattern_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2635,9 +4312,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2665,15 +4347,16 @@ where
 pub async fn email_security_list_display_names_request<F>(
     client: DynNetClient,
     args: &EmailSecurityListDisplayNamesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityListDisplayNamesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/impersonation_registry",
+    let path = format!("/accounts/{}/email-security/settings/impersonation_registry",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2695,9 +4378,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityListDisplayNamesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2725,15 +4413,16 @@ where
 pub async fn email_security_create_display_name_request<F>(
     client: DynNetClient,
     args: &EmailSecurityCreateDisplayNameArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityCreateDisplayNameResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/impersonation_registry",
+    let path = format!("/accounts/{}/email-security/settings/impersonation_registry",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2751,9 +4440,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityCreateDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2781,16 +4475,17 @@ where
 pub async fn email_security_get_display_name_request<F>(
     client: DynNetClient,
     args: &EmailSecurityGetDisplayNameArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityGetDisplayNameResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/impersonation_registry/{}",
+    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
         args.account_id,
         args.display_name_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2805,9 +4500,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityGetDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2835,18 +4535,22 @@ where
 pub async fn email_security_update_display_name_request<F>(
     client: DynNetClient,
     args: &EmailSecurityUpdateDisplayNameArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityUpdateDisplayNameResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/impersonation_registry/{}",
+    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
         args.account_id,
         args.display_name_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2859,9 +4563,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityUpdateDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2889,16 +4598,17 @@ where
 pub async fn email_security_delete_display_name_request<F>(
     client: DynNetClient,
     args: &EmailSecurityDeleteDisplayNameArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecurityDeleteDisplayNameResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/settings/impersonation_registry/{}",
+    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
         args.account_id,
         args.display_name_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2913,9 +4623,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecurityDeleteDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2943,15 +4658,16 @@ where
 pub async fn email_security_submissions_request<F>(
     client: DynNetClient,
     args: &EmailSecuritySubmissionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSecuritySubmissionsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email-security/submissions",
+    let path = format!("/accounts/{}/email-security/submissions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2979,9 +4695,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSecuritySubmissionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3009,15 +4730,16 @@ where
 pub async fn email_routing_destination_addresses_list_destination_addresses_request<F>(
     client: DynNetClient,
     args: &EmailRoutingDestinationAddressesListDestinationAddressesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<EmailDestinationAddressesResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/routing/addresses",
+    let path = format!("/accounts/{}/email/routing/addresses",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3037,7 +4759,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: EmailDestinationAddressesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3069,15 +4794,16 @@ where
 pub async fn email_routing_destination_addresses_create_a_destination_address_request<F>(
     client: DynNetClient,
     args: &EmailRoutingDestinationAddressesCreateADestinationAddressArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<EmailDestinationAddressResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/routing/addresses",
+    let path = format!("/accounts/{}/email/routing/addresses",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3095,7 +4821,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3127,16 +4856,17 @@ where
 pub async fn email_routing_destination_addresses_get_a_destination_address_request<F>(
     client: DynNetClient,
     args: &EmailRoutingDestinationAddressesGetADestinationAddressArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<EmailDestinationAddressResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/routing/addresses/{}",
+    let path = format!("/accounts/{}/email/routing/addresses/{}",
         args.account_id,
         args.destination_address_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3151,7 +4881,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3183,16 +4916,17 @@ where
 pub async fn email_routing_destination_addresses_delete_destination_address_request<F>(
     client: DynNetClient,
     args: &EmailRoutingDestinationAddressesDeleteDestinationAddressArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<EmailDestinationAddressResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/routing/addresses/{}",
+    let path = format!("/accounts/{}/email/routing/addresses/{}",
         args.account_id,
         args.destination_address_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3207,7 +4941,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3239,15 +4976,16 @@ where
 pub async fn email_sending_account_send_builder_request<F>(
     client: DynNetClient,
     args: &EmailSendingAccountSendBuilderArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSendingAccountSendBuilderResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/sending/send",
+    let path = format!("/accounts/{}/email/sending/send",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3265,9 +5003,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSendingAccountSendBuilderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3295,15 +5038,16 @@ where
 pub async fn email_sending_account_send_raw_message_request<F>(
     client: DynNetClient,
     args: &EmailSendingAccountSendRawMessageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EmailSendingAccountSendRawMessageResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/email/sending/send_raw",
+    let path = format!("/accounts/{}/email/sending/send_raw",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3321,9 +5065,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EmailSendingAccountSendRawMessageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3351,15 +5100,16 @@ where
 pub async fn radar_get_email_routing_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailRoutingSummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailRoutingSummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/routing/summary/{}",
+    let path = format!("/radar/email/routing/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3387,9 +5137,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailRoutingSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3417,15 +5172,16 @@ where
 pub async fn radar_get_email_routing_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailRoutingTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailRoutingTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/{}",
+    let path = format!("/radar/email/routing/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3454,9 +5210,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailRoutingTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3484,15 +5245,16 @@ where
 pub async fn radar_get_email_security_summary_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecuritySummaryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecuritySummaryResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/summary/{}",
+    let path = format!("/radar/email/security/summary/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3519,9 +5281,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecuritySummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3549,15 +5316,16 @@ where
 pub async fn radar_get_email_security_timeseries_group_request<F>(
     client: DynNetClient,
     args: &RadarGetEmailSecurityTimeseriesGroupArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RadarGetEmailSecurityTimeseriesGroupResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/{}",
+    let path = format!("/radar/email/security/timeseries_groups/{}",
         args.dimension,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3585,8 +5353,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RadarGetEmailSecurityTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

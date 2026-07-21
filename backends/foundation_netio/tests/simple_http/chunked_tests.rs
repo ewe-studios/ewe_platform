@@ -432,21 +432,23 @@ fn test_mixed_crlf_and_lf() {
     assert_eq!(&collected_bytes, expected, "Mixed CRLF/LF output corrupted");
 }
 
-/// Test: Chunk data ending with \r character (content, not framing).
+/// Test: CR bytes *inside* chunk data are content and must survive.
 ///
-/// Verifies that \r characters in chunk data are stripped.
+/// Chunk data is opaque octets — the chunk-size says how many bytes belong to
+/// the chunk, and CRLF only delimits the framing around it. A CR in the data is
+/// therefore payload, not a protocol artifact.
 ///
-/// This is a deliberate design decision to handle servers (like GCP Discovery API)
-/// that send stray CR bytes in response content, which break downstream parsing
-/// (e.g., JSON parsers reject raw control characters).
+/// This test previously asserted the opposite: the parser stripped every CR from
+/// chunk data (a workaround for stray CRs in GCP Discovery API JSON). That
+/// silently corrupted every binary chunked body. Docker's multiplexed log stream
+/// is the concrete case — the frame header carries the payload length, so a
+/// 13-byte log line puts a literal 0x0D there; stripping it desynchronised the
+/// frame and the log came back empty. Text payloads with stray CRs are the
+/// caller's problem to clean, not the transport's to guess at.
 ///
-/// Per RFC 7230, chunked transfer coding uses CRLF as delimiters, and raw CR
-/// bytes in chunk data are unexpected control characters. Stripping ensures
-/// protocol-level correctness for text-based formats.
-///
-/// See: `specifications/11-foundation-deployment/features/05-gcp-cloud-run-provider/CR_BYTE_INVESTIGATION.md`
+/// See: `specifications/11-foundation-deployment/features/05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md`
 #[test]
-fn test_chunk_data_cr_stripped() {
+fn test_chunk_data_cr_preserved() {
     let chunk1_data = b"line1\rline2";
     let chunk2_data = b"line3";
 
@@ -481,13 +483,16 @@ fn test_chunk_data_cr_stripped() {
         }
     }
 
-    let expected = b"line1line2line3";
-    assert_eq!(&collected_bytes, expected, "Content CR must be stripped");
+    let expected = b"line1\rline2line3";
+    assert_eq!(
+        &collected_bytes, expected,
+        "chunk data must round-trip byte-for-byte, CR included"
+    );
 
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(
-        cr_count, 0,
-        "All CR bytes should be stripped (found {cr_count})"
+        cr_count, 1,
+        "the CR that was in the payload must still be there (found {cr_count})"
     );
 }
 

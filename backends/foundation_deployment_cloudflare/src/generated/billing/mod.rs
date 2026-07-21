@@ -17,18 +17,18 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::BillSubsApiSubscriptionV2;
-use super::shared::BillSubsApiRatePlan;
-use super::shared::BillSubsApiCurrentPeriodEnd;
-use super::shared::BillSubsApiName;
-use super::shared::BillSubsApiState;
-use super::shared::BillSubsApiFrequency;
-use super::shared::BillSubsApiZone;
-use super::shared::BillSubsApiIdentifier;
-use super::shared::BillSubsApiSchemasIdentifier;
-use super::shared::BillSubsApiCurrentPeriodStart;
 use super::shared::BillSubsApiComponentValue;
 use super::shared::BillSubsApiCurrency;
+use super::shared::BillSubsApiCurrentPeriodEnd;
+use super::shared::BillSubsApiCurrentPeriodStart;
+use super::shared::BillSubsApiFrequency;
+use super::shared::BillSubsApiIdentifier;
+use super::shared::BillSubsApiName;
 use super::shared::BillSubsApiPrice;
+use super::shared::BillSubsApiRatePlan;
+use super::shared::BillSubsApiSchemasIdentifier;
+use super::shared::BillSubsApiState;
+use super::shared::BillSubsApiZone;
 
 use super::shared::ApiResponse;
 
@@ -36,25 +36,11 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `PayPerCrawlApiNoResultResponse` response type.
+/// `AccountSubscriptionsDeleteSubscriptionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PayPerCrawlApiNoResultResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BillSubsApiResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
+pub struct AccountSubscriptionsDeleteSubscriptionResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `BillSubsApiAccountSubscriptionResponseCollection` type.
@@ -62,118 +48,6 @@ pub struct BillSubsApiResultInfo {
 pub struct BillSubsApiAccountSubscriptionResponseCollection {
     /// `result` property.
     pub result: Option<Vec<BillSubsApiSubscription>>,
-}
-
-/// `BillSubsApiApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `BillSubsApiApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
-
-/// `BillableUsageApiMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillableUsageApiMessage {
-    /// code property.
-    pub code: Option<i64>,
-    /// message property.
-    pub message: String,
-}
-
-/// `PayPerCrawlQueryZonesCanBeEnabledResponse` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PayPerCrawlQueryZonesCanBeEnabledResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BillSubsApiSubscription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiSubscription {
-}
-
-/// `BillableUsageApiUsageResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillableUsageApiUsageResponse {
-    /// errors property.
-    pub errors: Vec<BillableUsageApiMessage>,
-    /// messages property.
-    pub messages: Vec<BillableUsageApiMessage>,
-    /// result property.
-    pub result: Vec<BillableUsageApiUsageRecord>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `BillSubsApiComponentValues` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiComponentValues {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PayPerCrawlGetStripeConfigResponse` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PayPerCrawlGetStripeConfigResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `BillableUsageApiUsageRecord` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillableUsageApiUsageRecord {
-    /// BillingCurrency property.
-    pub billing_currency: String,
-    /// BillingPeriodStart property.
-    pub billing_period_start: String,
-    /// ChargePeriodEnd property.
-    pub charge_period_end: String,
-    /// ChargePeriodStart property.
-    pub charge_period_start: String,
-    /// ConsumedQuantity property.
-    pub consumed_quantity: f64,
-    /// ConsumedUnit property.
-    pub consumed_unit: String,
-    /// ContractedCost property.
-    pub contracted_cost: f64,
-    /// CumulatedContractedCost property.
-    pub cumulated_contracted_cost: f64,
-    /// CumulatedPricingQuantity property.
-    pub cumulated_pricing_quantity: i64,
-    /// PricingQuantity property.
-    pub pricing_quantity: i64,
-    /// ServiceName property.
-    pub service_name: String,
-}
-
-/// `BillSubsApiMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PayPerCrawlCreateStripeConfigResponse` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PayPerCrawlCreateStripeConfigResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiAccountSubscriptionResponseSingle` type.
@@ -192,6 +66,456 @@ pub struct BillSubsApiApiResponseCollection {
     pub result_info: Option<BillSubsApiResultInfo>,
 }
 
+/// `BillSubsApiApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `BillSubsApiApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiApiResponseSingle {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `BillSubsApiComponentValues` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiComponentValues {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BillSubsApiMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `BillSubsApiResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `BillSubsApiSubscription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiSubscription {
+}
+
+/// `BillableUsageApiMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillableUsageApiMessage {
+    /// code property.
+    pub code: Option<i64>,
+    /// message property.
+    pub message: String,
+}
+
+/// `BillableUsageApiUsageRecord` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillableUsageApiUsageRecord {
+    /// BillingCurrency property.
+    #[serde(rename = "BillingCurrency")]
+    pub billing_currency: String,
+    /// BillingPeriodStart property.
+    #[serde(rename = "BillingPeriodStart")]
+    pub billing_period_start: String,
+    /// ChargePeriodEnd property.
+    #[serde(rename = "ChargePeriodEnd")]
+    pub charge_period_end: String,
+    /// ChargePeriodStart property.
+    #[serde(rename = "ChargePeriodStart")]
+    pub charge_period_start: String,
+    /// ConsumedQuantity property.
+    #[serde(rename = "ConsumedQuantity")]
+    pub consumed_quantity: f64,
+    /// ConsumedUnit property.
+    #[serde(rename = "ConsumedUnit")]
+    pub consumed_unit: String,
+    /// ContractedCost property.
+    #[serde(rename = "ContractedCost")]
+    pub contracted_cost: f64,
+    /// CumulatedContractedCost property.
+    #[serde(rename = "CumulatedContractedCost")]
+    pub cumulated_contracted_cost: f64,
+    /// CumulatedPricingQuantity property.
+    #[serde(rename = "CumulatedPricingQuantity")]
+    pub cumulated_pricing_quantity: i64,
+    /// PricingQuantity property.
+    #[serde(rename = "PricingQuantity")]
+    pub pricing_quantity: i64,
+    /// ServiceName property.
+    #[serde(rename = "ServiceName")]
+    pub service_name: String,
+}
+
+/// `BillableUsageApiUsageResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillableUsageApiUsageResponse {
+    /// errors property.
+    pub errors: Option<Vec<BillableUsageApiMessage>>,
+    /// messages property.
+    pub messages: Option<Vec<BillableUsageApiMessage>>,
+    /// result property.
+    pub result: Vec<BillableUsageApiUsageRecord>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `MqApiV4Error` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Error {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Message {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqApiV4Success` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqApiV4Success {
+    /// errors property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// messages property.
+    pub messages: Option<Vec<String>>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `MqEventDestination` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventDestination {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqEventDestinationQueue` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventDestinationQueue {
+    /// queue_id property.
+    pub queue_id: String,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// `MqEventSource` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSource {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MqEventSourceImages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceImages {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceKv` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceKv {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceR2` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceR2 {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceSuperSlurper` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceSuperSlurper {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceVectorize` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceVectorize {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceWorkersAiModel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceWorkersAiModel {
+    /// model_name property.
+    pub model_name: Option<String>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// `MqEventSourceWorkersBuildsWorker` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceWorkersBuildsWorker {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// worker_name property.
+    pub worker_name: Option<String>,
+}
+
+/// `MqEventSourceWorkflowsWorkflow` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSourceWorkflowsWorkflow {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// workflow_name property.
+    pub workflow_name: Option<String>,
+}
+
+/// `MqEventSubscription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSubscription {
+    /// created_at property.
+    pub created_at: String,
+    /// destination property.
+    pub destination: MqEventDestination,
+    /// enabled property.
+    pub enabled: bool,
+    /// events property.
+    pub events: Vec<String>,
+    /// id property.
+    pub id: String,
+    /// modified_at property.
+    pub modified_at: String,
+    /// name property.
+    pub name: String,
+    /// source property.
+    pub source: MqEventSource,
+}
+
+/// `PayPerCrawlApiNoResultResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlApiNoResultResponse {
+    /// errors property.
+    pub errors: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// messages property.
+    pub messages: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// result_info property.
+    pub result_info: Option<PayPerCrawlResultInfo>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `PayPerCrawlCreateStripeConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlCreateStripeConfigResponse {
+    /// errors property.
+    pub errors: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// messages property.
+    pub messages: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// result property.
+    pub result: Option<PayPerCrawlStripeConnectResp>,
+    /// result_info property.
+    pub result_info: Option<PayPerCrawlResultInfo>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `PayPerCrawlDaricZoneCanBeEnabled` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlDaricZoneCanBeEnabled {
+    /// can_be_enabled property.
+    pub can_be_enabled: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `PayPerCrawlGetStripeConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlGetStripeConfigResponse {
+    /// errors property.
+    pub errors: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// messages property.
+    pub messages: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// result property.
+    pub result: Option<PayPerCrawlStripeConnection>,
+    /// result_info property.
+    pub result_info: Option<PayPerCrawlResultInfo>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `PayPerCrawlMsg` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlMsg {
+    /// code property.
+    pub code: Option<i64>,
+    /// documentation_url property.
+    pub documentation_url: Option<String>,
+    /// error_chain property.
+    pub error_chain: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// message property.
+    pub message: Option<String>,
+    /// meta property.
+    pub meta: Option<serde_json::Value>,
+    /// source property.
+    pub source: Option<PayPerCrawlSource>,
+}
+
+/// `PayPerCrawlQueryZonesCanBeEnabledResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlQueryZonesCanBeEnabledResponse {
+    /// errors property.
+    pub errors: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// messages property.
+    pub messages: Option<Vec<Box<PayPerCrawlMsg>>>,
+    /// result property.
+    pub result: Option<PayPerCrawlZonesCanBeEnabledPayload>,
+    /// result_info property.
+    pub result_info: Option<PayPerCrawlResultInfo>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `PayPerCrawlResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlResultInfo {
+    /// count property.
+    pub count: Option<i64>,
+    /// page property.
+    pub page: Option<i64>,
+    /// per_page property.
+    pub per_page: Option<i64>,
+    /// total_count property.
+    pub total_count: Option<i64>,
+    /// total_pages property.
+    pub total_pages: Option<i64>,
+}
+
+/// `PayPerCrawlSource` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlSource {
+    /// parameter property.
+    pub parameter: Option<String>,
+    /// parameter_value_index property.
+    pub parameter_value_index: Option<i64>,
+    /// pointer property.
+    pub pointer: Option<Vec<String>>,
+}
+
+/// `PayPerCrawlStripeConnectResp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlStripeConnectResp {
+    /// url property.
+    pub url: Option<String>,
+}
+
+/// `PayPerCrawlStripeConnection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlStripeConnection {
+    /// connect_status property.
+    pub connect_status: Option<String>,
+    /// stripe_account_id property.
+    pub stripe_account_id: Option<String>,
+}
+
+/// `PayPerCrawlZonesCanBeEnabledPayload` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayPerCrawlZonesCanBeEnabledPayload {
+    /// zones property.
+    pub zones: Option<Vec<PayPerCrawlDaricZoneCanBeEnabled>>,
+}
+
+/// `SubscriptionsCreateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsCreateRequest {
+    /// destination property.
+    pub destination: Option<MqEventDestination>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// events property.
+    pub events: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+    /// source property.
+    pub source: Option<MqEventSource>,
+}
+
+/// `SubscriptionsCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsCreateResponse {
+    /// `result` property.
+    pub result: Option<MqEventSubscription>,
+}
+
+/// `SubscriptionsDeleteResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsDeleteResponse {
+    /// `result` property.
+    pub result: Option<MqEventSubscription>,
+}
+
+/// `SubscriptionsGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsGetResponse {
+    /// `result` property.
+    pub result: Option<MqEventSubscription>,
+}
+
+/// `SubscriptionsListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsListResponse {
+    /// `result` property.
+    pub result: Option<Vec<MqEventSubscription>>,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `SubscriptionsPatchRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsPatchRequest {
+    /// destination property.
+    pub destination: Option<MqEventDestination>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// events property.
+    pub events: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `SubscriptionsPatchResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionsPatchResponse {
+    /// `result` property.
+    pub result: Option<MqEventSubscription>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -201,6 +525,10 @@ pub struct BillSubsApiApiResponseCollection {
 pub struct BillableUsageGetPaygoAccountUsageArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `from`.
+    pub from: Option<String>,
+    /// Query parameter: `to`.
+    pub to: Option<String>,
 }
 
 /// Arguments for [`subscriptions-list_request`].
@@ -223,6 +551,8 @@ pub struct SubscriptionsListArgs {
 pub struct SubscriptionsCreateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: SubscriptionsCreateRequest,
 }
 
 /// Arguments for [`subscriptions-get_request`].
@@ -241,6 +571,8 @@ pub struct SubscriptionsPatchArgs {
     pub account_id: String,
     /// Path parameter: `subscription_id`.
     pub subscription_id: String,
+    /// Request body.
+    pub body: SubscriptionsPatchRequest,
 }
 
 /// Arguments for [`subscriptions-delete_request`].
@@ -373,18 +705,22 @@ pub struct AccountSubscriptionsDeleteSubscriptionArgs {
 pub async fn billable_usage_get_paygo_account_usage_request<F>(
     client: DynNetClient,
     args: &BillableUsageGetPaygoAccountUsageArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<BillableUsageApiUsageResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/billing/usage/paygo",
+    let path = format!("/accounts/{}/billing/usage/paygo",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("from", args.from.as_deref());
+    builder = builder.query("to", args.to.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -396,7 +732,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: BillableUsageApiUsageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -428,15 +767,16 @@ where
 pub async fn subscriptions_list_request<F>(
     client: DynNetClient,
     args: &SubscriptionsListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SubscriptionsListResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_subscriptions/subscriptions",
+    let path = format!("/accounts/{}/event_subscriptions/subscriptions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -456,9 +796,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SubscriptionsListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -486,17 +831,21 @@ where
 pub async fn subscriptions_create_request<F>(
     client: DynNetClient,
     args: &SubscriptionsCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SubscriptionsCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_subscriptions/subscriptions",
+    let path = format!("/accounts/{}/event_subscriptions/subscriptions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -509,9 +858,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SubscriptionsCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -539,16 +893,17 @@ where
 pub async fn subscriptions_get_request<F>(
     client: DynNetClient,
     args: &SubscriptionsGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SubscriptionsGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_subscriptions/subscriptions/{}",
+    let path = format!("/accounts/{}/event_subscriptions/subscriptions/{}",
         args.account_id,
         args.subscription_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -563,9 +918,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SubscriptionsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -593,18 +953,22 @@ where
 pub async fn subscriptions_patch_request<F>(
     client: DynNetClient,
     args: &SubscriptionsPatchArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SubscriptionsPatchResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_subscriptions/subscriptions/{}",
+    let path = format!("/accounts/{}/event_subscriptions/subscriptions/{}",
         args.account_id,
         args.subscription_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -617,9 +981,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SubscriptionsPatchResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -647,16 +1016,17 @@ where
 pub async fn subscriptions_delete_request<F>(
     client: DynNetClient,
     args: &SubscriptionsDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SubscriptionsDeleteResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_subscriptions/subscriptions/{}",
+    let path = format!("/accounts/{}/event_subscriptions/subscriptions/{}",
         args.account_id,
         args.subscription_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -671,9 +1041,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SubscriptionsDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -701,15 +1076,16 @@ where
 pub async fn pay_per_crawl_crawler_get_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlCrawlerGetStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlGetStripeConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/crawler/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/crawler/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -724,7 +1100,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlGetStripeConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -756,15 +1135,16 @@ where
 pub async fn pay_per_crawl_crawler_create_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlCrawlerCreateStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlCreateStripeConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/crawler/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/crawler/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -779,7 +1159,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlCreateStripeConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -811,15 +1194,16 @@ where
 pub async fn pay_per_crawl_crawler_delete_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlCrawlerDeleteStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlApiNoResultResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/crawler/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/crawler/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -834,7 +1218,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlApiNoResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -866,15 +1253,16 @@ where
 pub async fn pay_per_crawl_publisher_get_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlPublisherGetStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlGetStripeConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/publisher/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/publisher/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -889,7 +1277,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlGetStripeConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -921,15 +1312,16 @@ where
 pub async fn pay_per_crawl_publisher_create_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlPublisherCreateStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlCreateStripeConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/publisher/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/publisher/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -944,7 +1336,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlCreateStripeConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -976,15 +1371,16 @@ where
 pub async fn pay_per_crawl_publisher_delete_stripe_config_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlPublisherDeleteStripeConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlApiNoResultResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/publisher/stripe",
+    let path = format!("/accounts/{}/pay-per-crawl/publisher/stripe",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -999,7 +1395,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlApiNoResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1031,15 +1430,16 @@ where
 pub async fn pay_per_crawl_set_zones_can_be_enabled_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlSetZonesCanBeEnabledArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlApiNoResultResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/zones_can_be_enabled",
+    let path = format!("/accounts/{}/pay-per-crawl/zones_can_be_enabled",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1054,7 +1454,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlApiNoResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1086,15 +1489,16 @@ where
 pub async fn pay_per_crawl_query_zones_can_be_enabled_request<F>(
     client: DynNetClient,
     args: &PayPerCrawlQueryZonesCanBeEnabledArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PayPerCrawlQueryZonesCanBeEnabledResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pay-per-crawl/zones_can_be_enabled/query",
+    let path = format!("/accounts/{}/pay-per-crawl/zones_can_be_enabled/query",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1109,7 +1513,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: PayPerCrawlQueryZonesCanBeEnabledResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1141,15 +1548,16 @@ where
 pub async fn account_subscriptions_list_subscriptions_request<F>(
     client: DynNetClient,
     args: &AccountSubscriptionsListSubscriptionsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<BillSubsApiAccountSubscriptionResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/subscriptions",
+    let path = format!("/accounts/{}/subscriptions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1164,7 +1572,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: BillSubsApiAccountSubscriptionResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1196,15 +1607,16 @@ where
 pub async fn account_subscriptions_create_subscription_request<F>(
     client: DynNetClient,
     args: &AccountSubscriptionsCreateSubscriptionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<BillSubsApiAccountSubscriptionResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/subscriptions",
+    let path = format!("/accounts/{}/subscriptions",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1222,7 +1634,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: BillSubsApiAccountSubscriptionResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1254,16 +1669,17 @@ where
 pub async fn account_subscriptions_update_subscription_request<F>(
     client: DynNetClient,
     args: &AccountSubscriptionsUpdateSubscriptionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<BillSubsApiAccountSubscriptionResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/subscriptions/{}",
+    let path = format!("/accounts/{}/subscriptions/{}",
         args.account_id,
         args.subscription_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1281,7 +1697,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: BillSubsApiAccountSubscriptionResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1313,16 +1732,17 @@ where
 pub async fn account_subscriptions_delete_subscription_request<F>(
     client: DynNetClient,
     args: &AccountSubscriptionsDeleteSubscriptionArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<AccountSubscriptionsDeleteSubscriptionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/subscriptions/{}",
+    let path = format!("/accounts/{}/subscriptions/{}",
         args.account_id,
         args.subscription_identifier,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1337,8 +1757,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: AccountSubscriptionsDeleteSubscriptionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

@@ -28,6 +28,7 @@ mod html;
 mod json_encoder;
 mod markup;
 mod parts;
+mod platform_types;
 
 pub use columnar_encoder::{ColumnarBatch, ColumnarEncoder};
 pub use dom_op::{DomOp, MorphAction, TargetSelector};
@@ -42,6 +43,7 @@ pub use html::{
 };
 pub use json_encoder::JsonEncoder;
 pub use parts::{AttrPart, EventPart, Part, TextPart};
+pub use platform_types::*;
 
 /// Hidden re-exports for `foundation_macros::html!` codegen: the generated
 /// code must name alloc types without knowing whether the calling crate is

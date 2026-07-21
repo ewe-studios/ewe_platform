@@ -1,0 +1,5 @@
+error: #[docker_container] cannot be stacked: declare every container in one invocation, one `{ ... }` block each — #[docker_container({ image = "redis:7", as = "cache" }, { image = "postgres:16", as = "db" })]
+ --> tests/trybuild/fail/docker_container_stacked.rs:7:1
+  |
+7 | fn stacked(_: ()) {}
+  | ^^^^^^^^^^^^^^^^^

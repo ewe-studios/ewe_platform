@@ -141,7 +141,8 @@ async fn do_introspect(
     client_secret: &str,
 ) -> Result<String, IntrospectionError> {
     use foundation_core::url::Uri;
-    use foundation_netio::http::default_http_client;
+    use foundation_netio::default_http_client;
+    use foundation_netio::shared::client::body_reader::try_collect_bytes;
     use foundation_netio::shared::client::request::PreparedRequest;
     use foundation_netio::shared::http::{
         SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
@@ -177,32 +178,20 @@ async fn do_introspect(
         .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
+    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
+    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
+    let body = try_collect_bytes(resp.take_body())
+        .map(|b| String::from_utf8_lossy(&b).to_string())
+        .map_err(|e| IntrospectionError::ConnectionFailed(format!("read body: {e}")))?;
 
     if status == 401 {
-        let body = match resp.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            _ => String::new(),
-        };
         return Err(IntrospectionError::Unauthorized(body));
     }
-
     if !(200..300).contains(&status) {
-        let body = match resp.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            _ => String::new(),
-        };
         return Err(IntrospectionError::ServerError {
             status: status as u16,
             message: body,
         });
     }
-
-    match resp.get_body_ref() {
-        SendSafeBody::Text(t) => Ok(t.clone()),
-        SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
-            .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string())),
-        _ => Ok(String::new()),
-    }
+    Ok(body)
 }

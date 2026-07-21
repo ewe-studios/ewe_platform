@@ -260,11 +260,16 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
     clear_global_registries();
 
     let thread_num = match user_thread_num {
-        None => get_allocatable_thread_count(),
+        None => {
+            let count = get_allocatable_thread_count();
+            // split_thread_count requires ≥ 3 total (≥ 2 task threads + bg = total).
+            // On a 2-core machine, clamp up rather than panic.
+            count.max(3)
+        }
         // The multi pool splits threads into background + task workers and needs
-        // ≥ 2 TASK workers (`ThreadRegistry`), which means ≥ 3 total once the
-        // background worker is carved off. Clamp a smaller request up rather than
-        // panic — callers (and the `#[valtron]` macros) pass a plain count.
+        // ≥ 2 TASK workers (`ThreadRegistry`). With bg = total, that means ≥ 3
+        // total. Clamp a smaller request up rather than panic — callers (and the
+        // `#[valtron]` macros) pass a plain count.
         Some(num) => num.max(3),
     };
 

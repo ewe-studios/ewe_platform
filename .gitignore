@@ -166,11 +166,29 @@ wrangler.log
 .wrangler/
 
 artefacts/temples/output_directory
+
+# Downloaded model artefacts — weights, tokenizers, configs and partial
+# downloads are fetched at test/run time and must never be committed (a single
+# tokenizer.json is ~98k lines; GGUF weights are hundreds of MB).
+# `.nofiles` keeps the directory present; whisper.cpp is a submodule.
+artefacts/models/*
+!artefacts/models/.nofiles
+!artefacts/models/whisper.cpp
 !.claude
 !.claude/settings.local.json
 
 *.gguf
 *.safetensors
+
+# Committed tiny test models — deliberately version-controlled (~54 MB total).
+# These are random-weight fixtures with REAL configs and tokenizers, so the
+# candle and llama.cpp suites can exercise loading, tokenization and chat
+# templates offline with no download. Weight generation covers the KB-scale
+# cases; these two cover what generated weights cannot: a real tokenizer
+# (tiny-random-Llama) and a large-vocab architecture (tiny-random-Gemma2,
+# 256k vocab — which is why no published "tiny" Gemma can be small).
+# Must come after the *.safetensors rule above to win.
+!artefacts/test-models/**
 
 backends/foundation_testbed/.testbed
 backends/foundation_testbed/.testbed/.*

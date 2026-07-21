@@ -6,7 +6,7 @@
 
 /// On Linux the concrete backend is chosen at runtime by the F42 probe ladder,
 /// so `Selector` is the dispatch enum rather than one of the leaf selectors.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub use self::unix::selector::dispatch::{RawFd, Selector};
 
 #[cfg(any(
@@ -24,6 +24,7 @@ pub use self::windows::{Selector, RawFd};
 
 #[cfg(not(any(
     target_os = "linux",
+    target_os = "android",
     target_os = "macos",
     target_os = "ios",
     target_os = "freebsd",

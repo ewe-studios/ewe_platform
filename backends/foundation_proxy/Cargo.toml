@@ -22,13 +22,28 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
+sha2 = "0.10"
+base64 = "0.22"
+bytes = "1"
 derive_more.workspace = true
 tracing.workspace = true
 chrono.workspace = true
+# ACME (F15): ES256 JWS signing + account JWK (pure-Rust RustCrypto, already in
+# the tree) and X.509 keypair/CSR generation. rcgen uses the `ring` backend
+# (also already present via rustls/boringtun) so no new C crypto library.
+p256 = { version = "0.13", features = ["ecdsa", "pem"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+# Drive the ACME provisioning future to completion at startup (its I/O is the
+# shared client's blocking send, so it resolves in a single poll).
+futures-lite = "2"
 
 [dev-dependencies]
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
+# The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
+# `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.
+rustls-pki-types = "1"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 serial_test = "3"
 
@@ -36,6 +51,8 @@ serial_test = "3"
 default = []
 cloudflare = ["foundation_deployment_cloudflare"]
 docker-tests = []
+# HTTP/3 (QUIC) proxy front end (F19): enables the H3 serving layer and handler.
+quic = ["foundation_http/quic", "foundation_netio/quic"]
 
 [[test]]
 name = "proxy_integration_tests"
@@ -44,3 +61,9 @@ required-features = ["docker-tests"]
 
 [lints]
 workspace = true
+
+# HTTP/3 proxy end-to-end test (F19) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_integration_tests"
+path = "tests/h3_integration_tests.rs"
+required-features = ["quic"]

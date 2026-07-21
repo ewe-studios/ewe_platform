@@ -50,8 +50,12 @@ replace or circumvent Tauri — it extends Tauri's lifecycle with:
 - **WebView stack manager** — multi-WebView native-stack simulation with
   screenshot swap and background preload
   ([decision 10](10-multi-webview-stack.md)).
-- **Offline and sync** — cache tiers, mutation queue, background sync
+- **Offline and cache** — cache tiers, per-route policies
   ([decision 05](05-offline-and-sync.md)).
+- **Background workers** — foreground/background execution, OS constraints
+  ([decision 11](11-background-workers.md)).
+- **Mutation queue** — offline mutation queue, replay, conflict resolution
+  ([decision 12](12-mutation-queue-and-conflict.md)).
 
 Tauri provides the raw primitives (window management, WebView creation, IPC
 bridge, event bus, plugin system). `foundation_platform` builds the
@@ -117,7 +121,9 @@ window/webview/plugin/event state — the session just coordinates them.
                                                         + depends on foundation_nativeapis
                                                         + depends on foundation_arrow
                                                         + depends on foundation_signals
-                                                        + depends on foundation_macros)
+                                                        + depends on foundation_macros
+                                                        + depends on foundation_wasmtime
+                                                        + depends on foundation_packager)
 
 foundation_platform's Cargo.toml:
   [dependencies]
@@ -130,6 +136,8 @@ foundation_platform's Cargo.toml:
   foundation_arrow = { path = "../foundation_arrow" }
   foundation_signals = { path = "../foundation_signals" }
   foundation_macros = { path = "../foundation_macros" }
+  foundation_wasmtime = { path = "../foundation_wasmtime" }
+  foundation_packager = { path = "../foundation_packager" }
 ```
 
 `foundation_ui_traits` remains dependency-free — pure types, no I/O, no Tauri,
@@ -166,7 +174,7 @@ They are needed by both the web side (`foundation_wasm_ui`) and the native side
 | `NavigationIntent` | `{ url, method, source, referrer }`. The input to a route handler. Pure data — the session creates it from intercepted events. |
 | `CapabilityRequest` | `{ id, page_identity, capability_name, action, payload, permissions }`. A request from the web side for a native capability. |
 | `CapabilityResponse` | `{ id, page_identity, status, payload_or_error }`. The result. Delivered scoped to the requesting page. |
-| `Protocol` enum | `Columnar \| ArrowIpc \| Json \| Html \| CustomBinary`. Already partially in `foundation_ui_traits` via `ProtocolEncoder`. Extended with all protocol variants. |
+| `Protocol` enum | `Columnar \| Arrow \| ArrowIpc \| Json \| Html \| CustomBinary`. `Arrow` = raw RecordBatch binary (single batch, no streaming metadata). `ArrowIpc` = Arrow IPC streaming format (multi-batch, Schema + RecordBatch messages + EOS, interoperable with pyarrow/Flight). Already partially in `foundation_ui_traits` via `ProtocolEncoder`. Extended with all protocol variants. |
 | `Profile` enum | `App \| TrustedRemote \| UntrustedRemote \| Auth \| Devtools`. The WebView profile taxonomy. Needed by both the session (gating access) and the UI runtime (CSP, origin policy). |
 | `CachePolicy` enum | `CacheFirst \| NetworkFirst \| OnlineOnly \| LocalOnly \| StaleWhileRevalidate`. Pure enum, no cache implementation. |
 | `Presentation` enum | `Morph \| Push \| Modal \| Replace \| External \| Root`. How navigation is presented. The session decides; the platform executes. |
@@ -191,7 +199,8 @@ These types are Tauri-specific or platform-implementation-specific:
 | `UriSchemeProtocol` adapter | Tauri-specific `ewe://` transport layer. |
 | `PlatformBuilder` | Wraps `tauri::Builder`, registers hooks, protocols, commands. |
 | `PlatformBundleGenerator` | Build tool that targets Tauri's packaging pipeline. |
-| Proc macros | `#[platform_bin]`, `#[platform_worker]`, `#[platform_service]`, `#[platform_capability]`. Generate platform-specific entrypoints. |
+| Source parser | `#[platform_bin]` — source scanner (like `CrateScanner`) that discovers all annotations in the user's crate and triggers code generation. NOT a proc macro. |
+| Proc macros | `#[platform_worker]`, `#[platform_service]`, `#[platform_capability]`. Generate platform-specific entrypoints. |
 | Tauri command wrappers, event adapters, plugin integrations | All platform implementation. |
 
 ---
@@ -230,7 +239,7 @@ platform's capability registry wraps this for per-route, profile-gated access.
 
 ### `foundation_arrow` (existing)
 
-Apache Arrow IPC encoding/decoding. Used by the platform for structured data
+Arrow RecordBatch binary encoding/decoding. Used by the platform for structured data
 payloads over the native shell IPC lane and the custom protocol lane.
 
 ### `foundation_http` (existing)
@@ -241,8 +250,25 @@ for remote fetch, SSE, and WebSocket connections.
 ### `foundation_macros` (existing)
 
 All proc macros and derive macros. Per project convention, macros go here, not
-in companion `*_macros` crates. The platform's entrypoint macros
-(`#[platform_bin]`, etc.) live here.
+in companion `*_macros` crates. Platform entrypoint macros
+(`#[platform_worker]`, `#[platform_capability]`, etc.) live here.
+`#[platform_bin]` is a source parser (not a proc macro) and lives in
+`foundation_platform`'s build pipeline.
+
+### `foundation_wasmtime` (new, decision 13)
+
+Wraps the wasmtime WASM runtime. Provides `WasmtimeBuilder` for loading and
+instantiating `#[wasm_app]` WASM modules inside the native shell. Manages
+Engine, Linker, Store, and Instance lifecycle. Generated wrapper code in
+`src/generated/` produces builders that use this crate.
+
+### `foundation_packager` (existing)
+
+PackageDirectorate and template rendering. Provides `EmbeddableDirectory`
+(trait implemented by `#[derive(EmbedDirectoryAs)]`), `PackageDirectorate`
+(file enumeration + content access), and `PackageGenerator` (project
+scaffolding from templates). Used by generated `src/generated/` wrappers
+for WASM byte loading via `read_utf8_for()`.
 
 ---
 
@@ -288,3 +314,83 @@ This is the whole point of the crate: deeply integrated with Tauri, tying the
 entire foundation stack together for cross-platform apps. Every other
 foundation crate does one thing well. `foundation_platform` is the crate that
 makes them all work together on desktop and mobile.
+
+---
+
+## Physical project structure: `platform-app/` convention
+
+Every platform app follows this layout (revised 2026-07-18):
+
+```
+my-platform-app/
+├── src-tauri/              ← native .so / binary (one target per platform)
+│   ├── build.rs            ← generate_platform_code() — orchestrates app/ build
+│   ├── Cargo.toml          ← crate-type=["lib","cdylib","staticlib"], [workspace]
+│   ├── tauri.conf.json     ← Tauri config (identifier, bundle, permissions)
+│   ├── public/             ← Tauri-bundled assets (HTML, .wasm, JS runtimes)
+│   └── src/
+│       ├── lib.rs          ← #[mobile_entry_point] + platform_run!
+│       └── main.rs         ← desktop entrypoint → lib::run()
+├── app/                    ← WASM UI (separate crate, wasm32-unknown-unknown)
+│   ├── Cargo.toml          ← [workspace], crate-type=["cdylib"]
+│   └── src/
+│       └── lib.rs          ← #[wasm_bin] fn my_app() — uses foundation_wasm_ui
+├── icons/                  ← App icons
+├── assets/                 ← Static assets (images, fonts, config)
+└── README.md
+```
+
+### Why `app/` is a separate crate
+
+`src-tauri/` compiles to native machine code (aarch64-linux-android, x86_64-linux-gnu, etc.).
+Foundat ion_wasm_ui code must compile to `wasm32-unknown-unknown` — WebAssembly
+bytecode that runs in the browser/WebView. One Rust crate = one target
+architecture. They CANNOT share a `Cargo.toml`.
+
+The `build.rs` in `src-tauri/` orchestrates the wasm build:
+1. Discovers `#[wasm_bin]`/`#[wasm_worker]`/`#[wasm_service]` in `app/src/`
+2. Runs `cargo build --target wasm32-unknown-unknown` on `app/`
+3. Copies `.wasm` → `public/`
+4. Generates JS wrapper → `public/`
+5. Copies JS runtimes (foundation-wasm.js, foundation-wasm-ui.js, platform-scheme-interceptor.js) → `public/`
+
+The `.wasm` + `.js` land in `public/` as static assets. Tauri bundles them
+into the APK/IPA/binary. The WebView loads them at runtime — no linking
+between the native `.so` and the `.wasm`.
+
+### What lives in the `app/` crate
+
+| Annotation | Target | Where it runs | Generated output |
+|---|---|---|---|
+| `#[wasm_bin]` | `wasm32-unknown-unknown` | WebView main thread | `{name}.js` + `{name}.wasm` |
+| `#[wasm_worker]` | `wasm32-unknown-unknown` | WebView web worker | `{name}-worker.js` + `{name}.wasm` |
+| `#[wasm_service]` | `wasm32-unknown-unknown` | WebView service worker | `{name}-sw.js` + `{name}.wasm` |
+
+### Platform-native annotations (post-MVP)
+
+| Annotation | Where defined | Runs in |
+|---|---|---|
+| `#[platform_bin]` | `src-tauri/src/lib.rs` | Native shell (boots session + routes) |
+| `#[platform_worker]` | `src-tauri/` or a native crate | Native shell background thread |
+| `#[platform_service]` | `src-tauri/` or a native crate | In-process HTTP/router server |
+| `#[wasm_app]` | Separate crate (wasm32-wasip1) | wasmtime inside native shell |
+
+### BackendTransport trait (added 2026-07-18)
+
+`foundation_platform` defines a `BackendTransport` trait that plugs into the
+session. It has one method per `RouteSource`:
+
+```rust
+pub trait BackendTransport: Send + Sync + 'static {
+    fn signal_webview(&self, route: &str) -> Vec<u8>;
+    fn dispatch_ipc(&self, target: Option<&str>, route: &str) -> Vec<u8>;
+    fn fetch_remote(&self, route: &str) -> Vec<u8>;
+}
+```
+
+Three implementations:
+- **`DefaultTransport`** — returns signal JSON stubs for testing/bootstrapping
+- **`ClosureTransport`** — built from closures, injected via `session.set_backend()`.
+  The Tauri setup hook constructs this with closures capturing the `AppHandle`
+  for real IPC dispatch and (post-MVP) HTTP fetch.
+- **Test transport** — returns controlled responses in integration tests

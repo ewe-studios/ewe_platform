@@ -1,0 +1,15 @@
+# Bitwarden CLI for e2e tests against foundation_keychain.
+#
+# Build:  docker build -f Dockerfile.bw_e2e -t foundation-keychain-bw-e2e .
+# Run:    docker run --rm --network host foundation-keychain-bw-e2e
+#
+# The container stays alive so tests can docker exec bw commands into it.
+
+FROM node:23-alpine
+RUN npm install -g @bitwarden/cli@2026.6.0
+# bw v2026 enforces HTTPS for all URLs. Disable the check so `bw`
+# can talk to a local HTTP server during e2e tests.
+RUN sed -i 's|throw new InsecureUrlNotAllowedError();|// patched for dev testing|g' \
+    /usr/local/lib/node_modules/@bitwarden/cli/build/bw.js
+RUN mkdir -p "/root/.config/Bitwarden CLI" && echo '{}' > "/root/.config/Bitwarden CLI/data.json"
+ENTRYPOINT ["tail", "-f", "/dev/null"]

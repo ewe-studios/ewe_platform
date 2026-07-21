@@ -28,7 +28,6 @@ use foundation_ai::types::{
     ToolShed, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
-use tracing_test::traced_test;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -80,7 +79,6 @@ fn hello_interaction() -> ModelInteraction {
 // 1. Pull + load + generate via the Gemma4E2b provider preset directly
 
 #[valtron_test]
-#[traced_test]
 fn test_pull_gemma4_e2b_via_preset() {
     let provider = Gemma4E2b::q4_k_m(Some(gguf_config())).expect("provider builds");
 
@@ -100,7 +98,6 @@ fn test_pull_gemma4_e2b_via_preset() {
 // 2. Pull + load + generate via a harness router (the agent path)
 
 #[valtron_test]
-#[traced_test]
 fn test_pull_gemma4_memory_via_harness_router() {
     // gemma_router pairs a big main model (26B) with the small E2B memory model.
     // Building both providers downloads nothing; we only resolve + pull the

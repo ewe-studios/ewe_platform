@@ -83,12 +83,19 @@ fn processes_gcp_abusiveexperiencereport_spec() {
     assert_eq!(normalized.metadata.spec_format, "gcp_discovery");
     assert_eq!(normalized.metadata.total_endpoints, 2);
 
-    // Validate sites.get endpoint
+    // Validate sites.get endpoint.
+    //
+    // The key is the Discovery doc's `path` (`v1/{+name}`), not its `flatPath`
+    // (`v1/sites/{sitesId}`). GCP v2 APIs use resource-name expansion: a single
+    // `{+name}` holds the whole resource path, and it is what `parameterOrder`
+    // and `parameters` actually declare (both say `name`; neither mentions
+    // `sitesId`). Generating from flatPath would emit a client with an unbound
+    // `sitesId` path param — see the rationale in `extractor.rs`.
     let sites_get = normalized
         .endpoints
-        .get("v1/sites/{sitesId}")
+        .get("v1/{+name}")
         .and_then(|m| m.get("GET"))
-        .expect("GET v1/sites/{{sitesId}} should exist");
+        .expect("GET v1/{+name} should exist");
 
     assert_eq!(sites_get.operation_id, "abusiveexperiencereport.sites.get");
     assert_eq!(
@@ -238,11 +245,12 @@ fn gcp_endpoint_extracted_with_full_structure() {
     let spec_json = load_fixture("gcp_abusiveexperiencereport");
     let normalized = normalize_spec(&spec_json).expect("Should normalize GCP spec");
 
+    // Keyed by the Discovery `path` (resource-name expansion), not `flatPath`.
     let endpoint = normalized
         .endpoints
-        .get("v1/sites/{sitesId}")
+        .get("v1/{+name}")
         .and_then(|m| m.get("GET"))
-        .expect("GET v1/sites/{{sitesId}} should exist");
+        .expect("GET v1/{+name} should exist");
 
     // GCP uses dotted notation: resource.method
     assert!(endpoint.operation_id.contains('.'));

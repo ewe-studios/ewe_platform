@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_netio::websocket::shared::frame::{self, Opcode, WebSocketFrame};
+use foundation_netio::websocket::shared::frame::{Opcode, WebSocketFrame};
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
 
 use crate::shared::membership::PeerId;

@@ -216,3 +216,119 @@ fn test_turso_storage_migrations() {
     assert!(sessions_exist, "sessions table should be accessible");
     assert!(migrations_exist, "_migrations table should be accessible");
 }
+
+/// Migration 024/025: upstream_providers + user_provider_links tables are
+/// created by init_schema and support real INSERT/SELECT round-trips.
+#[test]
+fn test_social_login_tables_functional() {
+    init_valtron();
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let url = db_path.to_str().unwrap();
+
+    let storage = TursoStorage::new(url).unwrap();
+    storage.init_schema().unwrap();
+
+    // Insert a provider row (mirrors ProviderService::create's columns).
+    storage
+        .execute(
+            "INSERT INTO upstream_providers \
+             (id, name, provider_type, client_id, encryption_key_id, discovery_url, scopes, is_active, mapping_config, created_at, updated_at) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            &[
+                DataValue::Text("google".into()),
+                DataValue::Text("Google".into()),
+                DataValue::Text("oidc".into()),
+                DataValue::Text("client-abc".into()),
+                DataValue::Text("default".into()),
+                DataValue::Text("https://accounts.google.com/.well-known/openid-configuration".into()),
+                DataValue::Text("[\"openid\",\"email\"]".into()),
+                DataValue::Integer(1),
+                DataValue::Text("{}".into()),
+                DataValue::Integer(1000),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+
+    // Read it back.
+    let rows = storage
+        .query(
+            "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?",
+            &[DataValue::Text("google".into())],
+        )
+        .unwrap()
+        .flat_map(|item| match item {
+            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
+            _ => vec![],
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 1, "provider row should be readable");
+    assert_eq!(rows[0].get::<String>(0).unwrap(), "Google");
+    assert_eq!(rows[0].get::<String>(1).unwrap(), "client-abc");
+    assert_eq!(rows[0].get::<i64>(2).unwrap(), 1);
+
+    // A user + a link referencing the provider.
+    storage
+        .execute(
+            "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            &[
+                DataValue::Text("user-1".into()),
+                DataValue::Text("alice@example.com".into()),
+                DataValue::Integer(1000),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+    storage
+        .execute(
+            "INSERT INTO user_provider_links \
+             (id, user_id, provider_id, upstream_subject, upstream_email, created_at) \
+             VALUES (?, ?, ?, ?, ?, ?)",
+            &[
+                DataValue::Text("link-1".into()),
+                DataValue::Text("user-1".into()),
+                DataValue::Text("google".into()),
+                DataValue::Text("google-sub-123".into()),
+                DataValue::Text("alice@example.com".into()),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+
+    // The unique (provider_id, upstream_subject) index must reject a duplicate.
+    let dup = storage.execute(
+        "INSERT INTO user_provider_links \
+         (id, user_id, provider_id, upstream_subject, created_at) \
+         VALUES (?, ?, ?, ?, ?)",
+        &[
+            DataValue::Text("link-2".into()),
+            DataValue::Text("user-1".into()),
+            DataValue::Text("google".into()),
+            DataValue::Text("google-sub-123".into()),
+            DataValue::Integer(1001),
+        ],
+    );
+    assert!(
+        dup.is_err(),
+        "duplicate (provider_id, upstream_subject) must be rejected by unique index"
+    );
+
+    // Lookup by (provider_id, upstream_subject) returns the linked user.
+    let link_rows = storage
+        .query(
+            "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?",
+            &[
+                DataValue::Text("google".into()),
+                DataValue::Text("google-sub-123".into()),
+            ],
+        )
+        .unwrap()
+        .flat_map(|item| match item {
+            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
+            _ => vec![],
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(link_rows.len(), 1);
+    assert_eq!(link_rows[0].get::<String>(0).unwrap(), "user-1");
+}

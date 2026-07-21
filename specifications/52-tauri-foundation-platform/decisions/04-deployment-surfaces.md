@@ -77,6 +77,87 @@ adapts accordingly.
 - What transport carries the responses to the rendering lane.
 - How updates are deployed.
 
+### How the user wires up
+
+The user writes annotated functions. The build pipeline generates everything else.
+
+**`#[platform_bin]`** is the native entrypoint — the only one. It's a source
+parser (like the existing `CrateScanner` for `#[wasm_bin]`), NOT a proc macro.
+It scans the user's crate for all annotations and orchestrates the code
+generation pipeline:
+
+```
+Build time:
+  #[platform_bin] source parser scans the crate
+    │
+    ├── Finds #[wasm_bin] / #[wasm_worker] / #[wasm_service]
+    │     └── Calls the existing WasmBundleGenerator to create src/bin/*.rs
+    │         for each function, compile to wasm32-unknown-unknown, generate
+    │         JS wrappers, and place bundles in the webview asset directory.
+    │         These are for the web/webview ONLY — they use the WebView's
+    │         JS runtime, main thread/worker/service worker APIs.
+    │
+    └── Finds #[wasm_app] (shell-hosted WASM)
+          └── Generates src/bin/*.rs, compiles to wasmtime-compatible
+              WASM, places .wasm in shell_wasm/, generates wrapper
+              modules in src/generated/. Full details in
+              [decision 13](13-wasm-app-entrypoint.md).
+```
+
+**Two separate asset locations:**
+
+| Target | Asset directory | Loaded by |
+|---|---|---|
+| `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]` | WebView static assets (bundled in Tauri app) | WebView — `foundation-wasm-ui.js` or worker/service worker bootstrap |
+| `#[wasm_app]` | Shell WASM assets (not for the WebView) | Native shell — `foundation_wasmtime` loads the bytes, wires imports, returns an instance. Full details in [decision 13](13-wasm-app-entrypoint.md). |
+
+**Three ways user code runs locally:**
+
+| Annotation | Where it runs | Who generates it | Session access |
+|---|---|---|---|
+| `#[wasm_bin]` | WebView main thread | `#[platform_bin]` → `WasmBundleGenerator` → `src/bin` → WASM → webview assets | `PlatformSession` handle bridged from JS |
+| `#[wasm_worker]` | WebView worker thread | Same pipeline, generates `{name}-worker.js` + WASM | `postMessage` bridge |
+| `#[wasm_service]` | WebView service worker | Same pipeline, generates `{name}-sw.js` + WASM | Fetch event interception within the WebView |
+| `#[wasm_app]` | wasmtime inside native shell | `#[platform_bin]` → `src/bin` → WASM → shell assets → generated wasmtime wrapper | Direct — session backbone calls into exports, exports call into session |
+| `#[platform_bin]` (native) | Native shell process | Compiled natively, linked into the Tauri binary | Owns the session — creates routes, caps, boots WebView |
+
+The crucial separation: `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]`
+are **web-side only**. They compile to WASM, use web APIs (main thread, worker,
+service worker), and run inside the WebView's JS context. The platform does not
+"map" them to native equivalents — it generates them and loads them in the
+WebView, exactly as a browser would.
+
+`#[wasm_app]` is the bridge: WASM running in wasmtime inside the native shell,
+with the session backbone as the universal message bus. It's not a web concept
+ported to native — it's a native concept that happens to use WASM for isolation
+and hot-swap.
+
+### What the platform invokes and when (universal bootstrap)
+
+1. **Build time:** `build.rs` calls `foundation_platform::generate_platform_code()`.
+   The source parser scans the crate. Web-side annotations trigger WASM bundle
+   generation into webview assets. `#[wasm_app]` triggers WASM compilation +
+   generated wrapper code in `src/generated/` — see [decision 13](13-wasm-app-entrypoint.md).
+   Native `#[platform_bin]` is compiled for the target platform.
+
+2. **App launch:** Tauri boots → native shell initializes.
+   Shell calls `#[platform_bin] main()` — user registers routes, caps.
+
+3. **Shell starts wasmtime instances** (if `#[wasm_app]` exists) — see
+   [decision 13](13-wasm-app-entrypoint.md).
+
+4. **WebView is created** → `foundation-wasm-ui.js` injected → WASM runtime
+   inits → `#[wasm_bin]` WASM module instantiated inside the WebView (loaded
+   from webview assets).
+
+5. **Rendering loop begins** — initial route loads, first screen renders.
+   Navigations flow through the route handler chain, which dispatches to
+   `WebviewApp`, `IpcShell` (including wasmtime-hosted `#[wasm_app]`), or
+   `RemoteServer`.
+
+6. **Shutdown:** session tears down, wasmtime instances dropped, cache
+   flushed, state persisted.
+
 ---
 
 ## Surface 1: Bundled WASM in WebView
@@ -95,10 +176,11 @@ runtime.
    `foundation-wasm-ui.js`, and instantiates the user's WASM module inside the
    WebView's JavaScript context.
 
-3. The platform calls `#[platform_entrypoint(webview)] main()` (or
-   `#[wasm_bin] main()`) with a `PlatformSession` handle. This handle bridges
-   the WASM (running in the WebView sandbox) to the native shell (running in
-   the same process with full Tauri access).
+3. The shell calls `#[platform_bin] main()` (native side) to register routes
+   and capabilities. The WebView loads the generated `#[wasm_bin]` JS wrapper
+   (from webview assets), which instantiates the WASM module inside the WebView's
+   JS context. The WASM owns the rendering surface. The `PlatformSession` handle
+   bridges between them.
 
 4. The WASM owns the rendering surface. It uses `foundation_wasm_ui`'s APIs —
    `html!` macro, signals, templates, components. No network round-trip
@@ -139,37 +221,7 @@ The WASM module can be hot-updated by downloading a new version through the
 browser. The entire frontend shell (HTML, CSS, JS) can also be hot-updated.
 Only the native binary needs app-store review.
 
-### How the user wires up
-
-```rust
-#[platform_entrypoint(webview)]
-fn main(session: PlatformSession) {
-    session.route("/app/*", RouteDecision::local_wasm());
-    session.route("/remote/*", RouteDecision::remote_fetch());
-    session.register_capability::<CameraCapability>();
-    session.register_capability::<BiometricCapability>();
-
-    // Application setup using foundation_wasm_ui's APIs:
-    // signals, templates, components, html! macro, etc.
-
-    // Session starts rendering — the shell bootstraps the WebView,
-    // loads the foundation-wasm-ui runtime, and invokes this main()
-}
-```
-
-### What the platform invokes and when
-
-1. App launches → Tauri boots → native shell initializes.
-2. WebView is created → `foundation-wasm-ui.js` is loaded → WASM runtime
-   initializes.
-3. The platform calls `#[platform_entrypoint(webview)] main()` with the
-   session handle.
-4. User's code registers routes, capabilities, components.
-5. The platform begins the rendering loop — the initial route loads, the
-   first screen renders.
-6. On navigation: session intercepts link → runs route handler chain →
-   executes decision → renders result.
-7. On shutdown: session tears down, cache flushed, state persisted.
+Route wiring and universal bootstrap flow are in [The Rust shell](#the-rust-shell-what-every-surface-shares) above — they apply to all surfaces, not just Surface 1.
 
 ---
 
@@ -201,7 +253,7 @@ in the same process.
 ```
 User native code (.a/.so)
   │ FFI (direct function calls)
-  │ Arrow IPC (pointer + length, same address space)
+  │ Arrow binary (pointer + length, same address space)
   ▼
 Native shell (same process)
   │ Tauri AppHandle
@@ -383,7 +435,7 @@ This surface is the closest analogue to Basecamp's Hotwire Native model:
 server-rendered HTML, Turbo-powered navigation, native shell wraps the web
 content. Our model extends it with:
 - Protocol choice (DomOps, Arrow, HTML — not just HTML)
-- Route-level granularity (some routes remote, some local WASM, some cached)
+- Route-level granularity (some routes WebviewApp, some ipc_shell, some cached)
 - Auth token isolation (tokens never in JS context)
 - Transport lane abstraction (HTTP, SSE, WS — not just page loads)
 
@@ -448,7 +500,7 @@ runtime renders them identically.
 
 When the user performs an action offline, mutations are enqueued locally in
 SQLite. Each mutation has a UUID for idempotency. On connectivity restore, the
-queue replays in order. Full details in [decision 05](05-offline-and-sync.md).
+queue replays in order. Full details in [decision 12](12-mutation-queue-and-conflict.md).
 
 ### What the platform provides vs what the backend owns
 
@@ -468,15 +520,15 @@ A single app can use all five surfaces simultaneously. The route handler
 decides per-route:
 
 ```rust
-#[platform_entrypoint(webview)]
+#[platform_bin]
 fn main(session: PlatformSession) {
     // Surface 1: App shell runs locally as WASM
-    session.route("/app/*", RouteDecision::local_wasm()
+    session.route("/app/*", RouteDecision::webview_app()
         .with_profile(Profile::App));
 
     // Surface 2: Performance-critical data path uses native static lib
     session.route("/data/analytics/*", RouteDecision::ipc_shell()
-        .with_protocol(ProtocolHint::ArrowIpc));
+        .with_protocol(ProtocolHint::Arrow));
 
     // Surface 3: Business logic runs in shell's WASM runtime,
     // results delivered to WebView (content format is foundation_wasm_ui's concern)
@@ -498,7 +550,7 @@ Composition patterns:
 
 - **Surfaces 1 + 4:** Some routes handled locally by WASM, others streamed
   from remote. The route handler decides per-route.
-  `session.route("/app/*", local_wasm()); session.route("/cloud/*",
+  `session.route("/app/*", webview_app()); session.route("/cloud/*",
   remote_fetch())`.
 
 - **Surfaces 4 + 5:** Remote routes cached automatically. When offline, the
@@ -507,114 +559,89 @@ Composition patterns:
 
 - **Surfaces 1 + 3:** The WASM can run in BOTH places — in the WebView for
   rendering control (surface 1), and in the native shell for zero-copy data
-  processing (surface 3). Same WASM binary, two entrypoints.
+  processing (surface 3). Same source, different compilation targets
+  (`wasm32-unknown-unknown` for WebView, wasmtime-compatible WASM for shell).
 
 - **Surfaces 2 + 4:** Performance-critical logic compiled natively (surface
   2); dynamic content served remotely (surface 4). Same app, different routes.
 
 ---
+## Entrypoint annotations and code generation
 
-## Entrypoint modes: how to target each surface
+### Two sides, clearly separated
 
-`foundation_wasm_ui` already has a clean entrypoint annotation system:
-`#[wasm_bin]` (main thread), `#[wasm_worker]` (web worker), `#[wasm_service]`
-(service worker with route table). These are discovered by `CrateScanner`,
-compiled to WASM via `WasmBundleGenerator`, and wrapped with mode-appropriate
-JS glue.
-
-`foundation_platform` extends this system. It adds platform-specific modes
-that map cleanly to desktop and mobile behavior through deep Tauri integration.
-
-### The unified mode taxonomy
-
-| Mode | Attribute | Where it runs | Maps to surface |
+| Side | Annotations | Where they run | Who generates them |
 |---|---|---|---|
-| **Main thread** | `#[wasm_bin]` | WebView main thread | Surface 1 (Bundled WASM) |
-| **Web worker** | `#[wasm_worker]` | WebView worker thread | Surface 1 (auxiliary) |
-| **Service worker** | `#[wasm_service]` | Browser/WebView SW scope | Surface 4 (remote), Surface 5 (cache) |
-| **Platform shell** | `#[platform_bin]` | Native shell process | Surface 2 (native static lib), Surface 3 (shell + WASM) |
-| **Platform worker** | `#[platform_worker]` | Background thread in native shell | Surface 2/3 (background tasks, sync) |
-| **Platform service** | `#[platform_service]` | In-process HTTP/router server | Surface 4 (in-process server), Surface 3 (WASM service) |
+| **Web side** | `#[wasm_bin]`, `#[wasm_worker]`, `#[wasm_service]` | Inside the WebView — main thread, worker, service worker. Use web APIs. | `#[platform_bin]` source parser → `WasmBundleGenerator` → `src/bin/*.rs` → WASM → webview assets |
+| **Platform side** | `#[platform_bin]`, `#[wasm_app]`, `#[platform_worker]`, `#[platform_service]` | Inside the native shell process (or its wasmtime runtime). Use Tauri primitives through the session. | `#[platform_bin]` source parser → compilation target varies by annotation |
 
-### How existing web modes map to platform behavior
+The `#[platform_bin]` source parser (NOT a proc macro — a source scanner like
+the existing `CrateScanner`) is the build-time orchestrator. It discovers all
+annotations in the user's crate and triggers the appropriate code generation
+for each.
 
-**`#[wasm_service]` on the platform:**
+### Web-side annotations (generated for the WebView)
 
-Doesn't mean "compile to a Service Worker JS file" when targeting
-desktop/mobile. It means "this function handles routed requests." The platform
-provides the equivalent in-process:
+These exist TODAY in `foundation_wasm_ui`. The `#[platform_bin]` source parser
+discovers them and delegates to the existing `WasmBundleGenerator` — no change
+from how they work now. They compile to `wasm32-unknown-unknown`, generate JS
+wrappers, and are placed in the webview static assets directory. The WebView
+loads them exactly as a browser would.
 
-| Web behavior | Platform equivalent |
-|---|---|
-| Service worker intercepts `fetch` events | Native shell starts an in-process HTTP server (or in-memory router). Incoming requests are routed to the annotated function. |
-| Service worker route table (`routes` attribute) | Same `routes` attribute. The platform's router matches incoming requests against registered routes and dispatches to the handler. |
-| Service worker responds with `Response` objects | Handler receives a `Request`-like struct, returns a `Response`-like struct. The platform's protocol adapter encodes the response in the selected format. |
-| Service worker cache API | `foundation_db` (SQLite, Turso) for persistent caching. Platform cache layer for rendered page caching. |
+| Annotation | WebView role | Generated output |
+|---|---|---|
+| `#[wasm_bin]` | Main thread WASM app — owns the rendering surface | `{name}.js` + `{name}.wasm` |
+| `#[wasm_worker]` | Web Worker — off-main-thread processing | `{name}-worker.js` + `{name}.wasm` |
+| `#[wasm_service]` | Service Worker — intercepts fetch events, caches, routes | `{name}-sw.js` + `{name}.wasm` |
 
-```rust
-// This works identically on web AND platform:
-#[wasm_service(routes = ["/api/items", "/api/users"])]
-async fn api_handler(req: ServiceRequest) -> ServiceResponse {
-    match req.route() {
-        "/api/items" => fetch_items().into(),
-        "/api/users" => fetch_users().into(),
-        _ => ServiceResponse::not_found(),
-    }
-}
-// On web: compiles to WASM, runs as Service Worker, intercepts fetch events.
-// On platform: the shell starts an in-process HTTP server,
-//   routes matching requests to this function,
-//   encodes responses in the selected protocol,
-//   and delivers them to the WebView through the rendering lane.
-```
+**These are NOT "mapped to platform equivalents."** They are web concepts that
+run in the WebView using web APIs (`Worker`, `ServiceWorker`, `postMessage`,
+`fetch` event interception). The platform provides the WebView; the web side
+owns everything inside it.
 
-**`#[wasm_worker]` on the platform:**
+### Platform-side annotations (generated for the native shell)
 
-| Web behavior | Platform equivalent |
-|---|---|
-| Web Worker runs in a separate thread | `std::thread::spawn` or Tauri async task. The function runs on a background thread managed by the shell. |
-| `postMessage` for host↔worker communication | The shell provides typed channels: `WorkerSender`/`WorkerReceiver`. Same message-passing semantics, native performance. |
-| Worker processes data off the main thread | Same. CPU-intensive work, data processing, Arrow encoding — all off the rendering thread. |
+These are NEW in `foundation_platform`. The `#[platform_bin]` source parser
+discovers them and generates the appropriate compilation targets.
 
-**`#[wasm_bin]` on the platform:**
-
-This is the frontend entrypoint. It compiles to WASM and runs in the WebView
-exactly as it does on the web. No change needed — the platform provides the
-WebView; the existing `wasm_bin` wrapper instantiates inside it.
-
-### New platform-specific modes
-
-These don't have web equivalents because they leverage native capabilities
-that don't exist in the browser:
-
-**`#[platform_bin]` — the native app entrypoint:**
+**`#[platform_bin]` — the native entrypoint (mandatory):**
 
 ```rust
 #[platform_bin]
 fn main(session: PlatformSession) {
-    // Runs as native code in the shell's process.
-    // Full access to Tauri primitives through the session.
-    // Can register routes, capabilities, database connections.
-    // The shell calls this at startup, before the WebView is created.
-    session.route("/app/*", RouteDecision::local_wasm());
+    session.route("/app/*", RouteDecision::webview_app());
+    session.route("/native/*", RouteDecision::ipc_shell());
+    session.route("/remote/*", RouteDecision::remote_fetch()
+        .with_cache_policy(CachePolicy::NetworkFirst));
     session.register_capability::<CameraCapability>();
 }
 ```
 
-The build pipeline can compile this as:
-- Native binary (desktop) — linked directly into the Tauri app.
-- Static library (mobile) — compiled as `.a`/`.so`, linked by the shell.
-- WASM (shell+WASM mode) — loaded by the embedded WASM runtime.
+Compiled natively for the target platform. It is the ONLY mandatory annotation.
+It sets up routes, capabilities, and boots the WebView. The build pipeline
+compiles it as native binary (desktop) or static library (mobile).
 
-The user writes one function. The build pipeline targets it for each platform.
+**`#[wasm_app]` — WASM hosted in wasmtime inside the shell:**
 
-**`#[platform_worker]` — background processing:**
+```rust
+#[wasm_app]
+fn business_logic(session: PlatformSession) {
+    // Compiled to wasm32-wasip1 (or equivalent wasmtime-compatible target).
+    // The session backbone calls into this when a route resolves to IpcShell.
+    // The WASM exports functions; the session calls them.
+    // The WASM can call back into the session for capabilities, DB, etc.
+}
+```
+
+Full details — code generation, `src/generated/` wrappers, `foundation_wasmtime`
+builder, session registry, build.rs pipeline, auto-routing — are in
+[decision 13](13-wasm-app-entrypoint.md).
+
+**`#[platform_worker]` — background thread in native shell:**
 
 ```rust
 #[platform_worker]
 fn cache_warmer(session: PlatformSession, rx: WorkerReceiver<CacheTask>) {
-    // Runs on a background thread managed by the shell.
-    // Receives tasks, processes them, sends results back.
     for task in rx {
         let content = prefetch(task.url).await;
         session.cache().store(&task.route, &content);
@@ -622,18 +649,14 @@ fn cache_warmer(session: PlatformSession, rx: WorkerReceiver<CacheTask>) {
 }
 ```
 
-The shell manages the thread lifecycle, the channel, and shutdown signaling.
+The shell spawns a `std::thread` or Tauri async task, provides typed channels,
+and manages lifecycle. Full details in [decision 11](11-background-workers.md).
 
-**`#[platform_service]` — in-process request handler:**
+**`#[platform_service]` — in-process HTTP/router server:**
 
 ```rust
 #[platform_service(routes = ["/api/data", "/api/sync"])]
-fn backend_service(
-    req: PlatformRequest,
-    session: PlatformSession,
-) -> PlatformResponse {
-    // Handles queries (GET) and actions (POST/PUT/DELETE).
-    // Responds with structured data — Arrow IPC, DomOps, HTML.
+fn backend_service(req: PlatformRequest, session: PlatformSession) -> PlatformResponse {
     match req.method() {
         Method::Get => query_data(&req, &session),
         Method::Post => handle_action(&req, &session),
@@ -642,92 +665,44 @@ fn backend_service(
 }
 ```
 
-The shell starts an in-process router. Incoming requests (from WebView actions,
-IPC messages, or HTTP fetches) are matched against registered routes and
-dispatched to the handler. The handler returns a response; the shell encodes
-and delivers it through the appropriate transport lane.
+The shell starts an in-process router. Full details in
+[Platform-side annotations](#platform-side-annotations-generated-for-the-native-shell) above.
+For long-running foreground services, see [decision 11](11-background-workers.md).
+
+### Code generation pipeline
+
+```
+Build time (single pass, driven by #[platform_bin] source parser):
+
+  source parser scans user crate
+    │
+    ├── Web-side annotations found
+    │     ├── #[wasm_bin]    ──→ WasmBundleGenerator → src/bin → wasm32 → webview assets
+    │     ├── #[wasm_worker] ──→ WasmBundleGenerator → src/bin → wasm32 → webview assets
+    │     └── #[wasm_service]──→ WasmBundleGenerator → src/bin → wasm32 → webview assets
+    │
+    ├── Platform-side annotations found
+    │     ├── #[platform_bin]    ──→ compiled natively (no generation)
+    │     ├── #[wasm_app]        ──→ src/bin → wasmtime target → shell wasm assets
+    │     │                              + src/generated/ wrappers (see [decision 13](13-wasm-app-entrypoint.md))
+    │     ├── #[platform_worker] ──→ compiled natively as background thread
+    │     └── #[platform_service]──→ compiled natively with in-process router
+    │
+    └── Output: Tauri app bundle
+          ├── webview assets/   ← JS + WASM bundles (for the WebView)
+          ├── shell_wasm/       ← WASM binaries (for wasmtime in the shell)
+          └── native binary     ← compiled #[platform_bin] + platform modes
+```
 
 ### Default entrypoint selection
 
-If the user doesn't annotate any function, the platform provides sensible
-defaults:
+If the user doesn't annotate any function, the platform provides defaults:
 
-- `#[platform_bin]` with an empty `main()` that just starts the WebView with
-  no custom routes. The app renders whatever `#[wasm_bin]` produces.
+- `#[platform_bin]` with an empty `main()` that starts the WebView.
+  The app renders whatever `#[wasm_bin]` produces.
 - If no `#[wasm_bin]` exists, the WebView loads `index.html` from the bundle.
 - If no platform modes exist, the app is a standard Tauri app with the
-  platform shell providing the default session and transport lanes.
-
-### Build pipeline and bootstrap flow
-
-The existing `WasmBundleGenerator` pattern is extended:
-
-```rust
-// Current system (foundation_wasm_ui)
-WasmBundleGenerator::new(crate_dir, output_dir)?
-    // Scans for: #[wasm_bin], #[wasm_worker], #[wasm_service]
-    // Compiles: wasm32-unknown-unknown
-    // Outputs: {name}.js, {name}.wasm, {name}-worker.js, {name}-sw.js
-
-// Extended system (foundation_platform)
-PlatformBundleGenerator::new(crate_dir, output_dir, target: PlatformTarget)?
-    // Scans for: ALL six modes
-    // Compiles: wasm32 for web modes, native target for platform modes
-    // Outputs: wasm bundles + native binaries + shell wrappers
-
-enum PlatformTarget {
-    Web,           // wasm32 only, existing behavior
-    Desktop,       // native binary + wasm bundles
-    Ios,           // .a static lib + wasm bundles
-    Android,       // .so shared lib + wasm bundles
-    All,           // everything
-}
-```
-
-**Bootstrap flow:**
-
-1. **Build time:** `PlatformBundleGenerator` scans the user's crate for all six
-   mode attributes. Compiles WASM for web modes. Compiles native for platform
-   modes. Generates JS wrappers (web modes) and native shell stubs (platform
-   modes). Packages assets for Tauri's bundler.
-
-2. **App launch (desktop/mobile):** Tauri boots → native shell initializes →
-   shell calls `#[platform_bin]` main (native or WASM) → user code registers
-   routes, capabilities, services → shell creates WebView → loads
-   `foundation-wasm-ui.js` → instantiates `#[wasm_bin]` WASM → rendering
-   loop begins.
-
-3. **Dev mode:** Shell watches for changes. Web modes hot-reload through the
-   dev server. Platform modes recompile and restart. Tauri's dev server proxies
-   `ewe://` requests to the in-process router.
-
-4. **Update flow:** The shell can fetch updated WASM modules and frontend
-   assets from a remote update service. Platform-native modes (compiled
-   `.a`/`.so`) require app-store review. WASM modes (web + shell+WASM) are
-   hot-swappable. The user's `#[platform_bin]` can choose the deployment
-   strategy per mode.
-
-### Tauri integration per mode
-
-| Mode | Tauri integration |
-|---|---|
-| `#[wasm_bin]` | WebView loads the generated JS wrapper. WASM instantiates inside the WebView. Session handle injected by the shell's initialization script. |
-| `#[wasm_worker]` | WebView creates the worker. The worker host JS is loaded by the WebView. Communication over `postMessage`. |
-| `#[wasm_service]` | **Web:** Service worker registers in the WebView's service worker scope. Fetch events intercepted. **Platform:** Shell starts an in-process HTTP server. The `tauri::custom_protocol` handler proxies `ewe://` requests to it. |
-| `#[platform_bin]` | Shell calls the function directly (native) or through WASM runtime (shell+WASM). Full `AppHandle` access through the session. Runs before WebView creation. |
-| `#[platform_worker]` | Shell spawns a `std::thread` or Tauri async task. Provides typed channel handles. Manages lifecycle (start on app launch, cancel on shutdown). |
-| `#[platform_service]` | Shell registers an in-process router. Tauri's custom protocol handler (`ewe://`) routes matching requests to the handler. Responses delivered through the session backbone's rendering lane. |
-
-### Route attribute reuse
-
-The `route` attribute from `#[wasm_service]` is reused for
-`#[platform_service]`:
-
-```rust
-// Both modes use the same route attribute syntax
-#[wasm_service(routes = ["/api/*"])]       // web: service worker routes
-#[platform_service(routes = ["/api/*"])]    // platform: in-process router routes
-```
+  platform shell providing default session and transport lanes.
 
 ---
 
@@ -745,3 +720,50 @@ The `route` attribute from `#[wasm_service]` is reused for
 | **Primary transport** | In-memory (no transport) | FFI + custom protocol | WASM memory + custom protocol | HTTP/SSE/WebSocket | Custom protocol (from SQLite) |
 | **Best for** | App shell, UI logic, local-first apps | Performance-critical paths, data processing, crypto | Business logic with fast update needs | Dynamic content, live updates, content-driven apps | Offline access to remote content |
 | **Tauri involvement** | WebView hosts WASM | Shell wraps Tauri; user code is same-process | Shell wraps Tauri + WASM runtime | Shell manages connections; Tauri hosts WebView | Shell manages cache; Tauri custom protocol serves |
+
+---
+
+## Physical project layout (revised 2026-07-18)
+
+The platform-app structure reflects the architectural split between native code
+and WASM code:
+
+```
+my-platform-app/
+├── src-tauri/              ← native binary (one target per platform)
+│   ├── build.rs            ← generate_platform_code()
+│   ├── Cargo.toml          ← crate-type=["lib","cdylib","staticlib"], [workspace]
+│   ├── tauri.conf.json     ← Tauri configuration
+│   ├── public/             ← Tauri-bundled assets
+│   │   ├── index.html      ← initial page (loads wasm app or plain HTML)
+│   │   ├── *.wasm          ← built from app/ by build.rs
+│   │   ├── *.js            ← JS wrappers + runtimes
+│   │   └── ...
+│   └── src/
+│       ├── lib.rs          ← #[mobile_entry_point] + platform_run!
+│       └── main.rs         ← desktop entrypoint
+├── app/                    ← WASM UI (separate crate, wasm32 target)
+│   ├── Cargo.toml          ← [workspace], cdylib, depends on foundation_wasm_ui
+│   └── src/
+│       └── lib.rs          ← #[wasm_bin] fn my_app()
+├── icons/                  ← App icons (generated by tauri icon)
+├── assets/                 ← Static assets
+└── README.md
+```
+
+The `app/` crate is COMPILED SEPARATELY by `build.rs` because `src-tauri/`
+targets native machine code and `app/` targets `wasm32-unknown-unknown`.
+One Cargo.toml cannot produce both. The existence of the FoundationWasmUI
+WebView runtime means the user is writing a WASM-compiled UI that renders
+via columnar v1 DomOps — this inherently requires a separate compilation
+unit from the Tauri host.
+
+The build pipeline in `build.rs`:
+1. Scans `../app/src/` for `#[wasm_bin]`, `#[wasm_worker]`, `#[wasm_service]`
+2. Reads target from annotation (default `wasm32-unknown-unknown`)
+3. Runs `cargo build --manifest-path ../app/Cargo.toml --target <target>`
+4. Copies `.wasm` → `public/`
+5. Generates JS wrappers → `public/`
+6. Copies JS runtimes → `public/`
+
+If no annotations are found, steps 2-6 are skipped — the app is pure HTML.

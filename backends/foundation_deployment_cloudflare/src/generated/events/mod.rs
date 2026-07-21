@@ -18,50 +18,50 @@ use foundation_macros::JsonHash;
 // Import shared types used by this module
 use super::shared::AaaIdResponse;
 use super::shared::ResourceTaggingTaggedResourceResponseSingle;
-use super::shared::ResourceTaggingTaggedResourceObjectAccessGroup;
-use super::shared::ResourceTaggingApiResponseCommon;
-use super::shared::ResourceTaggingResourceId;
-use super::shared::ResourceTaggingTaggedResourceObjectAccount;
-use super::shared::ResourceTaggingTaggedResourceObjectDnsRecord;
-use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersion;
-use super::shared::ResourceTaggingTaggedResourceObjectZone;
-use super::shared::ResourceTaggingIdentifier;
-use super::shared::ResourceTaggingTaggedResourceObject;
+use super::shared::AaaApiResponseSingle;
+use super::shared::AaaSchemasApiResponseCommon;
 use super::shared::AaaUuid;
-use super::shared::ResourceTaggingTaggedResourceObjectGatewayRule;
-use super::shared::ResourceTaggingTaggedResourceObjectAccountLevelBase;
-use super::shared::ResourceTaggingTaggedResourceObjectAlertingWebhook;
-use super::shared::ResourceTaggingTaggedResourceObjectAccessApplicationPolicyBase;
-use super::shared::ResourceTaggingTaggedResourceObjectCustomCertificate;
-use super::shared::ResourceTaggingWorkerId;
+use super::shared::ResourceTaggingAccessApplicationId;
+use super::shared::ResourceTaggingApiResponseCommon;
+use super::shared::ResourceTaggingEtag;
+use super::shared::ResourceTaggingIdentifier;
+use super::shared::ResourceTaggingResourceId;
+use super::shared::ResourceTaggingResourceName;
+use super::shared::ResourceTaggingTaggedResourceObject;
 use super::shared::ResourceTaggingTaggedResourceObjectAccessApplication;
+use super::shared::ResourceTaggingTaggedResourceObjectAccessApplicationPolicy;
+use super::shared::ResourceTaggingTaggedResourceObjectAccessApplicationPolicyBase;
+use super::shared::ResourceTaggingTaggedResourceObjectAccessGroup;
+use super::shared::ResourceTaggingTaggedResourceObjectAccount;
+use super::shared::ResourceTaggingTaggedResourceObjectAccountLevelBase;
 use super::shared::ResourceTaggingTaggedResourceObjectAiGateway;
 use super::shared::ResourceTaggingTaggedResourceObjectAlertingPolicy;
+use super::shared::ResourceTaggingTaggedResourceObjectAlertingWebhook;
 use super::shared::ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 use super::shared::ResourceTaggingTaggedResourceObjectCloudflaredTunnel;
+use super::shared::ResourceTaggingTaggedResourceObjectCustomCertificate;
 use super::shared::ResourceTaggingTaggedResourceObjectCustomHostname;
 use super::shared::ResourceTaggingTaggedResourceObjectD1Database;
+use super::shared::ResourceTaggingTaggedResourceObjectDnsRecord;
+use super::shared::ResourceTaggingTaggedResourceObjectDurableObjectNamespace;
+use super::shared::ResourceTaggingTaggedResourceObjectGatewayList;
+use super::shared::ResourceTaggingTaggedResourceObjectGatewayRule;
+use super::shared::ResourceTaggingTaggedResourceObjectImage;
+use super::shared::ResourceTaggingTaggedResourceObjectKvNamespace;
 use super::shared::ResourceTaggingTaggedResourceObjectManagedClientCertificate;
 use super::shared::ResourceTaggingTaggedResourceObjectQueue;
+use super::shared::ResourceTaggingTaggedResourceObjectR2Bucket;
 use super::shared::ResourceTaggingTaggedResourceObjectResourceShare;
 use super::shared::ResourceTaggingTaggedResourceObjectStreamLiveInput;
 use super::shared::ResourceTaggingTaggedResourceObjectStreamVideo;
-use super::shared::ResourceTaggingZoneId;
-use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersionBase;
-use super::shared::ResourceTaggingEtag;
-use super::shared::ResourceTaggingTags;
-use super::shared::ResourceTaggingTaggedResourceObjectDurableObjectNamespace;
-use super::shared::ResourceTaggingTaggedResourceObjectKvNamespace;
-use super::shared::AaaSchemasApiResponseCommon;
-use super::shared::ResourceTaggingResourceName;
-use super::shared::ResourceTaggingAccessApplicationId;
-use super::shared::ResourceTaggingTaggedResourceObjectAccessApplicationPolicy;
 use super::shared::ResourceTaggingTaggedResourceObjectWorker;
-use super::shared::AaaApiResponseSingle;
+use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersion;
+use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersionBase;
+use super::shared::ResourceTaggingTaggedResourceObjectZone;
 use super::shared::ResourceTaggingTaggedResourceObjectZoneLevelBase;
-use super::shared::ResourceTaggingTaggedResourceObjectGatewayList;
-use super::shared::ResourceTaggingTaggedResourceObjectR2Bucket;
-use super::shared::ResourceTaggingTaggedResourceObjectImage;
+use super::shared::ResourceTaggingTags;
+use super::shared::ResourceTaggingWorkerId;
+use super::shared::ResourceTaggingZoneId;
 
 use super::shared::ApiResponse;
 
@@ -69,32 +69,11 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AaaToken` type.
+/// `AaaAlertBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaToken {
+pub struct AaaAlertBody {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingSetTagsRequestAccountLevelBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevelBase {
-    /// `tags` property.
-    pub tags: Option<ResourceTaggingTags>,
-}
-
-/// `ResourceTaggingAccountResourceTypeWorkerVersionEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingAccountResourceTypeWorkerVersionEnum {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilenceComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<AaaSilence>,
 }
 
 /// `AaaAlertsResponseCollection` type.
@@ -104,106 +83,11 @@ pub struct AaaAlertsResponseCollection {
     pub result: Option<serde_json::Value>,
 }
 
-/// `AaaAlertBody` type.
+/// `AaaApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAlertBody {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingCursorResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingCursorResultInfo {
-    /// count property.
-    pub count: Option<i64>,
-    /// cursor property.
-    pub cursor: Option<String>,
-}
-
-/// `ResourceTaggingDeleteTagsRequestAccountLevelBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevelBase {
-    /// resource_id property.
-    pub resource_id: ResourceTaggingResourceId,
-    /// resource_type property.
-    pub resource_type: ResourceTaggingAccountResourceTypeBaseEnum,
-}
-
-/// `AaaSilenceCreateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceCreateRequest {
-    /// end_time property.
-    pub end_time: Option<String>,
-    /// policy_id property.
-    pub policy_id: Option<AaaPolicyId>,
-    /// start_time property.
-    pub start_time: Option<String>,
-}
-
-/// `AaaMechanismType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaMechanismType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaLastSuccess` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaLastSuccess {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<AaaWebhooks>,
-}
-
-/// `AaaSilence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilence {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// end_time property.
-    pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<AaaSilenceId>,
-    /// policy_id property.
-    pub policy_id: Option<AaaPolicyId>,
-    /// start_time property.
-    pub start_time: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `AaaSilencesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilencesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaSilence>>,
-}
-
-/// `ResourceTaggingDeleteTagsRequestAccountLevel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSensitiveIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSensitiveIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `AaaPolicyId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaPolicyId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct AaaApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<AaaSchemasResultInfo>,
 }
 
 /// `AaaComponentsSchemasDescription` type.
@@ -213,18 +97,25 @@ pub struct AaaComponentsSchemasDescription {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaSchemasAlertType` type.
+/// `AaaComponentsSchemasMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasAlertType {
+pub struct AaaComponentsSchemasMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaSecret` type.
+/// `AaaComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSecret {
+pub struct AaaComponentsSchemasName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<AaaPagerduty>>,
 }
 
 /// `AaaComponentsSchemasType` type.
@@ -234,16 +125,9 @@ pub struct AaaComponentsSchemasType {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ResourceTaggingSetTagsRequestAccountLevel` type.
+/// `AaaCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevel {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasName {
+pub struct AaaCreatedAt {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -271,52 +155,27 @@ pub struct AaaHistory {
     pub sent: Option<AaaSent>,
 }
 
-/// `AaaCreatedAt` type.
+/// `AaaHistoryComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaCreatedAt {
+pub struct AaaHistoryComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<AaaHistory>>,
+    /// `result_info` property.
+    pub result_info: Option<serde_json::Value>,
+}
+
+/// `AaaLastFailure` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaLastFailure {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ResourceTaggingTagValuesResponseCollection` type.
+/// `AaaLastSuccess` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTagValuesResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<String>>,
-    /// `result_info` property.
-    pub result_info: Option<ResourceTaggingCursorResultInfo>,
-}
-
-/// `AaaSilenceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceId {
+pub struct AaaLastSuccess {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingTaggedResourceResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ResourceTaggingTaggedResourceObject>>,
-    /// `result_info` property.
-    pub result_info: Option<ResourceTaggingCursorResultInfo>,
-}
-
-/// `AaaSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion {
-    /// `resource_type` property.
-    pub resource_type: Option<ResourceTaggingAccountResourceTypeWorkerVersionEnum>,
-    /// `worker_id` property.
-    pub worker_id: ResourceTaggingWorkerId,
 }
 
 /// `AaaMechanism` type.
@@ -326,9 +185,175 @@ pub struct AaaMechanism {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `AaaMechanismType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaMechanismType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaPagerduty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaPagerduty {
+    /// id property.
+    pub id: Option<AaaUuid>,
+    /// name property.
+    pub name: Option<AaaName>,
+}
+
+/// `AaaPolicyId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaPolicyId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSchemasAlertType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasAlertType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `AaaSchemasResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `AaaSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<AaaWebhooks>,
+}
+
+/// `AaaSecret` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSecret {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSensitiveIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSensitiveIdResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `AaaSent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSent {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilence` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilence {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// end_time property.
+    pub end_time: Option<String>,
+    /// id property.
+    pub id: Option<AaaSilenceId>,
+    /// policy_id property.
+    pub policy_id: Option<AaaPolicyId>,
+    /// start_time property.
+    pub start_time: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `AaaSilenceComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<AaaSilence>,
+}
+
+/// `AaaSilenceCreateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceCreateRequest {
+    /// end_time property.
+    pub end_time: Option<String>,
+    /// policy_id property.
+    pub policy_id: Option<AaaPolicyId>,
+    /// start_time property.
+    pub start_time: Option<String>,
+}
+
+/// `AaaSilenceId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilenceUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceUpdateRequest {
+    /// end_time property.
+    pub end_time: Option<String>,
+    /// id property.
+    pub id: Option<AaaSilenceId>,
+    /// start_time property.
+    pub start_time: Option<String>,
+}
+
+/// `AaaSilencesComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilencesComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<AaaSilence>>,
+}
+
+/// `AaaToken` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaToken {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `AaaUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaWebhookId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaWebhookId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -349,37 +374,87 @@ pub struct AaaWebhooks {
     /// secret property.
     pub secret: Option<AaaSecret>,
     /// type property.
+    #[serde(rename = "type")]
     pub r#type: Option<AaaComponentsSchemasType>,
     /// url property.
     pub url: Option<AaaUrl>,
 }
 
-/// `ResourceTaggingSetTagsRequestAccountLevelWorkerVersion` type.
+/// `AaaWebhooksComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevelWorkerVersion {
-    /// `tags` property.
-    pub tags: Option<ResourceTaggingTags>,
-}
-
-/// `AaaComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaComponentsSchemasResponseCollection {
+pub struct AaaWebhooksComponentsSchemasResponseCollection {
     /// `result` property.
-    pub result: Option<Vec<AaaPagerduty>>,
+    pub result: Option<Vec<AaaWebhooks>>,
 }
 
-/// `AaaLastFailure` type.
+/// `NotificationWebhooksCreateAWebhookRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaLastFailure {
+pub struct NotificationWebhooksCreateAWebhookRequest {
+    /// name property.
+    pub name: AaaComponentsSchemasName,
+    /// secret property.
+    pub secret: Option<AaaSecret>,
+    /// url property.
+    pub url: AaaUrl,
+}
+
+/// `NotificationWebhooksUpdateAWebhookRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NotificationWebhooksUpdateAWebhookRequest {
+    /// name property.
+    pub name: AaaComponentsSchemasName,
+    /// secret property.
+    pub secret: Option<AaaSecret>,
+    /// url property.
+    pub url: AaaUrl,
+}
+
+/// `ResourceTaggingAccountResourceTypeBaseEnum` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingAccountResourceTypeBaseEnum {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaComponentsSchemasName` type.
+/// `ResourceTaggingAccountResourceTypeWorkerVersionEnum` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaComponentsSchemasName {
+pub struct ResourceTaggingAccountResourceTypeWorkerVersionEnum {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingCursorResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingCursorResultInfo {
+    /// count property.
+    pub count: Option<i64>,
+    /// cursor property.
+    pub cursor: Option<String>,
+}
+
+/// `ResourceTaggingDeleteTagsRequestAccountLevel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingDeleteTagsRequestAccountLevelBase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingDeleteTagsRequestAccountLevelBase {
+    /// resource_id property.
+    pub resource_id: ResourceTaggingResourceId,
+    /// resource_type property.
+    pub resource_type: ResourceTaggingAccountResourceTypeBaseEnum,
+}
+
+/// `ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion {
+    /// `resource_type` property.
+    pub resource_type: Option<ResourceTaggingAccountResourceTypeWorkerVersionEnum>,
+    /// `worker_id` property.
+    pub worker_id: ResourceTaggingWorkerId,
 }
 
 /// `ResourceTaggingMessages` type.
@@ -389,36 +464,25 @@ pub struct ResourceTaggingMessages {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaSilenceUpdateRequest` type.
+/// `ResourceTaggingSetTagsRequestAccountLevel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceUpdateRequest {
-    /// end_time property.
-    pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<AaaSilenceId>,
-    /// start_time property.
-    pub start_time: Option<String>,
-}
-
-/// `AaaApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<AaaSchemasResultInfo>,
-}
-
-/// `AaaComponentsSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaComponentsSchemasMessages {
+pub struct ResourceTaggingSetTagsRequestAccountLevel {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaName` type.
+/// `ResourceTaggingSetTagsRequestAccountLevelBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ResourceTaggingSetTagsRequestAccountLevelBase {
+    /// `tags` property.
+    pub tags: Option<ResourceTaggingTags>,
+}
+
+/// `ResourceTaggingSetTagsRequestAccountLevelWorkerVersion` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingSetTagsRequestAccountLevelWorkerVersion {
+    /// `tags` property.
+    pub tags: Option<ResourceTaggingTags>,
 }
 
 /// `ResourceTaggingTagKeysResponseCollection` type.
@@ -430,63 +494,70 @@ pub struct ResourceTaggingTagKeysResponseCollection {
     pub result_info: Option<ResourceTaggingCursorResultInfo>,
 }
 
-/// `ResourceTaggingAccountResourceTypeBaseEnum` type.
+/// `ResourceTaggingTagValuesResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingAccountResourceTypeBaseEnum {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaWebhooksComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaWebhooksComponentsSchemasResponseCollection {
+pub struct ResourceTaggingTagValuesResponseCollection {
     /// `result` property.
-    pub result: Option<Vec<AaaWebhooks>>,
+    pub result: Option<Vec<String>>,
+    /// `result_info` property.
+    pub result_info: Option<ResourceTaggingCursorResultInfo>,
 }
 
-/// `AaaSent` type.
+/// `ResourceTaggingTaggedResourceResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSent {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ResourceTaggingTaggedResourceResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ResourceTaggingTaggedResourceObject>>,
+    /// `result_info` property.
+    pub result_info: Option<ResourceTaggingCursorResultInfo>,
 }
 
-/// `AaaSchemasResultInfo` type.
+/// `WorSendEventWorkflowInstanceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasResultInfo {
+pub struct WorSendEventWorkflowInstanceResponse {
+    /// errors property.
+    pub errors: Vec<WorSendEventWorkflowInstanceResponseErrorsItem>,
+    /// messages property.
+    pub messages: Vec<WorSendEventWorkflowInstanceResponseMessagesItem>,
+    /// result property.
+    pub result: Option<serde_json::Value>,
+    /// result_info property.
+    pub result_info: Option<WorSendEventWorkflowInstanceResponseResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorSendEventWorkflowInstanceResponseErrorsItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorSendEventWorkflowInstanceResponseErrorsItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorSendEventWorkflowInstanceResponseMessagesItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorSendEventWorkflowInstanceResponseMessagesItem {
+    /// code property.
+    pub code: f64,
+    /// message property.
+    pub message: String,
+}
+
+/// `WorSendEventWorkflowInstanceResponseResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorSendEventWorkflowInstanceResponseResultInfo {
     /// count property.
-    pub count: Option<f64>,
+    pub count: f64,
+    /// cursor property.
+    pub cursor: Option<String>,
     /// page property.
     pub page: Option<f64>,
     /// per_page property.
-    pub per_page: Option<f64>,
+    pub per_page: f64,
     /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `AaaPagerduty` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaPagerduty {
-    /// id property.
-    pub id: Option<AaaUuid>,
-    /// name property.
-    pub name: Option<AaaName>,
-}
-
-/// `AaaHistoryComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaHistoryComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaHistory>>,
-    /// `result_info` property.
-    pub result_info: Option<serde_json::Value>,
-}
-
-/// `AaaWebhookId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaWebhookId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    pub total_count: f64,
 }
 
 // =============================================================================
@@ -540,6 +611,8 @@ pub struct NotificationWebhooksListWebhooksArgs {
 pub struct NotificationWebhooksCreateAWebhookArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: NotificationWebhooksCreateAWebhookRequest,
 }
 
 /// Arguments for [`notification-webhooks-get-a-webhook_request`].
@@ -558,6 +631,8 @@ pub struct NotificationWebhooksUpdateAWebhookArgs {
     pub webhook_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: NotificationWebhooksUpdateAWebhookRequest,
 }
 
 /// Arguments for [`notification-webhooks-delete-a-webhook_request`].
@@ -663,6 +738,8 @@ pub struct TagsDeleteArgs {
 pub struct TagsListKeysArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`tags-list_request`].
@@ -672,6 +749,10 @@ pub struct TagsListArgs {
     pub account_id: String,
     /// Query parameter: `type`.
     pub r#type: Option<String>,
+    /// Query parameter: `tag`.
+    pub tag: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`tags-list-values_request`].
@@ -681,6 +762,10 @@ pub struct TagsListValuesArgs {
     pub account_id: String,
     /// Path parameter: `tag_key`.
     pub tag_key: String,
+    /// Query parameter: `type`.
+    pub r#type: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`wor-send-event-workflow-instance_request`].
@@ -725,15 +810,16 @@ pub struct WorSendEventWorkflowInstanceArgs {
 pub async fn notification_alert_types_get_alert_types_request<F>(
     client: DynNetClient,
     args: &NotificationAlertTypesGetAlertTypesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaAlertsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/available_alerts",
+    let path = format!("/accounts/{}/alerting/v3/available_alerts",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -748,7 +834,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaAlertsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -780,15 +869,16 @@ where
 pub async fn notification_mechanism_eligibility_get_delivery_mechanism_eligibility_request<F>(
     client: DynNetClient,
     args: &NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/eligible",
+    let path = format!("/accounts/{}/alerting/v3/destinations/eligible",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -803,7 +893,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -835,15 +928,16 @@ where
 pub async fn notification_destinations_with_pager_duty_list_pager_duty_services_request<F>(
     client: DynNetClient,
     args: &NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/pagerduty",
+    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -858,7 +952,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -890,15 +987,16 @@ where
 pub async fn notification_destinations_with_pager_duty_delete_pager_duty_services_request<F>(
     client: DynNetClient,
     args: &NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasApiResponseCommon>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/pagerduty",
+    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -913,7 +1011,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -945,15 +1046,16 @@ where
 pub async fn notification_destinations_with_pager_duty_connect_pager_duty_request<F>(
     client: DynNetClient,
     args: &NotificationDestinationsWithPagerDutyConnectPagerDutyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSensitiveIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/pagerduty/connect",
+    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty/connect",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -968,7 +1070,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSensitiveIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1000,15 +1105,16 @@ where
 pub async fn notification_webhooks_list_webhooks_request<F>(
     client: DynNetClient,
     args: &NotificationWebhooksListWebhooksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaWebhooksComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/webhooks",
+    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1023,7 +1129,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaWebhooksComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1055,17 +1164,21 @@ where
 pub async fn notification_webhooks_create_a_webhook_request<F>(
     client: DynNetClient,
     args: &NotificationWebhooksCreateAWebhookArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/webhooks",
+    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1078,7 +1191,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1110,16 +1226,17 @@ where
 pub async fn notification_webhooks_get_a_webhook_request<F>(
     client: DynNetClient,
     args: &NotificationWebhooksGetAWebhookArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/webhooks/{}",
+    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
         args.account_id,
         args.webhook_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1134,7 +1251,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1166,18 +1286,22 @@ where
 pub async fn notification_webhooks_update_a_webhook_request<F>(
     client: DynNetClient,
     args: &NotificationWebhooksUpdateAWebhookArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/webhooks/{}",
+    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
         args.account_id,
         args.webhook_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1190,7 +1314,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1222,16 +1349,17 @@ where
 pub async fn notification_webhooks_delete_a_webhook_request<F>(
     client: DynNetClient,
     args: &NotificationWebhooksDeleteAWebhookArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasApiResponseCommon>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/destinations/webhooks/{}",
+    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
         args.account_id,
         args.webhook_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1246,7 +1374,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1278,15 +1409,16 @@ where
 pub async fn notification_history_list_history_request<F>(
     client: DynNetClient,
     args: &NotificationHistoryListHistoryArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaHistoryComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/history",
+    let path = format!("/accounts/{}/alerting/v3/history",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1306,7 +1438,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaHistoryComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1338,15 +1473,16 @@ where
 pub async fn notification_silences_list_silences_request<F>(
     client: DynNetClient,
     args: &NotificationSilencesListSilencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSilencesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/silences",
+    let path = format!("/accounts/{}/alerting/v3/silences",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1361,7 +1497,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSilencesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1393,15 +1532,16 @@ where
 pub async fn notification_silences_create_silences_request<F>(
     client: DynNetClient,
     args: &NotificationSilencesCreateSilencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasApiResponseCommon>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/silences",
+    let path = format!("/accounts/{}/alerting/v3/silences",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1419,7 +1559,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1451,15 +1594,16 @@ where
 pub async fn notification_silences_update_silences_request<F>(
     client: DynNetClient,
     args: &NotificationSilencesUpdateSilencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSilencesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/silences",
+    let path = format!("/accounts/{}/alerting/v3/silences",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1477,7 +1621,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSilencesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1509,16 +1656,17 @@ where
 pub async fn notification_silences_get_silence_request<F>(
     client: DynNetClient,
     args: &NotificationSilencesGetSilenceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSilenceComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/silences/{}",
+    let path = format!("/accounts/{}/alerting/v3/silences/{}",
         args.account_id,
         args.silence_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1533,7 +1681,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSilenceComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1565,16 +1716,17 @@ where
 pub async fn notification_silences_delete_silences_request<F>(
     client: DynNetClient,
     args: &NotificationSilencesDeleteSilencesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaSchemasApiResponseCommon>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/alerting/v3/silences/{}",
+    let path = format!("/accounts/{}/alerting/v3/silences/{}",
         args.account_id,
         args.silence_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1589,7 +1741,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1621,15 +1776,16 @@ where
 pub async fn tags_get_request<F>(
     client: DynNetClient,
     args: &TagsGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceTaggingTaggedResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags",
+    let path = format!("/accounts/{}/tags",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1648,7 +1804,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceTaggingTaggedResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1680,15 +1839,16 @@ where
 pub async fn tags_set_request<F>(
     client: DynNetClient,
     args: &TagsSetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceTaggingTaggedResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags",
+    let path = format!("/accounts/{}/tags",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1706,7 +1866,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceTaggingTaggedResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1738,15 +1901,16 @@ where
 pub async fn tags_delete_request<F>(
     client: DynNetClient,
     args: &TagsDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags",
+    let path = format!("/accounts/{}/tags",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1764,7 +1928,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -1794,18 +1961,21 @@ where
 pub async fn tags_list_keys_request<F>(
     client: DynNetClient,
     args: &TagsListKeysArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceTaggingTagKeysResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags/keys",
+    let path = format!("/accounts/{}/tags/keys",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1817,7 +1987,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceTaggingTagKeysResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1849,20 +2022,23 @@ where
 pub async fn tags_list_request<F>(
     client: DynNetClient,
     args: &TagsListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceTaggingTaggedResourceResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags/resources",
+    let path = format!("/accounts/{}/tags/resources",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("type", args.r#type.as_deref());
+    builder = builder.query("tag", args.tag.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1874,7 +2050,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceTaggingTaggedResourceResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1906,19 +2085,23 @@ where
 pub async fn tags_list_values_request<F>(
     client: DynNetClient,
     args: &TagsListValuesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceTaggingTagValuesResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/tags/values/{}",
+    let path = format!("/accounts/{}/tags/values/{}",
         args.account_id,
         args.tag_key,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("type", args.r#type.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1930,7 +2113,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceTaggingTagValuesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1962,18 +2148,19 @@ where
 pub async fn wor_send_event_workflow_instance_request<F>(
     client: DynNetClient,
     args: &WorSendEventWorkflowInstanceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorSendEventWorkflowInstanceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/workflows/{}/instances/{}/events/{}",
+    let path = format!("/accounts/{}/workflows/{}/instances/{}/events/{}",
         args.account_id,
         args.workflow_name,
         args.instance_id,
         args.event_type,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1988,8 +2175,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorSendEventWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

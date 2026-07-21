@@ -51,7 +51,6 @@ fn builder_full_config_round_trips() {
         .keepalive_secs(30)
         .relay_advertise(true)
         .relay_max_sessions(512)
-        .mtls(true)
         .identity_path("/ewe/wg/identity.key")
         .build()
         .expect("build");
@@ -63,7 +62,6 @@ fn builder_full_config_round_trips() {
     assert_eq!(cfg.dataplane.keepalive_secs, 30);
     assert!(cfg.relay.advertise);
     assert_eq!(cfg.relay.max_sessions, 512);
-    assert!(cfg.security.mtls);
     assert_eq!(cfg.node.identity_path.as_deref(), Some("/ewe/wg/identity.key"));
 }
 

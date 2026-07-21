@@ -1,9 +1,10 @@
-//! Native-only glue: UDP transport, the valtron tunnel driver, and the TLS-PSK bootstrap.
+//! Native-only glue: UDP transport, the valtron tunnel driver, and the Noise-PSK bootstrap.
 
 pub mod bootstrap;
 pub mod dataplane;
 pub mod driver;
-pub mod mtls;
+/// Pure-Rust Noise-PSK authenticated byte channel for the bootstrap join.
+pub mod noise_psk;
 pub mod node;
 pub mod overlay_acceptor;
 pub mod overlay_connection;

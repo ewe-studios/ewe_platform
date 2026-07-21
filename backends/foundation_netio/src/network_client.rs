@@ -54,7 +54,13 @@ use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 /// ```
 pub struct HttpClientBuilder {
     config: ClientConfig,
-    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
+    // `netcap::ssl` is native-only, so this field must be gated on the target too:
+    // workspace feature unification can legitimately turn an `ssl-*` feature on in a
+    // wasm build, where the native TLS connector simply does not exist (wasm uses fetch).
+    #[cfg(all(
+        not(target_family = "wasm"),
+        any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls")
+    ))]
     tls_connector: Option<crate::netcap::ssl::SSLConnector>,
     #[cfg(not(target_family = "wasm"))]
     connector: Option<Arc<dyn crate::native::connection::Connector>>,
@@ -71,10 +77,13 @@ impl HttpClientBuilder {
     pub fn new() -> Self {
         Self {
             config: ClientConfig::default(),
-            #[cfg(any(
-                feature = "ssl-rustls",
-                feature = "ssl-openssl",
-                feature = "ssl-native-tls"
+            #[cfg(all(
+                not(target_family = "wasm"),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
             ))]
             tls_connector: None,
             #[cfg(not(target_family = "wasm"))]
@@ -87,7 +96,10 @@ impl HttpClientBuilder {
     /// e.g. a Docker daemon over `tcp://…:2376` with `DOCKER_CERT_PATH` client
     /// certs (build the connector with
     /// [`SSLConnector::from_client_mutual_pem`](crate::netcap::ssl::SSLConnector)).
-    #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
+    #[cfg(all(
+        not(target_family = "wasm"),
+        any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls")
+    ))]
     #[must_use]
     pub fn with_tls_connector(mut self, connector: crate::netcap::ssl::SSLConnector) -> Self {
         self.tls_connector = Some(connector);

@@ -20,8 +20,8 @@ use std::thread;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::{
-    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeaders,
-    SimpleMethod, SimpleUrl,
+    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeader,
+    SimpleHeaders, SimpleMethod, SimpleUrl,
 };
 
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
@@ -553,13 +553,52 @@ impl TestHttpServer {
             let request_reader = request_streams.next_request();
             tracing::debug!("Pulled next request");
 
-            let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
-                .into_iter()
-                .filter(|item| match item {
-                    Ok(IncomingRequestParts::SKIP) => false,
-                    Ok(_) | Err(_) => true,
-                })
-                .collect();
+            // Answer `Expect: 100-continue` before pulling the body.
+            //
+            // WHY: our own client sends `Expect: 100-continue` on every request
+            // with a body by default (`ClientConfig::expect_continue_enabled`),
+            // and then waits for the interim response before writing the body. A
+            // server that never sends it gets an empty body and no error — the
+            // request looks well-formed and simply has nothing in it.
+            //
+            // The parts iterator is lazy, so this sits between reading the
+            // headers and reading the body: exactly where RFC 9110 §10.1.1 puts
+            // it. `with_interim_response` also handles the handshake, but it
+            // discards request bodies, so neither constructor could inspect what
+            // a POST actually sent until this.
+            let mut parts_iter = request_reader.into_iter().filter(|item| {
+                !matches!(item, Ok(IncomingRequestParts::SKIP))
+            });
+
+            let mut collected: Vec<IncomingRequestParts> = Vec::new();
+            let mut read_error: Option<HttpReaderError> = None;
+            for item in parts_iter.by_ref() {
+                match item {
+                    Ok(part) => {
+                        let expects_continue = matches!(
+                            &part,
+                            IncomingRequestParts::Headers(headers)
+                                if headers.get(&SimpleHeader::EXPECT).is_some_and(|values| {
+                                    values.iter().any(|v| v.eq_ignore_ascii_case("100-continue"))
+                                })
+                        );
+                        collected.push(part);
+                        if expects_continue {
+                            tracing::debug!("[TestHTTPServer] Expect: 100-continue — sending interim");
+                            stream.write_all(b"HTTP/1.1 100 Continue\r\n\r\n")?;
+                            stream.flush()?;
+                        }
+                    }
+                    Err(e) => {
+                        read_error = Some(e);
+                        break;
+                    }
+                }
+            }
+            let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = match read_error {
+                Some(e) => Err(e),
+                None => Ok(collected),
+            };
 
             tracing::debug!("Collected all parts of request");
             if let Err(part_err) = parts {

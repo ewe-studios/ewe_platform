@@ -298,6 +298,11 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
         // Drain follow-up queue.
         let follow_up_msgs = self.queues.drain_follow_up();
+        tracing::trace!(
+            drained = follow_up_msgs.len(),
+            outer_iteration = self.outer_iteration,
+            "outer_boundary: drained follow_up queue"
+        );
         if !follow_up_msgs.is_empty() {
             for msg in follow_up_msgs {
                 self.push_user_message(msg);
@@ -342,6 +347,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         let model = match self.router.get_model(&self.current_model) {
             Ok(m) => m,
             Err(e) => {
+                tracing::error!("router failed to get model: {e:?}");
                 let err = AgenticError::from(e);
                 return self.handle_error(err);
             }
@@ -377,6 +383,12 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         };
 
         // Start streaming generation.
+        tracing::trace!(
+            messages = interaction.messages.len(),
+            has_system = interaction.system_prompt.is_some(),
+            pending_user = self.pending_user_messages.len(),
+            "Sending interactions to model for generation"
+        );
         match model.stream(interaction, Some(params)) {
             Ok(stream) => {
                 self.state = AgentLoopState::InnerGenerate {
@@ -802,10 +814,17 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         };
 
         if idx >= results.len() {
+            tracing::trace!(
+                "Loop index greater tan results len: idx={}, len={}",
+                idx,
+                results.len()
+            );
+
             // All results emitted — loop back to InnerAssemble for the LLM
             // to process tool results (guarded by max_inner_iterations).
             self.inner_iteration += 1;
             if self.inner_iteration >= self.config.max_inner_iterations {
+                tracing::trace!("Max loop iteration method");
                 self.state = AgentLoopState::OutputProcessing;
                 return TaskStatus::Pending(AgentProgress::SessionEnding);
             }
@@ -814,6 +833,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
 
         let msg = results[idx].clone();
+        tracing::trace!("Adding new message from model: {:?}", &msg);
         let _ = self.message_api.append(SessionRecord::Conversation {
             message: msg.clone(),
         });

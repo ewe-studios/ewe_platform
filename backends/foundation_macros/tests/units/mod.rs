@@ -4,5 +4,6 @@ mod foundation_macros_arrow_serialize_tests;
 mod foundation_macros_json_hash_tests;
 mod foundation_macros_json_schema_tests;
 mod foundation_macros_scaffold_tests;
+mod foundation_macros_docker_container_tests;
 mod foundation_macros_proxy_tests;
 mod foundation_macros_wasm_entrypoint_tests;

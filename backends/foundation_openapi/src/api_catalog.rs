@@ -558,9 +558,19 @@ pub fn to_sentence_case(s: &str) -> String {
     result
 }
 
-/// Sanitize a string identifier by replacing special characters with underscores.
+/// Sanitize a string into the characters a Rust identifier may contain: every
+/// character outside `[A-Za-z0-9_]` becomes `_`.
 ///
-/// Replaces: `- . @ : < > [ ] ( ) ' , ~ /` with `_`
+/// **Why an allowlist:** this was a blocklist of fourteen punctuation marks, and
+/// a blocklist over "whatever a vendor put in their spec" is a losing bet.
+/// Cloudflare has property keys named `*`, `$metadata` and `1.1.1.1`; Linode has
+/// `+and` and `+gt`; DigitalOcean has `pg_partman_bgw.interval`. None of those
+/// characters were on the list, so they passed through into emitted Rust and the
+/// crate did not compile.
+///
+/// This does not make the result a *valid* identifier on its own — a leading
+/// digit still needs handling, and `_` is not a type name. Callers that need a
+/// full identifier use [`sanitize_field_name`] or [`to_pascal_case_from_any`].
 ///
 /// # Examples
 ///
@@ -568,15 +578,14 @@ pub fn to_sentence_case(s: &str) -> String {
 /// use foundation_openapi::sanitize_identifier;
 /// assert_eq!(sanitize_identifier("admin.channels.stop"), "admin_channels_stop");
 /// assert_eq!(sanitize_identifier("foo-bar@baz"), "foo_bar_baz");
+/// assert_eq!(sanitize_identifier("+gt"), "_gt");
+/// assert_eq!(sanitize_identifier("$metadata"), "_metadata");
 /// ```
 #[must_use]
 pub fn sanitize_identifier(s: &str) -> String {
-    s.replace(
-        [
-            '-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/', ' ',
-        ],
-        "_",
-    )
+    s.chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+        .collect()
 }
 
 /// Convert an API path to a snake_case function name suffix.

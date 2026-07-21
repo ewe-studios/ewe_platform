@@ -22,11 +22,16 @@
 //! (`foundation_core::valtron::initialize_pool`) and hold its guard for the
 //! server's lifetime.
 
+pub mod acme;
 pub mod config;
+pub mod control;
 pub mod forward;
+pub mod h2_proxy;
+pub mod h3_proxy;
 pub mod handler;
 pub mod health;
 pub mod passthrough;
+pub mod persistence;
 pub mod router;
 pub mod runtime;
 pub mod server;

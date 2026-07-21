@@ -15,8 +15,11 @@ foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-# WireGuard mesh (for docker/wireguard.rs, optional)
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1", optional = true }
+# WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
+# drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
+# only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
+# injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.0", features = ["docker"] }
@@ -76,6 +79,11 @@ wireguard = ["dep:foundation_wireguard"]
 
 # Docker runtime only (default)
 docker = ["foundation_deployment_docker/docker"]
+
+# Build images through a standalone buildkitd (BuildBackend::BuildKit).
+# Off by default: it pulls in the gRPC/BuildKit stack, and the classic
+# POST /build backend needs nothing beyond dockerd.
+buildkit = ["foundation_deployment_docker/buildkit"]
 
 # All providers
 all-providers = ["vms", "docker"]

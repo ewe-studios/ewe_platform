@@ -17,16 +17,16 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::TunnelSubnetResponseSingle;
-use super::shared::TunnelSubnetType;
-use super::shared::TunnelSubnetId;
-use super::shared::TunnelSubnet;
-use super::shared::TunnelSubnetIsDefaultNetwork;
 use super::shared::TunnelApiResponseCommon;
-use super::shared::TunnelSubnetComment;
 use super::shared::TunnelCreatedAt;
 use super::shared::TunnelDeletedAt;
+use super::shared::TunnelSubnet;
+use super::shared::TunnelSubnetComment;
+use super::shared::TunnelSubnetId;
 use super::shared::TunnelSubnetIpNetwork;
+use super::shared::TunnelSubnetIsDefaultNetwork;
 use super::shared::TunnelSubnetName;
+use super::shared::TunnelSubnetType;
 
 use super::shared::ApiResponse;
 
@@ -34,18 +34,898 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ZeroTrustGatewayId` type.
+/// `CreateIpProfileResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayId {
+pub struct CreateIpProfileResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesIpProfile,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DeleteDeviceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteDeviceResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DeleteIpProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteIpProfileResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: DeleteIpProfileResponseResult,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DeleteIpProfileResponseResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteIpProfileResponseResult {
+    /// id property.
+    pub id: Option<String>,
+}
+
+/// `DeleteRegistrationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteRegistrationResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DeleteRegistrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteRegistrationsResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesCursorResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DeviceManagedNetworksCreateDeviceManagedNetworkRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceManagedNetworksCreateDeviceManagedNetworkRequest {
+    /// config property.
+    pub config: TeamsDevicesSchemasConfigRequest,
+    /// name property.
+    pub name: TeamsDevicesDeviceManagedNetworksComponentsSchemasName,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: TeamsDevicesComponentsSchemasType,
+}
+
+/// `DeviceManagedNetworksUpdateDeviceManagedNetworkRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceManagedNetworksUpdateDeviceManagedNetworkRequest {
+    /// config property.
+    pub config: Option<TeamsDevicesSchemasConfigRequest>,
+    /// name property.
+    pub name: Option<TeamsDevicesDeviceManagedNetworksComponentsSchemasName>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<TeamsDevicesComponentsSchemasType>,
+}
+
+/// `DevicePostureIntegrationsCreateDevicePostureIntegrationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicePostureIntegrationsCreateDevicePostureIntegrationRequest {
+    /// config property.
+    pub config: TeamsDevicesConfigRequest,
+    /// interval property.
+    pub interval: TeamsDevicesInterval,
+    /// name property.
+    pub name: TeamsDevicesComponentsSchemasName,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: TeamsDevicesSchemasType,
+}
+
+/// `DevicePostureIntegrationsUpdateDevicePostureIntegrationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicePostureIntegrationsUpdateDevicePostureIntegrationRequest {
+    /// config property.
+    pub config: Option<TeamsDevicesConfigRequest>,
+    /// interval property.
+    pub interval: Option<TeamsDevicesInterval>,
+    /// name property.
+    pub name: Option<TeamsDevicesComponentsSchemasName>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<TeamsDevicesSchemasType>,
+}
+
+/// `DevicePostureRulesCreateDevicePostureRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicePostureRulesCreateDevicePostureRuleRequest {
+    /// description property.
+    pub description: Option<TeamsDevicesDescription>,
+    /// expiration property.
+    pub expiration: Option<TeamsDevicesExpiration>,
+    /// input property.
+    pub input: Option<TeamsDevicesInput>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
+    /// name property.
+    pub name: TeamsDevicesName,
+    /// schedule property.
+    pub schedule: Option<TeamsDevicesSchedule>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: TeamsDevicesType,
+}
+
+/// `DevicePostureRulesUpdateDevicePostureRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicePostureRulesUpdateDevicePostureRuleRequest {
+    /// description property.
+    pub description: Option<TeamsDevicesDescription>,
+    /// expiration property.
+    pub expiration: Option<TeamsDevicesExpiration>,
+    /// input property.
+    pub input: Option<TeamsDevicesInput>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
+    /// name property.
+    pub name: TeamsDevicesName,
+    /// schedule property.
+    pub schedule: Option<TeamsDevicesSchedule>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: TeamsDevicesType,
+}
+
+/// `DevicesCreateDeviceSettingsPolicyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicesCreateDeviceSettingsPolicyRequest {
+    /// allow_mode_switch property.
+    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
+    /// allow_updates property.
+    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
+    /// allowed_to_leave property.
+    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
+    /// auto_connect property.
+    pub auto_connect: Option<TeamsDevicesAutoConnect>,
+    /// captive_portal property.
+    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
+    /// description property.
+    pub description: Option<serde_json::Value>,
+    /// disable_auto_fallback property.
+    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exclude property.
+    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
+    /// exclude_office_ips property.
+    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
+    /// include property.
+    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    /// lan_allow_minutes property.
+    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
+    /// lan_allow_subnet_size property.
+    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: TeamsDevicesSchemasMatch,
+    /// name property.
+    pub name: String,
+    /// precedence property.
+    pub precedence: TeamsDevicesPrecedence,
+    /// register_interface_ip_with_dns property.
+    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
+    /// sccm_vpn_boundary_support property.
+    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
+    /// service_mode_v2 property.
+    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
+    /// support_url property.
+    pub support_url: Option<TeamsDevicesSupportUrl>,
+    /// switch_locked property.
+    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
+    /// tunnel_protocol property.
+    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+}
+
+/// `DevicesUpdateDefaultDeviceSettingsPolicyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicesUpdateDefaultDeviceSettingsPolicyRequest {
+    /// allow_mode_switch property.
+    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
+    /// allow_updates property.
+    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
+    /// allowed_to_leave property.
+    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
+    /// auto_connect property.
+    pub auto_connect: Option<TeamsDevicesAutoConnect>,
+    /// captive_portal property.
+    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
+    /// disable_auto_fallback property.
+    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    /// exclude property.
+    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
+    /// exclude_office_ips property.
+    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
+    /// include property.
+    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    /// lan_allow_minutes property.
+    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
+    /// lan_allow_subnet_size property.
+    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
+    /// register_interface_ip_with_dns property.
+    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
+    /// sccm_vpn_boundary_support property.
+    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
+    /// service_mode_v2 property.
+    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
+    /// support_url property.
+    pub support_url: Option<TeamsDevicesSupportUrl>,
+    /// switch_locked property.
+    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
+    /// tunnel_protocol property.
+    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+}
+
+/// `DevicesUpdateDeviceSettingsPolicyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicesUpdateDeviceSettingsPolicyRequest {
+    /// allow_mode_switch property.
+    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
+    /// allow_updates property.
+    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
+    /// allowed_to_leave property.
+    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
+    /// auto_connect property.
+    pub auto_connect: Option<TeamsDevicesAutoConnect>,
+    /// captive_portal property.
+    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
+    /// description property.
+    pub description: Option<TeamsDevicesSchemasDescription>,
+    /// disable_auto_fallback property.
+    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exclude property.
+    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
+    /// exclude_office_ips property.
+    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
+    /// include property.
+    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    /// lan_allow_minutes property.
+    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
+    /// lan_allow_subnet_size property.
+    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<TeamsDevicesSchemasMatch>,
+    /// name property.
+    pub name: Option<String>,
+    /// precedence property.
+    pub precedence: Option<TeamsDevicesPrecedence>,
+    /// register_interface_ip_with_dns property.
+    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
+    /// sccm_vpn_boundary_support property.
+    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
+    /// service_mode_v2 property.
+    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
+    /// support_url property.
+    pub support_url: Option<TeamsDevicesSupportUrl>,
+    /// switch_locked property.
+    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
+    /// tunnel_protocol property.
+    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+}
+
+/// `DlpApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DlpApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DlpApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseSingle {
+}
+
+/// `DlpBehaviors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpBehaviors {
+    /// behaviors property.
+    pub behaviors: serde_json::Value,
+}
+
+/// `DlpCreateIntegrationBody` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpCreateIntegrationBody {
+    /// integration_type property.
+    pub integration_type: DlpRiskScoreIntegrationType,
+    /// reference_id property.
+    pub reference_id: Option<String>,
+    /// tenant_url property.
+    pub tenant_url: String,
+}
+
+/// `DlpEmpty` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmpty {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayIps` type.
+/// `DlpMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIps {
+pub struct DlpMessages {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpRiskLevel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskLevel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpRiskScoreBehaviorsGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreBehaviorsGetResponse {
+    /// `result` property.
+    pub result: Option<DlpBehaviors>,
+}
+
+/// `DlpRiskScoreBehaviorsPutResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreBehaviorsPutResponse {
+    /// `result` property.
+    pub result: Option<DlpUpdateBehaviors>,
+}
+
+/// `DlpRiskScoreIntegration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreIntegration {
+    /// account_tag property.
+    pub account_tag: String,
+    /// active property.
+    pub active: bool,
+    /// created_at property.
+    pub created_at: String,
+    /// id property.
+    pub id: String,
+    /// integration_type property.
+    pub integration_type: DlpRiskScoreIntegrationType,
+    /// reference_id property.
+    pub reference_id: String,
+    /// tenant_url property.
+    pub tenant_url: String,
+    /// well_known_url property.
+    pub well_known_url: String,
+}
+
+/// `DlpRiskScoreIntegrationArray` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreIntegrationArray {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpRiskScoreIntegrationType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreIntegrationType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpRiskScoreSummaryGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskScoreSummaryGetResponse {
+    /// `result` property.
+    pub result: Option<DlpRiskSummary>,
+}
+
+/// `DlpRiskSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpRiskSummary {
+    /// users property.
+    pub users: Vec<DlpUserRiskInfo>,
+}
+
+/// `DlpUpdateBehaviors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpUpdateBehaviors {
+    /// behaviors property.
+    pub behaviors: serde_json::Value,
+}
+
+/// `DlpUpdateIntegrationBody` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpUpdateIntegrationBody {
+    /// active property.
+    pub active: bool,
+    /// reference_id property.
+    pub reference_id: Option<String>,
+    /// tenant_url property.
+    pub tenant_url: String,
+}
+
+/// `DlpUserRiskInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpUserRiskInfo {
+    /// email property.
+    pub email: String,
+    /// event_count property.
+    pub event_count: i64,
+    /// last_event property.
+    pub last_event: String,
+    /// max_risk_level property.
+    pub max_risk_level: DlpRiskLevel,
+    /// name property.
+    pub name: String,
+    /// user_id property.
+    pub user_id: String,
+}
+
+/// `DlpZtRiskScoreIntegrationCreateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationCreateResponse {
+    /// `result` property.
+    pub result: Option<DlpRiskScoreIntegration>,
+}
+
+/// `DlpZtRiskScoreIntegrationDeleteResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationDeleteResponse {
+    /// `result` property.
+    pub result: Option<DlpEmpty>,
+}
+
+/// `DlpZtRiskScoreIntegrationGetByReferenceIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationGetByReferenceIdResponse {
+    /// `result` property.
+    pub result: Option<DlpRiskScoreIntegration>,
+}
+
+/// `DlpZtRiskScoreIntegrationGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationGetResponse {
+    /// `result` property.
+    pub result: Option<DlpRiskScoreIntegration>,
+}
+
+/// `DlpZtRiskScoreIntegrationListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationListResponse {
+    /// `result` property.
+    pub result: Option<Vec<DlpRiskScoreIntegration>>,
+}
+
+/// `DlpZtRiskScoreIntegrationUpdateResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpZtRiskScoreIntegrationUpdateResponse {
+    /// `result` property.
+    pub result: Option<DlpRiskScoreIntegration>,
+}
+
+/// `GetDeviceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetDeviceResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesPhysicalDevice,
+    /// success property.
+    pub success: bool,
+}
+
+/// `GetIpProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetIpProfileResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesIpProfile,
+    /// success property.
+    pub success: bool,
+}
+
+/// `GetRegistrationOverrideCodesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetRegistrationOverrideCodesResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesOverrideCodes,
+    /// success property.
+    pub success: bool,
+}
+
+/// `GetRegistrationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetRegistrationResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesRegistration,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ListDevicesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListDevicesResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Vec<TeamsDevicesPhysicalDevice>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesCursorResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ListIpProfilesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListIpProfilesResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Vec<TeamsDevicesIpProfile>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesPaginationInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ListRegistrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListRegistrationsResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Vec<TeamsDevicesRegistration>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesCursorResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RevokeDeviceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RevokeDeviceResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `RevokeRegistrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RevokeRegistrationsResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesCursorResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `TeamsDevicesAccessSerialNumberListInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAccessSerialNumberListInputRequest {
+    /// id property.
+    pub id: String,
+}
+
+/// `TeamsDevicesAllowModeSwitch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAllowModeSwitch {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesAllowUpdates` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAllowUpdates {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesAllowedToLeave` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAllowedToLeave {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesAntivirusInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAntivirusInputRequest {
+    /// update_window_days property.
+    pub update_window_days: Option<f64>,
+}
+
+/// `TeamsDevicesApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+}
+
+/// `TeamsDevicesApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `TeamsDevicesApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApiResponseSingle {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `TeamsDevicesApplicationInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApplicationInputRequest {
+    /// operating_system property.
+    pub operating_system: String,
+    /// path property.
+    pub path: String,
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+}
+
+/// `TeamsDevicesAutoConnect` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesAutoConnect {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesCaptivePortal` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCaptivePortal {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesCarbonblackInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCarbonblackInputRequest {
+    /// operating_system property.
+    pub operating_system: String,
+    /// path property.
+    pub path: String,
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+}
+
+/// `TeamsDevicesCheckDisks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCheckDisks {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesClientCertificateInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesClientCertificateInputRequest {
+    /// certificate_id property.
+    pub certificate_id: String,
+    /// cn property.
+    pub cn: String,
+}
+
+/// `TeamsDevicesClientCertificateV2InputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesClientCertificateV2InputRequest {
+    /// certificate_id property.
+    pub certificate_id: String,
+    /// check_private_key property.
+    pub check_private_key: bool,
+    /// cn property.
+    pub cn: Option<String>,
+    /// extended_key_usage property.
+    pub extended_key_usage: Option<Vec<TeamsDevicesExtendedKeyUsageEnum>>,
+    /// locations property.
+    pub locations: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// operating_system property.
+    pub operating_system: String,
+    /// subject_alternative_names property.
+    pub subject_alternative_names: Option<Vec<String>>,
+}
+
+/// `TeamsDevicesComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesDeviceManagedNetworks>>,
+}
+
+/// `TeamsDevicesComponentsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesDeviceManagedNetworks>,
+}
+
+/// `TeamsDevicesComponentsSchemasType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesComponentsSchemasType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesComponentsSchemasUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesComponentsSchemasUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesConfigRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesConfigResponse {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesCrowdstrikeConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCrowdstrikeConfigRequest {
+    /// api_url property.
+    pub api_url: String,
+    /// client_id property.
+    pub client_id: String,
+    /// client_secret property.
+    pub client_secret: String,
+    /// customer_id property.
+    pub customer_id: String,
+}
+
+/// `TeamsDevicesCrowdstrikeInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCrowdstrikeInputRequest {
+    /// connection_id property.
+    pub connection_id: String,
+    /// last_seen property.
+    pub last_seen: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+    /// os property.
+    pub os: Option<String>,
+    /// overall property.
+    pub overall: Option<String>,
+    /// sensor_config property.
+    pub sensor_config: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+    /// versionOperator property.
+    #[serde(rename = "versionOperator")]
+    pub version_operator: Option<String>,
+}
+
+/// `TeamsDevicesCursorResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCursorResultInfo {
+    /// count property.
+    pub count: i64,
+    /// cursor property.
+    pub cursor: String,
+    /// per_page property.
+    pub per_page: i64,
+    /// total_count property.
+    pub total_count: Option<i64>,
+}
+
+/// `TeamsDevicesCustomS2SConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCustomS2SConfigRequest {
+    /// access_client_id property.
+    pub access_client_id: String,
+    /// access_client_secret property.
+    pub access_client_secret: String,
+    /// api_url property.
+    pub api_url: String,
+}
+
+/// `TeamsDevicesCustomS2SInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesCustomS2SInputRequest {
+    /// connection_id property.
+    pub connection_id: String,
+    /// operator property.
+    pub operator: String,
+    /// score property.
+    pub score: f64,
 }
 
 /// `TeamsDevicesDefault` type.
@@ -55,11 +935,1034 @@ pub struct TeamsDevicesDefault {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `TeamsDevicesDefaultDeviceSettingsPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDefaultDeviceSettingsPolicy {
+    /// allow_mode_switch property.
+    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
+    /// allow_updates property.
+    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
+    /// allowed_to_leave property.
+    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
+    /// auto_connect property.
+    pub auto_connect: Option<TeamsDevicesAutoConnect>,
+    /// captive_portal property.
+    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
+    /// default property.
+    pub default: Option<bool>,
+    /// disable_auto_fallback property.
+    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exclude property.
+    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
+    /// exclude_office_ips property.
+    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
+    /// fallback_domains property.
+    pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
+    /// gateway_unique_id property.
+    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
+    /// include property.
+    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    /// register_interface_ip_with_dns property.
+    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
+    /// sccm_vpn_boundary_support property.
+    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
+    /// service_mode_v2 property.
+    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
+    /// support_url property.
+    pub support_url: Option<TeamsDevicesSupportUrl>,
+    /// switch_locked property.
+    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
+    /// tunnel_protocol property.
+    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+}
+
+/// `TeamsDevicesDefaultDeviceSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDefaultDeviceSettingsResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesDefaultDeviceSettingsPolicy>,
+}
+
+/// `TeamsDevicesDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesDeviceManagedNetworks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDeviceManagedNetworks {
+    /// config property.
+    pub config: Option<TeamsDevicesSchemasConfigResponse>,
+    /// name property.
+    pub name: Option<TeamsDevicesDeviceManagedNetworksComponentsSchemasName>,
+    /// network_id property.
+    pub network_id: Option<TeamsDevicesUuid>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<TeamsDevicesComponentsSchemasType>,
+}
+
+/// `TeamsDevicesDeviceManagedNetworksComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDeviceManagedNetworksComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesDevicePostureIntegrations` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDevicePostureIntegrations {
+    /// config property.
+    pub config: Option<TeamsDevicesConfigResponse>,
+    /// id property.
+    pub id: Option<TeamsDevicesUuid>,
+    /// interval property.
+    pub interval: Option<TeamsDevicesInterval>,
+    /// name property.
+    pub name: Option<TeamsDevicesComponentsSchemasName>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<TeamsDevicesSchemasType>,
+}
+
+/// `TeamsDevicesDevicePostureRules` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDevicePostureRules {
+    /// description property.
+    pub description: Option<TeamsDevicesDescription>,
+    /// expiration property.
+    pub expiration: Option<TeamsDevicesExpiration>,
+    /// id property.
+    pub id: Option<TeamsDevicesUuid>,
+    /// input property.
+    pub input: Option<TeamsDevicesInput>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
+    /// name property.
+    pub name: Option<TeamsDevicesName>,
+    /// schedule property.
+    pub schedule: Option<TeamsDevicesSchedule>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<TeamsDevicesType>,
+}
+
+/// `TeamsDevicesDeviceSettingsPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDeviceSettingsPolicy {
+    /// allow_mode_switch property.
+    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
+    /// allow_updates property.
+    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
+    /// allowed_to_leave property.
+    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
+    /// auto_connect property.
+    pub auto_connect: Option<TeamsDevicesAutoConnect>,
+    /// captive_portal property.
+    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
+    /// default property.
+    pub default: Option<TeamsDevicesDefault>,
+    /// description property.
+    pub description: Option<TeamsDevicesSchemasDescription>,
+    /// disable_auto_fallback property.
+    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// exclude property.
+    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
+    /// exclude_office_ips property.
+    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
+    /// fallback_domains property.
+    pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
+    /// gateway_unique_id property.
+    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
+    /// include property.
+    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    /// lan_allow_minutes property.
+    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
+    /// lan_allow_subnet_size property.
+    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<TeamsDevicesSchemasMatch>,
+    /// name property.
+    pub name: Option<String>,
+    /// policy_id property.
+    pub policy_id: Option<TeamsDevicesSchemasUuid>,
+    /// precedence property.
+    pub precedence: Option<TeamsDevicesPrecedence>,
+    /// register_interface_ip_with_dns property.
+    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
+    /// sccm_vpn_boundary_support property.
+    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
+    /// service_mode_v2 property.
+    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
+    /// support_url property.
+    pub support_url: Option<TeamsDevicesSupportUrl>,
+    /// switch_locked property.
+    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
+    /// target_tests property.
+    pub target_tests: Option<Vec<TeamsDevicesTargetDexTest>>,
+    /// tunnel_protocol property.
+    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+}
+
+/// `TeamsDevicesDeviceSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDeviceSettingsResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesDeviceSettingsPolicy>,
+}
+
+/// `TeamsDevicesDeviceSettingsResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDeviceSettingsResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesDeviceSettingsPolicy>>,
+}
+
+/// `TeamsDevicesDisableAutoFallback` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDisableAutoFallback {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesDiskEncryptionInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDiskEncryptionInputRequest {
+    /// checkDisks property.
+    #[serde(rename = "checkDisks")]
+    pub check_disks: Option<Vec<String>>,
+    /// requireAll property.
+    #[serde(rename = "requireAll")]
+    pub require_all: Option<TeamsDevicesRequireAll>,
+}
+
+/// `TeamsDevicesDomainJoinedInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesDomainJoinedInputRequest {
+    /// domain property.
+    pub domain: Option<String>,
+    /// operating_system property.
+    pub operating_system: String,
+}
+
+/// `TeamsDevicesEmail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesEmail {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesEmptyBody` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesEmptyBody {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesExclude` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExclude {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesExcludeOfficeIps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExcludeOfficeIps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesExcludeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExcludeRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesExcludeSplitTunnelWithAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExcludeSplitTunnelWithAddress {
+    /// address property.
+    pub address: TeamsDevicesSplitTunnelAddress,
+    /// description property.
+    pub description: Option<TeamsDevicesSplitTunnelDescription>,
+}
+
+/// `TeamsDevicesExcludeSplitTunnelWithHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExcludeSplitTunnelWithHost {
+    /// description property.
+    pub description: Option<TeamsDevicesSplitTunnelDescription>,
+    /// host property.
+    pub host: TeamsDevicesSplitTunnelHost,
+}
+
+/// `TeamsDevicesExpiration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExpiration {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesExtendedKeyUsageEnum` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExtendedKeyUsageEnum {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesFallbackDomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesFallbackDomain {
+    /// description property.
+    pub description: Option<String>,
+    /// dns_server property.
+    pub dns_server: Option<Vec<TeamsDevicesIp>>,
+    /// suffix property.
+    pub suffix: String,
+}
+
+/// `TeamsDevicesFallbackDomains` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesFallbackDomains {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesFileInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesFileInputRequest {
+    /// exists property.
+    pub exists: Option<bool>,
+    /// operating_system property.
+    pub operating_system: String,
+    /// path property.
+    pub path: String,
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+}
+
+/// `TeamsDevicesFirewallInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesFirewallInputRequest {
+    /// enabled property.
+    pub enabled: bool,
+    /// operating_system property.
+    pub operating_system: String,
+}
+
+/// `TeamsDevicesGatewayUniqueId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesGatewayUniqueId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIdResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `TeamsDevicesInclude` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesInclude {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIncludeRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIncludeSplitTunnelAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeSplitTunnelAddress {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIncludeSplitTunnelDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeSplitTunnelDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIncludeSplitTunnelHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeSplitTunnelHost {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIncludeSplitTunnelWithAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeSplitTunnelWithAddress {
+    /// address property.
+    pub address: TeamsDevicesIncludeSplitTunnelAddress,
+    /// description property.
+    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
+}
+
+/// `TeamsDevicesIncludeSplitTunnelWithHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeSplitTunnelWithHost {
+    /// description property.
+    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
+    /// host property.
+    pub host: TeamsDevicesIncludeSplitTunnelHost,
+}
+
+/// `TeamsDevicesInput` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesInput {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesInterval` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesInterval {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIntuneConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIntuneConfigRequest {
+    /// client_id property.
+    pub client_id: String,
+    /// client_secret property.
+    pub client_secret: String,
+    /// customer_id property.
+    pub customer_id: String,
+}
+
+/// `TeamsDevicesIntuneInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIntuneInputRequest {
+    /// compliance_status property.
+    pub compliance_status: String,
+    /// connection_id property.
+    pub connection_id: String,
+}
+
+/// `TeamsDevicesIp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIp {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfile` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfile {
+    /// created_at property.
+    pub created_at: TeamsDevicesIpProfileCreatedAt,
+    /// description property.
+    pub description: Option<TeamsDevicesIpProfileDescription>,
+    /// enabled property.
+    pub enabled: TeamsDevicesIpProfileEnabled,
+    /// id property.
+    pub id: TeamsDevicesIpProfileId,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: TeamsDevicesIpProfileMatch,
+    /// name property.
+    pub name: TeamsDevicesIpProfileName,
+    /// precedence property.
+    pub precedence: TeamsDevicesIpProfilePrecedence,
+    /// subnet_id property.
+    pub subnet_id: TeamsDevicesIpProfileSubnetId,
+    /// updated_at property.
+    pub updated_at: TeamsDevicesIpProfileUpdatedAt,
+}
+
+/// `TeamsDevicesIpProfileCreateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileCreateRequest {
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: TeamsDevicesIpProfileMatch,
+    /// name property.
+    pub name: TeamsDevicesIpProfileName,
+    /// precedence property.
+    pub precedence: TeamsDevicesIpProfilePrecedence,
+    /// subnet_id property.
+    pub subnet_id: TeamsDevicesIpProfileSubnetId,
+}
+
+/// `TeamsDevicesIpProfileCreatedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileCreatedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileEnabled` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileEnabled {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileMatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileMatch {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfilePrecedence` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfilePrecedence {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileSubnetId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileSubnetId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesIpProfileUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileUpdateRequest {
+    /// description property.
+    pub description: Option<String>,
+    /// enabled property.
+    pub enabled: Option<TeamsDevicesIpProfileEnabled>,
+    /// match property.
+    #[serde(rename = "match")]
+    pub r#match: Option<TeamsDevicesIpProfileMatch>,
+    /// name property.
+    pub name: Option<TeamsDevicesIpProfileName>,
+    /// precedence property.
+    pub precedence: Option<TeamsDevicesIpProfilePrecedence>,
+    /// subnet_id property.
+    pub subnet_id: Option<TeamsDevicesIpProfileSubnetId>,
+}
+
+/// `TeamsDevicesIpProfileUpdatedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIpProfileUpdatedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesKolideConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesKolideConfigRequest {
+    /// client_id property.
+    pub client_id: String,
+    /// client_secret property.
+    pub client_secret: String,
+}
+
+/// `TeamsDevicesKolideInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesKolideInputRequest {
+    /// connection_id property.
+    pub connection_id: String,
+    /// countOperator property.
+    #[serde(rename = "countOperator")]
+    pub count_operator: String,
+    /// issue_count property.
+    pub issue_count: String,
+}
+
+/// `TeamsDevicesLanAllowMinutes` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesLanAllowMinutes {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesLanAllowSubnetSize` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesLanAllowSubnetSize {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesMatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesMatch {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesMatchItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesMatchItem {
+    /// platform property.
+    pub platform: Option<TeamsDevicesPlatform>,
+}
+
+/// `TeamsDevicesMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesOsVersionInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesOsVersionInputRequest {
+    /// operating_system property.
+    pub operating_system: String,
+    /// operator property.
+    pub operator: String,
+    /// os_distro_name property.
+    pub os_distro_name: Option<String>,
+    /// os_distro_revision property.
+    pub os_distro_revision: Option<String>,
+    /// os_version_extra property.
+    pub os_version_extra: Option<String>,
+    /// version property.
+    pub version: String,
+}
+
+/// `TeamsDevicesOverrideCodes` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesOverrideCodes {
+    /// disable_for_time property.
+    pub disable_for_time: Option<serde_json::Value>,
+}
+
+/// `TeamsDevicesPaginationInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPaginationInfo {
+    /// count property.
+    pub count: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// total_count property.
+    pub total_count: i64,
+    /// total_pages property.
+    pub total_pages: Option<i64>,
+}
+
+/// `TeamsDevicesPaths` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPaths {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesPhysicalDevice` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPhysicalDevice {
+    /// active_registrations property.
+    pub active_registrations: i64,
+    /// client_version property.
+    pub client_version: Option<String>,
+    /// created_at property.
+    pub created_at: String,
+    /// deleted_at property.
+    pub deleted_at: Option<String>,
+    /// device_type property.
+    pub device_type: Option<String>,
+    /// hardware_id property.
+    pub hardware_id: Option<String>,
+    /// id property.
+    pub id: String,
+    /// last_seen_at property.
+    pub last_seen_at: Option<String>,
+    /// last_seen_registration property.
+    pub last_seen_registration: Option<serde_json::Value>,
+    /// last_seen_user property.
+    pub last_seen_user: Option<serde_json::Value>,
+    /// mac_address property.
+    pub mac_address: Option<String>,
+    /// manufacturer property.
+    pub manufacturer: Option<String>,
+    /// model property.
+    pub model: Option<String>,
+    /// name property.
+    pub name: String,
+    /// os_version property.
+    pub os_version: Option<String>,
+    /// os_version_extra property.
+    pub os_version_extra: Option<String>,
+    /// public_ip property.
+    pub public_ip: Option<String>,
+    /// serial_number property.
+    pub serial_number: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `TeamsDevicesPlatform` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPlatform {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesPolicySummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPolicySummary {
+    /// default property.
+    pub default: bool,
+    /// deleted property.
+    pub deleted: bool,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `TeamsDevicesPrecedence` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPrecedence {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesRegisterInterfaceIpWithDns` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRegisterInterfaceIpWithDns {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesRegistration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRegistration {
+    /// created_at property.
+    pub created_at: String,
+    /// deleted_at property.
+    pub deleted_at: Option<String>,
+    /// device property.
+    pub device: TeamsDevicesRegistrationDeviceDetails,
+    /// id property.
+    pub id: String,
+    /// key property.
+    pub key: String,
+    /// key_type property.
+    pub key_type: Option<String>,
+    /// last_seen_at property.
+    pub last_seen_at: String,
+    /// policy property.
+    pub policy: Option<TeamsDevicesPolicySummary>,
+    /// revoked_at property.
+    pub revoked_at: Option<String>,
+    /// tunnel_type property.
+    pub tunnel_type: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+    /// user property.
+    pub user: Option<TeamsDevicesUser>,
+}
+
+/// `TeamsDevicesRegistrationDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRegistrationDetails {
+    /// policy property.
+    pub policy: Option<serde_json::Value>,
+}
+
+/// `TeamsDevicesRegistrationDeviceDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRegistrationDeviceDetails {
+    /// client_version property.
+    pub client_version: Option<String>,
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `TeamsDevicesRequireAll` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRequireAll {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesDevicePostureRules>>,
+}
+
+/// `TeamsDevicesResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
 /// `TeamsDevicesSccmVpnBoundarySupport` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSccmVpnBoundarySupport {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchedule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchedule {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasConfigRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasConfigResponse {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasIdResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasIdResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasMatch` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasMatch {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesDevicePostureIntegrations>>,
+}
+
+/// `TeamsDevicesSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesDevicePostureIntegrations>,
+}
+
+/// `TeamsDevicesSchemasType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSchemasUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSentineloneInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSentineloneInputRequest {
+    /// operating_system property.
+    pub operating_system: String,
+    /// path property.
+    pub path: String,
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// thumbprint property.
+    pub thumbprint: Option<String>,
+}
+
+/// `TeamsDevicesSentineloneS2SConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSentineloneS2SConfigRequest {
+    /// api_url property.
+    pub api_url: String,
+    /// client_secret property.
+    pub client_secret: String,
+}
+
+/// `TeamsDevicesSentineloneS2SInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSentineloneS2SInputRequest {
+    /// active_threats property.
+    pub active_threats: Option<f64>,
+    /// connection_id property.
+    pub connection_id: String,
+    /// infected property.
+    pub infected: Option<bool>,
+    /// is_active property.
+    pub is_active: Option<bool>,
+    /// network_status property.
+    pub network_status: Option<String>,
+    /// operational_state property.
+    pub operational_state: Option<String>,
+    /// operator property.
+    pub operator: Option<String>,
+}
+
+/// `TeamsDevicesServiceModeV2` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesServiceModeV2 {
+    /// mode property.
+    pub mode: Option<String>,
+    /// port property.
+    pub port: Option<f64>,
+}
+
+/// `TeamsDevicesSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSingleResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesDevicePostureRules>,
+}
+
+/// `TeamsDevicesSplitTunnel` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnel {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSplitTunnelAddress` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelAddress {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSplitTunnelDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSplitTunnelHost` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelHost {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSplitTunnelInclude` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelInclude {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSplitTunnelIncludeResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelIncludeResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+}
+
+/// `TeamsDevicesSplitTunnelResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TeamsDevicesSplitTunnel>>,
+}
+
+/// `TeamsDevicesSupportUrl` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSupportUrl {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesSwitchLocked` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSwitchLocked {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesTaniumConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesTaniumConfigRequest {
+    /// access_client_id property.
+    pub access_client_id: Option<String>,
+    /// access_client_secret property.
+    pub access_client_secret: Option<String>,
+    /// api_url property.
+    pub api_url: String,
+    /// client_secret property.
+    pub client_secret: String,
 }
 
 /// `TeamsDevicesTaniumInputRequest` type.
@@ -74,78 +1977,420 @@ pub struct TeamsDevicesTaniumInputRequest {
     /// risk_level property.
     pub risk_level: Option<String>,
     /// scoreOperator property.
+    #[serde(rename = "scoreOperator")]
     pub score_operator: Option<String>,
     /// total_score property.
     pub total_score: Option<f64>,
 }
 
-/// `ZeroTrustGatewayClientDefault` type.
+/// `TeamsDevicesTargetDexTest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayClientDefault {
+pub struct TeamsDevicesTargetDexTest {
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `TeamsDevicesTlsConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesTlsConfigRequest {
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// tls_sockaddr property.
+    pub tls_sockaddr: String,
+}
+
+/// `TeamsDevicesTlsConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesTlsConfigResponse {
+    /// sha256 property.
+    pub sha256: Option<String>,
+    /// tls_sockaddr property.
+    pub tls_sockaddr: String,
+}
+
+/// `TeamsDevicesTrustStores` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesTrustStores {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayContents` type.
+/// `TeamsDevicesTrustStoresEnum` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayContents {
+pub struct TeamsDevicesTrustStoresEnum {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesPaths` type.
+/// `TeamsDevicesTunnelProtocol` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesPaths {
+pub struct TeamsDevicesTunnelProtocol {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayExtendedEmailMatching` type.
+/// `TeamsDevicesType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayExtendedEmailMatching {
+pub struct TeamsDevicesType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesUniqueClientIdInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesUniqueClientIdInputRequest {
+    /// id property.
+    pub id: String,
+    /// operating_system property.
+    pub operating_system: String,
+}
+
+/// `TeamsDevicesUptycsConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesUptycsConfigRequest {
+    /// api_url property.
+    pub api_url: String,
+    /// client_key property.
+    pub client_key: String,
+    /// client_secret property.
+    pub client_secret: String,
+    /// customer_id property.
+    pub customer_id: String,
+}
+
+/// `TeamsDevicesUser` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesUser {
+    /// email property.
+    pub email: Option<TeamsDevicesEmail>,
+    /// id property.
+    pub id: Option<TeamsDevicesComponentsSchemasUuid>,
+    /// name property.
+    pub name: Option<String>,
+}
+
+/// `TeamsDevicesUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesV4ResponseMessage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesV4ResponseMessage {
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
+}
+
+/// `TeamsDevicesWorkspaceOneConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesWorkspaceOneConfigRequest {
+    /// api_url property.
+    pub api_url: String,
+    /// auth_url property.
+    pub auth_url: String,
+    /// client_id property.
+    pub client_id: String,
+    /// client_secret property.
+    pub client_secret: String,
+}
+
+/// `TeamsDevicesWorkspaceOneConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesWorkspaceOneConfigResponse {
+    /// api_url property.
+    pub api_url: String,
+    /// auth_url property.
+    pub auth_url: String,
+    /// client_id property.
+    pub client_id: String,
+}
+
+/// `TeamsDevicesWorkspaceOneInputRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesWorkspaceOneInputRequest {
+    /// compliance_status property.
+    pub compliance_status: String,
+    /// connection_id property.
+    pub connection_id: String,
+}
+
+/// `TeamsDevicesZeroTrustAccountDeviceSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesZeroTrustAccountDeviceSettings {
+    /// disable_for_time property.
+    pub disable_for_time: Option<f64>,
+    /// external_emergency_signal_enabled property.
+    pub external_emergency_signal_enabled: Option<bool>,
+    /// external_emergency_signal_fingerprint property.
+    pub external_emergency_signal_fingerprint: Option<String>,
+    /// external_emergency_signal_interval property.
+    pub external_emergency_signal_interval: Option<String>,
+    /// external_emergency_signal_url property.
+    pub external_emergency_signal_url: Option<String>,
+    /// gateway_proxy_enabled property.
+    pub gateway_proxy_enabled: Option<bool>,
+    /// gateway_udp_proxy_enabled property.
+    pub gateway_udp_proxy_enabled: Option<bool>,
+    /// root_certificate_installation_enabled property.
+    pub root_certificate_installation_enabled: Option<bool>,
+    /// use_zt_virtual_ip property.
+    pub use_zt_virtual_ip: Option<bool>,
+}
+
+/// `TeamsDevicesZeroTrustAccountDeviceSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesZeroTrustAccountDeviceSettingsResponse {
+    /// `result` property.
+    pub result: Option<TeamsDevicesZeroTrustAccountDeviceSettings>,
+}
+
+/// `TunnelApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelApiResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+}
+
+/// `TunnelMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `TunnelSubnetResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelSubnetResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<TunnelSubnet>>,
+}
+
+/// `UnrevokeRegistrationsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UnrevokeRegistrationsResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: Option<TeamsDevicesEmptyBody>,
+    /// result_info property.
+    pub result_info: Option<TeamsDevicesCursorResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `UpdateIpProfileResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateIpProfileResponse {
+    /// errors property.
+    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
+    /// messages property.
+    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
+    /// result property.
+    pub result: TeamsDevicesIpProfile,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ZeroTrustApplicationsReviewStatusUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustApplicationsReviewStatusUpdateRequest {
+    /// approved_apps property.
+    pub approved_apps: Vec<i64>,
+    /// in_review_apps property.
+    pub in_review_apps: Vec<i64>,
+    /// unapproved_apps property.
+    pub unapproved_apps: Vec<i64>,
+}
+
+/// `ZeroTrustGatewayAction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayAction {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayActivityLogSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayActivityLogSettings {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// read_only property.
-    pub read_only: Option<bool>,
-    /// source_account property.
-    pub source_account: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
 }
 
-/// `TeamsDevicesIpProfileSubnetId` type.
+/// `ZeroTrustGatewayAntiVirusSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileSubnetId {
+pub struct ZeroTrustGatewayAntiVirusSettings {
+    /// enabled_download_phase property.
+    pub enabled_download_phase: Option<ZeroTrustGatewayEnabledDownloadPhase>,
+    /// enabled_upload_phase property.
+    pub enabled_upload_phase: Option<ZeroTrustGatewayEnabledUploadPhase>,
+    /// fail_closed property.
+    pub fail_closed: Option<ZeroTrustGatewayFailClosed>,
+    /// notification_settings property.
+    pub notification_settings: Option<ZeroTrustGatewayNotificationSettings>,
+}
+
+/// `ZeroTrustGatewayApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+}
+
+/// `ZeroTrustGatewayApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `ZeroTrustGatewayApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApiResponseSingle {
+}
+
+/// `ZeroTrustGatewayAppId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayAppId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayUuid` type.
+/// `ZeroTrustGatewayAppTypeId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayUuid {
+pub struct ZeroTrustGatewayAppTypeId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayComponentsSchemasUuid` type.
+/// `ZeroTrustGatewayAppTypes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasUuid {
+pub struct ZeroTrustGatewayAppTypes {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayComponentsSchemasName` type.
+/// `ZeroTrustGatewayAppTypesComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasName {
+pub struct ZeroTrustGatewayAppTypesComponentsSchemasName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayResponseCollection` type.
+/// `ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayResponseCollection {
+pub struct ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection {
     /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayCertificates>>,
+    pub result: Option<Vec<ZeroTrustGatewayAppTypes>>,
+}
+
+/// `ZeroTrustGatewayApplication` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApplication {
+    /// application_type_id property.
+    pub application_type_id: Option<ZeroTrustGatewayAppTypeId>,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayTimestamp>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayAppId>,
+    /// name property.
+    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
+}
+
+/// `ZeroTrustGatewayApplicationType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApplicationType {
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayTimestamp>,
+    /// description property.
+    pub description: Option<String>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayAppTypeId>,
+    /// name property.
+    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
+}
+
+/// `ZeroTrustGatewayApplicationsReviewStatusResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApplicationsReviewStatusResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayApplicationsReviewStatusResponseContent>,
+}
+
+/// `ZeroTrustGatewayApplicationsReviewStatusResponseContent` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApplicationsReviewStatusResponseContent {
+    /// approved_apps property.
+    pub approved_apps: Option<Vec<i64>>,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// in_review_apps property.
+    pub in_review_apps: Option<Vec<i64>>,
+    /// unapproved_apps property.
+    pub unapproved_apps: Option<Vec<i64>>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+}
+
+/// `ZeroTrustGatewayApprovedApps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApprovedApps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewaySettings>,
+}
+
+/// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayBeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayBeta {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayBindingStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayBindingStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZeroTrustGatewayBlockPageSettings` type.
@@ -183,65 +2428,218 @@ pub struct ZeroTrustGatewayBlockPageSettings {
     pub version: Option<i64>,
 }
 
-/// `TeamsDevicesSplitTunnelDescription` type.
+/// `ZeroTrustGatewayBodyScanningSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustGatewayBodyScanningSettings {
+    /// inspection_mode property.
+    pub inspection_mode: Option<String>,
 }
 
-/// `ZeroTrustGatewayExpiration` type.
+/// `ZeroTrustGatewayBrowserIsolationSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayExpiration {
-    /// duration property.
-    pub duration: Option<i64>,
-    /// expired property.
-    pub expired: Option<bool>,
-    /// expires_at property.
-    pub expires_at: serde_json::Value,
+pub struct ZeroTrustGatewayBrowserIsolationSettings {
+    /// non_identity_enabled property.
+    pub non_identity_enabled: Option<bool>,
+    /// url_browser_isolation_enabled property.
+    pub url_browser_isolation_enabled: Option<bool>,
 }
 
-/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse` type.
+/// `ZeroTrustGatewayCategories` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayProxyEndpoints>,
-}
-
-/// `TeamsDevicesDeviceManagedNetworks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceManagedNetworks {
-    /// config property.
-    pub config: Option<TeamsDevicesSchemasConfigResponse>,
+pub struct ZeroTrustGatewayCategories {
+    /// beta property.
+    pub beta: Option<ZeroTrustGatewayBeta>,
+    /// class property.
+    pub class: Option<ZeroTrustGatewayClass>,
+    /// description property.
+    pub description: Option<ZeroTrustGatewayComponentsSchemasDescription>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayId>,
     /// name property.
-    pub name: Option<TeamsDevicesDeviceManagedNetworksComponentsSchemasName>,
-    /// network_id property.
-    pub network_id: Option<TeamsDevicesUuid>,
-    /// type property.
-    pub r#type: Option<TeamsDevicesComponentsSchemasType>,
+    pub name: Option<ZeroTrustGatewayCategoriesComponentsSchemasName>,
+    /// subcategories property.
+    pub subcategories: Option<Vec<ZeroTrustGatewaySubcategory>>,
 }
 
-/// `ZeroTrustGatewaySharable` type.
+/// `ZeroTrustGatewayCategoriesComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySharable {
+pub struct ZeroTrustGatewayCategoriesComponentsSchemasName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayApiResponseCommon` type.
+/// `ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
+pub struct ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ZeroTrustGatewayCategories>>,
 }
 
-/// `TeamsDevicesMessages` type.
+/// `ZeroTrustGatewayCertificateSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesMessages {
+pub struct ZeroTrustGatewayCertificateSettings {
+    /// id property.
+    pub id: String,
+}
+
+/// `ZeroTrustGatewayCertificates` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayCertificates {
+    /// binding_status property.
+    pub binding_status: Option<ZeroTrustGatewayBindingStatus>,
+    /// certificate property.
+    pub certificate: Option<String>,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// expires_on property.
+    pub expires_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// fingerprint property.
+    pub fingerprint: Option<String>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayUuid>,
+    /// in_use property.
+    pub in_use: Option<bool>,
+    /// issuer_org property.
+    pub issuer_org: Option<String>,
+    /// issuer_raw property.
+    pub issuer_raw: Option<String>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<ZeroTrustGatewayType>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// uploaded_on property.
+    pub uploaded_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+}
+
+/// `ZeroTrustGatewayCfAccountId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayCfAccountId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayClass` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayClass {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayClientDefault` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayClientDefault {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayComponentsSchemasDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayComponentsSchemasDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ZeroTrustGatewayLocations>>,
+}
+
+/// `ZeroTrustGatewayComponentsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayRules>,
+}
+
+/// `ZeroTrustGatewayComponentsSchemasUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayComponentsSchemasUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayContents` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayContents {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayCount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayCount {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayCustomCertificateSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayCustomCertificateSettings {
+    /// binding_status property.
+    pub binding_status: Option<String>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// id property.
+    pub id: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `ZeroTrustGatewayDeletedAt` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDeletedAt {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDescriptionItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDescriptionItem {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDevicePosture` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDevicePosture {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDnsDestinationIpsIdRead` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDnsDestinationIpsIdRead {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDnsDestinationIpsIdWrite` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDnsDestinationIpsIdWrite {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayDnsDestinationIpv6BlockId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDnsDestinationIpv6BlockId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -257,6 +2655,342 @@ pub struct ZeroTrustGatewayDnsResolverSettingsV4 {
     pub route_through_private_network: Option<bool>,
     /// vnet_id property.
     pub vnet_id: Option<String>,
+}
+
+/// `ZeroTrustGatewayDnsResolverSettingsV6` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDnsResolverSettingsV6 {
+    /// ip property.
+    pub ip: String,
+    /// port property.
+    pub port: Option<i64>,
+    /// route_through_private_network property.
+    pub route_through_private_network: Option<bool>,
+    /// vnet_id property.
+    pub vnet_id: Option<String>,
+}
+
+/// `ZeroTrustGatewayDohEndpoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDohEndpoint {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// networks property.
+    pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
+    /// require_token property.
+    pub require_token: Option<bool>,
+}
+
+/// `ZeroTrustGatewayDotEndpoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDotEndpoint {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// networks property.
+    pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
+}
+
+/// `ZeroTrustGatewayEcsSupport` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEcsSupport {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayEmptyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEmptyResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayEnabled` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEnabled {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayEnabledDownloadPhase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEnabledDownloadPhase {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayEnabledUploadPhase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEnabledUploadPhase {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayEndpoints` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayEndpoints {
+    /// doh property.
+    pub doh: ZeroTrustGatewayDohEndpoint,
+    /// dot property.
+    pub dot: ZeroTrustGatewayDotEndpoint,
+    /// ipv4 property.
+    pub ipv4: ZeroTrustGatewayIpv4Endpoint,
+    /// ipv6 property.
+    pub ipv6: ZeroTrustGatewayIpv6Endpoint,
+}
+
+/// `ZeroTrustGatewayExpiration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayExpiration {
+    /// duration property.
+    pub duration: Option<i64>,
+    /// expired property.
+    pub expired: Option<bool>,
+    /// expires_at property.
+    pub expires_at: serde_json::Value,
+}
+
+/// `ZeroTrustGatewayExtendedEmailMatching` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayExtendedEmailMatching {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// read_only property.
+    pub read_only: Option<bool>,
+    /// source_account property.
+    pub source_account: Option<String>,
+    /// version property.
+    pub version: Option<i64>,
+}
+
+/// `ZeroTrustGatewayFailClosed` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayFailClosed {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayFilters` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayFilters {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayFipsSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayFipsSettings {
+    /// tls property.
+    pub tls: Option<bool>,
+}
+
+/// `ZeroTrustGatewayGatewayAccount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayAccount {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ZeroTrustGatewayGatewayAccountConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayAccountConfig {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayGatewayAccountLoggingSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayAccountLoggingSettings {
+    /// redact_pii property.
+    pub redact_pii: Option<bool>,
+    /// settings_by_rule_type property.
+    pub settings_by_rule_type: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ZeroTrustGatewayGatewayAccountLoggingSettingsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayAccountLoggingSettingsResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayGatewayAccountLoggingSettings>,
+}
+
+/// `ZeroTrustGatewayGatewayAccountSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayAccountSettings {
+    /// settings property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ZeroTrustGatewayGatewayTag` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGatewayTag {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayGenerateCertRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayGenerateCertRequest {
+    /// validity_period_days property.
+    pub validity_period_days: Option<i64>,
+}
+
+/// `ZeroTrustGatewayHostSelectorSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayHostSelectorSettings {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ZeroTrustGatewayId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayIdentity` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIdentity {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayInReviewApps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayInReviewApps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayInspectionSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayInspectionSettings {
+    /// mode property.
+    pub mode: Option<String>,
+}
+
+/// `ZeroTrustGatewayIp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIp {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayIpNetwork` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpNetwork {
+    /// network property.
+    pub network: String,
+}
+
+/// `ZeroTrustGatewayIpNetworks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpNetworks {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayIps` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIps {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayIpv4Endpoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv4Endpoint {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ZeroTrustGatewayIpv4Network` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv4Network {
+    /// network property.
+    pub network: String,
+}
+
+/// `ZeroTrustGatewayIpv4Networks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv4Networks {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayIpv6Endpoint` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv6Endpoint {
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// networks property.
+    pub networks: Option<Vec<ZeroTrustGatewayIpv6Network>>,
+}
+
+/// `ZeroTrustGatewayIpv6Network` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv6Network {
+    /// network property.
+    pub network: String,
+}
+
+/// `ZeroTrustGatewayIpv6Networks` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayIpv6Networks {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayItems` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayItems {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayItemsInput` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayItemsInput {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayListItemResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayListItemResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ZeroTrustGatewayListSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayListSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayLists>,
+}
+
+/// `ZeroTrustGatewayLists` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayLists {
+    /// count property.
+    pub count: Option<ZeroTrustGatewayCount>,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// description property.
+    pub description: Option<ZeroTrustGatewayDescription>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewaySchemasUuid>,
+    /// items property.
+    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// name property.
+    pub name: Option<ZeroTrustGatewayName>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<ZeroTrustGatewaySchemasType>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
 }
 
 /// `ZeroTrustGatewayLocations` type.
@@ -292,133 +3026,98 @@ pub struct ZeroTrustGatewayLocations {
     pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
 }
 
-/// `DlpUpdateBehaviors` response type.
+/// `ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpUpdateBehaviors {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIncludeSplitTunnelAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelAddress {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewaySchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayLists>>,
-}
-
-/// `TeamsDevicesIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ZeroTrustGatewaySchedule` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchedule {
-    /// fri property.
-    pub fri: Option<String>,
-    /// mon property.
-    pub mon: Option<String>,
-    /// sat property.
-    pub sat: Option<String>,
-    /// sun property.
-    pub sun: Option<String>,
-    /// thu property.
-    pub thu: Option<String>,
-    /// time_zone property.
-    pub time_zone: Option<String>,
-    /// tue property.
-    pub tue: Option<String>,
-    /// wed property.
-    pub wed: Option<String>,
-}
-
-/// `TeamsDevicesExcludeSplitTunnelWithHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExcludeSplitTunnelWithHost {
-    /// description property.
-    pub description: Option<TeamsDevicesSplitTunnelDescription>,
-    /// host property.
-    pub host: TeamsDevicesSplitTunnelHost,
-}
-
-/// `TeamsDevicesWorkspaceOneConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesWorkspaceOneConfigResponse {
-    /// api_url property.
-    pub api_url: String,
-    /// auth_url property.
-    pub auth_url: String,
-    /// client_id property.
-    pub client_id: String,
-}
-
-/// `ZeroTrustGatewayRules` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayRules {
-    /// action property.
-    pub action: ZeroTrustGatewayAction,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// deleted_at property.
-    pub deleted_at: Option<ZeroTrustGatewayDeletedAt>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewaySchemasDescription>,
-    /// device_posture property.
-    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
-    /// enabled property.
-    pub enabled: ZeroTrustGatewayEnabled,
-    /// expiration property.
-    pub expiration: Option<ZeroTrustGatewayExpiration>,
-    /// filters property.
-    pub filters: Vec<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewaySchemasUuid>,
-    /// identity property.
-    pub identity: Option<ZeroTrustGatewayIdentity>,
+pub struct ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest {
+    /// client_default property.
+    pub client_default: Option<ZeroTrustGatewayClientDefault>,
+    /// dns_destination_ips_id property.
+    pub dns_destination_ips_id: Option<ZeroTrustGatewayDnsDestinationIpsIdWrite>,
+    /// ecs_support property.
+    pub ecs_support: Option<ZeroTrustGatewayEcsSupport>,
+    /// endpoints property.
+    pub endpoints: Option<ZeroTrustGatewayEndpoints>,
     /// name property.
-    pub name: ZeroTrustGatewayComponentsSchemasName,
-    /// precedence property.
-    pub precedence: ZeroTrustGatewayPrecedence,
-    /// read_only property.
-    pub read_only: Option<ZeroTrustGatewayReadOnly>,
-    /// rule_settings property.
-    pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
-    /// schedule property.
-    pub schedule: Option<ZeroTrustGatewaySchedule>,
-    /// sharable property.
-    pub sharable: Option<ZeroTrustGatewaySharable>,
-    /// source_account property.
-    pub source_account: Option<ZeroTrustGatewaySourceAccount>,
-    /// traffic property.
-    pub traffic: ZeroTrustGatewayTraffic,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// version property.
-    pub version: Option<ZeroTrustGatewayVersion>,
-    /// warning_status property.
-    pub warning_status: Option<ZeroTrustGatewayWarningStatus>,
+    pub name: ZeroTrustGatewaySchemasName,
+    /// networks property.
+    pub networks: Option<Vec<ZeroTrustGatewayIpv4Network>>,
 }
 
-/// `ZeroTrustGatewayIpv4Endpoint` type.
+/// `ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv4Endpoint {
+pub struct ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest {
+    /// client_default property.
+    pub client_default: Option<ZeroTrustGatewayClientDefault>,
+    /// dns_destination_ips_id property.
+    pub dns_destination_ips_id: Option<ZeroTrustGatewayDnsDestinationIpsIdWrite>,
+    /// ecs_support property.
+    pub ecs_support: Option<ZeroTrustGatewayEcsSupport>,
+    /// endpoints property.
+    pub endpoints: Option<ZeroTrustGatewayEndpoints>,
+    /// name property.
+    pub name: ZeroTrustGatewaySchemasName,
+    /// networks property.
+    pub networks: Option<Vec<ZeroTrustGatewayIpv4Network>>,
+}
+
+/// `ZeroTrustGatewayMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayNotificationSettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayNotificationSettings {
     /// enabled property.
     pub enabled: Option<bool>,
+    /// include_context property.
+    pub include_context: Option<bool>,
+    /// msg property.
+    pub msg: Option<String>,
+    /// support_url property.
+    pub support_url: Option<String>,
 }
 
-/// `TeamsDevicesInterval` type.
+/// `ZeroTrustGatewayPacfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesInterval {
+pub struct ZeroTrustGatewayPacfile {
+    /// contents property.
+    pub contents: Option<ZeroTrustGatewayContents>,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// description property.
+    pub description: Option<ZeroTrustGatewayPacfilesComponentsSchemasDescription>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
+    /// name property.
+    pub name: Option<ZeroTrustGatewayPacfilesComponentsSchemasName>,
+    /// slug property.
+    pub slug: Option<ZeroTrustGatewaySlug>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// url property.
+    pub url: Option<ZeroTrustGatewayUrl>,
+}
+
+/// `ZeroTrustGatewayPacfilesComponentsSchemasDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayPacfilesComponentsSchemasDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayPacfilesComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayPacfilesComponentsSchemasName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -430,24 +3129,35 @@ pub struct ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection {
     pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
-/// `ZeroTrustGatewayDohEndpoint` type.
+/// `ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDohEndpoint {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// networks property.
-    pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
-    /// require_token property.
-    pub require_token: Option<bool>,
+pub struct ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayPacfile>,
 }
 
-/// `TeamsDevicesTargetDexTest` type.
+/// `ZeroTrustGatewayPacfilesCreatePacfileRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTargetDexTest {
-    /// id property.
-    pub id: Option<String>,
+pub struct ZeroTrustGatewayPacfilesCreatePacfileRequest {
+    /// contents property.
+    pub contents: ZeroTrustGatewayContents,
+    /// description property.
+    pub description: Option<ZeroTrustGatewayPacfilesComponentsSchemasDescription>,
     /// name property.
-    pub name: Option<String>,
+    pub name: ZeroTrustGatewayPacfilesComponentsSchemasName,
+    /// slug property.
+    pub slug: Option<String>,
+}
+
+/// `ZeroTrustGatewayPacfilesUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayPacfilesUpdateRequest {
+    /// contents property.
+    pub contents: ZeroTrustGatewayContents,
+    /// description property.
+    pub description: ZeroTrustGatewayPacfilesComponentsSchemasDescription,
+    /// name property.
+    pub name: ZeroTrustGatewayPacfilesComponentsSchemasName,
 }
 
 /// `ZeroTrustGatewayPrecedence` type.
@@ -457,56 +3167,44 @@ pub struct ZeroTrustGatewayPrecedence {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesSchedule` type.
+/// `ZeroTrustGatewayProtocolDetection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchedule {
+pub struct ZeroTrustGatewayProtocolDetection {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `ZeroTrustGatewayProviderName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProviderName {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesCheckDisks` response type.
+/// `ZeroTrustGatewayProxyEndpointIdentity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCheckDisks {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustGatewayProxyEndpointIdentity {
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// id property.
+    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
+    /// kind property.
+    pub kind: String,
+    /// name property.
+    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
+    /// subdomain property.
+    pub subdomain: Option<ZeroTrustGatewaySchemasSubdomain>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
 }
 
-/// `TeamsDevicesSingleResponse` type.
+/// `ZeroTrustGatewayProxyEndpointIdentityCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDevicePostureRules>,
-}
-
-/// `TeamsDevicesSplitTunnelHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelHost {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDomainJoinedInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDomainJoinedInputRequest {
-    /// domain property.
-    pub domain: Option<String>,
-    /// operating_system property.
-    pub operating_system: String,
-}
-
-/// `ZeroTrustGatewayEnabledUploadPhase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEnabledUploadPhase {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewaySettings>,
+pub struct ZeroTrustGatewayProxyEndpointIdentityCreate {
+    /// kind property.
+    pub kind: String,
+    /// name property.
+    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
 }
 
 /// `ZeroTrustGatewayProxyEndpointIp` type.
@@ -526,6 +3224,100 @@ pub struct ZeroTrustGatewayProxyEndpointIp {
     pub subdomain: Option<ZeroTrustGatewaySchemasSubdomain>,
     /// updated_at property.
     pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointIpCreate` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointIpCreate {
+    /// kind property.
+    pub kind: Option<String>,
+    /// name property.
+    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
+}
+
+/// `ZeroTrustGatewayProxyEndpoints` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpoints {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ZeroTrustGatewayProxyEndpoints>>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayProxyEndpoints>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointsCreateProxyEndpointRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointsCreateProxyEndpointRequest {
+    /// kind property.
+    pub kind: Option<String>,
+}
+
+/// `ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointRequest {
+    /// ips property.
+    pub ips: Option<Vec<String>>,
+    /// name property.
+    pub name: Option<ZeroTrustGatewayProxyEndpointsComponentsSchemasName>,
+}
+
+/// `ZeroTrustGatewayPublicKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayPublicKey {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayReadOnly` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayReadOnly {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayReadOnlyTimestamp` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayReadOnlyTimestamp {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewayResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ZeroTrustGatewayCertificates>>,
+}
+
+/// `ZeroTrustGatewayResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
 }
 
 /// `ZeroTrustGatewayRuleSettings` type.
@@ -585,426 +3377,241 @@ pub struct ZeroTrustGatewayRuleSettings {
     pub untrusted_cert: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
-/// `ZeroTrustGatewayGatewayTag` type.
+/// `ZeroTrustGatewayRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayTag {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDnsDestinationIpsIdRead` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDnsDestinationIpsIdRead {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIpProfileName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesServiceModeV2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesServiceModeV2 {
-    /// mode property.
-    pub mode: Option<String>,
-    /// port property.
-    pub port: Option<f64>,
-}
-
-/// `TeamsDevicesResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `ZeroTrustGatewayAppId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAppId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `ZeroTrustGatewayAppTypesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAppTypesComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCount {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDnsDestinationIpv6BlockId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDnsDestinationIpv6BlockId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayReadOnly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayReadOnly {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesClientCertificateInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesClientCertificateInputRequest {
-    /// certificate_id property.
-    pub certificate_id: String,
-    /// cn property.
-    pub cn: String,
-}
-
-/// `ZeroTrustGatewayDevicePosture` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDevicePosture {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIncludeSplitTunnelWithHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelWithHost {
+pub struct ZeroTrustGatewayRules {
+    /// action property.
+    pub action: ZeroTrustGatewayAction,
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// deleted_at property.
+    pub deleted_at: Option<ZeroTrustGatewayDeletedAt>,
     /// description property.
-    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
-    /// host property.
-    pub host: TeamsDevicesIncludeSplitTunnelHost,
-}
-
-/// `TunnelApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<TunnelResultInfo>,
-}
-
-/// `ZeroTrustGatewayEndpoints` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEndpoints {
-    /// doh property.
-    pub doh: ZeroTrustGatewayDohEndpoint,
-    /// dot property.
-    pub dot: ZeroTrustGatewayDotEndpoint,
-    /// ipv4 property.
-    pub ipv4: ZeroTrustGatewayIpv4Endpoint,
-    /// ipv6 property.
-    pub ipv6: ZeroTrustGatewayIpv6Endpoint,
-}
-
-/// `TeamsDevicesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `TeamsDevicesClientCertificateV2InputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesClientCertificateV2InputRequest {
-    /// certificate_id property.
-    pub certificate_id: String,
-    /// check_private_key property.
-    pub check_private_key: bool,
-    /// cn property.
-    pub cn: Option<String>,
-    /// extended_key_usage property.
-    pub extended_key_usage: Option<Vec<TeamsDevicesExtendedKeyUsageEnum>>,
-    /// locations property.
-    pub locations: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// operating_system property.
-    pub operating_system: String,
-    /// subject_alternative_names property.
-    pub subject_alternative_names: Option<Vec<String>>,
-}
-
-/// `ZeroTrustGatewayComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayLocations>>,
-}
-
-/// `TeamsDevicesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
-
-/// `TeamsDevicesDefaultDeviceSettingsPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDefaultDeviceSettingsPolicy {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// default property.
-    pub default: Option<bool>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
+    pub description: Option<ZeroTrustGatewaySchemasDescription>,
+    /// device_posture property.
+    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
     /// enabled property.
-    pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// fallback_domains property.
-    pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
-    /// gateway_unique_id property.
-    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
-    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
-}
-
-/// `ZeroTrustGatewayVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayVersion {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDefaultDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDefaultDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDefaultDeviceSettingsPolicy>,
-}
-
-/// `ZeroTrustGatewayCategories` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCategories {
-    /// beta property.
-    pub beta: Option<ZeroTrustGatewayBeta>,
-    /// class property.
-    pub class: Option<ZeroTrustGatewayClass>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayComponentsSchemasDescription>,
+    pub enabled: ZeroTrustGatewayEnabled,
+    /// expiration property.
+    pub expiration: Option<ZeroTrustGatewayExpiration>,
+    /// filters property.
+    pub filters: Vec<String>,
     /// id property.
-    pub id: Option<ZeroTrustGatewayId>,
+    pub id: Option<ZeroTrustGatewaySchemasUuid>,
+    /// identity property.
+    pub identity: Option<ZeroTrustGatewayIdentity>,
     /// name property.
-    pub name: Option<ZeroTrustGatewayCategoriesComponentsSchemasName>,
-    /// subcategories property.
-    pub subcategories: Option<Vec<ZeroTrustGatewaySubcategory>>,
+    pub name: ZeroTrustGatewayComponentsSchemasName,
+    /// precedence property.
+    pub precedence: ZeroTrustGatewayPrecedence,
+    /// read_only property.
+    pub read_only: Option<ZeroTrustGatewayReadOnly>,
+    /// rule_settings property.
+    pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
+    /// schedule property.
+    pub schedule: Option<ZeroTrustGatewaySchedule>,
+    /// sharable property.
+    pub sharable: Option<ZeroTrustGatewaySharable>,
+    /// source_account property.
+    pub source_account: Option<ZeroTrustGatewaySourceAccount>,
+    /// traffic property.
+    pub traffic: ZeroTrustGatewayTraffic,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// version property.
+    pub version: Option<ZeroTrustGatewayVersion>,
+    /// warning_status property.
+    pub warning_status: Option<ZeroTrustGatewayWarningStatus>,
 }
 
-/// `TeamsDevicesMatchItem` type.
+/// `ZeroTrustGatewayRulesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesMatchItem {
-    /// platform property.
-    pub platform: Option<TeamsDevicesPlatform>,
-}
-
-/// `TeamsDevicesIpProfilePrecedence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfilePrecedence {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayBrowserIsolationSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayBrowserIsolationSettings {
-    /// non_identity_enabled property.
-    pub non_identity_enabled: Option<bool>,
-    /// url_browser_isolation_enabled property.
-    pub url_browser_isolation_enabled: Option<bool>,
-}
-
-/// `TeamsDevicesSchemasMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasMatch {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayPacfilesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayBeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayBeta {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpUpdateIntegrationBody` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpUpdateIntegrationBody {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDeviceManagedNetworksComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceManagedNetworksComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDeletedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDeletedAt {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayInReviewApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayInReviewApps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesZeroTrustAccountDeviceSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesZeroTrustAccountDeviceSettings {
-    /// disable_for_time property.
-    pub disable_for_time: Option<f64>,
-    /// external_emergency_signal_enabled property.
-    pub external_emergency_signal_enabled: Option<bool>,
-    /// external_emergency_signal_fingerprint property.
-    pub external_emergency_signal_fingerprint: Option<String>,
-    /// external_emergency_signal_interval property.
-    pub external_emergency_signal_interval: Option<String>,
-    /// external_emergency_signal_url property.
-    pub external_emergency_signal_url: Option<String>,
-    /// gateway_proxy_enabled property.
-    pub gateway_proxy_enabled: Option<bool>,
-    /// gateway_udp_proxy_enabled property.
-    pub gateway_udp_proxy_enabled: Option<bool>,
-    /// root_certificate_installation_enabled property.
-    pub root_certificate_installation_enabled: Option<bool>,
-    /// use_zt_virtual_ip property.
-    pub use_zt_virtual_ip: Option<bool>,
-}
-
-/// `ZeroTrustGatewayProviderName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProviderName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSplitTunnelIncludeResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelIncludeResponseCollection {
+pub struct ZeroTrustGatewayRulesComponentsSchemasResponseCollection {
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    pub result: Option<Vec<ZeroTrustGatewayRules>>,
 }
 
-/// `TeamsDevicesIpProfileEnabled` type.
+/// `ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileEnabled {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest {
+    /// action property.
+    pub action: ZeroTrustGatewayAction,
+    /// description property.
+    pub description: Option<ZeroTrustGatewaySchemasDescription>,
+    /// device_posture property.
+    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
+    /// enabled property.
+    pub enabled: Option<ZeroTrustGatewayEnabled>,
+    /// expiration property.
+    pub expiration: Option<ZeroTrustGatewayExpiration>,
+    /// filters property.
+    pub filters: Option<Vec<String>>,
+    /// identity property.
+    pub identity: Option<ZeroTrustGatewayIdentity>,
+    /// name property.
+    pub name: ZeroTrustGatewayComponentsSchemasName,
+    /// precedence property.
+    pub precedence: Option<ZeroTrustGatewayPrecedence>,
+    /// rule_settings property.
+    pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
+    /// schedule property.
+    pub schedule: Option<ZeroTrustGatewaySchedule>,
+    /// traffic property.
+    pub traffic: Option<ZeroTrustGatewayTraffic>,
 }
 
-/// `TeamsDevicesType` type.
+/// `ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest {
+    /// action property.
+    pub action: ZeroTrustGatewayAction,
+    /// description property.
+    pub description: Option<ZeroTrustGatewaySchemasDescription>,
+    /// device_posture property.
+    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
+    /// enabled property.
+    pub enabled: Option<ZeroTrustGatewayEnabled>,
+    /// expiration property.
+    pub expiration: Option<ZeroTrustGatewayExpiration>,
+    /// filters property.
+    pub filters: Option<Vec<String>>,
+    /// identity property.
+    pub identity: Option<ZeroTrustGatewayIdentity>,
+    /// name property.
+    pub name: ZeroTrustGatewayComponentsSchemasName,
+    /// precedence property.
+    pub precedence: Option<ZeroTrustGatewayPrecedence>,
+    /// rule_settings property.
+    pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
+    /// schedule property.
+    pub schedule: Option<ZeroTrustGatewaySchedule>,
+    /// traffic property.
+    pub traffic: Option<ZeroTrustGatewayTraffic>,
 }
 
-/// `ZeroTrustGatewayProtocolDetection` type.
+/// `ZeroTrustGatewaySandbox` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProtocolDetection {
+pub struct ZeroTrustGatewaySandbox {
     /// enabled property.
     pub enabled: Option<bool>,
+    /// fallback_action property.
+    pub fallback_action: Option<String>,
 }
 
-/// `TeamsDevicesTunnelProtocol` type.
+/// `ZeroTrustGatewaySchedule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTunnelProtocol {
+pub struct ZeroTrustGatewaySchedule {
+    /// fri property.
+    pub fri: Option<String>,
+    /// mon property.
+    pub mon: Option<String>,
+    /// sat property.
+    pub sat: Option<String>,
+    /// sun property.
+    pub sun: Option<String>,
+    /// thu property.
+    pub thu: Option<String>,
+    /// time_zone property.
+    pub time_zone: Option<String>,
+    /// tue property.
+    pub tue: Option<String>,
+    /// wed property.
+    pub wed: Option<String>,
+}
+
+/// `ZeroTrustGatewaySchemasDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasDescription {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySchemasName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySchemasResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ZeroTrustGatewayLists>>,
+}
+
+/// `ZeroTrustGatewaySchemasSingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasSingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayLocations>,
+}
+
+/// `ZeroTrustGatewaySchemasSubdomain` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasSubdomain {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySchemasType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySchemasUuid` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySchemasUuid {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySettings` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySettings {
+    /// created_at property.
+    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// public_key property.
+    pub public_key: Option<ZeroTrustGatewayPublicKey>,
+    /// seed_id property.
+    pub seed_id: Option<ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid>,
+    /// updated_at property.
+    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+}
+
+/// `ZeroTrustGatewaySharable` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySharable {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySingleResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySingleResponse {
+    /// `result` property.
+    pub result: Option<ZeroTrustGatewayCertificates>,
+}
+
+/// `ZeroTrustGatewaySingleResponseWithListItems` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySingleResponseWithListItems {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `ZeroTrustGatewaySlug` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySlug {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ZeroTrustGatewaySourceAccount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewaySourceAccount {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -1024,740 +3631,9 @@ pub struct ZeroTrustGatewaySubcategory {
     pub name: Option<ZeroTrustGatewayCategoriesComponentsSchemasName>,
 }
 
-/// `TeamsDevicesSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesCrowdstrikeInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCrowdstrikeInputRequest {
-    /// connection_id property.
-    pub connection_id: String,
-    /// last_seen property.
-    pub last_seen: Option<String>,
-    /// operator property.
-    pub operator: Option<String>,
-    /// os property.
-    pub os: Option<String>,
-    /// overall property.
-    pub overall: Option<String>,
-    /// sensor_config property.
-    pub sensor_config: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-    /// versionOperator property.
-    pub version_operator: Option<String>,
-}
-
-/// `ZeroTrustGatewayDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayValue {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesFirewallInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFirewallInputRequest {
-    /// enabled property.
-    pub enabled: bool,
-    /// operating_system property.
-    pub operating_system: String,
-}
-
-/// `TeamsDevicesAllowedToLeave` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAllowedToLeave {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSplitTunnel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnel {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDiskEncryptionInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDiskEncryptionInputRequest {
-    /// checkDisks property.
-    pub check_disks: Option<Vec<String>>,
-    /// requireAll property.
-    pub require_all: Option<TeamsDevicesRequireAll>,
-}
-
-/// `TeamsDevicesAutoConnect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAutoConnect {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIntuneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIntuneInputRequest {
-    /// compliance_status property.
-    pub compliance_status: String,
-    /// connection_id property.
-    pub connection_id: String,
-}
-
-/// `TeamsDevicesFallbackDomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomain {
-    /// description property.
-    pub description: Option<String>,
-    /// dns_server property.
-    pub dns_server: Option<Vec<TeamsDevicesIp>>,
-    /// suffix property.
-    pub suffix: String,
-}
-
-/// `ZeroTrustGatewayPacfile` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfile {
-    /// contents property.
-    pub contents: Option<ZeroTrustGatewayContents>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayPacfilesComponentsSchemasDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayPacfilesComponentsSchemasName>,
-    /// slug property.
-    pub slug: Option<ZeroTrustGatewaySlug>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// url property.
-    pub url: Option<ZeroTrustGatewayUrl>,
-}
-
-/// `ZeroTrustGatewayIpv6Network` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv6Network {
-    /// network property.
-    pub network: String,
-}
-
-/// `TeamsDevicesIpProfileMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileMatch {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesConfigResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIp {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDevicePostureIntegrations>,
-}
-
-/// `ZeroTrustGatewayGatewayAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccount {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `TeamsDevicesWorkspaceOneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesWorkspaceOneInputRequest {
-    /// compliance_status property.
-    pub compliance_status: String,
-    /// connection_id property.
-    pub connection_id: String,
-}
-
-/// `ZeroTrustGatewaySchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSwitchLocked` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSwitchLocked {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayAntiVirusSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAntiVirusSettings {
-    /// enabled_download_phase property.
-    pub enabled_download_phase: Option<ZeroTrustGatewayEnabledDownloadPhase>,
-    /// enabled_upload_phase property.
-    pub enabled_upload_phase: Option<ZeroTrustGatewayEnabledUploadPhase>,
-    /// fail_closed property.
-    pub fail_closed: Option<ZeroTrustGatewayFailClosed>,
-    /// notification_settings property.
-    pub notification_settings: Option<ZeroTrustGatewayNotificationSettings>,
-}
-
-/// `ZeroTrustGatewayEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEnabled {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayCategories>>,
-}
-
-/// `TeamsDevicesFallbackDomains` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomains {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDevicePostureIntegrations>>,
-}
-
-/// `ZeroTrustGatewayAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAction {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesZeroTrustAccountDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesZeroTrustAccountDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesZeroTrustAccountDeviceSettings>,
-}
-
-/// `TeamsDevicesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDeviceManagedNetworks>>,
-}
-
-/// `ZeroTrustGatewayCategoriesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCategoriesComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSchemasConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasConfigResponse {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayCfAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCfAccountId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIncludeSplitTunnelWithAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelWithAddress {
-    /// address property.
-    pub address: TeamsDevicesIncludeSplitTunnelAddress,
-    /// description property.
-    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
-}
-
-/// `TeamsDevicesCaptivePortal` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCaptivePortal {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-    /// `result_info` property.
-    pub result_info: Option<TeamsDevicesResultInfo>,
-}
-
-/// `TeamsDevicesDevicePostureIntegrations` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDevicePostureIntegrations {
-    /// config property.
-    pub config: Option<TeamsDevicesConfigResponse>,
-    /// id property.
-    pub id: Option<TeamsDevicesUuid>,
-    /// interval property.
-    pub interval: Option<TeamsDevicesInterval>,
-    /// name property.
-    pub name: Option<TeamsDevicesComponentsSchemasName>,
-    /// type property.
-    pub r#type: Option<TeamsDevicesSchemasType>,
-}
-
-/// `ZeroTrustGatewayApplication` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApplication {
-    /// application_type_id property.
-    pub application_type_id: Option<ZeroTrustGatewayAppTypeId>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayTimestamp>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayAppId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
-}
-
-/// `ZeroTrustGatewayMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIpProfileUpdateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileUpdateRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// enabled property.
-    pub enabled: Option<TeamsDevicesIpProfileEnabled>,
-    /// match property.
-    pub r#match: Option<TeamsDevicesIpProfileMatch>,
-    /// name property.
-    pub name: Option<TeamsDevicesIpProfileName>,
-    /// precedence property.
-    pub precedence: Option<TeamsDevicesIpProfilePrecedence>,
-    /// subnet_id property.
-    pub subnet_id: Option<TeamsDevicesIpProfileSubnetId>,
-}
-
-/// `TeamsDevicesSupportUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSupportUrl {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDnsResolverSettingsV6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDnsResolverSettingsV6 {
-    /// ip property.
-    pub ip: String,
-    /// port property.
-    pub port: Option<i64>,
-    /// route_through_private_network property.
-    pub route_through_private_network: Option<bool>,
-    /// vnet_id property.
-    pub vnet_id: Option<String>,
-}
-
-/// `ZeroTrustGatewayCertificateSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCertificateSettings {
-    /// id property.
-    pub id: String,
-}
-
-/// `TeamsDevicesAccessSerialNumberListInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAccessSerialNumberListInputRequest {
-    /// id property.
-    pub id: String,
-}
-
-/// `ZeroTrustGatewayApprovedApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApprovedApps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesTrustStores` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTrustStores {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesComponentsSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesComponentsSchemasType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayFailClosed` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayFailClosed {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesApplicationInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApplicationInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
-
-/// `ZeroTrustGatewayApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<ZeroTrustGatewayResultInfo>,
-}
-
-/// `ZeroTrustGatewayIpv4Networks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv4Networks {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayWarningStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayWarningStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasUuid {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDeviceSettingsPolicy>,
-}
-
-/// `TeamsDevicesDeviceSettingsResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceSettingsResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDeviceSettingsPolicy>>,
-}
-
-/// `ZeroTrustGatewayEcsSupport` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEcsSupport {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSentineloneS2SInputRequest` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSentineloneS2SInputRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayFipsSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayFipsSettings {
-    /// tls property.
-    pub tls: Option<bool>,
-}
-
-/// `ZeroTrustGatewayActivityLogSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayActivityLogSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `TeamsDevicesAntivirusInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAntivirusInputRequest {
-    /// update_window_days property.
-    pub update_window_days: Option<f64>,
-}
-
-/// `TeamsDevicesIncludeSplitTunnelHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelHost {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesGatewayUniqueId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesGatewayUniqueId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `ZeroTrustGatewaySubdomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySubdomain {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayIpNetworks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpNetworks {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `ZeroTrustGatewayApplicationsReviewStatusResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApplicationsReviewStatusResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayApplicationsReviewStatusResponseContent>,
-}
-
-/// `ZeroTrustGatewayBodyScanningSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayBodyScanningSettings {
-    /// inspection_mode property.
-    pub inspection_mode: Option<String>,
-}
-
-/// `ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayAppTypes>>,
-}
-
-/// `TeamsDevicesPlatform` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesPlatform {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayUnapprovedApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayUnapprovedApps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesAllowModeSwitch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAllowModeSwitch {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesExpiration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExpiration {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewaySchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasName {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayTlsSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayTlsSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ZeroTrustGatewayBindingStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayBindingStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayHostSelectorSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayHostSelectorSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
-
-/// `ZeroTrustGatewayListSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayListSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayLists>,
-}
-
-/// `ZeroTrustGatewayApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApiResponseSingle {
-}
-
-/// `TunnelSubnetResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSubnetResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TunnelSubnet>>,
-}
-
-/// `ZeroTrustGatewayNotificationSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayNotificationSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// include_context property.
-    pub include_context: Option<bool>,
-    /// msg property.
-    pub msg: Option<String>,
-    /// support_url property.
-    pub support_url: Option<String>,
-}
-
-/// `ZeroTrustGatewayRulesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayRules>>,
-}
-
-/// `TeamsDevicesSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesIpProfileCreateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIpProfileCreateRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// match property.
-    pub r#match: TeamsDevicesIpProfileMatch,
-    /// name property.
-    pub name: TeamsDevicesIpProfileName,
-    /// precedence property.
-    pub precedence: TeamsDevicesIpProfilePrecedence,
-    /// subnet_id property.
-    pub subnet_id: TeamsDevicesIpProfileSubnetId,
-}
-
-/// `ZeroTrustGatewayIpv6Networks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv6Networks {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesSplitTunnelInclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelInclude {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayApplicationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApplicationType {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayTimestamp>,
-    /// description property.
-    pub description: Option<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayAppTypeId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
-}
-
-/// `ZeroTrustGatewayProxyEndpoints` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpoints {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -1769,355 +3645,11 @@ pub struct ZeroTrustGatewayTimestamp {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayCustomCertificateSettings` type.
+/// `ZeroTrustGatewayTlsSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCustomCertificateSettings {
-    /// binding_status property.
-    pub binding_status: Option<String>,
-    /// enabled property.
-    pub enabled: bool,
-    /// id property.
-    pub id: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `TeamsDevicesExtendedKeyUsageEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExtendedKeyUsageEnum {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewaySlug` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySlug {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesMatch {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesCustomS2SInputRequest` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCustomS2SInputRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewaySettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySettings {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// public_key property.
-    pub public_key: Option<ZeroTrustGatewayPublicKey>,
-    /// seed_id property.
-    pub seed_id: Option<ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-}
-
-/// `TeamsDevicesComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDeviceManagedNetworks>,
-}
-
-/// `TeamsDevicesUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesUuid {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesRegisterInterfaceIpWithDns` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesRegisterInterfaceIpWithDns {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIp {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DlpCreateIntegrationBody` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpCreateIntegrationBody {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayPacfile>,
-}
-
-/// `TeamsDevicesExcludeSplitTunnelWithAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExcludeSplitTunnelWithAddress {
-    /// address property.
-    pub address: TeamsDevicesSplitTunnelAddress,
-    /// description property.
-    pub description: Option<TeamsDevicesSplitTunnelDescription>,
-}
-
-/// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayClass` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayClass {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesKolideInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesKolideInputRequest {
-    /// connection_id property.
-    pub connection_id: String,
-    /// countOperator property.
-    pub count_operator: String,
-    /// issue_count property.
-    pub issue_count: String,
-}
-
-/// `TunnelMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewaySingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayCertificates>,
-}
-
-/// `ZeroTrustGatewaySingleResponseWithListItems` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySingleResponseWithListItems {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ZeroTrustGatewayApplicationsReviewStatusResponseContent` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApplicationsReviewStatusResponseContent {
-    /// approved_apps property.
-    pub approved_apps: Option<Vec<i64>>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// in_review_apps property.
-    pub in_review_apps: Option<Vec<i64>>,
-    /// unapproved_apps property.
-    pub unapproved_apps: Option<Vec<i64>>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-}
-
-/// `ZeroTrustGatewaySourceAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySourceAccount {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayGatewayAccountLoggingSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountLoggingSettings {
-    /// redact_pii property.
-    pub redact_pii: Option<bool>,
-    /// settings_by_rule_type property.
-    pub settings_by_rule_type: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `TeamsDevicesOsVersionInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesOsVersionInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// operator property.
-    pub operator: String,
-    /// os_distro_name property.
-    pub os_distro_name: Option<String>,
-    /// os_distro_revision property.
-    pub os_distro_revision: Option<String>,
-    /// os_version_extra property.
-    pub os_version_extra: Option<String>,
-    /// version property.
-    pub version: String,
-}
-
-/// `TeamsDevicesCarbonblackInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCarbonblackInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
-
-/// `ZeroTrustGatewaySandbox` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySandbox {
+pub struct ZeroTrustGatewayTlsSettings {
     /// enabled property.
     pub enabled: Option<bool>,
-    /// fallback_action property.
-    pub fallback_action: Option<String>,
-}
-
-/// `ZeroTrustGatewayIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIdentity {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayIpv4Network` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv4Network {
-    /// network property.
-    pub network: String,
-}
-
-/// `ZeroTrustGatewayAppTypeId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAppTypeId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesExclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExclude {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayProxyEndpointIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointIdentity {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// kind property.
-    pub kind: String,
-    /// name property.
-    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
-    /// subdomain property.
-    pub subdomain: Option<ZeroTrustGatewaySchemasSubdomain>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-}
-
-/// `ZeroTrustGatewayListItemResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayListItemResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `TeamsDevicesTrustStoresEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTrustStoresEnum {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayPublicKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPublicKey {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayGatewayAccountConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountConfig {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `TeamsDevicesUniqueClientIdInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesUniqueClientIdInputRequest {
-    /// id property.
-    pub id: String,
-    /// operating_system property.
-    pub operating_system: String,
-}
-
-/// `ZeroTrustGatewaySchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayFilters` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayFilters {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayIpv6Endpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv6Endpoint {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// networks property.
-    pub networks: Option<Vec<ZeroTrustGatewayIpv6Network>>,
-}
-
-/// `TeamsDevicesSplitTunnelResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesSplitTunnel>>,
-}
-
-/// `ZeroTrustGatewayInspectionSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayInspectionSettings {
-    /// mode property.
-    pub mode: Option<String>,
-}
-
-/// `TeamsDevicesPrecedence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesPrecedence {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZeroTrustGatewayTraffic` type.
@@ -2127,72 +3659,6 @@ pub struct ZeroTrustGatewayTraffic {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesDeviceSettingsPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceSettingsPolicy {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// default property.
-    pub default: Option<TeamsDevicesDefault>,
-    /// description property.
-    pub description: Option<TeamsDevicesSchemasDescription>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// fallback_domains property.
-    pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
-    /// gateway_unique_id property.
-    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// lan_allow_minutes property.
-    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
-    /// lan_allow_subnet_size property.
-    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
-    /// match property.
-    pub r#match: Option<TeamsDevicesSchemasMatch>,
-    /// name property.
-    pub name: Option<String>,
-    /// policy_id property.
-    pub policy_id: Option<TeamsDevicesSchemasUuid>,
-    /// precedence property.
-    pub precedence: Option<TeamsDevicesPrecedence>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
-    pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// target_tests property.
-    pub target_tests: Option<Vec<TeamsDevicesTargetDexTest>>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
-}
-
-/// `ZeroTrustGatewayComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayRules>,
-}
-
 /// `ZeroTrustGatewayType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayType {
@@ -2200,116 +3666,9 @@ pub struct ZeroTrustGatewayType {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesDevicePostureRules` type.
+/// `ZeroTrustGatewayUnapprovedApps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDevicePostureRules {
-    /// description property.
-    pub description: Option<TeamsDevicesDescription>,
-    /// expiration property.
-    pub expiration: Option<TeamsDevicesExpiration>,
-    /// id property.
-    pub id: Option<TeamsDevicesUuid>,
-    /// input property.
-    pub input: Option<TeamsDevicesInput>,
-    /// match property.
-    pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
-    /// name property.
-    pub name: Option<TeamsDevicesName>,
-    /// schedule property.
-    pub schedule: Option<TeamsDevicesSchedule>,
-    /// type property.
-    pub r#type: Option<TeamsDevicesType>,
-}
-
-/// `TeamsDevicesExcludeOfficeIps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExcludeOfficeIps {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesFileInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFileInputRequest {
-    /// exists property.
-    pub exists: Option<bool>,
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
-
-/// `ZeroTrustGatewaySchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayLocations>,
-}
-
-/// `ZeroTrustGatewaySchemasSubdomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasSubdomain {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayIpNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpNetwork {
-    /// network property.
-    pub network: String,
-}
-
-/// `TeamsDevicesSentineloneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSentineloneInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
-
-/// `TeamsDevicesSplitTunnelAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelAddress {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesInclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesInclude {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDotEndpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDotEndpoint {
-    /// enabled property.
-    pub enabled: Option<bool>,
-    /// networks property.
-    pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
-}
-
-/// `TeamsDevicesInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesInput {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayItems` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayItems {
+pub struct ZeroTrustGatewayUnapprovedApps {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -2321,190 +3680,84 @@ pub struct ZeroTrustGatewayUrl {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesLanAllowMinutes` type.
+/// `ZeroTrustGatewayUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesLanAllowMinutes {
+pub struct ZeroTrustGatewayUuid {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesAllowUpdates` type.
+/// `ZeroTrustGatewayValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAllowUpdates {
+pub struct ZeroTrustGatewayValue {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TeamsDevicesDisableAutoFallback` type.
+/// `ZeroTrustGatewayVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDisableAutoFallback {
+pub struct ZeroTrustGatewayVersion {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayGenerateCertRequest` type.
+/// `ZeroTrustGatewayWarningStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGenerateCertRequest {
-    /// validity_period_days property.
-    pub validity_period_days: Option<i64>,
-}
-
-/// `ZeroTrustGatewayAppTypes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAppTypes {
+pub struct ZeroTrustGatewayWarningStatus {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection` type.
+/// `ZeroTrustListsCreateZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayProxyEndpoints>>,
-}
-
-/// `TeamsDevicesIncludeSplitTunnelDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayGatewayAccountLoggingSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountLoggingSettingsResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayGatewayAccountLoggingSettings>,
-}
-
-/// `ZeroTrustGatewayEnabledDownloadPhase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEnabledDownloadPhase {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayLists` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayLists {
-    /// count property.
-    pub count: Option<ZeroTrustGatewayCount>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+pub struct ZeroTrustListsCreateZeroTrustListRequest {
     /// description property.
     pub description: Option<ZeroTrustGatewayDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewaySchemasUuid>,
     /// items property.
     pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// name property.
-    pub name: Option<ZeroTrustGatewayName>,
+    pub name: ZeroTrustGatewayName,
     /// type property.
-    pub r#type: Option<ZeroTrustGatewaySchemasType>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    #[serde(rename = "type")]
+    pub r#type: ZeroTrustGatewaySchemasType,
 }
 
-/// `ZeroTrustGatewayPacfilesComponentsSchemasDescription` type.
+/// `ZeroTrustListsPatchZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasDescription {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustListsPatchZeroTrustListRequest {
+    /// append property.
+    pub append: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// remove property.
+    pub remove: Option<Vec<ZeroTrustGatewayValue>>,
 }
 
-/// `ZeroTrustGatewayGatewayAccountSettings` type.
+/// `ZeroTrustListsUpdateZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountSettings {
-    /// settings property.
-    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct ZeroTrustListsUpdateZeroTrustListRequest {
+    /// description property.
+    pub description: Option<ZeroTrustGatewayDescription>,
+    /// items property.
+    pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// name property.
+    pub name: ZeroTrustGatewayName,
 }
 
-/// `ZeroTrustGatewaySchemasUuid` type.
+/// `ZeroTrustNetworksSubnetUpdateCloudflareSourceRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasUuid {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct ZeroTrustNetworksSubnetUpdateCloudflareSourceRequest {
+    /// comment property.
+    pub comment: Option<TunnelSubnetComment>,
+    /// name property.
+    pub name: Option<TunnelSubnetName>,
+    /// network property.
+    pub network: Option<TunnelSubnetIpNetwork>,
 }
 
-/// `TeamsDevicesTlsConfigResponse` type.
+/// `ZeroTrustUpdateAuditSshSettingsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTlsConfigResponse {
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// tls_sockaddr property.
-    pub tls_sockaddr: String,
-}
-
-/// `ZeroTrustGatewayEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEmptyResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
-
-/// `TeamsDevicesLanAllowSubnetSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesLanAllowSubnetSize {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDevicePostureRules>>,
-}
-
-/// `ZeroTrustGatewayReadOnlyTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayReadOnlyTimestamp {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayDescriptionItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDescriptionItem {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesRequireAll` response type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesRequireAll {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ZeroTrustGatewayCertificates` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCertificates {
-    /// binding_status property.
-    pub binding_status: Option<ZeroTrustGatewayBindingStatus>,
-    /// certificate property.
-    pub certificate: Option<String>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// expires_on property.
-    pub expires_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// fingerprint property.
-    pub fingerprint: Option<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayUuid>,
-    /// in_use property.
-    pub in_use: Option<bool>,
-    /// issuer_org property.
-    pub issuer_org: Option<String>,
-    /// issuer_raw property.
-    pub issuer_raw: Option<String>,
-    /// type property.
-    pub r#type: Option<ZeroTrustGatewayType>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// uploaded_on property.
-    pub uploaded_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+pub struct ZeroTrustUpdateAuditSshSettingsRequest {
+    /// public_key property.
+    pub public_key: ZeroTrustGatewayPublicKey,
 }
 
 // =============================================================================
@@ -2570,6 +3823,8 @@ pub struct DeviceManagedNetworksListDeviceManagedNetworksArgs {
 pub struct DeviceManagedNetworksCreateDeviceManagedNetworkArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DeviceManagedNetworksCreateDeviceManagedNetworkRequest,
 }
 
 /// Arguments for [`device-managed-networks-device-managed-network-details_request`].
@@ -2588,6 +3843,8 @@ pub struct DeviceManagedNetworksUpdateDeviceManagedNetworkArgs {
     pub network_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DeviceManagedNetworksUpdateDeviceManagedNetworkRequest,
 }
 
 /// Arguments for [`device-managed-networks-delete-device-managed-network_request`].
@@ -2604,6 +3861,28 @@ pub struct DeviceManagedNetworksDeleteDeviceManagedNetworkArgs {
 pub struct ListDevicesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `last_seen_user.email`.
+    pub last_seen_user_email: Option<String>,
+    /// Query parameter: `seen_after`.
+    pub seen_after: Option<String>,
+    /// Query parameter: `seen_before`.
+    pub seen_before: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `active_registrations`.
+    pub active_registrations: Option<String>,
+    /// Query parameter: `id`.
+    pub id: Option<String>,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`get-device_request`].
@@ -2613,6 +3892,8 @@ pub struct GetDeviceArgs {
     pub device_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-device_request`].
@@ -2652,6 +3933,8 @@ pub struct DevicesGetDefaultDeviceSettingsPolicyArgs {
 pub struct DevicesCreateDeviceSettingsPolicyArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicesCreateDeviceSettingsPolicyRequest,
 }
 
 /// Arguments for [`devices-update-default-device-settings-policy_request`].
@@ -2659,6 +3942,8 @@ pub struct DevicesCreateDeviceSettingsPolicyArgs {
 pub struct DevicesUpdateDefaultDeviceSettingsPolicyArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicesUpdateDefaultDeviceSettingsPolicyRequest,
 }
 
 /// Arguments for [`devices-get-split-tunnel-exclude-list_request`].
@@ -2709,6 +3994,8 @@ pub struct DevicesUpdateDeviceSettingsPolicyArgs {
     pub policy_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicesUpdateDeviceSettingsPolicyRequest,
 }
 
 /// Arguments for [`devices-delete-device-settings-policy_request`].
@@ -2772,6 +4059,8 @@ pub struct DevicePostureRulesListDevicePostureRulesArgs {
 pub struct DevicePostureRulesCreateDevicePostureRuleArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicePostureRulesCreateDevicePostureRuleRequest,
 }
 
 /// Arguments for [`device-posture-integrations-list-device-posture-integrations_request`].
@@ -2786,6 +4075,8 @@ pub struct DevicePostureIntegrationsListDevicePostureIntegrationsArgs {
 pub struct DevicePostureIntegrationsCreateDevicePostureIntegrationArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicePostureIntegrationsCreateDevicePostureIntegrationRequest,
 }
 
 /// Arguments for [`device-posture-integrations-device-posture-integration-details_request`].
@@ -2804,6 +4095,8 @@ pub struct DevicePostureIntegrationsUpdateDevicePostureIntegrationArgs {
     pub integration_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicePostureIntegrationsUpdateDevicePostureIntegrationRequest,
 }
 
 /// Arguments for [`device-posture-integrations-delete-device-posture-integration_request`].
@@ -2831,6 +4124,8 @@ pub struct DevicePostureRulesUpdateDevicePostureRuleArgs {
     pub rule_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DevicePostureRulesUpdateDevicePostureRuleRequest,
 }
 
 /// Arguments for [`device-posture-rules-delete-device-posture-rule_request`].
@@ -2847,6 +4142,30 @@ pub struct DevicePostureRulesDeleteDevicePostureRuleArgs {
 pub struct ListRegistrationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `user.id`.
+    pub user_id: Option<String>,
+    /// Query parameter: `seen_after`.
+    pub seen_after: Option<String>,
+    /// Query parameter: `seen_before`.
+    pub seen_before: Option<String>,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `sort_by`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sort_order`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
+    /// Query parameter: `id`.
+    pub id: Option<String>,
+    /// Query parameter: `device.id`.
+    pub device_id: Option<String>,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-registrations_request`].
@@ -2883,6 +4202,8 @@ pub struct GetRegistrationArgs {
     pub registration_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `include`.
+    pub include: Option<String>,
 }
 
 /// Arguments for [`delete-registration_request`].
@@ -2968,6 +4289,8 @@ pub struct ZeroTrustApplicationsReviewStatusListArgs {
 pub struct ZeroTrustApplicationsReviewStatusUpdateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustApplicationsReviewStatusUpdateRequest,
 }
 
 /// Arguments for [`zero-trust-get-audit-ssh-settings_request`].
@@ -2982,6 +4305,8 @@ pub struct ZeroTrustGetAuditSshSettingsArgs {
 pub struct ZeroTrustUpdateAuditSshSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustUpdateAuditSshSettingsRequest,
 }
 
 /// Arguments for [`zero-trust-rotate-ssh-account-seed_request`].
@@ -3085,6 +4410,8 @@ pub struct ZeroTrustListsListZeroTrustListsArgs {
 pub struct ZeroTrustListsCreateZeroTrustListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustListsCreateZeroTrustListRequest,
 }
 
 /// Arguments for [`zero-trust-lists-zero-trust-list-details_request`].
@@ -3103,6 +4430,8 @@ pub struct ZeroTrustListsUpdateZeroTrustListArgs {
     pub list_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustListsUpdateZeroTrustListRequest,
 }
 
 /// Arguments for [`zero-trust-lists-patch-zero-trust-list_request`].
@@ -3112,6 +4441,8 @@ pub struct ZeroTrustListsPatchZeroTrustListArgs {
     pub list_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustListsPatchZeroTrustListRequest,
 }
 
 /// Arguments for [`zero-trust-lists-delete-zero-trust-list_request`].
@@ -3144,6 +4475,8 @@ pub struct ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs {
 pub struct ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-zero-trust-gateway-location-details_request`].
@@ -3162,6 +4495,8 @@ pub struct ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationArgs {
     pub location_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-delete-zero-trust-gateway-location_request`].
@@ -3201,6 +4536,8 @@ pub struct ZeroTrustGatewayPacfilesListArgs {
 pub struct ZeroTrustGatewayPacfilesCreatePacfileArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayPacfilesCreatePacfileRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-details_request`].
@@ -3219,6 +4556,8 @@ pub struct ZeroTrustGatewayPacfilesUpdateArgs {
     pub pacfile_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayPacfilesUpdateRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-delete_request`].
@@ -3242,6 +4581,8 @@ pub struct ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs {
 pub struct ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayProxyEndpointsCreateProxyEndpointRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-proxy-endpoint-details_request`].
@@ -3260,6 +4601,8 @@ pub struct ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointArgs {
     pub proxy_endpoint_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-delete-proxy-endpoint_request`].
@@ -3283,6 +4626,8 @@ pub struct ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs {
 pub struct ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-list-zero-trust-gateway-rules-tenant_request`].
@@ -3308,6 +4653,8 @@ pub struct ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleArgs {
     pub rule_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-delete-zero-trust-gateway-rule_request`].
@@ -3364,6 +4711,8 @@ pub struct ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs {
     pub account_id: String,
     /// Path parameter: `address_family`.
     pub address_family: String,
+    /// Request body.
+    pub body: ZeroTrustNetworksSubnetUpdateCloudflareSourceRequest,
 }
 
 /// Arguments for [`dlp-risk-score-behaviors-get_request`].
@@ -3472,15 +4821,16 @@ pub struct DlpRiskScoreSummaryGetArgs {
 pub async fn list_ip_profiles_request<F>(
     client: DynNetClient,
     args: &ListIpProfilesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListIpProfilesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/ip-profiles",
+    let path = format!("/accounts/{}/devices/ip-profiles",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3497,9 +4847,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListIpProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3527,15 +4882,16 @@ where
 pub async fn create_ip_profile_request<F>(
     client: DynNetClient,
     args: &CreateIpProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<CreateIpProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/ip-profiles",
+    let path = format!("/accounts/{}/devices/ip-profiles",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3553,9 +4909,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: CreateIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3583,16 +4944,17 @@ where
 pub async fn get_ip_profile_request<F>(
     client: DynNetClient,
     args: &GetIpProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetIpProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/ip-profiles/{}",
+    let path = format!("/accounts/{}/devices/ip-profiles/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3607,9 +4969,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3637,16 +5004,17 @@ where
 pub async fn update_ip_profile_request<F>(
     client: DynNetClient,
     args: &UpdateIpProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<UpdateIpProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/ip-profiles/{}",
+    let path = format!("/accounts/{}/devices/ip-profiles/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3664,9 +5032,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: UpdateIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3694,16 +5067,17 @@ where
 pub async fn delete_ip_profile_request<F>(
     client: DynNetClient,
     args: &DeleteIpProfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteIpProfileResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/ip-profiles/{}",
+    let path = format!("/accounts/{}/devices/ip-profiles/{}",
         args.account_id,
         args.profile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3718,9 +5092,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3748,15 +5127,16 @@ where
 pub async fn device_managed_networks_list_device_managed_networks_request<F>(
     client: DynNetClient,
     args: &DeviceManagedNetworksListDeviceManagedNetworksArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/networks",
+    let path = format!("/accounts/{}/devices/networks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3771,7 +5151,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3803,17 +5186,21 @@ where
 pub async fn device_managed_networks_create_device_managed_network_request<F>(
     client: DynNetClient,
     args: &DeviceManagedNetworksCreateDeviceManagedNetworkArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/networks",
+    let path = format!("/accounts/{}/devices/networks",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3826,7 +5213,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3858,16 +5248,17 @@ where
 pub async fn device_managed_networks_device_managed_network_details_request<F>(
     client: DynNetClient,
     args: &DeviceManagedNetworksDeviceManagedNetworkDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/networks/{}",
+    let path = format!("/accounts/{}/devices/networks/{}",
         args.account_id,
         args.network_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3882,7 +5273,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3914,18 +5308,22 @@ where
 pub async fn device_managed_networks_update_device_managed_network_request<F>(
     client: DynNetClient,
     args: &DeviceManagedNetworksUpdateDeviceManagedNetworkArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/networks/{}",
+    let path = format!("/accounts/{}/devices/networks/{}",
         args.account_id,
         args.network_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3938,7 +5336,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3970,16 +5371,17 @@ where
 pub async fn device_managed_networks_delete_device_managed_network_request<F>(
     client: DynNetClient,
     args: &DeviceManagedNetworksDeleteDeviceManagedNetworkArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/networks/{}",
+    let path = format!("/accounts/{}/devices/networks/{}",
         args.account_id,
         args.network_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3994,7 +5396,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4026,18 +5431,31 @@ where
 pub async fn list_devices_request<F>(
     client: DynNetClient,
     args: &ListDevicesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListDevicesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/physical-devices",
+    let path = format!("/accounts/{}/devices/physical-devices",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("cursor", args.cursor.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("last_seen_user.email", args.last_seen_user_email.as_deref());
+    builder = builder.query("seen_after", args.seen_after.as_deref());
+    builder = builder.query("seen_before", args.seen_before.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("active_registrations", args.active_registrations.as_deref());
+    builder = builder.query("id", args.id.as_deref());
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -4049,9 +5467,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListDevicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4079,19 +5502,22 @@ where
 pub async fn get_device_request<F>(
     client: DynNetClient,
     args: &GetDeviceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetDeviceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/physical-devices/{}",
+    let path = format!("/accounts/{}/devices/physical-devices/{}",
         args.account_id,
         args.device_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -4103,9 +5529,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4133,16 +5564,17 @@ where
 pub async fn delete_device_request<F>(
     client: DynNetClient,
     args: &DeleteDeviceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteDeviceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/physical-devices/{}",
+    let path = format!("/accounts/{}/devices/physical-devices/{}",
         args.account_id,
         args.device_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4157,9 +5589,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4187,16 +5624,17 @@ where
 pub async fn revoke_device_request<F>(
     client: DynNetClient,
     args: &RevokeDeviceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RevokeDeviceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/physical-devices/{}/revoke",
+    let path = format!("/accounts/{}/devices/physical-devices/{}/revoke",
         args.account_id,
         args.device_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4211,9 +5649,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RevokeDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -4241,15 +5684,16 @@ where
 pub async fn devices_list_device_settings_policies_request<F>(
     client: DynNetClient,
     args: &DevicesListDeviceSettingsPoliciesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDeviceSettingsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policies",
+    let path = format!("/accounts/{}/devices/policies",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4264,7 +5708,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDeviceSettingsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4296,15 +5743,16 @@ where
 pub async fn devices_get_default_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesGetDefaultDeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDefaultDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy",
+    let path = format!("/accounts/{}/devices/policy",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4319,7 +5767,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDefaultDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4351,17 +5802,21 @@ where
 pub async fn devices_create_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesCreateDeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy",
+    let path = format!("/accounts/{}/devices/policy",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -4374,7 +5829,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4406,17 +5864,21 @@ where
 pub async fn devices_update_default_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesUpdateDefaultDeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDefaultDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy",
+    let path = format!("/accounts/{}/devices/policy",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -4429,7 +5891,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDefaultDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4461,15 +5926,16 @@ where
 pub async fn devices_get_split_tunnel_exclude_list_request<F>(
     client: DynNetClient,
     args: &DevicesGetSplitTunnelExcludeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/exclude",
+    let path = format!("/accounts/{}/devices/policy/exclude",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4484,7 +5950,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4516,15 +5985,16 @@ where
 pub async fn devices_set_split_tunnel_exclude_list_request<F>(
     client: DynNetClient,
     args: &DevicesSetSplitTunnelExcludeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/exclude",
+    let path = format!("/accounts/{}/devices/policy/exclude",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4542,7 +6012,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4574,15 +6047,16 @@ where
 pub async fn devices_get_split_tunnel_include_list_request<F>(
     client: DynNetClient,
     args: &DevicesGetSplitTunnelIncludeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelIncludeResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/include",
+    let path = format!("/accounts/{}/devices/policy/include",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4597,7 +6071,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4629,15 +6106,16 @@ where
 pub async fn devices_set_split_tunnel_include_list_request<F>(
     client: DynNetClient,
     args: &DevicesSetSplitTunnelIncludeListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelIncludeResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/include",
+    let path = format!("/accounts/{}/devices/policy/include",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4655,7 +6133,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4687,16 +6168,17 @@ where
 pub async fn devices_get_device_settings_policy_by_id_request<F>(
     client: DynNetClient,
     args: &DevicesGetDeviceSettingsPolicyByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}",
+    let path = format!("/accounts/{}/devices/policy/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4711,7 +6193,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4743,18 +6228,22 @@ where
 pub async fn devices_update_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesUpdateDeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}",
+    let path = format!("/accounts/{}/devices/policy/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -4767,7 +6256,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4799,16 +6291,17 @@ where
 pub async fn devices_delete_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesDeleteDeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesDeviceSettingsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}",
+    let path = format!("/accounts/{}/devices/policy/{}",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4823,7 +6316,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesDeviceSettingsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4855,16 +6351,17 @@ where
 pub async fn devices_get_split_tunnel_exclude_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesGetSplitTunnelExcludeListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/exclude",
+    let path = format!("/accounts/{}/devices/policy/{}/exclude",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4879,7 +6376,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4911,16 +6411,17 @@ where
 pub async fn devices_set_split_tunnel_exclude_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesSetSplitTunnelExcludeListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/exclude",
+    let path = format!("/accounts/{}/devices/policy/{}/exclude",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4938,7 +6439,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -4970,16 +6474,17 @@ where
 pub async fn devices_get_split_tunnel_include_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesGetSplitTunnelIncludeListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelIncludeResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/include",
+    let path = format!("/accounts/{}/devices/policy/{}/include",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4994,7 +6499,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5026,16 +6534,17 @@ where
 pub async fn devices_set_split_tunnel_include_list_for_a_device_settings_policy_request<F>(
     client: DynNetClient,
     args: &DevicesSetSplitTunnelIncludeListForADeviceSettingsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSplitTunnelIncludeResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/policy/{}/include",
+    let path = format!("/accounts/{}/devices/policy/{}/include",
         args.account_id,
         args.policy_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5053,7 +6562,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5085,15 +6597,16 @@ where
 pub async fn device_posture_rules_list_device_posture_rules_request<F>(
     client: DynNetClient,
     args: &DevicePostureRulesListDevicePostureRulesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture",
+    let path = format!("/accounts/{}/devices/posture",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5108,7 +6621,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5140,17 +6656,21 @@ where
 pub async fn device_posture_rules_create_device_posture_rule_request<F>(
     client: DynNetClient,
     args: &DevicePostureRulesCreateDevicePostureRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture",
+    let path = format!("/accounts/{}/devices/posture",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -5163,7 +6683,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5195,15 +6718,16 @@ where
 pub async fn device_posture_integrations_list_device_posture_integrations_request<F>(
     client: DynNetClient,
     args: &DevicePostureIntegrationsListDevicePostureIntegrationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/integration",
+    let path = format!("/accounts/{}/devices/posture/integration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5218,7 +6742,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5250,17 +6777,21 @@ where
 pub async fn device_posture_integrations_create_device_posture_integration_request<F>(
     client: DynNetClient,
     args: &DevicePostureIntegrationsCreateDevicePostureIntegrationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/integration",
+    let path = format!("/accounts/{}/devices/posture/integration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -5273,7 +6804,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5305,16 +6839,17 @@ where
 pub async fn device_posture_integrations_device_posture_integration_details_request<F>(
     client: DynNetClient,
     args: &DevicePostureIntegrationsDevicePostureIntegrationDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/integration/{}",
+    let path = format!("/accounts/{}/devices/posture/integration/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5329,7 +6864,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5361,18 +6899,22 @@ where
 pub async fn device_posture_integrations_update_device_posture_integration_request<F>(
     client: DynNetClient,
     args: &DevicePostureIntegrationsUpdateDevicePostureIntegrationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/integration/{}",
+    let path = format!("/accounts/{}/devices/posture/integration/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -5385,7 +6927,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5417,16 +6962,17 @@ where
 pub async fn device_posture_integrations_delete_device_posture_integration_request<F>(
     client: DynNetClient,
     args: &DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSchemasIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/integration/{}",
+    let path = format!("/accounts/{}/devices/posture/integration/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5441,7 +6987,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5473,16 +7022,17 @@ where
 pub async fn device_posture_rules_device_posture_rules_details_request<F>(
     client: DynNetClient,
     args: &DevicePostureRulesDevicePostureRulesDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/{}",
+    let path = format!("/accounts/{}/devices/posture/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5497,7 +7047,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5529,18 +7082,22 @@ where
 pub async fn device_posture_rules_update_device_posture_rule_request<F>(
     client: DynNetClient,
     args: &DevicePostureRulesUpdateDevicePostureRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/{}",
+    let path = format!("/accounts/{}/devices/posture/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -5553,7 +7110,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5585,16 +7145,17 @@ where
 pub async fn device_posture_rules_delete_device_posture_rule_request<F>(
     client: DynNetClient,
     args: &DevicePostureRulesDeleteDevicePostureRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/posture/{}",
+    let path = format!("/accounts/{}/devices/posture/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5609,7 +7170,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -5641,18 +7205,32 @@ where
 pub async fn list_registrations_request<F>(
     client: DynNetClient,
     args: &ListRegistrationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListRegistrationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations",
+    let path = format!("/accounts/{}/devices/registrations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("user.id", args.user_id.as_deref());
+    builder = builder.query("seen_after", args.seen_after.as_deref());
+    builder = builder.query("seen_before", args.seen_before.as_deref());
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("search", args.search.as_deref());
+    builder = builder.query("sort_by", args.sort_by.as_deref());
+    builder = builder.query("sort_order", args.sort_order.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
+    builder = builder.query("id", args.id.as_deref());
+    builder = builder.query("device.id", args.device_id.as_deref());
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -5664,9 +7242,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5694,15 +7277,16 @@ where
 pub async fn delete_registrations_request<F>(
     client: DynNetClient,
     args: &DeleteRegistrationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteRegistrationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations",
+    let path = format!("/accounts/{}/devices/registrations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5719,9 +7303,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5749,15 +7338,16 @@ where
 pub async fn revoke_registrations_request<F>(
     client: DynNetClient,
     args: &RevokeRegistrationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<RevokeRegistrationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations/revoke",
+    let path = format!("/accounts/{}/devices/registrations/revoke",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5774,9 +7364,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: RevokeRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5804,15 +7399,16 @@ where
 pub async fn unrevoke_registrations_request<F>(
     client: DynNetClient,
     args: &UnrevokeRegistrationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<UnrevokeRegistrationsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations/unrevoke",
+    let path = format!("/accounts/{}/devices/registrations/unrevoke",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5829,9 +7425,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: UnrevokeRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5859,19 +7460,22 @@ where
 pub async fn get_registration_request<F>(
     client: DynNetClient,
     args: &GetRegistrationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetRegistrationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations/{}",
+    let path = format!("/accounts/{}/devices/registrations/{}",
         args.account_id,
         args.registration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -5883,9 +7487,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetRegistrationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5913,16 +7522,17 @@ where
 pub async fn delete_registration_request<F>(
     client: DynNetClient,
     args: &DeleteRegistrationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteRegistrationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations/{}",
+    let path = format!("/accounts/{}/devices/registrations/{}",
         args.account_id,
         args.registration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5937,9 +7547,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteRegistrationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -5967,16 +7582,17 @@ where
 pub async fn get_registration_override_codes_request<F>(
     client: DynNetClient,
     args: &GetRegistrationOverrideCodesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetRegistrationOverrideCodesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/registrations/{}/override_codes",
+    let path = format!("/accounts/{}/devices/registrations/{}/override_codes",
         args.account_id,
         args.registration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5991,9 +7607,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetRegistrationOverrideCodesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -6021,15 +7642,16 @@ where
 pub async fn zero_trust_accounts_get_device_settings_for_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesZeroTrustAccountDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/settings",
+    let path = format!("/accounts/{}/devices/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6044,7 +7666,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6076,15 +7701,16 @@ where
 pub async fn zero_trust_accounts_update_device_settings_for_the_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesZeroTrustAccountDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/settings",
+    let path = format!("/accounts/{}/devices/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6102,7 +7728,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6134,15 +7763,16 @@ where
 pub async fn zero_trust_accounts_patch_device_settings_for_the_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsPatchDeviceSettingsForTheZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesZeroTrustAccountDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/settings",
+    let path = format!("/accounts/{}/devices/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6160,7 +7790,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6192,15 +7825,16 @@ where
 pub async fn zero_trust_accounts_delete_device_settings_for_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsDeleteDeviceSettingsForZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TeamsDevicesZeroTrustAccountDeviceSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/settings",
+    let path = format!("/accounts/{}/devices/settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6215,7 +7849,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6247,15 +7884,16 @@ where
 pub async fn zero_trust_accounts_get_zero_trust_account_information_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsGetZeroTrustAccountInformationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccount>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway",
+    let path = format!("/accounts/{}/gateway",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6270,7 +7908,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6302,15 +7943,16 @@ where
 pub async fn zero_trust_accounts_create_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsCreateZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccount>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway",
+    let path = format!("/accounts/{}/gateway",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6325,7 +7967,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6357,15 +8002,16 @@ where
 pub async fn zero_trust_gateway_application_and_application_type_mappings_list_application_and_application_type_mappings_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/app_types",
+    let path = format!("/accounts/{}/gateway/app_types",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6380,7 +8026,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6412,15 +8061,16 @@ where
 pub async fn zero_trust_applications_review_status_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustApplicationsReviewStatusListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayApplicationsReviewStatusResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/apps/review_status",
+    let path = format!("/accounts/{}/gateway/apps/review_status",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6435,7 +8085,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayApplicationsReviewStatusResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6467,17 +8120,21 @@ where
 pub async fn zero_trust_applications_review_status_update_request<F>(
     client: DynNetClient,
     args: &ZeroTrustApplicationsReviewStatusUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayApplicationsReviewStatusResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/apps/review_status",
+    let path = format!("/accounts/{}/gateway/apps/review_status",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -6490,7 +8147,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayApplicationsReviewStatusResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6522,15 +8182,16 @@ where
 pub async fn zero_trust_get_audit_ssh_settings_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGetAuditSshSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/audit_ssh_settings",
+    let path = format!("/accounts/{}/gateway/audit_ssh_settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6545,7 +8206,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6577,17 +8241,21 @@ where
 pub async fn zero_trust_update_audit_ssh_settings_request<F>(
     client: DynNetClient,
     args: &ZeroTrustUpdateAuditSshSettingsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/audit_ssh_settings",
+    let path = format!("/accounts/{}/gateway/audit_ssh_settings",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -6600,7 +8268,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6632,15 +8303,16 @@ where
 pub async fn zero_trust_rotate_ssh_account_seed_request<F>(
     client: DynNetClient,
     args: &ZeroTrustRotateSshAccountSeedArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/audit_ssh_settings/rotate_seed",
+    let path = format!("/accounts/{}/gateway/audit_ssh_settings/rotate_seed",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6655,7 +8327,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6687,15 +8362,16 @@ where
 pub async fn zero_trust_gateway_categories_list_categories_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayCategoriesListCategoriesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/categories",
+    let path = format!("/accounts/{}/gateway/categories",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6710,7 +8386,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6742,15 +8421,16 @@ where
 pub async fn zero_trust_certificates_list_zero_trust_certificates_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesListZeroTrustCertificatesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates",
+    let path = format!("/accounts/{}/gateway/certificates",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6765,7 +8445,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6797,15 +8480,16 @@ where
 pub async fn zero_trust_certificates_create_zero_trust_certificate_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesCreateZeroTrustCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates",
+    let path = format!("/accounts/{}/gateway/certificates",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6823,7 +8507,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6855,16 +8542,17 @@ where
 pub async fn zero_trust_certificates_zero_trust_certificate_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesZeroTrustCertificateDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates/{}",
+    let path = format!("/accounts/{}/gateway/certificates/{}",
         args.account_id,
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6879,7 +8567,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6911,16 +8602,17 @@ where
 pub async fn zero_trust_certificates_delete_zero_trust_certificate_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesDeleteZeroTrustCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates/{}",
+    let path = format!("/accounts/{}/gateway/certificates/{}",
         args.account_id,
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6935,7 +8627,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -6967,16 +8662,17 @@ where
 pub async fn zero_trust_certificates_activate_zero_trust_certificate_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesActivateZeroTrustCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates/{}/activate",
+    let path = format!("/accounts/{}/gateway/certificates/{}/activate",
         args.account_id,
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6991,7 +8687,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7023,16 +8722,17 @@ where
 pub async fn zero_trust_certificates_deactivate_zero_trust_certificate_request<F>(
     client: DynNetClient,
     args: &ZeroTrustCertificatesDeactivateZeroTrustCertificateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/certificates/{}/deactivate",
+    let path = format!("/accounts/{}/gateway/certificates/{}/deactivate",
         args.account_id,
         args.certificate_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7047,7 +8747,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7079,15 +8782,16 @@ where
 pub async fn zero_trust_accounts_get_zero_trust_account_configuration_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountConfig>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/configuration",
+    let path = format!("/accounts/{}/gateway/configuration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7102,7 +8806,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7134,15 +8841,16 @@ where
 pub async fn zero_trust_accounts_update_zero_trust_account_configuration_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountConfig>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/configuration",
+    let path = format!("/accounts/{}/gateway/configuration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7157,7 +8865,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7189,15 +8900,16 @@ where
 pub async fn zero_trust_accounts_patch_zero_trust_account_configuration_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsPatchZeroTrustAccountConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountConfig>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/configuration",
+    let path = format!("/accounts/{}/gateway/configuration",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7212,7 +8924,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7244,15 +8959,16 @@ where
 pub async fn zero_trust_lists_list_zero_trust_lists_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsListZeroTrustListsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists",
+    let path = format!("/accounts/{}/gateway/lists",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7269,7 +8985,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7301,17 +9020,21 @@ where
 pub async fn zero_trust_lists_create_zero_trust_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsCreateZeroTrustListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySingleResponseWithListItems>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists",
+    let path = format!("/accounts/{}/gateway/lists",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -7324,7 +9047,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySingleResponseWithListItems = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7356,16 +9082,17 @@ where
 pub async fn zero_trust_lists_zero_trust_list_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsZeroTrustListDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayListSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists/{}",
+    let path = format!("/accounts/{}/gateway/lists/{}",
         args.account_id,
         args.list_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7380,7 +9107,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7412,18 +9142,22 @@ where
 pub async fn zero_trust_lists_update_zero_trust_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsUpdateZeroTrustListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayListSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists/{}",
+    let path = format!("/accounts/{}/gateway/lists/{}",
         args.account_id,
         args.list_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -7436,7 +9170,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7468,18 +9205,22 @@ where
 pub async fn zero_trust_lists_patch_zero_trust_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsPatchZeroTrustListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayListSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists/{}",
+    let path = format!("/accounts/{}/gateway/lists/{}",
         args.account_id,
         args.list_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -7492,7 +9233,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7524,16 +9268,17 @@ where
 pub async fn zero_trust_lists_delete_zero_trust_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsDeleteZeroTrustListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists/{}",
+    let path = format!("/accounts/{}/gateway/lists/{}",
         args.account_id,
         args.list_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7548,7 +9293,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7580,16 +9328,17 @@ where
 pub async fn zero_trust_lists_zero_trust_list_items_request<F>(
     client: DynNetClient,
     args: &ZeroTrustListsZeroTrustListItemsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayListItemResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/lists/{}/items",
+    let path = format!("/accounts/{}/gateway/lists/{}/items",
         args.account_id,
         args.list_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7604,7 +9353,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayListItemResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7636,15 +9388,16 @@ where
 pub async fn zero_trust_gateway_locations_list_zero_trust_gateway_locations_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/locations",
+    let path = format!("/accounts/{}/gateway/locations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7659,7 +9412,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7691,17 +9447,21 @@ where
 pub async fn zero_trust_gateway_locations_create_zero_trust_gateway_location_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/locations",
+    let path = format!("/accounts/{}/gateway/locations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -7714,7 +9474,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7746,16 +9509,17 @@ where
 pub async fn zero_trust_gateway_locations_zero_trust_gateway_location_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayLocationsZeroTrustGatewayLocationDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/locations/{}",
+    let path = format!("/accounts/{}/gateway/locations/{}",
         args.account_id,
         args.location_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7770,7 +9534,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7802,18 +9569,22 @@ where
 pub async fn zero_trust_gateway_locations_update_zero_trust_gateway_location_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewaySchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/locations/{}",
+    let path = format!("/accounts/{}/gateway/locations/{}",
         args.account_id,
         args.location_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -7826,7 +9597,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7858,16 +9632,17 @@ where
 pub async fn zero_trust_gateway_locations_delete_zero_trust_gateway_location_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayLocationsDeleteZeroTrustGatewayLocationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/locations/{}",
+    let path = format!("/accounts/{}/gateway/locations/{}",
         args.account_id,
         args.location_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7882,7 +9657,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7914,15 +9692,16 @@ where
 pub async fn zero_trust_accounts_get_logging_settings_for_the_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/logging",
+    let path = format!("/accounts/{}/gateway/logging",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7937,7 +9716,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccountLoggingSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -7969,15 +9751,16 @@ where
 pub async fn zero_trust_accounts_update_logging_settings_for_the_zero_trust_account_request<F>(
     client: DynNetClient,
     args: &ZeroTrustAccountsUpdateLoggingSettingsForTheZeroTrustAccountArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/logging",
+    let path = format!("/accounts/{}/gateway/logging",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7995,7 +9778,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayGatewayAccountLoggingSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8027,15 +9813,16 @@ where
 pub async fn zero_trust_gateway_pacfiles_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayPacfilesListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/pacfiles",
+    let path = format!("/accounts/{}/gateway/pacfiles",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8050,7 +9837,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8082,17 +9872,21 @@ where
 pub async fn zero_trust_gateway_pacfiles_create_pacfile_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayPacfilesCreatePacfileArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/pacfiles",
+    let path = format!("/accounts/{}/gateway/pacfiles",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8105,7 +9899,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8137,16 +9934,17 @@ where
 pub async fn zero_trust_gateway_pacfiles_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayPacfilesDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/pacfiles/{}",
+    let path = format!("/accounts/{}/gateway/pacfiles/{}",
         args.account_id,
         args.pacfile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8161,7 +9959,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8193,18 +9994,22 @@ where
 pub async fn zero_trust_gateway_pacfiles_update_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayPacfilesUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/pacfiles/{}",
+    let path = format!("/accounts/{}/gateway/pacfiles/{}",
         args.account_id,
         args.pacfile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8217,7 +10022,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8249,16 +10057,17 @@ where
 pub async fn zero_trust_gateway_pacfiles_delete_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayPacfilesDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/pacfiles/{}",
+    let path = format!("/accounts/{}/gateway/pacfiles/{}",
         args.account_id,
         args.pacfile_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8273,7 +10082,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8305,15 +10117,16 @@ where
 pub async fn zero_trust_gateway_proxy_endpoints_list_proxy_endpoints_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/proxy_endpoints",
+    let path = format!("/accounts/{}/gateway/proxy_endpoints",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8328,7 +10141,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8360,17 +10176,21 @@ where
 pub async fn zero_trust_gateway_proxy_endpoints_create_proxy_endpoint_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/proxy_endpoints",
+    let path = format!("/accounts/{}/gateway/proxy_endpoints",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8383,7 +10203,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8415,16 +10238,17 @@ where
 pub async fn zero_trust_gateway_proxy_endpoints_proxy_endpoint_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayProxyEndpointsProxyEndpointDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/proxy_endpoints/{}",
+    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
         args.account_id,
         args.proxy_endpoint_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8439,7 +10263,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8471,18 +10298,22 @@ where
 pub async fn zero_trust_gateway_proxy_endpoints_update_proxy_endpoint_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/proxy_endpoints/{}",
+    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
         args.account_id,
         args.proxy_endpoint_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8495,7 +10326,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8527,16 +10361,17 @@ where
 pub async fn zero_trust_gateway_proxy_endpoints_delete_proxy_endpoint_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayProxyEndpointsDeleteProxyEndpointArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/proxy_endpoints/{}",
+    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
         args.account_id,
         args.proxy_endpoint_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8551,7 +10386,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8583,15 +10421,16 @@ where
 pub async fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules",
+    let path = format!("/accounts/{}/gateway/rules",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8606,7 +10445,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayRulesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8638,17 +10480,21 @@ where
 pub async fn zero_trust_gateway_rules_create_zero_trust_gateway_rule_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules",
+    let path = format!("/accounts/{}/gateway/rules",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8661,7 +10507,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8693,15 +10542,16 @@ where
 pub async fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_tenant_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesListZeroTrustGatewayRulesTenantArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules/tenant",
+    let path = format!("/accounts/{}/gateway/rules/tenant",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8716,7 +10566,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayRulesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8748,16 +10601,17 @@ where
 pub async fn zero_trust_gateway_rules_zero_trust_gateway_rule_details_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesZeroTrustGatewayRuleDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules/{}",
+    let path = format!("/accounts/{}/gateway/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8772,7 +10626,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8804,18 +10661,22 @@ where
 pub async fn zero_trust_gateway_rules_update_zero_trust_gateway_rule_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules/{}",
+    let path = format!("/accounts/{}/gateway/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -8828,7 +10689,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8860,16 +10724,17 @@ where
 pub async fn zero_trust_gateway_rules_delete_zero_trust_gateway_rule_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesDeleteZeroTrustGatewayRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayEmptyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules/{}",
+    let path = format!("/accounts/{}/gateway/rules/{}",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8884,7 +10749,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8916,16 +10784,17 @@ where
 pub async fn zero_trust_gateway_rules_reset_expiration_zero_trust_gateway_rule_request<F>(
     client: DynNetClient,
     args: &ZeroTrustGatewayRulesResetExpirationZeroTrustGatewayRuleArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ZeroTrustGatewayComponentsSchemasSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/rules/{}/reset_expiration",
+    let path = format!("/accounts/{}/gateway/rules/{}/reset_expiration",
         args.account_id,
         args.rule_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8940,7 +10809,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -8972,15 +10844,16 @@ where
 pub async fn zero_trust_networks_subnets_list_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksSubnetsListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelSubnetResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/subnets",
+    let path = format!("/accounts/{}/zerotrust/subnets",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9007,7 +10880,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelSubnetResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -9039,18 +10915,22 @@ where
 pub async fn zero_trust_networks_subnet_update_cloudflare_source_request<F>(
     client: DynNetClient,
     args: &ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<TunnelSubnetResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zerotrust/subnets/cloudflare_source/{}",
+    let path = format!("/accounts/{}/zerotrust/subnets/cloudflare_source/{}",
         args.account_id,
         args.address_family,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -9063,7 +10943,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: TunnelSubnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -9095,15 +10978,16 @@ where
 pub async fn dlp_risk_score_behaviors_get_request<F>(
     client: DynNetClient,
     args: &DlpRiskScoreBehaviorsGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpRiskScoreBehaviorsGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/behaviors",
+    let path = format!("/accounts/{}/zt_risk_scoring/behaviors",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9118,9 +11002,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpRiskScoreBehaviorsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9148,15 +11037,16 @@ where
 pub async fn dlp_risk_score_behaviors_put_request<F>(
     client: DynNetClient,
     args: &DlpRiskScoreBehaviorsPutArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpRiskScoreBehaviorsPutResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/behaviors",
+    let path = format!("/accounts/{}/zt_risk_scoring/behaviors",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9174,9 +11064,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpRiskScoreBehaviorsPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9204,15 +11099,16 @@ where
 pub async fn dlp_zt_risk_score_integration_list_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationListResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9227,9 +11123,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9257,15 +11158,16 @@ where
 pub async fn dlp_zt_risk_score_integration_create_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationCreateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9283,9 +11185,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9313,16 +11220,17 @@ where
 pub async fn dlp_zt_risk_score_integration_get_by_reference_id_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationGetByReferenceIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationGetByReferenceIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations/reference_id/{}",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations/reference_id/{}",
         args.account_id,
         args.reference_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9337,9 +11245,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationGetByReferenceIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9367,16 +11280,17 @@ where
 pub async fn dlp_zt_risk_score_integration_get_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations/{}",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9391,9 +11305,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9421,16 +11340,17 @@ where
 pub async fn dlp_zt_risk_score_integration_update_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationUpdateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations/{}",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9448,9 +11368,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9478,16 +11403,17 @@ where
 pub async fn dlp_zt_risk_score_integration_delete_request<F>(
     client: DynNetClient,
     args: &DlpZtRiskScoreIntegrationDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpZtRiskScoreIntegrationDeleteResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/integrations/{}",
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
         args.account_id,
         args.integration_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9502,9 +11428,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpZtRiskScoreIntegrationDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -9532,15 +11463,16 @@ where
 pub async fn dlp_risk_score_summary_get_request<F>(
     client: DynNetClient,
     args: &DlpRiskScoreSummaryGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpRiskScoreSummaryGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/zt_risk_scoring/summary",
+    let path = format!("/accounts/{}/zt_risk_scoring/summary",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9555,8 +11487,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpRiskScoreSummaryGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

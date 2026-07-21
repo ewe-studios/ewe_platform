@@ -1,7 +1,7 @@
-use std::future::Future;
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::{collect_one, execute, from_future};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeError};
 use foundation_http::{SimpleIncomingRequest, RawStream};
@@ -220,23 +220,13 @@ fn run_sync(
     core: Arc<IdpHandlerCore>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {
-    let bag = ContextBag::new();
-    let fut = async move { core.dispatch(&bag, &req).await };
-    let mut fut = core::pin::pin!(fut);
-    let waker = noop_waker();
-    let mut cx = core::task::Context::from_waker(&waker);
-    match fut.as_mut().poll(&mut cx) {
-        core::task::Poll::Ready(result) => result,
-        core::task::Poll::Pending => Err(IdpError::Internal("Async operation pending".into())),
-    }
-}
-
-fn noop_waker() -> core::task::Waker {
-    use core::task::{RawWaker, RawWakerVTable};
-    fn no_op(_: *const ()) {}
-    fn clone(p: *const ()) -> RawWaker {
-        RawWaker::new(p, &VTABLE)
-    }
-    const VTABLE: RawWakerVTable = RawWakerVTable::new(clone, no_op, no_op, no_op);
-    unsafe { core::task::Waker::from_raw(RawWaker::new(core::ptr::null(), &VTABLE)) }
+    let task = from_future(async move {
+        let bag = ContextBag::new();
+        core.dispatch(&bag, &req).await
+    });
+    let stream = execute(task, None)
+        .map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
+    collect_one(stream)
+        .ok_or_else(|| IdpError::Internal("future produced no result".into()))?
+        .map_err(|e| IdpError::Internal(format!("valtron: {e}")))
 }

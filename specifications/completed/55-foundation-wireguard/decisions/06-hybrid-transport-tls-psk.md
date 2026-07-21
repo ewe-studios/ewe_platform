@@ -1,7 +1,22 @@
-# 06 — Hybrid Gossip Transport + TLS-PSK Bootstrap
+# 06 — Hybrid Gossip Transport + Noise-PSK Bootstrap
 
 **Date:** 2026-07-12
 **Status:** Resolved (owner-confirmed)
+
+> **Amendment (2026-07-18): control channel moved from `boring` TLS-PSK to pure-Rust Noise-PSK.**
+> The bootstrap/control channel no longer uses BoringSSL (`boring`) TLS-PSK. It now uses a
+> `Noise_NNpsk0_25519_ChaChaPoly_BLAKE2s` handshake via the pure-Rust [`snow`] crate
+> (`src/native/noise_psk.rs`), keyed by the same seed-derived pre-shared key.
+> **Why the change:** `boring` links BoringSSL, whose `EVP_*` symbols collide at link time with the
+> OpenSSL that `libssh2`/`ssh2` bundles — so a binary could not use both the mesh and SSH. `snow`'s
+> `default-resolver-crypto` is RustCrypto (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s): no C crypto,
+> no `ring`, no link conflict. As a bonus, `NNpsk0`'s ephemeral `ee` DH gives **forward secrecy**,
+> which the old TLS 1.2 `PSK-AES*-CBC-SHA` suites lacked. Authentication is unchanged: possession of
+> the seed-derived key is the sole credential, a wrong key fails the handshake.
+> **Naming:** the derived key `tls_psk = HKDF-Expand(prk, "tls-psk|" ‖ network_id)` was renamed
+> `channel_psk = HKDF-Expand(prk, "bootstrap-channel-psk|" ‖ network_id)` — still domain-separated
+> from the WireGuard tunnel `psk`. The `boring` dependency is removed from `foundation_wireguard`.
+> [`snow`]: https://crates.io/crates/snow
 
 ## Decision
 

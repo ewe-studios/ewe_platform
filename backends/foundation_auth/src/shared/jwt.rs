@@ -258,10 +258,31 @@ impl JwtSigningKey {
     ///
     /// Returns `JwtError::GenerationError` if signing fails.
     pub fn sign_claims(&self, claims: &serde_json::Value) -> Result<String, JwtError> {
-        // Build jwt-simple claims from the JSON value
-        let mut builder = jwt_simple::prelude::Claims::create(
-            jwt_simple::prelude::Duration::from_secs(3600),
-        );
+        use jwt_simple::prelude::{Claims, Duration};
+
+        // Token lifetime: derive from an absolute `exp` (epoch seconds) when the
+        // caller supplies one, otherwise default to 1 hour.
+        let duration = claims
+            .get("exp")
+            .and_then(serde_json::Value::as_u64)
+            .map(|exp| {
+                let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
+                Duration::from_secs(exp.saturating_sub(now).max(1))
+            })
+            .unwrap_or_else(|| Duration::from_secs(3600));
+
+        // Application (custom) claims = everything except the registered claims
+        // jwt-simple manages itself — otherwise those keys would appear twice in
+        // the payload. Custom claims are what downstream `VerifiedClaims.custom`
+        // reads back (e.g. Bitwarden's `sstamp`, `device`, `email`, `premium`).
+        let mut custom = claims.clone();
+        if let Some(obj) = custom.as_object_mut() {
+            for key in ["sub", "iss", "aud", "exp", "iat", "nbf", "jti"] {
+                obj.remove(key);
+            }
+        }
+
+        let mut builder = Claims::with_custom_claims(custom, duration);
 
         // Apply standard claims from the JSON value
         if let Some(sub) = claims.get("sub").and_then(|v| v.as_str()) {
@@ -300,6 +321,40 @@ impl JwtSigningKey {
             Self::ES256(kp) => kp.public_key().to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
+    }
+
+    /// Serialise the full key pair (private key) as a PEM string for
+    /// persistence in KV / secrets manager.
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::GenerationError` if PEM encoding fails.
+    pub fn to_pem(&self) -> Result<String, JwtError> {
+        match self {
+            Self::Ed25519(kp) => Ok(kp.to_pem()),
+            Self::RS256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+            Self::ES256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+        }
+    }
+
+    /// Deserialise a key pair from a PEM string previously produced by
+    /// [`to_pem`](Self::to_pem).
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::InvalidPrivateKey` if the PEM cannot be parsed.
+    pub fn from_pem(pem: &str) -> Result<Self, JwtError> {
+        use jwt_simple::prelude::Ed25519KeyPair;
+
+        // Try Ed25519 first (the default for keychain + IdP).
+        if let Ok(kp) = Ed25519KeyPair::from_pem(pem) {
+            return Ok(Self::Ed25519(kp));
+        }
+        Err(JwtError::InvalidPrivateKey(
+            "could not parse PEM as Ed25519, RS256, or ES256 key".into(),
+        ))
     }
 }
 
@@ -733,6 +788,9 @@ pub enum JwtError {
     /// Public key could not be parsed.
     #[from(ignore)]
     InvalidPublicKey(String),
+    /// Private key could not be parsed from PEM/DER.
+    #[from(ignore)]
+    InvalidPrivateKey(String),
     /// Subject claim is missing or empty.
     #[from(ignore)]
     InvalidSubject,
@@ -761,6 +819,7 @@ impl core::fmt::Display for JwtError {
             JwtError::InvalidAudience(s) => write!(f, "JWT invalid audience: {s}"),
             JwtError::TokenNotYetValid(s) => write!(f, "JWT not yet valid: {s}"),
             JwtError::InvalidPublicKey(s) => write!(f, "JWT invalid public key: {s}"),
+            JwtError::InvalidPrivateKey(s) => write!(f, "JWT invalid private key: {s}"),
             JwtError::InvalidSubject => write!(f, "JWT missing subject claim"),
         }
     }

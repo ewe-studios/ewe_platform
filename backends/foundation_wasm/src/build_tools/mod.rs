@@ -125,37 +125,45 @@ impl WasmBinGenerator {
     /// - Source scanning fails
     /// - An entrypoint is missing required `name` or `desc` attributes
     pub fn new(crate_dir: &Path) -> Result<Self, WasmBinError> {
-        let cargo_toml = validator::validate_crate(crate_dir)?;
+        let crate_name = extract_crate_name(crate_dir)?;
+        let entrypoints = scan_for_wasm_entrypoints(crate_dir)?;
+        Ok(Self {
+            entrypoints,
+            crate_dir: crate_dir.to_path_buf(),
+            crate_name,
+        })
+    }
 
-        let crate_name = cargo_toml
-            .get("package")
-            .and_then(|p| p.get("name"))
-            .and_then(toml::Value::as_str)
-            .unwrap_or("unknown")
-            .to_string();
+    /// Creates a generator with crate validation only — skips entrypoint
+    /// scanning. Used when the caller (e.g. `WasmBundleGenerator`) already
+    /// discovered `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]` via
+    /// its own scanner and feeds entrypoints through `from_annotations`.
+    /// # Errors
+    ///
+    /// Returns [`WasmBinError`] if the crate name cannot be extracted.
+    pub fn from_crate_only(crate_dir: &Path) -> Result<Self, WasmBinError> {
+        let crate_name = extract_crate_name(crate_dir)?;
+        Ok(Self {
+            entrypoints: Vec::new(),
+            crate_dir: crate_dir.to_path_buf(),
+            crate_name,
+        })
+    }
 
-        let scanner = CrateScanner::new("wasm_entrypoint");
-        let registry = scanner.scan_crate(crate_dir)?;
-
-        // Filter to functions only
-        let functions = registry.filter_by_kind(&ItemKind::Function);
-
-        let mut entrypoints = Vec::with_capacity(functions.len());
-
-        for target in functions {
-            let name = extract_string_attr(target, "name")?;
-            let description = extract_string_attr(target, "desc")?;
-
-            entrypoints.push(WasmEntrypoint {
-                name,
-                description,
-                function_name: target.item_name.clone(),
-                qualified_path: target.qualified_path.clone(),
-                source_file: target.location.file_path.clone(),
-                line: target.location.line,
-            });
-        }
-
+    /// Creates a generator with pre-built entrypoints — no `CrateScanner`
+    /// scan. The entrypoints carry all needed fields (`function_name`,
+    /// `qualified_path`, `source_file`, `line`) for the planner to generate
+    /// `src/bin/{name}/main.rs` stubs.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WasmBinError`] if the crate name cannot be extracted from
+    /// the crate directory.
+    pub fn from_entrypoints(
+        crate_dir: &Path,
+        entrypoints: Vec<WasmEntrypoint>,
+    ) -> Result<Self, WasmBinError> {
+        let crate_name = extract_crate_name(crate_dir)?;
         Ok(Self {
             entrypoints,
             crate_dir: crate_dir.to_path_buf(),
@@ -207,21 +215,64 @@ impl WasmBinGenerator {
     }
 
     /// WHY: CLI formatting needs access to the entrypoints.
-    ///
-    /// WHAT: Returns the discovered entrypoints.
-    ///
-    /// HOW: Returns a reference to the stored entrypoints.
-    ///
-    /// # Panics
-    ///
-    /// Never panics.
     #[must_use]
     pub fn entrypoints(&self) -> &[WasmEntrypoint] {
         &self.entrypoints
     }
 }
 
+/// Build a [`WasmEntrypoint`] from just a function name and crate name.
+///
+/// The `qualified_path` is derived as `{crate_name}::{fn_name}` (top-level
+/// function in the crate root — the common case for `app/src/lib.rs`).
+///
+/// Used by `WasmBundleGenerator::from_annotations` when converting
+/// `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]` annotations
+/// into the entrypoint structs the planner needs.
+#[must_use]
+pub fn wasm_entrypoint_from_fn(crate_name: &str, fn_name: &str) -> WasmEntrypoint {
+    WasmEntrypoint {
+        name: fn_name.to_string(),
+        description: format!("wasm entrypoint — {fn_name}"),
+        function_name: fn_name.to_string(),
+        qualified_path: format!("{crate_name}::{fn_name}"),
+        source_file: PathBuf::from(format!("src/{fn_name}.rs")),
+        line: 0,
+    }
+}
+
 /// WHY: Multiple entrypoint fields need the same extraction logic.
+///
+/// WHAT: Extracts a string attribute from a `DerivedTarget`.
+fn extract_crate_name(crate_dir: &Path) -> Result<String, WasmBinError> {
+    let cargo_toml = validator::validate_crate(crate_dir)?;
+    Ok(cargo_toml
+        .get("package")
+        .and_then(|p| p.get("name"))
+        .and_then(toml::Value::as_str)
+        .unwrap_or("unknown")
+        .to_string())
+}
+
+fn scan_for_wasm_entrypoints(crate_dir: &Path) -> Result<Vec<WasmEntrypoint>, WasmBinError> {
+    let scanner = CrateScanner::new("wasm_entrypoint");
+    let registry = scanner.scan_crate(crate_dir)?;
+    let functions = registry.filter_by_kind(&ItemKind::Function);
+    let mut entrypoints = Vec::with_capacity(functions.len());
+    for target in functions {
+        let name = extract_string_attr(target, "name")?;
+        let description = extract_string_attr(target, "desc")?;
+        entrypoints.push(WasmEntrypoint {
+            name,
+            description,
+            function_name: target.item_name.clone(),
+            qualified_path: target.qualified_path.clone(),
+            source_file: target.location.file_path.clone(),
+            line: target.location.line,
+        });
+    }
+    Ok(entrypoints)
+}
 ///
 /// WHAT: Extracts a string attribute from a `DerivedTarget`.
 ///

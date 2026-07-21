@@ -1,4 +1,6 @@
 mod access_tests;
+#[cfg(feature = "integration_tests")]
+mod integrations;
 mod agent_loop_tests;
 mod agentic_types_tests;
 mod base_types_tests;

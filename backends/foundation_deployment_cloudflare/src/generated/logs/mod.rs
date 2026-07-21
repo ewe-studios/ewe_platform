@@ -24,25 +24,25 @@ use super::shared::LogpushLogpushJobResponseCollection;
 use super::shared::LogpushLogpushJobResponseSingle;
 use super::shared::LogpushValidateOwnershipResponse;
 use super::shared::LogpushValidateResponse;
-use super::shared::LogpushLogpullOptions;
-use super::shared::LogpushLogpushJob;
-use super::shared::LogpushDestinationConf;
-use super::shared::LogpushLastError;
-use super::shared::LogpushMaxUploadIntervalSeconds;
-use super::shared::LogpushFrequency;
-use super::shared::LogpushEnabled;
-use super::shared::LogpushId;
 use super::shared::AaaResultInfo;
-use super::shared::LogpushErrorMessage;
-use super::shared::LogpushName;
+use super::shared::LogpushApiResponseCommon;
 use super::shared::LogpushApiResponseSingle;
 use super::shared::LogpushDataset;
-use super::shared::LogpushMaxUploadBytes;
-use super::shared::LogpushOutputOptions;
-use super::shared::LogpushApiResponseCommon;
-use super::shared::LogpushLastComplete;
-use super::shared::LogpushMaxUploadRecords;
+use super::shared::LogpushDestinationConf;
+use super::shared::LogpushEnabled;
+use super::shared::LogpushErrorMessage;
+use super::shared::LogpushFrequency;
+use super::shared::LogpushId;
 use super::shared::LogpushKind;
+use super::shared::LogpushLastComplete;
+use super::shared::LogpushLastError;
+use super::shared::LogpushLogpullOptions;
+use super::shared::LogpushLogpushJob;
+use super::shared::LogpushMaxUploadBytes;
+use super::shared::LogpushMaxUploadIntervalSeconds;
+use super::shared::LogpushMaxUploadRecords;
+use super::shared::LogpushName;
+use super::shared::LogpushOutputOptions;
 
 use super::shared::ApiResponse;
 
@@ -50,116 +50,33 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `LogcontrolApiResponseCommon` type.
+/// `AaaAuditLogAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
+pub struct AaaAuditLogAction {
+    /// description property.
+    pub description: Option<String>,
+    /// result property.
+    pub result: Option<String>,
+    /// time property.
+    pub time: Option<String>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
 }
 
-/// `McnErrorSource` type.
+/// `AaaAuditLogRaw` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnErrorSource {
-    /// parameter property.
-    pub parameter: Option<String>,
-    /// parameter_value_index property.
-    pub parameter_value_index: Option<i64>,
-    /// pointer property.
-    pub pointer: Option<String>,
-}
-
-/// `McnReadAccountCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnReadAccountCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnCatalogSync>,
-}
-
-/// `McnYamlDiff` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnYamlDiff {
-    /// diff property.
-    pub diff: String,
-    /// left_description property.
-    pub left_description: String,
-    /// left_yaml property.
-    pub left_yaml: String,
-    /// right_description property.
-    pub right_description: String,
-    /// right_yaml property.
-    pub right_yaml: String,
-}
-
-/// `LogcontrolAllowOutOfRegionAccess` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolAllowOutOfRegionAccess {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnCatalogSyncDestinationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCatalogSyncDestinationType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnResourcesCatalogPolicyPreviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcesCatalogPolicyPreviewResponse {
-    /// `result` property.
-    pub result: Option<McnResourcesCatalogPolicyPreview>,
-}
-
-/// `McnUpdateCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnUpdateCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnCatalogSync>,
-}
-
-/// `McnResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResultInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-    /// total_pages property.
-    pub total_pages: Option<i64>,
-}
-
-/// `LogcontrolCmbConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolCmbConfig {
-    /// allow_out_of_region_access property.
-    pub allow_out_of_region_access: Option<LogcontrolAllowOutOfRegionAccess>,
-    /// regions property.
-    pub regions: Option<LogcontrolRegions>,
-}
-
-/// `McnResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResponse {
-    /// messages property.
-    pub messages: Vec<McnError>,
-    /// success property.
-    pub success: bool,
+pub struct AaaAuditLogRaw {
+    /// cf_ray_id property.
+    pub cf_ray_id: Option<String>,
+    /// method property.
+    pub method: Option<String>,
+    /// status_code property.
+    pub status_code: Option<i64>,
+    /// uri property.
+    pub uri: Option<String>,
+    /// user_agent property.
+    pub user_agent: Option<String>,
 }
 
 /// `AaaAuditLogsV2` type.
@@ -174,25 +91,12 @@ pub struct AaaAuditLogsV2 {
     /// id property.
     pub id: Option<AaaSchemasIdentifier>,
     /// raw property.
+    #[serde(rename = "raw")]
     pub r#raw: Option<AaaAuditLogRaw>,
     /// resource property.
     pub resource: Option<std::collections::HashMap<String, serde_json::Value>>,
     /// zone property.
     pub zone: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `LogcontrolRegions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolRegions {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnCreateCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCreateCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnCatalogSync>,
 }
 
 /// `AaaAuditLogsV2ResponseCollection` type.
@@ -202,42 +106,135 @@ pub struct AaaAuditLogsV2ResponseCollection {
     pub result: Option<Vec<AaaAuditLogsV2>>,
 }
 
-/// `McnResourceId` type.
+/// `AaaSchemasIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourceId {
+pub struct AaaSchemasIdentifier {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `McnResourceDetailsSection` type.
+/// `AaaSchemasMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourceDetailsSection {
-    /// help_text property.
-    pub help_text: Option<String>,
-    /// hidden_items property.
-    pub hidden_items: Vec<McnResourceDetailsSectionItem>,
-    /// name property.
-    pub name: String,
-    /// visible_items property.
-    pub visible_items: Vec<McnResourceDetailsSectionItem>,
+pub struct AaaSchemasMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `McnResourceDetailsSectionItem` type.
+/// `DeleteAccountsAccountIdLogpushJobsJobIdResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourceDetailsSectionItem {
-    /// helpText property.
-    pub help_text: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// value property.
-    pub value: Option<serde_json::Value>,
-}
-
-/// `McnReadAccountCatalogSyncsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnReadAccountCatalogSyncsResponse {
+pub struct DeleteAccountsAccountIdLogpushJobsJobIdResponse {
     /// `result` property.
-    pub result: Option<Vec<McnCatalogSync>>,
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest {
+    /// destination_conf property.
+    pub destination_conf: LogpushDestinationConf,
+}
+
+/// `DeleteAccountsAccountIdLogpushValidateDestinationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteAccountsAccountIdLogpushValidateDestinationRequest {
+    /// destination_conf property.
+    pub destination_conf: LogpushDestinationConf,
+}
+
+/// `DeleteAccountsAccountIdLogsControlCmbConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteAccountsAccountIdLogsControlCmbConfigResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `DlpApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `DlpApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseSingle {
+}
+
+/// `DlpMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DlpPayloadLogGetResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPayloadLogGetResponse {
+    /// `result` property.
+    pub result: Option<DlpPayloadLogSetting>,
+}
+
+/// `DlpPayloadLogPutResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPayloadLogPutResponse {
+    /// `result` property.
+    pub result: Option<DlpPayloadLogSetting>,
+}
+
+/// `DlpPayloadLogSetting` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPayloadLogSetting {
+    /// masking_level property.
+    pub masking_level: Option<serde_json::Value>,
+    /// public_key property.
+    pub public_key: Option<String>,
+    /// updated_at property.
+    pub updated_at: String,
+}
+
+/// `DlpPayloadLogSettingUpdateLegacy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DlpPayloadLogSettingUpdateLegacy {
+    /// masking_level property.
+    pub masking_level: Option<serde_json::Value>,
+    /// public_key property.
+    pub public_key: Option<String>,
+}
+
+/// `LogcontrolAllowOutOfRegionAccess` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolAllowOutOfRegionAccess {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LogcontrolApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `LogcontrolApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolApiResponseSingle {
+}
+
+/// `LogcontrolCmbConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolCmbConfig {
+    /// allow_out_of_region_access property.
+    pub allow_out_of_region_access: Option<LogcontrolAllowOutOfRegionAccess>,
+    /// regions property.
+    pub regions: Option<LogcontrolRegions>,
 }
 
 /// `LogcontrolCmbConfigResponseSingle` type.
@@ -245,6 +242,48 @@ pub struct McnReadAccountCatalogSyncsResponse {
 pub struct LogcontrolCmbConfigResponseSingle {
     /// `result` property.
     pub result: Option<LogcontrolCmbConfig>,
+}
+
+/// `LogcontrolMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LogcontrolRegions` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolRegions {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LogpushFilter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogpushFilter {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LogpushMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogpushMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LogpushOwnershipChallenge` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogpushOwnershipChallenge {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnAccountId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnAccountId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `McnCatalogSync` type.
@@ -276,31 +315,6 @@ pub struct McnCatalogSync {
     pub update_mode: McnCatalogSyncUpdateMode,
 }
 
-/// `McnResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResponseCollection {
-    /// messages property.
-    pub messages: Vec<McnError>,
-    /// result_info property.
-    pub result_info: Option<McnResultInfo>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `McnResourcesCatalogPolicyPreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcesCatalogPolicyPreview {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnResourcesCatalogPolicyPreviewRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcesCatalogPolicyPreviewRequest {
-    /// policy property.
-    pub policy: String,
-}
-
 /// `McnCatalogSyncDestinationId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCatalogSyncDestinationId {
@@ -308,31 +322,63 @@ pub struct McnCatalogSyncDestinationId {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `McnResourcePreviewItem` type.
+/// `McnCatalogSyncDestinationType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcePreviewItem {
-    /// item_type property.
-    pub item_type: String,
-    /// resource_preview property.
-    pub resource_preview: McnResourcePreview,
+pub struct McnCatalogSyncDestinationType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `McnYamlItem` type.
+/// `McnCatalogSyncId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnYamlItem {
-    /// item_type property.
-    pub item_type: String,
-    /// yaml property.
-    pub yaml: String,
+pub struct McnCatalogSyncId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `McnListItem` type.
+/// `McnCatalogSyncUpdateMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnListItem {
-    /// item_type property.
-    pub item_type: String,
-    /// list property.
-    pub list: Vec<serde_json::Value>,
+pub struct McnCatalogSyncUpdateMode {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnCatalogSyncsPrebuiltPoliciesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnCatalogSyncsPrebuiltPoliciesResponse {
+    /// `result` property.
+    pub result: Option<Vec<McnCatalogSyncsPrebuiltPolicy>>,
+}
+
+/// `McnCatalogSyncsPrebuiltPolicy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnCatalogSyncsPrebuiltPolicy {
+    /// applicable_destinations property.
+    pub applicable_destinations: Vec<McnCatalogSyncDestinationType>,
+    /// policy_description property.
+    pub policy_description: String,
+    /// policy_name property.
+    pub policy_name: String,
+    /// policy_string property.
+    pub policy_string: String,
+}
+
+/// `McnCloudPlatformClient` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnCloudPlatformClient {
+    /// client_type property.
+    pub client_type: String,
+    /// id property.
+    pub id: McnPlatformClientId,
+    /// name property.
+    pub name: String,
+}
+
+/// `McnCloudType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnCloudType {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `McnCost` type.
@@ -344,78 +390,33 @@ pub struct McnCost {
     pub monthly_cost: f64,
 }
 
-/// `McnRefreshCatalogSyncResponse` type.
+/// `McnCreateCatalogSyncRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnRefreshCatalogSyncResponse {
+pub struct McnCreateCatalogSyncRequest {
+    /// description property.
+    pub description: Option<String>,
+    /// destination_type property.
+    pub destination_type: McnCatalogSyncDestinationType,
+    /// name property.
+    pub name: String,
+    /// policy property.
+    pub policy: Option<String>,
+    /// update_mode property.
+    pub update_mode: McnCatalogSyncUpdateMode,
+}
+
+/// `McnCreateCatalogSyncResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnCreateCatalogSyncResponse {
     /// `result` property.
-    pub result: Option<McnPolicyResult>,
+    pub result: Option<McnCatalogSync>,
 }
 
-/// `McnCloudType` type.
+/// `McnDeleteCatalogSyncResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCloudType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnPolicyResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnPolicyResult {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnReadAccountResourceResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnReadAccountResourceResponse {
+pub struct McnDeleteCatalogSyncResponse {
     /// `result` property.
-    pub result: Option<McnResourceDetails>,
-}
-
-/// `McnYamlDiffItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnYamlDiffItem {
-    /// item_type property.
-    pub item_type: String,
-    /// yaml_diff property.
-    pub yaml_diff: McnYamlDiff,
-}
-
-/// `McnStringItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnStringItem {
-    /// item_type property.
-    pub item_type: String,
-    /// string property.
-    pub string: String,
-}
-
-/// `McnCatalogSyncId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCatalogSyncId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnGoodResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnGoodResponseCollection {
-    /// `errors` property.
-    pub errors: Option<Vec<McnError>>,
-}
-
-/// `McnGoodResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnGoodResponse {
-    /// `errors` property.
-    pub errors: Option<Vec<McnError>>,
-}
-
-/// `McnResourceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourceType {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+    pub result: Option<McnDeletedCatalogSync>,
 }
 
 /// `McnDeletedCatalogSync` type.
@@ -440,6 +441,95 @@ pub struct McnError {
     pub source: Option<McnErrorSource>,
 }
 
+/// `McnErrorMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnErrorMeta {
+    /// l10n_key property.
+    pub l10n_key: Option<String>,
+    /// loggable_error property.
+    pub loggable_error: Option<String>,
+    /// template_data property.
+    pub template_data: Option<serde_json::Value>,
+    /// trace_id property.
+    pub trace_id: Option<String>,
+}
+
+/// `McnErrorSource` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnErrorSource {
+    /// parameter property.
+    pub parameter: Option<String>,
+    /// parameter_value_index property.
+    pub parameter_value_index: Option<i64>,
+    /// pointer property.
+    pub pointer: Option<String>,
+}
+
+/// `McnGoodResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnGoodResponse {
+    /// `errors` property.
+    pub errors: Option<Vec<McnError>>,
+}
+
+/// `McnGoodResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnGoodResponseCollection {
+    /// `errors` property.
+    pub errors: Option<Vec<McnError>>,
+}
+
+/// `McnListItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnListItem {
+    /// item_type property.
+    pub item_type: String,
+    /// list property.
+    pub list: Vec<serde_json::Value>,
+}
+
+/// `McnPlatformClientId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnPlatformClientId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnPolicyResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnPolicyResult {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnProviderId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnProviderId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnReadAccountCatalogSyncResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnReadAccountCatalogSyncResponse {
+    /// `result` property.
+    pub result: Option<McnCatalogSync>,
+}
+
+/// `McnReadAccountCatalogSyncsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnReadAccountCatalogSyncsResponse {
+    /// `result` property.
+    pub result: Option<Vec<McnCatalogSync>>,
+}
+
+/// `McnReadAccountResourceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnReadAccountResourceResponse {
+    /// `result` property.
+    pub result: Option<McnResourceDetails>,
+}
+
 /// `McnReadAccountResourcesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountResourcesResponse {
@@ -449,74 +539,11 @@ pub struct McnReadAccountResourcesResponse {
     pub result_info: Option<McnResultInfo>,
 }
 
-/// `LogcontrolMessages` type.
+/// `McnRefreshCatalogSyncResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnUpdateCatalogSyncRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnUpdateCatalogSyncRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// policy property.
-    pub policy: Option<String>,
-    /// update_mode property.
-    pub update_mode: Option<McnCatalogSyncUpdateMode>,
-}
-
-/// `McnCreateCatalogSyncRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCreateCatalogSyncRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// destination_type property.
-    pub destination_type: McnCatalogSyncDestinationType,
-    /// name property.
-    pub name: String,
-    /// policy property.
-    pub policy: Option<String>,
-    /// update_mode property.
-    pub update_mode: McnCatalogSyncUpdateMode,
-}
-
-/// `McnCatalogSyncsPrebuiltPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCatalogSyncsPrebuiltPolicy {
-    /// applicable_destinations property.
-    pub applicable_destinations: Vec<McnCatalogSyncDestinationType>,
-    /// policy_description property.
-    pub policy_description: String,
-    /// policy_name property.
-    pub policy_name: String,
-    /// policy_string property.
-    pub policy_string: String,
-}
-
-/// `McnCatalogSyncsPrebuiltPoliciesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCatalogSyncsPrebuiltPoliciesResponse {
+pub struct McnRefreshCatalogSyncResponse {
     /// `result` property.
-    pub result: Option<Vec<McnCatalogSyncsPrebuiltPolicy>>,
-}
-
-/// `AaaAuditLogRaw` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAuditLogRaw {
-    /// cf_ray_id property.
-    pub cf_ray_id: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// status_code property.
-    pub status_code: Option<i64>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// user_agent property.
-    pub user_agent: Option<String>,
+    pub result: Option<McnPolicyResult>,
 }
 
 /// `McnResourceDetails` type.
@@ -566,39 +593,36 @@ pub struct McnResourceDetails {
     pub url: String,
 }
 
-/// `McnProviderId` type.
+/// `McnResourceDetailsSection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnProviderId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct McnResourceDetailsSection {
+    /// help_text property.
+    pub help_text: Option<String>,
+    /// hidden_items property.
+    pub hidden_items: Vec<McnResourceDetailsSectionItem>,
+    /// name property.
+    pub name: String,
+    /// visible_items property.
+    pub visible_items: Vec<McnResourceDetailsSectionItem>,
 }
 
-/// `McnAccountId` type.
+/// `McnResourceDetailsSectionItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnAccountId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct McnResourceDetailsSectionItem {
+    /// helpText property.
+    #[serde(rename = "helpText")]
+    pub help_text: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// value property.
+    pub value: Option<serde_json::Value>,
 }
 
-/// `McnCatalogSyncUpdateMode` type.
+/// `McnResourceId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCatalogSyncUpdateMode {
+pub struct McnResourceId {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasIdentifier {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnDeleteCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnDeleteCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnDeletedCatalogSync>,
 }
 
 /// `McnResourcePreview` type.
@@ -618,68 +642,271 @@ pub struct McnResourcePreview {
     pub title: String,
 }
 
-/// `DlpPayloadLogSettingUpdateLegacy` response type.
+/// `McnResourcePreviewItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPayloadLogSettingUpdateLegacy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
+pub struct McnResourcePreviewItem {
+    /// item_type property.
+    pub item_type: String,
+    /// resource_preview property.
+    pub resource_preview: McnResourcePreview,
+}
+
+/// `McnResourceType` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResourceType {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaAuditLogAction` type.
+/// `McnResourcesCatalogPolicyPreview` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAuditLogAction {
+pub struct McnResourcesCatalogPolicyPreview {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `McnResourcesCatalogPolicyPreviewRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResourcesCatalogPolicyPreviewRequest {
+    /// policy property.
+    pub policy: String,
+}
+
+/// `McnResourcesCatalogPolicyPreviewResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResourcesCatalogPolicyPreviewResponse {
+    /// `result` property.
+    pub result: Option<McnResourcesCatalogPolicyPreview>,
+}
+
+/// `McnResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResponse {
+    /// messages property.
+    pub messages: Vec<McnError>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `McnResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResponseCollection {
+    /// messages property.
+    pub messages: Vec<McnError>,
+    /// result_info property.
+    pub result_info: Option<McnResultInfo>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `McnResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResultInfo {
+    /// count property.
+    pub count: i64,
+    /// page property.
+    pub page: i64,
+    /// per_page property.
+    pub per_page: i64,
+    /// total_count property.
+    pub total_count: i64,
+    /// total_pages property.
+    pub total_pages: Option<i64>,
+}
+
+/// `McnStringItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnStringItem {
+    /// item_type property.
+    pub item_type: String,
+    /// string property.
+    pub string: String,
+}
+
+/// `McnUpdateCatalogSyncRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnUpdateCatalogSyncRequest {
     /// description property.
     pub description: Option<String>,
-    /// result property.
-    pub result: Option<String>,
-    /// time property.
-    pub time: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `McnErrorMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnErrorMeta {
-    /// l10n_key property.
-    pub l10n_key: Option<String>,
-    /// loggable_error property.
-    pub loggable_error: Option<String>,
-    /// template_data property.
-    pub template_data: Option<serde_json::Value>,
-    /// trace_id property.
-    pub trace_id: Option<String>,
-}
-
-/// `LogpushMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `McnPlatformClientId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnPlatformClientId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `LogcontrolApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolApiResponseSingle {
-}
-
-/// `McnCloudPlatformClient` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCloudPlatformClient {
-    /// client_type property.
-    pub client_type: String,
-    /// id property.
-    pub id: McnPlatformClientId,
     /// name property.
-    pub name: String,
+    pub name: Option<String>,
+    /// policy property.
+    pub policy: Option<String>,
+    /// update_mode property.
+    pub update_mode: Option<McnCatalogSyncUpdateMode>,
+}
+
+/// `McnUpdateCatalogSyncResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnUpdateCatalogSyncResponse {
+    /// `result` property.
+    pub result: Option<McnCatalogSync>,
+}
+
+/// `McnYamlDiff` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnYamlDiff {
+    /// diff property.
+    pub diff: String,
+    /// left_description property.
+    pub left_description: String,
+    /// left_yaml property.
+    pub left_yaml: String,
+    /// right_description property.
+    pub right_description: String,
+    /// right_yaml property.
+    pub right_yaml: String,
+}
+
+/// `McnYamlDiffItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnYamlDiffItem {
+    /// item_type property.
+    pub item_type: String,
+    /// yaml_diff property.
+    pub yaml_diff: McnYamlDiff,
+}
+
+/// `McnYamlItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnYamlItem {
+    /// item_type property.
+    pub item_type: String,
+    /// yaml property.
+    pub yaml: String,
+}
+
+/// `PostAccountsAccountIdLogpushJobsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PostAccountsAccountIdLogpushJobsRequest {
+    /// dataset property.
+    pub dataset: Option<LogpushDataset>,
+    /// destination_conf property.
+    pub destination_conf: LogpushDestinationConf,
+    /// enabled property.
+    pub enabled: Option<LogpushEnabled>,
+    /// filter property.
+    pub filter: Option<LogpushFilter>,
+    /// frequency property.
+    pub frequency: Option<LogpushFrequency>,
+    /// kind property.
+    pub kind: Option<LogpushKind>,
+    /// logpull_options property.
+    pub logpull_options: Option<LogpushLogpullOptions>,
+    /// max_upload_bytes property.
+    pub max_upload_bytes: Option<LogpushMaxUploadBytes>,
+    /// max_upload_interval_seconds property.
+    pub max_upload_interval_seconds: Option<LogpushMaxUploadIntervalSeconds>,
+    /// max_upload_records property.
+    pub max_upload_records: Option<LogpushMaxUploadRecords>,
+    /// name property.
+    pub name: Option<LogpushName>,
+    /// output_options property.
+    pub output_options: Option<LogpushOutputOptions>,
+    /// ownership_challenge property.
+    pub ownership_challenge: Option<LogpushOwnershipChallenge>,
+}
+
+/// `PostAccountsAccountIdLogpushOwnershipRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PostAccountsAccountIdLogpushOwnershipRequest {
+    /// destination_conf property.
+    pub destination_conf: LogpushDestinationConf,
+}
+
+/// `PostAccountsAccountIdLogpushOwnershipValidateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PostAccountsAccountIdLogpushOwnershipValidateRequest {
+    /// destination_conf property.
+    pub destination_conf: LogpushDestinationConf,
+    /// ownership_challenge property.
+    pub ownership_challenge: LogpushOwnershipChallenge,
+}
+
+/// `PostAccountsAccountIdLogpushValidateOriginRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PostAccountsAccountIdLogpushValidateOriginRequest {
+    /// logpull_options property.
+    pub logpull_options: Option<LogpushLogpullOptions>,
+}
+
+/// `PutAccountsAccountIdLogpushJobsJobIdRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PutAccountsAccountIdLogpushJobsJobIdRequest {
+    /// destination_conf property.
+    pub destination_conf: Option<LogpushDestinationConf>,
+    /// enabled property.
+    pub enabled: Option<LogpushEnabled>,
+    /// filter property.
+    pub filter: Option<LogpushFilter>,
+    /// frequency property.
+    pub frequency: Option<LogpushFrequency>,
+    /// kind property.
+    pub kind: Option<LogpushKind>,
+    /// logpull_options property.
+    pub logpull_options: Option<LogpushLogpullOptions>,
+    /// max_upload_bytes property.
+    pub max_upload_bytes: Option<LogpushMaxUploadBytes>,
+    /// max_upload_interval_seconds property.
+    pub max_upload_interval_seconds: Option<LogpushMaxUploadIntervalSeconds>,
+    /// max_upload_records property.
+    pub max_upload_records: Option<LogpushMaxUploadRecords>,
+    /// name property.
+    pub name: Option<LogpushName>,
+    /// output_options property.
+    pub output_options: Option<LogpushOutputOptions>,
+    /// ownership_challenge property.
+    pub ownership_challenge: Option<LogpushOwnershipChallenge>,
+}
+
+/// `R2SlurperApiV4Error` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperApiV4Error {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperApiV4Message {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2SlurperApiV4Success` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperApiV4Success {
+    /// errors property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// messages property.
+    pub messages: Option<Vec<String>>,
+    /// success property.
+    pub success: Option<bool>,
+}
+
+/// `R2SlurperJobLogResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperJobLogResponse {
+    /// createdAt property.
+    #[serde(rename = "createdAt")]
+    pub created_at: Option<String>,
+    /// job property.
+    pub job: Option<String>,
+    /// logType property.
+    #[serde(rename = "logType")]
+    pub log_type: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// objectKey property.
+    #[serde(rename = "objectKey")]
+    pub object_key: Option<String>,
+}
+
+/// `SlurperGetJobLogsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SlurperGetJobLogsResponse {
+    /// `result` property.
+    pub result: Option<Vec<R2SlurperJobLogResponse>>,
 }
 
 // =============================================================================
@@ -763,6 +990,8 @@ pub struct GetAccountsAccountIdLogpushJobsArgs {
 pub struct PostAccountsAccountIdLogpushJobsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: PostAccountsAccountIdLogpushJobsRequest,
 }
 
 /// Arguments for [`get-accounts-account_id-logpush-jobs-job_id_request`].
@@ -781,6 +1010,8 @@ pub struct PutAccountsAccountIdLogpushJobsJobIdArgs {
     pub job_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: PutAccountsAccountIdLogpushJobsJobIdRequest,
 }
 
 /// Arguments for [`delete-accounts-account_id-logpush-jobs-job_id_request`].
@@ -797,6 +1028,8 @@ pub struct DeleteAccountsAccountIdLogpushJobsJobIdArgs {
 pub struct PostAccountsAccountIdLogpushOwnershipArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: PostAccountsAccountIdLogpushOwnershipRequest,
 }
 
 /// Arguments for [`post-accounts-account_id-logpush-ownership-validate_request`].
@@ -804,6 +1037,8 @@ pub struct PostAccountsAccountIdLogpushOwnershipArgs {
 pub struct PostAccountsAccountIdLogpushOwnershipValidateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: PostAccountsAccountIdLogpushOwnershipValidateRequest,
 }
 
 /// Arguments for [`delete-accounts-account_id-logpush-validate-destination_request`].
@@ -811,6 +1046,8 @@ pub struct PostAccountsAccountIdLogpushOwnershipValidateArgs {
 pub struct DeleteAccountsAccountIdLogpushValidateDestinationArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DeleteAccountsAccountIdLogpushValidateDestinationRequest,
 }
 
 /// Arguments for [`delete-accounts-account_id-logpush-validate-destination-exists_request`].
@@ -818,6 +1055,8 @@ pub struct DeleteAccountsAccountIdLogpushValidateDestinationArgs {
 pub struct DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest,
 }
 
 /// Arguments for [`post-accounts-account_id-logpush-validate-origin_request`].
@@ -825,6 +1064,8 @@ pub struct DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs {
 pub struct PostAccountsAccountIdLogpushValidateOriginArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: PostAccountsAccountIdLogpushValidateOriginRequest,
 }
 
 /// Arguments for [`audit-logs-v2-get-account-audit-logs_request`].
@@ -1151,15 +1392,16 @@ pub struct SlurperGetJobLogsArgs {
 pub async fn audit_logs_get_account_audit_logs_request<F>(
     client: DynNetClient,
     args: &AuditLogsGetAccountAuditLogsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaAuditLogsResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/audit_logs",
+    let path = format!("/accounts/{}/audit_logs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1187,7 +1429,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaAuditLogsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1219,15 +1464,16 @@ where
 pub async fn dlp_payload_log_get_request<F>(
     client: DynNetClient,
     args: &DlpPayloadLogGetArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpPayloadLogGetResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/payload_log",
+    let path = format!("/accounts/{}/dlp/payload_log",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1242,9 +1488,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpPayloadLogGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1272,15 +1523,16 @@ where
 pub async fn dlp_payload_log_put_request<F>(
     client: DynNetClient,
     args: &DlpPayloadLogPutArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DlpPayloadLogPutResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/dlp/payload_log",
+    let path = format!("/accounts/{}/dlp/payload_log",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1298,9 +1550,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DlpPayloadLogPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1328,16 +1585,17 @@ where
 pub async fn get_accounts_account_id_logpush_datasets_dataset_id_fields_request<F>(
     client: DynNetClient,
     args: &GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushFieldResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/datasets/{}/fields",
+    let path = format!("/accounts/{}/logpush/datasets/{}/fields",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1352,7 +1610,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushFieldResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1384,16 +1645,17 @@ where
 pub async fn get_accounts_account_id_logpush_datasets_dataset_id_jobs_request<F>(
     client: DynNetClient,
     args: &GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushJobResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/datasets/{}/jobs",
+    let path = format!("/accounts/{}/logpush/datasets/{}/jobs",
         args.account_id,
         args.dataset_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1408,7 +1670,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushJobResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1440,15 +1705,16 @@ where
 pub async fn get_accounts_account_id_logpush_jobs_request<F>(
     client: DynNetClient,
     args: &GetAccountsAccountIdLogpushJobsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushJobResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/jobs",
+    let path = format!("/accounts/{}/logpush/jobs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1463,7 +1729,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushJobResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1495,17 +1764,21 @@ where
 pub async fn post_accounts_account_id_logpush_jobs_request<F>(
     client: DynNetClient,
     args: &PostAccountsAccountIdLogpushJobsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushJobResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/jobs",
+    let path = format!("/accounts/{}/logpush/jobs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1518,7 +1791,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1550,16 +1826,17 @@ where
 pub async fn get_accounts_account_id_logpush_jobs_job_id_request<F>(
     client: DynNetClient,
     args: &GetAccountsAccountIdLogpushJobsJobIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushJobResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/jobs/{}",
+    let path = format!("/accounts/{}/logpush/jobs/{}",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1574,7 +1851,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1606,18 +1886,22 @@ where
 pub async fn put_accounts_account_id_logpush_jobs_job_id_request<F>(
     client: DynNetClient,
     args: &PutAccountsAccountIdLogpushJobsJobIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushLogpushJobResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/jobs/{}",
+    let path = format!("/accounts/{}/logpush/jobs/{}",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1630,7 +1914,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1662,16 +1949,17 @@ where
 pub async fn delete_accounts_account_id_logpush_jobs_job_id_request<F>(
     client: DynNetClient,
     args: &DeleteAccountsAccountIdLogpushJobsJobIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteAccountsAccountIdLogpushJobsJobIdResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/jobs/{}",
+    let path = format!("/accounts/{}/logpush/jobs/{}",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1686,9 +1974,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteAccountsAccountIdLogpushJobsJobIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1716,17 +2009,21 @@ where
 pub async fn post_accounts_account_id_logpush_ownership_request<F>(
     client: DynNetClient,
     args: &PostAccountsAccountIdLogpushOwnershipArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushGetOwnershipResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/ownership",
+    let path = format!("/accounts/{}/logpush/ownership",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1739,7 +2036,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushGetOwnershipResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1771,17 +2071,21 @@ where
 pub async fn post_accounts_account_id_logpush_ownership_validate_request<F>(
     client: DynNetClient,
     args: &PostAccountsAccountIdLogpushOwnershipValidateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushValidateOwnershipResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/ownership/validate",
+    let path = format!("/accounts/{}/logpush/ownership/validate",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1794,7 +2098,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushValidateOwnershipResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1826,17 +2133,21 @@ where
 pub async fn delete_accounts_account_id_logpush_validate_destination_request<F>(
     client: DynNetClient,
     args: &DeleteAccountsAccountIdLogpushValidateDestinationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushValidateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/validate/destination",
+    let path = format!("/accounts/{}/logpush/validate/destination",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1849,7 +2160,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1881,17 +2195,21 @@ where
 pub async fn delete_accounts_account_id_logpush_validate_destination_exists_request<F>(
     client: DynNetClient,
     args: &DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushDestinationExistsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/validate/destination/exists",
+    let path = format!("/accounts/{}/logpush/validate/destination/exists",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1904,7 +2222,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushDestinationExistsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1936,17 +2257,21 @@ where
 pub async fn post_accounts_account_id_logpush_validate_origin_request<F>(
     client: DynNetClient,
     args: &PostAccountsAccountIdLogpushValidateOriginArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogpushValidateResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logpush/validate/origin",
+    let path = format!("/accounts/{}/logpush/validate/origin",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1959,7 +2284,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogpushValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1991,15 +2319,16 @@ where
 pub async fn audit_logs_v2_get_account_audit_logs_request<F>(
     client: DynNetClient,
     args: &AuditLogsV2GetAccountAuditLogsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AaaAuditLogsV2ResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logs/audit",
+    let path = format!("/accounts/{}/logs/audit",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2064,7 +2393,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AaaAuditLogsV2ResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2096,15 +2428,16 @@ where
 pub async fn get_accounts_account_id_logs_control_cmb_config_request<F>(
     client: DynNetClient,
     args: &GetAccountsAccountIdLogsControlCmbConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogcontrolCmbConfigResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logs/control/cmb/config",
+    let path = format!("/accounts/{}/logs/control/cmb/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2119,7 +2452,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2151,15 +2487,16 @@ where
 pub async fn post_accounts_account_id_logs_control_cmb_config_request<F>(
     client: DynNetClient,
     args: &PostAccountsAccountIdLogsControlCmbConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<LogcontrolCmbConfigResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logs/control/cmb/config",
+    let path = format!("/accounts/{}/logs/control/cmb/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2177,7 +2514,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2209,15 +2549,16 @@ where
 pub async fn delete_accounts_account_id_logs_control_cmb_config_request<F>(
     client: DynNetClient,
     args: &DeleteAccountsAccountIdLogsControlCmbConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<DeleteAccountsAccountIdLogsControlCmbConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/logs/control/cmb/config",
+    let path = format!("/accounts/{}/logs/control/cmb/config",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2232,9 +2573,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: DeleteAccountsAccountIdLogsControlCmbConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2262,15 +2608,16 @@ where
 pub async fn catalog_syncs_list_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnReadAccountCatalogSyncsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2285,7 +2632,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnReadAccountCatalogSyncsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2317,15 +2667,16 @@ where
 pub async fn catalog_syncs_create_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnCreateCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2343,7 +2694,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnCreateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2375,15 +2729,16 @@ where
 pub async fn catalog_syncs_prebuilt_policies_list_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsPrebuiltPoliciesListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnCatalogSyncsPrebuiltPoliciesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/prebuilt-policies",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/prebuilt-policies",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2400,7 +2755,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnCatalogSyncsPrebuiltPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2432,16 +2790,17 @@ where
 pub async fn catalog_syncs_read_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsReadArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnReadAccountCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/{}",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
         args.account_id,
         args.sync_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2456,7 +2815,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnReadAccountCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2488,16 +2850,17 @@ where
 pub async fn catalog_syncs_update_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnUpdateCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/{}",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
         args.account_id,
         args.sync_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2515,7 +2878,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnUpdateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2547,16 +2913,17 @@ where
 pub async fn catalog_syncs_patch_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsPatchArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnUpdateCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/{}",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
         args.account_id,
         args.sync_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2574,7 +2941,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnUpdateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2606,16 +2976,17 @@ where
 pub async fn catalog_syncs_delete_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnDeleteCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/{}",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
         args.account_id,
         args.sync_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2632,7 +3003,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnDeleteCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2664,16 +3038,17 @@ where
 pub async fn catalog_syncs_refresh_request<F>(
     client: DynNetClient,
     args: &CatalogSyncsRefreshArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnRefreshCatalogSyncResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/catalog-syncs/{}/refresh",
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}/refresh",
         args.account_id,
         args.sync_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2688,7 +3063,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnRefreshCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2720,15 +3098,16 @@ where
 pub async fn resources_catalog_list_request<F>(
     client: DynNetClient,
     args: &ResourcesCatalogListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnReadAccountResourcesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/resources",
+    let path = format!("/accounts/{}/magic/cloud/resources",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2757,7 +3136,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnReadAccountResourcesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2789,15 +3171,16 @@ where
 pub async fn resources_catalog_export_request<F>(
     client: DynNetClient,
     args: &ResourcesCatalogExportArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/resources/export",
+    let path = format!("/accounts/{}/magic/cloud/resources/export",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2822,7 +3205,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -2852,15 +3238,16 @@ where
 pub async fn resources_catalog_policy_preview_request<F>(
     client: DynNetClient,
     args: &ResourcesCatalogPolicyPreviewArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnResourcesCatalogPolicyPreviewResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/resources/policy-preview",
+    let path = format!("/accounts/{}/magic/cloud/resources/policy-preview",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2878,7 +3265,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnResourcesCatalogPolicyPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2910,16 +3300,17 @@ where
 pub async fn resources_catalog_read_request<F>(
     client: DynNetClient,
     args: &ResourcesCatalogReadArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<McnReadAccountResourceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/magic/cloud/resources/{}",
+    let path = format!("/accounts/{}/magic/cloud/resources/{}",
         args.account_id,
         args.resource_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2936,7 +3327,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: McnReadAccountResourceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2968,16 +3362,17 @@ where
 pub async fn slurper_get_job_logs_request<F>(
     client: DynNetClient,
     args: &SlurperGetJobLogsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SlurperGetJobLogsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/logs",
+    let path = format!("/accounts/{}/slurper/jobs/{}/logs",
         args.account_id,
         args.job_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2995,8 +3390,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SlurperGetJobLogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

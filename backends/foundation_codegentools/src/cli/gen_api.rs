@@ -6,7 +6,6 @@
 
 use foundation_openapi::{
     unified::{analyze_spec, AnalysisOptions},
-    UnifiedGenerator,
 };
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -21,6 +20,8 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 /// Key = provider name, Value = crate root (relative to workspace or absolute).
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
+    ("hetzner", "backends/foundation_deployment_hetzner"),
+    ("digitalocean", "backends/foundation_deployment_digitalocean"),
     ("docker", "backends/foundation_deployment_docker"),
     ("stripe", "backends/foundation_deployment_stripe"),
     ("supabase", "backends/foundation_deployment_supabase"),
@@ -562,6 +563,7 @@ pub fn command() -> clap::Command {
         .about("Unified generator - generates types, clients, and providers from OpenAPI specs")
         .subcommand_required(true)
         .arg_required_else_help(true)
+        .subcommand(crate::cli::normalize::command())
         .subcommand(
                 clap::Command::new("generate")
                     .about("Generate all artifacts (types, clients, providers) from OpenAPI specs")
@@ -575,9 +577,8 @@ pub fn command() -> clap::Command {
                         clap::Arg::new("output-dir")
                             .long("output-dir")
                             .short('o')
-                            .help("Output directory for generated files")
-                            .value_name("DIR")
-                            .default_value("backends/foundation_deployment/src/providers"),
+                            .help("Override where generated files go. Defaults to the provider's own layout: its own crate for split-out providers, foundation_deployment/src/providers otherwise")
+                            .value_name("DIR"),
                     )
                     .arg(
                         clap::Arg::new("dry-run")
@@ -612,6 +613,53 @@ pub fn command() -> clap::Command {
                             .short('s')
                             .help("Filter to specific spec (e.g., 'admin' for gcp/admin). Only applies to multi-spec providers")
                             .value_name("SPEC"),
+                    )
+                    // Selection (spec-56 feature 00 §1). Absent, everything is
+                    // generated — which is what every existing provider expects.
+                    .arg(
+                        clap::Arg::new("include-path")
+                            .long("include-path")
+                            .help("Generate only this path; repeatable. Globs: * one segment, ** many")
+                            .value_name("GLOB")
+                            .action(clap::ArgAction::Append),
+                    )
+                    .arg(
+                        clap::Arg::new("include-tag")
+                            .long("include-tag")
+                            .help("Generate only operations with this tag; repeatable")
+                            .value_name("TAG")
+                            .action(clap::ArgAction::Append),
+                    )
+                    .arg(
+                        clap::Arg::new("include-operation")
+                            .long("include-operation")
+                            .help("Generate only this operationId; repeatable")
+                            .value_name("ID")
+                            .action(clap::ArgAction::Append),
+                    )
+                    .arg(
+                        clap::Arg::new("spec-version")
+                            .long("spec-version")
+                            .help("Pin the spec revision (info.version); a mismatch fails the run")
+                            .value_name("VERSION"),
+                    )
+                    .arg(
+                        clap::Arg::new("api-version")
+                            .long("api-version")
+                            .help("Pin the vendor's API version (hetzner v1, linode v4, digitalocean v2)")
+                            .value_name("VERSION"),
+                    )
+                    .arg(
+                        clap::Arg::new("check")
+                            .long("check")
+                            .help("Fail if the committed output is not what this run would generate. Writes nothing")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("buildrs-overwrite")
+                            .long("buildrs-overwrite")
+                            .help("Replace the crate's build.rs. Without this, an existing one is left alone — it is a source file people edit")
+                            .action(clap::ArgAction::SetTrue),
                     ),
             )
             .subcommand(
@@ -651,6 +699,10 @@ pub fn command() -> clap::Command {
 /// Run the `gen_api` command.
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     match matches.subcommand() {
+        // raw spec -> canonical artefact (spec-56 decision 05). Runs before
+        // `generate`, which assumes canonical input — so a generation bug and a
+        // normalization bug are never the same bug.
+        Some(("normalize", sub_matches)) => crate::cli::normalize::run(sub_matches),
         Some(("analyze", sub_matches)) => {
             let provider = sub_matches.get_one::<String>("provider").unwrap();
             let spec_path = sub_matches.get_one::<String>("spec").unwrap();
@@ -703,10 +755,20 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
         }
         Some(("generate", sub_matches)) => {
             let provider = sub_matches.get_one::<String>("provider").unwrap();
-            let output_dir = sub_matches
-                .get_one::<String>("output-dir")
-                .map(PathBuf::from)
-                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
+            // Only an *explicit* -o overrides the provider's own layout. The flag
+            // carries a default that equals the monolith root, so treating "has a
+            // value" as "the user chose one" would silently generate split-out
+            // crates into foundation_deployment.
+            let output_override = matches!(
+                sub_matches.value_source("output-dir"),
+                Some(clap::parser::ValueSource::CommandLine)
+            )
+            .then(|| {
+                sub_matches
+                    .get_one::<String>("output-dir")
+                    .map(PathBuf::from)
+                    .expect("clap guarantees a value for a flag it sourced")
+            });
             let dry_run = sub_matches.get_flag("dry-run");
             let _with_features = sub_matches.get_flag("features");
             let min_group_size = sub_matches
@@ -719,6 +781,23 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 .unwrap_or(200);
             let spec_filter = sub_matches.get_one::<String>("spec").cloned();
 
+            // Selection + pins (spec-56 feature 00). Left unset, `Selection::all()`
+            // generates everything — which is what cloudflare/gcp/stripe expect.
+            let mut selection = foundation_openapi::Selection::all();
+            if let Some(v) = sub_matches.get_many::<String>("include-path") {
+                selection = selection.paths(v.cloned().collect::<Vec<_>>());
+            }
+            if let Some(v) = sub_matches.get_many::<String>("include-tag") {
+                selection = selection.tags(v.cloned().collect::<Vec<_>>());
+            }
+            if let Some(v) = sub_matches.get_many::<String>("include-operation") {
+                selection = selection.operations(v.cloned().collect::<Vec<_>>());
+            }
+            let spec_version = sub_matches.get_one::<String>("spec-version").cloned();
+            let api_version = sub_matches.get_one::<String>("api-version").cloned();
+            let check_only = sub_matches.get_flag("check");
+            let buildrs_overwrite = sub_matches.get_flag("buildrs-overwrite");
+
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
@@ -728,14 +807,23 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             if let Some(ref spec_filter) = spec_filter {
                 println!("Filtering to spec: {}", spec_filter);
             }
+            if !selection.is_all() {
+                for (label, id) in [
+                    ("paths", "include-path"),
+                    ("tags", "include-tag"),
+                    ("operations", "include-operation"),
+                ] {
+                    if let Some(values) = sub_matches.get_many::<String>(id) {
+                        let values: Vec<&str> = values.map(String::as_str).collect();
+                        println!("Selected {}: {}", label, values.join(", "));
+                    }
+                }
+            }
 
             // ── Determine output paths ──
-            let (crate_root, is_split) = provider_crate_info(provider);
-            let output_dir = if is_split {
-                crate_root.clone()
-            } else {
-                crate_root.clone()
-            };
+            let (default_root, is_split) = provider_crate_info(provider);
+            let crate_root = output_override.unwrap_or(default_root);
+            let output_dir = crate_root.clone();
             // The provider's source directory. The generator appends `generated/`
             // internally, so all files land under <provider_dir>/generated/.
             //  - monolith: <crate_root>/<provider>/generated/  (e.g. foundation_deployment/src/providers/cloudflare/generated/)
@@ -849,17 +937,6 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             for (api_name, spec_path) in &specs {
                 println!("\n  Processing {} ({})", api_name, spec_path.display());
 
-                let spec_content = std::fs::read_to_string(spec_path).map_err(|e| {
-                    format!("Failed to read spec at {}: {}", spec_path.display(), e)
-                })?;
-
-                if dry_run {
-                    let analysis = analyze_spec(&spec_content, api_name, &options)
-                        .map_err(|e| format!("Analysis failed: {}", e))?;
-                    println!("    Groups: {}", analysis.groups.len());
-                    continue;
-                }
-
                 // Use full provider path for sub-providers (e.g., "gcp/admin").
                 let safe_api_name = camel_to_snake(api_name);
                 let gen_provider = if is_multi_spec_provider {
@@ -868,18 +945,93 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     provider.clone()
                 };
 
-                let mut generator = UnifiedGenerator::new(output_dir.clone());
+                // One declaration, shared with build.rs callers — so a selection
+                // means the same thing from either entry point, and the generator
+                // is never shown the paths we did not ask for.
+                let mut codegen = crate::codegen::generate()
+                    .provider(&gen_provider)
+                    .spec(spec_path)
+                    .select(selection.clone())
+                    .output_dir(output_dir.clone())
+                    .group_sizes(min_group_size, max_group_size);
                 if is_split {
-                    // Split-out crate: generated files go to crate_root/src/
-                    // (no provider subdirectory — files live directly alongside
-                    // hand-written client.rs, types.rs, dns_ops.rs)
-                    generator = generator.with_provider_dir(actual_provider_dir.clone());
+                    // Split-out crate: generated files go to crate_root/src/,
+                    // alongside hand-written client.rs, types.rs, dns_ops.rs.
+                    codegen = codegen.provider_dir(actual_provider_dir.clone());
                 }
-                generator.generate(&gen_provider, &spec_content, &options)?;
-                println!("    Generated: {}", gen_provider);
+                if let Some(v) = &spec_version {
+                    codegen = codegen.spec_version(v);
+                }
+                if let Some(v) = &api_version {
+                    codegen = codegen.api_version(v);
+                }
+
+                if dry_run {
+                    // Resolve, so the pin and the selection are exercised — a dry
+                    // run that skipped them would report on a spec the real run
+                    // never sees.
+                    let resolved = codegen.resolve()?;
+                    let analysis = analyze_spec(
+                        &serde_json::to_string(&resolved)?,
+                        api_name,
+                        &options,
+                    )
+                    .map_err(|e| format!("Analysis failed: {}", e))?;
+                    println!(
+                        "    Paths: {} | schemas: {} | groups: {}",
+                        resolved
+                            .get("paths")
+                            .and_then(serde_json::Value::as_object)
+                            .map_or(0, serde_json::Map::len),
+                        foundation_openapi::component_count(&resolved, "schemas"),
+                        analysis.groups.len()
+                    );
+                    continue;
+                }
+
+                if check_only {
+                    codegen.check()?;
+                    println!("    Up to date: {}", gen_provider);
+                    continue;
+                }
+
+                let report = codegen.write()?;
+                println!(
+                    "    Generated: {} ({} paths, {} schemas, {} files)",
+                    gen_provider, report.paths_selected, report.schemas, report.files
+                );
+
+                // The declaration, written next to the code it describes
+                // (feature 00 §4). Split-out crates only: a monolith provider has
+                // no crate of its own to carry one.
+                if is_split {
+                    let build_rs = codegen
+                        .clone()
+                        .crate_dir(crate_root.clone())
+                        .write_build_script(buildrs_overwrite)?;
+                    match &build_rs {
+                        crate::codegen::BuildScriptOutcome::Created(p) => {
+                            println!("    Wrote {}", p.display());
+                        }
+                        crate::codegen::BuildScriptOutcome::Replaced(p) => {
+                            println!("    Replaced {} (--buildrs-overwrite)", p.display());
+                        }
+                        crate::codegen::BuildScriptOutcome::Kept(p) => {
+                            println!(
+                                "    Kept {} — pass --buildrs-overwrite to replace it",
+                                p.display()
+                            );
+                        }
+                    }
+                }
 
                 // Track which sub-provider was regenerated
                 regenerated.insert(safe_api_name);
+            }
+
+            if check_only {
+                println!("\n=== Check Complete — output matches ===");
+                return Ok(());
             }
 
             if dry_run {

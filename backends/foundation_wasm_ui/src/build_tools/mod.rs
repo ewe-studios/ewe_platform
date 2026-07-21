@@ -75,6 +75,8 @@ pub struct BundleEntrypoint {
     pub packaging: JsPackaging,
     /// `wasm_service` route prefixes.
     pub routes: Vec<String>,
+    /// Combine all JS runtimes into one bundle.js (default true).
+    pub jsruntime_single: bool,
 }
 
 /// What `plan()`/`execute()` will produce for one entrypoint.
@@ -121,6 +123,155 @@ impl WasmBundleGenerator {
             crate_dir: crate_dir.to_path_buf(),
             output_dir: output_dir.to_path_buf(),
         })
+    }
+
+    /// Construct from raw annotation + function name pairs.
+    ///
+    /// This is THE entry point for callers that scan source code directly
+    /// (e.g. `foundation_platform::codegen`). Each pair `("wasm_bin",
+    /// "my_app")` is converted into:
+    ///
+    /// 1. A [`foundation_wasm::build_tools::WasmEntrypoint`] — feeds the
+    ///    inner `WasmBinGenerator` so it can generate `src/bin/{name}/main.rs`
+    ///    stubs (with the correct function import) and Cargo `[[bin]]` entries.
+    /// 2. A [`BundleEntrypoint`] — feeds the JS wrapper stage after compilation.
+    ///
+    /// No `CrateScanner` is used. No expansion into the source file.
+    /// The proc macro `#[wasm_bin]` is a validator + passthrough — this
+    /// constructor does all the build-time work.
+    ///
+    /// # Errors
+    /// Propagates crate validation failure.
+    pub fn from_annotations(
+        crate_dir: &Path,
+        output_dir: &Path,
+        annotations: &[(&str, &str)],  // &[(mode_str, fn_name)]
+        jsruntime_single: bool,
+    ) -> Result<Self, WasmBinError> {
+        let crate_name = WasmBinGenerator::from_crate_only(crate_dir)?
+            .crate_name()
+            .to_string();
+
+        // Build WasmEntrypoints for the bin generator (planner needs
+        // function_name, qualified_path, source_file, line).
+        let wasm_eps: Vec<_> = annotations
+            .iter()
+            .map(|&(_, fn_name)| {
+                foundation_wasm::build_tools::wasm_entrypoint_from_fn(&crate_name, fn_name)
+            })
+            .collect();
+
+        let inner = WasmBinGenerator::from_entrypoints(crate_dir, wasm_eps)?;
+
+        // Build BundleEntrypoints for the JS wrapper stage
+        let mut bundle_eps = Vec::with_capacity(annotations.len());
+        for &(mode, fn_name) in annotations {
+            let (bundle_mode, routes) = match mode {
+                "wasm_bin" => (BundleMode::Bin, Vec::new()),
+                "wasm_worker" => (BundleMode::Worker, Vec::new()),
+                "wasm_service" => (BundleMode::Service, Vec::new()),
+                _ => continue,
+            };
+            bundle_eps.push(BundleEntrypoint {
+                name: fn_name.to_string(),
+                mode: bundle_mode,
+                packaging: JsPackaging::Separate,
+                routes,
+                jsruntime_single,
+            });
+        }
+
+        Ok(Self {
+            inner,
+            entrypoints: bundle_eps,
+            crate_dir: crate_dir.to_path_buf(),
+            output_dir: output_dir.to_path_buf(),
+        })
+    }
+
+    /// Construct from pre-built entrypoints — skips `CrateScanner`.
+    ///
+    /// Use this when the caller has already built [`BundleEntrypoint`]
+    /// structs (e.g. from parsed annotation attributes).
+    ///
+    /// # Errors
+    /// Propagates crate validation failure from the inner generator.
+    pub fn from_entrypoints(
+        crate_dir: &Path,
+        output_dir: &Path,
+        entrypoints: Vec<BundleEntrypoint>,
+        jsruntime_single: bool,
+    ) -> Result<Self, WasmBinError> {
+        // Apply jsruntime_single to all entrypoints
+        let entrypoints: Vec<_> = entrypoints.into_iter().map(|mut ep| { ep.jsruntime_single = jsruntime_single; ep }).collect();
+        let inner = WasmBinGenerator::from_crate_only(crate_dir)?;
+        Ok(Self {
+            inner,
+            entrypoints,
+            crate_dir: crate_dir.to_path_buf(),
+            output_dir: output_dir.to_path_buf(),
+        })
+    }
+
+    /// Execute for a cdylib (lib) crate — skips `self.inner.generate()`
+    /// (no per-entrypoint `src/bin/*.rs` or `[[bin]]` needed).
+    /// The wasm binary is assumed to already be compiled to
+    /// `target/wasm32-unknown-unknown/{profile}/{crate_name}.wasm`.
+    pub fn execute_for_lib_crate(
+        &self,
+        crate_name: &str,
+        release: bool,
+        skip_runtimes: bool,
+        runtime_assets: &[(&str, &Path)],
+    ) -> Result<Vec<PlannedFile>, WasmBinError> {
+        std::fs::create_dir_all(&self.output_dir)
+            .map_err(|e| io_err(&self.output_dir, e))?;
+
+        let profile_dir = if release { "release" } else { "uat" };
+        let wasm_path = self
+            .crate_dir
+            .join("target/wasm32-unknown-unknown")
+            .join(profile_dir)
+            .join(format!("{crate_name}.wasm"));
+        let wasm_bytes =
+            std::fs::read(&wasm_path).map_err(|e| io_err(&wasm_path, e))?;
+
+        let mut written = Vec::new();
+        for ep in &self.entrypoints {
+            written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
+        }
+
+        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
+        if do_single_js {
+            let mut bundle = String::new();
+            for (file_name, source) in runtime_assets {
+                if let Ok(content) = std::fs::read_to_string(source) {
+                    let stripped = content.lines().map(|l| {
+                        let t = l.trim();
+                        if t.starts_with("export ") { &t[7..] } else { l }
+                    }).collect::<Vec<_>>().join("\n");
+                    bundle.push_str(&format!(
+    "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
+));
+                }
+            }
+            if !bundle.is_empty() {
+                let dest = self.output_dir.join("bundle.js");
+                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+            }
+        }
+        if !skip_runtimes && !do_single_js {
+            for (file_name, source) in runtime_assets {
+                let dest = self.output_dir.join(file_name);
+                std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile {
+                    path: dest,
+                    kind: "runtime asset",
+                });
+            }
+        }
+        Ok(written)
     }
 
     #[must_use]
@@ -180,6 +331,10 @@ impl WasmBundleGenerator {
 
         let mut cargo = Command::new("cargo");
         cargo
+            // Host RUSTFLAGS (e.g. -fuse-ld=lld) may leak from parent
+            // build scripts and aren't valid for the wasm32 backend.
+            .env_remove("RUSTFLAGS")
+            .env_remove("CARGO_ENCODED_RUSTFLAGS")
             .arg("build")
             .arg("--target")
             .arg("wasm32-unknown-unknown")
@@ -217,7 +372,27 @@ impl WasmBundleGenerator {
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
-        if !skip_runtimes {
+        let do_single_js = self.entrypoints.iter().any(|ep| ep.jsruntime_single);
+        if do_single_js {
+            let mut bundle = String::new();
+            for (file_name, source) in runtime_assets {
+                if let Ok(content) = std::fs::read_to_string(source) {
+                    let stripped = content.lines().map(|l| {
+                        let t = l.trim();
+                        if t.starts_with("export ") { &t[7..] } else { l }
+                    }).collect::<Vec<_>>().join("\n");
+                    bundle.push_str(&format!(
+    "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
+));
+                }
+            }
+            if !bundle.is_empty() {
+                let dest = self.output_dir.join("bundle.js");
+                std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
+                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+            }
+        }
+        if !skip_runtimes && !do_single_js {
             for (file_name, source) in runtime_assets {
                 let dest = self.output_dir.join(file_name);
                 std::fs::copy(source, &dest).map_err(|e| io_err(&dest, e))?;
@@ -227,6 +402,57 @@ impl WasmBundleGenerator {
                 });
             }
         }
+
+        // Generate index.html — readable HTML, one <script> per entrypoint.
+        let bins: Vec<_> = self.entrypoints.iter()
+            .filter(|ep| matches!(ep.mode, BundleMode::Bin))
+            .collect();
+        if !bins.is_empty() {
+            let mut init_blocks = String::new();
+            for ep in &bins {
+                let name = &ep.name;
+                init_blocks.push_str(&format!(
+                    r#"  <script type="module">
+    // ── {name} ──
+    import {{ init }} from './{name}.js';
+    init().then(function() {{
+      console.log('[platform] {name}: WASM active');
+    }}).catch(function(err) {{
+      console.error('[platform] {name}:', err);
+    }});
+  </script>
+"#
+                ));
+            }
+
+            let html = format!(
+                r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foundation Platform</title>
+  <style>
+    body {{
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+      background: #0a0a1a;
+      color: #ccd6f6;
+    }}
+  </style>
+  <script src="bundle.js"></script>
+</head>
+<body>
+{init_blocks}
+</body>
+</html>
+"#
+            );
+            let dest = self.output_dir.join("index.html");
+            std::fs::write(&dest, &html).map_err(|e| io_err(&dest, e))?;
+            written.push(PlannedFile { path: dest, kind: "index.html" });
+        }
+
         Ok(written)
     }
 
@@ -238,8 +464,9 @@ impl WasmBundleGenerator {
         // (file name, contents, kind) — written in one pass below.
         let mut outputs: Vec<(String, Vec<u8>, &'static str)> = Vec::new();
 
+        let use_bundle = ep.jsruntime_single;
         let wrapper = match ep.mode {
-            BundleMode::Bin => js_wrapper::bin_wrapper(&ep.name),
+            BundleMode::Bin => js_wrapper::bin_wrapper_with_bundle(&ep.name, use_bundle),
             BundleMode::Worker => {
                 outputs.push((
                     format!("{}-worker-host.js", ep.name),
@@ -320,5 +547,6 @@ pub fn entrypoint_from_attrs(
             JsPackaging::Separate
         },
         routes,
+        jsruntime_single: true,
     }
 }

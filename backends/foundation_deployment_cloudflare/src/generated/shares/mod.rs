@@ -17,69 +17,34 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::ResourceSharingShareResponseCollection;
-use super::shared::ResourceSharingOrganizationId;
-use super::shared::ResourceSharingAccountName;
-use super::shared::ResourceSharingModified;
-use super::shared::ResourceSharingResourceVersion;
-use super::shared::ResourceSharingResourceId;
-use super::shared::ResourceSharingShareResourceObject;
-use super::shared::ResourceSharingShareTargetType;
-use super::shared::ResourceSharingShareObject;
-use super::shared::ResourceSharingShareKind;
-use super::shared::ResourceSharingShareId;
-use super::shared::ResourceSharingShareName;
 use super::shared::ResourceSharingAccountId;
-use super::shared::ResourceSharingResourceType;
-use super::shared::ResourceSharingResourceResourceId;
-use super::shared::ResourceSharingV4Errors;
-use super::shared::ResourceSharingCreated;
-use super::shared::ResourceSharingShareStatus;
-use super::shared::ResourceSharingApiResponseCommon;
-use super::shared::ResourceSharingV4Error;
-use super::shared::ResourceSharingResourceMeta;
+use super::shared::ResourceSharingAccountName;
 use super::shared::ResourceSharingApiResponseCollection;
-use super::shared::ResourceSharingResultInfo;
+use super::shared::ResourceSharingApiResponseCommon;
+use super::shared::ResourceSharingCreated;
+use super::shared::ResourceSharingModified;
+use super::shared::ResourceSharingOrganizationId;
+use super::shared::ResourceSharingResourceId;
+use super::shared::ResourceSharingResourceMeta;
+use super::shared::ResourceSharingResourceResourceId;
 use super::shared::ResourceSharingResourceStatus;
+use super::shared::ResourceSharingResourceType;
+use super::shared::ResourceSharingResourceVersion;
+use super::shared::ResourceSharingResultInfo;
+use super::shared::ResourceSharingShareId;
+use super::shared::ResourceSharingShareKind;
+use super::shared::ResourceSharingShareName;
+use super::shared::ResourceSharingShareObject;
+use super::shared::ResourceSharingShareResourceObject;
+use super::shared::ResourceSharingShareStatus;
+use super::shared::ResourceSharingShareTargetType;
+use super::shared::ResourceSharingV4Error;
 
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `ResourceSharingRecipientId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingRecipientId {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceSharingUpdateShareRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingUpdateShareRequest {
-    /// name property.
-    pub name: ResourceSharingShareName,
-}
-
-/// `ResourceSharingRecipientAssociationStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingRecipientAssociationStatus {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceSharingShareRecipientResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingShareRecipientResourceObject {
-    /// error property.
-    pub error: ResourceSharingRecipientResourceError,
-    /// resource_id property.
-    pub resource_id: ResourceSharingResourceResourceId,
-    /// resource_version property.
-    pub resource_version: ResourceSharingResourceVersion,
-    /// terminal property.
-    pub terminal: ResourceSharingRecipientResourceErrorTerminal,
-}
 
 /// `ResourceSharingCreateShareRecipientRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -88,27 +53,6 @@ pub struct ResourceSharingCreateShareRecipientRequest {
     pub account_id: Option<ResourceSharingAccountId>,
     /// organization_id property.
     pub organization_id: Option<ResourceSharingOrganizationId>,
-}
-
-/// `ResourceSharingRecipientResourceErrorTerminal` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingRecipientResourceErrorTerminal {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceSharingUpdateShareResourceRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingUpdateShareResourceRequest {
-    /// meta property.
-    pub meta: ResourceSharingResourceMeta,
-}
-
-/// `ResourceSharingRecipientResourceError` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingRecipientResourceError {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ResourceSharingCreateShareRequest` type.
@@ -122,34 +66,6 @@ pub struct ResourceSharingCreateShareRequest {
     pub resources: Vec<ResourceSharingCreateShareResourceRequest>,
 }
 
-/// `ResourceSharingShareRecipientResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingShareRecipientResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ResourceSharingShareRecipientObject>>,
-}
-
-/// `ResourceSharingShareResourceResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingShareResourceResponseSingle {
-    /// `result` property.
-    pub result: Option<ResourceSharingShareResourceObject>,
-}
-
-/// `ResourceSharingShareResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingShareResponseSingle {
-    /// `result` property.
-    pub result: Option<ResourceSharingShareObject>,
-}
-
-/// `ResourceSharingShareResourceResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingShareResourceResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ResourceSharingShareResourceObject>>,
-}
-
 /// `ResourceSharingCreateShareResourceRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingCreateShareResourceRequest {
@@ -161,6 +77,34 @@ pub struct ResourceSharingCreateShareResourceRequest {
     pub resource_id: ResourceSharingResourceResourceId,
     /// resource_type property.
     pub resource_type: ResourceSharingResourceType,
+}
+
+/// `ResourceSharingRecipientAssociationStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingRecipientAssociationStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceSharingRecipientId` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingRecipientId {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceSharingRecipientResourceError` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingRecipientResourceError {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceSharingRecipientResourceErrorTerminal` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingRecipientResourceErrorTerminal {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ResourceSharingShareRecipientObject` type.
@@ -180,11 +124,73 @@ pub struct ResourceSharingShareRecipientObject {
     pub resources: Option<Vec<ResourceSharingShareRecipientResourceObject>>,
 }
 
+/// `ResourceSharingShareRecipientResourceObject` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingShareRecipientResourceObject {
+    /// error property.
+    pub error: ResourceSharingRecipientResourceError,
+    /// resource_id property.
+    pub resource_id: ResourceSharingResourceResourceId,
+    /// resource_version property.
+    pub resource_version: ResourceSharingResourceVersion,
+    /// terminal property.
+    pub terminal: ResourceSharingRecipientResourceErrorTerminal,
+}
+
+/// `ResourceSharingShareRecipientResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingShareRecipientResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ResourceSharingShareRecipientObject>>,
+}
+
 /// `ResourceSharingShareRecipientResponseSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareRecipientResponseSingle {
     /// `result` property.
     pub result: Option<ResourceSharingShareRecipientObject>,
+}
+
+/// `ResourceSharingShareResourceResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingShareResourceResponseCollection {
+    /// `result` property.
+    pub result: Option<Vec<ResourceSharingShareResourceObject>>,
+}
+
+/// `ResourceSharingShareResourceResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingShareResourceResponseSingle {
+    /// `result` property.
+    pub result: Option<ResourceSharingShareResourceObject>,
+}
+
+/// `ResourceSharingShareResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingShareResponseSingle {
+    /// `result` property.
+    pub result: Option<ResourceSharingShareObject>,
+}
+
+/// `ResourceSharingUpdateShareRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingUpdateShareRequest {
+    /// name property.
+    pub name: ResourceSharingShareName,
+}
+
+/// `ResourceSharingUpdateShareResourceRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingUpdateShareResourceRequest {
+    /// meta property.
+    pub meta: ResourceSharingResourceMeta,
+}
+
+/// `ResourceSharingV4Errors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingV4Errors {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================
@@ -196,6 +202,26 @@ pub struct ResourceSharingShareRecipientResponseSingle {
 pub struct SharesListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `kind`.
+    pub kind: Option<String>,
+    /// Query parameter: `target_type`.
+    pub target_type: Option<String>,
+    /// Query parameter: `resource_types`.
+    pub resource_types: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `include_recipient_counts`.
+    pub include_recipient_counts: Option<String>,
 }
 
 /// Arguments for [`share-create_request`].
@@ -214,6 +240,10 @@ pub struct SharesGetByIdArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `include_recipient_counts`.
+    pub include_recipient_counts: Option<String>,
 }
 
 /// Arguments for [`share-update_request`].
@@ -243,6 +273,12 @@ pub struct ShareRecipientsListArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`share-recipient-create_request`].
@@ -276,6 +312,8 @@ pub struct ShareRecipientsGetByIdArgs {
     pub share_id: String,
     /// Path parameter: `recipient_id`.
     pub recipient_id: String,
+    /// Query parameter: `include_resources`.
+    pub include_resources: Option<String>,
 }
 
 /// Arguments for [`share-recipient-delete_request`].
@@ -296,6 +334,14 @@ pub struct ShareResourcesListArgs {
     pub account_id: String,
     /// Path parameter: `share_id`.
     pub share_id: String,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `resource_type`.
+    pub resource_type: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
 }
 
 /// Arguments for [`share-resource-create_request`].
@@ -373,18 +419,30 @@ pub struct ShareResourceDeleteArgs {
 pub async fn shares_list_request<F>(
     client: DynNetClient,
     args: &SharesListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares",
+    let path = format!("/accounts/{}/shares",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("kind", args.kind.as_deref());
+    builder = builder.query("target_type", args.target_type.as_deref());
+    builder = builder.query("resource_types", args.resource_types.as_deref());
+    builder = builder.query("order", args.order.as_deref());
+    builder = builder.query("direction", args.direction.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("include_recipient_counts", args.include_recipient_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -396,7 +454,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -428,15 +489,16 @@ where
 pub async fn share_create_request<F>(
     client: DynNetClient,
     args: &ShareCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares",
+    let path = format!("/accounts/{}/shares",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -454,7 +516,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -486,19 +551,23 @@ where
 pub async fn shares_get_by_id_request<F>(
     client: DynNetClient,
     args: &SharesGetByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}",
+    let path = format!("/accounts/{}/shares/{}",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("include_recipient_counts", args.include_recipient_counts.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -510,7 +579,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -542,16 +614,17 @@ where
 pub async fn share_update_request<F>(
     client: DynNetClient,
     args: &ShareUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}",
+    let path = format!("/accounts/{}/shares/{}",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -569,7 +642,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -601,16 +677,17 @@ where
 pub async fn share_delete_request<F>(
     client: DynNetClient,
     args: &ShareDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}",
+    let path = format!("/accounts/{}/shares/{}",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -625,7 +702,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -657,19 +737,24 @@ where
 pub async fn share_recipients_list_request<F>(
     client: DynNetClient,
     args: &ShareRecipientsListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareRecipientResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/recipients",
+    let path = format!("/accounts/{}/shares/{}/recipients",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include_resources", args.include_resources.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -681,7 +766,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareRecipientResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -713,16 +801,17 @@ where
 pub async fn share_recipient_create_request<F>(
     client: DynNetClient,
     args: &ShareRecipientCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareRecipientResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/recipients",
+    let path = format!("/accounts/{}/shares/{}/recipients",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -740,7 +829,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareRecipientResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -772,16 +864,17 @@ where
 pub async fn share_recipients_update_request<F>(
     client: DynNetClient,
     args: &ShareRecipientsUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/recipients",
+    let path = format!("/accounts/{}/shares/{}/recipients",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -799,7 +892,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -829,20 +925,23 @@ where
 pub async fn share_recipients_get_by_id_request<F>(
     client: DynNetClient,
     args: &ShareRecipientsGetByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareRecipientResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/recipients/{}",
+    let path = format!("/accounts/{}/shares/{}/recipients/{}",
         args.account_id,
         args.share_id,
         args.recipient_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("include_resources", args.include_resources.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -854,7 +953,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareRecipientResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -886,17 +988,18 @@ where
 pub async fn share_recipient_delete_request<F>(
     client: DynNetClient,
     args: &ShareRecipientDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareRecipientResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/recipients/{}",
+    let path = format!("/accounts/{}/shares/{}/recipients/{}",
         args.account_id,
         args.share_id,
         args.recipient_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -911,7 +1014,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareRecipientResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -943,19 +1049,25 @@ where
 pub async fn share_resources_list_request<F>(
     client: DynNetClient,
     args: &ShareResourcesListArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResourceResponseCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/resources",
+    let path = format!("/accounts/{}/shares/{}/resources",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query("resource_type", args.resource_type.as_deref());
+    builder = builder.query("page", args.page.as_deref());
+    builder = builder.query("per_page", args.per_page.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -967,7 +1079,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResourceResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -999,16 +1114,17 @@ where
 pub async fn share_resource_create_request<F>(
     client: DynNetClient,
     args: &ShareResourceCreateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/resources",
+    let path = format!("/accounts/{}/shares/{}/resources",
         args.account_id,
         args.share_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1026,7 +1142,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1058,17 +1177,18 @@ where
 pub async fn share_resources_get_by_id_request<F>(
     client: DynNetClient,
     args: &ShareResourcesGetByIdArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/resources/{}",
+    let path = format!("/accounts/{}/shares/{}/resources/{}",
         args.account_id,
         args.share_id,
         args.resource_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1083,7 +1203,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1115,17 +1238,18 @@ where
 pub async fn share_resource_update_request<F>(
     client: DynNetClient,
     args: &ShareResourceUpdateArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/resources/{}",
+    let path = format!("/accounts/{}/shares/{}/resources/{}",
         args.account_id,
         args.share_id,
         args.resource_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1143,7 +1267,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1175,17 +1302,18 @@ where
 pub async fn share_resource_delete_request<F>(
     client: DynNetClient,
     args: &ShareResourceDeleteArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ResourceSharingShareResourceResponseSingle>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/shares/{}/resources/{}",
+    let path = format!("/accounts/{}/shares/{}/resources/{}",
         args.account_id,
         args.share_id,
         args.resource_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1200,7 +1328,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ResourceSharingShareResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

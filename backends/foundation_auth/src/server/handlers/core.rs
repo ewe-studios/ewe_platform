@@ -18,9 +18,14 @@ use super::super::services::{
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
-use foundation_db::{KeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage, core::storage_provider::QueryStore};
+
+use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
+use crate::shared::provider::{ProviderMapping, ProviderType, UpstreamProvider};
+use crate::shared::upstream_client::UpstreamOidcClient;
 
 /// Typed response from a handler — carries HTTP status code, body, and headers.
+#[derive(Debug)]
 pub struct HandlerResponse {
     pub status: u16,
     pub body: serde_json::Value,
@@ -33,6 +38,14 @@ impl HandlerResponse {
     }
     pub fn accepted(body: serde_json::Value) -> Self {
         Self { status: 202, body, headers: vec![] }
+    }
+    /// Build a 302 redirect. The body is empty; `Location` is set from `url`.
+    pub fn redirect(url: &str) -> Self {
+        Self {
+            status: 302,
+            body: serde_json::json!({}),
+            headers: vec![("Location".to_string(), url.to_string())],
+        }
     }
 }
 
@@ -221,6 +234,9 @@ pub struct IdpHandlerCore<KV: KeyValueStore = foundation_db::MemoryStorage> {
     pow_service: Arc<PowService<KV>>,
     webauthn_service: Arc<WebAuthnService<HandlerStorage<KV>, KV>>,
     tos_service: Arc<TosService<KV>>,
+    /// In-memory upstream auth session store (F011). When present, social login
+    /// routes are enabled.
+    session_store: Option<Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>>,
 }
 
 impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
@@ -231,7 +247,20 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let pow_service = Arc::new(PowService::new(cache.clone(), 22, 300, 600));
         let webauthn_service = Arc::new(WebAuthnService::new(Arc::clone(&config), Arc::clone(&storage), cache));
         let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
-        Self { config, storage, token_service, pow_service, webauthn_service, tos_service }
+        Self { config, storage, token_service, pow_service, webauthn_service, tos_service, session_store: None }
+    }
+
+    /// Enable social login by attaching a session store.
+    pub fn with_social_login(
+        mut self,
+        store: Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>,
+    ) -> Self {
+        self.session_store = Some(store);
+        self
+    }
+
+    fn social_enabled(&self) -> bool {
+        self.session_store.is_some()
     }
 
     pub async fn discovery(
@@ -1084,6 +1113,122 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
+    // ── F011 Social login handlers ────────────────────────────────────────
+
+    /// `GET /authorize?provider=google&state=...&redirect_uri=...`
+    pub async fn social_authorize(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        if !self.social_enabled() {
+            return Err(IdpError::BadRequest("social login not configured".into()));
+        }
+        let query = extract_query(&req.request_url.url);
+
+        let provider_id = query_param(&query, "provider")
+            .ok_or_else(|| IdpError::BadRequest("Missing 'provider' query param".into()))?;
+        let app_state = query_param(&query, "state").unwrap_or_default().to_string();
+        let app_redirect_uri = query_param(&query, "redirect_uri")
+            .ok_or_else(|| IdpError::BadRequest("Missing 'redirect_uri' query param".into()))?;
+
+        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), provider_id)
+            .map_err(|e| IdpError::Internal(format!("provider lookup: {e}")))?
+            .ok_or_else(|| IdpError::NotFound(format!("unknown provider: {provider_id}")))?;
+
+        if !provider.is_active {
+            return Err(IdpError::Forbidden(format!("provider {provider_id} is not active")));
+        }
+
+        let mut client = UpstreamOidcClient::new(provider.clone(), app_redirect_uri.to_string());
+        if provider.discovery_url.is_some() {
+            let mut dc = crate::shared::discovery::DiscoveryClient::default();
+            client.discover_and_configure(&mut dc).await
+                .map_err(|e| IdpError::BadRequest(format!("discovery: {e}")))?;
+        } else {
+            client.configure()
+                .map_err(|e| IdpError::BadRequest(format!("oauth config: {e}")))?;
+        }
+
+        let upstream_state = crate::shared::oauth::OAuthManager::generate_state();
+        let (auth_url, pkce) = client.authorize_url(&upstream_state)
+            .map_err(|e| IdpError::Internal(format!("authorize url: {e}")))?;
+
+        let nonce = if provider.provider_type == ProviderType::Oidc {
+            Some(crate::shared::oauth::OAuthManager::generate_nonce())
+        } else { None };
+
+        self.session_store.as_ref().unwrap().insert(&UpstreamAuthSession::with_app_state(
+            upstream_state,
+            provider_id.to_string(),
+            Some(pkce.code_verifier),
+            nonce,
+            Some(app_redirect_uri.to_string()),
+            600,
+            if app_state.is_empty() { None } else { Some(app_state) },
+        )).map_err(|e| IdpError::Internal(format!("session store: {e}")))?;
+
+        Ok(HandlerResponse::redirect(&auth_url))
+    }
+
+    /// `GET /callback?provider=google&code=...&state=...`
+    pub async fn social_callback(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        if !self.social_enabled() {
+            return Err(IdpError::BadRequest("social login not configured".into()));
+        }
+        let query = extract_query(&req.request_url.url);
+
+        let code = query_param(&query, "code")
+            .ok_or_else(|| IdpError::BadRequest("Missing 'code' query param".into()))?;
+        let state = query_param(&query, "state")
+            .ok_or_else(|| IdpError::BadRequest("Missing 'state' query param".into()))?;
+
+        let session = self.session_store.as_ref().unwrap().take(state)
+            .map_err(|e| IdpError::BadRequest(format!("session: {e}")))?;
+
+        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), &session.provider_id)
+            .map_err(|e| IdpError::Internal(format!("provider lookup: {e}")))?
+            .ok_or_else(|| IdpError::NotFound(format!("unknown provider: {}", session.provider_id)))?;
+
+        // Build configured client, exchange code, fetch userinfo.
+        let mut client = UpstreamOidcClient::new(provider.clone(), "unused".to_string());
+        if provider.discovery_url.is_some() {
+            let mut dc = crate::shared::discovery::DiscoveryClient::default();
+            client.discover_and_configure(&mut dc).await
+                .map_err(|e| IdpError::BadRequest(format!("discovery: {e}")))?;
+        } else {
+            client.configure()
+                .map_err(|e| IdpError::BadRequest(format!("oauth config: {e}")))?;
+        }
+
+        let token = client.exchange_code(code, session.code_verifier.as_deref(), None).await
+            .map_err(|e| IdpError::BadRequest(format!("token exchange: {e}")))?;
+
+        let profile = client.fetch_userinfo(&token.access_token).await
+            .map_err(|e| IdpError::BadRequest(format!("userinfo: {e}")))?;
+
+        let user_id = provision_from_upstream_profile(
+            self.storage.query_store.as_ref(), &profile,
+        ).map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
+
+        let auth_code = crate::server::models::AuthorizationCode::new(
+            user_id,
+            String::new(),
+            session.redirect_to.clone().unwrap_or_default(),
+            None,
+            "openid profile email".to_string(),
+            session.nonce.clone(),
+            std::time::Duration::from_secs(600),
+        );
+        storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code)
+            .map_err(|e| IdpError::Internal(format!("store auth code: {e}")))?;
+
+        let app_state = session.app_state.as_deref().unwrap_or("");
+        let redirect_uri = session.redirect_to.as_deref().unwrap_or("/");
+        let redirect_to = format!("{redirect_uri}?code={}&state={app_state}", auth_code.code);
+        Ok(HandlerResponse::redirect(&redirect_to))
+    }
+
     pub async fn dispatch(
         &self, bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
@@ -1092,6 +1237,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         if path.ends_with("/.well-known/openid-configuration") { self.discovery(bag, req).await }
         else if path.ends_with("/.well-known/jwks.json") { self.jwks(bag, req).await }
+        // F011: social login — /authorize?provider=X dispatches here
+        else if path.ends_with("/authorize") && has_query_param("provider", req) { self.social_authorize(bag, req).await }
+        else if path.ends_with("/callback") && has_query_param("provider", req) { self.social_callback(bag, req).await }
         else if path.ends_with("/authorize") && !path.contains("/device/") { self.authorize(bag, req).await }
         else if path.ends_with("/token") && !path.contains("/introspect") { self.token(bag, req).await }
         else if path.ends_with("/userinfo") { self.userinfo(bag, req).await }
@@ -1177,6 +1325,118 @@ fn extract_query(url: &str) -> Vec<(String, String)> {
 
 fn query_param<'a>(query: &'a [(String, String)], name: &str) -> Option<&'a str> {
     query.iter().find(|(k, _)| k == name).map(|(_, v)| v.as_str())
+}
+
+/// Check whether a request URL has a particular query parameter.
+fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
+    let url = &req.request_url.url;
+    extract_query(url).iter().any(|(k, _)| k == name)
+}
+
+/// Look up an upstream provider by slug from the IdP database.
+fn lookup_upstream_provider(
+    qs: &dyn QueryStore, id: &str,
+) -> Result<Option<UpstreamProvider>, String> {
+    use foundation_db::core::storage_provider::DataValue;
+    let mut stream = qs.query(
+        "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+         encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
+         scopes, is_active, mapping_config, created_at, updated_at \
+         FROM upstream_providers WHERE id = ?",
+        &[DataValue::Text(id.to_string())],
+    ).map_err(|e| e.to_string())?;
+
+    for item in stream.by_ref() {
+        match item {
+            foundation_core::valtron::Stream::Next(Ok(row)) => return parse_provider_row(&row),
+            foundation_core::valtron::Stream::Next(Err(e)) => return Err(format!("db: {e}")),
+            _ => continue,
+        }
+    }
+    Ok(None)
+}
+
+/// Decode an `UpstreamProvider` from a SELECT result row.
+fn parse_provider_row(row: &foundation_db::core::storage_provider::SqlRow) -> Result<Option<UpstreamProvider>, String> {
+    let get = |name: &str| -> Result<String, String> {
+        row.get_by_name::<String>(name).map_err(|e| format!("col {name}: {e}"))
+    };
+    let get_opt_str = |name: &str| -> Result<Option<String>, String> {
+        row.get_by_name::<Option<String>>(name).map_err(|e| format!("col {name}: {e}"))
+    };
+    let pt: String = get("provider_type")?;
+    let scopes_json: String = get("scopes")?;
+    let mapping_json: String = get("mapping_config")?;
+    let is_active_int: i64 = row.get_by_name::<i64>("is_active").map_err(|e| format!("col is_active: {e}"))?;
+    let secret: Option<Vec<u8>> = row.get_by_name::<Option<Vec<u8>>>("client_secret_ciphertext")
+        .map_err(|e| format!("col client_secret_ciphertext: {e}"))?;
+
+    let scopes: Vec<String> = serde_json::from_str(&scopes_json).unwrap_or_default();
+    let mapping_config: ProviderMapping = serde_json::from_str(&mapping_json).unwrap_or_default();
+
+    Ok(Some(UpstreamProvider {
+        id: get("id")?,
+        name: get("name")?,
+        provider_type: ProviderType::from_str_lenient(&pt),
+        client_id: get("client_id")?,
+        client_secret_ciphertext: secret,
+        encryption_key_id: get("encryption_key_id")?,
+        authorization_url: get_opt_str("authorization_url")?,
+        token_url: get_opt_str("token_url")?,
+        userinfo_url: get_opt_str("userinfo_url")?,
+        discovery_url: get_opt_str("discovery_url")?,
+        scopes,
+        is_active: is_active_int != 0,
+        mapping_config,
+        created_at: 0,
+        updated_at: 0,
+    }))
+}
+
+/// Minimal provisioning: find user by email, or create a new row.
+fn provision_from_upstream_profile(
+    qs: &dyn QueryStore, profile: &crate::shared::upstream_client::UpstreamProfile,
+) -> Result<String, String> {
+    use foundation_db::core::storage_provider::DataValue;
+    if let (Some(email), true) = (&profile.email, profile.email_verified) {
+        if let Some(user_id) = find_user_by_email_lax(qs, email).ok().flatten() {
+            return Ok(user_id);
+        }
+    }
+    let user_id = uuid::Uuid::new_v4().to_string();
+    let name = profile.name.as_deref().unwrap_or(&profile.sub);
+    let email = profile.email.as_deref().unwrap_or("");
+    let now = chrono::Utc::now().timestamp_millis();
+    qs.execute(
+        "INSERT INTO users (id, email, preferred_username, password_hash, \
+         created_at, updated_at) VALUES (?, ?, ?, '', ?, ?)",
+        &[
+            DataValue::Text(user_id.clone()),
+            DataValue::Text(email.to_string()),
+            DataValue::Text(name.to_string()),
+            DataValue::Integer(now),
+            DataValue::Integer(now),
+        ],
+    ).map_err(|e| e.to_string())?;
+    Ok(user_id)
+}
+
+fn find_user_by_email_lax(qs: &dyn QueryStore, email: &str) -> Result<Option<String>, String> {
+    use foundation_db::core::storage_provider::DataValue;
+    let mut stream = qs.query(
+        "SELECT id FROM users WHERE email = ?",
+        &[DataValue::Text(email.to_lowercase())],
+    ).map_err(|e| e.to_string())?;
+    for item in stream.by_ref() {
+        match item {
+            foundation_core::valtron::Stream::Next(Ok(row)) => {
+                return row.get_by_name::<String>("id").map(Some).map_err(|e| format!("{e}"))
+            }
+            foundation_core::valtron::Stream::Next(Err(e)) => return Err(format!("db: {e}")),
+            _ => continue,
+        }
+    }
+    Ok(None)
 }
 
 fn extract_body_text(body: &Option<SendSafeBody>) -> String {

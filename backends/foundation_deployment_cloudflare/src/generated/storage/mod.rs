@@ -21,65 +21,53 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `R2Messages` type.
+/// `EnableCatalogResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2Messages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `WorkersKvApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersKvApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
-
-/// `MagicVisibilityPcapsPcapsOwnershipValidateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsOwnershipValidateRequest {
-    /// destination_conf property.
-    pub destination_conf: MagicVisibilityPcapsPcapsDestinationConf,
-    /// ownership_challenge property.
-    pub ownership_challenge: MagicVisibilityPcapsPcapsOwnershipChallenge,
-}
-
-/// `MagicVisibilityPcapsPcapsOwnershipCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsOwnershipCollection {
+pub struct EnableCatalogResponse {
     /// `result` property.
-    pub result: Option<Vec<MagicVisibilityPcapsPcapsOwnershipResponse>>,
+    pub result: Option<R2DataCatalogCatalogActivationResponse>,
 }
 
-/// `WorkersKvMessages` type.
+/// `GetCatalogDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersKvMessages {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MagicVisibilityPcapsResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
-
-/// `WorkersKvApiResponseCommonNoResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersKvApiResponseCommonNoResult {
+pub struct GetCatalogDetailsResponse {
     /// `result` property.
-    pub result: Option<serde_json::Value>,
+    pub result: Option<R2DataCatalogCatalog>,
+}
+
+/// `GetMaintenanceConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetMaintenanceConfigResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogCatalogMaintenanceConfigResponse>,
+}
+
+/// `GetTableMaintenanceConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetTableMaintenanceConfigResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogTableMaintenanceConfigResponse>,
+}
+
+/// `ListCatalogsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListCatalogsResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogCatalogList>,
+}
+
+/// `ListNamespacesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListNamespacesResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogNamespaceListResponse>,
+}
+
+/// `ListTablesResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListTablesResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogTableListResponse>,
 }
 
 /// `MagicVisibilityPcapsApiResponseCollection` type.
@@ -91,16 +79,52 @@ pub struct MagicVisibilityPcapsApiResponseCollection {
     pub result_info: Option<MagicVisibilityPcapsResultInfo>,
 }
 
+/// `MagicVisibilityPcapsApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// result property.
+    pub result: serde_json::Value,
+    /// success property.
+    pub success: bool,
+}
+
+/// `MagicVisibilityPcapsMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsDestinationConf` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsDestinationConf {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsOwnershipChallenge` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsOwnershipChallenge {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MagicVisibilityPcapsPcapsOwnershipCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsOwnershipCollection {
+    /// `result` property.
+    pub result: Option<Vec<MagicVisibilityPcapsPcapsOwnershipResponse>>,
+}
+
 /// `MagicVisibilityPcapsPcapsOwnershipRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsOwnershipRequest {
     /// destination_conf property.
     pub destination_conf: MagicVisibilityPcapsPcapsDestinationConf,
-}
-
-/// `R2DataCatalogTableMaintenanceUpdateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2DataCatalogTableMaintenanceUpdateRequest {
 }
 
 /// `MagicVisibilityPcapsPcapsOwnershipResponse` type.
@@ -120,11 +144,220 @@ pub struct MagicVisibilityPcapsPcapsOwnershipResponse {
     pub validated: Option<String>,
 }
 
-/// `WorkersKvNamespaceTitle` type.
+/// `MagicVisibilityPcapsPcapsOwnershipSingleResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersKvNamespaceTitle {
+pub struct MagicVisibilityPcapsPcapsOwnershipSingleResponse {
+    /// `result` property.
+    pub result: Option<MagicVisibilityPcapsPcapsOwnershipResponse>,
+}
+
+/// `MagicVisibilityPcapsPcapsOwnershipValidateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsOwnershipValidateRequest {
+    /// destination_conf property.
+    pub destination_conf: MagicVisibilityPcapsPcapsDestinationConf,
+    /// ownership_challenge property.
+    pub ownership_challenge: MagicVisibilityPcapsPcapsOwnershipChallenge,
+}
+
+/// `MagicVisibilityPcapsResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
+}
+
+/// `R2AccountLevelMetrics` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2AccountLevelMetrics {
+    /// infrequentAccess property.
+    #[serde(rename = "infrequentAccess")]
+    pub infrequent_access: Option<R2ClassBasedMetrics>,
+    /// standard property.
+    pub standard: Option<R2ClassBasedMetrics>,
+}
+
+/// `R2Bucket` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Bucket {
+    /// creation_date property.
+    pub creation_date: Option<String>,
+    /// jurisdiction property.
+    pub jurisdiction: Option<R2Jurisdiction>,
+    /// location property.
+    pub location: Option<R2BucketLocation>,
+    /// name property.
+    pub name: Option<R2BucketName>,
+    /// storage_class property.
+    pub storage_class: Option<R2StorageClass>,
+}
+
+/// `R2BucketConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2BucketConfig {
+    /// bucketName property.
+    #[serde(rename = "bucketName")]
+    pub bucket_name: Option<String>,
+    /// queues property.
+    pub queues: Option<Vec<R2QueuesConfig>>,
+}
+
+/// `R2BucketLocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2BucketLocation {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2BucketLockRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2BucketLockRule {
+    /// condition property.
+    pub condition: serde_json::Value,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// prefix property.
+    pub prefix: Option<String>,
+}
+
+/// `R2BucketLockRuleConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2BucketLockRuleConfig {
+    /// rules property.
+    pub rules: Option<Vec<serde_json::Value>>,
+}
+
+/// `R2BucketName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2BucketName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2ClassBasedMetrics` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ClassBasedMetrics {
+    /// published property.
+    pub published: Option<R2ObjectSizeMetrics>,
+    /// uploaded property.
+    pub uploaded: Option<R2ObjectSizeMetrics>,
+}
+
+/// `R2CorsRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2CorsRule {
+    /// allowed property.
+    pub allowed: std::collections::HashMap<String, serde_json::Value>,
+    /// exposeHeaders property.
+    #[serde(rename = "exposeHeaders")]
+    pub expose_headers: Option<Vec<String>>,
+    /// id property.
+    pub id: Option<String>,
+    /// maxAgeSeconds property.
+    #[serde(rename = "maxAgeSeconds")]
+    pub max_age_seconds: Option<f64>,
+}
+
+/// `R2CreateBucketRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2CreateBucketRequest {
+    /// locationHint property.
+    #[serde(rename = "locationHint")]
+    pub location_hint: Option<R2BucketLocation>,
+    /// name property.
+    pub name: R2BucketName,
+    /// storageClass property.
+    #[serde(rename = "storageClass")]
+    pub storage_class: Option<R2StorageClass>,
+}
+
+/// `R2CreateBucketResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2CreateBucketResponse {
+    /// `result` property.
+    pub result: Option<R2Bucket>,
+}
+
+/// `R2CreateTempAccessCredentialsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2CreateTempAccessCredentialsResponse {
+    /// `result` property.
+    pub result: Option<R2TempAccessCredsResponse>,
+}
+
+/// `R2DataCatalogApiResponseErrors` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseErrors {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogApiResponseMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogApiResponseSingle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseSingle {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: R2DataCatalogApiResponseSuccess,
+}
+
+/// `R2DataCatalogApiResponseSuccess` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseSuccess {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogCatalog` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalog {
+    /// bucket property.
+    pub bucket: String,
+    /// credential_status property.
+    pub credential_status: Option<String>,
+    /// id property.
+    pub id: String,
+    /// maintenance_config property.
+    pub maintenance_config: Option<serde_json::Value>,
+    /// name property.
+    pub name: String,
+    /// status property.
+    pub status: R2DataCatalogCatalogStatus,
+}
+
+/// `R2DataCatalogCatalogActivationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogActivationResponse {
+    /// id property.
+    pub id: String,
+    /// name property.
+    pub name: String,
+}
+
+/// `R2DataCatalogCatalogCompactionConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogCompactionConfig {
+    /// state property.
+    pub state: R2DataCatalogCatalogMaintenanceState,
+    /// target_size_mb property.
+    pub target_size_mb: R2DataCatalogCatalogTargetFileSize,
 }
 
 /// `R2DataCatalogCatalogCredentialRequest` type.
@@ -134,6 +367,245 @@ pub struct R2DataCatalogCatalogCredentialRequest {
     pub token: String,
 }
 
+/// `R2DataCatalogCatalogList` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogList {
+    /// warehouses property.
+    pub warehouses: Vec<R2DataCatalogCatalog>,
+}
+
+/// `R2DataCatalogCatalogMaintenanceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogMaintenanceConfig {
+    /// compaction property.
+    pub compaction: Option<R2DataCatalogCatalogCompactionConfig>,
+    /// snapshot_expiration property.
+    pub snapshot_expiration: Option<R2DataCatalogSnapshotExpirationConfig>,
+}
+
+/// `R2DataCatalogCatalogMaintenanceConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogMaintenanceConfigResponse {
+    /// credential_status property.
+    pub credential_status: R2DataCatalogCredentialStatus,
+    /// maintenance_config property.
+    pub maintenance_config: R2DataCatalogCatalogMaintenanceConfig,
+}
+
+/// `R2DataCatalogCatalogMaintenanceState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogMaintenanceState {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogCatalogMaintenanceUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogMaintenanceUpdateRequest {
+}
+
+/// `R2DataCatalogCatalogStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogCatalogTargetFileSize` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogTargetFileSize {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogCompactionUpdateParams` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCompactionUpdateParams {
+    /// state property.
+    pub state: Option<serde_json::Value>,
+    /// target_size_mb property.
+    pub target_size_mb: Option<serde_json::Value>,
+}
+
+/// `R2DataCatalogCredentialStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCredentialStatus {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogMaintenanceUpdateParams` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogMaintenanceUpdateParams {
+    /// compaction property.
+    pub compaction: Option<R2DataCatalogCompactionUpdateParams>,
+    /// snapshot_expiration property.
+    pub snapshot_expiration: Option<R2DataCatalogSnapshotExpirationUpdateParams>,
+}
+
+/// `R2DataCatalogNamespaceDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogNamespaceDetails {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// namespace property.
+    pub namespace: Vec<String>,
+    /// namespace_uuid property.
+    pub namespace_uuid: String,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `R2DataCatalogNamespaceIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogNamespaceIdentifier {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2DataCatalogNamespaceListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogNamespaceListResponse {
+    /// details property.
+    pub details: Option<Vec<R2DataCatalogNamespaceDetails>>,
+    /// namespace_uuids property.
+    pub namespace_uuids: Option<Vec<String>>,
+    /// namespaces property.
+    pub namespaces: Vec<Vec<String>>,
+    /// next_page_token property.
+    pub next_page_token: Option<String>,
+}
+
+/// `R2DataCatalogSnapshotExpirationConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogSnapshotExpirationConfig {
+    /// max_snapshot_age property.
+    pub max_snapshot_age: String,
+    /// min_snapshots_to_keep property.
+    pub min_snapshots_to_keep: i64,
+    /// state property.
+    pub state: R2DataCatalogCatalogMaintenanceState,
+}
+
+/// `R2DataCatalogSnapshotExpirationUpdateParams` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogSnapshotExpirationUpdateParams {
+    /// max_snapshot_age property.
+    pub max_snapshot_age: Option<String>,
+    /// min_snapshots_to_keep property.
+    pub min_snapshots_to_keep: Option<i64>,
+    /// state property.
+    pub state: Option<serde_json::Value>,
+}
+
+/// `R2DataCatalogTableCompactionConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableCompactionConfig {
+    /// state property.
+    pub state: R2DataCatalogCatalogMaintenanceState,
+    /// target_size_mb property.
+    pub target_size_mb: R2DataCatalogCatalogTargetFileSize,
+}
+
+/// `R2DataCatalogTableDetails` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableDetails {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// identifier property.
+    pub identifier: R2DataCatalogTableIdentifier,
+    /// location property.
+    pub location: Option<String>,
+    /// metadata_location property.
+    pub metadata_location: Option<String>,
+    /// table_uuid property.
+    pub table_uuid: String,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `R2DataCatalogTableIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableIdentifier {
+    /// name property.
+    pub name: String,
+    /// namespace property.
+    pub namespace: Vec<String>,
+}
+
+/// `R2DataCatalogTableListResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableListResponse {
+    /// details property.
+    pub details: Option<Vec<R2DataCatalogTableDetails>>,
+    /// identifiers property.
+    pub identifiers: Vec<R2DataCatalogTableIdentifier>,
+    /// next_page_token property.
+    pub next_page_token: Option<String>,
+    /// table_uuids property.
+    pub table_uuids: Option<Vec<String>>,
+}
+
+/// `R2DataCatalogTableMaintenanceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableMaintenanceConfig {
+    /// compaction property.
+    pub compaction: Option<R2DataCatalogTableCompactionConfig>,
+    /// snapshot_expiration property.
+    pub snapshot_expiration: Option<R2DataCatalogSnapshotExpirationConfig>,
+}
+
+/// `R2DataCatalogTableMaintenanceConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableMaintenanceConfigResponse {
+    /// maintenance_config property.
+    pub maintenance_config: R2DataCatalogTableMaintenanceConfig,
+}
+
+/// `R2DataCatalogTableMaintenanceUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableMaintenanceUpdateRequest {
+}
+
+/// `R2DeleteBucketCorsPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DeleteBucketCorsPolicyResponse {
+}
+
+/// `R2DeleteBucketSippyConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2DeleteBucketSippyConfigResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2EnableSippyAws` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EnableSippyAws {
+    /// destination property.
+    pub destination: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2EnableSippyGcs` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EnableSippyGcs {
+    /// destination property.
+    pub destination: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2EnableSippyS3` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EnableSippyS3 {
+    /// destination property.
+    pub destination: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `R2Errors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2Errors {
@@ -141,11 +613,332 @@ pub struct R2Errors {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `MagicVisibilityPcapsPcapsOwnershipChallenge` type.
+/// `R2EventNotificationDeleteConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsOwnershipChallenge {
+pub struct R2EventNotificationDeleteConfigRequest {
+    /// ruleIds property.
+    #[serde(rename = "ruleIds")]
+    pub rule_ids: Option<Vec<String>>,
+}
+
+/// `R2EventNotificationDeleteConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2EventNotificationDeleteConfigResponse {
+}
+
+/// `R2GetAccountLevelMetricsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetAccountLevelMetricsResponse {
+    /// `result` property.
+    pub result: Option<R2AccountLevelMetrics>,
+}
+
+/// `R2GetBucketCorsPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketCorsPolicyResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2GetBucketLifecycleConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketLifecycleConfigurationResponse {
+    /// `result` property.
+    pub result: Option<R2LifecycleConfig>,
+}
+
+/// `R2GetBucketLocalUploadsConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketLocalUploadsConfigurationResponse {
+    /// `result` property.
+    pub result: Option<R2LocalUploadsConfiguration>,
+}
+
+/// `R2GetBucketLockConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketLockConfigurationResponse {
+    /// `result` property.
+    pub result: Option<R2BucketLockRuleConfig>,
+}
+
+/// `R2GetBucketResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketResponse {
+    /// `result` property.
+    pub result: Option<R2Bucket>,
+}
+
+/// `R2GetBucketSippyConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetBucketSippyConfigResponse {
+    /// `result` property.
+    pub result: Option<R2Sippy>,
+}
+
+/// `R2GetEventNotificationConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetEventNotificationConfigResponse {
+    /// `result` property.
+    pub result: Option<R2QueuesConfig>,
+}
+
+/// `R2GetEventNotificationConfigsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2GetEventNotificationConfigsResponse {
+    /// `result` property.
+    pub result: Option<R2BucketConfig>,
+}
+
+/// `R2Jurisdiction` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Jurisdiction {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2LifecycleConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2LifecycleConfig {
+    /// rules property.
+    pub rules: Option<Vec<serde_json::Value>>,
+}
+
+/// `R2LifecycleRule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2LifecycleRule {
+    /// abortMultipartUploadsTransition property.
+    #[serde(rename = "abortMultipartUploadsTransition")]
+    pub abort_multipart_uploads_transition: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// conditions property.
+    pub conditions: std::collections::HashMap<String, serde_json::Value>,
+    /// deleteObjectsTransition property.
+    #[serde(rename = "deleteObjectsTransition")]
+    pub delete_objects_transition: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// enabled property.
+    pub enabled: bool,
+    /// id property.
+    pub id: String,
+    /// storageClassTransitions property.
+    #[serde(rename = "storageClassTransitions")]
+    pub storage_class_transitions: Option<Vec<serde_json::Value>>,
+}
+
+/// `R2LifecycleStorageTransition` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2LifecycleStorageTransition {
+    /// condition property.
+    pub condition: serde_json::Value,
+    /// storageClass property.
+    #[serde(rename = "storageClass")]
+    pub storage_class: String,
+}
+
+/// `R2ListBucketsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ListBucketsResponse {
+    /// `result` property.
+    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2LocalUploadsConfiguration` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2LocalUploadsConfiguration {
+    /// enabled property.
+    pub enabled: Option<bool>,
+}
+
+/// `R2Messages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Messages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2ObjectSizeMetrics` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ObjectSizeMetrics {
+    /// metadataSize property.
+    #[serde(rename = "metadataSize")]
+    pub metadata_size: Option<f64>,
+    /// objects property.
+    pub objects: Option<f64>,
+    /// payloadSize property.
+    #[serde(rename = "payloadSize")]
+    pub payload_size: Option<f64>,
+}
+
+/// `R2PatchBucketResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PatchBucketResponse {
+    /// `result` property.
+    pub result: Option<R2Bucket>,
+}
+
+/// `R2PutBucketCorsPolicyRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketCorsPolicyRequest {
+    /// rules property.
+    pub rules: Option<Vec<R2CorsRule>>,
+}
+
+/// `R2PutBucketCorsPolicyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketCorsPolicyResponse {
+}
+
+/// `R2PutBucketLifecycleConfigurationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLifecycleConfigurationRequest {
+    /// rules property.
+    pub rules: Option<Vec<R2LifecycleRule>>,
+}
+
+/// `R2PutBucketLifecycleConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLifecycleConfigurationResponse {
+}
+
+/// `R2PutBucketLocalUploadsConfigurationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLocalUploadsConfigurationRequest {
+    /// enabled property.
+    pub enabled: bool,
+}
+
+/// `R2PutBucketLocalUploadsConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLocalUploadsConfigurationResponse {
+}
+
+/// `R2PutBucketLockConfigurationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLockConfigurationRequest {
+    /// rules property.
+    pub rules: Option<Vec<R2BucketLockRule>>,
+}
+
+/// `R2PutBucketLockConfigurationResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketLockConfigurationResponse {
+}
+
+/// `R2PutBucketSippyConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketSippyConfigRequest {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2PutBucketSippyConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutBucketSippyConfigResponse {
+    /// `result` property.
+    pub result: Option<R2Sippy>,
+}
+
+/// `R2PutEventNotificationConfigRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutEventNotificationConfigRequest {
+    /// rules property.
+    pub rules: Vec<R2Rule>,
+}
+
+/// `R2PutEventNotificationConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2PutEventNotificationConfigResponse {
+}
+
+/// `R2QueuesConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2QueuesConfig {
+    /// queueId property.
+    #[serde(rename = "queueId")]
+    pub queue_id: Option<String>,
+    /// queueName property.
+    #[serde(rename = "queueName")]
+    pub queue_name: Option<String>,
+    /// rules property.
+    pub rules: Option<Vec<serde_json::Value>>,
+}
+
+/// `R2R2Action` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2R2Action {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2ResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ResultInfo {
+    /// cursor property.
+    pub cursor: Option<String>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+}
+
+/// `R2Rule` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Rule {
+    /// actions property.
+    pub actions: Vec<R2R2Action>,
+    /// description property.
+    pub description: Option<String>,
+    /// prefix property.
+    pub prefix: Option<String>,
+    /// suffix property.
+    pub suffix: Option<String>,
+}
+
+/// `R2Sippy` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2Sippy {
+    /// destination property.
+    pub destination: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// enabled property.
+    pub enabled: Option<bool>,
+    /// source property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `R2StorageClass` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2StorageClass {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `R2TempAccessCredsRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2TempAccessCredsRequest {
+    /// bucket property.
+    pub bucket: String,
+    /// objects property.
+    pub objects: Option<Vec<String>>,
+    /// parentAccessKeyId property.
+    #[serde(rename = "parentAccessKeyId")]
+    pub parent_access_key_id: String,
+    /// permission property.
+    pub permission: String,
+    /// prefixes property.
+    pub prefixes: Option<Vec<String>>,
+    /// ttlSeconds property.
+    #[serde(rename = "ttlSeconds")]
+    pub ttl_seconds: f64,
+}
+
+/// `R2TempAccessCredsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2TempAccessCredsResponse {
+    /// accessKeyId property.
+    #[serde(rename = "accessKeyId")]
+    pub access_key_id: Option<String>,
+    /// secretAccessKey property.
+    #[serde(rename = "secretAccessKey")]
+    pub secret_access_key: Option<String>,
+    /// sessionToken property.
+    #[serde(rename = "sessionToken")]
+    pub session_token: Option<String>,
 }
 
 /// `R2V4Response` type.
@@ -161,35 +954,73 @@ pub struct R2V4Response {
     pub success: bool,
 }
 
-/// `R2TempAccessCredsRequest` type.
+/// `R2V4ResponseList` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2TempAccessCredsRequest {
-    /// bucket property.
-    pub bucket: String,
-    /// objects property.
-    pub objects: Option<Vec<String>>,
-    /// parentAccessKeyId property.
-    pub parent_access_key_id: String,
-    /// permission property.
-    pub permission: String,
-    /// prefixes property.
-    pub prefixes: Option<Vec<String>>,
-    /// ttlSeconds property.
-    pub ttl_seconds: f64,
+pub struct R2V4ResponseList {
+    /// `result_info` property.
+    pub result_info: Option<R2ResultInfo>,
 }
 
-/// `R2DataCatalogMaintenanceUpdateParams` type.
+/// `StoreCredentialsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2DataCatalogMaintenanceUpdateParams {
-    /// compaction property.
-    pub compaction: Option<R2DataCatalogCompactionUpdateParams>,
-    /// snapshot_expiration property.
-    pub snapshot_expiration: Option<R2DataCatalogSnapshotExpirationUpdateParams>,
+pub struct StoreCredentialsResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
 }
 
-/// `R2DataCatalogCatalogMaintenanceUpdateRequest` type.
+/// `UpdateMaintenanceConfigResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2DataCatalogCatalogMaintenanceUpdateRequest {
+pub struct UpdateMaintenanceConfigResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogCatalogMaintenanceConfig>,
+}
+
+/// `UpdateTableMaintenanceConfigResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UpdateTableMaintenanceConfigResponse {
+    /// `result` property.
+    pub result: Option<R2DataCatalogTableMaintenanceConfig>,
+}
+
+/// `WorkersKvAny` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvAny {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvApiResponseCollection` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvApiResponseCollection {
+    /// `result_info` property.
+    pub result_info: Option<WorkersKvResultInfo>,
+}
+
+/// `WorkersKvApiResponseCommon` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvApiResponseCommon {
+    /// errors property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// messages property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// success property.
+    pub success: bool,
+}
+
+/// `WorkersKvApiResponseCommonNoResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvApiResponseCommonNoResult {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `WorkersKvBulkResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvBulkResult {
+    /// successful_key_count property.
+    pub successful_key_count: Option<f64>,
+    /// unsuccessful_keys property.
+    pub unsuccessful_keys: Option<Vec<String>>,
 }
 
 /// `WorkersKvCreateRenameNamespaceBody` type.
@@ -199,58 +1030,173 @@ pub struct WorkersKvCreateRenameNamespaceBody {
     pub title: WorkersKvNamespaceTitle,
 }
 
-/// `MagicVisibilityPcapsPcapsOwnershipSingleResponse` type.
+/// `WorkersKvCursor` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsOwnershipSingleResponse {
+pub struct WorkersKvCursor {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvCursorResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvCursorResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// cursor property.
+    pub cursor: Option<WorkersKvCursor>,
+}
+
+/// `WorkersKvKey` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvKey {
+    /// expiration property.
+    pub expiration: Option<f64>,
+    /// metadata property.
+    pub metadata: Option<WorkersKvListMetadata>,
+    /// name property.
+    pub name: WorkersKvKeyName,
+}
+
+/// `WorkersKvKeyName` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvKeyName {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvKeyNameBulk` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvKeyNameBulk {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvListMetadata` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvListMetadata {
+}
+
+/// `WorkersKvMessages` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvMessages {
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvNamespace` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespace {
+    /// id property.
+    pub id: WorkersKvNamespaceIdentifier,
+    /// supports_url_encoding property.
+    pub supports_url_encoding: Option<bool>,
+    /// title property.
+    pub title: WorkersKvNamespaceTitle,
+}
+
+/// `WorkersKvNamespaceCreateANamespaceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceCreateANamespaceResponse {
     /// `result` property.
-    pub result: Option<MagicVisibilityPcapsPcapsOwnershipResponse>,
+    pub result: Option<WorkersKvNamespace>,
 }
 
-/// `MagicVisibilityPcapsApiResponseCommon` type.
+/// `WorkersKvNamespaceDeleteMultipleKeyValuePairsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
+pub struct WorkersKvNamespaceDeleteMultipleKeyValuePairsResponse {
+    /// `result` property.
+    pub result: Option<WorkersKvBulkResult>,
 }
 
-/// `R2DataCatalogSnapshotExpirationUpdateParams` type.
+/// `WorkersKvNamespaceGetANamespaceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2DataCatalogSnapshotExpirationUpdateParams {
-    /// max_snapshot_age property.
-    pub max_snapshot_age: Option<String>,
-    /// min_snapshots_to_keep property.
-    pub min_snapshots_to_keep: Option<i64>,
-    /// state property.
-    pub state: Option<serde_json::Value>,
+pub struct WorkersKvNamespaceGetANamespaceResponse {
+    /// `result` property.
+    pub result: Option<WorkersKvNamespace>,
 }
 
-/// `MagicVisibilityPcapsMessages` type.
+/// `WorkersKvNamespaceGetMultipleKeyValuePairsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsMessages {
+pub struct WorkersKvNamespaceGetMultipleKeyValuePairsRequest {
+    /// keys property.
+    pub keys: Vec<WorkersKvKeyNameBulk>,
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// withMetadata property.
+    #[serde(rename = "withMetadata")]
+    pub with_metadata: Option<bool>,
+}
+
+/// `WorkersKvNamespaceGetMultipleKeyValuePairsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceGetMultipleKeyValuePairsResponse {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// `WorkersKvNamespaceIdentifier` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceIdentifier {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `R2DataCatalogCompactionUpdateParams` type.
+/// `WorkersKvNamespaceListANamespaceSKeysResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2DataCatalogCompactionUpdateParams {
-    /// state property.
-    pub state: Option<serde_json::Value>,
-    /// target_size_mb property.
-    pub target_size_mb: Option<serde_json::Value>,
+pub struct WorkersKvNamespaceListANamespaceSKeysResponse {
+    /// `result` property.
+    pub result: Option<Vec<WorkersKvKey>>,
+    /// `result_info` property.
+    pub result_info: Option<WorkersKvCursorResultInfo>,
 }
 
-/// `MagicVisibilityPcapsPcapsDestinationConf` type.
+/// `WorkersKvNamespaceListNamespacesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityPcapsPcapsDestinationConf {
+pub struct WorkersKvNamespaceListNamespacesResponse {
+    /// `result` property.
+    pub result: Option<Vec<WorkersKvNamespace>>,
+}
+
+/// `WorkersKvNamespaceReadTheMetadataForAKeyResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceReadTheMetadataForAKeyResponse {
+    /// `result` property.
+    pub result: Option<WorkersKvListMetadata>,
+}
+
+/// `WorkersKvNamespaceRenameANamespaceResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceRenameANamespaceResponse {
+    /// `result` property.
+    pub result: WorkersKvNamespace,
+}
+
+/// `WorkersKvNamespaceTitle` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceTitle {
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `WorkersKvNamespaceWriteMultipleKeyValuePairsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvNamespaceWriteMultipleKeyValuePairsResponse {
+    /// `result` property.
+    pub result: Option<WorkersKvBulkResult>,
+}
+
+/// `WorkersKvResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvResultInfo {
+    /// count property.
+    pub count: Option<f64>,
+    /// page property.
+    pub page: Option<f64>,
+    /// per_page property.
+    pub per_page: Option<f64>,
+    /// total_count property.
+    pub total_count: Option<f64>,
 }
 
 // =============================================================================
@@ -286,6 +1232,8 @@ pub struct R2PutEventNotificationConfigArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2PutEventNotificationConfigRequest,
 }
 
 /// Arguments for [`r2-event-notification-delete-config_request`].
@@ -297,6 +1245,8 @@ pub struct R2EventNotificationDeleteConfigArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2EventNotificationDeleteConfigRequest,
 }
 
 /// Arguments for [`magic-pcap-collection-list-pca-ps-bucket-ownership_request`].
@@ -488,6 +1438,8 @@ pub struct R2ListBucketsArgs {
 pub struct R2CreateBucketArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2CreateBucketRequest,
 }
 
 /// Arguments for [`r2-get-bucket_request`].
@@ -533,6 +1485,8 @@ pub struct R2PutBucketCorsPolicyArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2PutBucketCorsPolicyRequest,
 }
 
 /// Arguments for [`r2-delete-bucket-cors-policy_request`].
@@ -560,6 +1514,8 @@ pub struct R2PutBucketLifecycleConfigurationArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2PutBucketLifecycleConfigurationRequest,
 }
 
 /// Arguments for [`r2-get-bucket-local-uploads-configuration_request`].
@@ -578,6 +1534,8 @@ pub struct R2PutBucketLocalUploadsConfigurationArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2PutBucketLocalUploadsConfigurationRequest,
 }
 
 /// Arguments for [`r2-get-bucket-lock-configuration_request`].
@@ -596,6 +1554,8 @@ pub struct R2PutBucketLockConfigurationArgs {
     pub bucket_name: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: R2PutBucketLockConfigurationRequest,
 }
 
 /// Arguments for [`r2-get-bucket-sippy-config_request`].
@@ -614,6 +1574,8 @@ pub struct R2PutBucketSippyConfigArgs {
     pub account_id: String,
     /// Path parameter: `bucket_name`.
     pub bucket_name: String,
+    /// Request body.
+    pub body: R2PutBucketSippyConfigRequest,
 }
 
 /// Arguments for [`r2-delete-bucket-sippy-config_request`].
@@ -721,6 +1683,8 @@ pub struct WorkersKvNamespaceGetMultipleKeyValuePairsArgs {
     pub namespace_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
+    /// Request body.
+    pub body: WorkersKvNamespaceGetMultipleKeyValuePairsRequest,
 }
 
 /// Arguments for [`workers-kv-namespace-list-a-namespace'-s-keys_request`].
@@ -815,16 +1779,17 @@ pub struct WorkersKvNamespaceDeleteKeyValuePairArgs {
 pub async fn r2_get_event_notification_configs_request<F>(
     client: DynNetClient,
     args: &R2GetEventNotificationConfigsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetEventNotificationConfigsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_notifications/r2/{}/configuration",
+    let path = format!("/accounts/{}/event_notifications/r2/{}/configuration",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -839,9 +1804,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetEventNotificationConfigsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -869,17 +1839,18 @@ where
 pub async fn r2_get_event_notification_config_request<F>(
     client: DynNetClient,
     args: &R2GetEventNotificationConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetEventNotificationConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
+    let path = format!("/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
         args.account_id,
         args.bucket_name,
         args.queue_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -894,9 +1865,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetEventNotificationConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -924,19 +1900,23 @@ where
 pub async fn r2_put_event_notification_config_request<F>(
     client: DynNetClient,
     args: &R2PutEventNotificationConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutEventNotificationConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
+    let path = format!("/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
         args.account_id,
         args.bucket_name,
         args.queue_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -949,10 +1929,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2PutEventNotificationConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -981,19 +1964,23 @@ where
 pub async fn r2_event_notification_delete_config_request<F>(
     client: DynNetClient,
     args: &R2EventNotificationDeleteConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2EventNotificationDeleteConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
+    let path = format!("/accounts/{}/event_notifications/r2/{}/configuration/queues/{}",
         args.account_id,
         args.bucket_name,
         args.queue_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1006,10 +1993,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2EventNotificationDeleteConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -1038,15 +2028,16 @@ where
 pub async fn magic_pcap_collection_list_pca_ps_bucket_ownership_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionListPcaPsBucketOwnershipArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsOwnershipCollection>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/ownership",
+    let path = format!("/accounts/{}/pcaps/ownership",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1061,7 +2052,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsOwnershipCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1093,15 +2087,16 @@ where
 pub async fn magic_pcap_collection_add_buckets_for_full_packet_captures_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionAddBucketsForFullPacketCapturesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsOwnershipSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/ownership",
+    let path = format!("/accounts/{}/pcaps/ownership",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1119,7 +2114,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsOwnershipSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1151,15 +2149,16 @@ where
 pub async fn magic_pcap_collection_validate_buckets_for_full_packet_captures_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionValidateBucketsForFullPacketCapturesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<MagicVisibilityPcapsPcapsOwnershipSingleResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/ownership/validate",
+    let path = format!("/accounts/{}/pcaps/ownership/validate",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1177,7 +2176,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: MagicVisibilityPcapsPcapsOwnershipSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -1209,16 +2211,17 @@ where
 pub async fn magic_pcap_collection_delete_buckets_for_full_packet_captures_request<F>(
     client: DynNetClient,
     args: &MagicPcapCollectionDeleteBucketsForFullPacketCapturesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/pcaps/ownership/{}",
+    let path = format!("/accounts/{}/pcaps/ownership/{}",
         args.account_id,
         args.ownership_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1233,7 +2236,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -1263,15 +2269,16 @@ where
 pub async fn list_catalogs_request<F>(
     client: DynNetClient,
     args: &ListCatalogsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListCatalogsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog",
+    let path = format!("/accounts/{}/r2-catalog",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1286,9 +2293,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListCatalogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1316,16 +2328,17 @@ where
 pub async fn get_catalog_details_request<F>(
     client: DynNetClient,
     args: &GetCatalogDetailsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetCatalogDetailsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}",
+    let path = format!("/accounts/{}/r2-catalog/{}",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1340,9 +2353,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetCatalogDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1370,16 +2388,17 @@ where
 pub async fn store_credentials_request<F>(
     client: DynNetClient,
     args: &StoreCredentialsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<StoreCredentialsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/credential",
+    let path = format!("/accounts/{}/r2-catalog/{}/credential",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1397,9 +2416,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: StoreCredentialsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1427,16 +2451,17 @@ where
 pub async fn disable_catalog_request<F>(
     client: DynNetClient,
     args: &DisableCatalogArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/disable",
+    let path = format!("/accounts/{}/r2-catalog/{}/disable",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1451,7 +2476,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -1481,16 +2509,17 @@ where
 pub async fn enable_catalog_request<F>(
     client: DynNetClient,
     args: &EnableCatalogArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<EnableCatalogResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/enable",
+    let path = format!("/accounts/{}/r2-catalog/{}/enable",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1505,9 +2534,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: EnableCatalogResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1535,16 +2569,17 @@ where
 pub async fn get_maintenance_config_request<F>(
     client: DynNetClient,
     args: &GetMaintenanceConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetMaintenanceConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/maintenance-configs",
+    let path = format!("/accounts/{}/r2-catalog/{}/maintenance-configs",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1559,9 +2594,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetMaintenanceConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1589,16 +2629,17 @@ where
 pub async fn update_maintenance_config_request<F>(
     client: DynNetClient,
     args: &UpdateMaintenanceConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<UpdateMaintenanceConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/maintenance-configs",
+    let path = format!("/accounts/{}/r2-catalog/{}/maintenance-configs",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1616,9 +2657,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: UpdateMaintenanceConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1646,16 +2692,17 @@ where
 pub async fn list_namespaces_request<F>(
     client: DynNetClient,
     args: &ListNamespacesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListNamespacesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/namespaces",
+    let path = format!("/accounts/{}/r2-catalog/{}/namespaces",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1676,9 +2723,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListNamespacesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1706,17 +2758,18 @@ where
 pub async fn list_tables_request<F>(
     client: DynNetClient,
     args: &ListTablesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<ListTablesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/namespaces/{}/tables",
+    let path = format!("/accounts/{}/r2-catalog/{}/namespaces/{}/tables",
         args.account_id,
         args.bucket_name,
         args.namespace,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1736,9 +2789,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: ListTablesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1766,18 +2824,19 @@ where
 pub async fn get_table_maintenance_config_request<F>(
     client: DynNetClient,
     args: &GetTableMaintenanceConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<GetTableMaintenanceConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/namespaces/{}/tables/{}/maintenance-configs",
+    let path = format!("/accounts/{}/r2-catalog/{}/namespaces/{}/tables/{}/maintenance-configs",
         args.account_id,
         args.bucket_name,
         args.namespace,
         args.table_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1792,9 +2851,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: GetTableMaintenanceConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1822,18 +2886,19 @@ where
 pub async fn update_table_maintenance_config_request<F>(
     client: DynNetClient,
     args: &UpdateTableMaintenanceConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<UpdateTableMaintenanceConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2-catalog/{}/namespaces/{}/tables/{}/maintenance-configs",
+    let path = format!("/accounts/{}/r2-catalog/{}/namespaces/{}/tables/{}/maintenance-configs",
         args.account_id,
         args.bucket_name,
         args.namespace,
         args.table_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1851,9 +2916,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: UpdateTableMaintenanceConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1881,15 +2951,16 @@ where
 pub async fn r2_list_buckets_request<F>(
     client: DynNetClient,
     args: &R2ListBucketsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2ListBucketsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets",
+    let path = format!("/accounts/{}/r2/buckets",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1911,9 +2982,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2ListBucketsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1941,17 +3017,21 @@ where
 pub async fn r2_create_bucket_request<F>(
     client: DynNetClient,
     args: &R2CreateBucketArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2CreateBucketResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets",
+    let path = format!("/accounts/{}/r2/buckets",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -1964,9 +3044,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2CreateBucketResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -1994,16 +3079,17 @@ where
 pub async fn r2_get_bucket_request<F>(
     client: DynNetClient,
     args: &R2GetBucketArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2018,9 +3104,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2048,16 +3139,17 @@ where
 pub async fn r2_patch_bucket_request<F>(
     client: DynNetClient,
     args: &R2PatchBucketArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PatchBucketResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2072,9 +3164,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2PatchBucketResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2102,16 +3199,17 @@ where
 pub async fn r2_delete_bucket_request<F>(
     client: DynNetClient,
     args: &R2DeleteBucketArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<R2V4Response>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}",
+    let path = format!("/accounts/{}/r2/buckets/{}",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2126,7 +3224,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: R2V4Response = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -2158,16 +3259,17 @@ where
 pub async fn r2_get_bucket_cors_policy_request<F>(
     client: DynNetClient,
     args: &R2GetBucketCorsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketCorsPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/cors",
+    let path = format!("/accounts/{}/r2/buckets/{}/cors",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2182,9 +3284,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketCorsPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2212,18 +3319,22 @@ where
 pub async fn r2_put_bucket_cors_policy_request<F>(
     client: DynNetClient,
     args: &R2PutBucketCorsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketCorsPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/cors",
+    let path = format!("/accounts/{}/r2/buckets/{}/cors",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2236,10 +3347,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2PutBucketCorsPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -2268,16 +3382,17 @@ where
 pub async fn r2_delete_bucket_cors_policy_request<F>(
     client: DynNetClient,
     args: &R2DeleteBucketCorsPolicyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2DeleteBucketCorsPolicyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/cors",
+    let path = format!("/accounts/{}/r2/buckets/{}/cors",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2292,10 +3407,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2DeleteBucketCorsPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -2324,16 +3442,17 @@ where
 pub async fn r2_get_bucket_lifecycle_configuration_request<F>(
     client: DynNetClient,
     args: &R2GetBucketLifecycleConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketLifecycleConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/lifecycle",
+    let path = format!("/accounts/{}/r2/buckets/{}/lifecycle",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2348,9 +3467,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketLifecycleConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2378,18 +3502,22 @@ where
 pub async fn r2_put_bucket_lifecycle_configuration_request<F>(
     client: DynNetClient,
     args: &R2PutBucketLifecycleConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketLifecycleConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/lifecycle",
+    let path = format!("/accounts/{}/r2/buckets/{}/lifecycle",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2402,10 +3530,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2PutBucketLifecycleConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -2434,16 +3565,17 @@ where
 pub async fn r2_get_bucket_local_uploads_configuration_request<F>(
     client: DynNetClient,
     args: &R2GetBucketLocalUploadsConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketLocalUploadsConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/local-uploads",
+    let path = format!("/accounts/{}/r2/buckets/{}/local-uploads",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2458,9 +3590,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketLocalUploadsConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2488,18 +3625,22 @@ where
 pub async fn r2_put_bucket_local_uploads_configuration_request<F>(
     client: DynNetClient,
     args: &R2PutBucketLocalUploadsConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketLocalUploadsConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/local-uploads",
+    let path = format!("/accounts/{}/r2/buckets/{}/local-uploads",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2512,10 +3653,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2PutBucketLocalUploadsConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -2544,16 +3688,17 @@ where
 pub async fn r2_get_bucket_lock_configuration_request<F>(
     client: DynNetClient,
     args: &R2GetBucketLockConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketLockConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/lock",
+    let path = format!("/accounts/{}/r2/buckets/{}/lock",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2568,9 +3713,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketLockConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2598,18 +3748,22 @@ where
 pub async fn r2_put_bucket_lock_configuration_request<F>(
     client: DynNetClient,
     args: &R2PutBucketLockConfigurationArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketLockConfigurationResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/lock",
+    let path = format!("/accounts/{}/r2/buckets/{}/lock",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2622,10 +3776,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    let parsed: R2PutBucketLockConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
@@ -2654,16 +3811,17 @@ where
 pub async fn r2_get_bucket_sippy_config_request<F>(
     client: DynNetClient,
     args: &R2GetBucketSippyConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetBucketSippyConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/sippy",
+    let path = format!("/accounts/{}/r2/buckets/{}/sippy",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2678,9 +3836,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetBucketSippyConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2708,18 +3871,22 @@ where
 pub async fn r2_put_bucket_sippy_config_request<F>(
     client: DynNetClient,
     args: &R2PutBucketSippyConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2PutBucketSippyConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/sippy",
+    let path = format!("/accounts/{}/r2/buckets/{}/sippy",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -2732,9 +3899,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2PutBucketSippyConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2762,16 +3934,17 @@ where
 pub async fn r2_delete_bucket_sippy_config_request<F>(
     client: DynNetClient,
     args: &R2DeleteBucketSippyConfigArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2DeleteBucketSippyConfigResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/buckets/{}/sippy",
+    let path = format!("/accounts/{}/r2/buckets/{}/sippy",
         args.account_id,
         args.bucket_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2786,9 +3959,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2DeleteBucketSippyConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2816,15 +3994,16 @@ where
 pub async fn r2_get_account_level_metrics_request<F>(
     client: DynNetClient,
     args: &R2GetAccountLevelMetricsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2GetAccountLevelMetricsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/metrics",
+    let path = format!("/accounts/{}/r2/metrics",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2839,9 +4018,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2GetAccountLevelMetricsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2869,15 +4053,16 @@ where
 pub async fn r2_create_temp_access_credentials_request<F>(
     client: DynNetClient,
     args: &R2CreateTempAccessCredentialsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<R2CreateTempAccessCredentialsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/r2/temp-access-credentials",
+    let path = format!("/accounts/{}/r2/temp-access-credentials",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2895,9 +4080,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: R2CreateTempAccessCredentialsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2925,15 +4115,16 @@ where
 pub async fn workers_kv_namespace_list_namespaces_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceListNamespacesArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceListNamespacesResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces",
+    let path = format!("/accounts/{}/storage/kv/namespaces",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2953,9 +4144,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceListNamespacesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -2983,15 +4179,16 @@ where
 pub async fn workers_kv_namespace_create_a_namespace_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceCreateANamespaceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceCreateANamespaceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces",
+    let path = format!("/accounts/{}/storage/kv/namespaces",
         args.account_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3009,9 +4206,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceCreateANamespaceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3039,16 +4241,17 @@ where
 pub async fn workers_kv_namespace_get_a_namespace_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceGetANamespaceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceGetANamespaceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3063,9 +4266,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceGetANamespaceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3093,16 +4301,17 @@ where
 pub async fn workers_kv_namespace_rename_a_namespace_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceRenameANamespaceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceRenameANamespaceResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3120,9 +4329,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceRenameANamespaceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3150,16 +4364,17 @@ where
 pub async fn workers_kv_namespace_remove_a_namespace_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceRemoveANamespaceArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersKvApiResponseCommonNoResult>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3174,7 +4389,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: WorkersKvApiResponseCommonNoResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3206,16 +4424,17 @@ where
 pub async fn workers_kv_namespace_write_multiple_key_value_pairs_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceWriteMultipleKeyValuePairsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceWriteMultipleKeyValuePairsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/bulk",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/bulk",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3233,9 +4452,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceWriteMultipleKeyValuePairsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3263,16 +4487,17 @@ where
 pub async fn workers_kv_namespace_delete_multiple_key_value_pairs_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceDeleteMultipleKeyValuePairsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceDeleteMultipleKeyValuePairsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/bulk/delete",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/bulk/delete",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3287,9 +4512,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceDeleteMultipleKeyValuePairsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3317,18 +4547,22 @@ where
 pub async fn workers_kv_namespace_get_multiple_key_value_pairs_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceGetMultipleKeyValuePairsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceGetMultipleKeyValuePairsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/bulk/get",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/bulk/get",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -3341,9 +4575,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceGetMultipleKeyValuePairsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3371,16 +4610,17 @@ where
 pub async fn workers_kv_namespace_list_a_namespace_s_keys_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceListANamespaceSKeysArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceListANamespaceSKeysResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/keys",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/keys",
         args.account_id,
         args.namespace_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3399,9 +4639,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceListANamespaceSKeysResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3429,17 +4674,18 @@ where
 pub async fn workers_kv_namespace_read_the_metadata_for_a_key_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceReadTheMetadataForAKeyArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<WorkersKvNamespaceReadTheMetadataForAKeyResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/metadata/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/metadata/{}",
         args.account_id,
         args.namespace_id,
         args.key_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3454,9 +4700,14 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: WorkersKvNamespaceReadTheMetadataForAKeyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 
 // -----------------------------------------------------------------------------
@@ -3484,17 +4735,18 @@ where
 pub async fn workers_kv_namespace_read_key_value_pair_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceReadKeyValuePairArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/values/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/values/{}",
         args.account_id,
         args.namespace_id,
         args.key_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3509,7 +4761,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -3539,17 +4794,18 @@ where
 pub async fn workers_kv_namespace_write_key_value_pair_with_metadata_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceWriteKeyValuePairWithMetadataArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersKvApiResponseCommonNoResult>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/values/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/values/{}",
         args.account_id,
         args.namespace_id,
         args.key_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3567,7 +4823,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: WorkersKvApiResponseCommonNoResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -3599,17 +4858,18 @@ where
 pub async fn workers_kv_namespace_delete_key_value_pair_request<F>(
     client: DynNetClient,
     args: &WorkersKvNamespaceDeleteKeyValuePairArgs,
+    base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersKvApiResponseCommonNoResult>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/values/{}",
+    let path = format!("/accounts/{}/storage/kv/namespaces/{}/values/{}",
         args.account_id,
         args.namespace_id,
         args.key_name,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3624,7 +4884,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: WorkersKvApiResponseCommonNoResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

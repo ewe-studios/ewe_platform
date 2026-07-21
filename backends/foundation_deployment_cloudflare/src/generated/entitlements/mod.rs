@@ -21,6 +21,81 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `OrganizationsApiBoolAllocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiBoolAllocation {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// value property.
+    pub value: bool,
+}
+
+/// `OrganizationsApiEntitlement` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiEntitlement {
+    /// allocation property.
+    pub allocation: serde_json::Value,
+    /// feature property.
+    pub feature: OrganizationsApiFeature,
+}
+
+/// `OrganizationsApiFeature` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiFeature {
+    /// key property.
+    pub key: String,
+}
+
+/// `OrganizationsApiInnateEntitlements` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiInnateEntitlements {
+    /// allow_add_subdomain property.
+    pub allow_add_subdomain: OrganizationsApiBoolAllocation,
+    /// allow_auto_accept_invites property.
+    pub allow_auto_accept_invites: OrganizationsApiBoolAllocation,
+    /// cname_setup_allowed property.
+    pub cname_setup_allowed: OrganizationsApiBoolAllocation,
+    /// custom_entitlements property.
+    pub custom_entitlements: Option<Vec<OrganizationsApiEntitlement>>,
+    /// mhs_certificate_count property.
+    pub mhs_certificate_count: OrganizationsApiMaxCountAllocation,
+    /// partial_setup_allowed property.
+    pub partial_setup_allowed: OrganizationsApiBoolAllocation,
+}
+
+/// `OrganizationsApiMaxCountAllocation` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiMaxCountAllocation {
+    /// type property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// value property.
+    pub value: i64,
+}
+
+/// `OrganizationsApiV4Message` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiV4Message {
+    /// code property.
+    pub code: i64,
+    /// message property.
+    pub message: String,
+}
+
+/// `TenantsListEntitlementsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TenantsListEntitlementsResponse {
+    /// errors property.
+    pub errors: Vec<serde_json::Value>,
+    /// messages property.
+    pub messages: Vec<OrganizationsApiV4Message>,
+    /// result property.
+    pub result: OrganizationsApiInnateEntitlements,
+    /// success property.
+    pub success: bool,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -61,15 +136,16 @@ pub struct TenantsListEntitlementsArgs {
 pub async fn tenants_list_entitlements_request<F>(
     client: DynNetClient,
     args: &TenantsListEntitlementsArgs,
+    base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<TenantsListEntitlementsResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/tenants/{}/entitlements",
+    let path = format!("/tenants/{}/entitlements",
         args.tenant_id,
     );
+    let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -84,8 +160,13 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+        let body = (!error_bytes.is_empty())
+            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: TenantsListEntitlementsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

@@ -46,8 +46,9 @@ async fn network_connect_then_disconnect() {
         .await
         .expect("create network");
 
-    // Connect the container to the network.
-    c.network_connect(&net.id, &ctr.id)
+    // Connect the container to the network (no aliases — see the platform's
+    // network_integration_tests for the alias-resolution coverage).
+    c.network_connect(&net.id, &ctr.id, &[])
         .await
         .expect("connect");
 

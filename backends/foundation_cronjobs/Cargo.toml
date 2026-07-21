@@ -1,0 +1,22 @@
+[package]
+name = "foundation_cronjobs"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Cron job scheduling with valtron executor and foundation_db persistence"
+keywords.workspace = true
+
+[dependencies]
+foundation_db = { path = "../foundation_db", version = "0.0.1" }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+async-trait = "0.1"
+chrono = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+
+[lints]
+workspace = true

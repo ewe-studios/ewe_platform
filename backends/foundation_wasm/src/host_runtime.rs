@@ -1,5 +1,7 @@
-#![allow(clippy::must_use_candidate)]
+// Every public function: returns type-aliased Results; panics on Mutex poison.
+#![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
+#![allow(clippy::must_use_candidate)]
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -47,6 +49,7 @@ static SCHEDULED_CALLBACKS: Mutex<ScheduleRegistry> = ScheduleRegistry::create()
 /// You should never place a function in here that needs to be exposed to the host or host function
 /// we want to define but instead use the [`exposed_runtime`] or [`abi`] modules.
 pub mod internal_api {
+    #![allow(clippy::missing_errors_doc)]
     use alloc::boxed::Box;
 
     use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
@@ -95,8 +98,17 @@ pub mod internal_api {
 
     // Callback return parsers
 
-    /// [`parse_replies`] will attempt to parse the replies encoded into the giving
-    /// memory location referenced by the provided [`MemoryId`].
+    /// Parse the replies encoded in the memory location referenced by the
+    /// provided [`MemoryId`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MemoryAllocationError`] if the allocation is invalid or
+    /// the reply binary cannot be deserialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn parse_callback_replies(
         memory_id: MemoryId,
         returns: ReturnTypeHints,
@@ -230,8 +242,15 @@ pub mod internal_api {
             .expect("should be registered");
     }
 
-    /// [`run_schedule_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered scheduled callback by ID (oneshot timeout).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has already fired.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
         match SCHEDULED_CALLBACKS
             .lock()
@@ -299,8 +318,15 @@ pub mod internal_api {
 
     // interval function registration with the host.
 
-    /// [`run_interval_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered interval callback by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has been deregistered.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
         match RECURRING_INTERVAL_CALLBACKS
             .lock()
@@ -462,8 +488,7 @@ pub mod internal_api {
                         .expect("should have called callback");
                 }
                 _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {:?}",
-                    err
+                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
                 ),
             },
         }
@@ -497,6 +522,7 @@ pub mod internal_api {
 /// the system. These are functions the runtime exposes to the host to be able
 /// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
+    #![allow(clippy::missing_errors_doc)]
     use super::{internal_api, InternalPointer, MemoryId, ALLOCATIONS};
 
     #[no_mangle]
@@ -947,6 +973,24 @@ pub mod abi {
                 returns_start: *const u8,
                 returns_length: u64,
             ) -> u64;
+
+            // ── F28: Stream FFI (WASM → JS) ────────────────────────────
+            ///
+            /// WASM creates streams, pushes chunks, and ends them.
+            /// JS binds callbacks via `FoundationWasm` methods (not via
+            /// WASM FFI — callback binding is a JS-side concern).
+            ///
+            /// Buffered chunks live on the JS heap. Always bind or end
+            /// the stream within a bounded time window.
+
+            /// Create a host-side stream. Returns a u64 stream ID.
+            pub fn host_stream_create() -> u64;
+
+            /// Push a chunk to a host-side stream by ID.
+            pub fn host_sender_send(stream_id: u64, data_start: *const u8, data_len: u32, seq: u64);
+
+            /// Signal end-of-stream on a host-side stream by ID.
+            pub fn host_sender_end(stream_id: u64);
         }
 
         #[cfg(not(target_family = "wasm"))]
@@ -1092,6 +1136,12 @@ pub mod abi {
             ) -> u64 {
                 0
             }
+
+            // ── F28: Stream FFI ────────────────────────────────────────
+
+            pub fn host_stream_create() -> u64 { 0 }
+            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_sender_end(_stream_id: u64) {}
         }
 
         // Re-export stubs with same names as extern functions for non-wasm targets

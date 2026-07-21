@@ -5116,10 +5116,6 @@ impl ChunkState {
         }
 
         Self::eat_space(pointer.clone())?;
-        Self::eat_crlf(pointer.clone())?;
-        // Note: eat_escaped_crlf removed - was consuming legitimate JSON content
-        // that contained literal \n sequences as part of escaped strings
-        Self::eat_newlines(pointer.clone())?;
 
         // do w have the extension starter marker (a semicolon)
         let extensions: Extensions = pointer.do_once_mut(|acc| {
@@ -5142,21 +5138,25 @@ impl ChunkState {
 
         tracing::trace!("Extensions : {:?}", &extensions);
 
-        // are we starting out with a CRLF, if so, skip it
+        // Consume **exactly one** line terminator between the chunk header and
+        // its data — `chunk-size [ chunk-ext ] CRLF chunk-data CRLF` (RFC 7230
+        // §4.1). A bare LF is also accepted, since some servers (the GCP
+        // Discovery API among them) frame chunks LF-only.
+        //
+        // This used to `eat_crlf`/`eat_newlines` here, both of which loop until a
+        // non-CR/LF byte. That ate the terminator *and* any CR/LF the chunk data
+        // itself started with, after which `read_exact(size)` ran one or more
+        // bytes late and pulled the framing delimiter in as content — so a chunk
+        // carrying "\rstart" came back as "start\r". Binary payloads (Docker log
+        // frames, tar, gzip) hit this constantly.
         pointer.do_once_mut(|acc| {
             if foundation_core::is_ok!(acc.peekby2(2), b"\r\n") {
-                let _ = acc.nextby(2);
-                acc.skip();
-            }
-
-            if foundation_core::is_ok!(acc.peekby2(2), b"\n\n") {
                 let _ = acc.nextby2(2);
                 acc.skip();
+            } else if foundation_core::is_ok!(acc.peekby2(1), b"\n") {
+                let _ = acc.nextby2(1);
+                acc.skip();
             }
-
-            // eat all the space
-            Self::eat_crlf_pointer(acc)?;
-            Self::eat_newlines_pointer(acc)?;
 
             if extensions.is_empty() {
                 return Ok(Self::Chunk(chunk_size, chunk_string, None));
@@ -5310,35 +5310,6 @@ impl ChunkState {
         }
     }
 
-    fn eat_newlines_pointer<T: Read>(
-        acc: &mut ByteBufferPointer<T>,
-    ) -> Result<(), ChunkStateError> {
-        let newline = b"\n";
-        while let Ok(b) = acc.nextby2(1) {
-            if b[0] == newline[0] {
-                continue;
-            }
-
-            // move backwards
-            let _ = acc.unforward();
-            acc.skip();
-
-            return Ok(());
-        }
-        Ok(())
-    }
-
-    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
-        while let Ok(b) = acc.nextby2(1) {
-            if b[0] != b'\r' && b[0] != b'\n' {
-                let _ = acc.unforward();
-                acc.skip();
-                break;
-            }
-        }
-        Ok(())
-    }
-
     fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
@@ -5351,14 +5322,6 @@ impl ChunkState {
             return Ok(());
         }
         Ok(())
-    }
-
-    fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
-    }
-
-    fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding))
     }
 
     fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
@@ -5597,25 +5560,29 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
                             if let Err(err) = reader.read_exact(&mut chunk_data) {
                                 return Err(Box::new(err));
                             }
+                            let chunk_data = chunk_data;
 
-                            // WORKAROUND: Strip any CR bytes from chunk data.
-                            // Some servers (notably GCP Discovery API) include stray CR bytes
-                            // in response content that break downstream parsing (e.g., JSON).
-                            // Per RFC 7230, chunked transfer coding uses CRLF as delimiters,
-                            // and raw CR bytes in chunk data are unexpected control characters.
-                            // This ensures protocol-level correctness for all chunked responses.
-                            // See: specifications/11-foundation-deployment/features/05-gcp-cloud-run-provider/CR_BYTE_INVESTIGATION.md
-                            if size > 0 {
-                                let cr_count = chunk_data.iter().filter(|&&b| b == b'\r').count();
-                                if cr_count > 0 {
-                                    tracing::trace!(
-                                        "Chunk parser: stripping {} CR bytes from chunk data",
-                                        cr_count
-                                    );
-                                    chunk_data.retain(|&b| b != b'\r');
-                                }
-                            }
-
+                            // Chunk data is opaque octets: `size` says exactly how
+                            // many bytes belong to this chunk, and CRLF only
+                            // delimits the framing *around* it. So the bytes read
+                            // here are returned untouched.
+                            //
+                            // This used to strip every CR byte from chunk data, to
+                            // work around JSON from the GCP Discovery API. That
+                            // silently corrupted every binary chunked response:
+                            // Docker's multiplexed log stream, for one, puts the
+                            // payload length in the frame header, so a 13-byte log
+                            // line carries a literal 0x0D there — stripping it
+                            // desynchronised the frame and the log came back empty.
+                            // Any tar, gzip or protobuf body has the same problem.
+                            // If a *text* payload from some server really does carry
+                            // stray CRs, that is for the caller parsing that text to
+                            // deal with, not for the transport to guess at.
+                            //
+                            // Full story, and where a GCP-side fix belongs instead:
+                            // specifications/11-foundation-deployment/features/
+                            //   05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md
+                            //   ("Update 2026-07-17")
                             tracing::trace!(
                                 "ChunkState::Chunk::DataRead: len={:?}",
                                 chunk_data.len(),

@@ -18,7 +18,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
 # #[derive(ThemeTokens)] embed identical, runtime-generated CSS.
 foundation_theme = { path = "../foundation_theme", version = "0.0.1" }
 
-syn = { version = ">=2.0", features = ["full", "parsing", "extra-traits"] }
+syn = { version = ">=2.0, <3.0", features = ["full", "parsing", "extra-traits"] }
 quote = ">=1.0"
 proc-macro2 = ">=1.0"
 proc-macro-crate = "3.3.0"

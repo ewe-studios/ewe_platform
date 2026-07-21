@@ -17,6 +17,28 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
 use std::time::Duration;
 
+/// Runtime hooks for ACME provisioning (Decision 18, F15).
+///
+/// Not part of the serialisable config: the DNS-01 setter is a callback (publish
+/// a TXT record for a domain), typically backed by `foundation_deployment_cloudflare`.
+#[derive(Clone)]
+pub struct AcmeRuntime {
+    /// Override the CA directory URL (defaults to Let's Encrypt production). A
+    /// private CA or a local test server (Pebble / the F15 mock) sets this.
+    pub directory_url: Option<String>,
+    /// Publish a DNS-01 TXT record: `(record_name, txt_value) -> Result`.
+    pub dns01_setter: crate::acme::Dns01Setter,
+}
+
+impl std::fmt::Debug for AcmeRuntime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AcmeRuntime")
+            .field("directory_url", &self.directory_url)
+            .field("dns01_setter", &"<callback>")
+            .finish()
+    }
+}
+
 /// Top-level proxy configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProxyConfig {
@@ -29,6 +51,32 @@ pub struct ProxyConfig {
     pub bind_addr: Option<String>,
     #[serde(default)]
     pub services: Vec<ServiceConfig>,
+    /// Path to a Unix-domain control socket (Decision 20). When set,
+    /// `ProxyServer` binds it and serves the JSON-RPC admin commands
+    /// (`list`/`status`/`drain`/`pause`/`activate`). `None` disables the admin
+    /// interface.
+    #[serde(default)]
+    pub control_socket: Option<String>,
+    /// Directory for persisted proxy state (Decision 21, F14). When set,
+    /// `ProxyServer` restores backend drain/pause state on start and writes
+    /// admin changes through so they survive a restart. `None` disables it.
+    #[serde(default)]
+    pub state_dir: Option<String>,
+    /// Programmatic ACME runtime hooks (Decision 18, F15) — the DNS-01 setter
+    /// and an optional directory-URL override. Required when the SSL provider is
+    /// `LetsEncrypt`. Not serialised — set it via the builder.
+    #[serde(skip)]
+    pub acme: Option<AcmeRuntime>,
+    /// UDP address for the HTTP/3 (QUIC) front end (Decision 27, F19). When set
+    /// (and TLS is enabled), `ProxyServer` also serves H3 on this address using
+    /// the same certificate. Requires the `quic` feature. `None` disables H3.
+    #[serde(default)]
+    pub h3_bind: Option<String>,
+    /// Address for the plain-HTTP → HTTPS redirect listener (Decision 25, F12).
+    /// Defaults to `0.0.0.0:80` when unset and TLS is enabled; tests override it
+    /// with an ephemeral port.
+    #[serde(default)]
+    pub redirect_bind: Option<String>,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -47,6 +95,11 @@ impl ProxyConfig {
             ssl: SslConfig::default(),
             bind_addr: None,
             services: Vec::new(),
+            control_socket: None,
+            state_dir: None,
+            acme: None,
+            h3_bind: None,
+            redirect_bind: None,
             io_mode: ServerIo::default(),
         }
     }
@@ -62,6 +115,50 @@ impl ProxyConfig {
     #[must_use]
     pub fn bind(mut self, addr: &str) -> Self {
         self.bind_addr = Some(addr.to_string());
+        self
+    }
+
+    /// Enable the Unix-domain control socket at `path` (Decision 20).
+    #[must_use]
+    pub fn control_socket(mut self, path: &str) -> Self {
+        self.control_socket = Some(path.to_string());
+        self
+    }
+
+    /// Enable state persistence under `dir` (Decision 21). Backend drain/pause
+    /// state is restored on start and written through on admin changes.
+    #[must_use]
+    pub fn persist_to(mut self, dir: &str) -> Self {
+        self.state_dir = Some(dir.to_string());
+        self
+    }
+
+    /// Serve HTTP/3 (QUIC) on `addr` (UDP) as well (Decision 27, F19). Needs TLS
+    /// and the `quic` feature.
+    #[must_use]
+    pub fn h3_bind(mut self, addr: &str) -> Self {
+        self.h3_bind = Some(addr.to_string());
+        self
+    }
+
+    /// Bind the plain-HTTP → HTTPS redirect listener at `addr` (Decision 25).
+    /// Defaults to `0.0.0.0:80`.
+    #[must_use]
+    pub fn redirect_bind(mut self, addr: &str) -> Self {
+        self.redirect_bind = Some(addr.to_string());
+        self
+    }
+
+    /// Attach the ACME runtime hooks (Decision 18, F15) — required when the SSL
+    /// provider is `LetsEncrypt`. `dns01_setter` publishes DNS-01 TXT records;
+    /// `directory_url` overrides the CA (defaults to Let's Encrypt production).
+    #[must_use]
+    pub fn acme(
+        mut self,
+        dns01_setter: crate::acme::Dns01Setter,
+        directory_url: Option<String>,
+    ) -> Self {
+        self.acme = Some(AcmeRuntime { directory_url, dns01_setter });
         self
     }
 

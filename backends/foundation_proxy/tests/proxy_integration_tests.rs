@@ -108,7 +108,9 @@ fn parse_response(raw: &[u8]) -> RawResponse {
 async fn start_proxy(services: Vec<ServiceConfig>) -> ProxyServer {
     let mut config = ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0");
     config.services = services;
-    config.start().await.expect("start proxy")
+    // `ProxyServer::start` is synchronous (it spawns its own threads); it is not
+    // a future, so there is nothing to await.
+    config.start().expect("start proxy")
 }
 
 fn backend_url(handle: &ContainerHandle, container_port: u16) -> String {
@@ -378,6 +380,8 @@ fn test_tcp_passthrough_roundtrips_raw_bytes() {
     if !docker_available() {
         return;
     }
+    // The Docker client is valtron-based, so a pool must be live for the whole test.
+    let _pool = initialize_pool(53, Some(4));
     RT.block_on(async {
         let backend = ContainerHandle::start_async(echo_config("tcp-backend"))
             .await

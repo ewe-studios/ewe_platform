@@ -26,5 +26,19 @@ pub const APACHE_ARROW_JS: &str = include_str!("../runtimes/apache-arrow.js");
 /// page. Used by the `foundation_browser` test harness.
 pub const PRIMAL_TEST_JS: &str = include_str!("../runtimes/primal-test.js");
 
+/// Platform scheme workaround for Android: catches `ewe://`, `foundation://`,
+/// `platform://` link clicks and redirects to `http://{scheme}.localhost/...`.
+/// wry's `shouldInterceptRequest` hooks these HTTP URLs and routes them to
+/// the registered custom protocol handler. Desktop engines natively support
+/// custom schemes — this is a no-op there.
+pub const PLATFORM_SCHEME_INTERCEPTOR_JS: &str =
+    include_str!("../runtimes/platform-scheme-interceptor.js");
+
 /// The core ABI runtime, re-exported so consumers embed the set from one place.
 pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;
+
+/// Portable capability invocation bridge (`runtimes/capability-bridge.js`, F23):
+/// provides `window.invokeCapability(name, action, payload)` that routes through
+/// Tauri (`__ewe_capabilities`), browser (direct WASM bridge), or Deno.
+/// Injected by F24 ScriptInjector alongside the other platform runtimes.
+pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-bridge.js");

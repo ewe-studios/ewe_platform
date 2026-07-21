@@ -1,0 +1,10 @@
+error: duplicate container key "cache": each `as = "..."` must be unique within one #[docker_container]
+ --> tests/trybuild/fail/docker_container_duplicate_key.rs:6:1
+  |
+6 | / #[docker_container(
+7 | |     { image = "redis:7-alpine", as = "cache" },
+8 | |     { image = "redis:7-alpine", as = "cache" }
+9 | | )]
+  | |__^
+  |
+  = note: this error originates in the attribute macro `docker_container` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -46,7 +46,7 @@ fn completion_splice_relays_bytes_both_directions() {
         let socket_d =
             CompletionSocket::completion(d, registry, Token(3), None).expect("register D");
 
-        splice_bidirectional(socket_b, socket_d, true);
+        splice_bidirectional(socket_b, socket_d);
         d_ok.store(true, std::sync::atomic::Ordering::Release);
         d_done.store(true, std::sync::atomic::Ordering::Release);
     });

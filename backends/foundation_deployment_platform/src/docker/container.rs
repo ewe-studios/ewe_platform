@@ -1,15 +1,24 @@
 //! Container lifecycle — the RAII guard for running Docker containers.
 
 use std::collections::HashMap;
+use std::net::{Ipv4Addr, SocketAddr};
+use std::time::{Duration, Instant};
 
-use foundation_deployment_docker::client::{ContainerCreateBody, ContainerHostConfig};
+use foundation_core::valtron::sleep_async;
+use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
+
+use foundation_deployment_docker::client::{
+    ContainerCreateBody, ContainerHostConfig, NetworkingConfig,
+};
+use foundation_deployment_docker::generated::connect::EndpointSettings;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
 };
 use foundation_deployment_docker::DockerClient;
 use tracing::{info, warn};
 
-use crate::docker::config::ContainerConfig;
+use crate::docker::config::{parse_memory_bytes, ContainerConfig};
+use crate::docker::network::NetworkHandle;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
@@ -27,9 +36,27 @@ impl ContainerHandle {
         let docker = DockerClient::connect_with_defaults()
             .map_err(|e| docker_err(DockerError::Connection(format!("{e}"))))?;
 
+        // Validated up front: a bad memory limit is a config mistake, and
+        // failing here beats creating a container that silently ignores it.
+        let memory_bytes = match config.memory.as_deref() {
+            Some(mem) => Some(
+                parse_memory_bytes(mem).map_err(|e| docker_err(DockerError::InvalidConfig(e)))?,
+            ),
+            None => None,
+        };
+
         Self::ensure_image(&docker, &config.image, config.always_pull).await?;
 
-        let body = Self::build_body(&config);
+        // A user-defined network must exist before a container can join it —
+        // Docker fails the create otherwise. `create_or_find` is idempotent, so
+        // naming a network is enough to get one (Decision 10). It is deliberately
+        // left in place afterwards: it may be shared with containers this handle
+        // knows nothing about, so it is not ours to remove.
+        if let Some(ref network) = config.network {
+            NetworkHandle::create_or_find(&docker, network, None).await?;
+        }
+
+        let body = Self::build_body(&config, memory_bytes);
 
         let created = docker
             .create_container(&body, config.name.as_deref())
@@ -38,23 +65,56 @@ impl ContainerHandle {
 
         let container_id = created.id;
 
+        // Past this point the container exists in Docker, but no `ContainerHandle`
+        // owns it yet — so nothing would run Drop's teardown. Any failure from
+        // here on must remove it by hand, or a failed start (a port conflict, a
+        // readiness timeout) strands a container that keeps holding its ports and
+        // makes every later run fail the same way.
+        match Self::finish_start(&docker, &container_id, &config).await {
+            Ok(ports) => Ok(Self {
+                docker,
+                container_id,
+                container_name: config.name.clone(),
+                stop_timeout: config.stop_timeout,
+                ports,
+            }),
+            Err(e) => {
+                Self::discard(&docker, &container_id, config.stop_timeout).await;
+                Err(e)
+            }
+        }
+    }
+
+    /// Start → inspect ports → await readiness, for a container that already
+    /// exists. Split out of `start_async` so a single cleanup path covers every
+    /// way these steps can fail.
+    async fn finish_start(
+        docker: &DockerClient,
+        container_id: &str,
+        config: &ContainerConfig,
+    ) -> DockerResult<HashMap<String, u16>> {
         docker
-            .start_container(&container_id)
+            .start_container(container_id)
             .await
             .map_err(|e| docker_err(DockerError::ContainerStart(format!("{e}"))))?;
 
-        let ports = Self::resolve_ports(&docker, &container_id, &config).await?;
+        let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        // Apply wait strategy.
-        config.wait.apply(&docker, &container_id, &ports).await?;
+        config.wait.apply(docker, container_id, &ports).await?;
 
-        Ok(Self {
-            docker,
-            container_id,
-            container_name: config.name.clone(),
-            stop_timeout: config.stop_timeout,
-            ports,
-        })
+        Ok(ports)
+    }
+
+    /// Best-effort teardown of a container no handle owns. Errors are logged,
+    /// never propagated: the caller is already returning the real failure and
+    /// must not have it masked by a cleanup problem.
+    async fn discard(docker: &DockerClient, container_id: &str, stop_timeout: u64) {
+        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout as u32)).await {
+            warn!(container_id = %container_id, "start cleanup: failed to stop container: {e}");
+        }
+        if let Err(e) = docker.remove_container(container_id, true).await {
+            warn!(container_id = %container_id, "start cleanup: failed to remove container: {e}");
+        }
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
@@ -91,6 +151,28 @@ impl ContainerHandle {
         &self.ports
     }
 
+    /// The host-side address `container_port` is reachable at, e.g.
+    /// `127.0.0.1:49153`. This is the address to connect to from the test
+    /// process, and it is the reason a caller rarely needs `port_mapped`: let
+    /// Docker assign the host port with `port = N` and ask the handle where it
+    /// landed, instead of pinning a host port that a parallel run may already
+    /// hold.
+    ///
+    /// `None` if `container_port` was never exposed as TCP.
+    #[must_use]
+    pub fn address(&self, container_port: u16) -> Option<SocketAddr> {
+        self.host_port(container_port)
+            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
+    }
+
+    /// The host-side UDP address for `container_port`. `None` if it was never
+    /// exposed as UDP.
+    #[must_use]
+    pub fn udp_address(&self, container_port: u16) -> Option<SocketAddr> {
+        self.host_port_udp(container_port)
+            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
+    }
+
     pub async fn shutdown_async(&self) -> DockerResult<()> {
         if let Err(e) = self
             .docker
@@ -113,6 +195,63 @@ impl ContainerHandle {
 
     pub fn shutdown(&self) -> DockerResult<()> {
         crate::block_on(self.shutdown_async())
+    }
+
+    /// The container's logs so far, stdout and stderr interleaved, with
+    /// Docker's stream framing already removed.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::Connection`] if the daemon rejects the request.
+    pub async fn logs_async(&self) -> DockerResult<String> {
+        let raw = self
+            .docker
+            .container_logs(
+                &self.container_id,
+                false, // follow
+                true,  // stdout
+                true,  // stderr
+                None,  // since
+                None,  // until
+                false, // timestamps
+                None,  // tail (all)
+            )
+            .await
+            .map_err(|e| docker_err(DockerError::Connection(format!("container_logs: {e}"))))?;
+
+        let mut decoder = LogFrameDecoder::new();
+        decoder.feed(&raw);
+        let mut out = String::new();
+        while let Some(frame) = decoder.decode() {
+            match frame {
+                LogOutput::StdOut { message } | LogOutput::StdErr { message } => {
+                    out.push_str(&String::from_utf8_lossy(&message));
+                }
+                _ => continue,
+            }
+        }
+        Ok(out)
+    }
+
+    /// Waits for the container to exit, then returns its logs.
+    ///
+    /// For a one-shot container — one given a `command` that runs and exits —
+    /// this is the way to read what it printed.
+    ///
+    /// Uses the daemon's `/wait` endpoint rather than polling `State.Running`:
+    /// a container that has been created but not yet scheduled *also* reports
+    /// `Running == false`, so polling that flag returns the instant the
+    /// container starts and hands back empty logs. `/wait` blocks until the
+    /// container has genuinely exited.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::Connection`] if the daemon rejects a request.
+    pub async fn wait_for_exit_async(&self) -> DockerResult<String> {
+        self.docker
+            .wait_container(&self.container_id, Some("not-running"))
+            .await
+            .map_err(|e| docker_err(DockerError::Connection(format!("wait_container: {e}"))))?;
+
+        self.logs_async().await
     }
 
     pub async fn is_running_async(&self) -> DockerResult<bool> {
@@ -192,7 +331,7 @@ impl ContainerHandle {
     }
 
     /// Build a typed [`ContainerCreateBody`] from our `ContainerConfig` builder.
-    fn build_body(config: &ContainerConfig) -> ContainerCreateBody {
+    fn build_body(config: &ContainerConfig, memory_bytes: Option<i64>) -> ContainerCreateBody {
         let mut exposed_ports = serde_json::Map::new();
         let mut port_bindings = serde_json::Map::new();
 
@@ -222,14 +361,22 @@ impl ContainerHandle {
             );
         }
 
+        // Docker bind syntax is `source:target[:ro]`, where `source` is a host
+        // path for a bind mount and the volume's name for a named volume — the
+        // daemon tells them apart by the leading `/`. Both kinds go in `Binds`,
+        // and a read-only mount needs the explicit `:ro` suffix.
         let binds: Vec<String> = config
             .volumes
             .iter()
-            .filter_map(|v| match &v.source {
-                crate::docker::config::VolumeSource::Bind(host_path) => {
-                    Some(format!("{}:{}", host_path.display(), v.target.display()))
-                }
-                crate::docker::config::VolumeSource::Named(_) => None,
+            .map(|v| {
+                let source = match &v.source {
+                    crate::docker::config::VolumeSource::Bind(host_path) => {
+                        host_path.display().to_string()
+                    }
+                    crate::docker::config::VolumeSource::Named(name) => name.clone(),
+                };
+                let mode = if v.read_only { ":ro" } else { "" };
+                format!("{source}:{}{mode}", v.target.display())
             })
             .collect();
 
@@ -257,7 +404,7 @@ impl ContainerHandle {
                 ..Default::default()
             },
             resources: Resources {
-                memory: config.memory.as_ref().and_then(|m| m.parse::<i64>().ok()),
+                memory: memory_bytes,
                 nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
                 devices: if config.devices.is_empty() {
                     None
@@ -308,10 +455,30 @@ impl ContainerHandle {
             ..Default::default()
         };
 
+        // Network aliases are extra DNS names this container answers to, and
+        // they attach to a *specific* network's endpoint — so they can only be
+        // set when a network was named. Setting them at create time (rather than
+        // connecting afterwards) means the container is resolvable by alias from
+        // the moment it starts, with no window where a peer could miss it.
+        let networking_config = match (&config.network, config.network_aliases.is_empty()) {
+            (Some(network), false) => {
+                let mut endpoints_config = HashMap::new();
+                endpoints_config.insert(
+                    network.clone(),
+                    EndpointSettings {
+                        aliases: Some(config.network_aliases.clone()),
+                        ..Default::default()
+                    },
+                );
+                Some(NetworkingConfig { endpoints_config })
+            }
+            _ => None,
+        };
+
         ContainerCreateBody {
             config: gen_config,
             host_config: Some(host_config),
-            networking_config: None,
+            networking_config,
         }
     }
 

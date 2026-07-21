@@ -33,6 +33,11 @@ pub enum DockerError {
     #[display("Image pull failed for '{image}': {reason}")]
     ImagePull { image: String, reason: String },
 
+    /// Image build failed (a Dockerfile instruction returned non-zero, a COPY
+    /// source was missing, the base image could not be resolved).
+    #[display("Image build failed: {_0}")]
+    ImageBuild(String),
+
     /// Container creation failed (invalid config, name conflict, resource limits).
     #[display("Container creation failed: {_0}")]
     ContainerCreate(String),
@@ -87,6 +92,7 @@ pub fn map_docker_client_err(e: foundation_deployment_docker::DockerError) -> Er
     docker_err(match e {
         De::Transport(m) | De::Unavailable(m) => DockerError::Connection(m),
         De::JsonParse(m) => DockerError::InvalidConfig(m),
+        De::BuildFailed(m) => DockerError::ImageBuild(m),
         De::Api { status, message } => {
             DockerError::Connection(format!("docker API {status}: {message}"))
         }
