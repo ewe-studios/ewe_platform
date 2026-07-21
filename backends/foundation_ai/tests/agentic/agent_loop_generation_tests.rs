@@ -926,3 +926,124 @@ fn well_ordered_dependencies_still_execute() {
     });
     assert!(has_tool_result, "the tool must actually run: {records:?}");
 }
+
+// ---------------------------------------------------------------------------
+// Outer-boundary control: abort, steering, iteration cap
+// ---------------------------------------------------------------------------
+//
+// These three are the loop's safety rails. Each decides whether a turn keeps
+// generating, and each was uncovered — the existing suite only drives turns
+// that run to natural completion.
+
+#[test]
+fn a_hard_abort_ends_the_turn_before_the_next_generation() {
+    use foundation_ai::agentic::CancelCode;
+
+    // A hard abort must be honoured at the outer boundary, not after another
+    // (billable) model call. Set it before driving so the very first boundary
+    // check sees it.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("should not be reached")]);
+
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let _ = h.follow_up.push(user_msg("go"));
+    CancelCode::Abort.store(&h.cancel);
+
+    let records = drive(&mut h);
+
+    let replies = assistant_texts(&records);
+    assert!(
+        replies.is_empty(),
+        "an aborted turn must not produce an assistant reply: {replies:?}"
+    );
+}
+
+#[test]
+fn an_abort_resets_the_cancel_signal() {
+    use foundation_ai::agentic::CancelCode;
+
+    // The signal is consumed on handling; leaving it set would abort the NEXT
+    // turn too, which reads as the session mysteriously going dead.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("hi")]);
+
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let _ = h.follow_up.push(user_msg("go"));
+    CancelCode::Abort.store(&h.cancel);
+
+    let _ = drive(&mut h);
+
+    assert_eq!(
+        CancelCode::load(&h.cancel),
+        CancelCode::None,
+        "the abort must be reset after it is honoured"
+    );
+}
+
+#[test]
+fn a_priority_message_is_injected_and_the_signal_cleared() {
+    // Steering front-injects the message and clears the interrupt so the loop
+    // resumes rather than re-interrupting forever.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("answered")]);
+
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let _ = h.follow_up.push(user_msg("original"));
+    h.priority
+        .push(user_msg("urgent"))
+        .expect("priority queue accepts");
+
+    let records = drive(&mut h);
+
+    assert!(
+        h.priority.is_empty(),
+        "the priority queue must be drained, not left to re-fire"
+    );
+    assert!(
+        !records.is_empty(),
+        "the turn must still make progress after steering: {records:?}"
+    );
+}
+
+#[test]
+fn the_outer_iteration_cap_terminates_a_turn() {
+    // Without this cap a model that keeps requesting another round never yields
+    // control back. `drive` panics on non-termination, so completing at all is
+    // the assertion.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("more")]);
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        max_outer_iterations: 1,
+        ..Default::default()
+    };
+    let mut h = harness_with_tools(mock.into_router(), config, vec![]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    let records = drive(&mut h);
+    // Reaching here means the loop terminated under the cap rather than
+    // spinning; the records themselves are incidental.
+    let _ = records;
+}
+
+#[test]
+fn a_zero_outer_iteration_cap_ends_immediately() {
+    // The degenerate setting must end the turn rather than underflow or spin.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("never")]);
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        max_outer_iterations: 0,
+        ..Default::default()
+    };
+    let mut h = harness_with_tools(mock.into_router(), config, vec![]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    let records = drive(&mut h);
+    assert!(
+        assistant_texts(&records).is_empty(),
+        "a zero cap must not permit a generation: {records:?}"
+    );
+}
