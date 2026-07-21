@@ -1,6 +1,6 @@
 //! Tests for URL path pattern matching with `*` and `**` globs.
 
-use foundation_platform::pattern::{extract_path, Pattern, PatternError, PatternRouter};
+use foundation_platform::pattern::{extract_path, Pattern, PatternRouter};
 use foundation_platform::*;
 
 // ── Pattern construction ──────────────────────────────────────

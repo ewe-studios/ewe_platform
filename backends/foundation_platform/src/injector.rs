@@ -167,6 +167,19 @@ impl ScriptInjector {
             ],
         });
 
+        // 5. Floating navigation toolbar (F29 Stage 4)
+        injector.register(InjectedScript {
+            id: "floating_nav".into(),
+            sources: vec![
+                ScriptSource::Disk {
+                    relative_path: PathBuf::from("public/runtimes/floating-nav.js"),
+                },
+                ScriptSource::Static {
+                    source: foundation_wasm_ui::embedded::FLOATING_NAV_JS,
+                },
+            ],
+        });
+
         injector
     }
 }

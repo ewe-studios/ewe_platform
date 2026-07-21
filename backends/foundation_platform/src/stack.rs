@@ -1,13 +1,14 @@
-//! Single-WebView stack manager (v1 — Basecamp model).
+//! WebView stack manager with multi-WebView pool (F29 Stage 3).
 //!
-//! One shared `WebView` per window. Screenshots captured on deactivation,
-//! displayed instantly on back navigation. Navigation flows: push, pop,
-//! morph, replace, root.
-//!
-//! Multi-WebView (desktop+unstable) is post-MVP per decision 10.
+//! v1: Basecamp single-WebView + screenshot model.
+//! v2 (F29): Multi-WebView pool — named WebViews for `ViewKind::WebView`
+//! routing, background preload, and three presentation modes (Morph,
+//! Replace, New).
 //!
 //! `WebView` operations (navigate, screenshot, eval) are behind a trait
 //! so the stack manager can be unit tested without a running Tauri app.
+
+use std::collections::{HashMap, VecDeque};
 
 use foundation_ui_traits::PageIdentity;
 
@@ -80,6 +81,119 @@ impl WebViewSlot {
     }
 }
 
+// ── WebView pool (F29 Stage 3) ──────────────────────────────────────
+
+/// State of a WebView in the pool.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WebViewState {
+    /// WebView exists but has no content loaded.
+    Idle,
+    /// WebView is loading content in the background.
+    Loading,
+    /// WebView has content loaded and is ready (but not visible).
+    Ready,
+    /// WebView is currently visible and active.
+    Active,
+    /// WebView is being destroyed.
+    Destroying,
+}
+
+/// A handle to a WebView in the pool.
+#[derive(Debug, Clone)]
+pub struct PooledWebView {
+    pub label: String,
+    pub state: WebViewState,
+    pub current_route: Option<String>,
+}
+
+impl PooledWebView {
+    #[must_use]
+    pub fn new(label: &str) -> Self {
+        Self {
+            label: label.to_string(),
+            state: WebViewState::Idle,
+            current_route: None,
+        }
+    }
+}
+
+/// Manages a pool of named WebViews for multi-WebView navigation.
+///
+/// The "main" WebView always exists. Additional WebViews are created
+/// on demand when `Presentation::New` or `ViewKind::WebView` directs
+/// navigation to a labeled WebView.
+#[derive(Debug, Default)]
+pub struct WebViewPool {
+    /// Label → WebView handle. "main" is always present.
+    views: HashMap<String, PooledWebView>,
+}
+
+impl WebViewPool {
+    #[must_use]
+    pub fn new() -> Self {
+        let mut views = HashMap::new();
+        views.insert("main".to_string(), PooledWebView::new("main"));
+        Self { views }
+    }
+
+    /// Get or create a WebView by label.
+    pub fn get_or_create(&mut self, label: &str) -> &mut PooledWebView {
+        self.views
+            .entry(label.to_string())
+            .or_insert_with(|| PooledWebView::new(label))
+    }
+
+    /// Get a WebView by label. Returns `None` if not found.
+    #[must_use]
+    pub fn get(&self, label: &str) -> Option<&PooledWebView> {
+        self.views.get(label)
+    }
+
+    /// Return the first idle WebView (for reuse). Excludes "main".
+    #[must_use]
+    pub fn find_idle(&self) -> Option<&PooledWebView> {
+        self.views
+            .values()
+            .find(|v| v.label != "main" && v.state == WebViewState::Idle)
+    }
+
+    /// Mark a WebView's state.
+    pub fn set_state(&mut self, label: &str, state: WebViewState) {
+        if let Some(view) = self.views.get_mut(label) {
+            view.state = state;
+        }
+    }
+
+    /// Mark a WebView's current route.
+    pub fn set_route(&mut self, label: &str, route: &str) {
+        if let Some(view) = self.views.get_mut(label) {
+            view.current_route = Some(route.to_string());
+        }
+    }
+
+    /// Number of WebViews in the pool.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.views.len()
+    }
+
+    /// Whether the pool is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.views.is_empty()
+    }
+}
+
+// ── Preload entry ────────────────────────────────────────────────────
+
+/// A route queued for background preload.
+#[derive(Debug, Clone)]
+pub struct PreloadEntry {
+    pub route: String,
+    /// Target WebView label for the preload.
+    pub target_label: Option<String>,
+}
+
 // ── Stack config ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
@@ -99,17 +213,25 @@ impl Default for StackConfig {
 
 // ── WebView stack ────────────────────────────────────────────────────
 
-/// Manages a navigation stack of `WebViewSlot`s with a shared `WebView`.
+/// Manages a navigation stack of `WebViewSlot`s with a shared `WebView`
+/// and an optional multi-WebView pool.
+///
 /// v1: Basecamp single-WebView + screenshot model.
+/// v2 (F29): Multi-WebView pool + background preload.
 pub struct WebViewStack {
     slots: Vec<WebViewSlot>,
     active_index: usize,
     config: StackConfig,
     /// Track the total screenshot memory usage.
     screenshot_bytes: usize,
+    /// Multi-WebView pool (F29 Stage 3). None = single-WebView mode.
+    pool: Option<WebViewPool>,
+    /// Routes queued for background preload (F29 Stage 3).
+    preload_queue: VecDeque<PreloadEntry>,
 }
 
 impl WebViewStack {
+    /// Create a new stack in single-WebView mode.
     #[must_use]
     pub fn new(config: StackConfig) -> Self {
         Self {
@@ -117,7 +239,40 @@ impl WebViewStack {
             active_index: 0,
             config,
             screenshot_bytes: 0,
+            pool: None,
+            preload_queue: VecDeque::new(),
         }
+    }
+
+    /// Create a new stack with multi-WebView pool support.
+    #[must_use]
+    pub fn with_pool(config: StackConfig) -> Self {
+        Self {
+            slots: Vec::new(),
+            active_index: 0,
+            config,
+            screenshot_bytes: 0,
+            pool: Some(WebViewPool::new()),
+            preload_queue: VecDeque::new(),
+        }
+    }
+
+    /// Enable the multi-WebView pool on an existing stack.
+    pub fn enable_pool(&mut self) {
+        if self.pool.is_none() {
+            self.pool = Some(WebViewPool::new());
+        }
+    }
+
+    /// Access the WebView pool, if enabled.
+    #[must_use]
+    pub fn pool(&self) -> Option<&WebViewPool> {
+        self.pool.as_ref()
+    }
+
+    /// Mutably access the WebView pool.
+    pub fn pool_mut(&mut self) -> Option<&mut WebViewPool> {
+        self.pool.as_mut()
     }
 
     /// Initialize the stack with a root route.
@@ -258,6 +413,128 @@ impl WebViewStack {
         webview.navigate(route);
     }
 
+    // ── Pool-aware push (F29 Stage 3) ─────────────────────────────
+
+    /// Push a new screen using a named WebView from the pool.
+    ///
+    /// `Presentation::Push` creates a new WebView from the pool (or reuses
+    /// an idle one), pushes a new slot, and navigates. The old WebView stays
+    /// alive in the background.
+    ///
+    /// `Presentation::Replace` reuses the current WebView (same as `replace()`).
+    /// `Presentation::Morph` updates in-place without stack change.
+    pub fn push_with_presentation(
+        &mut self,
+        route: &str,
+        presentation: &foundation_ui_traits::Presentation,
+        target_label: Option<&str>,
+        webview: &dyn WebViewOps,
+    ) {
+        match presentation {
+            foundation_ui_traits::Presentation::Morph => {
+                self.morph(route, webview);
+            }
+            foundation_ui_traits::Presentation::Replace => {
+                self.replace(route, webview);
+            }
+            foundation_ui_traits::Presentation::Push
+            | foundation_ui_traits::Presentation::Modal => {
+                let label = target_label
+                    .map(String::from)
+                    .unwrap_or_else(|| format!("wv_{}", self.slots.len()));
+
+                // Ensure pool exists
+                if self.pool.is_none() {
+                    self.enable_pool();
+                }
+
+                // Mark the pool WebView as active
+                if let Some(pool) = self.pool.as_mut() {
+                    pool.get_or_create(&label);
+                    pool.set_state(&label, WebViewState::Active);
+                    pool.set_route(&label, route);
+                }
+
+                // Capture screenshot of current, push new slot
+                if let Some(slot) = self.slots.get_mut(self.active_index) {
+                    let ss = webview.screenshot();
+                    slot.set_screenshot(ss);
+                    slot.state = SlotState::Screenshot;
+                    self.screenshot_bytes += slot.screenshot.as_ref().map_or(0, std::vec::Vec::len);
+                }
+
+                let mut new_slot = WebViewSlot::new(route);
+                new_slot.state = SlotState::Active;
+                self.slots.push(new_slot);
+                self.active_index = self.slots.len() - 1;
+
+                webview.navigate(route);
+                self.evict_if_needed();
+            }
+            foundation_ui_traits::Presentation::External => {
+                // External navigation — don't change the stack.
+            }
+            foundation_ui_traits::Presentation::Root => {
+                self.set_root(route, webview);
+            }
+        }
+    }
+
+    // ── Background preload (F29 Stage 3) ───────────────────────────
+
+    /// Enqueue a route for background preload into an idle WebView.
+    ///
+    /// The preload is drained by calling `drain_preloads()` with a
+    /// `WebViewOps` that supports navigation. Preloaded pages are
+    /// ready when the user navigates to them.
+    pub fn preload(&mut self, route: &str, target_label: Option<&str>) {
+        self.preload_queue.push_back(PreloadEntry {
+            route: route.to_string(),
+            target_label: target_label.map(String::from),
+        });
+    }
+
+    /// Drain the preload queue, navigating idle WebViews to preloaded
+    /// routes. Returns the number of preloads processed.
+    ///
+    /// Call this after each navigation to keep the preload pipeline full.
+    pub fn drain_preloads(&mut self, webview: &dyn WebViewOps) -> usize {
+        let mut processed = 0;
+        while let Some(entry) = self.preload_queue.pop_front() {
+            // In single-WebView mode, skip preloads (would interrupt user)
+            if self.pool.is_none() {
+                continue;
+            }
+
+            // Find an idle WebView
+            let idle_label = self
+                .pool
+                .as_ref()
+                .and_then(|p| p.find_idle().map(|v| v.label.clone()));
+
+            let target_label = entry.target_label.clone();
+            if let Some(label) = idle_label.or(target_label) {
+                if let Some(pool) = self.pool.as_mut() {
+                    pool.set_state(&label, WebViewState::Loading);
+                    pool.set_route(&label, &entry.route);
+                }
+                webview.navigate(&entry.route);
+                processed += 1;
+            } else {
+                // No idle WebView — put back and stop
+                self.preload_queue.push_front(entry);
+                break;
+            }
+        }
+        processed
+    }
+
+    /// Number of pending preloads.
+    #[must_use]
+    pub fn preload_queue_len(&self) -> usize {
+        self.preload_queue.len()
+    }
+
     // ── Stale content ─────────────────────────────────────────────
 
     /// Mark the content of a specific slot as stale.
@@ -312,6 +589,28 @@ impl WebViewStack {
     #[must_use]
     pub fn slots(&self) -> &[WebViewSlot] {
         &self.slots
+    }
+
+    /// Get a mutable reference to all slots.
+    #[must_use]
+    pub fn slots_mut(&mut self) -> &mut Vec<WebViewSlot> {
+        &mut self.slots
+    }
+
+    /// Push a pre-constructed slot onto the stack and make it active.
+    /// Used by `execute_decision` when `Presentation::Push` or `Presentation::Modal`.
+    pub fn push_slot(&mut self, slot: WebViewSlot) {
+        self.slots.push(slot);
+        self.active_index = self.slots.len() - 1;
+    }
+
+    /// Clear stack and set a new root route (no WebView ops).
+    /// Used by `execute_decision` when `Presentation::Root`.
+    pub fn set_root_slot(&mut self, route: &str) {
+        self.screenshot_bytes = 0;
+        self.slots.clear();
+        self.slots.push(WebViewSlot::new(route));
+        self.active_index = 0;
     }
 }
 

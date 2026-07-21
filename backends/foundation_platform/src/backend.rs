@@ -12,6 +12,10 @@
 use foundation_ui_traits::{RouteDecision, RouteSource};
 
 pub mod http;
+pub mod ipc_dispatch;
+
+// Re-export SessionTransport for convenience
+pub use ipc_dispatch::{dispatch_ipc, SessionTransport};
 
 // ── Backend transport trait ─────────────────────────────────────────────
 

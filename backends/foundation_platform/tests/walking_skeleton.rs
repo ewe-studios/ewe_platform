@@ -181,8 +181,8 @@ fn mutation_queue_enqueue_and_replay() {
 
     // Enqueue mutations while "offline"
     session.set_online(false);
-    session.mutation_queue().enqueue("create_order", serde_json::json!({"item": "widget"}));
-    session.mutation_queue().enqueue("update_profile", serde_json::json!({"name": "alex"}));
+    let _ = session.mutation_queue().enqueue("create_order", serde_json::json!({"item": "widget"}));
+    let _ = session.mutation_queue().enqueue("update_profile", serde_json::json!({"name": "alex"}));
     assert_eq!(session.mutation_queue().pending_count(), 2);
 
     // Replay when "online"
