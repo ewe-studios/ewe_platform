@@ -318,6 +318,91 @@ async function invokeCap() {
     }
 }
 
+// ── Presentation demo page (F35 validation) ──────────────────────────
+
+/// Serves an interactive page that exercises all 6 Presentation modes.
+/// Each button triggers a navigation to a route that uses a different
+/// presentation mode and returns HTML showing which mode was activated.
+struct PresentationDemoPage;
+impl RouteResponder for PresentationDemoPage {
+    fn respond(
+        &self,
+        _intent: &NavigationIntent,
+        _decision: &RouteDecision,
+        session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
+        let stack = session.webview_stack();
+        let depth = stack.depth();
+        let active = stack.active_route().unwrap_or("(none)").to_string();
+        let session_id = format!("{:?}", session.session_id());
+
+        let body = format!(
+            r##"<h1>Presentation Mode Tests</h1>
+<p>Stack: <b>{depth}</b> slots · Active: <b>{active}</b></p>
+<p>Session: <b>{session_id}</b></p>
+<h2>All 6 Presentation Modes</h2>
+<button onclick="nav('push','/nav_push')">Push — new slot + screenshot old</button>
+<button onclick="nav('modal','/nav_modal')">Modal — new slot like Push</button>
+<button onclick="nav('morph','/nav_morph')">Morph — in-place DOM swap</button>
+<button onclick="nav('replace','/nav_replace')">Replace — swap current slot</button>
+<button onclick="nav('root','/nav_root')">Root — clear stack + new root</button>
+<button onclick="nav('external','https://github.com')">External — system browser</button>
+<h2>Navigation Tests</h2>
+<button onclick="nav('push','/app/')">Push: WASM App</button>
+<button onclick="nav('push','/app-hello/')">Push: Hello App</button>
+<button onclick="nav('push','/api/invoke')">Push: IPC Invoke</button>
+<button onclick="history.back()">← Back (pop)</button>
+<h2>Stack State</h2>
+<pre id="stack" style="font-size:11px">Loading...</pre>
+<script>
+function nav(mode,url) {{
+    var ewe = 'ewe://localhost' + (url.startsWith('http') ? '' : '') + url;
+    if (url.startsWith('http')) ewe = url;
+    location.href = ewe;
+}}
+setInterval(function(){{
+    document.getElementById('stack').textContent =
+        'Depth: <stack_depth>' + ' · Mode: <last_mode>';
+}}, 500);
+</script>"##,
+        );
+        let html = page_html("Presentation Tests", &body, &nav_buttons("/presentation/"), "");
+        html_response(html)
+    }
+}
+
+/// Responder that reports which presentation mode was used.
+struct ModeReportPage;
+impl RouteResponder for ModeReportPage {
+    fn respond(
+        &self,
+        intent: &NavigationIntent,
+        decision: &RouteDecision,
+        session: &PlatformSession,
+    ) -> tauri::http::Response<Vec<u8>> {
+        let route = foundation_platform::pattern::extract_path(&intent.url);
+        let mode = format!("{:?}", decision.presentation);
+        let target = decision.target.as_deref().unwrap_or("(none)").to_string();
+        let stack = session.webview_stack();
+        let depth = stack.depth();
+        let active = stack.active_route().unwrap_or("(none)").to_string();
+        drop(stack);
+
+        let body = format!(
+            r##"<h1>Route: {route}</h1>
+<p>Presentation: <b style="color:#64ffda">{mode}</b></p>
+<p>Target WebView: <b>{target}</b></p>
+<p>Stack depth: <b>{depth}</b></p>
+<p>Active: <b>{active}</b></p>
+<div style="margin-top:16px">
+<a href="ewe://localhost/presentation/">← Back to Presentation Tests</a>
+</div>"##,
+        );
+        let html = page_html(&format!("{mode} Demo"), &body, &nav_buttons(&route), "");
+        html_response(html)
+    }
+}
+
 // ── Setup ────────────────────────────────────────────────────────────
 
 fn setup_routes(session: &PlatformSession) {
@@ -366,6 +451,50 @@ fn setup_routes(session: &PlatformSession) {
 
     // API fallback
     session.register_route_with("/api/*", ipc_shell_with("shell"), IpcInvokePage);
+
+    // ── Presentation mode demo routes (F35 validation) ───────────────
+    // Each route uses a different Presentation variant so we can verify
+    // the WebViewStack behaves correctly for all 6 modes.
+    session.register_route_with(
+        "/presentation/",
+        webview_app().with_profile(Profile::App),
+        PresentationDemoPage,
+    );
+    session.register_route_with(
+        "/nav_push",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_presentation(foundation_ui_traits::Presentation::Push),
+        ModeReportPage,
+    );
+    session.register_route_with(
+        "/nav_modal",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_presentation(foundation_ui_traits::Presentation::Modal),
+        ModeReportPage,
+    );
+    session.register_route_with(
+        "/nav_morph",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_presentation(foundation_ui_traits::Presentation::Morph),
+        ModeReportPage,
+    );
+    session.register_route_with(
+        "/nav_replace",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_presentation(foundation_ui_traits::Presentation::Replace),
+        ModeReportPage,
+    );
+    session.register_route_with(
+        "/nav_root",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_presentation(foundation_ui_traits::Presentation::Root),
+        ModeReportPage,
+    );
 
     println!("[platform_android] Session: {:?}", session.session_id());
 }
