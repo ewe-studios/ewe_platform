@@ -62,10 +62,16 @@ implemented, or explicitly deferred.
 | # | Feature | Source | Status |
 |---|---------|--------|--------|
 | F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | **DONE** — memory_add/remove/replace over MemoryHierarchy working memory; 7 tests |
-| F15 | `delegate` tool — `DelegationTool` slot has NO impl | 36/F14 | **DONE** — bounded DelegationManager + 5 verbs (start/stop/pause/check/result); child AgentSession runs a turn to completion (nested run_turn proven deadlock-free), depth cap; 4 tests |
+| F15 | `delegate` tool → **agentic delegator** (background LLM delegation) | 36/F14 | **In progress (redesigned)** — first cut reverted (blocking `run_turn` anti-pattern). New design: a `MultiCommands` `delegate` tool that schedules a child LLM turn as a valtron task on the existing router (user-named model), returns a handle, closeable via `abort()`. Depends on F19. See features/F15-agentic-delegator.md |
 | F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | **DONE** — cosine embedding recall in ContextProvider (keyword fallback when no embedder); AgentSessionBuilder::with_embedder; 2 tests prove feline→cat semantic match |
 | F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | **DONE** — honestly disabled: no session knowledge graph exists (code_graph indexes CODE), so Graph warns + falls back to hybrid recall instead of silently empty; 1 test |
 | F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | **DONE** — enabled vfs-search-fff (native); SearchFileTool::native uses native_vfs_searcher cascade (fff→CLI→in-code); 1 test proves fff hits the real repo |
+
+### Phase E — Tool model
+
+| # | Feature | Status |
+|---|---------|--------|
+| F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **In progress** — see features/F19-unified-tool-model.md |
 
 ## Working agreements
 
