@@ -157,7 +157,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                         // create the request descriptor
                         let request_descriptor = data.descriptor();
-                        tracing::info!("HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, &request_descriptor.headers);
+                        tracing::info!("HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, crate::shared::http::RedactedHeaders(&request_descriptor.headers));
 
                         tracing::info!("HttpRequestRedirectState::Init -> Going to Trying state with max redirects: {}", &remaining_redirects);
 
@@ -409,7 +409,7 @@ SendSafeBody::LineFeedStream(_))
                     };
                     let headers = match &headers_result {
                         Some(Ok(IncomingResponseParts::Headers(ref h))) => {
-                            tracing::debug!("Received HTTP headers: {:?}", h);
+                            tracing::debug!("Received HTTP headers: {:?}", crate::shared::http::RedactedHeaders(h));
                             h
                         }
                         _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
