@@ -362,15 +362,28 @@ impl ToolCallManager {
         let memory = self.build_memory_tool();
         let delegate = self.build_delegate_tool();
 
+        // The `shed` meta-tool exists to let the model DISCOVER other tools, so
+        // it only makes sense when there are tools to discover. Advertising it
+        // to a tool-less agent injected a phantom `shed()` into every prompt —
+        // small models visibly wasted reasoning trying to interpret it (see
+        // docs/fixes/007). Include it only when the registry has real tools.
+        let has_tools = memory.is_some()
+            || delegate.is_some()
+            || ["read", "edit", "write", "search", "search_files", "shell"]
+                .iter()
+                .any(|c| by_cat.contains_key(*c));
+
+        let shed = has_tools.then(|| Tool {
+            name: "shed".into(),
+            description:
+                "Search the tool registry for available tools by category or free-text query."
+                    .into(),
+            arguments: None,
+            returns: None,
+        });
+
         ToolShed {
-            shed: Some(Tool {
-                name: "shed".into(),
-                description:
-                    "Search the tool registry for available tools by category or free-text query."
-                        .into(),
-                arguments: None,
-                returns: None,
-            }),
+            shed,
             memory,
             delegate,
             read: by_cat.get("read").cloned(),

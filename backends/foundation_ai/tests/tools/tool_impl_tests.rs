@@ -100,12 +100,33 @@ fn build_toolshed_populates_by_category() {
 }
 
 #[test]
-fn build_toolshed_empty_has_only_shed() {
+fn build_toolshed_empty_has_no_shed_meta_tool() {
+    // An empty registry must NOT advertise the `shed` meta-tool: there is
+    // nothing to discover, and a phantom `shed()` in every prompt confused
+    // small models (docs/fixes/007).
     futures_lite::future::block_on(async {
         let mgr = ToolCallManager::new(SessionId::new());
         let shed = mgr.build_toolshed();
-        assert_eq!(shed.shed.as_ref().unwrap().name, "shed");
+        assert!(
+            shed.shed.is_none(),
+            "empty registry must not include the shed meta-tool"
+        );
         assert!(shed.shell.is_none());
         assert!(shed.read.is_none());
+    })
+}
+
+#[test]
+fn build_toolshed_with_tools_includes_shed_meta_tool() {
+    // With real tools present, the discovery meta-tool is appropriate.
+    futures_lite::future::block_on(async {
+        let mgr = ToolCallManager::new(SessionId::new());
+        mgr.register(Arc::new(EchoTool));
+        let shed = mgr.build_toolshed();
+        assert_eq!(
+            shed.shed.as_ref().unwrap().name,
+            "shed",
+            "a populated registry should offer the shed meta-tool"
+        );
     })
 }
