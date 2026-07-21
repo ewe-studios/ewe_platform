@@ -160,6 +160,12 @@ impl<R: Runtime> PlatformBuilder<R> {
 
             for setup in &setups { setup(&session); }
 
+            // F35: Inject Tauri window manager into the session.
+            // The pool tracks labels; the manager creates real Tauri windows.
+            session.window_manager().set_ops(
+                crate::window::TauriWindowOps::new(app.handle().clone()).into_boxed()
+            );
+
             // F24: resolve and eval all platform runtime scripts
             let scripts = session.script_injector().resolve_all();
             if let Some(window) = app.get_webview_window("main") {

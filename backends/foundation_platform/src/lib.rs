@@ -16,6 +16,7 @@ mod mutation;
 pub mod ota;
 pub mod overlay;
 pub mod stack;
+pub mod window;
 pub mod worker;
 pub mod ewe;
 pub mod pattern;
@@ -41,6 +42,7 @@ pub use stack::{PooledWebView, PreloadEntry, SlotState, StackConfig, WebViewOps,
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use overlay::{OverlayCapability, OverlayConfig, OverlayPosition};
 pub use responder::{MobileApp, MobileDisk, RemoteProxy, WebviewApp};
+pub use window::{NoopWindowOps, WindowManager, WindowOps};
 pub use worker::{WorkerChannel, WorkerReceiver, WorkerRegistry};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler, RouteResponder};

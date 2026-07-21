@@ -182,6 +182,11 @@ impl WebViewPool {
     pub fn is_empty(&self) -> bool {
         self.views.is_empty()
     }
+
+    /// Remove a WebView from the pool by label (F35).
+    pub fn remove(&mut self, label: &str) {
+        self.views.remove(label);
+    }
 }
 
 // ── Preload entry ────────────────────────────────────────────────────

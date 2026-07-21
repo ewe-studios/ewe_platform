@@ -113,6 +113,10 @@ pub struct PlatformSession {
 
     /// Worker registry (F34). Named typed channels for background workers.
     pub(crate) workers_: crate::worker::WorkerRegistry,
+
+    /// Window manager (F35). Bridges Tauri WebView lifecycle with the pool.
+    /// `None` in tests; injected by `PlatformBuilder` in production.
+    window_manager: crate::window::WindowManager,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -153,6 +157,7 @@ impl PlatformSession {
             )),
             app_isolation: crate::multi_app::AppIsolation::new(),
             workers_: crate::worker::WorkerRegistry::new(),
+            window_manager: crate::window::WindowManager::new(),
         })
     }
 }
@@ -569,6 +574,11 @@ impl PlatformSession {
     /// Access the per-app isolation registry (F21).
     pub fn app_isolation(&self) -> &crate::multi_app::AppIsolation {
         &self.app_isolation
+    }
+
+    /// Access the window manager (F35). Used to create/show/hide Tauri windows.
+    pub fn window_manager(&self) -> &crate::window::WindowManager {
+        &self.window_manager
     }
 
     pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc + 'static>(&self, ipc: S) {
