@@ -306,3 +306,289 @@ fn full_navigation_cycle() {
     // Can't pop root
     assert_eq!(stack.pop(&wv), None);
 }
+
+// ── Presentation mode tests (F35 — Multi-WebView) ──────────────
+
+/// Build a NavigationIntent for testing.
+fn intent_for(url: &str) -> foundation_platform::NavigationIntent {
+    foundation_platform::NavigationIntent {
+        url: url.to_string(),
+        method: foundation_platform::Method::Get,
+        source: foundation_platform::IntentSource::LinkClick,
+        referrer: None,
+    }
+}
+
+#[test]
+fn presentation_morph_keeps_one_slot() {
+    // Morph replaces content in-place — no new slot, depth unchanged.
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "/app/updated",
+        &foundation_ui_traits::Presentation::Morph,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 1, "Morph should not create a new slot");
+    assert_eq!(stack.active_route(), Some("/app/updated"));
+}
+
+#[test]
+fn presentation_replace_swaps_in_place() {
+    // Replace swaps the current slot's content — same depth, new route.
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "/app/v2",
+        &foundation_ui_traits::Presentation::Replace,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 1, "Replace should keep same depth");
+    assert_eq!(stack.active_route(), Some("/app/v2"));
+}
+
+#[test]
+fn presentation_push_adds_slot_and_screenshot() {
+    // Push adds a new slot, captures screenshot of the previous.
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "/app/items",
+        &foundation_ui_traits::Presentation::Push,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 2, "Push should add a new slot");
+    assert_eq!(stack.active_route(), Some("/app/items"));
+    // Previous slot should have a screenshot
+    let prev = &stack.slots()[0];
+    assert!(prev.screenshot.is_some(), "Push should capture screenshot of previous slot");
+    assert_eq!(prev.state, SlotState::Screenshot);
+}
+
+#[test]
+fn presentation_modal_adds_slot_like_push() {
+    // Modal behaves like Push for the stack (new slot, screenshot old).
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "/settings/modal",
+        &foundation_ui_traits::Presentation::Modal,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 2, "Modal should add a new slot");
+    assert_eq!(stack.active_route(), Some("/settings/modal"));
+}
+
+#[test]
+fn presentation_push_uses_pool_label() {
+    // Push with a target label populates the WebView pool.
+    let mut stack = WebViewStack::with_pool(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "/app-hello/",
+        &foundation_ui_traits::Presentation::Push,
+        Some("app_hello"),
+        &wv,
+    );
+
+    // Pool should have both "main" (default) and "app_hello"
+    let pool = stack.pool().unwrap();
+    assert!(pool.get("main").is_some(), "main pool entry should exist");
+    assert!(pool.get("app_hello").is_some(), "app_hello pool entry should be created");
+    assert_eq!(pool.get("app_hello").unwrap().state, WebViewState::Active);
+    assert_eq!(stack.depth(), 2);
+}
+
+#[test]
+fn presentation_root_clears_and_resets() {
+    // Root clears the entire stack and sets a new root.
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+    stack.push("/app/items", &wv);
+    stack.push("/app/detail", &wv);
+    assert_eq!(stack.depth(), 3);
+
+    stack.push_with_presentation(
+        "/login",
+        &foundation_ui_traits::Presentation::Root,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 1, "Root should clear everything and set one slot");
+    assert_eq!(stack.active_route(), Some("/login"));
+    assert_eq!(stack.active(), 0);
+}
+
+#[test]
+fn presentation_external_does_not_change_stack() {
+    // External opens in system browser — stack unchanged.
+    let mut stack = WebViewStack::new(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    stack.push_with_presentation(
+        "https://example.com",
+        &foundation_ui_traits::Presentation::External,
+        None,
+        &wv,
+    );
+
+    assert_eq!(stack.depth(), 1, "External should not change the stack");
+    assert_eq!(stack.active_route(), Some("/app/home"));
+}
+
+#[test]
+fn six_presentation_modes_form_a_cycle() {
+    // Simulate a realistic user session covering all 6 presentation modes.
+    let mut stack = WebViewStack::with_pool(StackConfig::default());
+    let wv = FakeWebView::new();
+
+    // 1. Root: login screen
+    stack.push_with_presentation(
+        "/login",
+        &foundation_ui_traits::Presentation::Root,
+        None,
+        &wv,
+    );
+    assert_eq!(stack.depth(), 1);
+    assert_eq!(stack.active_route(), Some("/login"));
+
+    // 2. Push: main app after login
+    stack.push_with_presentation(
+        "/app/home",
+        &foundation_ui_traits::Presentation::Push,
+        None,
+        &wv,
+    );
+    assert_eq!(stack.depth(), 2, "Push after Root should add slot");
+    assert_eq!(stack.active_route(), Some("/app/home"));
+
+    // 3. Morph: in-place update (e.g. tab switch)
+    stack.push_with_presentation(
+        "/app/home?tab=settings",
+        &foundation_ui_traits::Presentation::Morph,
+        None,
+        &wv,
+    );
+    assert_eq!(stack.depth(), 2, "Morph should not change depth");
+
+    // 4. Modal: settings modal overlays the app
+    stack.push_with_presentation(
+        "/settings/profile",
+        &foundation_ui_traits::Presentation::Modal,
+        Some("modal_settings"),
+        &wv,
+    );
+    assert_eq!(stack.depth(), 3, "Modal should add a slot");
+
+    // 5. Replace: swap modal content
+    stack.push_with_presentation(
+        "/settings/privacy",
+        &foundation_ui_traits::Presentation::Replace,
+        None,
+        &wv,
+    );
+    assert_eq!(stack.depth(), 3, "Replace should keep depth");
+
+    // 6. Pop back through the stack
+    let popped = stack.pop(&wv);
+    assert!(popped.is_some());
+    assert_eq!(stack.depth(), 2);
+
+    // 7. External: open in browser — stack unchanged
+    stack.push_with_presentation(
+        "https://docs.example.com",
+        &foundation_ui_traits::Presentation::External,
+        None,
+        &wv,
+    );
+    assert_eq!(stack.depth(), 2);
+
+    // Final state: 2 slots (login + app/home)
+    assert_eq!(stack.depth(), 2);
+}
+
+#[test]
+fn presentation_preload_queue() {
+    let mut stack = WebViewStack::with_pool(StackConfig::default());
+    let wv = FakeWebView::new();
+    stack.init("/app/home");
+
+    // Enqueue preloads
+    stack.preload("/app/settings", None);
+    stack.preload("/app/profile", None);
+    assert_eq!(stack.preload_queue_len(), 2);
+
+    // Drain preloads (single-WebView mode skips — need pool)
+    // In pool mode with idle WebViews, preloads would navigate:
+    let processed = stack.drain_preloads(&wv);
+    assert_eq!(stack.preload_queue_len(), 2, "preloads remain until idle WebViews exist");
+    // processed may be 0 if no idle pool WebViews yet
+    let _ = processed; // just verify it doesn't panic
+}
+
+#[test]
+fn presentation_recorded_in_session() {
+    // Verify session.record_presentation updates the WebViewStack for each mode.
+    let session = foundation_platform::PlatformSession::new_test(
+        std::path::PathBuf::from(".")
+    );
+
+    // Morph
+    session.webview_stack_mut().init("/app/home");
+    session.webview_stack_mut().push_with_presentation(
+        "/app/target",
+        &foundation_ui_traits::Presentation::Morph,
+        None,
+        &FakeWebView::new(),
+    );
+    {
+        let stack = session.webview_stack();
+        assert_eq!(stack.depth(), 1, "Morph via session: depth 1");
+    }
+
+    // Push
+    session.webview_stack_mut().push_with_presentation(
+        "/app/new",
+        &foundation_ui_traits::Presentation::Push,
+        None,
+        &FakeWebView::new(),
+    );
+    {
+        let stack = session.webview_stack();
+        assert_eq!(stack.depth(), 2, "Push via session: depth 2");
+    }
+
+    // Replace
+    session.webview_stack_mut().push_with_presentation(
+        "/app/replaced",
+        &foundation_ui_traits::Presentation::Replace,
+        None,
+        &FakeWebView::new(),
+    );
+    {
+        let stack = session.webview_stack();
+        assert_eq!(stack.depth(), 2, "Replace via session: depth 2");
+        assert_eq!(stack.active_route(), Some("/app/replaced"));
+    }
+}

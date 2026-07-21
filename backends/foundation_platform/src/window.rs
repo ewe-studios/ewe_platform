@@ -12,7 +12,7 @@
 //! (pool operates without real windows). In production, `PlatformBuilder`
 //! sets a Tauri `AppHandle`-backed implementation.
 
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use crate::stack::{WebViewPool, WebViewState};
 
@@ -85,7 +85,6 @@ mod tauri_impl {
 
             if let Ok(window) = builder.build() {
                 // Wait briefly then show
-                let label = label.to_string();
                 std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_millis(300));
                     let _ = window.show();

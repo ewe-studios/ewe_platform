@@ -194,3 +194,6 @@ backends/foundation_testbed/.testbed
 backends/foundation_testbed/.testbed/.*
 .blackboxcli/
 2026-07-11-192629-lets-finish-the-websocket-addition-to-foundation.txt
+
+# Vendored external repo (has its own .git) — cloned tooling, not our source.
+infrastructure/docker/docker-android/

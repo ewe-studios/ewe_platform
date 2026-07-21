@@ -37,6 +37,8 @@ pub fn generate_platform_code() {
                 .unwrap_or("")
                 .to_string();
             if n.starts_with("app-") && p.is_dir() && p.join("Cargo.toml").exists() {
+                // Skip wasmtime shell crates (app-shell, app-shell-*) — handled separately
+                if n.starts_with("app-shell") { continue; }
                 apps.push(AppDistribution {
                     name: n.clone(),
                     crate_dir: p,
@@ -291,6 +293,18 @@ fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
         let _ = writeln!(mod_lines, "pub mod {module_name};");
     }
     std::fs::write(shell_dir.join("mod.rs"), &mod_lines).ok();
+
+    // Declare `shell` in the parent `generated/mod.rs`. `generate_app_modules`
+    // writes that file first and only knows about the WebView apps, so without
+    // this append the whole `shell/` tree is unreachable — the F33 wasmtime
+    // modules would be generated but never compiled in.
+    let parent_mod = generated_dir.join("mod.rs");
+    let existing = std::fs::read_to_string(&parent_mod).unwrap_or_default();
+    if !existing.contains("pub mod shell;") {
+        let updated = format!("{existing}pub mod shell;\n");
+        std::fs::write(&parent_mod, updated).ok();
+    }
+
     println!("cargo:warning=generated {} wasmtime shell modules", apps.len());
 }
 
