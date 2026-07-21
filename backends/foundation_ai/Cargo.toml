@@ -94,6 +94,11 @@ foundation_testing = { path = "../foundation_testing", version = "0.0.1", featur
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 futures-lite = "2"
+
+# Native-only: lets tests construct the source llama.cpp error types to cover the
+# From/Display conversions in errors/llama.rs (already a build dep via llamacpp).
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.1" }
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [[test]]

@@ -92,3 +92,27 @@ fn foundation_errors_from_each_source() {
     assert!(matches!(c, FoundationAIErrors::RegistryErrors(_)));
     assert!(format!("{c}").to_lowercase().contains("registry error"));
 }
+
+// ---------------------------------------------------------------------------
+// model_descriptors() — the generated provider descriptor registry
+// (models/providers/mod.rs was 0%).
+
+#[test]
+fn model_descriptors_registry_is_populated_and_wellformed() {
+    let all = foundation_ai::models::model_descriptors();
+    assert!(!all.is_empty(), "the descriptor registry must not be empty");
+
+    for d in all {
+        assert!(!d.id.is_empty(), "every descriptor has a non-empty id");
+        assert!(!d.name.is_empty(), "every descriptor has a non-empty name: {}", d.id);
+        assert!(d.context_window > 0, "context window must be positive for {}", d.id);
+    }
+
+    // Multiple providers are represented (the concatenation actually ran).
+    let providers: std::collections::BTreeSet<_> =
+        all.iter().map(|d| format!("{:?}", d.provider)).collect();
+    assert!(
+        providers.len() > 1,
+        "the registry must span multiple providers, got {providers:?}"
+    );
+}
