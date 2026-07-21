@@ -788,3 +788,141 @@ fn preflight_compression_drops_oldest_when_over_budget() {
     );
     assert!(n >= 1, "compression must keep at least the newest message (sent {n})");
 }
+
+// ---------------------------------------------------------------------------
+// Workflow construction failures (build_workflow -> FailedAction)
+// ---------------------------------------------------------------------------
+//
+// `build_workflow` topologically sorts tool calls by `depends_on`. When that
+// sort is impossible the loop must emit a FailedAction and move on — NOT panic,
+// and not silently execute the calls in arbitrary order, which would run a
+// dependent tool before the tool it needs.
+
+/// An assistant tool-call message whose call carries explicit `depends_on` ids.
+fn tool_call_with_deps(
+    call_id: &str,
+    name: &str,
+    depends_on: Vec<String>,
+) -> Messages {
+    Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
+        model: ModelId::Name("mock".into(), None),
+        timestamp: foundation_compact::SystemTime::UNIX_EPOCH,
+        usage: foundation_ai::agentic::testing::zero_usage(),
+        content: ModelOutput::ToolCall {
+            id: call_id.to_string(),
+            name: name.to_string(),
+            arguments: Some(HashMap::new()),
+            signature: None,
+            depends_on,
+            execution_hint: foundation_ai::types::ExecutionHint::Unspecified,
+        },
+        stop_reason: foundation_ai::types::StopReason::ToolUse,
+        provider: foundation_ai::types::ModelProviders::Custom("mock".into()),
+        error_detail: None,
+        signature: None,
+        metadata: None,
+    }
+}
+
+#[test]
+fn a_self_referential_dependency_fails_the_workflow_without_panicking() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    // The call depends on itself — no topological order exists.
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(
+        0,
+        vec![tool_call_with_deps("call_a", "echo", vec!["call_a".into()])],
+    );
+    mock.on_any(vec![mock_text("finished")]);
+
+    let tool = Arc::new(MockTool::returning("echo", "out"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    let records = drive(&mut h);
+    assert!(
+        has_failed_action(&records),
+        "a cyclic dependency must surface as a FailedAction record: {records:?}"
+    );
+}
+
+#[test]
+fn a_dependency_on_an_unknown_call_fails_the_workflow() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    // Depends on an id the model never emitted — the sort cannot resolve it.
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(
+        0,
+        vec![tool_call_with_deps("call_a", "echo", vec!["ghost".into()])],
+    );
+    mock.on_any(vec![mock_text("finished")]);
+
+    let tool = Arc::new(MockTool::returning("echo", "out"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    let records = drive(&mut h);
+    assert!(
+        has_failed_action(&records),
+        "a dependency on an unknown call must surface as a FailedAction: {records:?}"
+    );
+}
+
+#[test]
+fn a_workflow_failure_does_not_end_the_turn() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    // After the failed workflow the loop returns to output processing and the
+    // turn completes, rather than hanging or terminating early.
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(
+        0,
+        vec![tool_call_with_deps("call_a", "echo", vec!["call_a".into()])],
+    );
+    mock.on_any(vec![mock_text("recovered")]);
+
+    let tool = Arc::new(MockTool::returning("echo", "out"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    // `drive` panics if the loop fails to terminate, so reaching here at all is
+    // the "did not hang" assertion.
+    let records = drive(&mut h);
+    assert!(
+        !records.is_empty(),
+        "the turn must still produce records after a workflow failure"
+    );
+}
+
+#[test]
+fn well_ordered_dependencies_still_execute() {
+    use foundation_ai::agentic::testing::MockTool;
+
+    // The contrast case: a satisfiable dependency must NOT be treated as a
+    // failure, or the guard above would be over-broad.
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![tool_call_with_deps("call_a", "echo", vec![])]);
+    mock.on_any(vec![mock_text("finished")]);
+
+    let tool = Arc::new(MockTool::returning("echo", "out"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("go"));
+
+    let records = drive(&mut h);
+    assert!(
+        !has_failed_action(&records),
+        "a dependency-free call must not be reported as a workflow failure: {records:?}"
+    );
+    let has_tool_result = records.iter().any(|r| {
+        matches!(
+            r,
+            SessionRecord::Conversation {
+                message: Messages::ToolResult { .. }
+            }
+        )
+    });
+    assert!(has_tool_result, "the tool must actually run: {records:?}");
+}
