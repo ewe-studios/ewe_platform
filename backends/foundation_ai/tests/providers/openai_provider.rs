@@ -73,6 +73,25 @@ fn sse_response(body: &[u8]) -> HttpResponse {
     }
 }
 
+fn zero_usage_report() -> UsageReport {
+    UsageReport {
+        input: 0.0,
+        output: 0.0,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: 0.0,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status: CostStatus::Actual,
+        },
+    }
+}
+
 fn make_interaction(prompt: &str) -> ModelInteraction {
     ModelInteraction {
         system_prompt: None,
@@ -1465,4 +1484,217 @@ fn build_chat_request_output_format_and_tool_choice_simple_arms() {
         assert!(req.response_format.is_some());
         assert!(req.tool_choice.is_some());
     }
+}
+
+// ===========================================================================
+// Responses provider — build_response_input branches (offline) + live
+// generate/stream/error via TestHttpServer (execute_request/build_request/
+// parse_response/convert_tool_choice/ResponsesStream) — F04
+// ===========================================================================
+
+#[test]
+fn build_response_input_covers_all_message_branches() {
+    use std::time::SystemTime;
+    use foundation_ai::backends::openai_responses_provider::{
+        build_response_input, ResponseInput, ResponseInputItem,
+    };
+    use foundation_ai::types::{
+        ImageContent, MessageRole, MimeType, ModelInteraction, ModelOutput, ToolShed,
+    };
+
+    let interaction = ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages: vec![
+            Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: MessageRole::User,
+                content: UserModelContent::Text(TextContent {
+                    content: "hi".to_string(),
+                    signature: None,
+                }),
+                signature: None,
+            },
+            Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: MessageRole::User,
+                content: UserModelContent::Image(ImageContent {
+                    b64: "aGVsbG8=".to_string(),
+                    mime_type: MimeType::ImagePng,
+                }),
+                signature: None,
+            },
+            Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
+                model: ModelId::Name("m".to_string(), None),
+                timestamp: SystemTime::now(),
+                usage: zero_usage_report(),
+                content: ModelOutput::ThinkingContent {
+                    thinking: "thinking".to_string(),
+                    signature: None,
+                },
+                stop_reason: StopReason::Stop,
+                provider: ModelProviders::OPENAIRESPONSES,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
+            Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
+                model: ModelId::Name("m".to_string(), None),
+                timestamp: SystemTime::now(),
+                usage: zero_usage_report(),
+                content: ModelOutput::ToolCall {
+                    id: "call-1".to_string(),
+                    name: "read".to_string(),
+                    arguments: None,
+                    signature: None,
+                    depends_on: Vec::new(),
+                    execution_hint: Default::default(),
+                },
+                stop_reason: StopReason::ToolUse,
+                provider: ModelProviders::OPENAIRESPONSES,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
+            Messages::ToolResult {
+                id: foundation_compact::ids::new_scru128(),
+                tool_call_id: "call-1".to_string(),
+                name: "read".to_string(),
+                timestamp: SystemTime::now(),
+                details: None,
+                content: UserModelContent::Text(TextContent {
+                    content: "result".to_string(),
+                    signature: None,
+                }),
+                error_detail: None,
+                signature: None,
+            },
+        ],
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    };
+
+    let ResponseInput::Items(items) = build_response_input(&interaction) else {
+        panic!("expected items");
+    };
+    // user text, user image, assistant thinking, tool-call, tool-result.
+    assert_eq!(items.len(), 5, "every message maps to an input item");
+    assert!(items.iter().any(|i| matches!(i, ResponseInputItem::FunctionCallOutput { .. })));
+
+    // Empty interaction → Text("") fallback.
+    let empty = ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages: vec![],
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    };
+    assert!(matches!(build_response_input(&empty), ResponseInput::Text(_)));
+}
+
+fn setup_responses_model(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
+    use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
+
+    let addr = server_addr(server);
+    let resolver = StaticSocketAddr::new(addr);
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let config = ResponsesConfig::new()
+        .with_base_url(server.base_url())
+        .with_max_retries(max_retries)
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "test-key".to_string(),
+        )));
+    let provider = ResponsesProvider::with_http_client_and_config(http_client, config);
+    provider.get_model(ModelId::Name("o1".into(), None)).unwrap()
+}
+
+#[valtron_test]
+fn responses_generate_via_server() {
+    let response_json = br#"{
+        "id": "resp_1",
+        "object": "response",
+        "created_at": 1,
+        "model": "o1",
+        "output": [{
+            "type": "message",
+            "id": "msg_1",
+            "status": "completed",
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": "Answer from responses API"}]
+        }],
+        "status": "completed",
+        "usage": {"input_tokens": 4, "output_tokens": 3, "total_tokens": 7}
+    }"#;
+
+    let server = TestHttpServer::with_response(move |_req| json_response(response_json));
+    let model = setup_responses_model(&server, 0);
+
+    // A rich interaction so build_request + convert_tool_choice run.
+    let mut interaction = make_interaction("Question?");
+    interaction.system_prompt = Some("Be terse.".to_string());
+    interaction.tool_choice = Some(foundation_ai::types::ToolChoice::Required);
+
+    let result = model.generate(interaction, None).unwrap();
+    assert_eq!(result.len(), 1);
+    if let Messages::Assistant { content, .. } = &result[0] {
+        if let ModelOutput::Text(tc) = content {
+            assert!(tc.content.contains("responses API"), "parsed text: {}", tc.content);
+        } else {
+            panic!("expected text output");
+        }
+    } else {
+        panic!("expected assistant");
+    }
+}
+
+#[valtron_test]
+fn responses_generate_server_error_surfaces() {
+    let err_body = br#"{"error":{"message":"boom","type":"server_error"}}"#;
+    let server = TestHttpServer::with_response(move |_req| HttpResponse {
+        status: 500,
+        status_text: "Internal Server Error".to_string(),
+        headers: vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("Content-Length".to_string(), err_body.len().to_string()),
+            ("Connection".to_string(), "close".to_string()),
+        ],
+        body: err_body.to_vec(),
+    });
+    // max_retries = 0 → the error path returns immediately (no backoff sleeps).
+    let model = setup_responses_model(&server, 0);
+    let result = model.generate(make_interaction("hi"), None);
+    assert!(result.is_err(), "a 500 must surface as an error");
+}
+
+#[valtron_test]
+fn responses_stream_via_server() {
+    // Two output-text deltas then a terminal response.completed event.
+    let sse_body = b"data: {\"type\":\"response.output_text.delta\",\"item_id\":\"i1\",\"delta\":\"Hel\"}\n\n\
+data: {\"type\":\"response.output_text.delta\",\"item_id\":\"i1\",\"delta\":\"lo\"}\n\n\
+data: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_1\",\"object\":\"response\",\"created_at\":1,\"model\":\"o1\",\"output\":[{\"type\":\"message\",\"id\":\"m1\",\"status\":\"completed\",\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"Hello\"}]}],\"status\":\"completed\",\"usage\":{\"input_tokens\":1,\"output_tokens\":2,\"total_tokens\":3}}}\n\n\
+data: [DONE]\n\n";
+
+    let server = TestHttpServer::with_response(move |_req| sse_response(sse_body));
+    let model = setup_responses_model(&server, 0);
+
+    let mut stream = model.stream(make_interaction("hi"), None).unwrap();
+    let mut texts: Vec<String> = Vec::new();
+    for item in &mut stream {
+        if let Stream::Next(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) = item
+        {
+            texts.push(tc.content);
+        }
+    }
+    assert!(!texts.is_empty(), "stream must yield text messages");
+    assert!(
+        texts.iter().any(|t| t.contains("Hello") || t.contains("Hel")),
+        "accumulated text seen: {texts:?}"
+    );
 }
