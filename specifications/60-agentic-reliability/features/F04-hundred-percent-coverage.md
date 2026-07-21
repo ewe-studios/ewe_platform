@@ -13,36 +13,46 @@ depends_on: ["F01", "F02"]
 accessors and unreachable cfg branches may be excused with a note). Nothing at
 0%. External/live paths get real tests behind their feature gates.
 
-## Current state (default offline suite)
+## Measured — full feature list (2026-07-21)
 
-- agentic/*: ~86% line mean; several at 90–100%.
-- Committed: base error module (`errors/mod.rs`) Display+From now covered.
-- **Remaining 0% / low:**
+Run: `LLAMA_TEST_MODEL_FILE=$PWD/artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf
+cargo llvm-cov --profile uat -p foundation_ai --features "testing live-model-tests
+external-service-tests" -- --test-threads=1` (HF_TOKEN set → live GGUF/candle ran;
+no OpenRouter key → those self-skip). 1096 tests green.
+
+**foundation_ai aggregate: lines 73.70%, regions 71.94%, functions 69.16%**
+(baseline before this batch: lines 71.02% / regions 69.60% / functions 66.32%).
+
+Gotcha: the `test_llama_server_*` tests need `LLAMA_TEST_MODEL_FILE` to point at
+the real `artefacts/` (plural) path; a stale `artefact/` (singular) env value
+makes them panic and llvm-cov aborts the report. Coverage can still be pulled
+from the collected profdata with `cargo llvm-cov report --profile uat`.
+
+### Remaining low files (post-batch)
 
 | File | Line | Path to cover |
 |------|-----:|---------------|
-| `models/generator.rs` | 0% | Offline: request/URL/header/body construction for each provider endpoint. Live (external-service): actual send against OpenRouter (OpenAI-compatible) + local llama-server. |
-| `models/providers/mod.rs` | 0% | Provider registry glue — unit-testable. |
-| `errors/llama.rs` | 0% | Display + every From conversion; construct source errors from `infrastructure_llama_cpp` (or via a real llama failure). |
-| `errors/mod.rs` | ~done | DONE — base_errors_tests. |
-| `toolbox/llama_server_harness.rs` | 0% | Exercised when llama-server tests run (external-service or live). |
-| `openai_responses_provider.rs` | 8% | Offline: request build/parse. Live: OpenRouter/llama-server. |
-| `huggingface_gguf_provider.rs` | 26% | Live-model: SmolLM pull + load. |
-| `huggingface_candle_provider.rs` | 36% | Live-model: SmolLM safetensors pull + load. |
-| `openai_provider.rs` | 60% | Offline: streaming SSE parse, tool-call extraction. Live: llama-server. |
-| `anthropic_messages_provider.rs` | 73% | Offline: request/response mapping; Live: OpenRouter Anthropic. |
-| `harness/agents.rs` | 66% | Offline: remaining session bridges + candle preset session. |
-| `types/base_types.rs` | 38% | Large shared module — cover the agentic-relevant types; exclude unrelated by review. |
+| `huggingface_candle_provider.rs` | ~46% | Live arch branches (Llama/Gemma), error paths; offline config/parse now covered |
+| `models/generator.rs` | ~51% | Build-time codegen tool; offline request-construction partly covered; external send under `external-service-tests` |
+| `huggingface_gguf_provider.rs` | ~55% | Download/load error branches; offline parse/config/quant now covered |
+| `harness/agents.rs` | ~66% | Remaining session bridges |
+
+### Done this batch
+
+- `errors/llama.rs` 68% → **100%** — all From conversions + ApplyChatTemplate Display.
+- `types/base_types.rs` 38% → **77%** — enum From<str/String>, is_context_overflow, json arg-type branches, LlamaConfig builders, quant to_filename_format (via HF tests).
+- `openai_responses_provider.rs` — config builders, retry helpers, constructors.
+- HF GGUF + candle — offline parse_model_id/quant-pattern/config-builder/Clone.
+- Fixed 2 real test bugs: flaky `SessionId::from_name` equality (mint once); brittle 0.5B "Hello" substring assertion.
 
 ## Tasks
 
-- [ ] `errors/llama.rs` — Display + all From conversions (offline unit).
-- [ ] `models/generator.rs` — offline request-construction tests per endpoint.
+- [x] `errors/llama.rs` — Display + all From conversions (offline unit).
+- [x] `openai_responses_provider.rs` — config builders, retry helpers, constructors.
+- [x] `huggingface_*_provider.rs` — offline parse/config/quant + live-model SmolLM load (F03).
+- [x] `types/base_types.rs` — enum conversions, is_context_overflow, formatter arg-types, LlamaConfig.
 - [ ] `models/generator.rs` — external-service send tests (OpenRouter + llama-server) under `external-service-tests`.
-- [ ] `models/providers/mod.rs` — registry unit tests.
-- [ ] `openai_provider.rs` / `openai_responses_provider.rs` — offline SSE/tool-call parse; live send.
-- [ ] `anthropic_messages_provider.rs` — offline mapping; live OpenRouter.
-- [ ] `huggingface_*_provider.rs` — live-model SmolLM load tests (F03).
+- [ ] `huggingface_candle_provider.rs` — Gemma vs Llama arch branch + error paths (needs both fixtures live).
 - [ ] `harness/agents.rs` — cover the remaining session builders offline.
 - [ ] Re-measure; list any excused regions with justification.
 
