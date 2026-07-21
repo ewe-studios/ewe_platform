@@ -88,11 +88,12 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F31 | Platform UI components (remote_page, floating_nav) | High | F29, F24 |
 
 | F32 | Docker agentic control: mouse, keyboard, display | Critical | F30, F14, F15 |
+| F33 | Wasmtime shell: `#[wasm_app]` + `foundation_wasmtime` crate | High | F19 |
+| F34 | Background workers: `#[platform_worker]` + typed channels | High | F01, F25 |
+| F35 | Multi-WebView desktop: Tauri window lifecycle + screenshot-swap | High | F29, F06 |
+| F36 | Android Tauri tests: build APK, install on emulator, run tests | Critical | F14, F30 |
+| F37 | Surface 2: native static library (`.a`/`.so`) | Medium | F13, F17 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
-- `#[wasm_app]` + `foundation_wasmtime` (decision 13)
 - Full conflict resolution (decision 12)
-- Surface 2 (native static lib) + Surface 3 (shell+WASM runtime)
-- Background workers (foreground/background, OS constraints)
-- Multi-WebView (desktop+unstable)
