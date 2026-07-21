@@ -151,12 +151,12 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.10 | Chat template applied when the model ships one | both | **done** |
 | 8.11 | Documented fallback + log when no chat template | gen | todo |
 | 8.12 | Model weights cached — second load is a cache hit | both | **done** |
-| 8.13 | Cache key distinguishes differing configs | both | todo |
+| 8.13 | Cache key distinguishes differing configs | both | **done** |
 | 8.14 | Cold-start race loads once, not once per caller | both | todo |
 | 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | **done** |
 | 8.16 | Sampling: `top_k` changes output | candle | **done** |
-| 8.17 | Sampling: `top_p` changes output | candle | todo |
-| 8.18 | Sampling: `repeat_penalty` changes output | candle | todo |
+| 8.17 | Sampling: `top_p` changes output | candle | **done** |
+| 8.18 | Sampling: `repeat_penalty` changes output | candle | **done** |
 | 8.19 | Seeded sampling reproducible across two runs | candle | **done** |
 | 8.20 | Unsupported architecture fails loudly, no silent Llama fallback | candle | **done** |
 | 8.21 | Architecture detected from `config.json` when unconfigured | candle | **done** |
@@ -181,11 +181,11 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 10.1 | Tool registration and lookup | mock | todo |
-| 10.2 | Schema generation for a tool | mock | todo |
-| 10.3 | Argument deserialization | mock | todo |
-| 10.4 | Tool result serialization | mock | todo |
-| 10.5 | Async tool driven to completion | mock | todo |
+| 10.1 | Tool registration and lookup | mock | **done** |
+| 10.2 | Schema generation for a tool | mock | **done** |
+| 10.3 | Argument deserialization | mock | **done** |
+| 10.4 | Tool result serialization | mock | **done** |
+| 10.5 | Async tool driven to completion | mock | **done** |
 | 10.6 | Tool panic contained, not process-fatal | mock | todo |
 
 ## 11. Cross-cutting

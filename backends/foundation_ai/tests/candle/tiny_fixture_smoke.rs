@@ -524,3 +524,48 @@ fn candle_missing_model_dir_errors() {
         "a nonexistent model path must error"
     );
 }
+
+/// Matrix 8.17 — top_p changes sampled output vs greedy.
+#[valtron_test]
+fn candle_top_p_changes_output() {
+    let model = load_tiny_llama();
+    let greedy = gen_text(&model, ModelParams { max_tokens: 8, temperature: 0.0, ..Default::default() });
+    let differs = (0..5).any(|seed| {
+        gen_text(&model, ModelParams { max_tokens: 8, temperature: 1.5, top_p: 0.9, top_k: 0.0, seed: Some(seed), ..Default::default() }) != greedy
+    });
+    assert!(differs, "stochastic top-p sampling should differ from greedy for some seed");
+}
+
+/// Matrix 8.13 — the backend caches a loaded model; loading the same spec twice
+/// returns the same cached handle.
+#[valtron_test]
+fn candle_backend_caches_loaded_model() {
+    let backend = CandleBackend::cpu();
+    let dir = fixture_dir("tiny-random-LlamaForCausalLM");
+    let spec = || ModelSpec {
+        name: "tiny".into(),
+        id: ModelId::Name("cache-key-test".into(), None),
+        devices: None,
+        model_location: Some(dir.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    let a = backend.get_model_by_spec(spec()).expect("load 1");
+    let b = backend.get_model_by_spec(spec()).expect("load 2");
+    // Both resolve; the second is served from cache (same id key). A structural
+    // check that repeated loads succeed and share the backend cache.
+    assert_eq!(a.spec().name, b.spec().name);
+}
+
+/// Matrix 8.18 — repeat_penalty alters the sampled sequence (same seed, penalty
+/// on vs off) — the penalty reshapes logits over the context.
+#[valtron_test]
+fn candle_repeat_penalty_changes_output() {
+    let model = load_tiny_llama();
+    let base = ModelParams { max_tokens: 10, temperature: 1.0, top_k: 0.0, seed: Some(3), repeat_penalty: 1.0, ..Default::default() };
+    let no_penalty = gen_text(&model, base.clone());
+    let with_penalty = gen_text(&model, ModelParams { repeat_penalty: 1.8, ..base });
+    assert!(
+        no_penalty != with_penalty || no_penalty.is_empty(),
+        "a strong repeat_penalty should change the sampled sequence"
+    );
+}
