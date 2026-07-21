@@ -20,6 +20,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
+use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::ModelProvider;
 use foundation_auth::{AuthCredential, ConfidentialText, OAuthCredential};
 
@@ -229,4 +230,169 @@ fn every_interactive_credential_shape_is_rejected() {
             "OpenAI must reject the interactive credential {label} at create() time"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// Anthropic — the full credential matrix
+// ---------------------------------------------------------------------------
+//
+// The first pass here only covered Anthropic's SecretOnly path while covering
+// OpenAI's whole matrix. Anthropic has its own copy of the credential match, so
+// the remaining arms needed their own tests rather than inheriting OpenAI's.
+
+#[test]
+fn anthropic_create_accepts_client_secret() {
+    let cfg = AnthropicConfig::new().with_auth(client_secret());
+    assert!(
+        AnthropicMessagesProvider::new().create(Some(cfg)).is_ok(),
+        "ClientSecret must be accepted (the secret half is used as the key)"
+    );
+}
+
+#[test]
+fn anthropic_create_accepts_oauth() {
+    let cfg = AnthropicConfig::new().with_auth(oauth());
+    assert!(
+        AnthropicMessagesProvider::new().create(Some(cfg)).is_ok(),
+        "OAuth must be accepted (the access token is used as the key)"
+    );
+}
+
+#[test]
+fn anthropic_create_rejects_interactive_credentials() {
+    let cases: [(&str, fn() -> AuthCredential); 2] = [
+        ("EmailAuth", email_auth),
+        ("UsernameAndPassword", username_password),
+    ];
+    for (label, build) in cases {
+        assert!(
+            AnthropicMessagesProvider::new()
+                .create(Some(AnthropicConfig::new().with_auth(build())))
+                .is_err(),
+            "Anthropic must reject {label} at create() time, not at request time"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Responses — the full credential matrix
+// ---------------------------------------------------------------------------
+
+#[test]
+fn responses_create_accepts_every_key_bearing_credential() {
+    let cases: [(&str, fn() -> AuthCredential); 3] = [
+        ("SecretOnly", secret_only),
+        ("ClientSecret", client_secret),
+        ("OAuth", oauth),
+    ];
+    for (label, build) in cases {
+        assert!(
+            ResponsesProvider::new()
+                .create(Some(ResponsesConfig::new().with_auth(build())))
+                .is_ok(),
+            "Responses must accept the key-bearing credential {label}"
+        );
+    }
+}
+
+#[test]
+fn responses_create_rejects_interactive_credentials() {
+    let cases: [(&str, fn() -> AuthCredential); 2] = [
+        ("EmailAuth", email_auth),
+        ("UsernameAndPassword", username_password),
+    ];
+    for (label, build) in cases {
+        assert!(
+            ResponsesProvider::new()
+                .create(Some(ResponsesConfig::new().with_auth(build())))
+                .is_err(),
+            "Responses must reject {label} at create() time"
+        );
+    }
+}
+
+#[test]
+fn responses_create_without_config_succeeds() {
+    assert!(ResponsesProvider::new().create(None).is_ok());
+}
+
+// ---------------------------------------------------------------------------
+// Config builders — every setter must actually stick
+// ---------------------------------------------------------------------------
+
+#[test]
+fn anthropic_config_builders_chain_and_survive_create() {
+    // A dropped setter here is invisible until a proxy deployment or a custom
+    // API version silently talks to the wrong endpoint.
+    let cfg = AnthropicConfig::new()
+        .with_base_url("https://proxy.example.test")
+        .with_api_version("2099-01-01")
+        .with_timeout_secs(7)
+        .with_max_retries(1)
+        .with_proxy_url("http://corp-proxy.test:8080")
+        .with_streaming(false)
+        .with_messages_endpoint("/custom/messages")
+        .with_auth(secret_only());
+
+    let p = AnthropicMessagesProvider::new()
+        .create(Some(cfg))
+        .expect("a fully-configured provider must build");
+    assert!(p.describe().is_ok());
+}
+
+#[test]
+fn responses_config_builders_chain_and_survive_create() {
+    let cfg = ResponsesConfig::new()
+        .with_base_url("https://proxy.example.test")
+        .with_api_version("v9")
+        .with_timeout_secs(300)
+        .with_max_retries(0)
+        .with_streaming(false)
+        .with_auth(secret_only());
+
+    let p = ResponsesProvider::new()
+        .create(Some(cfg))
+        .expect("a fully-configured provider must build");
+    assert!(p.describe().is_ok());
+}
+
+#[test]
+fn openai_config_builders_chain_and_survive_create() {
+    let cfg = OpenAIConfig::new()
+        .with_base_url("http://localhost:11434")
+        .with_api_version("v1")
+        .with_timeout_secs(30)
+        .with_max_retries(2)
+        .with_streaming(true)
+        .with_auth(secret_only());
+
+    let p = OpenAIProvider::new()
+        .create(Some(cfg))
+        .expect("a fully-configured provider must build");
+    assert!(p.describe().is_ok());
+}
+
+// ---------------------------------------------------------------------------
+// Provider defaults
+// ---------------------------------------------------------------------------
+
+#[test]
+fn anthropic_default_matches_new() {
+    let a = AnthropicMessagesProvider::default();
+    let b = AnthropicMessagesProvider::new();
+    assert_eq!(
+        a.describe().map(|d| d.id).ok(),
+        b.describe().map(|d| d.id).ok(),
+        "Default and new() are used interchangeably and must not diverge"
+    );
+}
+
+#[test]
+fn responses_default_matches_new() {
+    let a = ResponsesProvider::default();
+    let b = ResponsesProvider::new();
+    assert_eq!(
+        a.describe().map(|d| d.id).ok(),
+        b.describe().map(|d| d.id).ok()
+    );
 }
