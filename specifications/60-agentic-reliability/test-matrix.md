@@ -130,7 +130,7 @@ Every state and every edge out of it.
 | 7.3 | `run_turn` on a failing provider returns `Err` | both | **done** |
 | 7.4 | Second turn answers and reuses loaded weights | both | **done** |
 | 7.5 | Concurrent sessions on one model do not corrupt each other | both | **done** |
-| 7.6 | Builder rejects invalid config (preflight) | mock | todo |
+| 7.6 | Builder rejects invalid config (preflight) | mock | **done** |
 | 7.7 | `session_id` round-trips | mock | **done** |
 
 ## 8. Provider seam — both backends, identical weights

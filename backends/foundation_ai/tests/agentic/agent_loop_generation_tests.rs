@@ -626,3 +626,44 @@ fn assembled_interaction_carries_system_message_and_tools() {
     assert!(saw_user.load(Ordering::SeqCst), "interaction must carry the user message text");
     assert!(saw_tool.load(Ordering::SeqCst), "interaction must carry the registered tools");
 }
+
+/// Matrix 4.5 — a tool's result is fed back into the model on the next inner
+/// iteration. The mock requests a tool on call 0, then on call 1 asserts the
+/// tool result text is present in the interaction it receives.
+#[test]
+fn tool_result_is_fed_back_into_next_assemble() {
+    use foundation_ai::agentic::testing::MockTool;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc as StdArc;
+
+    let saw_result = StdArc::new(AtomicBool::new(false));
+    let flag = saw_result.clone();
+
+    let mut mock = MockModelProvider::new();
+    // Call 0: request the tool.
+    mock.on_nth_call(0, vec![mock_tool_call("lookup", HashMap::new())]);
+    // Any later call: check the tool's result reached the interaction, then answer.
+    mock.on(
+        move |mi| {
+            if mi.messages.iter().any(|m| matches!(
+                m,
+                Messages::ToolResult { content: foundation_ai::types::UserModelContent::Text(t), .. }
+                    if t.content.contains("TOOL_OUTPUT_MARKER")
+            )) {
+                flag.store(true, Ordering::SeqCst);
+            }
+            true
+        },
+        vec![mock_text("done")],
+    );
+
+    let tool = Arc::new(MockTool::returning("lookup", "TOOL_OUTPUT_MARKER"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("use the tool"));
+    drive(&mut h);
+
+    assert!(
+        saw_result.load(Ordering::SeqCst),
+        "the tool's result must be fed back into the next model interaction"
+    );
+}
