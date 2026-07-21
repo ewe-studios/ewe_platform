@@ -4359,6 +4359,7 @@ dependencies = [
  "futures-lite",
  "infrastructure_llama_cpp",
  "lazy-regex",
+ "minijinja",
  "regex",
  "serde",
  "serde_json",
@@ -5173,6 +5174,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tracing",
 ]
 
 [[package]]

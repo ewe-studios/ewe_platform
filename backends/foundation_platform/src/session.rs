@@ -16,6 +16,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::route::RouteDecisionExt;
 use crate::route_handler::RouteResponder;
+use crate::backend::http::HttpBackend;
 use foundation_ui_traits::{SessionId, PageIdentity, NavigationIntent, RouteDecision, Presentation, Profile, CachePolicy};
 
 // ── Session event types ───────────────────────────────────────────────
@@ -95,6 +96,20 @@ pub struct PlatformSession {
     /// streaming handlers need `stream()` and `accept_stream()` methods
     /// that the standard `Ipc` trait doesn't provide.
     stream_registry: crate::ipc::streaming::PlatformStreamRegistry,
+
+    /// Shared HTTP backend for remote content fetching (F29 Stage 2).
+    /// All route handlers share this client — auth tokens and connection
+    /// pooling are managed centrally.
+    http_backend: HttpBackend,
+
+    /// WebView stack manager (F06 + F29 Stage 3). Tracks navigation history,
+    /// screenshots, and the multi-WebView pool. Wrapped in `RwLock` so
+    /// route handlers can push/pop without `&mut self`.
+    webview_stack: RwLock<crate::stack::WebViewStack>,
+
+    /// Per-app isolation registry (F21). Maps route prefixes to WebView labels,
+    /// profiles, capability allowlists. Resolved during route dispatch.
+    app_isolation: crate::multi_app::AppIsolation,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -129,6 +144,11 @@ impl PlatformSession {
             script_injector,
             ipc_registry: crate::ipc::IpcRegistry::new(),
             stream_registry: crate::ipc::streaming::PlatformStreamRegistry::new(),
+            http_backend: HttpBackend::new(),
+            webview_stack: RwLock::new(crate::stack::WebViewStack::new(
+                crate::stack::StackConfig::default(),
+            )),
+            app_isolation: crate::multi_app::AppIsolation::new(),
         })
     }
 }
@@ -246,10 +266,10 @@ impl PlatformSession {
     /// Steps 2-9 of the execution contract:
     /// 2. Handler chain — already resolved, decision passed in
     /// 3. Cache check
-    /// 4. Presentation — record navigation for stack manager
+    /// 4. Presentation — update stack based on presentation mode (F29 Stage 3)
     /// 5. Handler dispatch — calls registered `RouteResponder::respond()`
-    ///    or falls back to `DefaultTransport` if no handler registered
-    /// 6-7. Protocol selection + encoding (only for fallback transport path)
+    ///    or falls back to `SessionTransport` if no handler registered
+    /// 6-7. Protocol selection + encoding
     /// 8-9. Post-render — page identity tracking
     ///
     /// Returns the `tauri::http::Response` directly when a route handler
@@ -257,7 +277,8 @@ impl PlatformSession {
     ///
     /// # Panics
     ///
-    /// Panics if the response builder fails (e.g. invalid header values).
+    /// Panics if the response builder fails (e.g. invalid header values)
+    /// or if internal locks are poisoned.
     pub fn execute_decision(
         &self,
         decision: &RouteDecision,
@@ -267,6 +288,8 @@ impl PlatformSession {
         let route = crate::pattern::extract_path(&intent.url);
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
+                // Even for cached responses, record the navigation mode.
+                self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -278,11 +301,28 @@ impl PlatformSession {
         // Offline fallback
         if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
+                self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
                     .body(entry.body)
                     .unwrap();
+            }
+        }
+
+        // Step 4: Presentation — update the WebView stack before rendering.
+        // This records which WebView label the navigation targets and the
+        // transition style (morph, replace, new).
+        self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
+
+        // Step 4b: ViewKind routing — if the decision targets a labeled WebView,
+        // ensure it exists in the pool. The actual WebView creation happens in
+        // the Tauri layer; here we just track the label.
+        if let Some(ref target_label) = decision.target {
+            if let Ok(mut stack) = self.webview_stack.write() {
+                if let Some(pool) = stack.pool_mut() {
+                    pool.get_or_create(target_label);
+                }
             }
         }
 
@@ -301,10 +341,69 @@ impl PlatformSession {
                 .body(body).unwrap()
         };
 
-        // Step 9: Record navigation
+        // Steps 8-9: Record navigation + page identity
         self.record_navigation(&route);
 
         response
+    }
+
+    /// Record a navigation with its presentation mode in the WebView stack.
+    /// This is step 4 of the execution contract — called before the handler
+    /// renders so the stack reflects the transition.
+    fn record_presentation(
+        &self,
+        route: &str,
+        presentation: &Presentation,
+        target: Option<&str>,
+    ) {
+        if let Ok(mut stack) = self.webview_stack.write() {
+            // Ensure the stack has a root if this is the first navigation.
+            if stack.depth() == 0 {
+                stack.init(route);
+                return;
+            }
+
+            let active_idx = stack.active();
+            match presentation {
+                Presentation::Morph => {
+                    // In-place content swap — no stack change. Just update
+                    // the active slot's route.
+                    if let Some(slot) = stack.slots_mut().get_mut(active_idx) {
+                        slot.route = route.to_string();
+                    }
+                }
+                Presentation::Replace => {
+                    // Same stack depth, new content. Old screenshot kept
+                    // for back transition. Active slot route updated.
+                    if let Some(slot) = stack.slots_mut().get_mut(active_idx) {
+                        slot.route = route.to_string();
+                    }
+                }
+                Presentation::Push | Presentation::Modal => {
+                    // Push a new slot onto the stack. The old slot keeps
+                    // its screenshot for instant back-navigation.
+                    let target_label = target.unwrap_or("main");
+                    // Mark the pool WebView if pool is enabled.
+                    if let Some(pool) = stack.pool_mut() {
+                        pool.get_or_create(target_label);
+                        pool.set_state(target_label, crate::stack::WebViewState::Active);
+                        pool.set_route(target_label, route);
+                    }
+                    // Push a new slot for the navigation.
+                    let mut new_slot = crate::stack::WebViewSlot::new(route);
+                    new_slot.state = crate::stack::SlotState::Active;
+                    stack.push_slot(new_slot);
+                }
+                Presentation::External => {
+                    // External navigation — don't change the stack.
+                    // The system browser handles this.
+                }
+                Presentation::Root => {
+                    // Clear stack and set new root.
+                    stack.set_root_slot(route);
+                }
+            }
+        }
     }
 }
 
@@ -423,6 +522,49 @@ impl PlatformSession {
 
     pub fn stream_registry(&self) -> &crate::ipc::streaming::PlatformStreamRegistry {
         &self.stream_registry
+    }
+
+    /// Access the shared HTTP backend for remote content fetching (F29 Stage 2).
+    pub fn http_backend(&self) -> &HttpBackend {
+        &self.http_backend
+    }
+
+    /// The resolved bundle resource root (F22).
+    ///
+    /// In dev mode (`{resource_root}/public/` exists), returns that path so
+    /// WASM artifacts from `cargo build` land at the right spot. On bundled
+    /// builds (Android `apk` / `*.app`), Tauri extracts `bundle.resources`
+    /// directly into `resource_root` so this returns `resource_root` as-is.
+    ///
+    /// Callers (codegen, app setups) use this to feed `MobileDirectory`
+    /// responders — they never need to know the dev vs. prod layout.
+    #[must_use]
+    pub fn bundle_root(&self) -> PathBuf {
+        let dev = self.resource_root.join("public");
+        if dev.exists() { dev } else { self.resource_root.clone() }
+    }
+
+    /// Access the WebView stack for navigation tracking (F29 Stage 3).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    pub fn webview_stack(&self) -> std::sync::RwLockReadGuard<'_, crate::stack::WebViewStack> {
+        self.webview_stack.read().unwrap()
+    }
+
+    /// Mutable access to the WebView stack (F29 Stage 3).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    pub fn webview_stack_mut(&self) -> std::sync::RwLockWriteGuard<'_, crate::stack::WebViewStack> {
+        self.webview_stack.write().unwrap()
+    }
+
+    /// Access the per-app isolation registry (F21).
+    pub fn app_isolation(&self) -> &crate::multi_app::AppIsolation {
+        &self.app_isolation
     }
 
     pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc + 'static>(&self, ipc: S) {

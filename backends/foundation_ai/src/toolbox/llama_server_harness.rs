@@ -75,7 +75,7 @@ impl Default for LlamaServerConfig {
             api_key: "test-api-key-123".into(),
             model_name: std::env::var("LLAMA_TEST_MODEL_NAME")
                 .unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into()),
-            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(|_| root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"), PathBuf::from),
+            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(|_| root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"), PathBuf::from),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,
             ctx_size: 2048,

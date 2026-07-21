@@ -22,6 +22,27 @@ impl LlamaBackend {
         }
     }
 
+    /// Route llama.cpp + ggml native logs into `tracing`, exactly once.
+    ///
+    /// WHY: llama.cpp writes the full model-loader dump, per-tensor `repack:`
+    /// lines and graph-reservation output straight to `stderr` on every load,
+    /// which buries an app's own output (spec-60/B). Sending them through
+    /// `tracing` instead makes them ordinary events under the app's
+    /// `EnvFilter` — silent by default (their targets are `llama.cpp` / `ggml`,
+    /// not enabled by a plain `info` filter's own-crate scope), and turned on
+    /// with an explicit directive such as `llama.cpp=debug`.
+    ///
+    /// HOW: `send_logs_to_tracing` installs the C log callback via
+    /// `llama_log_set`/`ggml_log_set`. It is guarded by a `Once` here so repeated
+    /// `init_or_get` calls (the common case) install the hook only on the first.
+    fn route_logs_to_tracing() {
+        use std::sync::Once;
+        static LOG_ROUTE: Once = Once::new();
+        LOG_ROUTE.call_once(|| {
+            crate::send_logs_to_tracing(crate::LogOptions::default());
+        });
+    }
+
     /// Return a handle to the llama backend, initializing it on first call.
     ///
     /// Unlike [`init`](Self::init), this never errors if the backend is
@@ -45,6 +66,7 @@ impl LlamaBackend {
     /// ```
     #[tracing::instrument(skip_all)]
     pub fn init_or_get() -> crate::Result<LlamaBackend> {
+        Self::route_logs_to_tracing();
         match Self::mark_init() {
             Ok(()) => {
                 unsafe { infrastructure_llama_bindings::llama_backend_init() }

@@ -454,6 +454,12 @@ fn observation_is_newer(obs: &SessionRecord, refl: &SessionRecord) -> bool {
     obs_id > refl_id
 }
 
+/// Crate-visible token estimate for a message — used by the loop's preflight
+/// compression to recompute a compressed context's size.
+pub(crate) fn estimate_tokens_pub(msg: &Messages) -> u64 {
+    estimate_tokens(msg)
+}
+
 fn estimate_tokens(msg: &Messages) -> u64 {
     let text_len = match msg {
         Messages::User { content, .. } | Messages::ToolResult { content, .. } => match content {

@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F21-multi-app-distribution-and-webview"
 this_file: "specifications/52-tauri-foundation-platform/features/F21-multi-app-distribution-and-webview/feature.md"
 
-status: not-started
+status: completed
 priority: critical
 created: 2026-07-18
 

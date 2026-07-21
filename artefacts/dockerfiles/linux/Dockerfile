@@ -39,6 +39,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     xvfb \
     openbox \
     xterm \
+    # Clipboard sync between X11 selections and VNC
+    autocutsel \
     # noVNC — web-based VNC client (served via nginx on port 6080)
     novnc \
     websockify \
@@ -71,6 +73,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN useradd -m -s /bin/bash "${DEV_USER}" \
     && groupadd -f docker \
     && usermod -aG docker "${DEV_USER}" \
+    && mkdir -p /etc/sudoers.d \
     && echo "${DEV_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DEV_USER}
 
 # ── SSH key injection (mount your key at runtime) ────────────────────────────

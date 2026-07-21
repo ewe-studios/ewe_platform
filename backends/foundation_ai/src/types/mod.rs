@@ -8,8 +8,8 @@ pub mod routable_provider;
 pub use base_types::*;
 
 pub use routable_provider::{
-    ProviderRouter, ProviderRouterBuilder, RoutableProvider, RoutableProviderBox, RouterError,
-    RoutingRule,
+    PreloadedProvider, ProviderRouter, ProviderRouterBuilder, RoutableProvider, RoutableProviderBox,
+    RouterError, RoutingRule,
 };
 
 pub use agentic::{

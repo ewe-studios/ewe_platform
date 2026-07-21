@@ -238,7 +238,7 @@ fn __ewe_ipc(
     session: tauri::State<'_, Arc<PlatformSession>>,
     ipc: String,
     action: String,
-    payload: Vec<u8>,
+    payload: Option<Vec<u8>>,
     content_type: Option<String>,
 ) -> Result<Vec<u8>, String> {
     let ct = match content_type.as_deref() {
@@ -254,7 +254,7 @@ fn __ewe_ipc(
     let request = foundation_wasm::ipc::IpcRequest {
         ipc,
         action,
-        payload,
+        payload: payload.unwrap_or_default(),
         content_type: ct,
         target: None,
     };

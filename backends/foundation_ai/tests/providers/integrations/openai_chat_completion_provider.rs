@@ -24,12 +24,16 @@ use foundation_netio::shared::client::http_client::HttpClient;
 // ============================================================================
 
 /// Helper: create an OpenAIProvider connected to the running llama-server.
-fn setup_llama_server_provider() -> impl Model {
-    let base_url =
-        std::env::var("LLAMA_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:8999".into());
-    let api_key = std::env::var("LLAMA_SERVER_API_KEY").unwrap_or_default();
-    let model_name =
-        std::env::var("LLAMA_SERVER_MODEL").unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into());
+fn setup_llama_server_provider(
+    guard: &foundation_ai::toolbox::llama_server_harness::LlamaServerGuard,
+) -> impl Model {
+    // Take config from the running server, not from env. The harness starts
+    // llama-server WITH --api-key, so a provider built from an empty
+    // LLAMA_SERVER_API_KEY was rejected with 401 (the failure that blocked
+    // every llama-server integration test alongside the artefact/ path typo).
+    let base_url = guard.base_url();
+    let api_key = guard.api_key.clone();
+    let model_name = guard.model_name.clone();
 
     let resolver = foundation_netio::shared::client::SystemDnsResolver;
     let http_client: Arc<dyn HttpClient> = Arc::new(
@@ -50,8 +54,8 @@ fn setup_llama_server_provider() -> impl Model {
 /// Test: generate a short response against the real llama-server.
 #[valtron_test]
 fn test_llama_server_generate() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_llama_server_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".into()),
@@ -96,8 +100,8 @@ fn test_llama_server_generate() {
 /// Test: streaming text generation against the real llama-server.
 #[valtron_test]
 fn test_llama_server_streaming() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_llama_server_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -154,8 +158,8 @@ fn test_llama_server_streaming() {
 /// Test: multi-turn conversation with conversation history.
 #[valtron_test]
 fn test_llama_server_multi_turn() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_llama_server_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -234,8 +238,8 @@ fn test_llama_server_multi_turn() {
 /// Test: max_tokens constraint truncates output.
 #[valtron_test]
 fn test_llama_server_max_tokens() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_llama_server_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -272,8 +276,8 @@ fn test_llama_server_max_tokens() {
 /// Test: provider can resolve a model name against the running llama-server.
 #[valtron_test]
 fn test_llama_server_resolve_model() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_llama_server_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_llama_server_provider(&llama_server_guard);
 
     // If we got a model handle, the provider connected successfully.
     // Generate a minimal request to verify the connection.

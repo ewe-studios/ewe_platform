@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 
 use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
+use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
@@ -400,6 +401,24 @@ fn load_from_local(
     )
 }
 
+/// Detect the model architecture from `config.json`'s `model_type` /
+/// `architectures`, so a caller need not know a repo is Llama vs Qwen.
+///
+/// Returns the lowercased architecture name (e.g. `"llama"`, `"qwen2"`).
+fn detect_architecture(config_path: &std::path::Path) -> Option<String> {
+    let raw = std::fs::read_to_string(config_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    if let Some(mt) = json.get("model_type").and_then(|v| v.as_str()) {
+        return Some(mt.to_lowercase());
+    }
+    // Fall back to the `architectures` array, e.g. ["LlamaForCausalLM"].
+    json.get("architectures")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.first())
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_lowercase())
+}
+
 fn build_candle_model(
     config_path: &std::path::Path,
     tokenizer_path: &std::path::Path,
@@ -409,19 +428,31 @@ fn build_candle_model(
     architecture: &CandleArchitecture,
     spec: ModelSpec,
 ) -> ModelProviderResult<CandleModels> {
-    match architecture {
-        CandleArchitecture::Llama => build_llama_model(
-            config_path,
-            tokenizer_path,
-            weights_files,
-            dtype,
-            device,
-            spec,
-        ),
-        CandleArchitecture::Custom(name) => Err(ModelProviderErrors::ModelErrors(
-            ModelErrors::UnsupportedArchitecture(name.clone()),
-        )),
+    // An explicit config override wins; otherwise detect from the model files.
+    let detected = detect_architecture(config_path);
+    let arch = match architecture {
+        CandleArchitecture::Custom(name) => name.to_lowercase(),
+        CandleArchitecture::Llama => detected
+            .clone()
+            .unwrap_or_else(|| "llama".to_string()),
+    };
+
+    // Llama-family names candle's llama loader handles.
+    if arch.contains("llama") {
+        return build_llama_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
     }
+    if arch.contains("gemma2") {
+        return build_gemma2_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
+    }
+
+    // Unsupported: fail loudly with the DETECTED name, never silently load as
+    // Llama (which would produce garbage that looks like a bad model rather than
+    // a missing implementation). Supported set grows as loaders are added.
+    Err(ModelProviderErrors::ModelErrors(
+        ModelErrors::UnsupportedArchitecture(format!(
+            "{arch} (detected from config.json; candle backend supports: llama, gemma2)"
+        )),
+    ))
 }
 
 fn build_llama_model(
@@ -470,14 +501,89 @@ fn build_llama_model(
         candle_llama::LlamaEosToks::Multiple(ids) => ids.first().copied().unwrap_or(0),
     });
 
-    Ok(CandleModels::new(
-        CandleModelInner::Llama(model),
-        tokenizer,
-        llama_config,
+    let cache = candle_llama::Cache::new(false, dtype, &llama_config, device).map_err(|e| {
+        ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
+            "Failed to create Llama KV cache: {e}"
+        )))
+    })?;
+    let inner = CandleModelInner::Llama {
+        model,
+        cache,
+        config: llama_config,
         dtype,
+        device: device.clone(),
+    };
+
+    let chat_template = ChatTemplate::load(tokenizer_path);
+    if chat_template.is_none() {
+        tracing::debug!("no chat_template for {}; using plain prompt fallback", spec.name);
+    }
+
+    Ok(CandleModels::new(
+        inner,
+        tokenizer,
         device.clone(),
         eos_token_id,
         spec,
+        chat_template,
+    ))
+}
+
+/// Read `eos_token_id` from a raw HF `config.json` (int or first-of-array).
+fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
+    let raw = std::fs::read_to_string(config_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    match json.get("eos_token_id")? {
+        serde_json::Value::Number(n) => n.as_u64().map(|v| v as u32),
+        serde_json::Value::Array(a) => a.first().and_then(|v| v.as_u64()).map(|v| v as u32),
+        _ => None,
+    }
+}
+
+/// Load a Gemma2 model. Mirrors `build_llama_model` but Gemma2 owns its KV cache
+/// internally (decision 06) and carries no eos in its `Config`, so eos comes
+/// from the raw `config.json`.
+fn build_gemma2_model(
+    config_path: &std::path::Path,
+    tokenizer_path: &std::path::Path,
+    weights_files: &[PathBuf],
+    dtype: DType,
+    device: &Device,
+    spec: ModelSpec,
+) -> ModelProviderResult<CandleModels> {
+    use candle_transformers::models::gemma2;
+
+    let load_err = |e: String| {
+        ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(e))
+    };
+
+    let config_content = std::fs::read_to_string(config_path)
+        .map_err(|e| load_err(format!("Failed to read config: {e}")))?;
+    let config: gemma2::Config = serde_json::from_str(&config_content)
+        .map_err(|e| load_err(format!("Failed to parse Gemma2 Config: {e}")))?;
+
+    let tokenizer = Tokenizer::from_file(tokenizer_path)
+        .map_err(|e| load_err(format!("Failed to load tokenizer: {e}")))?;
+
+    let file_refs: Vec<&std::path::Path> =
+        weights_files.iter().map(std::path::PathBuf::as_path).collect();
+    let vb = unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }
+        .map_err(|e| load_err(format!("Failed to load weights: {e}")))?;
+
+    // use_flash_attn = false: CPU/portable path.
+    let model = gemma2::Model::new(false, &config, vb)
+        .map_err(|e| load_err(format!("Failed to build Gemma2 model: {e}")))?;
+
+    let eos_token_id = eos_from_config_json(config_path);
+    let chat_template = ChatTemplate::load(tokenizer_path);
+
+    Ok(CandleModels::new(
+        CandleModelInner::Gemma2(model),
+        tokenizer,
+        device.clone(),
+        eos_token_id,
+        spec,
+        chat_template,
     ))
 }
 
@@ -486,23 +592,152 @@ fn build_llama_model(
 // ==================================
 
 /// Architecture-specific model dispatch.
+/// A loaded model plus the per-architecture inference state it owns.
+///
+/// WHY (decision 06): architectures manage KV state differently — Llama takes
+/// an EXTERNAL `Cache`, Gemma2 keeps its cache INTERNAL and resets via
+/// `clear_kv_cache`. Forcing every architecture through a Llama-shaped external
+/// cache would break the moment a second one was added, so each variant owns
+/// whatever state it needs and the callers below drive a uniform interface
+/// (`forward`, `reset_cache`) without knowing which variant they hold.
 enum CandleModelInner {
-    Llama(candle_llama::Llama),
+    Llama {
+        model: candle_llama::Llama,
+        cache: candle_llama::Cache,
+        config: candle_llama::Config,
+        dtype: DType,
+        device: Device,
+    },
+    Gemma2(candle_transformers::models::gemma2::Model),
+}
+
+impl CandleModelInner {
+    /// One forward pass. `seq_start` is the KV offset (0 for the prompt).
+    fn forward(&mut self, input: &Tensor, seq_start: usize) -> Result<Tensor, candle_core::Error> {
+        match self {
+            CandleModelInner::Llama { model, cache, .. } => model.forward(input, seq_start, cache),
+            CandleModelInner::Gemma2(m) => m.forward(input, seq_start),
+        }
+    }
+
+    /// Reset the KV cache for a fresh generation.
+    fn reset_cache(&mut self) -> Result<(), candle_core::Error> {
+        match self {
+            CandleModelInner::Llama {
+                cache,
+                config,
+                dtype,
+                device,
+                ..
+            } => {
+                *cache = candle_llama::Cache::new(false, *dtype, config, device)?;
+                Ok(())
+            }
+            CandleModelInner::Gemma2(m) => {
+                m.clear_kv_cache();
+                Ok(())
+            }
+        }
+    }
 }
 
 struct CandleModelsState {
     model: CandleModelInner,
     tokenizer: Tokenizer,
-    config: candle_llama::Config,
-    cache: candle_llama::Cache,
     device: Device,
-    dtype: DType,
     eos_token_id: Option<u32>,
     spec: ModelSpec,
     last_usage: Option<UsageReport>,
     tokens_generated: usize,
     pricing: ModelUsageCosting,
     cumulative_cost: CostAccumulator,
+    /// The model's own chat template (from `tokenizer_config.json`), if any.
+    chat_template: Option<ChatTemplate>,
+}
+
+/// A model's chat template plus the special-token strings it references.
+///
+/// WHY: `build_prompt` used to invent a `System:/User:/Assistant:` format no
+/// model was trained on and ignored the tokenizer entirely — the same
+/// prompt-construction defect fixed for llama.cpp in docs/fixes/006/007. Modern
+/// instruct models ship a Jinja `chat_template`; rendering it is what gives the
+/// model the turn structure it expects.
+#[derive(Clone)]
+struct ChatTemplate {
+    template: String,
+    bos_token: String,
+    eos_token: String,
+}
+
+impl ChatTemplate {
+    /// Load from a `tokenizer_config.json` sibling of `tokenizer.json`.
+    /// Returns `None` when the file or the `chat_template` field is absent.
+    fn load(tokenizer_path: &std::path::Path) -> Option<Self> {
+        let cfg_path = tokenizer_path.parent()?.join("tokenizer_config.json");
+        let raw = std::fs::read_to_string(cfg_path).ok()?;
+        let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+
+        // chat_template may be a string or (rarely) an array of named templates;
+        // take the string form only — the common case.
+        let template = json.get("chat_template")?.as_str()?.to_string();
+
+        let token_str = |key: &str| -> String {
+            match json.get(key) {
+                Some(serde_json::Value::String(s)) => s.clone(),
+                // Some configs express it as { "content": "<bos>", ... }.
+                Some(serde_json::Value::Object(o)) => o
+                    .get("content")
+                    .and_then(|c| c.as_str())
+                    .unwrap_or_default()
+                    .to_string(),
+                _ => String::new(),
+            }
+        };
+
+        Some(Self {
+            template,
+            bos_token: token_str("bos_token"),
+            eos_token: token_str("eos_token"),
+        })
+    }
+
+    /// Render the template for `messages`, appending the generation prompt.
+    fn render(&self, messages: &[serde_json::Value]) -> Result<String, minijinja::Error> {
+        let mut env = minijinja::Environment::new();
+        // HF templates occasionally call raise_exception(); make it a no-op-ish
+        // error so a template that uses it fails cleanly rather than at parse.
+        env.add_function("raise_exception", |msg: String| -> Result<(), minijinja::Error> {
+            Err(minijinja::Error::new(minijinja::ErrorKind::InvalidOperation, msg))
+        });
+        // HF chat templates are written for Python's Jinja and call Python str
+        // methods minijinja lacks natively (e.g. `content.strip()` in the
+        // Llama-2 template). Bridge the common ones so real templates render.
+        env.set_unknown_method_callback(
+            |_state, value, method, _args| -> Result<minijinja::Value, minijinja::Error> {
+                use minijinja::{Error, ErrorKind, Value};
+                if let Some(s) = value.as_str() {
+                    match method {
+                        "strip" => return Ok(Value::from(s.trim())),
+                        "lstrip" => return Ok(Value::from(s.trim_start())),
+                        "rstrip" => return Ok(Value::from(s.trim_end())),
+                        _ => {}
+                    }
+                }
+                Err(Error::new(
+                    ErrorKind::UnknownMethod,
+                    format!("string has no method named {method}"),
+                ))
+            },
+        );
+        env.add_template("chat", &self.template)?;
+        let tmpl = env.get_template("chat")?;
+        tmpl.render(minijinja::context! {
+            messages => messages,
+            bos_token => self.bos_token,
+            eos_token => self.eos_token,
+            add_generation_prompt => true,
+        })
+    }
 }
 
 /// Candle model wrapper implementing the [`Model`] trait.
@@ -535,28 +770,23 @@ impl CandleModels {
     fn new(
         model: CandleModelInner,
         tokenizer: Tokenizer,
-        config: candle_llama::Config,
-        dtype: DType,
         device: Device,
         eos_token_id: Option<u32>,
         spec: ModelSpec,
+        chat_template: Option<ChatTemplate>,
     ) -> Self {
-        let cache = candle_llama::Cache::new(false, dtype, &config, &device)
-            .expect("Failed to create KV cache");
         Self {
             inner: Arc::new(Mutex::new(CandleModelsState {
                 model,
                 tokenizer,
-                config,
-                cache,
                 device,
-                dtype,
                 eos_token_id,
                 spec,
                 last_usage: None,
                 tokens_generated: 0,
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
+                chat_template,
             })),
         }
     }
@@ -608,7 +838,7 @@ impl Model for CandleModels {
         let params = specs.unwrap_or_default();
         let mut inner = self.inner.lock().unwrap();
 
-        let prompt = build_prompt(&inner.tokenizer, &interaction);
+        let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
 
         let tokens = inner
             .tokenizer
@@ -617,15 +847,15 @@ impl Model for CandleModels {
         let input_ids = tokens.get_ids().to_vec();
         let input_len = input_ids.len();
 
-        // Reset cache for fresh generation
-        let new_cache = candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
-            .map_err(GenerationError::Candle)?;
-        inner.cache = new_cache;
+        // Reset cache for fresh generation (per-arch — decision 06).
+        inner.model.reset_cache().map_err(GenerationError::Candle)?;
 
         let device = inner.device.clone();
 
         let mut all_tokens = input_ids.clone();
         let mut next_tokens = input_ids;
+        // One processor for the whole generation so its rng advances per token.
+        let mut processor = build_logits_processor(&params);
 
         for index in 0..params.max_tokens {
             let input_tensor =
@@ -635,7 +865,8 @@ impl Model for CandleModels {
             let seq_start = if index == 0 { 0 } else { all_tokens.len() - 1 };
             let logits = forward(&mut inner, &input_tensor, seq_start)?;
 
-            let next_token = sample_token(&logits, &params).map_err(GenerationError::Candle)?;
+            let next_token = sample_next(&mut processor, &logits, &params, &all_tokens)
+                .map_err(GenerationError::Candle)?;
 
             if inner.eos_token_id == Some(next_token) {
                 break;
@@ -727,6 +958,8 @@ struct CandleStreamState {
     tokens_generated: usize,
     finished: bool,
     initialized: bool,
+    /// Persisted across polls so its rng advances token to token (spec-60/S3).
+    processor: LogitsProcessor,
 }
 
 impl CandleStream {
@@ -740,7 +973,7 @@ impl CandleStream {
 
         let (input_ids, _prompt) = {
             let inner = model.inner.lock().unwrap();
-            let prompt = build_prompt(&inner.tokenizer, &interaction);
+            let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
             let tokens = inner
                 .tokenizer
                 .encode(prompt.as_str(), true)
@@ -750,18 +983,19 @@ impl CandleStream {
 
         let input_len = input_ids.len();
 
-        // Reset cache
+        // Reset cache (per-arch — decision 06).
         {
             let mut inner = model.inner.lock().unwrap();
-            inner.cache =
-                candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
-                    .map_err(GenerationError::Candle)?;
+            inner.model.reset_cache().map_err(GenerationError::Candle)?;
         }
+
+        let processor = build_logits_processor(&params);
 
         Ok(Self {
             inner: Arc::new(Mutex::new(CandleStreamState {
                 model,
                 params,
+                processor,
                 all_tokens: input_ids,
                 input_len,
                 tokens_generated: 0,
@@ -831,10 +1065,17 @@ impl Iterator for CandleStream {
                 return Some(Stream::Pending(ModelState::Finished));
             };
 
-        #[allow(clippy::manual_let_else)]
-            let next_token = if let Ok(t) = sample_token(&logits, &params) { t } else {
-                state.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
+            let next_token = {
+                // Reborrow so `processor` (mut) and `all_tokens` (shared) are
+                // disjoint field borrows rather than two borrows of the guard.
+                let st = &mut *state;
+                match sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
+                    Ok(t) => t,
+                    Err(_) => {
+                        st.finished = true;
+                        return Some(Stream::Pending(ModelState::Finished));
+                    }
+                }
             };
 
             let eos_hit = model_inner
@@ -900,14 +1141,82 @@ fn forward(
     input: &Tensor,
     seq_start: usize,
 ) -> GenerationResult<Tensor> {
-    match &state.model {
-        CandleModelInner::Llama(m) => m
-            .forward(input, seq_start, &mut state.cache)
-            .map_err(GenerationError::Candle),
-    }
+    state
+        .model
+        .forward(input, seq_start)
+        .map_err(GenerationError::Candle)
 }
 
-fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> String {
+/// Convert an interaction to the `[{role, content}]` list HF chat templates
+/// expect, folding system_prompt + soul + tool definitions into a leading
+/// system message.
+fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
+    let mut out = Vec::new();
+
+    let mut system = match (&interaction.system_prompt, &interaction.soul) {
+        (Some(sys), Some(soul)) => format!("{sys}\n\n{soul}"),
+        (Some(sys), None) => sys.clone(),
+        (None, Some(soul)) => soul.clone(),
+        (None, None) => String::new(),
+    };
+    let tools = flatten_tools(&interaction.tools_shed);
+    if !tools.is_empty() {
+        if !system.is_empty() {
+            system.push_str("\n\n");
+        }
+        if let Some(instr) = TextBasedFormatter.tool_calling_instructions() {
+            system.push_str(&instr);
+            system.push('\n');
+        }
+        system.push_str("Available tools:\n");
+        for t in &tools {
+            let args = t
+                .arguments
+                .as_ref()
+                .and_then(|a| a.schema.get("properties"))
+                .and_then(|p| p.as_object())
+                .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
+                .unwrap_or_default();
+            system.push_str(&format!("- {}({})\n", t.name, args));
+        }
+    }
+    if !system.is_empty() {
+        out.push(serde_json::json!({"role": "system", "content": system}));
+    }
+
+    for msg in &interaction.messages {
+        let (role, content) = match msg {
+            Messages::User { content: UserModelContent::Text(t), .. } => ("user", t.content.clone()),
+            Messages::Assistant { content: ModelOutput::Text(t), .. } => {
+                ("assistant", t.content.clone())
+            }
+            Messages::ToolResult { content: UserModelContent::Text(t), .. } => {
+                ("tool", t.content.clone())
+            }
+            _ => continue,
+        };
+        out.push(serde_json::json!({"role": role, "content": content}));
+    }
+    out
+}
+
+/// Build the prompt for `interaction`, preferring the model's chat template.
+///
+/// When the model ships a chat template we render it (spec-60/S5), so an
+/// instruct model gets its trained turn structure. Only when there is no
+/// template — or rendering fails — do we fall back to the plain
+/// `System:/User:/Assistant:` transcript below.
+fn build_prompt(chat_template: Option<&ChatTemplate>, interaction: &ModelInteraction) -> String {
+    if let Some(ct) = chat_template {
+        let messages = messages_as_json(interaction);
+        match ct.render(&messages) {
+            Ok(rendered) => return rendered,
+            Err(e) => {
+                tracing::debug!("chat template render failed ({e}); using plain fallback");
+            }
+        }
+    }
+
     let mut parts = Vec::new();
 
     // System section: combine system_prompt + soul
@@ -980,95 +1289,83 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
     parts.join("\n")
 }
 
-fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_core::Error> {
-    // Logits shape: [batch, seq_len, vocab] or [seq_len, vocab] or [vocab]
-    // Extract the last token's logits as a 1-d [vocab] tensor.
-    let dims = logits.dims();
-    let last_logits = match dims.len() {
-        3 => {
-            // [batch, seq_len, vocab] -> narrow to last position in seq
-            let seq_len = dims[1];
-            logits.narrow(1, seq_len - 1, 1)?.squeeze(0)?.squeeze(0)?
-        }
-        2 => {
-            // [seq_len, vocab] -> take last row
-            let seq_len = dims[0];
-            logits.get(seq_len - 1)?
-        }
-        1 => {
-            // Already [vocab]
-            logits.clone()
-        }
-        _ => {
-            return Err(candle_core::Error::msg(format!(
-                "Unexpected logits rank: {} (dims: {:?})",
-                dims.len(),
-                dims
-            )));
+/// Build candle's `LogitsProcessor` from `ModelParams`.
+///
+/// WHY: the previous sampler was hand-rolled, honoured only temperature and
+/// top-k (top-p and repeat-penalty in `ModelParams` were silently ignored), and
+/// used unseeded `fastrand`, so candle generation could not be reproduced. This
+/// adopts candle's own sampler, which implements the full set, and threads the
+/// seed so a caller can force determinism (spec-60/S3).
+///
+/// HOW: the processor holds its own rng and must persist across the whole
+/// generation so the rng advances token to token — build it ONCE per
+/// generate()/stream, not per token.
+fn build_logits_processor(params: &ModelParams) -> LogitsProcessor {
+    // A fixed default seed keeps runs reproducible even when the caller sets
+    // none; an explicit seed overrides it.
+    let seed = u64::from(params.seed.unwrap_or(299_792_458));
+    let temperature = f64::from(params.temperature);
+
+    let sampling = if temperature <= 0.0 {
+        // temperature <= 0 => greedy/argmax (also the deterministic test mode).
+        Sampling::ArgMax
+    } else {
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let top_k = params.top_k.round() as usize;
+        let top_p = f64::from(params.top_p);
+        let use_top_p = top_p > 0.0 && top_p < 1.0;
+        match (top_k, use_top_p) {
+            (0, true) => Sampling::TopP { p: top_p, temperature },
+            (0, false) => Sampling::All { temperature },
+            (k, true) => Sampling::TopKThenTopP { k, p: top_p, temperature },
+            (k, false) => Sampling::TopK { k, temperature },
         }
     };
 
-    if params.temperature <= 0.0 {
-        return argmax(&last_logits);
-    }
-
-    let scaled = (&last_logits / f64::from(params.temperature))?;
-
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    let top_k = params.top_k.round() as usize;
-    if top_k > 0 {
-        return sample_top_k(&scaled, top_k);
-    }
-
-    sample_from_logits(&scaled)
+    LogitsProcessor::from_sampling(seed, sampling)
 }
 
-#[allow(clippy::cast_possible_truncation)]
-fn argmax(logits: &Tensor) -> Result<u32, candle_core::Error> {
-    let vec: Vec<f32> = logits.to_vec1()?;
-    let (max_idx, _) = vec
-        .iter()
-        .enumerate()
-        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-        .unwrap_or((0, &0.0));
-    Ok(max_idx as u32)
-}
-
-#[allow(clippy::cast_possible_truncation)]
-fn sample_top_k(logits: &Tensor, k: usize) -> Result<u32, candle_core::Error> {
-    let vec: Vec<f32> = logits.to_vec1()?;
-    let mut indexed: Vec<(usize, f32)> = vec.into_iter().enumerate().collect();
-    indexed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    indexed.truncate(k);
-
-    let max_val = indexed[0].1;
-    let exps: Vec<f32> = indexed.iter().map(|(_, v)| (v - max_val).exp()).collect();
-    let sum: f32 = exps.iter().sum();
-    let probs: Vec<f32> = exps.iter().map(|e| e / sum).collect();
-
-    let r: f32 = fastrand::f32();
-    let mut cumsum = 0.0;
-    for (i, p) in probs.iter().enumerate() {
-        cumsum += p;
-        if r < cumsum {
-            return Ok(indexed[i].0 as u32);
+/// Reduce raw model logits to a 1-D `[vocab]` tensor for the last position.
+fn last_position_logits(logits: &Tensor) -> Result<Tensor, candle_core::Error> {
+    let dims = logits.dims();
+    match dims.len() {
+        3 => {
+            let seq_len = dims[1];
+            logits.narrow(1, seq_len - 1, 1)?.squeeze(0)?.squeeze(0)
         }
+        2 => {
+            let seq_len = dims[0];
+            logits.get(seq_len - 1)
+        }
+        1 => Ok(logits.clone()),
+        _ => Err(candle_core::Error::msg(format!(
+            "Unexpected logits rank: {} (dims: {dims:?})",
+            dims.len()
+        ))),
     }
-    Ok(indexed.last().unwrap().0 as u32)
 }
 
-#[allow(clippy::cast_possible_truncation)]
-fn sample_from_logits(logits: &Tensor) -> Result<u32, candle_core::Error> {
-    let probs = candle_nn::ops::softmax(logits, 0)?;
-    let vec: Vec<f32> = probs.to_vec1()?;
+/// Sample the next token: apply repeat penalty (if configured) over the recent
+/// context, then draw from `processor`.
+fn sample_next(
+    processor: &mut LogitsProcessor,
+    logits: &Tensor,
+    params: &ModelParams,
+    context: &[u32],
+) -> Result<u32, candle_core::Error> {
+    let last = last_position_logits(logits)?;
 
-    let r: f32 = fastrand::f32();
-    let mut cumsum = 0.0;
-    for (i, p) in vec.iter().enumerate() {
-        cumsum += p;
-        if r < cumsum {
-            return Ok(i as u32);
-        }
-    }
-    Ok((vec.len() - 1) as u32)
+    let penalized = if (params.repeat_penalty - 1.0).abs() > f32::EPSILON && !context.is_empty() {
+        // Match the llama.cpp path: penalize over the last 64 tokens.
+        let start = context.len().saturating_sub(64);
+        candle_transformers::utils::apply_repeat_penalty(
+            &last,
+            params.repeat_penalty,
+            &context[start..],
+        )?
+    } else {
+        last
+    };
+
+    processor.sample(&penalized)
 }

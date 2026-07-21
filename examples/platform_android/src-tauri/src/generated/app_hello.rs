@@ -1,15 +1,21 @@
 // Generated — AppAssets for "app-hello" (F22)
 // Route prefix: /app-hello/
-// Embedded: AppAssets::build() — for APK builds (release bytes in .so)
-// Mobile:    AppAssets::new(root) — for desktop dev / OTA (disk-backed)
+//
+// MobileDirectory: assets served from disk at runtime via `build(root)`.
+// The resolved resource dir comes from `PlatformSession.resource_root`.
+// On Android this is the Tauri-extracted resource path; on desktop
+// it is the app bundle resource dir.
 
-use foundation_macros::EmbedDirectoryAs;
-use foundation_platform::WebviewApp;
+use foundation_macros::MobileDirectory;
+use foundation_platform::MobileApp;
+use std::path::PathBuf;
 
-#[derive(EmbedDirectoryAs)]
+#[derive(MobileDirectory)]
 #[source = "$CARGO_MANIFEST_DIR/public/app-hello"]
-pub struct AppAssets;
+pub struct AppAssets {
+    pub root: PathBuf
+}
 
 impl AppAssets {
-    pub fn build() -> WebviewApp<AppAssets> { WebviewApp::new(AppAssets {}) }
+    pub fn build(root: PathBuf) -> MobileApp<AppAssets> { MobileApp::new(AppAssets { root }) }
 }

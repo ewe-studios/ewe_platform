@@ -28,6 +28,11 @@ sleep 1
 openbox --replace &
 sleep 1
 
+# Start clipboard sync daemon — bridges X11 PRIMARY/CLIPBOARD selections
+# so copy/paste works between the VM and VNC client
+autocutsel -fork &
+autocutsel -selection PRIMARY -fork &
+
 # Start VNC server attached to the virtual display (no password — dev only)
 x11vnc -display "${DISPLAY}" -forever -nopw -shared -quiet &
 echo "VNC running on :0 (port 5900)"

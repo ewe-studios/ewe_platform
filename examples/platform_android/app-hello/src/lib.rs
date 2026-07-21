@@ -20,7 +20,7 @@ fn hello_dashboard() {
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"👋 Hello"</a>
                 <a href="ewe://localhost/api/status"
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"⚡ API"</a>
-                <a href="ewe://localhost/remote/news"
+                <a href="ewe://localhost/remote/example.com"
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🌐 Remote"</a>
             </div>
             <div style="background:#112240;border:1px solid #233554;border-radius:8px;padding:10px;margin:8px 0">

@@ -192,9 +192,6 @@ pub struct AgentLoop<D, M> {
     inner_iteration: usize,
     outer_iteration: usize,
     message_count: u64,
-
-    /// Pending messages to prepend (from steering/follow-up).
-    pending_user_messages: Vec<Messages>,
 }
 
 impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
@@ -235,16 +232,20 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             inner_iteration: 0,
             outer_iteration: 0,
             message_count: 0,
-            pending_user_messages: Vec::new(),
         }
     }
 
-    /// Push a user message to be processed in the next inner iteration.
+    /// Persist a user message to session history.
+    ///
+    /// The message reaches the model through context assembly
+    /// (`message_api` -> `ContextProvider` -> `interaction.messages`), so
+    /// persisting here is the whole job — an earlier `pending_user_messages`
+    /// buffer duplicated it, was never drained (unbounded growth), and was read
+    /// only by a debug counter, so it was removed.
     pub fn push_user_message(&mut self, msg: Messages) {
         let _ = self.message_api.append(SessionRecord::Conversation {
-            message: msg.clone(),
+            message: msg,
         });
-        self.pending_user_messages.push(msg);
     }
 
     /// Current state label (for diagnostics).
@@ -276,6 +277,16 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_outer_boundary(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        // A hard abort requested via `AgentSession::abort` (or `steer`'s Abort
+        // code) terminates the turn at this boundary. Previously the Abort code
+        // existed but nothing set it and the loop never read it — a stubbed
+        // cancel path (spec-60 matrix 3.5).
+        if self.queues.is_aborted() {
+            self.queues.reset_cancel();
+            self.state = AgentLoopState::Ending;
+            return TaskStatus::Pending(AgentProgress::SessionEnding);
+        }
+
         self.outer_iteration += 1;
         if self.outer_iteration > self.config.max_outer_iterations {
             self.state = AgentLoopState::Ending;
@@ -322,6 +333,13 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_assemble(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        // Honor a hard abort mid-turn (before starting another generation).
+        if self.queues.is_aborted() {
+            self.queues.reset_cancel();
+            self.state = AgentLoopState::Ending;
+            return TaskStatus::Pending(AgentProgress::SessionEnding);
+        }
+
         // Check priority queue — front-inject interruption.
         if self.queues.has_priority() {
             let msgs = self.queues.drain_priority();
@@ -359,7 +377,15 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             .memory_store()
             .hydrate_sync(&self.session_id)
             .unwrap_or_default();
-        let ctx = self.context_provider.assemble_from_memory(&memory);
+        let mut ctx = self.context_provider.assemble_from_memory(&memory);
+
+        // Preflight compression: when the assembled context exceeds the
+        // compression threshold of the budget, shrink it BEFORE sending — drop
+        // the oldest recent messages (keeping the newest) until it fits. This is
+        // the heavier counterpart to the context-pressure note (below): pressure
+        // warns, compression actually reduces. The threshold field existed but
+        // was never applied.
+        self.apply_preflight_compression(&mut ctx);
 
         // Ephemeral context-pressure layer (OD-19-7).
         let system_prompt = self.apply_context_pressure(&ctx);
@@ -386,7 +412,6 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         tracing::trace!(
             messages = interaction.messages.len(),
             has_system = interaction.system_prompt.is_some(),
-            pending_user = self.pending_user_messages.len(),
             "Sending interactions to model for generation"
         );
         match model.stream(interaction, Some(params)) {
@@ -550,6 +575,39 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     }
                 }
             }
+        }
+
+        // Persist the accepted assistant turn to session history.
+        //
+        // The streaming path emits each message to the caller via
+        // `Stream::Next` but never wrote it to `message_api` — only user
+        // messages and tool results were persisted. So a resumed session (or
+        // `message_api.recent()` on the next turn) saw the user's side of the
+        // conversation but not the assistant's, silently losing multi-turn
+        // context. Persist here — once per turn with the complete `collected`
+        // set, NOT per `Stream::Next`, so token-streaming models do not write a
+        // fragment per token. Loop redirect/terminate return above, so only an
+        // accepted generation reaches this point.
+        for msg in collected {
+            if matches!(msg, Messages::Assistant { .. }) {
+                let _ = self.message_api.append(SessionRecord::Conversation {
+                    message: msg.clone(),
+                });
+            }
+        }
+
+        // Record the model's reported usage into the session ledger.
+        // `TokenLedger::record` existed but the loop never called it, so budget
+        // tracking, usage snapshots and cost accounting stayed at zero
+        // regardless of real token consumption. Streaming models report
+        // CUMULATIVE usage on each token message, so record only the LAST
+        // assistant message's usage (recording every one would multiply-count).
+        if let Some(Messages::Assistant { usage, .. }) = collected
+            .iter()
+            .rev()
+            .find(|m| matches!(m, Messages::Assistant { .. }))
+        {
+            self.ledger.record(usage);
         }
 
         // Extract tool calls from assistant messages.
@@ -919,6 +977,43 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     // -----------------------------------------------------------------------
     // Context pressure (OD-19-7)
+
+    /// Shrink an over-budget context in place by dropping the OLDEST messages
+    /// until it fits under `preflight_compression_threshold * budget`.
+    ///
+    /// WHY: the config threshold existed but nothing applied it. When a context
+    /// is assembled that would blow the budget, sending it wastes tokens (or is
+    /// rejected by the provider). Truncation-based compression keeps the most
+    /// recent turns — the ones that matter most — and drops the oldest.
+    ///
+    /// A `0.0` threshold (or no budget) disables it. Recomputes `token_estimate`
+    /// so downstream (context-pressure) sees the compressed size.
+    fn apply_preflight_compression(&self, ctx: &mut AgentContext) {
+        if self.config.preflight_compression_threshold <= 0.0 {
+            return;
+        }
+        let Some(budget) = self.ledger.budget() else {
+            return; // unlimited budget — nothing to compress against
+        };
+        if budget == 0 {
+            return;
+        }
+
+        #[allow(clippy::cast_precision_loss)]
+        let limit = f64::from(self.config.preflight_compression_threshold) * budget as f64;
+
+        // Drop oldest messages (front) until under the limit or only one left.
+        while ctx.messages.len() > 1 {
+            #[allow(clippy::cast_precision_loss)]
+            let ratio = ctx.token_estimate as f64;
+            if ratio <= limit {
+                break;
+            }
+            let dropped = ctx.messages.remove(0);
+            let est = crate::agentic::context::estimate_tokens_pub(&dropped);
+            ctx.token_estimate = ctx.token_estimate.saturating_sub(est);
+        }
+    }
 
     fn apply_context_pressure(&self, ctx: &AgentContext) -> Option<String> {
         if self.config.context_pressure_threshold <= 0.0 {

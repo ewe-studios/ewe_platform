@@ -170,7 +170,7 @@ impl Default for LlamaServerConfig {
             model_file: std::env::var("LLAMA_TEST_MODEL_FILE")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| {
-                    root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf")
+                    root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf")
                 }),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,

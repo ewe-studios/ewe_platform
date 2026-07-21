@@ -42,3 +42,9 @@ pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;
 /// Tauri (`__ewe_capabilities`), browser (direct WASM bridge), or Deno.
 /// Injected by F24 ScriptInjector alongside the other platform runtimes.
 pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-bridge.js");
+
+/// Floating navigation toolbar (`runtimes/floating-nav.js`, F29 Stage 4):
+/// Renders a bottom-positioned toolbar with back, home, app-switcher, and
+/// refresh buttons. Styled via CSS — no native bridge. Auto-hides on scroll.
+/// Injected by F24 ScriptInjector.
+pub const FLOATING_NAV_JS: &str = include_str!("../runtimes/floating-nav.js");

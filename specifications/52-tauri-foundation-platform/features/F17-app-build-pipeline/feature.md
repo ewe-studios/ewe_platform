@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F17-app-build-pipeline"
 this_file: "specifications/52-tauri-foundation-platform/features/F17-app-build-pipeline/feature.md"
 
-status: not-started
+status: completed
 priority: critical
 created: 2026-07-18
 

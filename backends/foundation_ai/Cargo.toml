@@ -41,6 +41,9 @@ derive_more = { version = "2.1", features = ["from", "debug", "display", "error"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ahash = "0.8"
+# Tool-boundary panic containment in the agentic loop (catch_unwind on the
+# tool future). Also a dev-dependency for block_on in tests.
+futures-lite = "2"
 
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
@@ -74,6 +77,12 @@ optional = true
 
 [dependencies.fastrand]
 version = "2.3"
+optional = true
+
+# Chat-template rendering for the candle backend (spec-60/S5). Same version as
+# foundation_packager, which already uses it.
+[dependencies.minijinja]
+version = "2.0"
 optional = true
 
 # Candle with Metal — Apple only.
@@ -154,7 +163,7 @@ openmp = ["llamacpp", "infrastructure_llama_cpp/openmp"]
 mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "dep:foundation_deployment_huggingface"]
+candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "minijinja", "dep:foundation_deployment_huggingface"]
 candle-cuda = ["candle", "candle-core/cuda"]
 candle-gpu = ["candle-cuda"]
 
@@ -164,8 +173,15 @@ multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
 # Test substrate (F21): MockModelProvider, MockTool, message builders
 testing = ["toolbox"]
 
-# Integration tests: E2E integration tests for providers and others
-integration_tests = ["testing", "llamacpp", "candle"]
+# live-model-tests: integration tests that need a LARGE or DOWNLOADED model
+# (SmolLM2, Gemma-4, the qwen GGUF the llama-server runs) or a live cloud API
+# (OpenAI/Anthropic). Everything testable with the committed tiny safetensors
+# fixtures (tiny-random Llama/Gemma2, via the candle backend) runs by default
+# and is NOT gated here — see tests/candle and tests/agentic/*_candle.
+live-model-tests = ["testing", "llamacpp", "candle"]
+
+# Back-compat alias — prefer `live-model-tests`.
+integration_tests = ["live-model-tests"]
 
 # ===========================================================================
 # Examples — runnable with `cargo run -p foundation_ai --example <name>`

@@ -364,3 +364,184 @@ fn execute_non_retriable_fails_immediately() {
 fn fail_mode_default_is_collect_all() {
     assert_eq!(FailMode::default(), FailMode::CollectAll);
 }
+
+// ---------------------------------------------------------------------------
+// Additional execution coverage (tool_impl.rs was 75%): retry-then-succeed,
+// per-tool retry config round-trip, and get_def lookup.
+
+/// A tool that fails `fail_n` times (Timeout, retriable) then succeeds.
+struct FlakyTool {
+    fail_n: u32,
+    attempt: std::sync::atomic::AtomicU32,
+}
+
+#[async_trait]
+impl ToolImpl for FlakyTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "flaky".into(),
+            description: "Fails then succeeds".into(),
+            arguments: Args::from_value(serde_json::json!({})),
+            category: "shell".into(),
+        }
+    }
+
+    async fn execute(
+        &self,
+        _arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        use std::sync::atomic::Ordering;
+        let n = self.attempt.fetch_add(1, Ordering::SeqCst);
+        if n < self.fail_n {
+            Err(ToolError::Timeout {
+                tool: "flaky".into(),
+            })
+        } else {
+            Ok(ToolCallResult {
+                content: foundation_ai::types::UserModelContent::Text(
+                    foundation_ai::types::TextContent {
+                        content: "ok".into(),
+                        signature: None,
+                    },
+                ),
+                error_detail: None,
+            })
+        }
+    }
+}
+
+#[test]
+fn execute_with_retry_succeeds_after_transient_failures() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(FlakyTool {
+            fail_n: 2,
+            attempt: std::sync::atomic::AtomicU32::new(0),
+        }));
+        // Default retries Timeout up to its max — 2 failures then success.
+        let request = req("a", "flaky", vec![], ExecutionHint::Unspecified);
+        let cfg = ToolRetryConfig::default();
+        let result = m.execute_with_retry(&request, &cfg).await;
+        assert!(
+            result.is_ok(),
+            "retriable failures below the cap must eventually succeed: {result:?}"
+        );
+    });
+}
+
+#[test]
+fn per_tool_retry_config_round_trips() {
+    let m = mgr();
+    let custom = ToolRetryConfig {
+        max_retries: 7,
+        ..ToolRetryConfig::default()
+    };
+    m.set_retry_config("echo", custom);
+    assert_eq!(
+        m.retry_config("echo").max_retries,
+        7,
+        "a set per-tool retry config must be read back"
+    );
+    // An unset tool falls back to the default.
+    assert_eq!(
+        m.retry_config("unknown").max_retries,
+        ToolRetryConfig::default().max_retries
+    );
+}
+
+#[test]
+fn get_def_returns_registered_definition() {
+    let m = mgr();
+    let def = m.get_def("echo").expect("echo is registered");
+    assert_eq!(def.name, "echo");
+    assert!(m.get_def("nope").is_none(), "unknown tool has no definition");
+}
+
+/// Matrix 10.6 — a panicking tool is contained at the boundary: execute_one
+/// returns a ToolError::Execution rather than unwinding into the caller.
+struct PanicTool;
+
+#[async_trait]
+impl ToolImpl for PanicTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "boom".into(),
+            description: "Panics".into(),
+            arguments: Args::from_value(serde_json::json!({})),
+            category: "shell".into(),
+        }
+    }
+    async fn execute(
+        &self,
+        _arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        panic!("intentional tool panic");
+    }
+}
+
+#[test]
+fn panicking_tool_is_contained_as_error() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(PanicTool));
+        let request = req("a", "boom", vec![], ExecutionHint::Unspecified);
+        let result = m.execute_one(&request).await;
+        assert!(
+            matches!(result, Err(ToolError::Execution { .. })),
+            "a panicking tool must be contained as a ToolError, not unwind: {result:?}"
+        );
+    });
+}
+
+/// Matrix 4.8 — malformed tool arguments produce a clean error, not a panic.
+/// The framework delegates schema validation to the tool; a tool that requires
+/// a specific argument rejects a call missing it with InvalidArguments.
+struct StrictTool;
+
+#[async_trait]
+impl ToolImpl for StrictTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "strict".into(),
+            description: "Requires a 'path' argument".into(),
+            arguments: Args::from_value(serde_json::json!({
+                "type": "object",
+                "properties": { "path": { "type": "string" } },
+                "required": ["path"]
+            })),
+            category: "read".into(),
+        }
+    }
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        if !arguments.contains_key("path") {
+            return Err(ToolError::InvalidArguments {
+                tool: "strict".into(),
+                reason: "missing required argument 'path'".into(),
+            });
+        }
+        Ok(ToolCallResult {
+            content: foundation_ai::types::UserModelContent::Text(
+                foundation_ai::types::TextContent { content: "ok".into(), signature: None },
+            ),
+            error_detail: None,
+        })
+    }
+}
+
+#[test]
+fn malformed_tool_arguments_error_cleanly() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(StrictTool));
+        // Call with EMPTY args — the required 'path' is missing.
+        let request = req("a", "strict", vec![], ExecutionHint::Unspecified);
+        let result = m.execute_one(&request).await;
+        assert!(
+            matches!(result, Err(ToolError::InvalidArguments { .. })),
+            "missing required args must be a clean InvalidArguments error: {result:?}"
+        );
+    });
+}

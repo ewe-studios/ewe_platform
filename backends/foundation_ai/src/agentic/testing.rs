@@ -12,7 +12,7 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use foundation_core::valtron::Stream;
@@ -53,19 +53,30 @@ struct Failure {
 /// Implements `RoutableProvider` (F12) so it plugs directly into
 /// `ProviderRouter`. Responses are scripted: the first matching script wins.
 pub struct MockModelProvider {
-    scripts: Vec<Script>,
-    failures: Vec<Failure>,
-    call_count: AtomicUsize,
+    /// Shared so `RoutableProvider::get_model` can hand out a `MockModel` that
+    /// resolves against the SAME scripts. Previously the state was owned
+    /// outright and `get_model` returned `None`, so the mock could never drive
+    /// a routed `AgentLoop` at all — every routed lookup failed with
+    /// "no provider registered", which is why the loop's inner states had no
+    /// coverage. See specifications/60-agentic-reliability.
+    inner: Arc<MockInner>,
     name: String,
+}
+
+/// Script state shared between a `MockModelProvider` and the `MockModel`s it
+/// hands to the router.
+#[derive(Default)]
+struct MockInner {
+    scripts: RwLock<Vec<Script>>,
+    failures: RwLock<Vec<Failure>>,
+    call_count: AtomicUsize,
 }
 
 impl MockModelProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            scripts: Vec::new(),
-            failures: Vec::new(),
-            call_count: AtomicUsize::new(0),
+            inner: Arc::new(MockInner::default()),
             name: "mock".into(),
         }
     }
@@ -76,7 +87,7 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         reply: Vec<Messages>,
     ) -> &mut Self {
-        self.scripts.push(Script {
+        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
             matcher: Box::new(move |mi, _| matcher(mi)),
             replies: reply,
         });
@@ -85,7 +96,7 @@ impl MockModelProvider {
 
     /// Respond with `reply` on the `n`th call (0-indexed).
     pub fn on_nth_call(&mut self, n: usize, reply: Vec<Messages>) -> &mut Self {
-        self.scripts.push(Script {
+        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
             matcher: Box::new(move |_, call| call == n),
             replies: reply,
         });
@@ -94,7 +105,7 @@ impl MockModelProvider {
 
     /// Respond with `reply` for any interaction (catch-all, add last).
     pub fn on_any(&mut self, reply: Vec<Messages>) -> &mut Self {
-        self.scripts.push(Script {
+        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
             matcher: Box::new(|_, _| true),
             replies: reply,
         });
@@ -107,7 +118,7 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         error: impl Into<String>,
     ) -> &mut Self {
-        self.failures.push(Failure {
+        self.inner.failures.write().expect("mock failures poisoned").push(Failure {
             matcher: Box::new(move |mi, _| matcher(mi)),
             error: error.into(),
         });
@@ -116,21 +127,27 @@ impl MockModelProvider {
 
     /// Number of generate/stream calls so far.
     pub fn call_count(&self) -> usize {
-        self.call_count.load(Ordering::Relaxed)
+        self.inner.call_count.load(Ordering::Relaxed)
     }
 
     /// # Errors
     /// Returns [`ToolError`] if the tool execution fails.
     pub fn resolve(&self, mi: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
+        self.inner.resolve(mi)
+    }
+}
+
+impl MockInner {
+    fn resolve(&self, mi: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
         let n = self.call_count.fetch_add(1, Ordering::Relaxed);
 
-        for f in &self.failures {
+        for f in self.failures.read().expect("mock failures poisoned").iter() {
             if (f.matcher)(mi, n) {
                 return Err(crate::errors::GenerationError::Generic(f.error.clone()));
             }
         }
 
-        for s in &self.scripts {
+        for s in self.scripts.read().expect("mock scripts poisoned").iter() {
             if (s.matcher)(mi, n) {
                 return Ok(s.replies.clone());
             }
@@ -140,7 +157,9 @@ impl MockModelProvider {
             "MockModelProvider: no matching script for interaction".into(),
         ))
     }
+}
 
+impl MockModelProvider {
     /// Wrap this mock into a `ProviderRouter` (single-provider mode).
     #[must_use]
     pub fn into_router(self) -> ProviderRouter {
@@ -189,8 +208,11 @@ impl RoutableProvider for MockModelProvider {
         self.get_one(model_id).into_iter().collect()
     }
 
-    fn get_model(&self, _model_id: &ModelId) -> Option<BoxModel> {
-        None
+    fn get_model(&self, model_id: &ModelId) -> Option<BoxModel> {
+        Some(Box::new(MockModel {
+            inner: Arc::clone(&self.inner),
+            model_id: model_id.clone(),
+        }))
     }
 }
 
@@ -201,7 +223,7 @@ impl RoutableProvider for MockModelProvider {
 /// A `Model` that replays scripted responses from a shared `MockModelProvider`.
 /// Created internally; tests interact through `MockModelProvider`.
 pub struct MockModel {
-    provider: Arc<MockModelProvider>,
+    inner: Arc<MockInner>,
     model_id: ModelId,
 }
 
@@ -233,7 +255,7 @@ impl crate::types::Model for MockModel {
         interaction: ModelInteraction,
         _specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
-        self.provider.resolve(&interaction)
+        self.inner.resolve(&interaction)
     }
 
     fn stream(
@@ -241,7 +263,7 @@ impl crate::types::Model for MockModel {
         interaction: ModelInteraction,
         _specs: Option<ModelParams>,
     ) -> GenerationResult<ModelStreamBox> {
-        let messages = self.provider.resolve(&interaction)?;
+        let messages = self.inner.resolve(&interaction)?;
         Ok(Box::new(MockStreamIterator::new(messages)))
     }
 }
@@ -421,6 +443,7 @@ pub enum ToolBehavior {
 pub struct MockTool {
     pub name: String,
     pub description: String,
+    pub category: String,
     pub behavior: ToolBehavior,
     attempt: AtomicU32,
 }
@@ -431,6 +454,10 @@ impl MockTool {
         Self {
             name: name.into(),
             description: "mock tool".into(),
+            // Default to a recognized category so the tool actually populates
+            // the ToolShed handed to the model (build_toolshed groups by
+            // category). "mock" is not a recognized slot; "shell" is.
+            category: "shell".into(),
             behavior,
             attempt: AtomicU32::new(0),
         }
@@ -440,6 +467,13 @@ impl MockTool {
     #[must_use]
     pub fn with_description(mut self, desc: impl Into<String>) -> Self {
         self.description = desc.into();
+        self
+    }
+
+    /// Builder: set the tool category (drives which ToolShed slot it fills).
+    #[must_use]
+    pub fn with_category(mut self, category: impl Into<String>) -> Self {
+        self.category = category.into();
         self
     }
 
@@ -479,7 +513,7 @@ impl ToolImpl for MockTool {
             name: self.name.clone(),
             description: self.description.clone(),
             arguments: crate::types::Args::from_value(serde_json::json!({})),
-            category: "mock".into(),
+            category: self.category.clone(),
         }
     }
 

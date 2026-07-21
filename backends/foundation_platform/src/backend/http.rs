@@ -31,11 +31,13 @@ impl HttpBackend {
 
     /// Fetch content from a URL. Returns `(body_bytes, content_type)`.
     pub fn fetch(&self, url: &str) -> Result<(Vec<u8>, String), String> {
+        tracing::debug!(%url, "HttpBackend::fetch");
+
         let builder = PreparedRequestBuilder::new(SimpleMethod::GET, url)
-            .map_err(|e| format!("bad URL: {e}"))?;
+            .map_err(|e| format!("bad URL '{url}': {e}"))?;
 
         let response = self.client.send(builder.build())
-            .map_err(|e| format!("HTTP fetch failed: {e}"))?;
+            .map_err(|e| format!("fetch '{url}' failed: {e}"))?;
 
         let status_code: usize = response.get_status().into();
         if status_code < 200 || status_code >= 400 {

@@ -72,16 +72,18 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 
 | Stage | Status | Notes |
 |-------|--------|-------|
-| S0 coverage harness | Not started | No coverage tool installed today |
-| S1 candle 0.11 | Not started | 0.10.2 → 0.11.0 |
-| S2 state into model | Not started | Decision 06 |
-| S3 sampling + seed | Not started | Adopt `LogitsProcessor` |
-| S4 GGUF fixtures | Not started | `tools/llama.cpp/convert_hf_to_gguf.py` is vendored |
-| S5 chat templates | Not started | minijinja (decision 03) |
-| S6 architectures | Not started | Decision 02 |
-| S7 test matrix | **Partial** | 6 session/provider tests landed; see `test-matrix.md` |
-| S8 generated weights | Not started | Spike required |
-| S9 generation quality | Not started | Doubled-BOS is the leading hypothesis |
+| S0 coverage harness | DONE | cargo-llvm-cov + llvm-tools; measured throughout |
+| S1 candle 0.11 | DONE | bumped, zero breaking changes |
+| S2 state into model | DONE | per-arch state (decision 06); Llama external cache, Gemma2 internal |
+| S3 sampling + seed | DONE | LogitsProcessor + repeat_penalty + seed; determinism tested |
+| S4 GGUF fixtures | DONE | committed tiny-llama-f16.gguf (2.7MB, torch-free-ish convert via uv+py3.12); llama.cpp in-process runs offline by default |
+| S5 chat templates | DONE | minijinja render + pycompat str methods; template applied |
+| S6 architectures | DONE (2 archs) | detection + honest errors + Llama + **Gemma2** loaders, both tested on committed fixtures; Qwen/Mistral/Phi3 follow the same pattern (deferred — no offline fixture => would be untested) |
+| S7 test matrix | **116/119** | 3 n/a (tool-cancellation interleaving, gated preset); 480 tests; agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->53%; found+fixed 2 stubbed features (preflight compression, tool-panic containment) + the ledger-never-recorded bug |
+| S8 generated weights | Not needed | committed Llama+Gemma2 fixtures (safetensors+GGUF) cover both supported archs; no consumer for generated weights until a fixture-less arch is added |
+| S9 generation quality | DONE | conditional BOS + phantom-tool fix (docs/fixes/007); model coherent |
+| B llama.cpp logging | DONE | routed through tracing; silent by default, `llama.cpp=debug` enables |
+| C known warts | DONE | cache race, dead field, println; silent-failure sweep in stream |
 
 ## Decisions
 
@@ -97,7 +99,7 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 | 07 | Bump candle 0.10.2 → 0.11.0, before the architecture work | Resolved |
 | 08 | Coverage tool: **`cargo-llvm-cov`** (source-based, workspace-aware, lcov + html) | Resolved |
 | 09 | Whether coverage gates CI or only reports | **Open** |
-| 10 | Whether GGUF fixtures are committed or generated at test time from the safetensors | **Open** |
+| 10 | GGUF fixtures are COMMITTED (tiny-llama-f16.gguf, 2.7MB) — offline, deterministic | Resolved |
 
 ## Non-goals
 

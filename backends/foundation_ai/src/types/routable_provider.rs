@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 
 use super::base_types::{
-    BoxModel, ModelId, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
+    BoxModel, Model, ModelId, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
 };
 
 // ---------------------------------------------------------------------------
@@ -118,6 +118,81 @@ where
             .get_model(model_id.clone())
             .ok()
             .map(|m| Box::new(m) as BoxModel)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PreloadedProvider — serve an already-loaded model
+// ---------------------------------------------------------------------------
+
+/// A [`RoutableProvider`] backed by a single, already-loaded model.
+///
+/// WHY: some providers (the candle backend, a local GGUF via `LlamaBackends`)
+/// load from a local path rather than resolving a `ModelId` — their
+/// `get_model(id)` cannot be routed. This wraps a model that is already in
+/// memory so it can drive an `AgentSession` directly: embedding a local model
+/// in an agent, or exercising the full loop against a real in-process provider
+/// without a download.
+///
+/// The wrapped model must be `Clone` (both `CandleModels` and `LlamaModels` are
+/// cheap `Arc` handles); each `get_model` hands out a clone.
+pub struct PreloadedProvider<M> {
+    model: M,
+    model_id: ModelId,
+    name: String,
+}
+
+impl<M: Model + Clone + Send + Sync + 'static> PreloadedProvider<M> {
+    /// Wrap `model`, serving it for `model_id` (and, since it is a single-model
+    /// provider, for any id — see `serves`).
+    pub fn new(model: M, model_id: ModelId) -> Self {
+        Self {
+            model,
+            model_id,
+            name: "preloaded".to_string(),
+        }
+    }
+
+    /// Wrap into a single-provider [`ProviderRouter`].
+    #[must_use]
+    pub fn into_router(self) -> ProviderRouter {
+        ProviderRouter::single(Box::new(self))
+    }
+}
+
+impl<M: Model + Clone + Send + Sync + 'static> RoutableProvider for PreloadedProvider<M> {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn provider_id(&self) -> ModelProviders {
+        ModelProviders::Custom("preloaded".to_string())
+    }
+
+    fn describe(&self) -> Option<ModelProviderDescriptor> {
+        None
+    }
+
+    fn serves(&self, _model_id: &ModelId) -> bool {
+        // A single-model provider answers for whatever id it is asked — the
+        // router has already chosen it.
+        true
+    }
+
+    fn get_one(&self, _model_id: &ModelId) -> Option<ModelSpec> {
+        // Serve the preloaded model's spec, stamped with the id it was
+        // registered under so routing/telemetry see a stable identity.
+        let mut spec = self.model.spec();
+        spec.id = self.model_id.clone();
+        Some(spec)
+    }
+
+    fn get_all(&self, model_id: &ModelId) -> Vec<ModelSpec> {
+        self.get_one(model_id).into_iter().collect()
+    }
+
+    fn get_model(&self, _model_id: &ModelId) -> Option<BoxModel> {
+        Some(Box::new(self.model.clone()) as BoxModel)
     }
 }
 
