@@ -179,25 +179,25 @@ fn responses_model_trait_surface() {
     assert_eq!(m.spec().name, "gpt-4o");
     let _ = m.tool_formatter();
 
-    // KNOWN GAP (documented, not asserted-as-desirable): unlike OpenAIModel and
-    // AnthropicModel, ResponsesModel carries no `pricing` and no
-    // `cumulative_cost` field, so `descriptor()` is hard-coded to None and
-    // `costing()` returns an empty report that never accumulates.
-    //
-    // The practical effect: cost tracking and budget checks read ZERO for the
-    // Responses API — which serves o1/o3/o1-pro, the most expensive models on
-    // offer. This test pins the current behaviour so the gap is visible and a
-    // future fix is a deliberate, test-updating change rather than a silent one.
+    // Previously ResponsesModel returned no descriptor and a fixed empty
+    // costing report — callers got no provider identity at all and could never
+    // read a running token total. Now at parity with OpenAIModel/AnthropicModel.
+    let d = m
+        .descriptor()
+        .expect("Responses must expose a descriptor like its sibling providers");
+    assert_eq!(d.id, "openai-responses");
+    assert_eq!(d.provider, ModelProviders::OPENAIRESPONSES);
     assert!(
-        m.descriptor().is_none(),
-        "ResponsesModel currently reports no descriptor — see the note above; \
-         if this now returns Some, the pricing gap was fixed and this test \
-         should assert the real descriptor instead"
+        d.reasoning,
+        "the Responses API serves reasoning models (o1/o3)"
     );
+
+    // A fresh model starts clean; the accumulator sums per-call usage, which
+    // parse_response already extracts from the vendor response.
     assert_eq!(
         m.costing().expect("costing").total_tokens,
         0.0,
-        "costing() is a fixed empty report here, not an accumulator"
+        "a fresh model instance must not inherit a previous one's total"
     );
 }
 

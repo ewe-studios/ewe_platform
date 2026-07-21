@@ -549,6 +549,10 @@ impl ModelProvider for ResponsesProvider {
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
                 info: info.clone(),
+                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+                cumulative_cost: Arc::new(std::sync::Mutex::new(
+                    crate::costing::CostAccumulator::new(),
+                )),
             });
         }
         drop(cache);
@@ -582,6 +586,10 @@ impl ModelProvider for ResponsesProvider {
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
             info,
+            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            cumulative_cost: Arc::new(std::sync::Mutex::new(
+                crate::costing::CostAccumulator::new(),
+            )),
         })
     }
 
@@ -640,6 +648,12 @@ pub struct ResponsesModel {
     http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
+    /// Per-million pricing, sourced the same way `OpenAIModel` sources it.
+    pricing: crate::types::base_types::ModelUsageCosting,
+    /// Running usage total across this model instance's calls. Without it
+    /// `costing()` cannot report a cumulative figure even though each response
+    /// already carries the vendor's token counts.
+    cumulative_cost: Arc<std::sync::Mutex<crate::costing::CostAccumulator>>,
 }
 
 impl ResponsesModel {
@@ -836,11 +850,36 @@ impl Model for ResponsesModel {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        None
+        // Parity with OpenAIModel/AnthropicModel: returning None left callers
+        // with no provider identity, API type or input-modality information at
+        // all. Pricing comes from the same source the siblings use.
+        Some(ModelProviderDescriptor {
+            id: "openai-responses",
+            name: "OpenAI Responses",
+            reasoning: true,
+            api: crate::types::base_types::ModelAPI::OpenAIResponses,
+            provider: ModelProviders::OPENAIRESPONSES,
+            base_url: None,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: self.pricing,
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        Ok(empty_usage_report())
+        // Was a fixed empty report, so a caller could never read a running
+        // total. Each response already carries the vendor's token counts; this
+        // just surfaces their sum, as OpenAIModel does.
+        let cost = self.cumulative_cost.lock().unwrap().result();
+        Ok(UsageReport {
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: cost.total_tokens,
+            cost,
+        })
     }
 
     fn generate(
@@ -858,6 +897,14 @@ impl Model for ResponsesModel {
         let response: Response = self.execute_request(&url, &body)?;
 
         let message = parse_response(&response, &self.model_id);
+
+        // Accrue this call's usage so `costing()` can report a running total.
+        // `parse_response` has already converted the vendor's token counts into
+        // the message's UsageReport, so this only sums what is already there.
+        if let Messages::Assistant { ref usage, .. } = message {
+            self.cumulative_cost.lock().unwrap().add(&usage.cost);
+        }
+
         Ok(vec![message])
     }
 
