@@ -588,6 +588,20 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             }
         }
 
+        // Record the model's reported usage into the session ledger.
+        // `TokenLedger::record` existed but the loop never called it, so budget
+        // tracking, usage snapshots and cost accounting stayed at zero
+        // regardless of real token consumption. Streaming models report
+        // CUMULATIVE usage on each token message, so record only the LAST
+        // assistant message's usage (recording every one would multiply-count).
+        if let Some(Messages::Assistant { usage, .. }) = collected
+            .iter()
+            .rev()
+            .find(|m| matches!(m, Messages::Assistant { .. }))
+        {
+            self.ledger.record(usage);
+        }
+
         // Extract tool calls from assistant messages.
         let tool_calls = Self::extract_tool_calls(collected);
 

@@ -569,3 +569,58 @@ fn candle_repeat_penalty_changes_output() {
         "a strong repeat_penalty should change the sampled sequence"
     );
 }
+
+/// Matrix 2.8 — cost/usage accounting is PER SESSION, not merged across sessions
+/// that share the same underlying model handle.
+#[valtron_test]
+fn cost_accounting_is_per_session() {
+    use foundation_ai::agentic::{
+        AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    };
+    use foundation_ai::types::{PreloadedProvider, SessionId};
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    let dir = fixture_dir("tiny-random-LlamaForCausalLM");
+    let model = CandleBackend::cpu()
+        .get_model_by_spec(ModelSpec {
+            name: "tiny".into(),
+            id: ModelId::Name("tiny".into(), None),
+            devices: None,
+            model_location: Some(dir.to_string_lossy().to_string().into()),
+            lora_location: None,
+        })
+        .expect("loads");
+    let model_id = ModelId::Name("tiny".into(), None);
+
+    let build = || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
+        AgentSession::builder(SessionId::new(), PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
+            .with_system_prompt("You are a helpful assistant.")
+            .with_model(model_id.clone())
+            .with_config(AgentConfig { primary_model: model_id.clone(), model_params: params(), ..Default::default() })
+            .with_context_config(ContextConfig::default())
+            .with_memory_config(MemoryConfig::default())
+            .with_error_policy(ErrorPolicy::new())
+            .build()
+            .expect("builds")
+    };
+
+    let s1 = build();
+    let s2 = build();
+
+    let msg = Messages::User {
+        id: foundation_compact::ids::new_scru128(),
+        role: MessageRole::User,
+        content: UserModelContent::Text(TextContent { content: "Hi.".into(), signature: None }),
+        signature: None,
+    };
+    // s1 runs a turn; s2 does not.
+    let _ = s1.run_turn(msg.clone()).expect("s1 turn");
+
+    // s1's ledger recorded usage; s2's is untouched — the two share weights but
+    // NOT accounting (the docs/fixes/006 share_weights invariant, at the
+    // session level).
+    let s1_total = s1.ledger().snapshot().total;
+    let s2_total = s2.ledger().snapshot().total;
+    assert!(s1_total > 0, "the session that ran a turn must record usage");
+    assert_eq!(s2_total, 0, "a session that did NOT run must have zero usage: {s2_total}");
+}

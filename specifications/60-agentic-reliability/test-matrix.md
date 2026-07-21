@@ -63,7 +63,7 @@ Every state and every edge out of it.
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | todo |
 | 2.6 | Preflight compression threshold triggers compression | mock | todo |
 | 2.7 | Usage accounting accumulates across turns | mock | **done** |
-| 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | todo |
+| 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | **done** |
 
 ## 3. Steering and cancellation
 
@@ -99,7 +99,7 @@ Every state and every edge out of it.
 |---|-----------|------|--------|
 | 5.1 | Provider error → `FailedAction` record | both | **done** |
 | 5.2 | `run_turn` returns `Err` on terminal `FailedAction` | both | **done** |
-| 5.3 | `ErrorPolicy` retry decision honoured | mock | todo |
+| 5.3 | `ErrorPolicy` retry decision honoured | mock | **done** |
 | 5.4 | `CircuitBreaker` opens after `circuit_breaker_threshold` failures | mock | **done** |
 | 5.5 | Open breaker selects the next `fallback_models` entry | mock | **done** |
 | 5.6 | Breaker resets on success | mock | **done** |
@@ -147,12 +147,12 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.6 | Stream terminates on `max_tokens` | both | **done** |
 | 8.7 | Inference context created lazily on the polling thread | gguf | **done** |
 | 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | **done** |
-| 8.9 | `interaction.messages` reach the prompt (not just system) | both | todo |
+| 8.9 | `interaction.messages` reach the prompt (not just system) | both | **done** |
 | 8.10 | Chat template applied when the model ships one | both | **done** |
 | 8.11 | Documented fallback + log when no chat template | gen | todo |
 | 8.12 | Model weights cached — second load is a cache hit | both | **done** |
 | 8.13 | Cache key distinguishes differing configs | both | **done** |
-| 8.14 | Cold-start race loads once, not once per caller | both | todo |
+| 8.14 | Cold-start race loads once, not once per caller | both | **done** |
 | 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | **done** |
 | 8.16 | Sampling: `top_k` changes output | candle | **done** |
 | 8.17 | Sampling: `top_p` changes output | candle | **done** |
