@@ -364,3 +364,95 @@ fn execute_non_retriable_fails_immediately() {
 fn fail_mode_default_is_collect_all() {
     assert_eq!(FailMode::default(), FailMode::CollectAll);
 }
+
+// ---------------------------------------------------------------------------
+// Additional execution coverage (tool_impl.rs was 75%): retry-then-succeed,
+// per-tool retry config round-trip, and get_def lookup.
+
+/// A tool that fails `fail_n` times (Timeout, retriable) then succeeds.
+struct FlakyTool {
+    fail_n: u32,
+    attempt: std::sync::atomic::AtomicU32,
+}
+
+#[async_trait]
+impl ToolImpl for FlakyTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "flaky".into(),
+            description: "Fails then succeeds".into(),
+            arguments: Args::from_value(serde_json::json!({})),
+            category: "shell".into(),
+        }
+    }
+
+    async fn execute(
+        &self,
+        _arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        use std::sync::atomic::Ordering;
+        let n = self.attempt.fetch_add(1, Ordering::SeqCst);
+        if n < self.fail_n {
+            Err(ToolError::Timeout {
+                tool: "flaky".into(),
+            })
+        } else {
+            Ok(ToolCallResult {
+                content: foundation_ai::types::UserModelContent::Text(
+                    foundation_ai::types::TextContent {
+                        content: "ok".into(),
+                        signature: None,
+                    },
+                ),
+                error_detail: None,
+            })
+        }
+    }
+}
+
+#[test]
+fn execute_with_retry_succeeds_after_transient_failures() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(FlakyTool {
+            fail_n: 2,
+            attempt: std::sync::atomic::AtomicU32::new(0),
+        }));
+        // Default retries Timeout up to its max — 2 failures then success.
+        let request = req("a", "flaky", vec![], ExecutionHint::Unspecified);
+        let cfg = ToolRetryConfig::default();
+        let result = m.execute_with_retry(&request, &cfg).await;
+        assert!(
+            result.is_ok(),
+            "retriable failures below the cap must eventually succeed: {result:?}"
+        );
+    });
+}
+
+#[test]
+fn per_tool_retry_config_round_trips() {
+    let m = mgr();
+    let custom = ToolRetryConfig {
+        max_retries: 7,
+        ..ToolRetryConfig::default()
+    };
+    m.set_retry_config("echo", custom);
+    assert_eq!(
+        m.retry_config("echo").max_retries,
+        7,
+        "a set per-tool retry config must be read back"
+    );
+    // An unset tool falls back to the default.
+    assert_eq!(
+        m.retry_config("unknown").max_retries,
+        ToolRetryConfig::default().max_retries
+    );
+}
+
+#[test]
+fn get_def_returns_registered_definition() {
+    let m = mgr();
+    let def = m.get_def("echo").expect("echo is registered");
+    assert_eq!(def.name, "echo");
+    assert!(m.get_def("nope").is_none(), "unknown tool has no definition");
+}
