@@ -169,3 +169,142 @@ fn get_model_by_spec_rejects_a_nonexistent_directory() {
         "a missing directory must error rather than panic"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Weight discovery + architecture detection
+// ---------------------------------------------------------------------------
+//
+// Before any tensor is read, the loader (a) requires at least one .safetensors
+// file and (b) works out the architecture from config.json — `model_type`
+// first, falling back to the `architectures` array. Both run on plain
+// filesystem/JSON input, so both are reachable without real weights.
+
+fn temp_model_dir(tag: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "candle-{tag}-{}",
+        foundation_compact::ids::new_scru128()
+    ));
+    std::fs::create_dir_all(&dir).expect("temp model dir");
+    dir
+}
+
+fn spec_at(dir: &std::path::Path) -> ModelSpec {
+    ModelSpec {
+        name: "local".into(),
+        id: ModelId::Name("local".into(), None),
+        devices: None,
+        model_location: Some(dir.to_path_buf()),
+        lora_location: None,
+    }
+}
+
+fn load_err(dir: &std::path::Path) -> String {
+    let backend = CandleBackend::cpu();
+    backend
+        .get_model_by_spec(spec_at(dir))
+        .expect_err("a directory without real weights cannot load")
+        .to_string()
+}
+
+#[test]
+fn a_config_without_any_safetensors_is_rejected_by_name() {
+    // config.json present but no weights at all. The error must say which piece
+    // is missing, or the user has to guess.
+    let dir = temp_model_dir("noweights");
+    std::fs::write(dir.join("config.json"), br#"{"model_type":"llama"}"#).expect("config");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(
+        err.contains("safetensors"),
+        "the error must name the missing weights: {err}"
+    );
+}
+
+#[test]
+fn architecture_is_detected_from_model_type() {
+    // With a weights file present the loader gets past the discovery checks and
+    // runs detect_architecture, then fails on the (empty) tensor data. Reaching
+    // a weights-level failure — rather than a config-level one — is what shows
+    // detection ran.
+    let dir = temp_model_dir("modeltype");
+    std::fs::write(dir.join("config.json"), br#"{"model_type":"llama"}"#).expect("config");
+    std::fs::write(dir.join("model.safetensors"), b"").expect("weights marker");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(
+        !err.contains("config.json not found"),
+        "the loader must have progressed past config discovery: {err}"
+    );
+    assert!(
+        !err.contains("No safetensors files found"),
+        "the weights file must have been discovered: {err}"
+    );
+}
+
+#[test]
+fn architecture_falls_back_to_the_architectures_array() {
+    // Some configs carry no `model_type`, only `architectures`. That fallback
+    // is what keeps those models loadable at all.
+    let dir = temp_model_dir("archarray");
+    std::fs::write(
+        dir.join("config.json"),
+        br#"{"architectures":["LlamaForCausalLM"]}"#,
+    )
+    .expect("config");
+    std::fs::write(dir.join("model.safetensors"), b"").expect("weights marker");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(
+        !err.contains("config.json not found") && !err.contains("No safetensors files found"),
+        "detection must have run off the architectures array: {err}"
+    );
+}
+
+#[test]
+fn a_sharded_weight_set_is_discovered() {
+    // Large models ship as model-00001-of-00002.safetensors. Discovery collects
+    // any .safetensors, so a sharded set must not read as "no weights".
+    let dir = temp_model_dir("sharded");
+    std::fs::write(dir.join("config.json"), br#"{"model_type":"llama"}"#).expect("config");
+    std::fs::write(dir.join("model-00001-of-00002.safetensors"), b"").expect("shard 1");
+    std::fs::write(dir.join("model-00002-of-00002.safetensors"), b"").expect("shard 2");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(
+        !err.contains("No safetensors files found"),
+        "sharded weights must be discovered: {err}"
+    );
+}
+
+#[test]
+fn a_non_safetensors_file_does_not_count_as_weights() {
+    // A stray pytorch_model.bin must not satisfy the weights requirement — the
+    // Candle loader cannot read it.
+    let dir = temp_model_dir("binonly");
+    std::fs::write(dir.join("config.json"), br#"{"model_type":"llama"}"#).expect("config");
+    std::fs::write(dir.join("pytorch_model.bin"), b"").expect("bin");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(
+        err.contains("safetensors"),
+        "a .bin must not satisfy the safetensors requirement: {err}"
+    );
+}
+
+#[test]
+fn a_malformed_config_json_does_not_panic() {
+    // detect_architecture parses config.json with serde; invalid JSON must
+    // degrade to "no detection" rather than unwrapping.
+    let dir = temp_model_dir("badjson");
+    std::fs::write(dir.join("config.json"), b"{not json").expect("config");
+    std::fs::write(dir.join("model.safetensors"), b"").expect("weights marker");
+
+    let err = load_err(&dir);
+    std::fs::remove_dir_all(&dir).ok();
+    assert!(!err.is_empty(), "a malformed config must error, not panic");
+}
