@@ -441,13 +441,16 @@ fn build_candle_model(
     if arch.contains("llama") {
         return build_llama_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
     }
+    if arch.contains("gemma2") {
+        return build_gemma2_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
+    }
 
     // Unsupported: fail loudly with the DETECTED name, never silently load as
     // Llama (which would produce garbage that looks like a bad model rather than
     // a missing implementation). Supported set grows as loaders are added.
     Err(ModelProviderErrors::ModelErrors(
         ModelErrors::UnsupportedArchitecture(format!(
-            "{arch} (detected from config.json; candle backend currently supports: llama)"
+            "{arch} (detected from config.json; candle backend supports: llama, gemma2)"
         )),
     ))
 }
@@ -498,15 +501,86 @@ fn build_llama_model(
         candle_llama::LlamaEosToks::Multiple(ids) => ids.first().copied().unwrap_or(0),
     });
 
+    let cache = candle_llama::Cache::new(false, dtype, &llama_config, device).map_err(|e| {
+        ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
+            "Failed to create Llama KV cache: {e}"
+        )))
+    })?;
+    let inner = CandleModelInner::Llama {
+        model,
+        cache,
+        config: llama_config,
+        dtype,
+        device: device.clone(),
+    };
+
     let chat_template = ChatTemplate::load(tokenizer_path);
     if chat_template.is_none() {
         tracing::debug!("no chat_template for {}; using plain prompt fallback", spec.name);
     }
 
     Ok(CandleModels::new(
-        CandleModelInner::Llama(model),
+        inner,
         tokenizer,
-        llama_config,
+        dtype,
+        device.clone(),
+        eos_token_id,
+        spec,
+        chat_template,
+    ))
+}
+
+/// Read `eos_token_id` from a raw HF `config.json` (int or first-of-array).
+fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
+    let raw = std::fs::read_to_string(config_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    match json.get("eos_token_id")? {
+        serde_json::Value::Number(n) => n.as_u64().map(|v| v as u32),
+        serde_json::Value::Array(a) => a.first().and_then(|v| v.as_u64()).map(|v| v as u32),
+        _ => None,
+    }
+}
+
+/// Load a Gemma2 model. Mirrors `build_llama_model` but Gemma2 owns its KV cache
+/// internally (decision 06) and carries no eos in its `Config`, so eos comes
+/// from the raw `config.json`.
+fn build_gemma2_model(
+    config_path: &std::path::Path,
+    tokenizer_path: &std::path::Path,
+    weights_files: &[PathBuf],
+    dtype: DType,
+    device: &Device,
+    spec: ModelSpec,
+) -> ModelProviderResult<CandleModels> {
+    use candle_transformers::models::gemma2;
+
+    let load_err = |e: String| {
+        ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(e))
+    };
+
+    let config_content = std::fs::read_to_string(config_path)
+        .map_err(|e| load_err(format!("Failed to read config: {e}")))?;
+    let config: gemma2::Config = serde_json::from_str(&config_content)
+        .map_err(|e| load_err(format!("Failed to parse Gemma2 Config: {e}")))?;
+
+    let tokenizer = Tokenizer::from_file(tokenizer_path)
+        .map_err(|e| load_err(format!("Failed to load tokenizer: {e}")))?;
+
+    let file_refs: Vec<&std::path::Path> =
+        weights_files.iter().map(std::path::PathBuf::as_path).collect();
+    let vb = unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }
+        .map_err(|e| load_err(format!("Failed to load weights: {e}")))?;
+
+    // use_flash_attn = false: CPU/portable path.
+    let model = gemma2::Model::new(false, &config, vb)
+        .map_err(|e| load_err(format!("Failed to build Gemma2 model: {e}")))?;
+
+    let eos_token_id = eos_from_config_json(config_path);
+    let chat_template = ChatTemplate::load(tokenizer_path);
+
+    Ok(CandleModels::new(
+        CandleModelInner::Gemma2(model),
+        tokenizer,
         dtype,
         device.clone(),
         eos_token_id,
@@ -520,15 +594,58 @@ fn build_llama_model(
 // ==================================
 
 /// Architecture-specific model dispatch.
+/// A loaded model plus the per-architecture inference state it owns.
+///
+/// WHY (decision 06): architectures manage KV state differently — Llama takes
+/// an EXTERNAL `Cache`, Gemma2 keeps its cache INTERNAL and resets via
+/// `clear_kv_cache`. Forcing every architecture through a Llama-shaped external
+/// cache would break the moment a second one was added, so each variant owns
+/// whatever state it needs and the callers below drive a uniform interface
+/// (`forward`, `reset_cache`) without knowing which variant they hold.
 enum CandleModelInner {
-    Llama(candle_llama::Llama),
+    Llama {
+        model: candle_llama::Llama,
+        cache: candle_llama::Cache,
+        config: candle_llama::Config,
+        dtype: DType,
+        device: Device,
+    },
+    Gemma2(candle_transformers::models::gemma2::Model),
+}
+
+impl CandleModelInner {
+    /// One forward pass. `seq_start` is the KV offset (0 for the prompt).
+    fn forward(&mut self, input: &Tensor, seq_start: usize) -> Result<Tensor, candle_core::Error> {
+        match self {
+            CandleModelInner::Llama { model, cache, .. } => model.forward(input, seq_start, cache),
+            CandleModelInner::Gemma2(m) => m.forward(input, seq_start),
+        }
+    }
+
+    /// Reset the KV cache for a fresh generation.
+    fn reset_cache(&mut self) -> Result<(), candle_core::Error> {
+        match self {
+            CandleModelInner::Llama {
+                cache,
+                config,
+                dtype,
+                device,
+                ..
+            } => {
+                *cache = candle_llama::Cache::new(false, *dtype, config, device)?;
+                Ok(())
+            }
+            CandleModelInner::Gemma2(m) => {
+                m.clear_kv_cache();
+                Ok(())
+            }
+        }
+    }
 }
 
 struct CandleModelsState {
     model: CandleModelInner,
     tokenizer: Tokenizer,
-    config: candle_llama::Config,
-    cache: candle_llama::Cache,
     device: Device,
     dtype: DType,
     eos_token_id: Option<u32>,
@@ -656,21 +773,16 @@ impl CandleModels {
     fn new(
         model: CandleModelInner,
         tokenizer: Tokenizer,
-        config: candle_llama::Config,
         dtype: DType,
         device: Device,
         eos_token_id: Option<u32>,
         spec: ModelSpec,
         chat_template: Option<ChatTemplate>,
     ) -> Self {
-        let cache = candle_llama::Cache::new(false, dtype, &config, &device)
-            .expect("Failed to create KV cache");
         Self {
             inner: Arc::new(Mutex::new(CandleModelsState {
                 model,
                 tokenizer,
-                config,
-                cache,
                 device,
                 dtype,
                 eos_token_id,
@@ -740,10 +852,8 @@ impl Model for CandleModels {
         let input_ids = tokens.get_ids().to_vec();
         let input_len = input_ids.len();
 
-        // Reset cache for fresh generation
-        let new_cache = candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
-            .map_err(GenerationError::Candle)?;
-        inner.cache = new_cache;
+        // Reset cache for fresh generation (per-arch — decision 06).
+        inner.model.reset_cache().map_err(GenerationError::Candle)?;
 
         let device = inner.device.clone();
 
@@ -878,12 +988,10 @@ impl CandleStream {
 
         let input_len = input_ids.len();
 
-        // Reset cache
+        // Reset cache (per-arch — decision 06).
         {
             let mut inner = model.inner.lock().unwrap();
-            inner.cache =
-                candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
-                    .map_err(GenerationError::Candle)?;
+            inner.model.reset_cache().map_err(GenerationError::Candle)?;
         }
 
         let processor = build_logits_processor(&params);
@@ -1038,11 +1146,10 @@ fn forward(
     input: &Tensor,
     seq_start: usize,
 ) -> GenerationResult<Tensor> {
-    match &state.model {
-        CandleModelInner::Llama(m) => m
-            .forward(input, seq_start, &mut state.cache)
-            .map_err(GenerationError::Candle),
-    }
+    state
+        .model
+        .forward(input, seq_start)
+        .map_err(GenerationError::Candle)
 }
 
 /// Convert an interaction to the `[{role, content}]` list HF chat templates

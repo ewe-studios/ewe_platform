@@ -283,3 +283,55 @@ fn candle_unsupported_architecture_fails_loudly() {
         "the error must name the detected architecture, got: {msg}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Second architecture — matrix 8.22/8.23 (spec-60/S2+S6): the committed
+// tiny-random-Gemma2 fixture loads and generates through the candle backend,
+// proving the per-architecture state abstraction (Gemma2's internal KV cache,
+// not a Llama-shaped external one) and a large (256k) vocab.
+
+fn load_tiny_gemma2() -> impl Model {
+    let dir = fixture_dir("tiny-random-Gemma2ForCausalLM");
+    let spec = ModelSpec {
+        name: "tiny-random-gemma2".to_string(),
+        id: ModelId::Name("tiny-random-gemma2".to_string(), None),
+        devices: None,
+        model_location: Some(dir.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    CandleBackend::cpu()
+        .get_model_by_spec(spec)
+        .expect("gemma2 fixture loads")
+}
+
+#[valtron_test]
+fn tiny_random_gemma2_fixture_loads_and_generates() {
+    let model = load_tiny_gemma2();
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("gemma2 generate should succeed");
+    assert!(
+        !out.is_empty(),
+        "gemma2 (256k vocab, internal KV cache) must produce output"
+    );
+}
+
+#[valtron_test]
+fn tiny_random_gemma2_stream_advances() {
+    let model = load_tiny_gemma2();
+    let stream = model
+        .stream(greeting(), Some(params()))
+        .expect("gemma2 stream should be created");
+    let mut text_tokens = 0;
+    let mut items = 0;
+    for item in stream {
+        items += 1;
+        if let Stream::Next(Messages::Assistant { content: ModelOutput::Text(_), .. }) = &item {
+            text_tokens += 1;
+        }
+        if items > 100 {
+            break;
+        }
+    }
+    assert!(text_tokens >= 1, "gemma2 stream must advance (got {items} items)");
+}
