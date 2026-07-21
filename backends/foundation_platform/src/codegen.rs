@@ -134,6 +134,11 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
 
 /// Generate per-app Rust module files inside `generated/`.
 ///
+/// Generates a `MobileDirectory`-derived struct with a `root: PathBuf` field.
+/// At runtime, `AppAssets::build(root)` receives the resolved resource directory
+/// from `PlatformSession`, enabling disk-backed asset serving for desktop dev
+/// and OTA updates without recompilation (F22).
+///
 /// # Panics
 ///
 /// Panics if file I/O fails.
@@ -142,17 +147,23 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     for app in apps {
         let module_name = app.name.replace('-', "_");
         let content = format!(
-            "// Generated — AppAssets for \"{name}\" (F22)\n\
+            "// Generated \u{2014} AppAssets for \"{name}\" (F22)\n\
              // Route prefix: {route_prefix}\n\
-             // Embedded: AppAssets::build() — for APK builds (release bytes in .so)\n\
-             // Mobile:    AppAssets::new(root) — for desktop dev / OTA (disk-backed)\n\n\
-             use foundation_macros::EmbedDirectoryAs;\n\
-             use foundation_platform::WebviewApp;\n\n\
-             #[derive(EmbedDirectoryAs)]\n#[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
-             pub struct AppAssets;\n\n\
-             impl AppAssets {{\n    pub fn build() -> WebviewApp<AppAssets> {{ WebviewApp::new(AppAssets {{}}) }}\n\
+             //\n\
+             // MobileDirectory: assets served from disk at runtime via `build(root)`.\n\
+             // The resolved resource dir comes from `PlatformSession.resource_root`.\n\
+             // On Android this is the Tauri-extracted resource path; on desktop\n\
+             // it is the app bundle resource dir.\n\n\
+             use foundation_macros::MobileDirectory;\n\
+             use foundation_platform::MobileApp;\n\
+             use std::path::PathBuf;\n\n\
+             #[derive(MobileDirectory)]\n\
+             #[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
+             pub struct AppAssets {{\n    pub root: PathBuf\n}}\n\n\
+             impl AppAssets {{\n\
+             \x20   pub fn build(root: PathBuf) -> MobileApp<AppAssets> {{ MobileApp::new(AppAssets {{ root }}) }}\n\
              }}\n",
-             name = app.name, route_prefix = app.route_prefix, public_subdir = &app.name,
+            name = app.name, route_prefix = app.route_prefix, public_subdir = app.name,
         );
         std::fs::write(generated_dir.join(format!("{module_name}.rs")), &content).ok();
         let _ = writeln!(mod_lines, "pub mod {module_name};");

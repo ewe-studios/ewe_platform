@@ -48,7 +48,28 @@ impl<A: MobileDisk + Send + Sync + 'static> MobileApp<A> {
 
 fn serve_response(assets: &impl MobileDisk, intent: &NavigationIntent) -> Response<Vec<u8>> {
     let path = pattern::extract_path(&intent.url).trim_start_matches('/').to_string();
-    let file = if Path::new(&path).extension().is_some() { path } else { "index.html".to_string() };
+
+    // Concrete file with extension — serve directly.
+    let file = if Path::new(&path).extension().is_some() {
+        path.clone()
+
+    // Directory path ending in / — serve {path}/index.html.
+    } else if path.ends_with('/') {
+        format!("{path}index.html")
+
+    // Try {path} as a file, then {path}/index.html, then fall back to
+    // {app_root}/index.html (SPA client-side routing).
+    } else if assets.read_utf8_for(&path).is_some() {
+        path.clone()
+    } else {
+        let spa_index = format!("{path}/index.html");
+        if assets.read_utf8_for(&spa_index).is_some() {
+            spa_index
+        } else {
+            let root = path.split('/').next().unwrap_or("");
+            format!("{root}/index.html")
+        }
+    };
     let ct = match Path::new(&file).extension().and_then(|e| e.to_str()) {
         Some("wasm") => "application/wasm",
         Some("js") => "application/javascript",
@@ -116,11 +137,9 @@ impl RemoteProxy {
         let interceptor = foundation_wasm_ui::embedded::PLATFORM_SCHEME_INTERCEPTOR_JS;
         let floating_nav = foundation_wasm_ui::embedded::FLOATING_NAV_JS;
 
-        // Try to decode as UTF-8 for srcdoc; fall back to a plain message.
-        let safe_body = String::from_utf8_lossy(body);
-        let escaped = html_escape(&safe_body);
-        // Escape the escaped content for safe embedding in srcdoc attribute.
-        let srcdoc_safe = escaped
+        // Single-pass srcdoc-safe escape: encode only the characters that
+        // would break the attribute value.
+        let srcdoc_safe = String::from_utf8_lossy(body)
             .replace('&', "&amp;")
             .replace('"', "&quot;")
             .replace('<', "&lt;")
@@ -133,14 +152,14 @@ impl RemoteProxy {
 <title>Remote: {path}</title>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:system-ui,sans-serif;background:#0a0a1a;color:#ccd6f6;min-height:100vh}}
-#iframe-container{{width:100%;height:calc(100vh - 52px);border:none;overflow:hidden}}
+body{{font-family:system-ui,sans-serif;background:#fff;color:#333;min-height:100vh}}
+#iframe-container{{width:100%;height:100vh;border:none;overflow:hidden}}
 iframe{{width:100%;height:100%;border:none}}
 </style>
 <script>{interceptor}</script>
-<script>{floating_nav}</script>
 </head><body>
 <div id="iframe-container"><iframe sandbox="allow-scripts allow-same-origin allow-forms" srcdoc="{srcdoc_safe}"></iframe></div>
+<script>{floating_nav}</script>
 </body></html>"#,
         )
     }
@@ -197,13 +216,4 @@ impl RouteResponder for RemoteProxy {
             }
         }
     }
-}
-
-/// Minimal HTML escaper for safe embedding in attributes.
-fn html_escape(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
 }

@@ -524,6 +524,21 @@ impl PlatformSession {
         &self.http_backend
     }
 
+    /// The resolved bundle resource root (F22).
+    ///
+    /// In dev mode (`{resource_root}/public/` exists), returns that path so
+    /// WASM artifacts from `cargo build` land at the right spot. On bundled
+    /// builds (Android `apk` / `*.app`), Tauri extracts `bundle.resources`
+    /// directly into `resource_root` so this returns `resource_root` as-is.
+    ///
+    /// Callers (codegen, app setups) use this to feed `MobileDirectory`
+    /// responders — they never need to know the dev vs. prod layout.
+    #[must_use]
+    pub fn bundle_root(&self) -> PathBuf {
+        let dev = self.resource_root.join("public");
+        if dev.exists() { dev } else { self.resource_root.clone() }
+    }
+
     /// Access the WebView stack for navigation tracking (F29 Stage 3).
     ///
     /// # Panics
