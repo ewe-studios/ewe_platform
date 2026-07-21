@@ -13,5 +13,6 @@ mod progress_tests;
 mod provider_router_tests;
 #[cfg(feature = "testing")]
 mod session_mock_tests;
+mod serialization_tests;
 mod session_tests;
 mod steering_tests;
