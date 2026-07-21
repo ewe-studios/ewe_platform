@@ -191,12 +191,35 @@ where
             _ => false,
         };
 
-        let _max_iterations: Option<u32> = match args.get("max_iterations") {
-            Some(ArgType::U64(n)) => Some(*n as u32),
-            Some(ArgType::I64(n)) => Some(*n as u32),
-            Some(ArgType::Text(s)) => s.parse().ok(),
+        // Runaway guard. Models emit integers inconsistently (u64 / i64 /
+        // stringified), so accept all three spellings. `0` is rejected rather
+        // than silently creating a sub-agent that can never take a step.
+        let max_iterations: Option<usize> = match args.get("max_iterations") {
+            Some(ArgType::U64(n)) => Some(*n as usize),
+            Some(ArgType::I64(n)) if *n > 0 => Some(*n as usize),
+            Some(ArgType::I64(_)) => {
+                return Err(ToolError::InvalidArguments {
+                    tool: TOOL.into(),
+                    reason: "'max_iterations' must be a positive integer".into(),
+                })
+            }
+            Some(ArgType::Text(s)) => match s.parse::<usize>() {
+                Ok(n) => Some(n),
+                Err(_) => {
+                    return Err(ToolError::InvalidArguments {
+                        tool: TOOL.into(),
+                        reason: format!("'max_iterations' is not a valid integer: {s:?}"),
+                    })
+                }
+            },
             _ => None,
         };
+        if max_iterations == Some(0) {
+            return Err(ToolError::InvalidArguments {
+                tool: TOOL.into(),
+                reason: "'max_iterations' must be greater than zero".into(),
+            });
+        }
 
         // --- build child session ---
         let child_session_id = SessionId::new();
@@ -209,6 +232,17 @@ where
 
         if let Some(sys) = system {
             builder = builder.with_system_prompt(sys);
+        }
+
+        // Apply the runaway cap to the child's agent loop. `max_inner_iterations`
+        // is the per-turn step ceiling the loop actually enforces.
+        if let Some(cap) = max_iterations {
+            let mut cfg = crate::agentic::AgentConfig {
+                primary_model: model.clone(),
+                ..Default::default()
+            };
+            cfg.max_inner_iterations = cap;
+            builder = builder.with_config(cfg);
         }
 
         // Instruct the sub-agent where to write its result.
@@ -1317,6 +1351,58 @@ mod tests {
             .unwrap_or_else(|e| panic!("max_iterations {arg:?} must be accepted: {e:?}"));
             assert_eq!(as_json(&out)["status"], "running");
         }
+    }
+
+    #[test]
+    fn start_rejects_a_zero_or_negative_max_iterations() {
+        // A cap of 0 (or negative) would create a sub-agent that can never take
+        // a step — reject it at the boundary instead of hanging at Started.
+        futures_lite::future::block_on(async {
+            for bad in [ArgType::U64(0), ArgType::I64(0), ArgType::I64(-3)] {
+                let t = test_tool();
+                let result = t
+                    .execute(start_args(vec![("max_iterations", bad.clone())]))
+                    .await;
+                let err = match result {
+                    Err(e) => e,
+                    Ok(_) => panic!("max_iterations {bad:?} must be rejected, not accepted"),
+                };
+                match err {
+                    ToolError::InvalidArguments { reason, .. } => {
+                        assert!(
+                            reason.contains("max_iterations"),
+                            "expected a max_iterations message for {bad:?}, got: {reason}"
+                        );
+                    }
+                    other => panic!("expected InvalidArguments for {bad:?}, got {other:?}"),
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn start_rejects_an_unparseable_max_iterations() {
+        // A stringified cap that is not a number must be an explicit error, not
+        // a silently-dropped guard.
+        futures_lite::future::block_on(async {
+            let t = test_tool();
+            let err = t
+                .execute(start_args(vec![(
+                    "max_iterations",
+                    ArgType::Text("lots".into()),
+                )]))
+                .await
+                .unwrap_err();
+            match err {
+                ToolError::InvalidArguments { reason, .. } => {
+                    assert!(
+                        reason.contains("max_iterations"),
+                        "expected a max_iterations message, got: {reason}"
+                    );
+                }
+                other => panic!("expected InvalidArguments, got {other:?}"),
+            }
+        });
     }
 
     #[foundation_core::valtron::valtron_test]

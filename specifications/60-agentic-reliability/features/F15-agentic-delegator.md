@@ -1,6 +1,7 @@
 ---
 feature: "F15 — Agent tool (background sub-agent delegation)"
 status: "complete"
+deviations: "per-call `persist` override not implemented — durability comes from the D/M type parameters; see the start-contract table"
 priority: "high"
 depends_on: ["F14", "F19"]
 source_spec: "specifications/completed/36-agentic-api (F14)"
@@ -191,7 +192,7 @@ Its argument schema (the `command: "start"` branch of the `agent` tool):
 | `task` | string | **yes** | — | the self-contained sub-task the sub-agent must accomplish |
 | `model` | string | no | **parent session's model** | the model id to run the sub-agent on. When omitted, inherit the spawning (parent) session's primary model. When given, it **must resolve on the host `ProviderRouter`** |
 | `system` | string | no | none | extra system/role guidance prepended to the sub-agent's prompt |
-| `persist` | `"disk" \| "memory"` | no | `"disk"` | session/output durability. `disk` = recoverable (default); `memory` = throwaway (explicit opt-in) |
+| ~~`persist`~~ | `"disk" \| "memory"` | — | — | **NOT IMPLEMENTED.** Durability is set by the `D: DocumentStore` / `M: MemoryStore` type parameters the integrator picks when constructing `AgentTool<D, M>`, matching this doc's own "the delegator just hands the sub-agent whatever store it is configured with" — the child inherits those. A per-call override was not built: switching store *type* per call is not expressible through the generic parameters, and no caller has needed it. Revisit if a caller needs one delegation throwaway and the next durable. |
 | `keep_session` | bool | no | `false` | keep the sub-agent session after `result` (audit / later resume) instead of deleting it |
 | `max_iterations` | u32 | no | a sensible built-in cap | hard cap on the sub-agent's agent-loop iterations (runaway guard); overridable per call |
 
