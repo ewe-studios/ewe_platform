@@ -134,6 +134,24 @@ fn gguf_config_auth_provider_and_clone_drops_secret() {
 }
 
 #[valtron_test]
+fn gguf_provider_new_with_token_creates_cache_dir() {
+    // Constructing a provider from a token-bearing config exercises new()'s
+    // SecretOnly auth extraction + HFClient build + cache-dir creation, all
+    // offline (no network until a model is fetched).
+    let tmp = std::env::temp_dir().join(format!("gguf_new_test_{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    let config = HuggingFaceGGUFConfig::builder()
+        .token("hf_secret")
+        .cache_dir(&tmp)
+        .build();
+    let provider = HuggingFaceGGUFProvider::new(config).expect("provider builds with token");
+    assert!(tmp.exists(), "new() creates the cache directory");
+    // describe() works on the token-configured provider too.
+    assert_eq!(provider.describe().unwrap().id, "huggingface");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[valtron_test]
 fn gguf_provider_describes_itself() {
     let config = HuggingFaceGGUFConfig::default();
     let provider = HuggingFaceGGUFProvider::new(config).unwrap();
