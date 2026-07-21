@@ -1,55 +1,64 @@
 ---
-feature: "F14–F17 — Spec 36 carryover (slots left unimplemented / deferred)"
+feature: "F14–F18 — Spec 36 carryover (marked complete, actually stubbed)"
 status: "not-started"
-priority: "medium"
+priority: "high"
 depends_on: ["F05-F09"]
 source_spec: "specifications/completed/36-agentic-api"
 ---
 
-# F14–F17 — Spec 36 carryover
+# F14–F18 — Spec 36 carryover
 
-Spec 36 (agentic-api) is marked completed, but several tool/recall surfaces were
-left as `ToolShed` slots with no implementation, or explicitly deferred to
-"F31/F32 wiring" that never landed. Surface them here as real features.
+Spec 36 (agentic-api) is marked completed and every feature's `feature.md` reads
+100% — but a **code audit** (not metadata) found several surfaces that are
+slots-only or stubbed. These are the real gaps.
+
+## Audit findings (verified in code)
+
+| Surface | Feature.md says | Code reality |
+|---------|-----------------|--------------|
+| `read`/`edit`/`write`/`shell` tools | ToolShed slots (F10) | **No `ToolImpl` exists** — only `ShedTool`/`SearchContextTool`/`SearchFileTool` |
+| `memory` tool | ToolShed slot (F10/F15) | **No `ToolImpl`** |
+| `delegate` tool | ToolShed slot (F14) | **No `ToolImpl`** |
+| `search_context` **Semantic** mode | "semantic recall over messages" (F16/F32) | **Keyword matching**, not embeddings — `search_messages` uses `keyword_score`. Real vector recall (F27/F31) never wired. |
+| `search_context` **Graph** mode | code-graph recall (F27) | **Returns empty** — `// F27 deferred — return empty.` |
+| `search_file` (fff) | "fff on native" (F32/F33) | **Uses `InCodeVfsSearcher`** (hand-rolled regex walk). `fff-search` is an OPTIONAL dep behind `vfs-search-fff`, which `foundation_ai` does NOT enable — the real fff engine is not compiled in. |
 
 ## F14 — `memory` tool
-
-`ToolShed.memory: Option<MemoryTool>` (spec 36 F10/F15) has no `ToolImpl`. The
-agent can't add/query long-term memory as a tool. Implement a `MemoryTool` over
-the existing `MemoryHierarchy`/`MemoryStore`:
-- `memory_add(fact)`, `memory_query(query)` sub-tools (the ToolShed already
-  models memory sub-tools via names starting `memory_`).
-- Fills the `memory` slot when a memory store capability is present.
+`ToolShed.memory` has no `ToolImpl`. Implement `MemoryTool` over
+`MemoryHierarchy`/`MemoryStore`: `memory_add(fact)`, `memory_query(query)`.
 
 ## F15 — `delegate` tool
+`ToolShed.delegate` has no `ToolImpl`. Implement bounded `DelegationTool` that
+spawns a child `AgentSession` turn for a sub-task (depth/iteration caps).
 
-`ToolShed.delegate: Option<DelegationTool>` (spec 36 F14) has no `ToolImpl` —
-sub-agent delegation. Implement `DelegationTool` that spawns a child
-`AgentSession`/turn for a delegated sub-task and returns its result. Bounded
-(depth/iteration caps) so delegation can't recurse unboundedly.
+## F16 — Real semantic recall (not keyword)
+`ContextProvider::search` SemanticMode does keyword matching. Wire real
+embedding-based recall: `EmbeddingProvider` embeds the query + messages, a
+`VectorStore` returns nearest hits. Keep keyword as a fallback when no embedding
+capability is injected. Cover offline with an in-memory embedding + vector store.
 
-## F16 — `search_context` semantic recall wiring
+## F17 — Graph search (currently empty)
+`SearchMode::Graph` returns empty (`F27 deferred`). Either wire the code-graph
+recall (spec 36 F27 foundation_vectors code-graph) or, if out of scope, make it
+return a clear "graph search not available" rather than silently empty.
 
-Spec 36 F16 `assemble_from_memory` says *"Semantic recall — deferred to F31
-(EmbeddingProvider) wiring"* and F32's `search_context` wraps it. Verify the
-recall path is actually wired (not a stub): an `EmbeddingProvider` +
-`VectorStore` produce real semantic hits that `search_context` returns and that
-context assembly injects. If it's a stub, wire it.
-
-## F17 — Embedding/vector recall end-to-end
-
-Spec 36 F24–F31 (foundation_vectors + EmbeddingProvider + VectorStore) — confirm
-the end-to-end path works: embed a message → store → `search_context` recalls it
-→ appears in the assembled context. Cover with an offline test (an in-memory
-embedding + vector store) so it doesn't need a live embedding model.
+## F18 — fff-backed file search in the agent
+`foundation_ai` uses `vfs-search` (the basic `InCodeVfsSearcher`), not
+`vfs-search-fff` (the real fff engine, already implemented as `FffSearcher` +
+`CascadingVfsSearcher`). Enable fff for native builds so `search_file` uses the
+production search engine, with `InCodeVfsSearcher` as the wasm/fallback path via
+`CascadingVfsSearcher`. Verify the agent's `search_file` actually goes through
+fff on native.
 
 ## Tasks
 - [ ] F14 `MemoryTool` + tests; fill `memory` slot.
 - [ ] F15 `DelegationTool` (bounded) + tests; fill `delegate` slot.
-- [ ] F16 audit + wire semantic recall in `search_context`; test with in-memory embed/vector.
-- [ ] F17 end-to-end embed→store→recall→context test (offline).
+- [ ] F16 real embedding recall in `ContextProvider::search` (Semantic); in-memory-embed test; keep keyword fallback.
+- [ ] F17 wire or honestly-disable Graph search.
+- [ ] F18 enable `vfs-search-fff` for native `foundation_ai`; route `search_file` through `CascadingVfsSearcher` (fff → InCode fallback); test fff path on native.
 
 ## Done when
 
-The `memory` and `delegate` ToolShed slots are implemented and tested; semantic
-recall is proven end-to-end offline (not a deferred stub).
+The audit table's "code reality" column matches "feature.md says": tools
+implemented, Semantic recall is real vector search (not keyword), Graph is wired
+or honestly disabled, and `search_file` uses fff on native.

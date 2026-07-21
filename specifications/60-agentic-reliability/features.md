@@ -61,10 +61,11 @@ implemented, or explicitly deferred.
 
 | # | Feature | Source | Status |
 |---|---------|--------|--------|
-| F14 | `memory` tool — the `MemoryTool` ToolShed slot has no ToolImpl | 36/F10, F15 | Not started |
-| F15 | `delegate` tool — the `DelegationTool` ToolShed slot has no ToolImpl (sub-agent delegation) | 36/F14 | Not started |
-| F16 | `search_context` semantic recall wiring — F16 marked recall "deferred to F31/F32 wiring"; verify the tool actually recalls | 36/F16, F32 | Not started |
-| F17 | Vector/embedding recall path end-to-end (EmbeddingProvider → semantic search tool) | 36/F31, F24-30 | Not started |
+| F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | Not started |
+| F15 | `delegate` tool — `DelegationTool` slot has NO impl | 36/F14 | Not started |
+| F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | Not started |
+| F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | Not started |
+| F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | Not started |
 
 ## Working agreements
 
