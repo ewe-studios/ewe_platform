@@ -4,9 +4,10 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F29-platform-completeness"
 this_file: "specifications/52-tauri-foundation-platform/features/F29-platform-completeness/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-20
+updated: 2026-07-21
 
 depends_on:
   - "F06-webview-stack"
@@ -15,10 +16,10 @@ depends_on:
   - "F21-multi-app-distribution-and-webview"
 
 tasks:
-  completed: 0
-  uncompleted: 42
+  completed: 32
+  uncompleted: 10
   total: 42
-  completion_percentage: 0%
+  completion_percentage: 76%
 ---
 # F29 — Platform Completeness: zero stubs, full-stack platform
 
@@ -386,3 +387,60 @@ cargo test -p foundation_platform -- --platform_test docker=macos
 | `backends/foundation_platform/src/ota.rs` | 6 | **NEW** — OTA manifest check + bundle download |
 | `backends/foundation_testbed/src/docker.rs` | 7 | **NEW** — Docker test backend |
 | `backends/foundation_macros/src/platform_test.rs` | 7 | Add `docker` variant |
+
+## Implementation Status (2026-07-21)
+
+### ✅ Stage 1 — Docker dev environment (~83%)
+- `docker-compose.yaml` — macOS + Android services (existed)
+- `Makefile` — `make dev`, `make ios`, `make android`, `make docker-stop`, `make docker-clean` targets
+- `docs/docker-setup.md` — Docker setup documentation
+
+### ✅ Stage 2 — Real backend transport (~83%)
+- `backend/http.rs` — `HttpBackend` using `foundation_netio::HttpClientBuilder` (zero reqwest)
+- `backend/ipc_dispatch.rs` — `SessionTransport` (real IPC dispatch via `IpcRegistry`) + `dispatch_ipc()` helper
+- `HttpBackend` integrated into `PlatformSession` — shared client with auth token support
+- `RemoteProxy` in platform crate (Stage 5)
+- `DefaultTransport` still returns JSON stubs by design (for tests); `SessionTransport` is the production path
+
+### ✅ Stage 3 — Multi-WebView stack (~100%)
+- `stack.rs` — `WebViewPool`, `PooledWebView`, `WebViewState`, `PreloadEntry`
+- `WebViewStack::with_pool()`, `push_with_presentation()`, `drain_preloads()`, `push_slot()`, `set_root_slot()`
+- `execute_decision()` — presentation branching (Morph/Replace/Push/Modal/External/Root)
+- `ViewKind` routing via `decision.target` → pool WebView label
+
+### ✅ Stage 4 — Native overlay (~100%)
+- `overlay.rs` — `OverlayConfig`, `OverlayPosition`, `OverlayCapability` (PlatformCapability)
+- `floating-nav.js` — floating toolbar with back/home/refresh/apps + auto-hide on scroll
+- Registered in `ScriptInjector::with_platform_runtimes()` as "floating_nav"
+- Embedded in `foundation_wasm_ui::embedded::FLOATING_NAV_JS`
+
+### ✅ Stage 5 — Remote content (~100%)
+- `responder.rs` — `RemoteProxy` generalized into platform crate (was in Android example)
+- Uses `session.http_backend().fetch()` for real HTTP
+- Wraps response in iframe page with floating-nav + scheme interceptor
+- Android example already has its own `RemoteProxy` — can migrate to platform version
+
+### ✅ Stage 6 — Per-app WebViews (~100%)
+- `multi_app.rs` — `AppConfig` builder + `AppIsolation` registry
+- Longest-prefix match for route → WebView label resolution
+- Per-app capability allowlists, profile, cache policy
+- `ota.rs` — `PackageDirectorate`, `OtaManifest`, `LocalVersion`
+- OTA manifest fetch, version diff, atomic file replacement
+
+### ⚠️ Stage 7 — Docker test environments (~50%)
+- `#[platform_test(docker = "macos")]` / `#[platform_test(headless)]` macro variants
+- Runtime backend detection via macro expansion
+- CDP/BiDi assertion support deferred (needs running Docker + browser automation)
+- `TestEnvironmentBuilder` API deferred (Docker lifecycle management)
+
+### Remaining (~10 tasks)
+1. Full CDP/BiDi integration for headless test backend
+2. `TestEnvironmentBuilder` with Docker provisioning
+3. iOS simulator automation inside Docker macOS
+4. Android emulator automation inside Docker Android
+5. Docker test CI pipeline with image caching
+6. Actually remove stub responses from code paths (not just bypass them)
+7. Migration of Android example to platform `RemoteProxy`
+8. OTA manifest server endpoint
+9. Per-app WebView creation in Tauri layer (the pool tracks labels; Tauri must create the WebViews)
+10. Background preload integration with Tauri WebView create/destroy lifecycle

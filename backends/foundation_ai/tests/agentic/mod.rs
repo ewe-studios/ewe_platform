@@ -9,5 +9,6 @@ mod loop_detection_tests;
 mod message_api_tests;
 mod progress_tests;
 mod provider_router_tests;
+mod session_mock_tests;
 mod session_tests;
 mod steering_tests;

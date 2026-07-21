@@ -69,8 +69,8 @@ Every state and every edge out of it.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 3.1 | `steer()` injects priority, interrupts current work | mock | todo |
-| 3.2 | `follow_up()` queues, processed after current work | mock | todo |
+| 3.1 | `steer()` injects priority, interrupts current work | mock | **done** |
+| 3.2 | `follow_up()` queues, processed after current work | mock | **done** |
 | 3.3 | Priority drains before follow-up in the same boundary | mock | **done** |
 | 3.4 | `CancelCode::PauseForPriority` set on priority push | mock | todo |
 | 3.5 | `CancelCode::Abort` terminates the loop | mock | todo |
@@ -115,19 +115,19 @@ Every state and every edge out of it.
 | 6.2 | Context assembled in documented order (system → working → reflection → recent) | mock | todo |
 | 6.3 | Memory triggers fire on `OutputProcessing` | mock | todo |
 | 6.4 | User prompt persisted via `MessageApi` | both | **done** |
-| 6.5 | Assistant reply persisted | mock | todo |
+| 6.5 | Assistant reply persisted | mock | **done** |
 | 6.6 | `MessageApi::recent(n)` returns the last n | mock | todo |
 | 6.7 | `flush()` writes buffered records | mock | todo |
 | 6.8 | Session resume rehydrates prior state | mock | todo |
-| 6.9 | `end()` drains queues and persists remaining messages | mock | todo |
+| 6.9 | `end()` drains queues and persists remaining messages | mock | **done** |
 
 ## 7. AgentSession API
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
 | 7.1 | `run_turn` returns assistant reply | both | **done** |
-| 7.2 | `run_turn_stream` yields records progressively | both | todo |
-| 7.3 | `run_turn` on a failing provider returns `Err` | both | todo |
+| 7.2 | `run_turn_stream` yields records progressively | both | **done** |
+| 7.3 | `run_turn` on a failing provider returns `Err` | both | **done** |
 | 7.4 | Second turn answers and reuses loaded weights | both | **done** |
 | 7.5 | Concurrent sessions on one model do not corrupt each other | both | **done** |
 | 7.6 | Builder rejects invalid config (preflight) | mock | todo |

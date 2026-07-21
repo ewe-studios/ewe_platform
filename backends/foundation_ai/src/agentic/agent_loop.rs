@@ -552,6 +552,25 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             }
         }
 
+        // Persist the accepted assistant turn to session history.
+        //
+        // The streaming path emits each message to the caller via
+        // `Stream::Next` but never wrote it to `message_api` — only user
+        // messages and tool results were persisted. So a resumed session (or
+        // `message_api.recent()` on the next turn) saw the user's side of the
+        // conversation but not the assistant's, silently losing multi-turn
+        // context. Persist here — once per turn with the complete `collected`
+        // set, NOT per `Stream::Next`, so token-streaming models do not write a
+        // fragment per token. Loop redirect/terminate return above, so only an
+        // accepted generation reaches this point.
+        for msg in collected {
+            if matches!(msg, Messages::Assistant { .. }) {
+                let _ = self.message_api.append(SessionRecord::Conversation {
+                    message: msg.clone(),
+                });
+            }
+        }
+
         // Extract tool calls from assistant messages.
         let tool_calls = Self::extract_tool_calls(collected);
 
