@@ -12,6 +12,7 @@ mod loop_detection_tests;
 mod message_api_tests;
 mod progress_tests;
 mod provider_router_tests;
+mod routable_provider_box_tests;
 #[cfg(feature = "testing")]
 mod session_mock_tests;
 mod serialization_tests;

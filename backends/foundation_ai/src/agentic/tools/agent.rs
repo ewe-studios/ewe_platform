@@ -1237,4 +1237,250 @@ mod tests {
             "toolshed should contain agent: {shed:?}"
         );
     }
+
+    // ------------------------------------------------------------------
+    // start() — optional argument branches
+    // ------------------------------------------------------------------
+
+    /// Build a `start` arg map with arbitrary extra typed args.
+    fn start_args(pairs: Vec<(&str, ArgType)>) -> HashMap<String, ArgType> {
+        let mut m = HashMap::new();
+        m.insert("command".to_string(), ArgType::Text("start".into()));
+        m.insert("task".to_string(), ArgType::Text("do stuff".into()));
+        for (k, v) in pairs {
+            m.insert(k.to_string(), v);
+        }
+        m
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_accepts_an_explicit_model() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        // Exercises the `Some(Text)` arm of the `model` lookup rather than
+        // falling back to the parent session's default.
+        let out = futures_lite::future::block_on(t.execute(start_args(vec![(
+            "model",
+            ArgType::Text("mock".into()),
+        )])))
+        .expect("start with explicit model");
+        assert_eq!(as_json(&out)["status"], "running");
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_ignores_an_empty_model_and_uses_the_default() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        // An empty string must NOT become ModelId::Name("") — the guard falls
+        // through to the parent model, which is known to resolve.
+        let out = futures_lite::future::block_on(
+            t.execute(start_args(vec![("model", ArgType::Text(String::new()))])),
+        )
+        .expect("empty model falls back to the default");
+        assert_eq!(as_json(&out)["status"], "running");
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_accepts_a_system_prompt() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let out = futures_lite::future::block_on(t.execute(start_args(vec![(
+            "system",
+            ArgType::Text("be terse".into()),
+        )])))
+        .expect("start with system prompt");
+        assert_eq!(as_json(&out)["status"], "running");
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_accepts_max_iterations_in_every_numeric_spelling() {
+        // Models emit integers inconsistently (u64 / i64 / stringified), so all
+        // three must parse rather than silently dropping the runaway guard.
+        for arg in [
+            ArgType::U64(7),
+            ArgType::I64(7),
+            ArgType::Text("7".into()),
+        ] {
+            let mut mock = MockModelProvider::new();
+            mock.on_any(vec![mock_text("ok")]);
+            let t = tool_router(mock.into_router());
+
+            let out = futures_lite::future::block_on(
+                t.execute(start_args(vec![("max_iterations", arg.clone())])),
+            )
+            .unwrap_or_else(|e| panic!("max_iterations {arg:?} must be accepted: {e:?}"));
+            assert_eq!(as_json(&out)["status"], "running");
+        }
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_returns_distinct_ids_per_delegation() {
+        // Two delegations must not collide in the runs map, or `check` on one
+        // would report the other.
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let a = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "first")])),
+        )
+        .expect("start a");
+        let b = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "second")])),
+        )
+        .expect("start b");
+
+        let id_a = as_json(&a)["id"].as_str().unwrap().to_string();
+        let id_b = as_json(&b)["id"].as_str().unwrap().to_string();
+        assert_ne!(id_a, id_b, "each start must mint a fresh delegation id");
+
+        // …and distinct output locations, or they would overwrite each other.
+        assert_ne!(
+            as_json(&a)["output_location"],
+            as_json(&b)["output_location"]
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // result() — the not-done branch
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn result_while_paused_reports_not_done() {
+        // Pausing pins the status at Paused, which makes the "not done yet"
+        // branch of `result` deterministic (no scheduler race).
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        futures_lite::future::block_on(t.execute(cmd("pause", &[("id", &id)])))
+            .expect("pause");
+
+        let err = futures_lite::future::block_on(
+            t.execute(cmd("result", &[("id", &id)])),
+        )
+        .expect_err("a paused run is not done, so result must error");
+        match err {
+            ToolError::Execution { reason, .. } => {
+                assert!(
+                    reason.contains("not done yet"),
+                    "expected a not-done message, got: {reason}"
+                );
+            }
+            other => panic!("expected Execution, got {other:?}"),
+        }
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn paused_run_is_not_advanced_by_check() {
+        // While paused, drain_run must return early without pulling the stream,
+        // so repeated checks keep reporting Paused rather than drifting.
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        futures_lite::future::block_on(t.execute(cmd("pause", &[("id", &id)])))
+            .expect("pause");
+
+        for _ in 0..3 {
+            let c = futures_lite::future::block_on(
+                t.execute(cmd("check", &[("id", &id)])),
+            )
+            .expect("check");
+            assert_eq!(as_json(&c)["state"], "Paused");
+        }
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn resume_after_pause_lets_the_run_progress_again() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("done text")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        futures_lite::future::block_on(t.execute(cmd("pause", &[("id", &id)])))
+            .expect("pause");
+        futures_lite::future::block_on(t.execute(cmd("resume", &[("id", &id)])))
+            .expect("resume");
+
+        // After resuming, the run must be able to reach a terminal state.
+        let done = poll_until_done(&t, &id, 200);
+        assert!(
+            done.is_some(),
+            "a resumed run must still be able to complete"
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // depth
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_below_the_cap_is_allowed() {
+        // depth < max_depth must pass the guard (the cap test covers ==).
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = AgentTool::<D, M>::new(
+            mock.into_router(),
+            4,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation".into(),
+            test_user(),
+            vec![],
+        );
+        let out = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("depth 4 of max 5 must be allowed");
+        assert_eq!(as_json(&out)["status"], "running");
+    }
+
+    #[test]
+    fn depth_cap_of_zero_refuses_all_delegation() {
+        futures_lite::future::block_on(async {
+            let t = AgentTool::<D, M>::new(
+                empty_router(),
+                0,
+                0,
+                ModelId::Name("mock".into(), None),
+                "/tmp".into(),
+                test_user(),
+                vec![],
+            );
+            let err = t
+                .execute(cmd("start", &[("task", "anything")]))
+                .await
+                .unwrap_err();
+            match err {
+                ToolError::Execution { reason, .. } => {
+                    assert!(reason.contains("depth cap"), "got: {reason}");
+                }
+                other => panic!("expected Execution, got {other:?}"),
+            }
+        });
+    }
 }
