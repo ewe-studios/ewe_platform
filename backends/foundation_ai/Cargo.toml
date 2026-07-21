@@ -188,6 +188,12 @@ live-model-tests = ["testing", "llamacpp", "candle"]
 # Back-compat alias — prefer `live-model-tests`.
 integration_tests = ["live-model-tests"]
 
+# external-service-tests: tests that hit a NETWORK SERVICE — OpenRouter, OpenAI,
+# Anthropic, HF Hub download, cloud HTTP generators. Require credentials
+# (OPENROUTER_API_KEY, …) and self-skip when absent — never fail a run for a
+# missing key. Distinct from live-model-tests (a local downloaded model).
+external-service-tests = ["testing", "llamacpp", "candle"]
+
 # ===========================================================================
 # Examples — runnable with `cargo run -p foundation_ai --example <name>`
 # ===========================================================================

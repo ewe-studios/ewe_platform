@@ -9,3 +9,6 @@ mod llamacpp_provider;
 
 #[cfg(feature = "live-model-tests")]
 mod integrations;
+
+#[cfg(feature = "external-service-tests")]
+mod external;
