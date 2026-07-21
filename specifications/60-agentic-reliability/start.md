@@ -72,14 +72,14 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 
 | Stage | Status | Notes |
 |-------|--------|-------|
-| S0 coverage harness | Not started | No coverage tool installed today |
-| S1 candle 0.11 | Not started | 0.10.2 → 0.11.0 |
+| S0 coverage harness | DONE | cargo-llvm-cov + llvm-tools installed; baseline captured |
+| S1 candle 0.11 | DONE | bumped, zero breaking changes |
 | S2 state into model | Not started | Decision 06 |
 | S3 sampling + seed | Not started | Adopt `LogitsProcessor` |
 | S4 GGUF fixtures | Not started | `tools/llama.cpp/convert_hf_to_gguf.py` is vendored |
 | S5 chat templates | Not started | minijinja (decision 03) |
 | S6 architectures | Not started | Decision 02 |
-| S7 test matrix | **Partial** | 6 session/provider tests landed; see `test-matrix.md` |
+| S7 test matrix | Partial | 42/119 rows; agent_loop 21%->74%, session 70%->89%, candle 28%->72% |
 | S8 generated weights | Not started | Spike required |
 | S9 generation quality | DONE | conditional BOS (docs/fixes/007); model answers coherently |
 
