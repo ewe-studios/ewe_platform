@@ -119,6 +119,8 @@ pub struct AgentSessionBuilder<D, M> {
     config: AgentConfig,
     context_config: ContextConfig,
     memory_config: MemoryConfig,
+    /// Optional embedding capability for real semantic recall (F16).
+    embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
@@ -140,6 +142,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             config: AgentConfig::default(),
             context_config: ContextConfig::default(),
             memory_config: MemoryConfig::default(),
+            embedder: None,
         }
     }
 }
@@ -211,6 +214,18 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self
     }
 
+    /// Attach an embedding capability so the session's context uses real
+    /// semantic recall (F16). Without it, `SearchMode::Semantic` is keyword-based.
+    #[must_use]
+    pub fn with_embedder(
+        mut self,
+        embedder: Arc<dyn crate::agentic::embedding::EmbeddingProvider>,
+        embedding_model: impl Into<String>,
+    ) -> Self {
+        self.embedder = Some((embedder, embedding_model.into()));
+        self
+    }
+
     #[must_use]
     pub fn with_context_config(mut self, config: ContextConfig) -> Self {
         self.context_config = config;
@@ -245,14 +260,21 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         let ledger = TokenLedger::new();
         let message_api = MessageApi::new(session_id.clone(), doc_store);
 
-        let context_provider = ContextProvider::new(
-            session_id.clone(),
-            message_api.clone(),
-            Arc::clone(&memory_store_arc),
-            ledger.clone(),
-            self.system_prompt,
-            self.context_config,
-        );
+        let context_provider = {
+            let cp = ContextProvider::new(
+                session_id.clone(),
+                message_api.clone(),
+                Arc::clone(&memory_store_arc),
+                ledger.clone(),
+                self.system_prompt,
+                self.context_config,
+            );
+            // Wire the embedder for real semantic recall (F16) when provided.
+            match self.embedder {
+                Some((embedder, model)) => cp.with_embedder(embedder, model),
+                None => cp,
+            }
+        };
 
         let tool_manager = ToolCallManager::new(session_id.clone());
         let queues = SteeringQueues::new();

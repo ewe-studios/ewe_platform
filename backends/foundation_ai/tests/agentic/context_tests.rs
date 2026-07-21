@@ -230,3 +230,109 @@ fn observation_injected_when_no_reflection() {
         "with no reflection, the observation is always injected: {ctx:?}"
     );
 }
+
+// ===========================================================================
+// F16 — real embedding-based semantic recall (SearchMode::Semantic)
+// ===========================================================================
+
+use foundation_ai::agentic::{
+    CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector, SearchMode,
+};
+
+/// A deterministic topic embedder: text maps to a 3-dim [animal, tech, food]
+/// vector by topic keywords. Crucially, semantically-related words that share NO
+/// substring (e.g. "feline" and "cat") map to the SAME vector — so a hit proves
+/// embedding recall, not keyword matching.
+struct TopicEmbedder;
+
+impl TopicEmbedder {
+    fn vec_for(text: &str) -> Vec<f32> {
+        let t = text.to_lowercase();
+        let any = |ws: &[&str]| f32::from(u8::from(ws.iter().any(|w| t.contains(w))));
+        vec![
+            any(&["cat", "feline", "kitten", "pet", "whiskers", "purr"]),
+            any(&["laptop", "computer", "cpu", "code", "software"]),
+            any(&["pizza", "food", "meal", "eat"]),
+        ]
+    }
+}
+
+impl EmbeddingProvider for TopicEmbedder {
+    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+        Ok(EmbeddingVector {
+            dimensions: 3,
+            data: Self::vec_for(text),
+            model_id: "topic".into(),
+        })
+    }
+    fn embed_batch(
+        &self,
+        texts: &[String],
+        model_id: &str,
+    ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
+        texts.iter().map(|t| self.embed(t, model_id)).collect()
+    }
+    fn register_model(&self, _model_id: &str, _dimensions: u16) {}
+    fn cache_stats(&self) -> CacheStats {
+        CacheStats::default()
+    }
+    fn clear_cache(&self) {}
+}
+
+/// Build a provider whose message log is pre-seeded (the api is seeded before it
+/// is moved into the provider, so `search` sees the records via `recent`).
+fn provider_seeded(texts: &[&str]) -> ContextProvider<MemoryDocumentStore, M> {
+    let session_id = SessionId::new();
+    let api = MessageApi::new(session_id.clone(), MemoryDocumentStore::new());
+    for t in texts {
+        api.append(user_record(t));
+    }
+    api.flush().expect("flush");
+    let store = Arc::new(KvMemoryStore::new(MemoryStorage::new()));
+    ContextProvider::new(
+        session_id,
+        api,
+        store,
+        TokenLedger::new(),
+        Some("SYS".into()),
+        ContextConfig::default(),
+    )
+}
+
+#[test]
+fn semantic_search_uses_embeddings_not_keywords() {
+    futures_lite::future::block_on(async {
+        let p = provider_seeded(&[
+            "I have a cat named Whiskers",
+            "My laptop is very fast",
+            "I love pizza",
+        ])
+        .with_embedder(Arc::new(TopicEmbedder), "topic");
+
+        // "feline" shares NO substring with "cat" — only an embedder can match it.
+        let hits = p.search("feline companion", SearchMode::Semantic, 5).await;
+        assert!(!hits.is_empty(), "semantic search should return hits");
+        let top = &hits[0];
+        assert!(
+            top.content.contains("cat"),
+            "semantic top hit should be the cat message, got: {:?}",
+            top.content
+        );
+        assert!(top.score > 0.9, "cosine to the animal message should be high: {}", top.score);
+    });
+}
+
+#[test]
+fn semantic_search_without_embedder_falls_back_to_keyword() {
+    futures_lite::future::block_on(async {
+        // No embedder → keyword fallback: "feline" won't match "cat".
+        let p = provider_seeded(&["I have a cat named Whiskers", "My laptop is fast"]);
+
+        let none = p.search("feline", SearchMode::Semantic, 5).await;
+        assert!(none.is_empty(), "keyword fallback can't match feline→cat");
+
+        // But a shared keyword does match under the fallback.
+        let some = p.search("laptop", SearchMode::Semantic, 5).await;
+        assert!(some.iter().any(|h| h.content.contains("laptop")), "keyword hit");
+    });
+}

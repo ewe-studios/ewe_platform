@@ -63,7 +63,7 @@ implemented, or explicitly deferred.
 |---|---------|--------|--------|
 | F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | **DONE** — memory_add/remove/replace over MemoryHierarchy working memory; 7 tests |
 | F15 | `delegate` tool — `DelegationTool` slot has NO impl | 36/F14 | Not started |
-| F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | Not started |
+| F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | **DONE** — cosine embedding recall in ContextProvider (keyword fallback when no embedder); AgentSessionBuilder::with_embedder; 2 tests prove feline→cat semantic match |
 | F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | Not started |
 | F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | Not started |
 

@@ -125,6 +125,11 @@ pub struct ContextProvider<D, M> {
     ledger: TokenLedger,
     system_prompt: Option<String>,
     config: ContextConfig,
+    /// Optional embedding capability for real semantic recall (F16). When unset,
+    /// `SearchMode::Semantic` falls back to keyword matching.
+    embedder: Option<Arc<dyn crate::agentic::embedding::EmbeddingProvider>>,
+    /// The embedding model id to request from `embedder`.
+    embedding_model: String,
 }
 
 impl<D, M> Clone for ContextProvider<D, M> {
@@ -136,6 +141,8 @@ impl<D, M> Clone for ContextProvider<D, M> {
             ledger: self.ledger.clone(),
             system_prompt: self.system_prompt.clone(),
             config: self.config.clone(),
+            embedder: self.embedder.clone(),
+            embedding_model: self.embedding_model.clone(),
         }
     }
 }
@@ -157,7 +164,22 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             ledger,
             system_prompt,
             config,
+            embedder: None,
+            embedding_model: String::new(),
         }
+    }
+
+    /// Attach an embedding capability so `SearchMode::Semantic` performs real
+    /// vector recall (cosine similarity) instead of keyword matching (F16).
+    #[must_use]
+    pub fn with_embedder(
+        mut self,
+        embedder: Arc<dyn crate::agentic::embedding::EmbeddingProvider>,
+        embedding_model: impl Into<String>,
+    ) -> Self {
+        self.embedder = Some(embedder);
+        self.embedding_model = embedding_model.into();
+        self
     }
 
     /// Build the context for a single LLM turn in Decision 03's order:
@@ -296,7 +318,11 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
 
         match mode {
             SearchMode::Semantic => {
-                self.search_messages(&query_lower, &mut hits);
+                // Real embedding recall when an embedder is wired (F16); else
+                // keyword fallback so a capability-less context still works.
+                if !self.semantic_search_messages(query, &mut hits) {
+                    self.search_messages(&query_lower, &mut hits);
+                }
             }
             SearchMode::Memory => {
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
@@ -305,7 +331,9 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                 // F27 deferred — return empty.
             }
             SearchMode::Hybrid => {
-                self.search_messages(&query_lower, &mut hits);
+                if !self.semantic_search_messages(query, &mut hits) {
+                    self.search_messages(&query_lower, &mut hits);
+                }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
         }
@@ -313,6 +341,48 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         hits.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         hits.truncate(k);
         hits
+    }
+
+    /// Embedding-based recall over recent messages (F16). Embeds the query and
+    /// each candidate message, scoring by cosine similarity. Returns `true` when
+    /// it ran (an embedder is wired and the query embedded); `false` signals the
+    /// caller to fall back to keyword matching.
+    fn semantic_search_messages(&self, query: &str, hits: &mut Vec<KnowledgeHit>) -> bool {
+        let Some(embedder) = &self.embedder else {
+            return false;
+        };
+        let query_vec = match embedder.embed(query, &self.embedding_model) {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::warn!(error = ?e, "query embedding failed; falling back to keyword search");
+                return false;
+            }
+        };
+
+        let Ok(recent) = self.message_api.recent(self.config.recent_message_count) else {
+            return true; // embedder ran; nothing to search over
+        };
+        for record in recent {
+            if let SessionRecord::Conversation { ref message } = record {
+                let text = extract_message_text(message);
+                if text.trim().is_empty() {
+                    continue;
+                }
+                let Ok(cand) = embedder.embed(&text, &self.embedding_model) else {
+                    continue;
+                };
+                let score = cosine_similarity(&query_vec.data, &cand.data);
+                if score > 0.0 {
+                    hits.push(KnowledgeHit {
+                        source: "message".into(),
+                        score,
+                        content: text,
+                        record_ref: None,
+                    });
+                }
+            }
+        }
+        true
     }
 
     fn search_messages(&self, query_lower: &str, hits: &mut Vec<KnowledgeHit>) {
@@ -391,6 +461,26 @@ fn extract_message_text(msg: &Messages) -> String {
             _ => String::new(),
         },
     }
+}
+
+/// Cosine similarity between two embedding vectors. Returns 0.0 for mismatched
+/// lengths or a zero-magnitude vector.
+fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+    if a.len() != b.len() || a.is_empty() {
+        return 0.0;
+    }
+    let mut dot = 0.0f32;
+    let mut norm_a = 0.0f32;
+    let mut norm_b = 0.0f32;
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        norm_a += x * x;
+        norm_b += y * y;
+    }
+    if norm_a == 0.0 || norm_b == 0.0 {
+        return 0.0;
+    }
+    dot / (norm_a.sqrt() * norm_b.sqrt())
 }
 
 fn keyword_score(text: &str, query_lower: &str) -> Option<f32> {
