@@ -10,6 +10,10 @@ license = "MIT"
 # Default: wasm + cli only (vms moved to foundation_deployment_platform, spec-53 Feature 11)
 default = ["wasm", "cli"]
 
+# Docker-based cross-platform test environments (F30).
+# Uses std::process::Command for docker exec — zero new Rust deps.
+docker-tests = []
+
 # vms feature kept as alias — enables foundation_deployment_platform with vms
 vms = ["dep:foundation_deployment_platform"]
 # cli kept for backward compat

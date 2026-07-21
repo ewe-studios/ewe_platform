@@ -24,3 +24,7 @@ pub mod wasm;
 // proc-macro attributes cannot be re-exported across crate boundaries).
 #[cfg(feature = "wasm-bindgen-test")]
 pub mod bindgen;
+
+// F30: Docker-based cross-platform test environments.
+#[cfg(feature = "docker-tests")]
+pub mod docker;
