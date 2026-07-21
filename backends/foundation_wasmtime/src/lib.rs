@@ -6,16 +6,41 @@
 //!
 //! WHAT: `WasmtimeBuilder` wraps compiled WASM bytes with session imports.
 //! `WasmtimeInstance` holds a running Engine + Store + Instance ready for
-//! export calls. The codegen produces `fn builder() -> WasmtimeBuilder` for
-//! each #[wasm_app] crate.
-//!
-//! HOW: The user writes a WASM function compiled to wasm32-wasip1. Codegen
-//! wraps it in `include_bytes!` → `WasmtimeBuilder::new(bytes)`. At runtime,
-//! `build()` creates the Engine + Module + Instance with session imports.
+//! export calls. Codegen produces `fn builder() -> WasmtimeBuilder` for each
+//! `#[wasm_app]` crate.
 
-use anyhow::{Context, Result};
-use wasmtime::{Engine, Instance, Linker, Module, Store};
 use std::path::Path;
+
+use derive_more::Display;
+use foundation_errstacks::ErrorTrace;
+use wasmtime::{Engine, Instance, Linker, Module, Store};
+
+// ── Error types ──────────────────────────────────────────────────────────
+
+/// Context for wasmtime shell errors.
+#[derive(Debug, Display)]
+pub enum WasmtimeError {
+    /// WASM module compilation failed.
+    #[display("failed to compile WASM module: {_0}")]
+    Compile(String),
+    /// Linking (import registration) failed.
+    #[display("failed to link WASM module: {_0}")]
+    Link(String),
+    /// A WASM export was not found.
+    #[display("WASM export not found: {_0}")]
+    ExportNotFound(String),
+    /// Calling a WASM function failed.
+    #[display("WASM call failed: {_0}")]
+    Call(String),
+    /// File I/O error (loading from disk).
+    #[display("file I/O: {_0}")]
+    Io(String),
+}
+
+impl std::error::Error for WasmtimeError {}
+
+/// Convenience type alias for results from this crate.
+pub type Result<T> = std::result::Result<T, ErrorTrace<WasmtimeError>>;
 
 // ── WasmtimeBuilder ──────────────────────────────────────────────────────
 
@@ -45,58 +70,41 @@ impl WasmtimeBuilder {
     }
 
     /// Build the Engine, Module, and Instance. Ready to call exports.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the WASM bytes are invalid, compilation fails,
-    /// or linking fails.
     pub fn build(&self) -> Result<WasmtimeInstance> {
         let engine = Engine::default();
         let module = Module::from_binary(&engine, &self.wasm_bytes)
-            .context("failed to compile WASM module")?;
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Compile(e.to_string())))?;
 
-        let mut linker = Linker::new(&engine);
-        // Register session imports — these are WASI-like host functions
-        // that the WASM module can call to interact with the platform.
-        linker.func_wrap("ewe", "log", |msg_ptr: i32, msg_len: i32| {
-            // stub: log from WASM
-            let _ = (msg_ptr, msg_len);
-        })?;
+        let mut linker: Linker<()> = Linker::new(&engine);
+        linker
+            .func_wrap("ewe", "log", |_: i32, _: i32| {})
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
         let mut store = Store::new(&engine, ());
         let instance = linker
             .instantiate(&mut store, &module)
-            .context("failed to instantiate WASM module")?;
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
-        Ok(WasmtimeInstance {
-            engine,
-            store,
-            instance,
-            name: self.name.clone(),
-        })
+        tracing::debug!(name = %self.name, "WASM module built");
+        Ok(WasmtimeInstance { engine, store, instance, name: self.name.clone() })
     }
 
     /// Build from a file path instead of embedded bytes.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the file can't be read.
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self> {
         let bytes = std::fs::read(path.as_ref())
-            .with_context(|| format!("failed to read {}", path.as_ref().display()))?;
-        Ok(Self::new(bytes).with_name(
-            path.as_ref()
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("wasm_app"),
-        ))
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Io(e.to_string())))?;
+        let name = path.as_ref()
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("wasm_app")
+            .to_string();
+        Ok(Self::new(bytes).with_name(&name))
     }
 }
 
 // ── WasmtimeInstance ─────────────────────────────────────────────────────
 
 /// A running wasmtime instance. Holds the engine, store, and linked instance.
-/// Call `get_export()` to invoke WASM functions.
 pub struct WasmtimeInstance {
     engine: Engine,
     store: Store<()>,
@@ -109,34 +117,28 @@ impl WasmtimeInstance {
     pub fn name(&self) -> &str { &self.name }
 
     /// Call a WASM export function with no arguments and no return value.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the export doesn't exist or calling fails.
     pub fn call_void(&mut self, func_name: &str) -> Result<()> {
         let func = self
             .instance
             .get_typed_func::<(), ()>(&mut self.store, func_name)
-            .with_context(|| format!("export '{}' not found in '{}'", func_name, self.name))?;
-        func.call(&mut self.store, ()).context("WASM call failed")?;
+            .map_err(|_| ErrorTrace::new(WasmtimeError::ExportNotFound(func_name.to_string())))?;
+        func.call(&mut self.store, ())
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Call(e.to_string())))?;
         Ok(())
     }
 
-    /// Call a WASM export function taking a single i32 and returning an i32.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the export doesn't exist or calling fails.
+    /// Call a WASM export taking a single i32 and returning an i32.
     pub fn call_i32_i32(&mut self, func_name: &str, arg: i32) -> Result<i32> {
         let func = self
             .instance
             .get_typed_func::<i32, i32>(&mut self.store, func_name)
-            .with_context(|| format!("export '{}' not found in '{}'", func_name, self.name))?;
-        let result = func.call(&mut self.store, arg).context("WASM call failed")?;
+            .map_err(|_| ErrorTrace::new(WasmtimeError::ExportNotFound(func_name.to_string())))?;
+        let result = func
+            .call(&mut self.store, arg)
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Call(e.to_string())))?;
         Ok(result)
     }
 
-    /// Get the engine (for advanced use).
     #[must_use]
     pub fn engine(&self) -> &Engine { &self.engine }
 }
@@ -146,13 +148,6 @@ impl WasmtimeInstance {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// A minimal WASM module that exports a `hello` function returning 42.
-    const MINIMAL_WASM: &[u8] = &[
-        0x00, 0x61, 0x73, 0x6d, // magic
-        0x01, 0x00, 0x00, 0x00, // version
-        0x01, 0x06, 0x01, 0x7f, 0x01, 0x7f, 0x60, 0x00, 0x00, // type section (simplified)
-    ];
 
     #[test]
     fn builder_creates_from_bytes() {

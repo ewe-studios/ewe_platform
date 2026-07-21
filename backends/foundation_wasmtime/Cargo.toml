@@ -9,5 +9,7 @@ repository.workspace = true
 description = "Wasmtime shell — run WASM modules in-process alongside the Tauri shell (Surface 3)"
 
 [dependencies]
-wasmtime = "26"
-anyhow = "1"
+wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime"] }
+foundation_errstacks = { path = "../foundation_errstacks" }
+derive_more = { version = "2", features = ["display", "error", "from"] }
+tracing = { workspace = true }

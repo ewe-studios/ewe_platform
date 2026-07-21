@@ -76,6 +76,51 @@ pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
     }
 }
 
+/// Build a single WASM app for wasmtime (Surface 3 — in-process WASM runtime).
+///
+/// Scans for `#[wasm_app]` annotations, compiles the crate to `wasm32-wasip1`,
+/// and copies the `.wasm` binary to the output directory. Unlike
+/// `build_wasm_app` (which targets wasm32-unknown-unknown for the WebView),
+/// this targets wasip1 so the module runs in wasmtime with WASI support.
+///
+/// # Panics
+///
+/// Panics if `cargo build` fails or the output directory can't be created.
+pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
+    let apps: Vec<_> = scan_for_annotations(&app_dir.join("src"))
+        .into_iter()
+        .filter(|a| matches!(a.kind, AnnotationKind::WasmApp))
+        .collect();
+    if apps.is_empty() {
+        return;
+    }
+
+    println!("cargo:warning=Building wasmtime app: {}", app_dir.display());
+
+    let status = std::process::Command::new("cargo")
+        .args(["build", "--target", "wasm32-wasip1", "--release"])
+        .current_dir(app_dir)
+        .status()
+        .unwrap_or_else(|e| panic!("cargo build failed for wasmtime app {}: {e}", app_dir.display()));
+
+    if !status.success() {
+        println!("cargo:warning=wasmtime app build failed (exit {status})");
+        return;
+    }
+
+    let name = app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app");
+    let wasm_src = app_dir
+        .join("target/wasm32-wasip1/release")
+        .join(format!("{name}.wasm"));
+    if wasm_src.exists() {
+        std::fs::create_dir_all(out_dir).ok();
+        let wasm_dst = out_dir.join(format!("{name}.wasm"));
+        std::fs::copy(&wasm_src, &wasm_dst)
+            .unwrap_or_else(|e| panic!("failed to copy wasmtime app to output: {e}"));
+        println!("cargo:warning=wasmtime app copied to {}", wasm_dst.display());
+    }
+}
+
 /// Build a single WASM app from its crate directory.
 ///
 /// # Panics
