@@ -7,6 +7,7 @@ this_file: "specifications/52-tauri-foundation-platform/features/F34-background-
 status: pending
 priority: high
 created: 2026-07-21
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
@@ -14,77 +15,67 @@ depends_on:
 
 tasks:
   completed: 0
-  uncompleted: 8
-  total: 8
+  uncompleted: 6
+  total: 6
   completion_percentage: 0%
 ---
 
-# F34 — Background workers: `#[platform_worker]` + `WorkerSender`/`WorkerReceiver`
+# F34 — Background workers: session constructors + typed channels
 
 ## Problem
 
 The platform has no background execution model. Mutation queue replay, cache
 warming, sync, and push notification handling all need to run when the app
-isn't actively rendering a page. Tauri's lifecycle (`RunEvent::ExitRequested`,
-`suspend`, `resume`) provides hooks but the platform doesn't use them for
-background work.
+isn't actively rendering a page. Tauri's lifecycle (`RunEvent`, `suspend`,
+`resume`) provides hooks but the platform doesn't use them.
 
-Decision 11 defines `#[platform_worker]` and `#[platform_service]` but
-neither exists as proc macros or runtime infrastructure.
+Decision 11 defines foreground workers (unlimited time) and background-aware
+workers (OS-constrained). The original design called for `#[platform_worker]`
+and `#[platform_service]` proc macros, but:
+
+1. **Tauri already owns the async runtime** — duplicating it with custom macros
+   is wrong. Tauri's `async_runtime::spawn` is the right spawning primitive.
+2. **src-tauri/is the right place** — users already import `foundation_platform`
+   there. They wire workers in `setup_routes()`. No magic annotations needed.
+3. **valtron + Tauri rt coexisting** — valtron drives our internal tasks
+   (batch protocol, DOM ops). Tauri's runtime drives the app lifecycle.
+   Workers can run on either.
 
 ## Solution
 
-`#[platform_worker]` is a proc macro that wraps a Rust async function into
-a valtron task with a typed channel. The worker receives commands via
-`WorkerReceiver<T>` and sends results via `WorkerSender<T>`.
+The platform provides TWO things: a typed channel and a session spawn method.
+No proc macros. Users wire it up in `setup_routes()`:
 
 ```rust
-// app-worker/src/lib.rs
+// examples/platform_android/src-tauri/src/lib.rs (in setup_routes)
 
-use foundation_platform::worker::{platform_worker, WorkerReceiver};
+use foundation_platform::worker::{WorkerChannel, ServiceChannel};
 
-#[platform_worker]
-async fn sync_worker(
-    session: PlatformSession,
-    rx: WorkerReceiver<SyncCommand>,
-) {
+// Worker: named, typed, bounded channel. Spawned on valtron.
+let sync_channel: WorkerChannel<SyncCommand> = WorkerChannel::new("sync")
+    .capacity(64)
+    .build();
+
+session.spawn_worker(sync_channel.clone(), |mut rx, session| async move {
     while let Some(cmd) = rx.recv().await {
         match cmd {
-            SyncCommand::FullSync => {
-                // Fetch delta from server
-                let data = session.http_backend()
-                    .fetch("https://api.example.com/sync/delta")
-                    .unwrap();
-                // Apply to local cache
-                session.cache().apply_delta(&data.0);
-            }
-            SyncCommand::PushPending => {
-                let queue = session.mutation_queue().pending();
-                for mutation in queue {
-                    // Replay each pending mutation
-                }
-            }
+            SyncCommand::FullSync => { /* fetch delta, update cache */ }
+            SyncCommand::PushPending => { /* replay mutation queue */ }
         }
     }
-}
+});
 
-// In setup_routes():
-session.spawn_worker(sync_worker);
-```
+// Dispatch from anywhere — route handlers, IPC, session events:
+session.workers().send("sync", SyncCommand::FullSync);
 
-### Proc macro expansion
-
-```rust
-// #[platform_worker] expands to:
-pub fn spawn_sync_worker(
-    session: Arc<PlatformSession>,
-    sender: WorkerSender<SyncCommand>,
-) -> JoinHandle<()> {
-    let rx = sender.into_receiver();
-    foundation_core::valtron::spawn(async move {
-        sync_worker((*session).clone(), rx).await;
-    })
-}
+// Service: app-lifetime, restarts on panic. Spawned on Tauri runtime.
+session.spawn_service("push_listener", |session| async move {
+    // Persistent WebSocket connection. Reconnects on drop. Emits to session.
+    loop {
+        let msg = connect_and_read().await;
+        session.emit("push_received", &msg);
+    }
+});
 ```
 
 ### Channel types
@@ -92,116 +83,151 @@ pub fn spawn_sync_worker(
 ```rust
 // foundation_platform/src/worker.rs (NEW)
 
-pub struct WorkerSender<T> { tx: valtron::Sender<T> }
-pub struct WorkerReceiver<T> { rx: valtron::Receiver<T> }
+use foundation_core::valtron::channel;
 
-impl<T> WorkerReceiver<T> {
+/// A typed, bounded, cloneable sender for worker commands.
+pub struct WorkerChannel<T: Send + 'static> {
+    name: String,
+    tx: channel::Sender<T>,
+}
+
+impl<T: Send + 'static> Clone for WorkerChannel<T> {
+    fn clone(&self) -> Self {
+        Self { name: self.name.clone(), tx: self.tx.clone() }
+    }
+}
+
+impl<T: Send + 'static> WorkerChannel<T> {
+    pub fn new(name: &str) -> Self { /* default capacity 64 */ }
+    pub fn capacity(mut self, n: usize) -> Self { /* set capacity */ }
+
+    /// Build the channel. Returns (channel, receiver). The receiver is
+    /// consumed by `session.spawn_worker()`.
+    pub fn build(self) -> (Self, WorkerReceiver<T>) { ... }
+
+    /// Send a command. Non-blocking. Drops if channel is full.
+    pub fn send(&self, cmd: T) -> bool { self.tx.try_send(cmd).is_ok() }
+}
+
+/// Typed receiver for worker commands. Consumed by the worker closure.
+pub struct WorkerReceiver<T: Send + 'static> {
+    rx: channel::Receiver<T>,
+}
+
+impl<T: Send + 'static> WorkerReceiver<T> {
     pub async fn recv(&mut self) -> Option<T> { self.rx.recv().await }
 }
-
-impl<T: Clone> WorkerSender<T> {
-    pub fn send(&self, cmd: T) { self.tx.send(cmd).ok(); }
-    pub fn sender(&self) -> Self { self.clone() }
-}
 ```
 
-### Background-aware execution (mobile)
-
-On mobile (Android/iOS), the worker hooks into OS background APIs:
-
-- **Android:** `WorkManager` for periodic sync, `ForegroundService` for
-  long-running tasks. The platform registers a `WorkRequest` that calls
-  back into Rust via JNI.
-- **iOS:** `BGAppRefreshTask` for periodic fetch, `BGProcessingTask` for
-  longer work. Registered at app launch via `BGTaskScheduler`.
-
-The worker FUNCTION is the same on desktop and mobile. Only the TRIGGER
-differs: foreground = manual `send()`, background = OS callback.
-
-### In-process services (`#[platform_service]`)
-
-Longer-running services that live for the app's lifetime. Useful for:
-- WebSocket connections (persistent, reconnect on drop)
-- SSE listeners (server-sent events → IPC emit)
-- Background file watchers
+### Session API
 
 ```rust
-#[platform_service]
-async fn push_service(
-    session: PlatformSession,
-    rx: ServiceReceiver<PushEvent>,
-) {
-    // This runs for the app's entire lifetime.
-    // Reconnects on disconnect, emits events to the session.
+impl PlatformSession {
+    /// Spawn a worker on valtron's thread pool.
+    /// The closure receives the receiver and a session Arc.
+    pub fn spawn_worker<F, T>(&self, channel: WorkerChannel<T>, handler: F)
+    where
+        F: FnOnce(WorkerReceiver<T>, Arc<PlatformSession>) + Send + 'static,
+        T: Send + 'static;
+
+    /// Spawn a long-running service on Tauri's async runtime.
+    /// Automatically restarts if the closure panics (max 3 restarts per minute).
+    pub fn spawn_service<F>(&self, name: &str, handler: F)
+    where
+        F: Fn(Arc<PlatformSession>) -> Future<()> + Send + 'static;
+
+    /// Access the worker registry to send commands by name.
+    pub fn workers(&self) -> &WorkerRegistry;
+}
+
+/// Thread-safe registry of named worker channels.
+pub struct WorkerRegistry {
+    channels: RwLock<HashMap<String, Box<dyn Any + Send + Sync>>>,
+}
+
+impl WorkerRegistry {
+    /// Send a command to a named worker. No-op if worker doesn't exist.
+    pub fn send<T: Send + 'static>(&self, name: &str, cmd: T) -> bool;
 }
 ```
+
+### Mobile background hooks
+
+On mobile (Android/iOS), the worker function is the SAME. Only the trigger
+differs: foreground = `workers().send()`, background = OS callback.
+
+The platform provides Tauri lifecycle hooks that bridge OS events to
+worker dispatch:
+
+```rust
+// In PlatformBuilder::build() → Tauri setup:
+app.on_event(|event| {
+    match event {
+        RunEvent::Suspend => session.workers().send("sync", SyncCommand::Suspend),
+        RunEvent::Resume => session.workers().send("sync", SyncCommand::FullSync),
+        RunEvent::Background => { /* limit worker throughput */ },
+        _ => {}
+    }
+});
+```
+
+Android-specific: the platform doc documents how to register a `WorkManager`
+periodic task that calls back into Rust via a Tauri command. The user writes
+the Android glue in `src-tauri/src/lib.rs` using our session hooks — no
+platform proc macro needed.
 
 ## Requirements
 
-### R1. `#[platform_worker]` proc macro — foundation_macros
-- Wraps an async fn in a spawn-able factory
-- Generates `fn spawn_{name}(session, sender) -> JoinHandle`
-- The worker function signature: `async fn(Session, WorkerReceiver<T>)`
-- Works on all targets (desktop, Android, iOS)
+### R1. `WorkerChannel<T>` — foundation_platform/src/worker.rs (NEW)
+- Builder pattern: `new(name)`, `capacity(n)`, `build() → (channel, receiver)`
+- `send(cmd) -> bool` — non-blocking, drops if full
+- Clone impl for multi-site dispatch
+- Under the hood: valtron `channel::bounded(n)`
 
-### R2. `WorkerSender<T>` / `WorkerReceiver<T>` — foundation_platform
-- Thin wrappers around valtron channels
-- `send()` dispatches a command to the worker
-- `recv()` awaits the next command (returns None when channel closes)
-- Cloneable sender — multiple call sites can send commands
+### R2. `WorkerReceiver<T>` — foundation_platform/src/worker.rs
+- `recv() -> Option<T>` — async, returns None when channel closes
+- Owned by the worker closure, not cloneable
 
-### R3. Foreground execution
-- `session.spawn_worker(fn)` creates the channel, spawns the valtron task
-- The task runs in the valtron thread pool
-- Channel closes when the session drops → worker gets None → exits cleanly
+### R3. `session.spawn_worker()` — foundation_platform/src/session.rs
+- Takes a `WorkerChannel<T>` and a handler closure
+- Spawns the closure on valtron's thread pool
+- Handler receives `(WorkerReceiver<T>, Arc<PlatformSession>)`
+- Channel auto-closes when the session drops (worker gets None → exits)
 
-### R4. Mobile background hooks
-- Android: `WorkManager` periodic work request registered in Tauri setup
-- iOS: `BGTaskScheduler` registered in `didFinishLaunchingWithOptions`
-- Worker function is shared — same code, different trigger
-- Feature-gated: `#[cfg(target_os = "android")]`, `#[cfg(target_os = "ios")]`
+### R4. `session.spawn_service()` — foundation_platform/src/session.rs
+- Takes a name and a closure returning a future
+- Spawns on Tauri's async runtime (`tauri::async_runtime::spawn`)
+- Auto-restart on panic (max 3/min, then logs and stops)
+- Service lifecycle tied to Tauri's RunEvent::Exit
 
-### R5. `#[platform_service]` proc macro — foundation_macros
-- Same pattern as `#[platform_worker]` but for app-lifetime services
-- Service restarts automatically if it panics (configurable retry policy)
-- Service channel is unbounded (can't block the sender)
+### R5. `WorkerRegistry` — foundation_platform/src/worker.rs
+- `HashMap<String, Box<dyn Any>>` keyed by worker name
+- `send(name, cmd)` dispatches to the named channel
+- Thread-safe via RwLock
+- Workers deregister on drop (channel close)
 
-### R6. No new dependencies
-- Uses existing valtron channels for message passing
-- No tokio, no async-std — pure valtron
-- Mobile: uses platform SDK via Tauri's existing mobile hooks
-
-### R7. Worker registry
-- `WorkerRegistry` on `PlatformSession` tracks spawned workers
-- `session.workers().send("sync", SyncCommand::FullSync)` dispatches to named worker
-- Workers deregister on drop
-
-### R8. Mutation queue integration
-- `MutationQueue::replay()` can be called from a worker
-- Worker receives `OnlineChanged` events and triggers sync
-- No UI thread blocking — queue replay runs entirely in background
+### R6. Tauri lifecycle hooks — foundation_platform/src/builder.rs
+- `PlatformBuilder` wires `RunEvent::Suspend`/`Resume`/`Background`
+- Dispatches to workers registered for lifecycle events
+- No user-facing API change — setup_routes() just calls spawn_worker
 
 ## Verification
 
 ```bash
-# Proc macro expansion
-cargo test -p foundation_macros -- platform_worker
+# Unit: channel send/recv
+cargo test -p foundation_platform -- worker_channel
 
-# Worker channel round-trip
-cargo test -p foundation_platform -- worker
+# Unit: worker registry
+cargo test -p foundation_platform -- worker_registry
 
-# Background sync: enqueue mutations, spawn worker, verify replay
-cargo test -p foundation_platform --test walking_skeleton -- worker_replay
-
-# Mobile: verify WorkManager registration compiles
-cargo check -p foundation_platform --target aarch64-linux-android
+# Integration: spawn worker, send command, verify handler ran
+cargo test -p foundation_platform --test walking_skeleton -- worker_spawn
 ```
 
 ## Files
 
 | File | Action |
 |------|--------|
-| `backends/foundation_macros/src/platform_worker.rs` | **NEW** — `#[platform_worker]` proc macro |
-| `backends/foundation_platform/src/worker.rs` | **NEW** — WorkerSender, WorkerReceiver, WorkerRegistry |
-| `backends/foundation_platform/src/session.rs` | Add `spawn_worker()` + `workers()` |
-| `backends/foundation_platform/src/builder.rs` | Register mobile background hooks in Tauri setup |
+| `backends/foundation_platform/src/worker.rs` | **NEW** — WorkerChannel, WorkerReceiver, WorkerRegistry |
+| `backends/foundation_platform/src/session.rs` | Add `spawn_worker()`, `spawn_service()`, `workers()` |
+| `backends/foundation_platform/src/builder.rs` | Wire Tauri lifecycle events to worker dispatch |
