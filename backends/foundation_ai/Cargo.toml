@@ -76,6 +76,12 @@ optional = true
 version = "2.3"
 optional = true
 
+# Chat-template rendering for the candle backend (spec-60/S5). Same version as
+# foundation_packager, which already uses it.
+[dependencies.minijinja]
+version = "2.0"
+optional = true
+
 # Candle with Metal — Apple only.
 [target.'cfg(target_vendor = "apple")'.dependencies]
 candle-core = { version = "0.11", features = ["metal"] }
@@ -154,7 +160,7 @@ openmp = ["llamacpp", "infrastructure_llama_cpp/openmp"]
 mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "dep:foundation_deployment_huggingface"]
+candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "minijinja", "dep:foundation_deployment_huggingface"]
 candle-cuda = ["candle", "candle-core/cuda"]
 candle-gpu = ["candle-cuda"]
 

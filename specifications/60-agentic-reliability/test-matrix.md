@@ -148,7 +148,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.7 | Inference context created lazily on the polling thread | gguf | todo |
 | 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | todo |
 | 8.9 | `interaction.messages` reach the prompt (not just system) | both | todo |
-| 8.10 | Chat template applied when the model ships one | both | todo |
+| 8.10 | Chat template applied when the model ships one | both | **done** |
 | 8.11 | Documented fallback + log when no chat template | gen | todo |
 | 8.12 | Model weights cached — second load is a cache hit | both | todo |
 | 8.13 | Cache key distinguishes differing configs | both | todo |

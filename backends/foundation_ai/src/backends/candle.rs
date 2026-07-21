@@ -471,6 +471,11 @@ fn build_llama_model(
         candle_llama::LlamaEosToks::Multiple(ids) => ids.first().copied().unwrap_or(0),
     });
 
+    let chat_template = ChatTemplate::load(tokenizer_path);
+    if chat_template.is_none() {
+        tracing::debug!("no chat_template for {}; using plain prompt fallback", spec.name);
+    }
+
     Ok(CandleModels::new(
         CandleModelInner::Llama(model),
         tokenizer,
@@ -479,6 +484,7 @@ fn build_llama_model(
         device.clone(),
         eos_token_id,
         spec,
+        chat_template,
     ))
 }
 
@@ -504,6 +510,93 @@ struct CandleModelsState {
     tokens_generated: usize,
     pricing: ModelUsageCosting,
     cumulative_cost: CostAccumulator,
+    /// The model's own chat template (from `tokenizer_config.json`), if any.
+    chat_template: Option<ChatTemplate>,
+}
+
+/// A model's chat template plus the special-token strings it references.
+///
+/// WHY: `build_prompt` used to invent a `System:/User:/Assistant:` format no
+/// model was trained on and ignored the tokenizer entirely — the same
+/// prompt-construction defect fixed for llama.cpp in docs/fixes/006/007. Modern
+/// instruct models ship a Jinja `chat_template`; rendering it is what gives the
+/// model the turn structure it expects.
+#[derive(Clone)]
+struct ChatTemplate {
+    template: String,
+    bos_token: String,
+    eos_token: String,
+}
+
+impl ChatTemplate {
+    /// Load from a `tokenizer_config.json` sibling of `tokenizer.json`.
+    /// Returns `None` when the file or the `chat_template` field is absent.
+    fn load(tokenizer_path: &std::path::Path) -> Option<Self> {
+        let cfg_path = tokenizer_path.parent()?.join("tokenizer_config.json");
+        let raw = std::fs::read_to_string(cfg_path).ok()?;
+        let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+
+        // chat_template may be a string or (rarely) an array of named templates;
+        // take the string form only — the common case.
+        let template = json.get("chat_template")?.as_str()?.to_string();
+
+        let token_str = |key: &str| -> String {
+            match json.get(key) {
+                Some(serde_json::Value::String(s)) => s.clone(),
+                // Some configs express it as { "content": "<bos>", ... }.
+                Some(serde_json::Value::Object(o)) => o
+                    .get("content")
+                    .and_then(|c| c.as_str())
+                    .unwrap_or_default()
+                    .to_string(),
+                _ => String::new(),
+            }
+        };
+
+        Some(Self {
+            template,
+            bos_token: token_str("bos_token"),
+            eos_token: token_str("eos_token"),
+        })
+    }
+
+    /// Render the template for `messages`, appending the generation prompt.
+    fn render(&self, messages: &[serde_json::Value]) -> Result<String, minijinja::Error> {
+        let mut env = minijinja::Environment::new();
+        // HF templates occasionally call raise_exception(); make it a no-op-ish
+        // error so a template that uses it fails cleanly rather than at parse.
+        env.add_function("raise_exception", |msg: String| -> Result<(), minijinja::Error> {
+            Err(minijinja::Error::new(minijinja::ErrorKind::InvalidOperation, msg))
+        });
+        // HF chat templates are written for Python's Jinja and call Python str
+        // methods minijinja lacks natively (e.g. `content.strip()` in the
+        // Llama-2 template). Bridge the common ones so real templates render.
+        env.set_unknown_method_callback(
+            |_state, value, method, _args| -> Result<minijinja::Value, minijinja::Error> {
+                use minijinja::{Error, ErrorKind, Value};
+                if let Some(s) = value.as_str() {
+                    match method {
+                        "strip" => return Ok(Value::from(s.trim())),
+                        "lstrip" => return Ok(Value::from(s.trim_start())),
+                        "rstrip" => return Ok(Value::from(s.trim_end())),
+                        _ => {}
+                    }
+                }
+                Err(Error::new(
+                    ErrorKind::UnknownMethod,
+                    format!("string has no method named {method}"),
+                ))
+            },
+        );
+        env.add_template("chat", &self.template)?;
+        let tmpl = env.get_template("chat")?;
+        tmpl.render(minijinja::context! {
+            messages => messages,
+            bos_token => self.bos_token,
+            eos_token => self.eos_token,
+            add_generation_prompt => true,
+        })
+    }
 }
 
 /// Candle model wrapper implementing the [`Model`] trait.
@@ -541,6 +634,7 @@ impl CandleModels {
         device: Device,
         eos_token_id: Option<u32>,
         spec: ModelSpec,
+        chat_template: Option<ChatTemplate>,
     ) -> Self {
         let cache = candle_llama::Cache::new(false, dtype, &config, &device)
             .expect("Failed to create KV cache");
@@ -558,6 +652,7 @@ impl CandleModels {
                 tokens_generated: 0,
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
+                chat_template,
             })),
         }
     }
@@ -609,7 +704,7 @@ impl Model for CandleModels {
         let params = specs.unwrap_or_default();
         let mut inner = self.inner.lock().unwrap();
 
-        let prompt = build_prompt(&inner.tokenizer, &interaction);
+        let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
 
         let tokens = inner
             .tokenizer
@@ -746,7 +841,7 @@ impl CandleStream {
 
         let (input_ids, _prompt) = {
             let inner = model.inner.lock().unwrap();
-            let prompt = build_prompt(&inner.tokenizer, &interaction);
+            let prompt = build_prompt(inner.chat_template.as_ref(), &interaction);
             let tokens = inner
                 .tokenizer
                 .encode(prompt.as_str(), true)
@@ -923,7 +1018,76 @@ fn forward(
     }
 }
 
-fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> String {
+/// Convert an interaction to the `[{role, content}]` list HF chat templates
+/// expect, folding system_prompt + soul + tool definitions into a leading
+/// system message.
+fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
+    let mut out = Vec::new();
+
+    let mut system = match (&interaction.system_prompt, &interaction.soul) {
+        (Some(sys), Some(soul)) => format!("{sys}\n\n{soul}"),
+        (Some(sys), None) => sys.clone(),
+        (None, Some(soul)) => soul.clone(),
+        (None, None) => String::new(),
+    };
+    let tools = flatten_tools(&interaction.tools_shed);
+    if !tools.is_empty() {
+        if !system.is_empty() {
+            system.push_str("\n\n");
+        }
+        if let Some(instr) = TextBasedFormatter.tool_calling_instructions() {
+            system.push_str(&instr);
+            system.push('\n');
+        }
+        system.push_str("Available tools:\n");
+        for t in &tools {
+            let args = t
+                .arguments
+                .as_ref()
+                .and_then(|a| a.schema.get("properties"))
+                .and_then(|p| p.as_object())
+                .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
+                .unwrap_or_default();
+            system.push_str(&format!("- {}({})\n", t.name, args));
+        }
+    }
+    if !system.is_empty() {
+        out.push(serde_json::json!({"role": "system", "content": system}));
+    }
+
+    for msg in &interaction.messages {
+        let (role, content) = match msg {
+            Messages::User { content: UserModelContent::Text(t), .. } => ("user", t.content.clone()),
+            Messages::Assistant { content: ModelOutput::Text(t), .. } => {
+                ("assistant", t.content.clone())
+            }
+            Messages::ToolResult { content: UserModelContent::Text(t), .. } => {
+                ("tool", t.content.clone())
+            }
+            _ => continue,
+        };
+        out.push(serde_json::json!({"role": role, "content": content}));
+    }
+    out
+}
+
+/// Build the prompt for `interaction`, preferring the model's chat template.
+///
+/// When the model ships a chat template we render it (spec-60/S5), so an
+/// instruct model gets its trained turn structure. Only when there is no
+/// template — or rendering fails — do we fall back to the plain
+/// `System:/User:/Assistant:` transcript below.
+fn build_prompt(chat_template: Option<&ChatTemplate>, interaction: &ModelInteraction) -> String {
+    if let Some(ct) = chat_template {
+        let messages = messages_as_json(interaction);
+        match ct.render(&messages) {
+            Ok(rendered) => return rendered,
+            Err(e) => {
+                tracing::debug!("chat template render failed ({e}); using plain fallback");
+            }
+        }
+    }
+
     let mut parts = Vec::new();
 
     // System section: combine system_prompt + soul
