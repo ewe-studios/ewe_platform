@@ -186,7 +186,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 10.3 | Argument deserialization | mock | **done** |
 | 10.4 | Tool result serialization | mock | **done** |
 | 10.5 | Async tool driven to completion | mock | **done** |
-| 10.6 | Tool panic contained, not process-fatal | mock | n/a |
+| 10.6 | Tool panic contained, not process-fatal | mock | **done** |
 
 ## 11. Cross-cutting
 
@@ -225,12 +225,10 @@ These are not test gaps but discoveries recorded honestly rather than faked:
   is declared and documented but **never used** in the loop: the
   preflight-compression layer does not exist. The field is reserved; there is no
   behaviour to test. (The lighter context-pressure layer, 2.5, IS implemented.)
-- **10.6 tool panic containment** — a panicking tool is contained at the valtron
-  **worker** level (`catch_unwind`), not at the tool boundary in `execute_one`.
-  A panicking-tool test risks wedging the suite (see the
-  `valtron_worker_panic_wedges_tests` hazard), so it is not written. Adding
-  boundary-level containment (panic → `ToolError::Execution`) needs a futures
-  `catch_unwind` dependency the lib does not currently carry.
+- **10.6 tool panic containment** — RESOLVED: `execute_one` now wraps the tool
+  future in `catch_unwind` (futures-lite), so a panicking tool becomes a
+  `ToolError::Execution` the loop handles like any other failure, rather than
+  unwinding into the caller or wedging the driving task. Tested.
 - **1.18 / 4.10 tool cancellation mid-flight** — `InnerExecuting` aborts
   in-flight tools when a priority message arrives (`has_priority` → set each
   `cancel_signal`). The path exists and compiles, but mock tools execute
@@ -244,6 +242,5 @@ These are not test gaps but discoveries recorded honestly rather than faked:
   downloads a real model; covered under `live-model-tests`, not the default
   offline suite.
 
-Two of these (2.6, 10.6) are genuine implementation gaps worth a follow-up:
-wire preflight compression (or remove the reserved field), and add
-tool-boundary panic containment.
+One remains a genuine gap worth a follow-up: 2.6, wire preflight compression
+(or remove the reserved field). 10.6 is now implemented.

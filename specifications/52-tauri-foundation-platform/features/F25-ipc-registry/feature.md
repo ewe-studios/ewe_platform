@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F25-ipc-registry"
 this_file: "specifications/52-tauri-foundation-platform/features/F25-ipc-registry/feature.md"
 
-status: in-progress
+status: completed
 priority: critical
 created: 2026-07-20
 

@@ -456,3 +456,39 @@ fn get_def_returns_registered_definition() {
     assert_eq!(def.name, "echo");
     assert!(m.get_def("nope").is_none(), "unknown tool has no definition");
 }
+
+/// Matrix 10.6 — a panicking tool is contained at the boundary: execute_one
+/// returns a ToolError::Execution rather than unwinding into the caller.
+struct PanicTool;
+
+#[async_trait]
+impl ToolImpl for PanicTool {
+    fn definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: "boom".into(),
+            description: "Panics".into(),
+            arguments: Args::from_value(serde_json::json!({})),
+            category: "shell".into(),
+        }
+    }
+    async fn execute(
+        &self,
+        _arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        panic!("intentional tool panic");
+    }
+}
+
+#[test]
+fn panicking_tool_is_contained_as_error() {
+    futures_lite::future::block_on(async {
+        let m = ToolCallManager::new(SessionId::new());
+        m.register(Arc::new(PanicTool));
+        let request = req("a", "boom", vec![], ExecutionHint::Unspecified);
+        let result = m.execute_one(&request).await;
+        assert!(
+            matches!(result, Err(ToolError::Execution { .. })),
+            "a panicking tool must be contained as a ToolError, not unwind: {result:?}"
+        );
+    });
+}

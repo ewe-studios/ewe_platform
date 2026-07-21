@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F18-backend-transport"
 this_file: "specifications/52-tauri-foundation-platform/features/F18-backend-transport/feature.md"
 
-status: in-progress
+status: completed
 priority: critical
 created: 2026-07-18
 
