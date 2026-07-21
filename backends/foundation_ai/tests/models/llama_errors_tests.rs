@@ -96,3 +96,56 @@ fn remaining_source_conversions_into_llama_and_generation() {
     let g: GenerationError = StringToTokenError::from(int_err2).into();
     assert!(matches!(g, GenerationError::Llama(_)));
 }
+
+#[test]
+fn apply_chat_template_error_display_and_conversions() {
+    use infrastructure_llama_cpp::ApplyChatTemplateError;
+
+    // The ApplyChatTemplate Display arm + LlamaError wrap.
+    let le = LlamaError::from(ApplyChatTemplateError::TemplateNotApplicable(-1));
+    let rendered = format!("{le}").to_lowercase();
+    assert!(rendered.contains("apply chat template"), "Display: {le}");
+
+    // Direct From<ApplyChatTemplateError> for GenerationError.
+    let g: GenerationError = ApplyChatTemplateError::TemplateNotApplicable(-7).into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+}
+
+#[test]
+fn every_source_error_converts_into_generation_error() {
+    use infrastructure_llama_cpp::{
+        ChatTemplateError, DecodeError, EmbeddingsError, EncodeError, LlamaContextLoadError,
+        LlamaCppError, LlamaModelLoadError, TokenToStringError,
+    };
+
+    // Each direct From<SourceError> for GenerationError arm.
+    let g: GenerationError = LlamaCppError::BackendAlreadyInitialized.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = TokenToStringError::UnknownTokenType.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = DecodeError::NoKvCacheSlot.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = EncodeError::NTokensZero.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = EmbeddingsError::NotEnabled.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = ChatTemplateError::MissingTemplate.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = LlamaModelLoadError::NullResult.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+    let g: GenerationError = LlamaContextLoadError::NullReturn.into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+}
+
+#[test]
+fn source_errors_convert_into_model_errors() {
+    use infrastructure_llama_cpp::{EmbeddingsError, LlamaContextLoadError, LlamaModelLoadError};
+
+    // The direct From<SourceError> for ModelErrors arms.
+    let m: ModelErrors = LlamaModelLoadError::NullResult.into();
+    assert!(matches!(m, ModelErrors::Llama(_)));
+    let m: ModelErrors = LlamaContextLoadError::NullReturn.into();
+    assert!(matches!(m, ModelErrors::Llama(_)));
+    let m: ModelErrors = EmbeddingsError::NotEnabled.into();
+    assert!(matches!(m, ModelErrors::Llama(_)));
+}
