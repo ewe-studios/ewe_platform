@@ -131,7 +131,7 @@ Every state and every edge out of it.
 | 7.4 | Second turn answers and reuses loaded weights | both | **done** |
 | 7.5 | Concurrent sessions on one model do not corrupt each other | both | **done** |
 | 7.6 | Builder rejects invalid config (preflight) | mock | todo |
-| 7.7 | `session_id` round-trips | mock | todo |
+| 7.7 | `session_id` round-trips | mock | **done** |
 
 ## 8. Provider seam — both backends, identical weights
 
@@ -169,13 +169,13 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 9.1 | `RouterMix::primary` resolves the primary model | both | todo |
+| 9.1 | `RouterMix::primary` resolves the primary model | both | **done** |
 | 9.2 | `into_agent_builder` produces a working session | both | **done** |
-| 9.3 | Router `get_model` for an unknown id errors clearly | mock | todo |
-| 9.4 | Fallback model resolution on primary failure | mock | todo |
-| 9.5 | Memory-model routing distinct from primary | mock | todo |
+| 9.3 | Router `get_model` for an unknown id errors clearly | mock | **done** |
+| 9.4 | Fallback model resolution on primary failure | mock | **done** |
+| 9.5 | Memory-model routing distinct from primary | mock | **done** |
 | 9.6 | Preset (`Gemma4E2b`, etc.) builds its provider | real | todo |
-| 9.7 | `serves()` asymmetry rules hold across providers | mock | todo |
+| 9.7 | `serves()` asymmetry rules hold across providers | mock | **done** |
 
 ## 10. Toolbox
 
