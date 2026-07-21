@@ -194,6 +194,23 @@ fn test_candle_provider_download_smollm_safetensors() {
     }
 }
 
+/// A nonexistent repo 404s — exercises download_model's body + error mapping
+/// without a large download. Gated (needs network).
+#[cfg(feature = "external-service-tests")]
+#[test]
+fn test_candle_download_of_nonexistent_repo_errors() {
+    let _guard = init_valtron();
+    let config = HuggingFaceCandleConfig::builder()
+        .cache_dir(get_artefacts_dir(get_project_root().as_path()))
+        .build();
+    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let bad = ModelId::Name("ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(), None);
+    assert!(
+        provider.get_model(bad).is_err(),
+        "a nonexistent repo must fail to download"
+    );
+}
+
 /// Test SmolLM2 safetensors model inference via HuggingFaceCandleProvider.
 ///
 /// Downloads the model, loads it, and performs text generation.

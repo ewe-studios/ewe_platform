@@ -229,6 +229,24 @@ mod live {
     }
 
     #[valtron_test]
+    fn gguf_download_of_nonexistent_repo_errors() {
+        // A nonexistent repo 404s (no token needed) — exercises download_model's
+        // body + error mapping without a large download. Gated (needs network).
+        let config = HuggingFaceGGUFConfig::builder()
+            .cache_dir(&cache_dir())
+            .build();
+        let provider = HuggingFaceGGUFProvider::new(config).expect("provider builds");
+        let bad = ModelId::Name(
+            "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
+            Some(Quantization::Q2K),
+        );
+        assert!(
+            provider.get_model(bad).is_err(),
+            "a nonexistent repo must fail to download"
+        );
+    }
+
+    #[valtron_test]
     fn gguf_smollm_generates() {
         let Some(provider) = provider_or_skip() else {
             return;
