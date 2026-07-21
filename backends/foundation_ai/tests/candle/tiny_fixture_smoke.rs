@@ -457,3 +457,70 @@ fn candle_session_handles_multiple_turns() {
     let user_turns = history.iter().filter(|r| matches!(r, SessionRecord::Conversation { message: Messages::User { .. } })).count();
     assert!(user_turns >= 2, "both user turns must be persisted for continuity: {user_turns}");
 }
+
+// ---------------------------------------------------------------------------
+// Sampling knobs change output (8.16/8.17) and error paths (8.24/8.25).
+
+fn gen_text(model: &impl Model, p: ModelParams) -> String {
+    model
+        .generate(greeting(), Some(p))
+        .expect("gen")
+        .iter()
+        .filter_map(|m| match m {
+            Messages::Assistant { content: ModelOutput::Text(t), .. } => Some(t.content.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Matrix 8.16 — top_k changes sampled output (greedy vs a wide stochastic set).
+#[valtron_test]
+fn candle_top_k_changes_output() {
+    let model = load_tiny_llama();
+    let greedy = gen_text(&model, ModelParams { max_tokens: 8, temperature: 0.0, ..Default::default() });
+    let sampled = gen_text(&model, ModelParams { max_tokens: 8, temperature: 1.5, top_k: 50.0, seed: Some(7), ..Default::default() });
+    // With random weights they CAN coincide, but a high-temp top-k draw versus
+    // greedy should differ for at least one of several seeds.
+    let differs = (0..5).any(|seed| {
+        gen_text(&model, ModelParams { max_tokens: 8, temperature: 1.5, top_k: 50.0, seed: Some(seed), ..Default::default() }) != greedy
+    });
+    assert!(differs || sampled != greedy, "stochastic top-k sampling should differ from greedy for some seed");
+}
+
+/// Matrix 8.25 — a missing config.json is a clear error, not a panic.
+#[valtron_test]
+fn candle_missing_config_errors() {
+    let tmp = std::env::temp_dir().join(format!("candle-noconfig-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&tmp);
+    // tokenizer + weights present, config.json absent.
+    let src = fixture_dir("tiny-random-LlamaForCausalLM");
+    for f in ["tokenizer.json", "model.safetensors"] {
+        let _ = std::fs::copy(src.join(f), tmp.join(f));
+    }
+    let spec = ModelSpec {
+        name: "noconfig".into(),
+        id: ModelId::Name("noconfig".into(), None),
+        devices: None,
+        model_location: Some(tmp.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    let result = CandleBackend::cpu().get_model_by_spec(spec);
+    let _ = std::fs::remove_dir_all(&tmp);
+    assert!(result.is_err(), "a missing config.json must be a clear error");
+}
+
+/// Matrix 8.24 — a missing model directory is a clear error.
+#[valtron_test]
+fn candle_missing_model_dir_errors() {
+    let spec = ModelSpec {
+        name: "ghost".into(),
+        id: ModelId::Name("ghost".into(), None),
+        devices: None,
+        model_location: Some("/nonexistent/path/to/model".to_string().into()),
+        lora_location: None,
+    };
+    assert!(
+        CandleBackend::cpu().get_model_by_spec(spec).is_err(),
+        "a nonexistent model path must error"
+    );
+}

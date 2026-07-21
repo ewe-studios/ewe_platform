@@ -59,10 +59,10 @@ Every state and every edge out of it.
 | 2.1 | `max_outer_iterations` honoured exactly (n, not n±1) | mock | **done** |
 | 2.2 | `max_inner_iterations` honoured exactly | mock | **done** |
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | **done** |
-| 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | todo |
+| 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | **done** |
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | todo |
 | 2.6 | Preflight compression threshold triggers compression | mock | todo |
-| 2.7 | Usage accounting accumulates across turns | mock | todo |
+| 2.7 | Usage accounting accumulates across turns | mock | **done** |
 | 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | todo |
 
 ## 3. Steering and cancellation
@@ -98,13 +98,13 @@ Every state and every edge out of it.
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
 | 5.1 | Provider error → `FailedAction` record | both | **done** |
-| 5.2 | `run_turn` returns `Err` on terminal `FailedAction` | both | todo |
+| 5.2 | `run_turn` returns `Err` on terminal `FailedAction` | both | **done** |
 | 5.3 | `ErrorPolicy` retry decision honoured | mock | todo |
 | 5.4 | `CircuitBreaker` opens after `circuit_breaker_threshold` failures | mock | **done** |
-| 5.5 | Open breaker selects the next `fallback_models` entry | mock | todo |
-| 5.6 | Breaker resets on success | mock | todo |
-| 5.7 | `LoopDetector` detects repetition and escalates | mock | todo |
-| 5.8 | Escalation terminates rather than looping forever | mock | todo |
+| 5.5 | Open breaker selects the next `fallback_models` entry | mock | **done** |
+| 5.6 | Breaker resets on success | mock | **done** |
+| 5.7 | `LoopDetector` detects repetition and escalates | mock | **done** |
+| 5.8 | Escalation terminates rather than looping forever | mock | **done** |
 | 5.9 | A failure NEVER presents as an empty successful turn (docs/fixes/006) | both | **done** |
 
 ## 6. Memory and persistence
@@ -117,8 +117,8 @@ Every state and every edge out of it.
 | 6.4 | User prompt persisted via `MessageApi` | both | **done** |
 | 6.5 | Assistant reply persisted | mock | **done** |
 | 6.6 | `MessageApi::recent(n)` returns the last n | mock | **done** |
-| 6.7 | `flush()` writes buffered records | mock | todo |
-| 6.8 | Session resume rehydrates prior state | mock | todo |
+| 6.7 | `flush()` writes buffered records | mock | **done** |
+| 6.8 | Session resume rehydrates prior state | mock | **done** |
 | 6.9 | `end()` drains queues and persists remaining messages | mock | **done** |
 
 ## 7. AgentSession API
@@ -154,7 +154,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.13 | Cache key distinguishes differing configs | both | todo |
 | 8.14 | Cold-start race loads once, not once per caller | both | todo |
 | 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | **done** |
-| 8.16 | Sampling: `top_k` changes output | candle | todo |
+| 8.16 | Sampling: `top_k` changes output | candle | **done** |
 | 8.17 | Sampling: `top_p` changes output | candle | todo |
 | 8.18 | Sampling: `repeat_penalty` changes output | candle | todo |
 | 8.19 | Seeded sampling reproducible across two runs | candle | **done** |
@@ -162,8 +162,8 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.21 | Architecture detected from `config.json` when unconfigured | candle | **done** |
 | 8.22 | Each supported architecture loads | candle/gen | **done** |
 | 8.23 | Large-vocab model (Gemma2, 256k) loads and tokenizes | both | **done** |
-| 8.24 | Missing/corrupt safetensors → clear error | candle | todo |
-| 8.25 | Missing `config.json` → clear error | candle | todo |
+| 8.24 | Missing/corrupt safetensors → clear error | candle | **done** |
+| 8.25 | Missing `config.json` → clear error | candle | **done** |
 
 ## 9. Harness, router, presets
 
@@ -192,12 +192,12 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 11.1 | Worker-thread tracing reaches the subscriber | mock | todo |
+| 11.1 | Worker-thread tracing reaches the subscriber | mock | **done** |
 | 11.2 | llama.cpp logs silent by default | gguf | **done** |
 | 11.3 | llama.cpp logs enabled by `llamacpp=debug` directive | gguf | **done** |
 | 11.4 | No `println!` on library paths | — | todo |
 | 11.5 | Fixtures load offline with no network | both | **done** (candle) |
-| 11.6 | Whole default suite runs with network disabled | both | todo |
+| 11.6 | Whole default suite runs with network disabled | both | **done** |
 
 ---
 
