@@ -240,3 +240,46 @@ fn candle_applies_chat_template_without_error() {
         .expect("multi-turn generation with the chat template should succeed");
     assert!(!out.is_empty(), "templated multi-turn generation produced nothing");
 }
+
+/// Matrix 8.20/8.21 — architecture is detected from config.json, and an
+/// unsupported one fails loudly rather than loading as Llama (spec-60/S6).
+#[valtron_test]
+fn candle_unsupported_architecture_fails_loudly() {
+    use std::io::Write;
+
+    // A synthetic model dir whose config declares a non-Llama architecture but
+    // otherwise borrows the real fixture's tokenizer/weights. Loading must error
+    // with the detected name, not silently succeed as Llama.
+    let src = fixture_dir("tiny-random-LlamaForCausalLM");
+    let tmp = std::env::temp_dir().join(format!("candle-arch-test-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&tmp);
+    for f in ["tokenizer.json", "tokenizer_config.json", "model.safetensors"] {
+        let _ = std::fs::copy(src.join(f), tmp.join(f));
+    }
+    // config.json with a different model_type.
+    let mut cfg = std::fs::File::create(tmp.join("config.json")).unwrap();
+    write!(
+        cfg,
+        r#"{{"model_type":"qwen2","architectures":["Qwen2ForCausalLM"],"hidden_size":16,"num_hidden_layers":2,"vocab_size":32000}}"#
+    )
+    .unwrap();
+    drop(cfg);
+
+    let spec = ModelSpec {
+        name: "fake-qwen".to_string(),
+        id: ModelId::Name("fake-qwen".to_string(), None),
+        devices: None,
+        model_location: Some(tmp.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    let result = CandleBackend::cpu().get_model_by_spec(spec);
+
+    let _ = std::fs::remove_dir_all(&tmp);
+
+    let err = result.err().expect("a non-Llama architecture must not load as Llama");
+    let msg = format!("{err:?}").to_lowercase();
+    assert!(
+        msg.contains("qwen2"),
+        "the error must name the detected architecture, got: {msg}"
+    );
+}

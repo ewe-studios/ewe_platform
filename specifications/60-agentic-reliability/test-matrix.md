@@ -158,8 +158,8 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.17 | Sampling: `top_p` changes output | candle | todo |
 | 8.18 | Sampling: `repeat_penalty` changes output | candle | todo |
 | 8.19 | Seeded sampling reproducible across two runs | candle | **done** |
-| 8.20 | Unsupported architecture fails loudly, no silent Llama fallback | candle | todo |
-| 8.21 | Architecture detected from `config.json` when unconfigured | candle | todo |
+| 8.20 | Unsupported architecture fails loudly, no silent Llama fallback | candle | **done** |
+| 8.21 | Architecture detected from `config.json` when unconfigured | candle | **done** |
 | 8.22 | Each supported architecture loads | candle/gen | todo |
 | 8.23 | Large-vocab model (Gemma2, 256k) loads and tokenizes | both | todo |
 | 8.24 | Missing/corrupt safetensors → clear error | candle | todo |

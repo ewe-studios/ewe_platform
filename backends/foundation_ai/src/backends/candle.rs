@@ -401,6 +401,24 @@ fn load_from_local(
     )
 }
 
+/// Detect the model architecture from `config.json`'s `model_type` /
+/// `architectures`, so a caller need not know a repo is Llama vs Qwen.
+///
+/// Returns the lowercased architecture name (e.g. `"llama"`, `"qwen2"`).
+fn detect_architecture(config_path: &std::path::Path) -> Option<String> {
+    let raw = std::fs::read_to_string(config_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    if let Some(mt) = json.get("model_type").and_then(|v| v.as_str()) {
+        return Some(mt.to_lowercase());
+    }
+    // Fall back to the `architectures` array, e.g. ["LlamaForCausalLM"].
+    json.get("architectures")
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.first())
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_lowercase())
+}
+
 fn build_candle_model(
     config_path: &std::path::Path,
     tokenizer_path: &std::path::Path,
@@ -410,19 +428,28 @@ fn build_candle_model(
     architecture: &CandleArchitecture,
     spec: ModelSpec,
 ) -> ModelProviderResult<CandleModels> {
-    match architecture {
-        CandleArchitecture::Llama => build_llama_model(
-            config_path,
-            tokenizer_path,
-            weights_files,
-            dtype,
-            device,
-            spec,
-        ),
-        CandleArchitecture::Custom(name) => Err(ModelProviderErrors::ModelErrors(
-            ModelErrors::UnsupportedArchitecture(name.clone()),
-        )),
+    // An explicit config override wins; otherwise detect from the model files.
+    let detected = detect_architecture(config_path);
+    let arch = match architecture {
+        CandleArchitecture::Custom(name) => name.to_lowercase(),
+        CandleArchitecture::Llama => detected
+            .clone()
+            .unwrap_or_else(|| "llama".to_string()),
+    };
+
+    // Llama-family names candle's llama loader handles.
+    if arch.contains("llama") {
+        return build_llama_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
     }
+
+    // Unsupported: fail loudly with the DETECTED name, never silently load as
+    // Llama (which would produce garbage that looks like a bad model rather than
+    // a missing implementation). Supported set grows as loaders are added.
+    Err(ModelProviderErrors::ModelErrors(
+        ModelErrors::UnsupportedArchitecture(format!(
+            "{arch} (detected from config.json; candle backend currently supports: llama)"
+        )),
+    ))
 }
 
 fn build_llama_model(
