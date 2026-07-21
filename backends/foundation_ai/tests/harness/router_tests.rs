@@ -257,6 +257,75 @@ fn preset_session_bridge_builds_offline() {
 }
 
 // ---------------------------------------------------------------------------
+// Every *_session preset wrapper builds an AgentSession offline (covers the
+// thin `X_router(..)?.into_agent_builder(session_id)` wrappers in agents.rs).
+
+#[test]
+fn all_session_presets_build_offline() {
+    use foundation_ai::agentic::{AgentSession, AgentSessionBuilder, KvMemoryStore};
+    use foundation_ai::harness::{
+        claude_session, glm52_gemma_session, openai_chat_session, openai_responses_session,
+        qwen36_gemma_session,
+    };
+    use foundation_ai::types::SessionId;
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    type D = MemoryDocumentStore;
+    type M = KvMemoryStore<MemoryStorage>;
+
+    fn built(builder: AgentSessionBuilder<D, M>) -> AgentSession<D, M> {
+        builder.build().expect("session builds")
+    }
+
+    // GGUF-backed presets (throwaway configs → no download at construction).
+    built(
+        glm52_gemma_session::<D, M>(
+            SessionId::new(),
+            Some(throwaway_gguf_config()),
+            Some(throwaway_gguf_config()),
+        )
+        .expect("glm52_gemma_session builds"),
+    );
+    built(
+        qwen36_gemma_session::<D, M>(
+            SessionId::new(),
+            Some(throwaway_gguf_config()),
+            Some(throwaway_gguf_config()),
+        )
+        .expect("qwen36_gemma_session builds"),
+    );
+
+    // Cloud presets (dummy key; no network at construction).
+    built(claude_session::<D, M>(SessionId::new(), "test-key").expect("claude_session builds"));
+    built(
+        openai_chat_session::<D, M>(SessionId::new(), "test-key")
+            .expect("openai_chat_session builds"),
+    );
+    built(
+        openai_responses_session::<D, M>(SessionId::new(), "test-key")
+            .expect("openai_responses_session builds"),
+    );
+}
+
+#[cfg(feature = "candle")]
+#[test]
+fn candle_llama_session_builds_offline() {
+    use foundation_ai::agentic::{AgentSession, KvMemoryStore};
+    use foundation_ai::harness::candle_llama_session;
+    use foundation_ai::types::SessionId;
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    let builder = candle_llama_session::<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>(
+        SessionId::new(),
+        "HuggingFaceTB/SmolLM2-135M",
+        None,
+    )
+    .expect("candle_llama_session builds");
+    let _session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
+        builder.build().expect("session builds");
+}
+
+// ---------------------------------------------------------------------------
 // Every quantization constructor of every GGUF preset builds offline.
 // Covers harness/providers.rs per-preset q3/q4/q5/q8 methods (was ~40%).
 

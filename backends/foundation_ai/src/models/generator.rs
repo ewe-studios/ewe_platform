@@ -1599,4 +1599,122 @@ mod tests {
             assert!(!by_id.is_empty());
         }
     }
+
+    #[test]
+    fn models_dev_helpers() {
+        // dev_cost: None → zeros; Some → the four cost fields.
+        assert_eq!(dev_cost(None), (0.0, 0.0, 0.0, 0.0));
+        let c = ModelsDevCost {
+            input: Some(1.0),
+            output: Some(2.0),
+            cache_read: Some(0.5),
+            cache_write: Some(3.0),
+        };
+        assert_eq!(dev_cost(Some(&c)), (1.0, 2.0, 0.5, 3.0));
+
+        // ctx / max_tok fall back to the default when the limit is absent.
+        assert_eq!(ctx(None, 4096), 4096);
+        assert_eq!(max_tok(None, 2048), 2048);
+        let limit = ModelsDevLimit {
+            context: Some(128_000),
+            output: Some(8192),
+        };
+        assert_eq!(ctx(Some(&limit), 1), 128_000);
+        assert_eq!(max_tok(Some(&limit), 1), 8192);
+
+        // pricing_val handles number, numeric string, and non-numeric.
+        assert!((pricing_val(Some(&serde_json::json!(1.5))) - 1.5).abs() < 1e-9);
+        assert!((pricing_val(Some(&serde_json::json!("2.5"))) - 2.5).abs() < 1e-9);
+        assert_eq!(pricing_val(Some(&serde_json::json!("x"))), 0.0);
+        assert_eq!(pricing_val(None), 0.0);
+
+        // has_image: only true when "image" is among the input modalities.
+        let with_image = ModelsDevModalities {
+            input: Some(vec!["text".to_string(), "image".to_string()]),
+        };
+        assert!(has_image(Some(&with_image)));
+        assert!(!has_image(None));
+    }
+
+    #[test]
+    fn from_dev_builds_entry_from_models_dev_shape() {
+        let m: ModelsDevModel = serde_json::from_value(serde_json::json!({
+            "name": "Test Model",
+            "reasoning": true,
+            "limit": {"context": 32000, "output": 4000},
+            "cost": {"input": 1.0, "output": 2.0},
+            "modalities": {"input": ["text", "image"]}
+        }))
+        .expect("models.dev model parses");
+
+        let e = from_dev("vendor/test", &m, "anthropic-messages", "anthropic", "https://x", 1, 1);
+        assert_eq!(e.id, "vendor/test");
+        assert_eq!(e.name, "Test Model");
+        assert!(e.reasoning);
+        assert!(e.has_image_input);
+        assert_eq!(e.context_window, 32000);
+        assert_eq!(e.max_tokens, 4000);
+        assert!((e.cost_input - 1.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn apply_overrides_adds_known_fallbacks() {
+        // Starting from an empty catalog, apply_overrides must inject the
+        // hard-coded fallback entries (e.g. Claude Opus 4.6).
+        let mut models: Vec<ModelEntry> = Vec::new();
+        apply_overrides(&mut models);
+        assert!(has(&models, "anthropic", "claude-opus-4-6"), "fallback injected");
+        assert!(!models.is_empty());
+
+        // The `has()`-guarded fallback push is not duplicated on a second pass
+        // (apply_overrides runs once in the real pipeline; only the guarded
+        // pushes are idempotent).
+        apply_overrides(&mut models);
+        let opus_46 = models
+            .iter()
+            .filter(|m| m.provider == "anthropic" && m.id == "claude-opus-4-6")
+            .count();
+        assert_eq!(opus_46, 1, "guarded fallback is not duplicated");
+    }
+
+    #[test]
+    fn generate_provider_file_emits_descriptor_rust() {
+        let mut by_id: BTreeMap<String, ModelEntry> = BTreeMap::new();
+        by_id.insert(
+            "m1".to_string(),
+            entry(
+                "m1",
+                "Model One",
+                "anthropic-messages",
+                "anthropic",
+                "https://api.anthropic.com",
+                true,
+                true,
+                (1.0, 2.0, 0.0, 0.0),
+                200_000,
+                8192,
+            ),
+        );
+        let src = generate_provider_file("anthropic", &by_id);
+        assert!(src.contains("pub static MODELS"), "emits the MODELS slice");
+        assert!(src.contains("ModelProviderDescriptor"));
+        assert!(src.contains("\"m1\""), "includes the model id");
+        assert!(src.contains("MessageType::TextAndImages"), "image input rendered");
+        assert!(src.contains("ModelAPI::AnthropicMessages"));
+    }
+
+    #[test]
+    fn generate_providers_mod_lists_each_provider() {
+        let mut providers: BTreeMap<String, BTreeMap<String, ModelEntry>> = BTreeMap::new();
+        let mut anthropic: BTreeMap<String, ModelEntry> = BTreeMap::new();
+        anthropic.insert(
+            "m1".to_string(),
+            entry("m1", "M1", "anthropic-messages", "anthropic", "", false, false,
+                  (0.0, 0.0, 0.0, 0.0), 1000, 500),
+        );
+        providers.insert("anthropic".to_string(), anthropic);
+
+        let src = generate_providers_mod(&providers);
+        assert!(src.contains("anthropic"), "references the provider module");
+    }
 }
