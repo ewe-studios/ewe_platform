@@ -58,7 +58,7 @@ Every state and every edge out of it.
 |---|-----------|------|--------|
 | 2.1 | `max_outer_iterations` honoured exactly (n, not n±1) | mock | **done** |
 | 2.2 | `max_inner_iterations` honoured exactly | mock | **done** |
-| 2.3 | `TokenLedger` exhaustion stops generation | mock | todo |
+| 2.3 | `TokenLedger` exhaustion stops generation | mock | **done** |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | todo |
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | todo |
 | 2.6 | Preflight compression threshold triggers compression | mock | todo |
@@ -72,10 +72,10 @@ Every state and every edge out of it.
 | 3.1 | `steer()` injects priority, interrupts current work | mock | **done** |
 | 3.2 | `follow_up()` queues, processed after current work | mock | **done** |
 | 3.3 | Priority drains before follow-up in the same boundary | mock | **done** |
-| 3.4 | `CancelCode::PauseForPriority` set on priority push | mock | todo |
+| 3.4 | `CancelCode::PauseForPriority` set on priority push | mock | **done** |
 | 3.5 | `CancelCode::Abort` terminates the loop | mock | todo |
-| 3.6 | `reset_cancel()` clears the signal after handling | mock | todo |
-| 3.7 | Queues are shared (push before schedule is seen by the loop) | mock | todo |
+| 3.6 | `reset_cancel()` clears the signal after handling | mock | **done** |
+| 3.7 | Queues are shared (push before schedule is seen by the loop) | mock | **done** |
 | 3.8 | Multi-turn: follow-up continues the same session context | both | todo |
 
 ## 4. Tools
