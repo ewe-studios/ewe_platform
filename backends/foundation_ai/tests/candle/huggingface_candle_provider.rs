@@ -91,6 +91,30 @@ fn test_candle_provider_describe() {
     assert!(!descriptor.reasoning);
 }
 
+/// Config builder chain + Clone (offline, no network).
+#[test]
+fn test_candle_config_builder_full_chain_and_clone() {
+    use foundation_ai::backends::candle::CandleArchitecture;
+
+    let config = HuggingFaceCandleConfig::builder()
+        .hf_token("hf_test")
+        .cache_dir("/tmp/candle-cache")
+        .context_length(768)
+        .dtype(CandleDType::F16)
+        .architecture(CandleArchitecture::Llama)
+        .build();
+
+    assert_eq!(config.context_length, 768);
+    assert_eq!(config.dtype, CandleDType::F16);
+    assert_eq!(config.architecture, CandleArchitecture::Llama);
+    assert!(config.auth.is_some());
+
+    // Exercise the manual Clone impl.
+    let cloned = config.clone();
+    assert_eq!(cloned.context_length, config.context_length);
+    assert_eq!(cloned.dtype, config.dtype);
+}
+
 /// Test downloading SmolLM2 safetensors model from HuggingFace Hub.
 ///
 /// Uses `HuggingFaceTB/SmolLM2-135M` — a small model (~270MB safetensors).

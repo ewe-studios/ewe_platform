@@ -58,6 +58,65 @@ fn gguf_provider_parses_model_ids() {
 }
 
 #[valtron_test]
+fn gguf_provider_parses_quantization_enum_and_revision() {
+    let provider = HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default()).unwrap();
+
+    // A ModelId Quantization enum takes priority and maps to GGUF filename form.
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("some/repo".to_string(), Some(Quantization::Q2K)))
+        .expect("parses with enum quant");
+    assert_eq!(parsed.repo_id, "some/repo");
+    assert_eq!(parsed.quantization, Some("Q2_K".to_string()));
+
+    let parsed = provider
+        .parse_model_id(&ModelId::Name(
+            "some/repo".to_string(),
+            Some(Quantization::Q4_KM),
+        ))
+        .expect("parses with enum quant");
+    assert_eq!(parsed.quantization, Some("Q4_K_M".to_string()));
+
+    // repo:<not-a-quant> is treated as a revision, not a quantization.
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("some/repo:v2-branch".to_string(), None))
+        .expect("parses repo:revision");
+    assert_eq!(parsed.repo_id, "some/repo");
+    assert_eq!(parsed.revision, "v2-branch");
+}
+
+#[valtron_test]
+fn gguf_quantization_filename_pattern() {
+    assert_eq!(
+        HuggingFaceGGUFProvider::quantization_to_filename_pattern("q4_k_m"),
+        "*Q4_K_M.gguf"
+    );
+    assert_eq!(
+        HuggingFaceGGUFProvider::quantization_to_filename_pattern("q2_k"),
+        "*Q2_K.gguf"
+    );
+}
+
+#[valtron_test]
+fn gguf_config_builder_full_chain_and_clone() {
+    use foundation_ai::backends::llamacpp::LlamaBackends;
+
+    let config = HuggingFaceGGUFConfig::builder()
+        .token("hf_xxx")
+        .cache_dir("/tmp/gguf-cache")
+        .default_quantization("Q4_K_M")
+        .n_gpu_layers(10)
+        .n_threads(3usize)
+        .context_length(1024usize)
+        .llama_backend(LlamaBackends::LLamaCPU)
+        .build();
+
+    assert_eq!(config.default_quantization, Some("Q4_K_M".to_string()));
+    // Clone preserves the config (exercises the manual Clone impl).
+    let cloned = config.clone();
+    assert_eq!(cloned.default_quantization, config.default_quantization);
+}
+
+#[valtron_test]
 fn gguf_provider_describes_itself() {
     let config = HuggingFaceGGUFConfig::default();
     let provider = HuggingFaceGGUFProvider::new(config).unwrap();
