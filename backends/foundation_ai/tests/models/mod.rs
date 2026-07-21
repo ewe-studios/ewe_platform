@@ -4,6 +4,7 @@ mod costing_tests;
 mod base_errors_tests;
 mod base_types_coverage_tests;
 mod base_types_tests;
+mod enum_fallback_tests;
 mod error_types_tests;
 mod llama_errors_tests;
 mod errors_tests;
