@@ -176,3 +176,78 @@ fn gguf_router_routes_main_and_memory_and_rejects_unknown() {
         "unknown model must not resolve"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Preset builders (offline) — glm52 / qwen36 / gemma / candle_llama presets and
+// their session bridges construct without any download. Coverage for
+// harness/agents.rs (was ~33%).
+
+use foundation_ai::harness::{
+    candle_llama_router, gemma_router, glm52_gemma_router, qwen36_gemma_router, Gemma4E2b, Gemma4_26b,
+    Glm52, Qwen36,
+};
+
+#[test]
+fn glm52_preset_wires_primary_and_memory() {
+    let preset = glm52_gemma_router(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
+        .expect("glm52 preset builds offline");
+    assert_eq!(preset.primary_model, named(Glm52::MODEL_ID));
+    assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
+}
+
+#[test]
+fn qwen36_preset_wires_primary_and_memory() {
+    let preset = qwen36_gemma_router(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
+        .expect("qwen36 preset builds offline");
+    assert_eq!(preset.primary_model, named(Qwen36::MODEL_ID));
+    assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
+}
+
+#[test]
+fn gemma_preset_wires_primary_and_memory() {
+    let preset = gemma_router(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
+        .expect("gemma preset builds offline");
+    assert_eq!(preset.primary_model, named(Gemma4_26b::MODEL_ID));
+    assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
+}
+
+#[test]
+fn candle_llama_preset_has_primary_and_no_memory() {
+    let preset = candle_llama_router("HuggingFaceTB/SmolLM2-135M", None)
+        .expect("candle preset builds offline");
+    assert_eq!(preset.primary_model, named("HuggingFaceTB/SmolLM2-135M"));
+    assert!(
+        preset.memory_model.is_none(),
+        "a single-model candle preset has no memory model"
+    );
+}
+
+#[test]
+fn gemma_preset_rejects_unknown_model() {
+    let preset = gemma_router(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
+        .expect("builds");
+    // An unknown model must not resolve to any provider. (BoxModel is not Debug,
+    // so match on the Result rather than formatting it.)
+    assert!(
+        preset.router.get_model(&named("nobody/serves-this")).is_err(),
+        "an unknown model must not resolve"
+    );
+}
+
+#[test]
+fn preset_session_bridge_builds_offline() {
+    use foundation_ai::agentic::{AgentSession, KvMemoryStore};
+    use foundation_ai::harness::gemma_session;
+    use foundation_ai::types::SessionId;
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    let builder = gemma_session::<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>(
+        SessionId::from_name("harness-test"),
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+    )
+    .expect("session bridge builds offline");
+    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
+        builder.build().expect("session builds");
+    assert_eq!(*session.session_id(), SessionId::from_name("harness-test"));
+}
