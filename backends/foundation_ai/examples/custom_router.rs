@@ -13,14 +13,12 @@
 //!   --example custom_router --features agentic
 //! ```
 
-use foundation_ai::agentic::KvMemoryStore;
+use foundation_ai::agentic::{AgentConfig, KvMemoryStore};
 use foundation_ai::harness::{
     CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O,
 };
-use foundation_ai::types::{MessageRole, Messages, ModelId, SessionId, TextContent, UserModelContent};
-use foundation_ai::{
-    agentic::{AgentConfig, AgentSession, KvMemoryStore},
-    types::ToolShed,
+use foundation_ai::types::{
+    MessageRole, Messages, ModelId, SessionId, TextContent, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;

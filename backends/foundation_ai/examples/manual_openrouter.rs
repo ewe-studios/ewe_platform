@@ -14,8 +14,8 @@
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ProviderRouter, RoutableProviderBox, RoutingRule, SessionId,
-    TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
+    RoutingRule, SessionId, TextContent, UserModelContent,
 };
 use foundation_ai::{
     agentic::{AgentConfig, AgentSession, KvMemoryStore},
@@ -50,7 +50,7 @@ fn build_openrouter_router(
         .add_provider(Box::new(RoutableProviderBox::with_identity(
             make_provider(),
             primary_model.to_string(),
-            "openai-completions".to_string(),
+            ModelProviders::OPENROUTER,
         )))
         .rule(RoutingRule {
             model: ModelId::Name(primary_model.to_string(), None),
@@ -62,7 +62,7 @@ fn build_openrouter_router(
             .add_provider(Box::new(RoutableProviderBox::with_identity(
                 make_provider(),
                 mem.to_string(),
-                "openai-completions".to_string(),
+                ModelProviders::OPENROUTER,
             )))
             .rule(RoutingRule {
                 model: ModelId::Name(mem.to_string(), None),
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .count();
 
     assert!(
-        generation_count > 0,
+        conversation_count > 0,
         "Expected at least one generation record from OpenRouter but got none. Records: {records:#?}"
     );
 

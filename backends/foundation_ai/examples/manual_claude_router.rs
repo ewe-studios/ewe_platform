@@ -14,8 +14,8 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ProviderRouter, RoutableProviderBox, RoutingRule, SessionId,
-    TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
+    RoutingRule, SessionId, TextContent, UserModelContent,
 };
 use foundation_ai::{
     agentic::{AgentConfig, AgentSession, KvMemoryStore},
@@ -49,13 +49,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // provider_id = from descriptor (anthropic-messages)
     let main_box = RoutableProviderBox::with_identity(
         main_provider,
-        "claude-opus-4-8".into(),
-        "anthropic-messages".into(),
+        "claude-opus-4-8",
+        ModelProviders::ANTHROPIC,
     );
     let memory_box = RoutableProviderBox::with_identity(
         memory_provider,
-        "claude-sonnet-4-6".into(),
-        "anthropic-messages".into(),
+        "claude-sonnet-4-6",
+        ModelProviders::ANTHROPIC,
     );
 
     // --- Step 3: Build router with explicit rules ---

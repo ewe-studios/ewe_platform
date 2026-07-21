@@ -16,12 +16,12 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use foundation_ai::agentic::tool_impl::{
-    ToolCallManager, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+    ToolCallResult, ToolDefinition, ToolError, ToolImpl,
 };
 use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness;
 use foundation_ai::types::{
-    ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, ToolShed, UserModelContent,
+    ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;

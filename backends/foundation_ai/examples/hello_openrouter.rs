@@ -15,13 +15,9 @@
 use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
+use foundation_ai::agentic::AgentConfig;
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ProviderRouter, RoutableProviderBox, SessionId, TextContent,
-    UserModelContent,
-};
-use foundation_ai::{
-    agentic::{AgentSession, AgentConfig},
-    types::{ModelId, ToolShed},
+    MessageRole, Messages, ModelId, SessionId, TextContent, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
