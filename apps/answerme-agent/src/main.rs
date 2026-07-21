@@ -71,8 +71,14 @@ fn model_dir() -> PathBuf {
 // why the model-loader dump and per-tensor `repack:` spam kept flooding the
 // REPL. `llama-cpp-2=off` is the directive that actually works.
 // Regression-locked by infrastructure/llama-cpp/tests/log_filtering.rs.
-// To see the native logs again, use `llama-cpp-2=debug` (or RUST_LOG, which
-// overrides this directive entirely).
+//
+// To see the native logs again, change `llama-cpp-2=off` to `llama-cpp-2=debug`
+// here and rebuild. RUST_LOG will NOT do it: `try_init_tracing_with` only reads
+// RUST_LOG when no explicit `tracing = "..."` is given (foundation_compact/src/
+// trace/mod.rs — `Some(s) => EnvFilter::new(s)`, `None => try_from_default_env`),
+// and this entry point always supplies one. Measured on the shipped directive:
+// 11 stderr lines, 0 from llama.cpp; flipped to `=debug`: 1214 lines, 1200 of
+// them the model-loader metadata dump.
 #[valtron(
     tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off",
     tracing_targets = true,
