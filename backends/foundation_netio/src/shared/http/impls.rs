@@ -605,6 +605,56 @@ impl core::fmt::Display for Proto {
 
 pub type SimpleHeaders = BTreeMap<SimpleHeader, Vec<String>>;
 
+/// A logging-safe view of [`SimpleHeaders`] with sensitive values redacted.
+///
+/// WHY: request/response header logging previously wrote every header value
+/// with `{:?}`, so a `Bearer <token>` in `Authorization` (HuggingFace, OpenAI,
+/// Anthropic, …) — or a `Cookie` / `X-Api-Key` — landed in plaintext wherever
+/// that tracing was enabled. Credentials must never reach logs. `Debug` on this
+/// wrapper renders the same map but replaces the values of sensitive headers
+/// with `[REDACTED]`, so callers just wrap: `tracing::info!("… {:?}",
+/// RedactedHeaders(&headers))`.
+pub struct RedactedHeaders<'a>(pub &'a SimpleHeaders);
+
+impl SimpleHeader {
+    /// Whether this header's value carries a credential and must be redacted in
+    /// logs. Custom headers are matched case-insensitively on common names.
+    #[must_use]
+    pub fn is_sensitive(&self) -> bool {
+        match self {
+            SimpleHeader::AUTHORIZATION
+            | SimpleHeader::PROXY_AUTHORIZATION
+            | SimpleHeader::COOKIE
+            | SimpleHeader::SET_COOKIE => true,
+            SimpleHeader::Custom(name) => {
+                let n = name.to_ascii_lowercase();
+                n == "x-api-key"
+                    || n == "api-key"
+                    || n == "x-auth-token"
+                    || n == "x-amz-security-token"
+                    || n.contains("secret")
+                    || n.contains("token")
+                    || n.contains("password")
+            }
+            _ => false,
+        }
+    }
+}
+
+impl core::fmt::Debug for RedactedHeaders<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut map = f.debug_map();
+        for (header, values) in self.0 {
+            if header.is_sensitive() {
+                map.entry(header, &"[REDACTED]");
+            } else {
+                map.entry(header, values);
+            }
+        }
+        map.finish()
+    }
+}
+
 /// `is_sub_set_of_other_header` returns True if the `SimpleHeaders` is a subset of the
 /// other headers in `other`.
 #[must_use]
@@ -4328,7 +4378,7 @@ where
 
                 let headers = match header_reader.parse_headers() {
                     Ok(header) => {
-                        tracing::trace!("Response headers: {:?}", &header,);
+                        tracing::trace!("Response headers: {:?}", RedactedHeaders(&header));
                         header
                     }
                     // No data yet on a non-blocking transport: keep `Headers` state

@@ -1,8 +1,8 @@
 //! OpenAI-compatible HTTP provider for connecting to `OpenAI`, llama.cpp server,
 //! vLLM, `Ollama`, `OpenRouter`, and any `OpenAI`-compatible endpoint.
 //!
-//! Uses `foundation_core::simple_http` for HTTP I/O with Valtron `TaskIterator`/`StreamIterator`
-//! patterns — no tokio, no async-trait.
+//! Uses `foundation_netio`'s `HttpClient` (`NativeHttpClient`) for HTTP I/O with
+//! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
