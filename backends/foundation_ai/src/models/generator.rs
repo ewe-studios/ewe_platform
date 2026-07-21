@@ -1589,6 +1589,163 @@ mod tests {
         assert!(parse_openrouter_response("not json", "test").is_empty());
     }
 
+    // -----------------------------------------------------------------
+    // parse_models_dev_response — the opencode/models.dev catalog
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn parse_models_dev_keeps_only_tool_capable_non_deprecated() {
+        // The catalog carries models we must not ship: no tool support (the
+        // agent loop needs it) and deprecated ones (they 404 later).
+        let body = r#"{"openai":{"models":{
+            "good":       {"tool_call":true,  "name":"Good"},
+            "no-tools":   {"tool_call":false, "name":"No Tools"},
+            "unset":      {"name":"Unset"},
+            "deprecated": {"tool_call":true,  "status":"deprecated", "name":"Old"}
+        }}}"#;
+        let models = parse_models_dev_response(body, "test");
+        assert_eq!(
+            models.len(),
+            1,
+            "only the tool-capable, non-deprecated model survives: {models:?}"
+        );
+    }
+
+    #[test]
+    fn parse_models_dev_maps_npm_package_to_api_and_base_url() {
+        // The npm package identifies which wire protocol the model speaks;
+        // getting this wrong points a model at the wrong API shape.
+        let body = r#"{"openai":{"models":{
+            "resp":   {"tool_call":true, "provider":{"npm":"@ai-sdk/openai"}},
+            "claude": {"tool_call":true, "provider":{"npm":"@ai-sdk/anthropic"}},
+            "gemini": {"tool_call":true, "provider":{"npm":"@ai-sdk/google"}},
+            "other":  {"tool_call":true, "provider":{"npm":"@ai-sdk/mystery"}}
+        }}}"#;
+        let models = parse_models_dev_response(body, "test");
+        assert_eq!(models.len(), 4, "all four are tool-capable");
+
+        let api_of = |id: &str| {
+            models
+                .iter()
+                .find(|m| m.id == id)
+                .unwrap_or_else(|| panic!("{id} missing from {models:?}"))
+                .api
+                .clone()
+        };
+        assert_eq!(api_of("resp"), "openai-responses");
+        assert_eq!(api_of("claude"), "anthropic-messages");
+        assert_eq!(api_of("gemini"), "google-generative-ai");
+        assert_eq!(
+            api_of("other"),
+            "openai-completions",
+            "an unknown npm package must fall back to the OpenAI-compatible API"
+        );
+    }
+
+    #[test]
+    fn parse_models_dev_ignores_providers_other_than_openai() {
+        // The parser only reads the `openai` key; a payload without it yields
+        // nothing rather than mis-attributing models.
+        let body = r#"{"anthropic":{"models":{"x":{"tool_call":true}}}}"#;
+        assert!(parse_models_dev_response(body, "test").is_empty());
+    }
+
+    #[test]
+    fn parse_models_dev_bad_json_is_empty() {
+        assert!(parse_models_dev_response("not json", "test").is_empty());
+    }
+
+    #[test]
+    fn parse_models_dev_empty_object_is_empty() {
+        assert!(parse_models_dev_response("{}", "test").is_empty());
+    }
+
+    // -----------------------------------------------------------------
+    // parse_ai_gateway_response — the Vercel AI Gateway catalog
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn parse_ai_gateway_keeps_only_tool_use_tagged() {
+        let body = r#"{"data":[
+            {"id":"v/with","name":"With","tags":["tool-use"],"context_window":8192},
+            {"id":"v/without","name":"Without","tags":["chat"],"context_window":8192},
+            {"id":"v/untagged","name":"Untagged","context_window":8192}
+        ]}"#;
+        let models = parse_ai_gateway_response(body, "test");
+        assert_eq!(
+            models.len(),
+            1,
+            "only the tool-use tagged model survives: {models:?}"
+        );
+        assert_eq!(models[0].id, "v/with");
+    }
+
+    #[test]
+    fn parse_ai_gateway_reads_reasoning_and_vision_tags() {
+        let body = r#"{"data":[
+            {"id":"v/full","name":"Full","tags":["tool-use","reasoning","vision"]},
+            {"id":"v/plain","name":"Plain","tags":["tool-use"]}
+        ]}"#;
+        let models = parse_ai_gateway_response(body, "test");
+        assert_eq!(models.len(), 2);
+
+        let full = models.iter().find(|m| m.id == "v/full").expect("v/full");
+        let plain = models.iter().find(|m| m.id == "v/plain").expect("v/plain");
+        assert!(full.reasoning, "the reasoning tag must set the flag");
+        assert!(!plain.reasoning, "absence of the tag must leave it unset");
+    }
+
+    #[test]
+    fn parse_ai_gateway_falls_back_to_id_when_name_is_absent() {
+        let body = r#"{"data":[{"id":"v/anon","tags":["tool-use"]}]}"#;
+        let models = parse_ai_gateway_response(body, "test");
+        assert_eq!(models.len(), 1);
+        assert_eq!(
+            models[0].name, "v/anon",
+            "a missing name must fall back to the id, never empty"
+        );
+    }
+
+    #[test]
+    fn parse_ai_gateway_applies_context_and_token_defaults() {
+        // Missing limits must not become 0 — a 0 context window would make the
+        // model unusable rather than merely conservatively sized.
+        let body = r#"{"data":[{"id":"v/bare","tags":["tool-use"]}]}"#;
+        let models = parse_ai_gateway_response(body, "test");
+        assert_eq!(models[0].context_window, 4096);
+        assert_eq!(models[0].max_tokens, 4096);
+    }
+
+    #[test]
+    fn parse_ai_gateway_scales_pricing_to_per_million() {
+        // Gateway prices are per-token; descriptors are per-million. A missing
+        // multiplication here understates cost by 1e6.
+        let body = r#"{"data":[{"id":"v/priced","tags":["tool-use"],
+            "pricing":{"input":"0.000001","output":"0.000002"}}]}"#;
+        let models = parse_ai_gateway_response(body, "test");
+        assert_eq!(models.len(), 1);
+        assert!(
+            (models[0].cost_input - 1.0).abs() < 1e-9,
+            "0.000001/token must scale to 1.0/M, got {}",
+            models[0].cost_input
+        );
+        assert!(
+            (models[0].cost_output - 2.0).abs() < 1e-9,
+            "0.000002/token must scale to 2.0/M, got {}",
+            models[0].cost_output
+        );
+    }
+
+    #[test]
+    fn parse_ai_gateway_bad_json_is_empty() {
+        assert!(parse_ai_gateway_response("not json", "test").is_empty());
+    }
+
+    #[test]
+    fn parse_ai_gateway_empty_data_is_empty() {
+        assert!(parse_ai_gateway_response(r#"{"data":[]}"#, "test").is_empty());
+    }
+
     #[test]
     fn deduplicate_groups_by_provider_and_id() {
         let models = static_codex_models();
