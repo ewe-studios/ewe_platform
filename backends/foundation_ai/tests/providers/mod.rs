@@ -2,6 +2,7 @@ mod anthropic_messages_provider;
 mod embedding_provider_tests;
 mod huggingface_gguf_provider;
 mod llamacpp_fixture;
+mod openai_message_shapes_tests;
 mod openai_provider;
 mod provider_catalog_tests;
 mod provider_credentials_tests;
