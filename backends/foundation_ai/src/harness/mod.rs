@@ -51,6 +51,7 @@
 pub mod agents;
 pub mod providers;
 pub mod router;
+pub mod tools;
 
 pub use providers::{
     with_mtp, CloudPresets, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, CLAUDE_OPUS,
@@ -58,6 +59,7 @@ pub use providers::{
 };
 
 pub use router::{RouterMix, RouterPreset};
+pub use tools::ToolPreset;
 
 #[cfg(feature = "candle")]
 pub use agents::{candle_llama_router, candle_llama_session};
