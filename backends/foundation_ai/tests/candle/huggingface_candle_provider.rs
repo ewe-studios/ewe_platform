@@ -194,6 +194,59 @@ fn test_candle_provider_download_smollm_safetensors() {
     }
 }
 
+/// get_one / get_all always error for the candle provider (no catalog) — offline.
+#[test]
+fn test_candle_provider_catalog_methods_error() {
+    let config = HuggingFaceCandleConfig::builder()
+        .cache_dir(std::env::temp_dir().join("candle_catalog_test"))
+        .build();
+    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
+    assert!(provider.get_one(id.clone()).is_err(), "get_one has no catalog");
+    assert!(provider.get_all(id).is_err(), "get_all has no catalog");
+}
+
+/// list_model_files returns the safetensors of a real repo — gated (network).
+#[cfg(feature = "external-service-tests")]
+#[test]
+fn test_candle_list_model_files() {
+    let _guard = init_valtron();
+    let config = HuggingFaceCandleConfig::builder()
+        .cache_dir(get_artefacts_dir(get_project_root().as_path()))
+        .build();
+    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    match provider.list_model_files("HuggingFaceTB/SmolLM2-135M") {
+        Ok(files) => assert!(
+            files.iter().any(|f| f.ends_with(".safetensors")),
+            "expected a safetensors file: {files:?}"
+        ),
+        Err(e) => panic!("listing a real repo should succeed: {e:?}"),
+    }
+}
+
+/// get_model_by_spec with a location-less spec of a nonexistent repo hits the
+/// download branch and errors — gated (network).
+#[cfg(feature = "external-service-tests")]
+#[test]
+fn test_candle_get_model_by_spec_without_location_errors() {
+    let _guard = init_valtron();
+    let config = HuggingFaceCandleConfig::builder()
+        .cache_dir(get_artefacts_dir(get_project_root().as_path()))
+        .build();
+    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let spec = foundation_ai::types::ModelSpec {
+        name: "bad".to_string(),
+        id: ModelId::Name("ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(), None),
+        devices: None,
+        model_location: None,
+        lora_location: None,
+    };
+    assert!(
+        provider.get_model_by_spec(spec).is_err(),
+        "location-less spec of a nonexistent repo must error"
+    );
+}
+
 /// A nonexistent repo 404s — exercises download_model's body + error mapping
 /// without a large download. Gated (needs network).
 #[cfg(feature = "external-service-tests")]
