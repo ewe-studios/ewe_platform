@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F27-wasm-runtime-triggers"
 this_file: "specifications/52-tauri-foundation-platform/features/F27-wasm-runtime-triggers/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-21
 

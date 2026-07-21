@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F16-app-crate-structure"
 this_file: "specifications/52-tauri-foundation-platform/features/F16-app-crate-structure/feature.md"
 
-status: in-progress
+status: completed
 priority: critical
 created: 2026-07-18
 

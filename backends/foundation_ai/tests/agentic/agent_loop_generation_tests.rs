@@ -741,3 +741,50 @@ fn context_pressure_note_injected_when_over_threshold() {
         "a context over the pressure threshold must inject the pressure note"
     );
 }
+
+/// Matrix 2.6 — preflight compression shrinks an over-budget context by dropping
+/// the oldest messages before sending. Previously the threshold was never
+/// applied. The mock records how many messages it received; with a tiny budget
+/// and many history messages, the sent count must be compressed below history.
+#[test]
+fn preflight_compression_drops_oldest_when_over_budget() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc as StdArc;
+
+    let sent = StdArc::new(AtomicUsize::new(usize::MAX));
+    let counter = sent.clone();
+
+    let mut mock = MockModelProvider::new();
+    mock.on(
+        move |mi| {
+            counter.store(mi.messages.len(), Ordering::SeqCst);
+            true
+        },
+        vec![mock_text("ok")],
+    );
+
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        preflight_compression_threshold: 0.85,
+        context_pressure_threshold: 0.0, // isolate compression
+        ..Default::default()
+    };
+    let mut h = harness_with(mock.into_router(), config);
+    h.set_budget(5); // tiny budget forces compression
+
+    // Persist several history messages (each ~a few tokens) so the assembled
+    // context far exceeds 0.85 * 5 tokens.
+    for i in 0..8 {
+        let _ = h.follow_up.push(user_msg(&format!("history message number {i} with some words")));
+    }
+
+    drive(&mut h);
+
+    let n = sent.load(Ordering::SeqCst);
+    assert!(n != usize::MAX, "the mock must have been called");
+    assert!(
+        n < 8,
+        "an over-budget context must be compressed below the full history (sent {n} of 8)"
+    );
+    assert!(n >= 1, "compression must keep at least the newest message (sent {n})");
+}

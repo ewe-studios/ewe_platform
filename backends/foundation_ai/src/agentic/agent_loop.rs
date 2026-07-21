@@ -377,7 +377,15 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             .memory_store()
             .hydrate_sync(&self.session_id)
             .unwrap_or_default();
-        let ctx = self.context_provider.assemble_from_memory(&memory);
+        let mut ctx = self.context_provider.assemble_from_memory(&memory);
+
+        // Preflight compression: when the assembled context exceeds the
+        // compression threshold of the budget, shrink it BEFORE sending — drop
+        // the oldest recent messages (keeping the newest) until it fits. This is
+        // the heavier counterpart to the context-pressure note (below): pressure
+        // warns, compression actually reduces. The threshold field existed but
+        // was never applied.
+        self.apply_preflight_compression(&mut ctx);
 
         // Ephemeral context-pressure layer (OD-19-7).
         let system_prompt = self.apply_context_pressure(&ctx);
@@ -969,6 +977,43 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     // -----------------------------------------------------------------------
     // Context pressure (OD-19-7)
+
+    /// Shrink an over-budget context in place by dropping the OLDEST messages
+    /// until it fits under `preflight_compression_threshold * budget`.
+    ///
+    /// WHY: the config threshold existed but nothing applied it. When a context
+    /// is assembled that would blow the budget, sending it wastes tokens (or is
+    /// rejected by the provider). Truncation-based compression keeps the most
+    /// recent turns — the ones that matter most — and drops the oldest.
+    ///
+    /// A `0.0` threshold (or no budget) disables it. Recomputes `token_estimate`
+    /// so downstream (context-pressure) sees the compressed size.
+    fn apply_preflight_compression(&self, ctx: &mut AgentContext) {
+        if self.config.preflight_compression_threshold <= 0.0 {
+            return;
+        }
+        let Some(budget) = self.ledger.budget() else {
+            return; // unlimited budget — nothing to compress against
+        };
+        if budget == 0 {
+            return;
+        }
+
+        #[allow(clippy::cast_precision_loss)]
+        let limit = f64::from(self.config.preflight_compression_threshold) * budget as f64;
+
+        // Drop oldest messages (front) until under the limit or only one left.
+        while ctx.messages.len() > 1 {
+            #[allow(clippy::cast_precision_loss)]
+            let ratio = ctx.token_estimate as f64;
+            if ratio <= limit {
+                break;
+            }
+            let dropped = ctx.messages.remove(0);
+            let est = crate::agentic::context::estimate_tokens_pub(&dropped);
+            ctx.token_estimate = ctx.token_estimate.saturating_sub(est);
+        }
+    }
 
     fn apply_context_pressure(&self, ctx: &AgentContext) -> Option<String> {
         if self.config.context_pressure_threshold <= 0.0 {

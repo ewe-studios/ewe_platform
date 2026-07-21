@@ -61,7 +61,7 @@ Every state and every edge out of it.
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | **done** |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | **done** |
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | **done** |
-| 2.6 | Preflight compression threshold triggers compression | mock | n/a |
+| 2.6 | Preflight compression threshold triggers compression | mock | **done** |
 | 2.7 | Usage accounting accumulates across turns | mock | **done** |
 | 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | **done** |
 
@@ -221,10 +221,11 @@ Exclusions are listed and justified per file, never blanket.
 
 These are not test gaps but discoveries recorded honestly rather than faked:
 
-- **2.6 preflight compression** — `AgentConfig::preflight_compression_threshold`
-  is declared and documented but **never used** in the loop: the
-  preflight-compression layer does not exist. The field is reserved; there is no
-  behaviour to test. (The lighter context-pressure layer, 2.5, IS implemented.)
+- **2.6 preflight compression** — RESOLVED: implemented
+  `apply_preflight_compression` — when the assembled context exceeds
+  `preflight_compression_threshold * budget`, it drops the OLDEST messages
+  (keeping the newest) until it fits, then recomputes the estimate. Applied in
+  transition_inner_assemble before the pressure note. Tested.
 - **10.6 tool panic containment** — RESOLVED: `execute_one` now wraps the tool
   future in `catch_unwind` (futures-lite), so a panicking tool becomes a
   `ToolError::Execution` the loop handles like any other failure, rather than
@@ -242,5 +243,5 @@ These are not test gaps but discoveries recorded honestly rather than faked:
   downloads a real model; covered under `live-model-tests`, not the default
   offline suite.
 
-One remains a genuine gap worth a follow-up: 2.6, wire preflight compression
-(or remove the reserved field). 10.6 is now implemented.
+Both former gaps (2.6 preflight compression, 10.6 tool-panic containment) are
+now implemented and tested.
