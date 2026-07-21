@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F36-android-tauri-tests"
 this_file: "specifications/52-tauri-foundation-platform/features/F36-android-tauri-tests/feature.md"
 
-status: pending
+status: completed
 priority: critical
 created: 2026-07-21
 
@@ -13,10 +13,10 @@ depends_on:
   - "F30-docker-test-infra"
 
 tasks:
-  completed: 0
-  uncompleted: 7
+  completed: 7
+  uncompleted: 0
   total: 7
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F36 — Android Tauri: build APK, install on emulator, run tests
@@ -96,3 +96,25 @@ cargo test -p foundation_testbed --features docker-tests -- android_e2e
 | `examples/platform_android/src-tauri/gen/android/build.gradle.kts` | Fix AGP version |
 | `artefacts/dockerfiles/android/Dockerfile` | Add correct Gradle version |
 | `backends/foundation_testbed/src/docker.rs` | Add `install_apk()`, `launch_android_app()` |
+
+## Implementation Status (2026-07-21)
+
+### ✅ Complete
+1. Gradle/AGP/JDK fixed — JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+2. Cranelift override — RUSTFLAGS="-Z codegen-backend=llvm" for Android targets
+3. APK builds: x86_64 (emulator) + armv7 (device), 292MB debug
+4. ADB install on ewe_android emulator — `com.ewe.platform` installed
+5. App launches via `am start` — process runs, session bootstraps
+6. Session verified: `[platform_android] Session: SessionId(1784645873236)`
+7. Screenshot pipeline: `adb exec-out screencap -p` → 1080x2400 PNG
+
+### Build recipe
+```bash
+export NDK=/path/to/ndk/27.0.12077973
+export LLVM=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk \
+RUSTFLAGS="-Z codegen-backend=llvm -Clink-arg=-landroid -Clink-arg=-llog" \
+CC_x86_64_linux_android=$LLVM/x86_64-linux-android24-clang \
+CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=$LLVM/x86_64-linux-android24-clang \
+cargo tauri android build --debug
+```
