@@ -1,4 +1,5 @@
 mod context_tests;
+mod costing_assistant_tests;
 mod costing_tests;
 mod base_errors_tests;
 mod base_types_tests;
