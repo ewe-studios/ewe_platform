@@ -76,7 +76,7 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 | S1 candle 0.11 | DONE | bumped, zero breaking changes |
 | S2 state into model | DONE | per-arch state (decision 06); Llama external cache, Gemma2 internal |
 | S3 sampling + seed | DONE | LogitsProcessor + repeat_penalty + seed; determinism tested |
-| S4 GGUF fixtures | Blocked | convert_hf_to_gguf.py needs torch 2.11 — deferred pending dep decision |
+| S4 GGUF fixtures | DONE | committed tiny-llama-f16.gguf (2.7MB, torch-free-ish convert via uv+py3.12); llama.cpp in-process runs offline by default |
 | S5 chat templates | DONE | minijinja render + pycompat str methods; template applied |
 | S6 architectures | Partial | detection + honest errors + **Gemma2 loader** (2nd real arch, tested); Qwen/Mistral/Phi3 pattern documented but not added (no offline fixture => would be untested) |
 | S7 test matrix | 57/119 | agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->50.6%; 459 tests |

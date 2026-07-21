@@ -145,12 +145,12 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.4 | Stream advances past its first token (KV cache progresses) | both | **done** |
 | 8.5 | Stream terminates on EOG | both | todo |
 | 8.6 | Stream terminates on `max_tokens` | both | todo |
-| 8.7 | Inference context created lazily on the polling thread | gguf | todo |
-| 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | todo |
+| 8.7 | Inference context created lazily on the polling thread | gguf | **done** |
+| 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | **done** |
 | 8.9 | `interaction.messages` reach the prompt (not just system) | both | todo |
 | 8.10 | Chat template applied when the model ships one | both | **done** |
 | 8.11 | Documented fallback + log when no chat template | gen | todo |
-| 8.12 | Model weights cached — second load is a cache hit | both | todo |
+| 8.12 | Model weights cached — second load is a cache hit | both | **done** |
 | 8.13 | Cache key distinguishes differing configs | both | todo |
 | 8.14 | Cold-start race loads once, not once per caller | both | todo |
 | 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | **done** |
