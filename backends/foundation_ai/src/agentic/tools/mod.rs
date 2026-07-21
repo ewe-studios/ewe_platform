@@ -1,4 +1,4 @@
-#[cfg(not(target_family = "wasm"))]
+pub mod agent;
 pub mod files;
 pub mod memory;
 pub mod search;
