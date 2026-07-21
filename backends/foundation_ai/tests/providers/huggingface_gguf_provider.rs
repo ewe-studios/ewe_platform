@@ -278,3 +278,171 @@ mod live {
         println!("SmolLM generated: {response:?}");
     }
 }
+
+// ---------------------------------------------------------------------------
+// parse_model_id — the remaining branches
+// ---------------------------------------------------------------------------
+
+/// A default-config provider; parse_model_id needs no cache or network.
+fn provider() -> HuggingFaceGGUFProvider {
+    HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default())
+        .expect("provider builds offline")
+}
+
+#[test]
+fn parse_model_id_rejects_non_name_variants() {
+    // Only ModelId::Name carries a repo path. Alias/Group/Architecture have no
+    // repo to resolve, so they must return None rather than being coerced.
+    let provider = provider();
+    for id in [
+        ModelId::Alias("some/repo".to_string(), None),
+        ModelId::Group("some/repo".to_string(), None),
+        ModelId::Architecture("some/repo".to_string(), None),
+    ] {
+        assert!(
+            provider.parse_model_id(&id).is_none(),
+            "{id:?} has no repo path and must not parse"
+        );
+    }
+}
+
+#[test]
+fn parse_model_id_accepts_repo_revision_quantization() {
+    // The three-part form pins both a branch and a quantization.
+    let parsed = provider()
+        .parse_model_id(&ModelId::Name(
+            "org/model:v2-branch:q5_k_m".to_string(),
+            None,
+        ))
+        .expect("the three-part form must parse");
+    assert_eq!(parsed.repo_id, "org/model");
+    assert_eq!(parsed.revision, "v2-branch");
+    assert_eq!(parsed.quantization.as_deref(), Some("q5_k_m"));
+}
+
+#[test]
+fn parse_model_id_rejects_more_than_three_parts() {
+    // A fourth colon is ambiguous — better to reject than to guess which field
+    // the extra segment belongs to.
+    assert!(
+        provider()
+            .parse_model_id(&ModelId::Name("a/b:c:d:e".to_string(), None))
+            .is_none(),
+        "an over-long id must not be silently truncated"
+    );
+}
+
+#[test]
+fn an_explicit_quantization_enum_beats_the_string_form() {
+    // ModelId's Quantization takes priority over a `:suffix`; otherwise a
+    // caller who passed the enum explicitly would be silently overridden.
+    let parsed = provider()
+        .parse_model_id(&ModelId::Name(
+            "org/model:q2_k".to_string(),
+            Some(Quantization::Q4_KM),
+        ))
+        .expect("parses");
+    assert_eq!(
+        parsed.quantization.as_deref(),
+        Some("Q4_K_M"),
+        "the enum must win over the string suffix"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// find_cached_file (via download_model's cache short-circuit)
+// ---------------------------------------------------------------------------
+//
+// The cache lookup is what stops a re-download of a multi-GB GGUF. It matches
+// on a quantization-derived filename pattern, so both the hit and the
+// wrong-quantization miss matter: a too-loose match hands back the WRONG
+// weights, which is worse than a re-download.
+//
+// The HIT tests are plain `#[test]` with no valtron pool on purpose — they pass
+// only because the lookup returns before any network work, which is itself the
+// property under test. The MISS test reaches the download path, so it needs the
+// pool; the fetch then fails offline, which is fine: the assertion is only that
+// the wrong file is never handed back.
+
+fn fresh_cache(tag: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "hf-gguf-{tag}-{}",
+        foundation_compact::ids::new_scru128()
+    ));
+    std::fs::create_dir_all(&dir).expect("temp cache");
+    dir
+}
+
+fn seed(cache: &std::path::Path, repo: &str, filename: &str) -> std::path::PathBuf {
+    let dir = cache.join(repo.replace('/', "--"));
+    std::fs::create_dir_all(&dir).expect("repo dir");
+    let f = dir.join(filename);
+    std::fs::write(&f, b"").expect("marker gguf");
+    f
+}
+
+fn provider_with_cache(cache: &std::path::Path) -> HuggingFaceGGUFProvider {
+    let config = HuggingFaceGGUFConfig::builder()
+        .cache_dir(cache.to_path_buf())
+        .build();
+    HuggingFaceGGUFProvider::new(config).expect("provider builds offline")
+}
+
+#[test]
+fn a_cached_gguf_matching_the_quantization_is_found() {
+    let cache = fresh_cache("hit");
+    seed(&cache, "org/model", "model-Q4_K_M.gguf");
+
+    let provider = provider_with_cache(&cache);
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("org/model:q4_k_m".to_string(), None))
+        .expect("parses");
+    let result = provider.download_model(&parsed);
+    std::fs::remove_dir_all(&cache).ok();
+
+    let path = result.expect("a matching cached file must short-circuit the download");
+    assert!(
+        path.file_name().is_some_and(|n| n == "model-Q4_K_M.gguf"),
+        "got {path:?}"
+    );
+}
+
+#[test]
+fn the_quantization_match_is_case_insensitive_on_the_request_side() {
+    // Callers write `q4_k_m` lowercase; files ship uppercase. The pattern
+    // uppercases the request, so this must still hit.
+    let cache = fresh_cache("case");
+    seed(&cache, "org/model", "somemodel.Q4_K_M.gguf");
+
+    let provider = provider_with_cache(&cache);
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("org/model:q4_k_m".to_string(), None))
+        .expect("parses");
+    let result = provider.download_model(&parsed);
+    std::fs::remove_dir_all(&cache).ok();
+
+    assert!(result.is_ok(), "lowercase request must match an uppercase filename");
+}
+
+#[foundation_core::valtron::valtron_test]
+fn a_cached_file_of_a_different_quantization_is_not_returned() {
+    // The dangerous case: returning a Q2_K file for a Q4_K_M request would load
+    // the wrong weights silently. A miss here should attempt a download (and
+    // fail without network) rather than hand back the wrong file.
+    let cache = fresh_cache("wrongquant");
+    let wrong = seed(&cache, "org/model", "model-Q2_K.gguf");
+
+    let provider = provider_with_cache(&cache);
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("org/model:q4_k_m".to_string(), None))
+        .expect("parses");
+    let result = provider.download_model(&parsed);
+    std::fs::remove_dir_all(&cache).ok();
+
+    if let Ok(path) = result {
+        assert_ne!(
+            path, wrong,
+            "a Q2_K file must never satisfy a Q4_K_M request"
+        );
+    }
+}
