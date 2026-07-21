@@ -61,8 +61,6 @@ RUN <<'EOF'
   }
 EOF
 
-# Preserve the base image's config.sh so our wrapper can source it.
-RUN cp /run/config.sh /run/base_config.sh
 
 VOLUME /storage
 EXPOSE 5900 8006

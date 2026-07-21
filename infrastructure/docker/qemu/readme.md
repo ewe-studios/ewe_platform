@@ -22,6 +22,7 @@ Docker container for running virtual machines using QEMU.
 - Customizable CPU, memory, and storage allocation
 - Dynamic memory allocation with memory ballooning
 - USB passthrough and host folder sharing
+- Clipboard sharing via noVNC browser viewer
 - Supports NAT, user-mode, macvlan, and macvtap networking
 - Automatic downloads for popular Linux distributions
 

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM scratch
-COPY --from=ewestudios/qemu:7.37 / /
+COPY --from=qemux/qemu-arm:7.37 / /
 
 ARG TARGETARCH
 ARG VERSION_ARG="0.00"
@@ -39,13 +39,10 @@ EOF
 COPY --chmod=755 ./src /run/
 COPY --chmod=755 ./assets /run/assets
 
-# Preserve the base image's config.sh so our wrapper can source it.
-RUN cp /run/config.sh /run/base_config.sh
 
 # Download SPICE Guest Tools for clipboard support inside the Windows VM.
-ARG VERSION_SPICE_GUEST_TOOLS="0.191.105"
 ADD --chmod=644 \
-    https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-${VERSION_SPICE_GUEST_TOOLS}.exe \
+    https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe \
     /oem/spice-guest-tools.exe
 
 ADD --chmod=755 https://raw.githubusercontent.com/dockur/windows/master/src/mido.sh /run/
@@ -56,7 +53,7 @@ ADD --chmod=755 https://raw.githubusercontent.com/dockur/windows/master/src/inst
 ADD --chmod=664 https://github.com/qemus/virtiso-arm/releases/download/v${VERSION_VIRTIO}-1/virtio-win-${VERSION_VIRTIO}.tar.xz /var/drivers.txz
 
 VOLUME /storage
-EXPOSE 3389 8006
+EXPOSE 3389 5900 8006
 
 ENV VERSION="11"
 ENV RAM_SIZE="4G"

@@ -49,7 +49,7 @@ if exist "C:\OEM\spice-guest-tools.exe" (
     echo [ewe-test-windows] SPICE Guest Tools installed (local).
 ) else (
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-      "$url = 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-0.191.105.exe';" ^
+      "$url = 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe';" ^
       "$out = '$env:TEMP\spice-guest-tools.exe';" ^
       "Invoke-WebRequest -Uri $url -OutFile $out;" ^
       "& $out /S;" ^

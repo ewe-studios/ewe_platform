@@ -37,14 +37,11 @@ COPY --chmod=755 ./src /run/
 COPY --chmod=755 ./assets /run/assets
 COPY --chmod=755 ./oem /oem
 
-# Preserve the base image's config.sh so our wrapper can source it.
-RUN cp /run/config.sh /run/base_config.sh
 
 # Download SPICE Guest Tools for clipboard support inside the Windows VM.
 # The OEM install.bat copies this to the shared volume and runs it silently.
-ARG VERSION_SPICE_GUEST_TOOLS="0.191.105"
 ADD --chmod=644 \
-    https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-${VERSION_SPICE_GUEST_TOOLS}.exe \
+    https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe \
     /oem/spice-guest-tools.exe
 
 ADD --chmod=664 https://github.com/qemus/virtiso-whql/releases/download/v${VERSION_VIRTIO}-0/virtio-win-${VERSION_VIRTIO}.tar.xz /var/drivers.txz
@@ -56,7 +53,7 @@ ARG VERSION_ARG="0.00"
 RUN echo "$VERSION_ARG" > /etc/version
 
 VOLUME /storage
-EXPOSE 3389 8006
+EXPOSE 3389 5900 8006
 
 ENV VERSION="11"
 ENV RAM_SIZE="4G"

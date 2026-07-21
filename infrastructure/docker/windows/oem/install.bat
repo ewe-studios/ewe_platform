@@ -12,7 +12,7 @@ if exist "C:\OEM\spice-guest-tools.exe" (
 ) else (
     echo [SPICE] installer not found — downloading...
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-      "$url = 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-0.191.105.exe';" ^
+      "$url = 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe';" ^
       "$out = '$env:TEMP\spice-guest-tools.exe';" ^
       "Invoke-WebRequest -Uri $url -OutFile $out;" ^
       "& $out /S;" ^

@@ -53,8 +53,6 @@ COPY --chmod=755 ./src /run/
 COPY --chmod=755 ./assets /assets/
 COPY --chmod=755 --from=builder /macserial /usr/local/bin/
 
-# Preserve the base image's config.sh so our wrapper can source it.
-RUN cp /run/config.sh /run/base_config.sh
 
 ADD --chmod=644 \
     $REPO_OSX_KVM/$VERSION_OSX_KVM/OVMF_CODE.fd \
