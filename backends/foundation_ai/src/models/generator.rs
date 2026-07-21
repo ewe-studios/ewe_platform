@@ -1544,6 +1544,132 @@ mod tests {
     }
 
     #[test]
+    fn format_f64_separates_the_integer_part_only() {
+        // A large value with a fraction must get separators in the INTEGER part
+        // and leave the fraction untouched — separating the fraction would emit
+        // invalid Rust into the generated descriptors.
+        let out = format_f64(12_345.75);
+        assert!(out.contains('_'), "the integer part must be separated: {out}");
+        assert!(out.ends_with(".75"), "the fraction must survive intact: {out}");
+        assert!(
+            !out.split('.').nth(1).unwrap_or("").contains('_'),
+            "the fraction must not be separated: {out}"
+        );
+    }
+
+    #[test]
+    fn format_int_with_separators_keeps_a_negative_sign_outside() {
+        // The sign is stripped, the digits grouped, then the sign restored.
+        // Grouping with the sign attached would produce "-_1_000".
+        assert_eq!(format_int_with_separators("-1000000"), "-1_000_000");
+        assert_eq!(format_int_with_separators("-999"), "-999");
+    }
+
+    #[test]
+    fn format_int_with_separators_groups_in_threes_from_the_right() {
+        assert_eq!(format_int_with_separators("1000"), "1_000");
+        assert_eq!(format_int_with_separators("10000"), "10_000");
+        assert_eq!(format_int_with_separators("100000"), "100_000");
+        assert_eq!(
+            format_int_with_separators("1234567890"),
+            "1_234_567_890",
+            "grouping must start from the right, not the left"
+        );
+    }
+
+    #[test]
+    fn format_int_with_separators_handles_degenerate_input() {
+        assert_eq!(format_int_with_separators(""), "");
+        assert_eq!(format_int_with_separators("0"), "0");
+        assert_eq!(format_int_with_separators("-"), "-");
+    }
+
+    // -----------------------------------------------------------------
+    // generate_provider_file — the per-model branches
+    // -----------------------------------------------------------------
+
+    fn model_with(provider: &str, id: &str, image: bool, base_url: &str) -> ModelEntry {
+        entry(
+            id,
+            id,
+            "anthropic-messages",
+            provider,
+            base_url,
+            false,
+            image,
+            (0.0, 0.0, 0.0, 0.0),
+            4096,
+            4096,
+        )
+    }
+
+    #[test]
+    fn generated_file_marks_image_capable_models() {
+        // `has_image_input` selects the MessageType variant written into the
+        // descriptor. Getting it wrong means a vision model is advertised as
+        // text-only (or vice versa) to every caller.
+        let mut by_id = BTreeMap::new();
+        by_id.insert(
+            "vision".to_string(),
+            model_with("openai", "vision", true, "https://x.test"),
+        );
+        let src = generate_provider_file("openai", &by_id);
+        assert!(
+            src.contains("MessageType::TextAndImages"),
+            "an image-capable model must be marked: {src}"
+        );
+    }
+
+    #[test]
+    fn generated_file_marks_text_only_models() {
+        let mut by_id = BTreeMap::new();
+        by_id.insert(
+            "textonly".to_string(),
+            model_with("openai", "textonly", false, "https://x.test"),
+        );
+        let src = generate_provider_file("openai", &by_id);
+        assert!(src.contains("MessageType::Text"));
+        assert!(
+            !src.contains("MessageType::TextAndImages"),
+            "a text-only model must not claim image support: {src}"
+        );
+    }
+
+    #[test]
+    fn generated_file_emits_none_for_an_absent_base_url() {
+        // An empty base_url must become `None`, not `Some("")` — the latter
+        // would build requests against an empty host.
+        let mut by_id = BTreeMap::new();
+        by_id.insert(
+            "nourl".to_string(),
+            model_with("openai", "nourl", false, ""),
+        );
+        let src = generate_provider_file("openai", &by_id);
+        assert!(
+            src.contains("base_url: None"),
+            "an empty base_url must render as None: {src}"
+        );
+        assert!(
+            !src.contains(r#"base_url: Some("")"#),
+            "an empty string base_url would target an empty host: {src}"
+        );
+    }
+
+    #[test]
+    fn generated_file_emits_some_for_a_present_base_url() {
+        let mut by_id = BTreeMap::new();
+        by_id.insert(
+            "withurl".to_string(),
+            model_with("openai", "withurl", false, "https://api.example.test"),
+        );
+        let src = generate_provider_file("openai", &by_id);
+        assert!(
+            src.contains(r#"Some("https://api.example.test")"#),
+            "a present base_url must be emitted: {src}"
+        );
+    }
+
+    #[test]
     fn api_variant_mapping_known_and_custom() {
         assert_eq!(api_to_variant("anthropic-messages"), "ModelAPI::AnthropicMessages");
         assert_eq!(api_to_variant("openai-completions"), "ModelAPI::OpenAICompletions");
