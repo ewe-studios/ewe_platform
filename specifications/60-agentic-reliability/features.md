@@ -27,7 +27,7 @@ runnable on demand with a tiny model.**
 |---|---------|--------|
 | F01 | Coverage harness + test matrix (was S0/S7) | **DONE** — cargo-llvm-cov; 116/119 matrix; agentic ~86% |
 | F02 | Test-feature gating — `live-model-tests` + `external-service-tests` split | **DONE** — both features exist; OpenRouter tests self-skip without key |
-| F03 | Live-model SmolLM harness — pull-on-demand, cached, offline-skip | Not started |
+| F03 | Live-model SmolLM harness — pull-on-demand, cached, offline-skip | **DONE** — HF GGUF + candle provider download/inference tests gated `external-service-tests`, shared cache (SmolLM pulled once), self-skip without `HF_TOKEN`; offline parse/describe run by default |
 | F04 | Drive coverage to 100% of critical logic | **In progress** — errors/mod 98%, providers/mod 100%, errors/llama 72%, generator 52% (tooling); responses/hf-providers need live/external runs |
 
 ### Phase B — Standard agentic tools (VFS-backed)
@@ -39,11 +39,11 @@ command. These implement them as `ToolImpl`s over the VFS
 
 | # | Feature | Status |
 |---|---------|--------|
-| F05 | `read` tool — read a file (range/whole) via VFS | Not started |
-| F06 | `write` tool — create/overwrite a file via VFS | Not started |
-| F07 | `edit` tool — targeted string replace in a file via VFS | Not started |
-| F08 | `bash` tool — run a shell command (native), captured stdout/stderr/exit; target-gated | Not started |
-| F09 | Tool defaults wiring — register read/write/edit/bash in the `ToolShed` + `ToolCallManager` defaults, gated by an injected VFS/exec capability | Not started |
+| F05 | `read` tool — read a file (range/whole) via VFS | **DONE** — `ReadTool<F>` over `AsyncVfsFileSystem`; 1-indexed offset/limit; 4 tests |
+| F06 | `write` tool — create/overwrite a file via VFS | **DONE** — `WriteTool<F>`; create/overwrite, returns byte count; 2 tests |
+| F07 | `edit` tool — targeted string replace in a file via VFS | **DONE** — `EditTool<F>`; unique-match unless `replace_all`; absent/non-unique error; 4 tests |
+| F08 | `bash` tool — run a shell command (native), captured stdout/stderr/exit; target-gated | **DONE** — `BashTool` native `sh -c` with timeout; wasm returns unsupported; 4 tests |
+| F09 | Tool defaults wiring — register read/write/edit/bash in the `ToolShed` + `ToolCallManager` defaults, gated by an injected VFS/exec capability | **DONE** — `register_file_tools`/`register_shell_tool`; `build_toolshed()` fills slots by category; 2 tests |
 
 ### Phase C — Provider & quality carryover (earlier spec 60)
 
@@ -78,12 +78,12 @@ implemented, or explicitly deferred.
 
 ## Immediate TODO queue (what we're mid-stream on)
 
-1. **F04**: finish 0%/low-coverage files — `errors/llama.rs`, `models/generator.rs`
-   (offline request-construction parts + external-service send tests),
-   `openai_responses_provider.rs`, `huggingface_*_provider.rs` (live/external),
-   `harness/agents.rs` tail, `toolbox/llama_server_harness.rs`.
-2. **F02**: add the `external-service-tests` feature; move OpenRouter/cloud/HF-download
-   tests under it; keep `live-model-tests` for SmolLM/local-model runs.
-3. **F03**: SmolLM pull-on-demand harness for live-model-tests.
-4. **F05–F09**: implement read/write/edit/bash tools on the VFS + wire defaults.
-5. **F14–F17**: spec-36 carryover — memory tool, delegate tool, semantic recall.
+1. ~~**F02**: `external-service-tests` feature + move OpenRouter/cloud/HF-download tests under it.~~ **DONE**
+2. ~~**F03**: SmolLM pull-on-demand harness (HF GGUF + candle providers).~~ **DONE**
+3. ~~**F05–F09**: read/write/edit/bash tools on the VFS + wire defaults.~~ **DONE**
+4. **F04**: run the full feature list under llvm-cov to measure coverage, then
+   close remaining low-coverage files — `models/generator.rs`,
+   `openai_responses_provider.rs`, `harness/agents.rs` tail,
+   `toolbox/llama_server_harness.rs`. (In progress — coverage run underway.)
+5. **F14–F17**: spec-36 carryover — memory tool, delegate tool, semantic recall,
+   graph search, fff file search.

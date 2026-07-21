@@ -95,12 +95,15 @@ fn test_candle_provider_describe() {
 ///
 /// Uses `HuggingFaceTB/SmolLM2-135M` — a small model (~270MB safetensors).
 /// Downloaded to `artefacts/models/`.
+#[cfg(feature = "external-service-tests")]
 #[test]
-#[ignore = "requires HF_TOKEN and downloads ~270MB safetensors model"]
 fn test_candle_provider_download_smollm_safetensors() {
     let _guard = init_valtron();
 
-    let _token = get_token().expect("HF_TOKEN must be set for integration tests");
+    let Some(_token) = get_token().filter(|t| !t.is_empty()) else {
+        eprintln!("[skip] HF_TOKEN not set — skipping safetensors download test");
+        return;
+    };
     let project_root = get_project_root();
     let cache_dir = get_artefacts_dir(project_root.as_path());
 
@@ -151,12 +154,15 @@ fn test_candle_provider_download_smollm_safetensors() {
 /// Test SmolLM2 safetensors model inference via HuggingFaceCandleProvider.
 ///
 /// Downloads the model, loads it, and performs text generation.
+#[cfg(feature = "external-service-tests")]
 #[test]
-#[ignore = "requires HF_TOKEN and downloads ~270MB model for inference"]
 fn test_candle_provider_smollm_inference() {
     let _guard = init_valtron();
 
-    let token = get_token().expect("HF_TOKEN must be set for integration tests");
+    let Some(token) = get_token().filter(|t| !t.is_empty()) else {
+        eprintln!("[skip] HF_TOKEN not set — skipping safetensors inference test");
+        return;
+    };
     let project_root = get_project_root();
     let cache_dir = get_artefacts_dir(project_root.as_path());
 
@@ -226,12 +232,15 @@ fn test_candle_provider_smollm_inference() {
 ///
 /// This test first downloads the model, then loads it via get_model_by_spec
 /// to verify the spec-based loading path works independently.
+#[cfg(feature = "external-service-tests")]
 #[test]
-#[ignore = "requires HF_TOKEN and downloads model"]
 fn test_candle_provider_load_by_spec() {
     let _guard = init_valtron();
 
-    let token = get_token().expect("HF_TOKEN must be set for integration tests");
+    let Some(token) = get_token().filter(|t| !t.is_empty()) else {
+        eprintln!("[skip] HF_TOKEN not set — skipping load-by-spec test");
+        return;
+    };
     let project_root = get_project_root();
     let cache_dir = get_artefacts_dir(project_root.as_path());
 
