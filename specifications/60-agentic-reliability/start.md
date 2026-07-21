@@ -1,10 +1,18 @@
 # 60: agentic + provider reliability
 
 Prove the agentic stack correct, end to end, against real providers — with
-coverage measured rather than assumed.
+coverage measured rather than assumed — then complete the agent's actual
+capabilities: the standard tools (read/write/edit/bash) and the spec-36 carryover
+(memory/delegate tools, semantic recall).
 
 Supersedes and absorbs former spec 61 (candle-multi-model): the candle backend
 is not a separate concern, it is the provider the agentic suite runs on.
+
+> **This spec is now feature-based — see [`features.md`](./features.md) for the
+> live roadmap and status.** The original stage-based plan (S0–S9) is complete
+> and captured below as history; new work (100% coverage, standard tools,
+> spec-36 carryover) is tracked as features F01–F17 in `features.md` +
+> `features/`.
 
 ## North star
 

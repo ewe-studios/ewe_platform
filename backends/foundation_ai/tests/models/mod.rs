@@ -1,5 +1,6 @@
 mod context_tests;
 mod costing_tests;
+mod base_errors_tests;
 mod errors_tests;
 mod sampler_chain;
 // `agentic::testing` only exists under the `testing` feature, so this suite must
