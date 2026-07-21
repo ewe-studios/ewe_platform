@@ -304,3 +304,143 @@ fn args_empty_is_usable_and_serializes() {
     let restored: Args = serde_json::from_value(json).expect("deserialize");
     assert_eq!(empty, restored);
 }
+
+// ---------------------------------------------------------------------------
+// Tool::definitions / arg_summary / ToolShed::with_tools
+// ---------------------------------------------------------------------------
+//
+// `arg_summary` is what a TEXT-BASED model (llama.cpp / Candle) is shown to
+// describe a tool's arguments — those models have no native function-calling
+// API, so this string is the only thing telling the model what to emit. A wrong
+// summary means the model guesses at argument names.
+
+use foundation_ai::types::{Tool, ToolDefinition, ToolShed};
+
+fn schema_opts(json: serde_json::Value) -> foundation_jsonschema::ValidationOptions {
+    foundation_jsonschema::ValidationOptions::with_schema(json)
+}
+
+fn single(name: &str, props: serde_json::Value) -> Tool {
+    Tool::SingleCommand(ToolDefinition {
+        name: name.into(),
+        category: "test".into(),
+        description: "d".into(),
+        arguments: Args::new(schema_opts(
+            serde_json::json!({"type": "object", "properties": props}),
+        )),
+        returns: None,
+    })
+}
+
+fn multi(name: &str, cmds: &[&str]) -> Tool {
+    Tool::MultiCommands(
+        name.into(),
+        cmds.iter()
+            .map(|c| ToolDefinition {
+                name: (*c).into(),
+                category: "test".into(),
+                description: "d".into(),
+                arguments: Args::new(schema_opts(serde_json::json!({"type": "object"}))),
+                returns: None,
+            })
+            .collect(),
+    )
+}
+
+#[test]
+fn definitions_yields_one_entry_for_a_single_command() {
+    let t = single("read", serde_json::json!({"path": {"type": "string"}}));
+    let defs: Vec<_> = t.definitions().collect();
+    assert_eq!(defs.len(), 1);
+    assert_eq!(defs[0].name, "read");
+}
+
+#[test]
+fn definitions_yields_every_command_for_a_multi_command() {
+    let t = multi("agent", &["start", "check", "stop"]);
+    let names: Vec<&str> = t.definitions().map(|d| d.name.as_str()).collect();
+    assert_eq!(names, vec!["start", "check", "stop"]);
+}
+
+#[test]
+fn arg_summary_lists_property_names_for_a_single_command() {
+    let t = single(
+        "search",
+        serde_json::json!({"query": {"type": "string"}, "limit": {"type": "integer"}}),
+    );
+    let summary = t.arg_summary();
+    assert!(summary.contains("query"), "got: {summary}");
+    assert!(summary.contains("limit"), "got: {summary}");
+}
+
+#[test]
+fn arg_summary_is_empty_when_a_command_takes_no_arguments() {
+    let t = single("ping", serde_json::json!({}));
+    assert_eq!(
+        t.arg_summary(),
+        "",
+        "a no-argument tool must summarise as empty, not as a stray separator"
+    );
+}
+
+#[test]
+fn arg_summary_lists_the_command_discriminator_for_a_multi_command() {
+    // A MultiCommands tool's first argument is always `command`, so the summary
+    // shows the choices rather than the union of every branch's properties.
+    let t = multi("memory", &["add", "remove", "replace"]);
+    assert_eq!(t.arg_summary(), "command: add|remove|replace");
+}
+
+#[test]
+fn arg_summary_handles_a_single_command_group() {
+    let t = multi("solo", &["only"]);
+    assert_eq!(
+        t.arg_summary(),
+        "command: only",
+        "one command must not produce a trailing separator"
+    );
+}
+
+#[test]
+fn toolshed_with_tools_replaces_the_list() {
+    let shed = ToolShed::default().with_tools(vec![
+        single("a", serde_json::json!({})),
+        single("b", serde_json::json!({})),
+    ]);
+    let names: Vec<&str> = shed.tools.iter().map(Tool::name).collect();
+    assert_eq!(names, vec!["a", "b"]);
+}
+
+#[test]
+fn toolshed_with_tools_overwrites_rather_than_appends() {
+    // Appending would silently double-register tools across two calls.
+    let shed = ToolShed::default()
+        .with_tools(vec![single("first", serde_json::json!({}))])
+        .with_tools(vec![single("second", serde_json::json!({}))]);
+    let names: Vec<&str> = shed.tools.iter().map(Tool::name).collect();
+    assert_eq!(names, vec!["second"], "the second call must replace the first");
+}
+
+#[test]
+fn toolshed_all_tools_includes_the_shed_metatool_first() {
+    // `all_tools` is what a provider iterates to build its tool list; the shed
+    // meta-tool must lead so discovery is offered before the tools it finds.
+    let shed = ToolShed {
+        shed: Some(single("shed", serde_json::json!({}))),
+        tools: vec![single("read", serde_json::json!({}))],
+    };
+    let all = shed.all_tools();
+    let names: Vec<&str> = all.iter().map(|t| t.name()).collect();
+    assert_eq!(names, vec!["shed", "read"]);
+}
+
+#[test]
+fn toolshed_all_tools_omits_an_absent_metatool() {
+    let shed = ToolShed {
+        shed: None,
+        tools: vec![single("read", serde_json::json!({}))],
+    };
+    let all = shed.all_tools();
+    let names: Vec<&str> = all.iter().map(|t| t.name()).collect();
+    assert_eq!(names, vec!["read"]);
+}
