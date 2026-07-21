@@ -15,6 +15,7 @@ use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelSpec, TextContent, ToolShed, UserModelContent,
 };
+use foundation_ai::types::ModelState;
 use foundation_core::valtron::{valtron_test, Stream};
 
 fn fixture_gguf() -> std::path::PathBuf {
@@ -218,4 +219,76 @@ fn loaded_gguf_uses_the_text_based_tool_formatter() {
         instructions.contains("<ToolCall>"),
         "the XML tool-call convention must be described to the model: {instructions}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// The empty-message-list branch
+// ---------------------------------------------------------------------------
+//
+// Both generate() and stream() special-case an interaction with NO messages:
+// the system prompt is used raw, WITHOUT running the chat template (there is no
+// conversation to template). That branch is easy to break — routing an empty
+// list through apply_chat_template would either error or emit a bare template
+// skeleton, and neither surfaces as an obvious failure.
+
+fn system_only_interaction() -> ModelInteraction {
+    ModelInteraction {
+        system_prompt: Some("Continue this text:".to_string()),
+        soul: None,
+        messages: Vec::new(),
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    }
+}
+
+#[valtron_test]
+fn generate_with_no_messages_uses_the_system_prompt_raw() {
+    let model = load();
+    let out = model
+        .generate(system_only_interaction(), Some(params()))
+        .expect("a system-prompt-only interaction is valid input");
+    assert!(
+        !out.is_empty(),
+        "the model must still produce output from a bare system prompt"
+    );
+}
+
+#[valtron_test]
+fn generate_with_no_messages_and_no_system_prompt_is_still_valid() {
+    // The fully-degenerate input: nothing at all. It must not panic — an
+    // empty prompt is a legitimate (if useless) request.
+    let model = load();
+    let empty = ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages: Vec::new(),
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    };
+    let result = model.generate(empty, Some(params()));
+    assert!(
+        result.is_ok(),
+        "an entirely empty interaction must not panic or error: {result:?}"
+    );
+}
+
+#[valtron_test]
+fn stream_with_no_messages_advances() {
+    // Same branch on the streaming side, which has its own copy of the
+    // empty-messages check.
+    let model = load();
+    let stream = model
+        .stream(system_only_interaction(), Some(params()))
+        .expect("stream should be created from a bare system prompt");
+
+    let mut saw_item = false;
+    for item in stream {
+        saw_item = true;
+        if let Stream::Pending(ModelState::Error(e)) = item {
+            panic!("streaming a bare system prompt errored: {e}");
+        }
+    }
+    assert!(saw_item, "the stream must yield at least one item");
 }
