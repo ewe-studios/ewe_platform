@@ -1,5 +1,5 @@
 mod access_tests;
-#[cfg(feature = "integration_tests")]
+#[cfg(feature = "live-model-tests")]
 mod integrations;
 #[cfg(feature = "testing")]
 mod agent_loop_generation_tests;

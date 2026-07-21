@@ -170,8 +170,15 @@ multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
 # Test substrate (F21): MockModelProvider, MockTool, message builders
 testing = ["toolbox"]
 
-# Integration tests: E2E integration tests for providers and others
-integration_tests = ["testing", "llamacpp", "candle"]
+# live-model-tests: integration tests that need a LARGE or DOWNLOADED model
+# (SmolLM2, Gemma-4, the qwen GGUF the llama-server runs) or a live cloud API
+# (OpenAI/Anthropic). Everything testable with the committed tiny safetensors
+# fixtures (tiny-random Llama/Gemma2, via the candle backend) runs by default
+# and is NOT gated here — see tests/candle and tests/agentic/*_candle.
+live-model-tests = ["testing", "llamacpp", "candle"]
+
+# Back-compat alias — prefer `live-model-tests`.
+integration_tests = ["live-model-tests"]
 
 # ===========================================================================
 # Examples — runnable with `cargo run -p foundation_ai --example <name>`

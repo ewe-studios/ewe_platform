@@ -6,5 +6,5 @@ mod openai_provider;
 #[cfg(feature = "llamacpp")]
 mod llamacpp_provider;
 
-#[cfg(feature = "integration_tests")]
+#[cfg(feature = "live-model-tests")]
 mod integrations;
