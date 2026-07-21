@@ -113,3 +113,57 @@ fn lift_control_variants_pass_through() {
         Stream::Init
     ));
 }
+
+// ---------------------------------------------------------------------------
+// Additional lift + From coverage (matrix 5.1 support; progress.rs was 36%).
+
+#[test]
+fn lift_delayed_passes_through() {
+    let model = ModelId::Name("m".into(), None);
+    let d = std::time::Duration::from_millis(5);
+    assert!(matches!(
+        lift_model_item(Stream::Delayed(d), &model),
+        Stream::Delayed(_)
+    ));
+}
+
+#[test]
+fn lift_spread_lifts_each_element() {
+    use foundation_core::valtron::StreamSpread;
+    let model = ModelId::Name("m".into(), None);
+    let items = vec![
+        StreamSpread::Done(user_message()),
+        StreamSpread::Pending(ModelState::Finished),
+    ];
+    match lift_model_item(Stream::Spread(items), &model) {
+        Stream::Spread(lifted) => {
+            assert_eq!(lifted.len(), 2, "both spread elements must be lifted");
+            assert!(matches!(lifted[0], StreamSpread::Done(_)));
+            assert!(matches!(lifted[1], StreamSpread::Pending(_)));
+        }
+        other => panic!("expected Spread, got {other:?}"),
+    }
+}
+
+#[test]
+fn from_model_state_finished_is_session_ending() {
+    let p = AgentProgress::from(&ModelState::Finished);
+    assert!(matches!(p, AgentProgress::SessionEnding));
+}
+
+#[test]
+fn from_model_state_embeddings_is_initializing() {
+    let p = AgentProgress::from(&ModelState::GeneratingEmbeddings);
+    assert!(matches!(p, AgentProgress::Initializing { .. }));
+}
+
+#[test]
+fn from_model_state_error_is_initializing_with_message() {
+    let p = AgentProgress::from(&ModelState::Error("boom".into()));
+    match p {
+        AgentProgress::Initializing { step } => {
+            assert!(step.contains("boom"), "error message should carry through: {step}");
+        }
+        other => panic!("expected Initializing, got {other:?}"),
+    }
+}
