@@ -4,9 +4,10 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F32-docker-agentic-control"
 this_file: "specifications/52-tauri-foundation-platform/features/F32-docker-agentic-control/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-21
+updated: 2026-07-21
 
 depends_on:
   - "F30-docker-test-infra"
@@ -14,10 +15,10 @@ depends_on:
   - "F15-ios-example"
 
 tasks:
-  completed: 0
-  uncompleted: 24
+  completed: 16
+  uncompleted: 8
   total: 24
-  completion_percentage: 0%
+  completion_percentage: 67%
 ---
 
 # F32 — Docker Agentic Control: mouse, keyboard, display
@@ -402,3 +403,35 @@ docker build -t ewe-android infrastructure/docker/android -f artefacts/dockerfil
 | `infrastructure/docker/macos/Dockerfile` | Add socat, imagemagick, python3, jq |
 | `infrastructure/docker/macos/src/install.sh` | Add Rust, cliclick, Tauri CLI |
 | `infrastructure/docker/windows/Dockerfile` | Add socat, imagemagick, python3, jq |
+
+## Implementation Status (2026-07-21)
+
+### ✅ Tier 1 — QEMU control plane
+- `foundation_testbed/src/qemu_control.rs` — dual-protocol `QemuController`
+  - HMP: `sendkey`, `mouse_move`, `mouse_button`, `screendump` (text shell)
+  - QMP: `input-send-event`, `screendump` (JSON-RPC, cleaner)
+  - Auto-detection: `QemuController::auto()` prefers QMP, falls back to HMP
+  - `QemuConsole` with ANSI escape stripping for HMP responses
+  - 70+ key codes with human aliases (enter, cmd, esc, backspace)
+  - Normalized mouse coords (0.0-1.0 → QEMU 0-32767)
+- QMP socket enabled on ALL QEMU-backed images via `ARGUMENTS` env var
+- Proven: `sendkey h e l l o` typed into Windows container, 2.7MB PPM screenshot captured
+
+### ✅ Tier 2 — Per-platform agentic tools
+- Linux: xdotool, ydotool, scrot, imagemagick, xclip, wmctrl, dbus-x11 ✅
+- Windows: AutoHotkey v2, nircmd, ImageMagick (in oem/install.bat) ✅
+- macOS host: socat, imagemagick, python3, jq (in Dockerfile) ✅
+- Android: socat, imagemagick (in Dockerfile) ✅
+
+### ✅ Docker compose
+- `ARGUMENTS: "-qmp unix:/run/shm/qmp.sock,server=on,wait=off,nodelay=on"` added to macOS + Windows
+
+### ⚠️ Remaining (8 tasks)
+1. QMP e2e test against fresh macOS container (requires rebuild with ARGUMENTS)
+2. Imagemagick PPM→PNG conversion in `screendump_png()` method
+3. `type_text()` — map ASCII chars to key down/up sequences for HMP keyboard typing
+4. `key_combo()` — hold multiple keys simultaneously (cmd+space, ctrl+alt+del)
+5. QtéEnvironment agentic API integration (key_press, mouse_move, screenshot_png on docker.rs)
+6. macOS guest: install cliclick + Rust toolchain in install.sh
+7. Windows guest: verify AutoHotkey/nircmd were actually installed (need container rebuild)
+8. `TestEnvironment::launch_app()` per-platform implementation

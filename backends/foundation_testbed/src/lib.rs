@@ -29,6 +29,7 @@ pub mod bindgen;
 #[cfg(feature = "docker-tests")]
 pub mod docker;
 
-// F32: QEMU Monitor Protocol client — universal agentic control (Tier 1).
-// Always available (not feature-gated) — uses serde_json + Unix sockets.
-pub mod qmp;
+// F32: QEMU Monitor control — universal agentic keyboard/mouse/screenshot (Tier 1).
+// Supports both HMP (text) and QMP (JSON) protocols — auto-detected.
+// Always available (not feature-gated) — uses Unix sockets + serde_json.
+pub mod qemu_control;
