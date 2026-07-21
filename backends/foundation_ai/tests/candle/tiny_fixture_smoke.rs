@@ -624,3 +624,34 @@ fn cost_accounting_is_per_session() {
     assert!(s1_total > 0, "the session that ran a turn must record usage");
     assert_eq!(s2_total, 0, "a session that did NOT run must have zero usage: {s2_total}");
 }
+
+/// Matrix 8.11 — a model with NO chat template still loads and generates via
+/// the documented plain-prompt fallback.
+#[valtron_test]
+fn candle_no_chat_template_uses_fallback() {
+    let src = fixture_dir("tiny-random-LlamaForCausalLM");
+    let tmp = std::env::temp_dir().join(format!("candle-notmpl-{}", std::process::id()));
+    let _ = std::fs::create_dir_all(&tmp);
+    // Copy everything EXCEPT tokenizer_config.json (which carries the template).
+    for f in ["config.json", "tokenizer.json", "model.safetensors"] {
+        let _ = std::fs::copy(src.join(f), tmp.join(f));
+    }
+
+    let spec = ModelSpec {
+        name: "notmpl".into(),
+        id: ModelId::Name("notmpl".into(), None),
+        devices: None,
+        model_location: Some(tmp.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+    let model = CandleBackend::cpu()
+        .get_model_by_spec(spec)
+        .expect("a model without a chat template must still load");
+    let out = model.generate(greeting(), Some(params()));
+    let _ = std::fs::remove_dir_all(&tmp);
+
+    assert!(
+        out.expect("generation must succeed via the plain fallback").len() > 0,
+        "generation without a chat template must still produce output"
+    );
+}

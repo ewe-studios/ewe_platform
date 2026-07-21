@@ -149,7 +149,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | **done** |
 | 8.9 | `interaction.messages` reach the prompt (not just system) | both | **done** |
 | 8.10 | Chat template applied when the model ships one | both | **done** |
-| 8.11 | Documented fallback + log when no chat template | gen | todo |
+| 8.11 | Documented fallback + log when no chat template | gen | **done** |
 | 8.12 | Model weights cached — second load is a cache hit | both | **done** |
 | 8.13 | Cache key distinguishes differing configs | both | **done** |
 | 8.14 | Cold-start race loads once, not once per caller | both | **done** |
