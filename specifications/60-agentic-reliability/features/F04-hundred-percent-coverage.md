@@ -20,22 +20,35 @@ cargo llvm-cov --profile uat -p foundation_ai --features "testing live-model-tes
 external-service-tests" -- --test-threads=1` (HF_TOKEN set → live GGUF/candle ran;
 no OpenRouter key → those self-skip). 1096 tests green.
 
-**foundation_ai aggregate: lines 73.70%, regions 71.94%, functions 69.16%**
-(baseline before this batch: lines 71.02% / regions 69.60% / functions 66.32%).
+**foundation_ai aggregate: lines 77.02%, regions 75.09%, functions 72.06%**
+(baseline: lines 71.02% / regions 69.60% / functions 66.32% → +6pp lines). 1157
+tests green, no failures.
+
+Per-file lifts: `harness/agents` 66%→**99%**, `errors/llama` 68%→**100%**,
+`models/generator` 51%→**80%**, `types/base_types` 38%→**77%**,
+`openai_provider` 64%→69%, `huggingface_gguf` 55%→60%.
 
 Gotcha: the `test_llama_server_*` tests need `LLAMA_TEST_MODEL_FILE` to point at
 the real `artefacts/` (plural) path; a stale `artefact/` (singular) env value
 makes them panic and llvm-cov aborts the report. Coverage can still be pulled
 from the collected profdata with `cargo llvm-cov report --profile uat`.
 
-### Remaining low files (post-batch)
+### Remaining low files (all offline surface now covered)
 
-| File | Line | Path to cover |
-|------|-----:|---------------|
-| `huggingface_candle_provider.rs` | ~46% | Live arch branches (Llama/Gemma), error paths; offline config/parse now covered |
-| `models/generator.rs` | ~51% | Build-time codegen tool; offline request-construction partly covered; external send under `external-service-tests` |
-| `huggingface_gguf_provider.rs` | ~55% | Download/load error branches; offline parse/config/quant now covered |
-| `harness/agents.rs` | ~66% | Remaining session bridges |
+The four files still <70% are dominated by **live HTTP / download execution
+machinery and its error branches** — reachable only against a real server or via
+fault injection (malformed responses, network/FS failures), not pure offline
+tests. The offline surface (config, parse, builders, helpers) is covered.
+
+| File | Line | What's left |
+|------|-----:|-------------|
+| `huggingface_candle_provider.rs` | ~50% | Live download/load/inference + Llama/Gemma arch branches + error paths |
+| `huggingface_gguf_provider.rs` | ~60% | Live download/load error branches |
+| `openai_responses_provider.rs` | ~67% | Streaming/send machinery, retry loops |
+| `openai_provider.rs` | ~69% | Send/stream/retry/embeddings machinery |
+
+Next lever for these: fault-injection tests via `TestHttpServer` returning error
+statuses / malformed bodies to exercise retry + error-mapping branches.
 
 ### Done this batch
 
