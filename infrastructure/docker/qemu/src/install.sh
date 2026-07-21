@@ -1,0 +1,602 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+getBase() {
+
+  local base="${1%%\?*}"
+  base=$(basename "$base")
+  printf -v base '%b' "${base//%/\\x}"
+  base="${base//[!A-Za-z0-9._-]/_}"
+
+  echo "$base"
+  return 0
+}
+
+getFolder() {
+
+  local base=""
+  local result="$1"
+
+  if [[ "$result" != *"."* ]]; then
+
+    result="${result,,}"
+
+  else
+
+    base=$(getBase "$result")
+    result="${base%.*}"
+
+    case "${base,,}" in
+
+      *".gz" | *".gzip" | *".xz" | *".7z" | *".zip" | *".rar" | *".lzma" | *".bz" | *".bz2" )
+
+        [[ "$result" == *"."* ]] && result="${result%.*}" ;;
+
+    esac
+
+  fi
+
+  [ -z "$result" ] && result="unknown"
+  echo "$result"
+
+  return 0
+}
+
+bootFile() {
+
+  local file="$1"
+  local ext="${file##*.}"
+  local dest="$STORAGE/boot.$ext"
+
+  if [[ "$file" == "$dest" ]]; then
+    BOOT="$file"
+    return 0
+  fi
+
+  if [[ "${file,,}" == "/boot.${ext,,}" || "${file,,}" == "/custom.${ext,,}" ]]; then
+    BOOT="$file"
+    return 0
+  fi
+
+  if ! mv -f "$file" "$dest"; then
+    error "Failed to move $file to $dest !"
+    return 1
+  fi
+
+  BOOT="$dest"
+  return 0
+}
+
+detectType() {
+
+  local file="$1"
+  local result=""
+  local hybrid=""
+
+  [ ! -s "$file" ] && return 1
+
+  case "${file,,}" in
+    *".iso" | *".img" | *".raw" | *".qcow2" ) ;;
+    * ) return 1 ;;
+  esac
+
+  if [ -n "$BOOT_MODE" ] || [[ "${file,,}" == *".qcow2" ]]; then
+    # Do not need to detect type (or cannot with .qcow2)
+    bootFile "$file" && return 0
+    return 1
+  fi
+
+  if [[ "${file,,}" == *".iso" ]]; then
+
+    hybrid=$(head -c 512 "$file" | tail -c 2 | xxd -p)
+
+    if [[ "$hybrid" != "0000" ]]; then
+
+      result=$(isoinfo -f -i "$file" 2>/dev/null)
+
+      if [ -z "$result" ]; then
+        error "Failed to read ISO file, invalid format!"
+        return 1
+      fi
+
+      if ! grep -qi "^/EFI" <<< "$result"; then
+        BOOT_MODE="legacy"
+      fi
+
+      bootFile "$file" && return 0
+      return 1
+
+    fi
+  fi
+
+  result=$(fdisk -l "$file" 2>/dev/null || true)
+  [[ "${result^^}" != *"EFI "* ]] && BOOT_MODE="legacy"
+
+  bootFile "$file" && return 0
+  return 1
+}
+
+delay() {
+
+  local i
+  local delay="$1"
+  local msg="Retrying failed download in X seconds..."
+
+  info "${msg/X/$delay}"
+
+  for i in $(seq "$delay" -1 1); do
+    html "${msg/X/$i}"
+    sleep 1
+  done
+
+  return 0
+}
+
+downloadFile() {
+
+  local url="$1"
+  local base="$2"
+  local name="$3"
+  local expected="${4:-0}"
+  local dest="$STORAGE/$base"
+  local msg rc total size log
+  local reason=""
+  local progress=()
+  local dotbytes=10485760
+
+  # Check if running with interactive TTY or redirected to docker log
+  if [ -t 1 ]; then
+    progress=( --progress=bar:noscroll )
+  else
+    if [[ "$expected" =~ ^[0-9]+$ ]] && (( expected > 0 )); then
+      dotbytes=$(( (expected + 199) / 200 ))
+    fi
+    progress=( --progress=dot --execute "dotbytes=$dotbytes" )
+  fi
+
+  if [ -z "$name" ]; then
+    msg="Downloading image"
+    info "Downloading $base..."
+  else
+    msg="Downloading $name"
+    info "Downloading $name..."
+  fi
+
+  html "$msg..."
+  log=$(mktemp)
+
+  /run/progress.sh "$dest" "$expected" "$msg ([P])..." &
+
+  {
+    LC_ALL=C wget "$url" -O "$dest" --continue --no-verbose --timeout=30 \
+      --no-http-keep-alive --show-progress "${progress[@]}" --output-file="$log"
+    rc=$?
+  } || :
+
+  fKill "progress.sh"
+
+  if (( rc != 0 )); then
+    reason=$(sed -n \
+      -e 's/^wget: //p' \
+      -e 's/^[0-9-]\{10\} [0-9:]\{8\} ERROR //p' \
+      "$log" | tail -n 1)
+  fi
+
+  rm -f "$log"
+
+  if (( rc == 0 )) && [ -f "$dest" ]; then
+
+    if ! total=$(stat -c%s "$dest"); then
+      error "Failed to determine downloaded file size: $dest"
+      return 1
+    fi
+
+    size=$(formatBytes "$total") || return 1
+
+    if [ "$total" -lt 100000 ]; then
+      error "Invalid image file: is only $size ?" && return 1
+    fi
+
+    return 0
+  fi
+
+  msg="Failed to download $url"
+
+  if (( rc == 3 )); then
+    error "$msg because the file could not be written (disk full?)."
+  elif [ -n "$reason" ]; then
+    error "$msg: ${reason%.}."
+  else
+    error "$msg with exit status $rc."
+  fi
+
+  return 1
+}
+
+downloadWithRetries() {
+
+  local url="$1"
+  local base="$2"
+  local name="$3"
+
+  rm -f "$STORAGE/$base"
+
+  downloadFile "$url" "$base" "$name" && return 0
+  delay 5
+  downloadFile "$url" "$base" "$name" && return 0
+  delay 10
+  downloadFile "$url" "$base" "$name" && return 0
+
+  rm -f "$STORAGE/$base"
+  return 1
+}
+
+convertImage() {
+
+  local source_file=$1
+  local source_fmt=$2
+  local dst_file=$3
+  local dst_fmt=$4
+  local dir base fs fa space space_gb
+  local cur_size cur_gb src_size disk_param
+
+  [ -f "$dst_file" ] && error "Conversion failed, destination file $dst_file already exists?" && return 1
+  [ ! -f "$source_file" ] && error "Conversion failed, source file $source_file does not exists?" && return 1
+
+  if [[ "${source_fmt,,}" == "${dst_fmt,,}" ]]; then
+    if ! mv -f "$source_file" "$dst_file"; then
+      error "Failed to move converted image to $dst_file."
+      return 1
+    fi
+    return 0
+  fi
+
+  local tmp_file="$dst_file.tmp"
+  dir=$(dirname "$tmp_file")
+
+  rm -f "$tmp_file"
+
+  if [ -n "$ALLOCATE" ] && ! disabled "$ALLOCATE"; then
+
+    # Check free diskspace
+    if ! src_size=$(qemu-img info "$source_file" -f "$source_fmt" | grep '^virtual size: ' | sed 's/.*(\(.*\) bytes)/\1/'); then
+      error "Failed to determine virtual size of $source_file."
+      return 1
+    fi
+
+    if ! space=$(df --output=avail -B 1 "$dir" | tail -n 1); then
+      error "Failed to check free space in $dir."
+      return 1
+    fi
+
+    if (( src_size > space )); then
+      space_gb=$(formatBytes "$space")
+      error "Not enough free space to convert image in $dir, it has only $space_gb available..." && return 1
+    fi
+  fi
+
+  base=$(basename "$source_file")
+  info "Converting $base..."
+  html "Converting image..."
+
+  local conv_flags="-p"
+
+  if [ -z "$ALLOCATE" ] || disabled "$ALLOCATE"; then
+    disk_param="preallocation=off"
+  else
+    disk_param="preallocation=falloc"
+  fi
+
+  fs=$(stat -f -c %T "$dir")
+  [[ "${fs,,}" == "btrfs" ]] && disk_param+=",nocow=on"
+
+  if [[ "$dst_fmt" != "raw" ]]; then
+    if [ -z "$ALLOCATE" ] || disabled "$ALLOCATE"; then
+      conv_flags+=" -c"
+    fi
+    [ -n "${DISK_FLAGS:-}" ] && disk_param+=",$DISK_FLAGS"
+  fi
+
+  # shellcheck disable=SC2086
+  if ! qemu-img convert -f "$source_fmt" $conv_flags -o "$disk_param" -O "$dst_fmt" -- "$source_file" "$tmp_file"; then
+    rm -f "$tmp_file"
+    error "Failed to convert image in $dir, is there enough space available?" && return 1
+  fi
+
+  if [[ "$dst_fmt" == "raw" ]]; then
+    if [ -n "$ALLOCATE" ] && ! disabled "$ALLOCATE"; then
+      # Work around qemu-img bug
+      cur_size=$(stat -c%s "$tmp_file")
+      cur_gb=$(formatBytes "$cur_size")
+      if ! fallocate -l "$cur_size" "$tmp_file" &>/dev/null; then
+        if ! fallocate -l -x "$cur_size" "$tmp_file"; then
+          error "Failed to allocate $cur_gb for image!"
+        fi
+      fi
+    fi
+  fi
+
+  if ! mv "$tmp_file" "$dst_file"; then
+    error "Failed to move converted image to $dst_file."
+    return 1
+  fi
+
+  if ! rm -f "$source_file"; then
+    error "Failed to remove old image $source_file."
+    return 1
+  fi
+
+  if [[ "${fs,,}" == "btrfs" ]]; then
+    fa=$(lsattr "$dst_file")
+    if [[ "$fa" != *"C"* ]]; then
+      error "Failed to disable COW for image on ${fs^^} filesystem!"
+    fi
+  fi
+
+  return 0
+}
+
+findFile() {
+
+  local dir file
+  local base="$1"
+  local ext="$2"
+  local fname="${base}.${ext}"
+
+  dir=$(find / -maxdepth 1 -type d -iname "$fname" -print -quit)
+  [ ! -d "$dir" ] && dir=$(find "$STORAGE" -maxdepth 1 -type d -iname "$fname" -print -quit)
+
+  if [ -d "$dir" ]; then
+    if hasDisk; then
+      BOOT="none"
+      return 0
+    fi
+    error "The bind $dir maps to a file that does not exist!" && exit 37
+  fi
+
+  file=$(find / -maxdepth 1 -type f -iname "$fname" -print -quit)
+  [ ! -s "$file" ] && file=$(find "$STORAGE" -maxdepth 1 -type f -iname "$fname" -print -quit)
+
+  detectType "$file" && return 0
+
+  return 1
+}
+
+findBootFile() {
+
+  findFile "boot" "img" && return 0
+  findFile "boot" "raw" && return 0
+  findFile "boot" "iso" && return 0
+  findFile "boot" "qcow2" && return 0
+  findFile "custom" "iso" && return 0
+
+  return 1
+}
+
+findArchiveImage() {
+
+  local tmp="$1"
+  local base="$2"
+  local img=""
+  local ext
+  local exts=( iso img raw qcow2 vdi vhd vhdx vmdk )
+
+  case "${base%.*}" in
+    *".iso" | *".img" | *".raw" | *".qcow2" | *".vdi" | *".vhd" | *".vhdx" | *".vmdk" )
+      if [ -s "$tmp/${base%.*}" ]; then
+        img="$tmp/${base%.*}"
+      fi
+      ;;
+  esac
+
+  if [ -z "$img" ]; then
+    for ext in "${exts[@]}"; do
+      if [ -s "$tmp/${base%.*}.$ext" ]; then
+        img="$tmp/${base%.*}.$ext"
+        break
+      fi
+    done
+  fi
+
+  if [ -z "$img" ]; then
+    for ext in "${exts[@]}"; do
+      img=$(find "$tmp" -type f -iname "*.$ext" -print -quit)
+      [ -n "$img" ] && break
+    done
+  fi
+
+  echo "$img"
+  return 0
+}
+
+findBootFile && return 0
+
+if hasDisk; then
+  BOOT="none"
+  return 0
+fi
+
+BOOT=$(strip "$BOOT")
+
+if [ -z "$BOOT" ] || [[ "$BOOT" == *"example.com/"* ]]; then
+
+  BOOT="alpine"
+  warn "no value specified for the BOOT variable, defaulting to \"${BOOT}\"."
+
+fi
+
+folder=$(getFolder "$BOOT")
+STORAGE="$STORAGE/$folder"
+
+if [ -d "$STORAGE" ]; then
+
+  findBootFile && return 0
+
+  if hasDisk; then
+    BOOT="none"
+    return 0
+  fi
+
+fi
+
+name=$(getURL "$BOOT" "name") || exit 34
+
+if [ -n "$name" ]; then
+
+  msg="Retrieving latest $name version..."
+  info "$msg" && html "$msg..."
+
+  url=$(getURL "$BOOT" "url") || exit 34
+
+  [ -n "$url" ] && BOOT="$url"
+
+fi
+
+if [[ "$BOOT" != *"."* ]]; then
+  if [ -z "$BOOT" ]; then
+    error "No BOOT value specified!"
+  else
+    error "Invalid BOOT value specified, option \"$BOOT\" is not recognized!"
+  fi
+  exit 64
+fi
+
+if [[ "${BOOT,,}" != "http"* ]]; then
+  error "Invalid BOOT value specified, \"$BOOT\" is not a valid URL!" && exit 64
+fi
+
+if ! makeDir "$STORAGE"; then
+  error "Failed to create directory \"$STORAGE\" !" && exit 33
+fi
+
+find "$STORAGE" -maxdepth 1 -type f \( -iname '*.rom' -or -iname '*.vars' \) -delete
+find "$STORAGE" -maxdepth 1 -type f \( -iname 'data.*' -or -iname 'qemu.*' \) -delete
+
+base=$(getBase "$BOOT")
+
+if ! downloadWithRetries "$BOOT" "$base" "$name"; then
+  exit 60
+fi
+
+case "${base,,}" in
+
+  *".gz" | *".gzip" | *".xz" | *".7z" | *".zip" | *".rar" | *".lzma" | *".bz" | *".bz2" )
+
+    info "Extracting $base..."
+    html "Extracting image..." ;;
+
+esac
+
+case "${base,,}" in
+
+  *".gz" | *".gzip" )
+
+    out="$STORAGE/${base%.*}"
+    tmp="$out.tmp"
+
+    rm -f "$tmp"
+
+    if ! gzip -dc "$STORAGE/$base" > "$tmp"; then
+      rm -f "$tmp"
+      error "Failed to extract archive: $base" && exit 32
+    fi
+
+    if ! mv -f "$tmp" "$out"; then
+      rm -f "$tmp"
+      error "Failed to move extracted image to $out" && exit 32
+    fi
+
+    rm -f "$STORAGE/$base"
+    base="${base%.*}"
+    ;;
+
+  *".xz" )
+
+    out="$STORAGE/${base%.*}"
+    tmp="$out.tmp"
+
+    rm -f "$tmp"
+
+    if ! xz -dc "$STORAGE/$base" > "$tmp"; then
+      rm -f "$tmp"
+      error "Failed to extract archive: $base" && exit 32
+    fi
+
+    if ! mv -f "$tmp" "$out"; then
+      rm -f "$tmp"
+      error "Failed to move extracted image to $out" && exit 32
+    fi
+
+    rm -f "$STORAGE/$base"
+    base="${base%.*}"
+    ;;
+
+  *".7z" | *".zip" | *".rar" | *".lzma" | *".bz" | *".bz2" )
+
+    tmp="$STORAGE/extract"
+    rm -rf "$tmp"
+
+    if ! makeDir "$tmp"; then
+      error "Failed to create directory \"$tmp\" !" && exit 33
+    fi
+
+    if ! 7z x "$STORAGE/$base" -o"$tmp" > /dev/null; then
+      rm -rf "$tmp"
+      error "Failed to extract archive: $base" && exit 32
+    fi
+
+    rm -f "$STORAGE/$base"
+
+    img=$(findArchiveImage "$tmp" "$base")
+
+    if [ ! -s "$img" ] || [ ! -f "$img" ]; then
+      rm -rf "$tmp"
+      error "Cannot find any image file in archive: .${BOOT/*./}" && exit 32
+    fi
+
+    base=$(basename "$img")
+
+    if ! mv "$img" "$STORAGE/$base"; then
+      rm -rf "$tmp"
+      error "Failed to move extracted image to $STORAGE/$base" && exit 32
+    fi
+
+    rm -rf "$tmp"
+    ;;
+
+esac
+
+case "${base,,}" in
+
+  *".iso" | *".img" | *".raw" | *".qcow2" )
+
+    ! setOwner "$STORAGE/$base" && warn "failed to set the owner for \"$STORAGE/$base\" !"
+    detectType "$STORAGE/$base" && return 0
+    error "Cannot read file \"${base}\"" && exit 63 ;;
+
+esac
+
+target_ext="img"
+target_fmt="${DISK_FMT:-}"
+[ -z "$target_fmt" ] && target_fmt="raw"
+[[ "$target_fmt" != "raw" ]] && target_ext="qcow2"
+
+case "${base,,}" in
+  *".vdi" ) source_fmt="vdi" ;;
+  *".vhd" ) source_fmt="vpc" ;;
+  *".vhdx" ) source_fmt="vpc" ;;
+  *".vmdk" ) source_fmt="vmdk" ;;
+  * ) error "Unknown file extension, type \".${base/*./}\" is not recognized!" && exit 33 ;;
+esac
+
+dst="$STORAGE/${base%.*}.$target_ext"
+
+! convertImage "$STORAGE/$base" "$source_fmt" "$dst" "$target_fmt" && exit 35
+
+base=$(basename "$dst")
+
+! setOwner "$STORAGE/$base" && warn "failed to set the owner for \"$STORAGE/$base\" !"
+detectType "$STORAGE/$base" && return 0
+error "Cannot convert file \"${base}\"" && exit 36
+
+return 0
