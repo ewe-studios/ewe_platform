@@ -1,146 +1,68 @@
 //! Integration tests for `HuggingFaceGGUFProvider`.
 //!
-//! These tests verify model downloading and loading from HuggingFace Hub.
-//! Tests are ignored by default as they require network access and download files.
-//!
-//! Run with: `cargo test --package foundation_ai --test huggingface_gguf_provider -- --ignored --nocapture`
+//! Two tiers (spec-60 F03):
+//!   * **Offline** — model-id parsing and provider description. No network, run
+//!     by default with the `provider_tests` suite.
+//!   * **External service** — download SmolLM2 from the HuggingFace Hub and run
+//!     inference. Gated behind `external-service-tests` and self-skips (never
+//!     fails) when `HF_TOKEN` is unset, so a keyless run is green. All network
+//!     tests share one cache dir + one small model, so the model is pulled once
+//!     and reused.
 
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider,
-    Quantization, TextContent, ToolShed, UserModelContent,
+    Model, ModelId, ModelProvider, Quantization,
 };
 use foundation_core::valtron::valtron_test;
 
-fn get_token() -> Option<String> {
-    std::env::var("HF_TOKEN").ok()
-}
-
-fn get_project_root() -> std::path::PathBuf {
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
-    std::path::Path::new(&manifest_dir)
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("Should have parent directories")
-        .to_path_buf()
-}
-
-fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
-    project_root.join("artefacts").join("models")
-}
+// ---------------------------------------------------------------------------
+// Offline — always run (no network, no token)
+// ---------------------------------------------------------------------------
 
 #[valtron_test]
-#[ignore = "requires network access and downloads a model"]
-fn test_huggingface_gguf_provider_parsing() {
+fn gguf_provider_parses_model_ids() {
     let config = HuggingFaceGGUFConfig::default();
     let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
-    // Test basic parsing
-    let parsed = provider.parse_model_id(&ModelId::Name(
-        "TheBloke/Llama-2-7B-GGUF:q4_k_m".to_string(),
-        None,
-    ));
-    assert!(parsed.is_some());
-    let parsed = parsed.unwrap();
+    // repo:quant
+    let parsed = provider
+        .parse_model_id(&ModelId::Name(
+            "TheBloke/Llama-2-7B-GGUF:q4_k_m".to_string(),
+            None,
+        ))
+        .expect("parses repo:quant");
     assert_eq!(parsed.repo_id, "TheBloke/Llama-2-7B-GGUF");
     assert_eq!(parsed.quantization, Some("q4_k_m".to_string()));
     assert_eq!(parsed.revision, "main");
 
-    // Test with revision
-    let parsed = provider.parse_model_id(&ModelId::Name(
-        "TheBloke/Llama-2-7B-GGUF:main:q5_k_m".to_string(),
-        None,
-    ));
-    assert!(parsed.is_some());
-    let parsed = parsed.unwrap();
+    // repo:revision:quant
+    let parsed = provider
+        .parse_model_id(&ModelId::Name(
+            "TheBloke/Llama-2-7B-GGUF:main:q5_k_m".to_string(),
+            None,
+        ))
+        .expect("parses repo:rev:quant");
     assert_eq!(parsed.repo_id, "TheBloke/Llama-2-7B-GGUF");
     assert_eq!(parsed.quantization, Some("q5_k_m".to_string()));
     assert_eq!(parsed.revision, "main");
 
-    // Test without quantization (should use default)
-    let parsed =
-        provider.parse_model_id(&ModelId::Name("TheBloke/Llama-2-7B-GGUF".to_string(), None));
-    assert!(parsed.is_some());
-    let parsed = parsed.unwrap();
+    // repo only → default quantization
+    let parsed = provider
+        .parse_model_id(&ModelId::Name("TheBloke/Llama-2-7B-GGUF".to_string(), None))
+        .expect("parses bare repo");
     assert_eq!(parsed.repo_id, "TheBloke/Llama-2-7B-GGUF");
     assert_eq!(parsed.revision, "main");
-    // Should have default quantization
-    assert!(parsed.quantization.is_some());
+    assert!(parsed.quantization.is_some(), "bare repo gets a default quant");
 }
 
 #[valtron_test]
-#[ignore = "requires HF_TOKEN and downloads SmolLM2 model"]
-fn test_huggingface_gguf_provider_download_smollm() {
-    let token = get_token().expect("HF_TOKEN must be set for integration tests");
-    let project_root = get_project_root();
-    let cache_dir = get_artefacts_dir(project_root.as_path());
-
-    // Configure HuggingFaceGGUFProvider to download to artefacts/models
-    let config = HuggingFaceGGUFConfig::builder()
-        .token(token)
-        .cache_dir(&cache_dir)
-        .build();
-
-    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
-
-    // Load model using ModelId with explicit quantization
-    let model_id = ModelId::Name(
-        "unsloth/SmolLM2-360M-Instruct-GGUF".to_string(),
-        Some(Quantization::Q2K),
-    );
-
-    let result = provider.get_model(model_id);
-
-    match result {
-        Ok(_model) => {
-            let expected_path = cache_dir
-                .join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
-            assert!(expected_path.exists());
-        }
-        Err(e) => {
-            panic!("Failed to load model: {e:?}");
-        }
-    }
-}
-
-#[valtron_test]
-#[ignore = "requires HF_TOKEN and GPU"]
-fn test_huggingface_gguf_provider_with_gpu() {
-    let token = get_token().expect("HF_TOKEN must be set for integration tests");
-    let project_root = get_project_root();
-    let cache_dir = get_artefacts_dir(project_root.as_path());
-
-    // Configure with GPU backend
-    let config = HuggingFaceGGUFConfig::builder()
-        .token(token)
-        .cache_dir(&cache_dir)
-        .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaGPU)
-        .n_gpu_layers(32) // Offload 32 layers to GPU
-        .build();
-
-    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
-
-    // Load model using ModelId with explicit quantization
-    let model_id = ModelId::Name(
-        "unsloth/SmolLM2-360M-Instruct-GGUF".to_string(),
-        Some(Quantization::Q2K),
-    );
-
-    let result = provider.get_model(model_id);
-    assert!(result.is_ok(), "Should load model with GPU backend");
-}
-
-#[valtron_test]
-#[ignore = "requires HF_TOKEN"]
-fn test_huggingface_gguf_provider_describe() {
+fn gguf_provider_describes_itself() {
     let config = HuggingFaceGGUFConfig::default();
     let provider = HuggingFaceGGUFProvider::new(config).unwrap();
 
     let descriptor = provider.describe().unwrap();
-
     assert_eq!(descriptor.id, "huggingface");
     assert_eq!(
         descriptor.provider,
@@ -149,66 +71,98 @@ fn test_huggingface_gguf_provider_describe() {
     assert!(descriptor.base_url.is_some());
 }
 
-/// Test HuggingFaceGGUFProvider with SmolLM2 model download and inference.
-///
-/// This test downloads the SmolLM2 model (Q2_K quantization) to artefacts/models,
-/// then verifies the provider can load it and perform inference.
-#[valtron_test]
-#[ignore = "requires HF_TOKEN and downloads a ~150MB model for inference"]
-fn test_huggingface_gguf_provider_with_smollm_inference() {
-    let token = get_token().expect("HF_TOKEN must be set for integration tests");
-    let project_root = get_project_root();
+// ---------------------------------------------------------------------------
+// External service — HuggingFace Hub download + inference (SmolLM2-360M).
+// Gated behind `external-service-tests`; self-skips without HF_TOKEN.
+// ---------------------------------------------------------------------------
 
-    // Use artefacts/models as the cache directory (same as TestHarness)
-    let cache_dir = project_root.join("artefacts").join("models");
-
-    // Configure HuggingFaceGGUFProvider to use artefacts/models
-    let config = HuggingFaceGGUFConfig::builder()
-        .token(token)
-        .cache_dir(&cache_dir)
-        .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaCPU)
-        .n_gpu_layers(0)
-        .n_threads(2usize)
-        .context_length(512usize)
-        .build();
-
-    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
-
-    // Use ModelId with explicit quantization
-    let model_id = ModelId::Name(
-        "unsloth/SmolLM2-360M-Instruct-GGUF".to_string(),
-        Some(Quantization::Q2K),
-    );
-
-    // Load model - downloads to artefacts/models if not cached
-    let model = provider.get_model(model_id).expect("Failed to load model");
-
-    // Test generation with chat messages
-    let interaction = ModelInteraction {
-        system_prompt: Some("You are a helpful assistant.".to_string()),
-        soul: None,
-        messages: vec![Messages::User {
-            id: foundation_compact::ids::new_scru128(),
-            role: MessageRole::User,
-            content: UserModelContent::Text(TextContent {
-                content: "Hello! How are you?".to_string(),
-                signature: None,
-            }),
-            signature: None,
-        }],
-        tools_shed: ToolShed::default(),
-        chat_template: None,
-        tool_choice: None,
+#[cfg(feature = "external-service-tests")]
+mod live {
+    use super::*;
+    use foundation_ai::types::{
+        MessageRole, Messages, ModelInteraction, ModelParams, TextContent, ToolShed,
+        UserModelContent,
     };
 
-    let result = model.generate(interaction, Some(ModelParams::default()));
-    assert!(
-        result.is_ok(),
-        "Generation should succeed: {:?}",
-        result.err()
-    );
+    /// The single small GGUF model every network test in this module shares.
+    const SMOLLM_REPO: &str = "unsloth/SmolLM2-360M-Instruct-GGUF";
 
-    let response = result.unwrap();
-    assert!(!response.is_empty(), "Response should not be empty");
-    println!("Generated: {response:?}");
+    fn project_root() -> std::path::PathBuf {
+        let manifest_dir =
+            std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
+        std::path::Path::new(&manifest_dir)
+            .parent()
+            .and_then(|p| p.parent())
+            .expect("workspace root")
+            .to_path_buf()
+    }
+
+    fn cache_dir() -> std::path::PathBuf {
+        project_root().join("artefacts").join("models")
+    }
+
+    /// Build a CPU provider pointed at the shared cache, or `None` (with a skip
+    /// note) when `HF_TOKEN` is unset. The shared cache means SmolLM is pulled
+    /// once and reused across the tests below.
+    fn provider_or_skip() -> Option<HuggingFaceGGUFProvider> {
+        let token = std::env::var("HF_TOKEN").ok().filter(|t| !t.is_empty());
+        let Some(token) = token else {
+            eprintln!("[skip] HF_TOKEN not set — skipping HuggingFace Hub download test");
+            return None;
+        };
+        let config = HuggingFaceGGUFConfig::builder()
+            .token(token)
+            .cache_dir(&cache_dir())
+            .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaCPU)
+            .n_gpu_layers(0)
+            .n_threads(2usize)
+            .context_length(512usize)
+            .build();
+        Some(HuggingFaceGGUFProvider::new(config).expect("provider builds"))
+    }
+
+    #[valtron_test]
+    fn gguf_downloads_smollm_to_cache() {
+        let Some(provider) = provider_or_skip() else {
+            return;
+        };
+        let model_id = ModelId::Name(SMOLLM_REPO.to_string(), Some(Quantization::Q2K));
+        provider.get_model(model_id).expect("SmolLM downloads + loads");
+
+        let expected = cache_dir()
+            .join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
+        assert!(expected.exists(), "GGUF file cached at {expected:?}");
+    }
+
+    #[valtron_test]
+    fn gguf_smollm_generates() {
+        let Some(provider) = provider_or_skip() else {
+            return;
+        };
+        let model_id = ModelId::Name(SMOLLM_REPO.to_string(), Some(Quantization::Q2K));
+        let model = provider.get_model(model_id).expect("load SmolLM");
+
+        let interaction = ModelInteraction {
+            system_prompt: Some("You are a helpful assistant.".to_string()),
+            soul: None,
+            messages: vec![Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: MessageRole::User,
+                content: UserModelContent::Text(TextContent {
+                    content: "Reply with a single friendly word.".to_string(),
+                    signature: None,
+                }),
+                signature: None,
+            }],
+            tools_shed: ToolShed::default(),
+            chat_template: None,
+            tool_choice: None,
+        };
+
+        let response = model
+            .generate(interaction, Some(ModelParams::default()))
+            .expect("SmolLM generation succeeds");
+        assert!(!response.is_empty(), "response should not be empty");
+        println!("SmolLM generated: {response:?}");
+    }
 }

@@ -3,4 +3,5 @@ mod shed_tool_tests;
 mod tool_calling_formatter;
 mod tool_exec_tests;
 mod tool_impl_tests;
+mod file_tools_tests;
 mod workflow_tests;
