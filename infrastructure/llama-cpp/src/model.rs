@@ -301,7 +301,7 @@ impl LlamaModel {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::path::Path;
     /// use infrastructure_llama_cpp::model::AddBos;
-    /// let backend = infrastructure_llama_cpp::llama_backend::LlamaBackend::init()?;
+    /// let backend = infrastructure_llama_cpp::llama_backend::LlamaBackend::init_or_get()?;
     /// let model = LlamaModel::load_from_file(&backend, Path::new("path/to/model"), &Default::default())?;
     /// let tokens = model.str_to_token("Hello, World!", AddBos::Always)?;
     /// # Ok(())

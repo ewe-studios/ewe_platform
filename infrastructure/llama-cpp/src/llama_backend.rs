@@ -209,10 +209,10 @@ impl From<NumaStrategy> for infrastructure_llama_bindings::ggml_numa_strategy {
 ///# use std::error::Error;
 ///
 ///# fn main() -> Result<(), Box<dyn Error>> {
-/// let backend = LlamaBackend::init()?;
+/// let backend = LlamaBackend::init_or_get()?;
 /// drop(backend);
 /// // can be initialized again after being dropped
-/// let backend = LlamaBackend::init()?;
+/// let backend = LlamaBackend::init_or_get()?;
 ///# Ok(())
 ///# }
 ///

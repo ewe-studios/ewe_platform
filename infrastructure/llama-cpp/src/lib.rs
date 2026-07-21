@@ -266,7 +266,7 @@ pub enum LlamaLoraAdapterRemoveError {
 /// ```
 /// # use infrastructure_llama_cpp::llama_time_us;
 /// # use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-/// let backend = LlamaBackend::init().unwrap();
+/// let backend = LlamaBackend::init_or_get().unwrap();
 /// let time = llama_time_us();
 /// assert!(time > 0);
 /// ```
@@ -385,7 +385,7 @@ pub enum JinjaChatTemplateError {
 /// ```
 /// # use std::time::Duration;
 /// # use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-/// let backend = LlamaBackend::init().unwrap();
+/// let backend = LlamaBackend::init_or_get().unwrap();
 /// use infrastructure_llama_cpp::ggml_time_us;
 ///
 /// let start = ggml_time_us();
