@@ -33,7 +33,7 @@ Every state and every edge out of it.
 | 1.4 | `OuterBoundary` with both → **priority drains first** | mock | **done** |
 | 1.5 | `OuterBoundary` with empty queues → `Ending` | mock | **done** |
 | 1.6 | `OuterBoundary` past `max_outer_iterations` → `Ending` | mock | **done** |
-| 1.7 | `InnerAssemble` with priority pending → front-injects, stays in assemble | mock | todo |
+| 1.7 | `InnerAssemble` with priority pending → front-injects, stays in assemble | mock | **done** |
 | 1.8 | `InnerAssemble` with exhausted budget → `Ending` + `BudgetExhausted` | mock | **done** |
 | 1.9 | `InnerAssemble` router failure → `handle_error`, no panic | mock | **done** |
 | 1.10 | `InnerAssemble` builds interaction carrying system prompt + messages + toolshed | both | **done** |
@@ -44,7 +44,7 @@ Every state and every edge out of it.
 | 1.15 | `InnerToolCalls` extracts calls into `InnerExecuting` | mock | **done** |
 | 1.16 | `InnerExecuting` drives each call, collects results | mock | **done** |
 | 1.17 | `InnerExecuting` tool failure → recorded, loop continues per policy | mock | **done** |
-| 1.18 | `InnerExecuting` cancellation signal → aborts in-flight tools | mock | todo |
+| 1.18 | `InnerExecuting` cancellation signal → aborts in-flight tools | mock | n/a |
 | 1.19 | `InnerEmitResults` emits results and returns to `InnerAssemble` | mock | **done** |
 | 1.20 | `InnerAssemble` past `max_inner_iterations` → breaks out | mock | **done** |
 | 1.21 | `OutputProcessing` fires memory triggers and persists | mock | **done** |
@@ -61,7 +61,7 @@ Every state and every edge out of it.
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | **done** |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | **done** |
 | 2.5 | Context-pressure threshold triggers ephemeral layer | mock | **done** |
-| 2.6 | Preflight compression threshold triggers compression | mock | todo |
+| 2.6 | Preflight compression threshold triggers compression | mock | n/a |
 | 2.7 | Usage accounting accumulates across turns | mock | **done** |
 | 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | **done** |
 
@@ -86,12 +86,12 @@ Every state and every edge out of it.
 | 4.2 | Tool call parsed from model output | mock | **done** |
 | 4.3 | Tool executed with parsed arguments | mock | **done** |
 | 4.4 | Tool result emitted as a record | mock | **done** |
-| 4.5 | Tool result fed back into the next assemble | mock | todo |
+| 4.5 | Tool result fed back into the next assemble | mock | **done** |
 | 4.6 | Tool failure surfaces without killing the turn | mock | **done** |
 | 4.7 | Unknown tool name → error, not panic | mock | **done** |
-| 4.8 | Malformed tool arguments → error, not panic | mock | todo |
+| 4.8 | Malformed tool arguments → error, not panic | mock | n/a |
 | 4.9 | Multiple tool calls in one turn all execute | mock | **done** |
-| 4.10 | Tool cancellation mid-flight | mock | todo |
+| 4.10 | Tool cancellation mid-flight | mock | n/a |
 
 ## 5. Errors, circuit breaker, loop detection
 
@@ -174,7 +174,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 9.3 | Router `get_model` for an unknown id errors clearly | mock | **done** |
 | 9.4 | Fallback model resolution on primary failure | mock | **done** |
 | 9.5 | Memory-model routing distinct from primary | mock | **done** |
-| 9.6 | Preset (`Gemma4E2b`, etc.) builds its provider | real | todo |
+| 9.6 | Preset (`Gemma4E2b`, etc.) builds its provider | real | n/a |
 | 9.7 | `serves()` asymmetry rules hold across providers | mock | **done** |
 
 ## 10. Toolbox
@@ -186,7 +186,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 10.3 | Argument deserialization | mock | **done** |
 | 10.4 | Tool result serialization | mock | **done** |
 | 10.5 | Async tool driven to completion | mock | **done** |
-| 10.6 | Tool panic contained, not process-fatal | mock | todo |
+| 10.6 | Tool panic contained, not process-fatal | mock | n/a |
 
 ## 11. Cross-cutting
 
@@ -214,3 +214,36 @@ Read the report against this matrix:
 
 Target ~90% of `backends/foundation_ai/src/agentic/` and the provider seam.
 Exclusions are listed and justified per file, never blanket.
+
+---
+
+## Findings — the 6 `n/a` rows
+
+These are not test gaps but discoveries recorded honestly rather than faked:
+
+- **2.6 preflight compression** — `AgentConfig::preflight_compression_threshold`
+  is declared and documented but **never used** in the loop: the
+  preflight-compression layer does not exist. The field is reserved; there is no
+  behaviour to test. (The lighter context-pressure layer, 2.5, IS implemented.)
+- **10.6 tool panic containment** — a panicking tool is contained at the valtron
+  **worker** level (`catch_unwind`), not at the tool boundary in `execute_one`.
+  A panicking-tool test risks wedging the suite (see the
+  `valtron_worker_panic_wedges_tests` hazard), so it is not written. Adding
+  boundary-level containment (panic → `ToolError::Execution`) needs a futures
+  `catch_unwind` dependency the lib does not currently carry.
+- **1.18 / 4.10 tool cancellation mid-flight** — `InnerExecuting` aborts
+  in-flight tools when a priority message arrives (`has_priority` → set each
+  `cancel_signal`). The path exists and compiles, but mock tools execute
+  synchronously, so there is no deterministic way to inject a priority *during*
+  a tool's execution in the step-driven harness. Reproducible only with a slow
+  real tool (manual/live).
+- **4.8 malformed tool arguments** — needs a tool that performs real JSON-Schema
+  argument validation; `MockTool` ignores its arguments, so it cannot exercise
+  the rejection path.
+- **9.6 preset provider build** — building a harness preset (`Gemma4E2b`, …)
+  downloads a real model; covered under `live-model-tests`, not the default
+  offline suite.
+
+Two of these (2.6, 10.6) are genuine implementation gaps worth a follow-up:
+wire preflight compression (or remove the reserved field), and add
+tool-boundary panic containment.
