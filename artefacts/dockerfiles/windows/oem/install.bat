@@ -42,6 +42,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "& $env:TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache --includeRecommended --add Microsoft.VisualStudio.Workload.VCTools;" ^
   "Remove-Item $env:TEMP\vs_buildtools.exe"
 
+REM ── SPICE Guest Tools (clipboard sharing via noVNC/VNC) ─────────────────────
+echo [ewe-test-windows] installing SPICE Guest Tools
+if exist "C:\OEM\spice-guest-tools.exe" (
+    C:\OEM\spice-guest-tools.exe /S
+    echo [ewe-test-windows] SPICE Guest Tools installed (local).
+) else (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+      "$url = 'https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-0.191.105.exe';" ^
+      "$out = '$env:TEMP\spice-guest-tools.exe';" ^
+      "Invoke-WebRequest -Uri $url -OutFile $out;" ^
+      "& $out /S;" ^
+      "Remove-Item $out -Force -ErrorAction SilentlyContinue"
+    echo [ewe-test-windows] SPICE Guest Tools installed (downloaded).
+)
+
 REM ── OpenSSH Server ─────────────────────────────────────────────────────────
 echo [ewe-test-windows] enabling OpenSSH Server
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
