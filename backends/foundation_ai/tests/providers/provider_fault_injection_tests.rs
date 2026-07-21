@@ -21,7 +21,11 @@ use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
+use foundation_ai::backends::anthropic_messages_provider::{
+    AnthropicConfig, AnthropicMessagesProvider,
+};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
+use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelProvider, TextContent, ToolShed,
     UserModelContent,
@@ -323,5 +327,157 @@ fn a_retry_eventually_succeeds() {
         hits.load(Ordering::SeqCst),
         2,
         "the success must have come from exactly one retry after the 503"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Anthropic Messages — the same faults through a different provider
+// ---------------------------------------------------------------------------
+
+fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
+    let resolver = StaticSocketAddr::new(server_addr(server));
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let config = AnthropicConfig::new()
+        .with_base_url(server.base_url())
+        .with_max_retries(max_retries)
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "test-key".to_string(),
+        )));
+
+    let provider = AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
+        .create(Some(config))
+        .expect("provider builds");
+
+    provider
+        .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
+        .expect("model resolves")
+}
+
+fn expect_anthropic_error(resp: HttpResponse, max_retries: u32) -> String {
+    let server = TestHttpServer::with_response(move |_req| resp.clone());
+    let model = anthropic_model_for(&server, max_retries);
+    match model.generate(interaction(), None) {
+        Ok(out) => panic!("expected an error, got a successful generate: {out:?}"),
+        Err(e) => e.to_string(),
+    }
+}
+
+#[valtron_test]
+fn anthropic_unauthorized_surfaces_an_error() {
+    // Anthropic's error envelope differs from OpenAI's, so its parser needs its
+    // own coverage rather than inheriting the OpenAI test.
+    let body = br#"{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}"#;
+    let msg = expect_anthropic_error(json_error(401, "Unauthorized", body), 0);
+    assert!(
+        msg.contains("invalid x-api-key") || msg.contains("401"),
+        "a 401 must surface the vendor detail or the status: {msg}"
+    );
+}
+
+#[valtron_test]
+fn anthropic_overloaded_surfaces_an_error() {
+    let body = br#"{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}"#;
+    let msg = expect_anthropic_error(json_error(529, "Overloaded", body), 0);
+    assert!(!msg.is_empty(), "a 529 must produce a non-empty error");
+}
+
+#[valtron_test]
+fn anthropic_malformed_json_on_a_200_is_an_error() {
+    let msg = expect_anthropic_error(
+        response(200, "OK", "application/json", b"{broken"),
+        0,
+    );
+    assert!(
+        !msg.is_empty(),
+        "a malformed 200 body must not be treated as a valid completion"
+    );
+}
+
+#[valtron_test]
+fn anthropic_empty_body_on_a_200_is_an_error() {
+    let msg = expect_anthropic_error(response(200, "OK", "application/json", b""), 0);
+    assert!(!msg.is_empty(), "an empty 200 body must error");
+}
+
+#[valtron_test]
+fn anthropic_non_retryable_status_is_not_retried() {
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+
+    let server = TestHttpServer::with_response(move |_req| {
+        counter.fetch_add(1, Ordering::SeqCst);
+        json_error(
+            400,
+            "Bad Request",
+            br#"{"type":"error","error":{"type":"invalid_request_error","message":"bad"}}"#,
+        )
+    });
+
+    let model = anthropic_model_for(&server, 3);
+    hits.store(0, Ordering::SeqCst);
+
+    assert!(model.generate(interaction(), None).is_err());
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        1,
+        "a 400 must not be retried"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI Responses API — /v1/responses has its own request+parse path
+// ---------------------------------------------------------------------------
+
+fn responses_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
+    let resolver = StaticSocketAddr::new(server_addr(server));
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let config = ResponsesConfig::new()
+        .with_base_url(server.base_url())
+        .with_max_retries(max_retries)
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "test-key".to_string(),
+        )));
+
+    let provider = ResponsesProvider::with_http_client_and_config(http_client, config.clone())
+        .create(Some(config))
+        .expect("provider builds");
+
+    provider
+        .get_model(ModelId::Name("o3-mini".into(), None))
+        .expect("model resolves")
+}
+
+fn expect_responses_error(resp: HttpResponse, max_retries: u32) -> String {
+    let server = TestHttpServer::with_response(move |_req| resp.clone());
+    let model = responses_model_for(&server, max_retries);
+    match model.generate(interaction(), None) {
+        Ok(out) => panic!("expected an error, got a successful generate: {out:?}"),
+        Err(e) => e.to_string(),
+    }
+}
+
+#[valtron_test]
+fn responses_unauthorized_surfaces_an_error() {
+    let body = br#"{"error":{"message":"Invalid API key","type":"invalid_request_error"}}"#;
+    let msg = expect_responses_error(json_error(401, "Unauthorized", body), 0);
+    assert!(
+        msg.contains("Invalid API key") || msg.contains("401"),
+        "a 401 must surface the vendor detail or the status: {msg}"
+    );
+}
+
+#[valtron_test]
+fn responses_server_error_surfaces_an_error() {
+    let body = br#"{"error":{"message":"boom","type":"server_error"}}"#;
+    let msg = expect_responses_error(json_error(500, "Internal Server Error", body), 0);
+    assert!(!msg.is_empty(), "a 500 must produce a non-empty error");
+}
+
+#[valtron_test]
+fn responses_malformed_json_on_a_200_is_an_error() {
+    let msg = expect_responses_error(response(200, "OK", "application/json", b"{nope"), 0);
+    assert!(
+        !msg.is_empty(),
+        "a malformed 200 body must not be treated as a valid completion"
     );
 }
