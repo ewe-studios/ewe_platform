@@ -192,9 +192,6 @@ pub struct AgentLoop<D, M> {
     inner_iteration: usize,
     outer_iteration: usize,
     message_count: u64,
-
-    /// Pending messages to prepend (from steering/follow-up).
-    pending_user_messages: Vec<Messages>,
 }
 
 impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
@@ -235,16 +232,20 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             inner_iteration: 0,
             outer_iteration: 0,
             message_count: 0,
-            pending_user_messages: Vec::new(),
         }
     }
 
-    /// Push a user message to be processed in the next inner iteration.
+    /// Persist a user message to session history.
+    ///
+    /// The message reaches the model through context assembly
+    /// (`message_api` -> `ContextProvider` -> `interaction.messages`), so
+    /// persisting here is the whole job — an earlier `pending_user_messages`
+    /// buffer duplicated it, was never drained (unbounded growth), and was read
+    /// only by a debug counter, so it was removed.
     pub fn push_user_message(&mut self, msg: Messages) {
         let _ = self.message_api.append(SessionRecord::Conversation {
-            message: msg.clone(),
+            message: msg,
         });
-        self.pending_user_messages.push(msg);
     }
 
     /// Current state label (for diagnostics).
@@ -386,7 +387,6 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         tracing::trace!(
             messages = interaction.messages.len(),
             has_system = interaction.system_prompt.is_some(),
-            pending_user = self.pending_user_messages.len(),
             "Sending interactions to model for generation"
         );
         match model.stream(interaction, Some(params)) {

@@ -1779,6 +1779,11 @@ impl ModelProvider for LlamaBackends {
 static LOADED_MODELS: OnceLock<Mutex<std::collections::HashMap<String, LlamaModels>>> =
     OnceLock::new();
 
+/// Per-cache-key load locks, so concurrent first-callers for one model serialize
+/// on the disk read instead of all loading it. See `LlamaBackends::load_model`.
+static LOAD_LOCKS: OnceLock<Mutex<std::collections::HashMap<String, Arc<Mutex<()>>>>> =
+    OnceLock::new();
+
 impl LlamaBackends {
     /// Load a model, applying a [`LlamaBackendConfig`] (GPU layers, context
     /// length, batch size, threads) and its optional speculative (MTP) config.
@@ -1824,6 +1829,8 @@ impl LlamaBackends {
             model_spec.name
         );
         let cache = LOADED_MODELS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
+
+        // Fast path: an already-loaded model is a lock-and-clone.
         if let Some(cached) = cache
             .lock()
             .expect("loaded-model cache poisoned")
@@ -1831,6 +1838,34 @@ impl LlamaBackends {
         {
             tracing::debug!(model = %model_spec.name, "load_model: reusing cached model weights");
             // Share the weights, not the wrapper — see `share_weights`.
+            return Ok(cached.share_weights());
+        }
+
+        // Cold path: serialize concurrent loads OF THE SAME KEY so exactly one
+        // reads the multi-GB file from disk while the rest wait and then hit the
+        // cache. Without this, N concurrent first-callers all missed and all
+        // loaded (measured 2 disk loads for 6 concurrent calls). The per-key
+        // guard is taken WITHOUT holding the cache mutex, so cache hits never
+        // block and loads of DIFFERENT models still run in parallel.
+        let load_guard = {
+            let locks = LOAD_LOCKS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
+            let mut locks = locks.lock().expect("load-locks poisoned");
+            Arc::clone(
+                locks
+                    .entry(cache_key.clone())
+                    .or_insert_with(|| Arc::new(Mutex::new(()))),
+            )
+        };
+        let _load = load_guard.lock().expect("per-key load lock poisoned");
+
+        // Double-checked: another thread may have loaded this key while we
+        // waited on the per-key lock.
+        if let Some(cached) = cache
+            .lock()
+            .expect("loaded-model cache poisoned")
+            .get(&cache_key)
+        {
+            tracing::debug!(model = %model_spec.name, "load_model: cached after waiting for concurrent load");
             return Ok(cached.share_weights());
         }
 
