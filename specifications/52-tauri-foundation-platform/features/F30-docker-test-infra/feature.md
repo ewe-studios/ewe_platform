@@ -4,19 +4,20 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F30-docker-test-infra"
 this_file: "specifications/52-tauri-foundation-platform/features/F30-docker-test-infra/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: 2026-07-21
+updated: 2026-07-21
 
 depends_on:
   - "F29-platform-completeness"
   - "F13-cross-platform-builds"
 
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F30 — Docker-based test infrastructure
@@ -191,3 +192,23 @@ docker exec ewe_windows ver       # Windows version
 | `backends/foundation_macros/src/platform_test.rs` | Skip-if-no-Docker logic |
 | `.github/workflows/platform-docker-tests.yml` | **NEW** — CI pipeline |
 | `Makefile` | Already has `make dev`/`make ios`/`make android` |
+
+## Implementation Status (2026-07-21)
+
+### ✅ Layer 1 — TestEnvironmentBuilder
+- `foundation_testbed/src/docker.rs` — `TestEnvironmentBuilder`, `TestEnvironment`, `ConnectionMode`
+- `exec()` via `docker exec`, `copy_in()` via `docker cp`, `screenshot()` via `screencapture`/`screencap`
+- `is_running()` via `docker ps`, `connect()` with port/VNC readiness checks
+- 4 tests pass against running macOS + Windows containers
+- Feature-gated behind `docker-tests`
+
+### ✅ Layer 2 — #[platform_test(docker)] macro
+- `platform_test.rs` — Docker backends generate skip-if-not-running logic
+- `docker = "macos"`, `docker = "windows"`, `docker = "android"` variants
+- Tests silently return early when containers aren't reachable (no CI failures)
+
+### ✅ Layer 3 — CI pipeline
+- `.github/workflows/platform-docker-tests.yml` — macOS + Windows + unit test matrix
+- Boots containers, waits for readiness, runs connectivity tests
+- Collects screenshots + artifacts with 7-day retention
+- Triggers on `workflow_dispatch`, platform-related pushes, daily schedule

@@ -1,0 +1,135 @@
+# Platform Docker Tests (spec-52 F30 Layer 3)
+#
+# Boots macOS + Windows Docker containers and runs cross-platform tests
+# against the foundation_testbed TestEnvironmentBuilder.
+#
+# Triggers:
+#   - Manual: workflow_dispatch
+#   - Push: branches matching spec*/platform* (feature branches)
+#   - Schedule: daily at 3am UTC (catch regressions)
+
+name: Platform Docker Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**/platform**'
+      - '**/spec**'
+      - '**/foundation-platform**'
+    paths:
+      - 'backends/foundation_platform/**'
+      - 'backends/foundation_testbed/**'
+      - 'backends/foundation_macros/**'
+      - 'examples/platform_*/**'
+  schedule:
+    - cron: '37 3 * * *'  # 3:37am UTC daily (off-peak)
+
+jobs:
+  # ── macOS tests ─────────────────────────────────────────────────────────
+  macos-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot macOS container
+        run: |
+          docker compose -f docker-compose.yaml up macos -d
+          echo "Waiting for macOS to boot (up to 10 minutes)..."
+          for i in $(seq 1 120); do
+            if docker exec macos sh -c 'echo ready' 2>/dev/null; then
+              echo "macOS ready after ${i}0 seconds"
+              break
+            fi
+            sleep 10
+          done
+
+      - name: Install Rust on macOS
+        run: |
+          docker exec macos bash -c '
+            curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            source ~/.cargo/env
+            rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+          '
+
+      - name: Docker connectivity tests
+        run: |
+          cargo test -p foundation_testbed --features docker-tests --lib -- docker
+
+      - name: iOS target check
+        run: |
+          docker exec macos bash -c '
+            source ~/.cargo/env
+            export RUSTUP_TOOLCHAIN=stable
+            cd /shared/examples/platform_ios/src-tauri
+            cargo check --target aarch64-apple-ios
+          '
+
+      - name: Collect screenshots
+        if: always()
+        run: |
+          docker exec macos screencapture -x /tmp/screenshot.png 2>/dev/null || true
+          docker cp macos:/tmp/screenshot.png ./macos-screenshot.png 2>/dev/null || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-test-artifacts
+          path: |
+            macos-screenshot.png
+          retention-days: 7
+
+  # ── Windows tests ───────────────────────────────────────────────────────
+  windows-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot Windows container
+        run: |
+          docker compose -f docker-compose.yaml up windows -d
+          echo "Waiting for Windows to boot (up to 10 minutes)..."
+          for i in $(seq 1 120); do
+            if docker exec ewe_windows cmd /c "echo ready" 2>/dev/null; then
+              echo "Windows ready after ${i}0 seconds"
+              break
+            fi
+            sleep 10
+          done
+
+      - name: Docker connectivity tests
+        run: |
+          cargo test -p foundation_testbed --features docker-tests --lib -- docker
+
+      - name: Collect artifacts
+        if: always()
+        run: |
+          docker exec ewe_windows cmd /c "ver" 2>/dev/null > windows-version.txt || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-test-artifacts
+          path: |
+            windows-version.txt
+          retention-days: 7
+
+  # ── Platform unit tests (in-memory, no Docker needed) ──────────────────
+  platform-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run foundation_platform tests
+        run: cargo test -p foundation_platform -- --test-threads=1
+
+      - name: Run foundation_macros tests
+        run: cargo test -p foundation_macros
+
+      - name: Check foundation_ui_components
+        run: cargo check -p foundation_ui_components
