@@ -180,7 +180,11 @@ impl<M: Model + Clone + Send + Sync + 'static> RoutableProvider for PreloadedPro
     }
 
     fn get_one(&self, _model_id: &ModelId) -> Option<ModelSpec> {
-        Some(self.model.spec())
+        // Serve the preloaded model's spec, stamped with the id it was
+        // registered under so routing/telemetry see a stable identity.
+        let mut spec = self.model.spec();
+        spec.id = self.model_id.clone();
+        Some(spec)
     }
 
     fn get_all(&self, model_id: &ModelId) -> Vec<ModelSpec> {

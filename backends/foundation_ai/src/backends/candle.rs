@@ -522,7 +522,6 @@ fn build_llama_model(
     Ok(CandleModels::new(
         inner,
         tokenizer,
-        dtype,
         device.clone(),
         eos_token_id,
         spec,
@@ -581,7 +580,6 @@ fn build_gemma2_model(
     Ok(CandleModels::new(
         CandleModelInner::Gemma2(model),
         tokenizer,
-        dtype,
         device.clone(),
         eos_token_id,
         spec,
@@ -647,7 +645,6 @@ struct CandleModelsState {
     model: CandleModelInner,
     tokenizer: Tokenizer,
     device: Device,
-    dtype: DType,
     eos_token_id: Option<u32>,
     spec: ModelSpec,
     last_usage: Option<UsageReport>,
@@ -773,7 +770,6 @@ impl CandleModels {
     fn new(
         model: CandleModelInner,
         tokenizer: Tokenizer,
-        dtype: DType,
         device: Device,
         eos_token_id: Option<u32>,
         spec: ModelSpec,
@@ -784,7 +780,6 @@ impl CandleModels {
                 model,
                 tokenizer,
                 device,
-                dtype,
                 eos_token_id,
                 spec,
                 last_usage: None,
