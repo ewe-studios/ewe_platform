@@ -7,16 +7,17 @@ this_file: "specifications/52-tauri-foundation-platform/features/F11-entrypoint-
 status: completed
 priority: medium
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F00-crate-skeleton"
   - "F01-session-backbone"
 
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 
 # F11 — Entrypoint annotations and build pipeline

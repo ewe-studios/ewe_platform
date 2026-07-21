@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F26-streaming-c
 status: completed
 priority: medium
 created: 2026-07-20
+updated: 2026-07-21
 
 depends_on:
   - "F25-ipc-registry"
 
 tasks:
-  completed: 0
-  uncompleted: 7
-  total: 7
-  completion_percentage: 0%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 ---
 # F26 — Streaming Channels: Tauri Channels for ordered data delivery
 

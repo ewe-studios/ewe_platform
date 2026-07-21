@@ -7,16 +7,17 @@ this_file: "specifications/52-tauri-foundation-platform/features/F16-app-crate-s
 status: completed
 priority: critical
 created: 2026-07-18
+updated: 2026-07-21
 
 depends_on:
   - "F13-cross-platform-builds"
   - "F14-android-example"
 
 tasks:
-  completed: 3
-  uncompleted: 9
-  total: 12
-  completion_percentage: 25%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 ---
 # F16 — App crate structure & project convention
 

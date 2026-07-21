@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F04-webview-pro
 status: completed
 priority: high
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F00-crate-skeleton"
 
 tasks:
-  completed: 0
-  uncompleted: 12
-  total: 12
-  completion_percentage: 0%
+  completed: 4
+  uncompleted: 0
+  total: 4
+  completion_percentage: 100%
 ---
 
 # F04 — WebView profiles and access gates

@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F08-mutation-qu
 status: completed
 priority: medium
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
 
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 ---
 
 # F08 — LWW mutation queue (MVP)

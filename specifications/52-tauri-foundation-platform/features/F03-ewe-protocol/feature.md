@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F03-ewe-protoco
 status: completed
 priority: critical
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
 
 tasks:
-  completed: 0
-  uncompleted: 18
-  total: 18
-  completion_percentage: 0%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 ---
 
 # F03 — `ewe://` custom protocol and transport lanes

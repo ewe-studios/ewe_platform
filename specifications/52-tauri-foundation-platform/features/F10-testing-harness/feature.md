@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F10-testing-har
 status: completed
 priority: high
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
 
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 4
+  uncompleted: 0
+  total: 4
+  completion_percentage: 100%
 ---
 
 # F10 — `#[platform_test]` macro

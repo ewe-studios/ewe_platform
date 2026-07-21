@@ -7,6 +7,7 @@ this_file: "specifications/52-tauri-foundation-platform/features/F25-ipc-registr
 status: completed
 priority: critical
 created: 2026-07-20
+updated: 2026-07-21
 
 depends_on:
   - "F02-route-handler"
@@ -14,10 +15,10 @@ depends_on:
   - "F24-script-injector"
 
 tasks:
-  completed: 6
-  uncompleted: 4
-  total: 10
-  completion_percentage: 60%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 
 implementation_notes: |
   Trait split: `Ipc` in foundation_wasm (base, no 'static, wasm32+native),

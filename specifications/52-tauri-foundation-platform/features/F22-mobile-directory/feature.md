@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F22-mobile-dire
 status: completed
 priority: critical
 created: 2026-07-19
+updated: 2026-07-21
 
 depends_on:
   - "F21-multi-app-distribution-and-webview"
 
 tasks:
-  completed: 0
-  uncompleted: 7
+  completed: 7
+  uncompleted: 0
   total: 7
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 # F22 — MobileDirectory: disk-backed asset serving
 

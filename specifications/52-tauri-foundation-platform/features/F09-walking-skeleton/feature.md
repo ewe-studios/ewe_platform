@@ -7,6 +7,7 @@ this_file: "specifications/52-tauri-foundation-platform/features/F09-walking-ske
 status: completed
 priority: critical
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
@@ -16,10 +17,10 @@ depends_on:
   - "F07-cache-tiers"
 
 tasks:
-  completed: 0
-  uncompleted: 12
-  total: 12
-  completion_percentage: 0%
+  completed: 10
+  uncompleted: 0
+  total: 10
+  completion_percentage: 100%
 ---
 
 # F09 — Walking skeleton

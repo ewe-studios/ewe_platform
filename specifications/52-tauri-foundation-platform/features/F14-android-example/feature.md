@@ -7,15 +7,16 @@ this_file: "specifications/52-tauri-foundation-platform/features/F14-android-exa
 status: completed
 priority: critical
 created: 2026-07-18
+updated: 2026-07-21
 
 depends_on:
   - "F13-cross-platform-builds"
 
 tasks:
-  completed: 7
-  uncompleted: 1
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 87%
+  completion_percentage: 100%
 ---
 # F14 — Android example app
 

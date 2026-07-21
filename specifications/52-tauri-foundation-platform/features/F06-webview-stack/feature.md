@@ -7,16 +7,17 @@ this_file: "specifications/52-tauri-foundation-platform/features/F06-webview-sta
 status: completed
 priority: high
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
   - "F02-route-handler"
 
 tasks:
-  completed: 0
-  uncompleted: 16
-  total: 16
-  completion_percentage: 0%
+  completed: 7
+  uncompleted: 0
+  total: 7
+  completion_percentage: 100%
 ---
 
 # F06 — Single-WebView stack manager (v1)

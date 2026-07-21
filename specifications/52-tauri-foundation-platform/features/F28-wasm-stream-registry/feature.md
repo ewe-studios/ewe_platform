@@ -7,6 +7,7 @@ this_file: "specifications/52-tauri-foundation-platform/features/F28-wasm-stream
 status: completed
 priority: high
 created: 2026-07-21
+updated: 2026-07-21
 
 depends_on:
   - "F25-ipc-registry"
@@ -14,10 +15,10 @@ depends_on:
   - "F27-wasm-runtime-triggers"
 
 tasks:
-  completed: 0
-  uncompleted: 9
-  total: 9
-  completion_percentage: 0%
+  completed: 5
+  uncompleted: 0
+  total: 5
+  completion_percentage: 100%
 ---
 # F28 — WASM ConcurrentQueue Stream Registry + JS Stream Objects
 

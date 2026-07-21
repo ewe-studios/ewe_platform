@@ -7,6 +7,7 @@ this_file: "specifications/52-tauri-foundation-platform/features/F23-wasm-capabi
 status: completed
 priority: critical
 created: 2026-07-20
+updated: 2026-07-21
 
 depends_on:
   - "F05-capability-registry"
@@ -14,9 +15,9 @@ depends_on:
 
 tasks:
   completed: 6
-  uncompleted: 3
-  total: 9
-  completion_percentage: 67%
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 
 implementation_notes: |
   The trait was split across crates — `WasmCapability` (base, no `'static`)

@@ -7,16 +7,17 @@ this_file: "specifications/52-tauri-foundation-platform/features/F05-capability-
 status: completed
 priority: high
 created: 2026-07-17
+updated: 2026-07-21
 
 depends_on:
   - "F01-session-backbone"
   - "F04-webview-profiles"
 
 tasks:
-  completed: 0
-  uncompleted: 14
-  total: 14
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 
 # F05 — Capability registry

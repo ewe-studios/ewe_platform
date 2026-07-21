@@ -7,16 +7,17 @@ this_file: "specifications/52-tauri-foundation-platform/features/F21-multi-app-d
 status: completed
 priority: critical
 created: 2026-07-18
+updated: 2026-07-21
 
 depends_on:
   - "F16-app-crate-structure"
   - "F17-app-build-pipeline"
 
 tasks:
-  completed: 0
-  uncompleted: 14
-  total: 14
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 # F21 — Multi-App Distribution & `webview_app()` Asset Serving
 
