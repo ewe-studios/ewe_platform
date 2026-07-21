@@ -63,3 +63,36 @@ fn llama_cpp_error_wraps_sub_errors() {
     assert!(matches!(le, LlamaError::Cpp(_)));
     assert!(format!("{le}").to_lowercase().contains("llama.cpp"));
 }
+
+#[test]
+fn remaining_source_conversions_into_llama_and_generation() {
+    use infrastructure_llama_cpp::{
+        ChatTemplateError, LlamaContextLoadError, LlamaModelLoadError, StringToTokenError,
+        TokenToStringError,
+    };
+
+    // Unit-variant sources → LlamaError + Display (LlamaError isn't Clone, so
+    // build each twice: once to render Display, once to convert).
+    for e in [
+        LlamaError::from(ChatTemplateError::MissingTemplate),
+        LlamaError::from(LlamaContextLoadError::NullReturn),
+        LlamaError::from(LlamaModelLoadError::NullResult),
+        LlamaError::from(TokenToStringError::UnknownTokenType),
+    ] {
+        assert!(!format!("{e}").is_empty(), "Display: {e:?}");
+        let g: GenerationError = e.into();
+        assert!(matches!(g, GenerationError::Llama(_)));
+    }
+
+    // StringToTokenError via a real TryFromIntError.
+    let int_err = u8::try_from(300_i32).unwrap_err();
+    let ste: StringToTokenError = int_err.into();
+    let le: LlamaError = ste.into();
+    assert!(matches!(le, LlamaError::Tokenization(_)));
+    assert!(format!("{le}").to_lowercase().contains("token"));
+
+    // Direct From<StringToTokenError> for GenerationError.
+    let int_err2 = u8::try_from(400_i32).unwrap_err();
+    let g: GenerationError = StringToTokenError::from(int_err2).into();
+    assert!(matches!(g, GenerationError::Llama(_)));
+}
