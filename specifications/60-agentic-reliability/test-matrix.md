@@ -60,7 +60,7 @@ Every state and every edge out of it.
 | 2.2 | `max_inner_iterations` honoured exactly | mock | **done** |
 | 2.3 | `TokenLedger` exhaustion stops generation | mock | **done** |
 | 2.4 | `effective_max_tokens` clamps `ModelParams.max_tokens` | mock | **done** |
-| 2.5 | Context-pressure threshold triggers ephemeral layer | mock | todo |
+| 2.5 | Context-pressure threshold triggers ephemeral layer | mock | **done** |
 | 2.6 | Preflight compression threshold triggers compression | mock | todo |
 | 2.7 | Usage accounting accumulates across turns | mock | **done** |
 | 2.8 | Cost accounting is **per session**, not merged across agents sharing a model | both | **done** |
@@ -195,7 +195,7 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 11.1 | Worker-thread tracing reaches the subscriber | mock | **done** |
 | 11.2 | llama.cpp logs silent by default | gguf | **done** |
 | 11.3 | llama.cpp logs enabled by `llamacpp=debug` directive | gguf | **done** |
-| 11.4 | No `println!` on library paths | — | todo |
+| 11.4 | No `println!` on library paths | — | **done** |
 | 11.5 | Fixtures load offline with no network | both | **done** (candle) |
 | 11.6 | Whole default suite runs with network disabled | both | **done** |
 

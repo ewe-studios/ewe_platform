@@ -41,6 +41,13 @@ struct Harness {
     follow_up: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
     priority: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
     cancel: Arc<std::sync::atomic::AtomicU32>,
+    ledger: TokenLedger,
+}
+
+impl Harness {
+    fn set_budget(&self, budget: u64) {
+        self.ledger.set_budget(Some(budget));
+    }
 }
 
 /// Build a loop wired to `router`, so generation actually happens.
@@ -89,6 +96,7 @@ fn harness_with_tools(
         tool_manager.register(tool);
     }
 
+    let ledger_handle = ledger.clone();
     let agent = AgentLoop::new(
         session_id.clone(),
         context_provider,
@@ -107,6 +115,7 @@ fn harness_with_tools(
         follow_up,
         priority,
         cancel,
+        ledger: ledger_handle,
     }
 }
 
@@ -689,5 +698,46 @@ fn abort_terminates_the_loop_before_generation() {
     assert!(
         summary_count(&records).is_some(),
         "an aborted turn still emits its Summary and terminates: {records:?}"
+    );
+}
+
+/// Matrix 2.5 — when context usage crosses the context-pressure threshold, an
+/// ephemeral pressure note is injected into the system prompt.
+#[test]
+fn context_pressure_note_injected_when_over_threshold() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc as StdArc;
+
+    let saw_pressure = StdArc::new(AtomicBool::new(false));
+    let flag = saw_pressure.clone();
+
+    let mut mock = MockModelProvider::new();
+    mock.on(
+        move |mi| {
+            if mi.system_prompt.as_deref().unwrap_or("").contains("capacity") {
+                flag.store(true, Ordering::SeqCst);
+            }
+            true
+        },
+        vec![mock_text("ok")],
+    );
+
+    // Tiny budget so even a modest context crosses the 0.70 pressure threshold.
+    let config = AgentConfig {
+        primary_model: ModelId::Name("mock".into(), None),
+        context_pressure_threshold: 0.70,
+        ..Default::default()
+    };
+    let mut h = harness_with(mock.into_router(), config);
+    h.set_budget(10);
+    // A long message inflates the context token estimate well past the budget.
+    let long = "word ".repeat(200);
+    let _ = h.follow_up.push(user_msg(&long));
+
+    drive(&mut h);
+
+    assert!(
+        saw_pressure.load(Ordering::SeqCst),
+        "a context over the pressure threshold must inject the pressure note"
     );
 }
