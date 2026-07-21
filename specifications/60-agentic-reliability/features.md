@@ -61,7 +61,7 @@ implemented, or explicitly deferred.
 
 | # | Feature | Source | Status |
 |---|---------|--------|--------|
-| F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | Not started |
+| F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | **DONE** — memory_add/remove/replace over MemoryHierarchy working memory; 7 tests |
 | F15 | `delegate` tool — `DelegationTool` slot has NO impl | 36/F14 | Not started |
 | F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | Not started |
 | F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | Not started |
