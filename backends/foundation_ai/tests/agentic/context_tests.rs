@@ -336,3 +336,17 @@ fn semantic_search_without_embedder_falls_back_to_keyword() {
         assert!(some.iter().any(|h| h.content.contains("laptop")), "keyword hit");
     });
 }
+
+#[test]
+fn graph_search_falls_back_to_hybrid_not_silently_empty() {
+    futures_lite::future::block_on(async {
+        // F17: Graph mode has no session knowledge graph, so instead of silently
+        // returning empty it falls back to hybrid recall (keyword here, no embedder).
+        let p = provider_seeded(&["the laptop is on the desk", "unrelated note"]);
+        let hits = p.search("laptop", SearchMode::Graph, 5).await;
+        assert!(
+            hits.iter().any(|h| h.content.contains("laptop")),
+            "Graph mode must fall back to useful recall, got: {hits:?}"
+        );
+    });
+}

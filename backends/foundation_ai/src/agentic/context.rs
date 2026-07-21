@@ -328,7 +328,19 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
             SearchMode::Graph => {
-                // F27 deferred — return empty.
+                // Code-graph traversal (spec-36 F27) is not wired: the only graph
+                // structure available (`foundation_vectors::code_graph`) indexes
+                // CODE, not session knowledge, so wiring it here would be wrong.
+                // Rather than silently return empty (which reads as "no results"),
+                // fall back to hybrid recall so the caller still gets relevant hits.
+                tracing::warn!(
+                    "SearchMode::Graph is not available (no session knowledge graph); \
+                     falling back to hybrid recall"
+                );
+                if !self.semantic_search_messages(query, &mut hits) {
+                    self.search_messages(&query_lower, &mut hits);
+                }
+                Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
             SearchMode::Hybrid => {
                 if !self.semantic_search_messages(query, &mut hits) {
