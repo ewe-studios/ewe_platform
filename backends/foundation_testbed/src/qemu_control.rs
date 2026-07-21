@@ -318,6 +318,44 @@ impl QemuController {
         Ok(())
     }
 
+    // ── Convenience ────────────────────────────────────────────────────
+
+    /// Type a string by sending individual key events.
+    /// Maps ASCII chars to QEMU keys. Space → spc, Enter → ret, etc.
+    pub fn type_text(&self, conn: &mut QemuConsole, text: &str) -> Result<(), QemuControlError> {
+        for ch in text.chars() {
+            let key = match ch {
+                'a'..='z' => Key::from_name(&ch.to_string()).unwrap(),
+                'A'..='Z' => Key::from_name(&ch.to_lowercase().to_string()).unwrap(),
+                '0'..='9' => Key::from_name(&ch.to_string()).unwrap(),
+                ' ' => Key::Space,
+                '\n' | '\r' => Key::Enter,
+                '\t' => Key::Tab,
+                '-' => Key::Minus,
+                '=' => Key::Equal,
+                ',' => Key::Comma,
+                '.' => Key::Period,
+                '/' => Key::Slash,
+                ';' => Key::Semicolon,
+                _ => continue, // skip unmappable chars
+            };
+            self.send_key(conn, key)?;
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        Ok(())
+    }
+
+    /// Convenience: send a key combination by name.
+    /// `ctrl("ctrl", &["alt", "delete"])` → send_keys with ctrl held.
+    pub fn key_combo(&self, conn: &mut QemuConsole, modifier: &str, keys: &[&str]) -> Result<(), QemuControlError> {
+        let mod_key = Key::from_name(modifier).ok_or_else(|| QemuControlError::UnknownKey(modifier.to_string()))?;
+        let mut all: Vec<Key> = vec![mod_key];
+        for k in keys {
+            all.push(Key::from_name(k).ok_or_else(|| QemuControlError::UnknownKey(k.to_string()))?);
+        }
+        self.send_keys(conn, &all)
+    }
+
     // ── Screenshot ─────────────────────────────────────────────────────
 
     /// Capture screenshot as PPM bytes (host-side file).
@@ -333,6 +371,30 @@ impl QemuController {
         std::fs::read(tmp).map_err(|e| QemuControlError::CommandFailed {
             command: "screendump".into(), error: format!("read {tmp}: {e}"),
         })
+    }
+
+    /// Capture screenshot as PNG bytes (converts PPM via imagemagick).
+    pub fn screendump_png(&self, conn: &mut QemuConsole) -> Result<Vec<u8>, QemuControlError> {
+        let ppm = self.screendump(conn)?;
+        // Convert PPM → PNG via imagemagick's `convert` command
+        let mut child = std::process::Command::new("convert")
+            .args(["ppm:-", "png:-"])
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map_err(|e| QemuControlError::CommandFailed {
+                command: "convert".into(),
+                error: format!("imagemagick not found: {e}"),
+            })?;
+
+        if let Some(mut stdin) = child.stdin.take() {
+            use std::io::Write;
+            let _ = stdin.write_all(&ppm);
+        }
+
+        let output = child.wait_with_output().map_err(|e| QemuControlError::Io(e))?;
+        Ok(output.stdout)
     }
 }
 

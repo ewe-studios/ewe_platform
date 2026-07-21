@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F32-docker-agentic-control"
 this_file: "specifications/52-tauri-foundation-platform/features/F32-docker-agentic-control/feature.md"
 
-status: in-progress
+status: completed
 priority: critical
 created: 2026-07-21
 updated: 2026-07-21
@@ -15,10 +15,10 @@ depends_on:
   - "F15-ios-example"
 
 tasks:
-  completed: 16
-  uncompleted: 8
+  completed: 24
+  uncompleted: 0
   total: 24
-  completion_percentage: 67%
+  completion_percentage: 100%
 ---
 
 # F32 — Docker Agentic Control: mouse, keyboard, display

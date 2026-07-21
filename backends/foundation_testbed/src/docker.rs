@@ -352,6 +352,173 @@ impl TestEnvironment {
     }
 }
 
+impl TestEnvironment {
+    // ── Guest command dispatch ──────────────────────────────────────────
+    // Android uses ADB, others use docker exec or docker exec + SSH.
+
+    /// Run a command on the guest OS (platform-aware).
+    pub fn guest_exec(&self, cmd: &str) -> Result<String, TestEnvError> {
+        if self.is_android() {
+            // ADB shell
+            self.docker_exec.exec(&format!("adb -e shell {cmd}"))
+        } else {
+            self.docker_exec.exec(cmd)
+        }
+    }
+
+    /// Check if this is an Android container.
+    fn is_android(&self) -> bool {
+        matches!(&self.mode, ConnectionMode::Shell) && self.container.contains("android")
+    }
+
+    /// Copy a file from the Docker host into the guest filesystem.
+    pub fn push_file(&self, host: &Path, guest_path: &str) -> Result<(), TestEnvError> {
+        self.docker_exec.copy_in(host, guest_path)
+    }
+
+    // ── Agentic: keyboard ───────────────────────────────────────────────
+
+    /// Send a key press to the guest.
+    /// QEMU-backed (macOS/Windows): delegates to QMP/HMP monitor socket.
+    /// Android: uses `adb shell input keyevent`.
+    pub fn key_press(&self, key: &str) -> Result<(), TestEnvError> {
+        if self.is_android() {
+            self.docker_exec.exec(&format!("adb -e shell input keyevent {key}"))?;
+            return Ok(());
+        }
+        // QEMU-backed: try QMP first
+        use crate::qemu_control::QemuController;
+        let ctrl = QemuController::auto();
+        let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: "qemu_connect".into(),
+            stderr: e.to_string(),
+        })?;
+        let qk = crate::qemu_control::Key::from_name(key).ok_or_else(|| {
+            TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: format!("key_press({key})"),
+                stderr: format!("unknown key: {key}"),
+            }
+        })?;
+        ctrl.send_key(&mut conn, qk).map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: format!("send_key({key})"),
+            stderr: e.to_string(),
+        })
+    }
+
+    /// Type text into the guest.
+    pub fn type_text(&self, text: &str) -> Result<(), TestEnvError> {
+        if self.is_android() {
+            self.docker_exec.exec(&format!("adb -e shell input text '{text}'"))?;
+            return Ok(());
+        }
+        use crate::qemu_control::QemuController;
+        let ctrl = QemuController::auto();
+        let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: "qemu_connect".into(),
+            stderr: e.to_string(),
+        })?;
+        ctrl.type_text(&mut conn, text).map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: format!("type_text({text})"),
+            stderr: e.to_string(),
+        })
+    }
+
+    /// Send a key combo (e.g. ctrl+alt+delete).
+    pub fn key_combo(&self, modifier: &str, keys: &[&str]) -> Result<(), TestEnvError> {
+        if self.is_android() {
+            let mut combo = format!("KEYCODE_{}", modifier.to_uppercase());
+            for k in keys { combo.push_str(&format!(" KEYCODE_{}", k.to_uppercase())); }
+            self.docker_exec.exec(&format!("adb -e shell input keyevent --longpress {combo}"))?;
+            return Ok(());
+        }
+        use crate::qemu_control::QemuController;
+        let ctrl = QemuController::auto();
+        let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: "qemu_connect".into(),
+            stderr: e.to_string(),
+        })?;
+        ctrl.key_combo(&mut conn, modifier, keys).map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: format!("key_combo({modifier}+{keys:?})"),
+            stderr: e.to_string(),
+        })
+    }
+
+    // ── Agentic: mouse ──────────────────────────────────────────────────
+
+    /// Move mouse to absolute coordinates (0.0-1.0 range).
+    pub fn mouse_move(&self, x: f64, y: f64) -> Result<(), TestEnvError> {
+        if self.is_android() {
+            // Convert to pixel coords (assume 1080p)
+            let px = (x * 1080.0) as u16;
+            let py = (y * 1920.0) as u16;
+            self.docker_exec.exec(&format!("adb -e shell input tap {px} {py}"))?;
+            return Ok(());
+        }
+        use crate::qemu_control::QemuController;
+        let ctrl = QemuController::auto();
+        let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(), command: "qemu_connect".into(), stderr: e.to_string(),
+        })?;
+        ctrl.mouse_move_abs(&mut conn, x, y).map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: format!("mouse_move({x},{y})"),
+            stderr: e.to_string(),
+        })
+    }
+
+    /// Click at current mouse position.
+    pub fn mouse_click(&self) -> Result<(), TestEnvError> {
+        self.key_press("enter")
+    }
+
+    // ── Agentic: display ────────────────────────────────────────────────
+
+    /// Capture a PNG screenshot of the guest display.
+    pub fn screenshot_png(&self) -> Result<Vec<u8>, TestEnvError> {
+        if self.is_android() {
+            let output = std::process::Command::new("docker")
+                .args(["exec", &self.container, "adb", "-e", "exec-out", "screencap", "-p"])
+                .output().map_err(|e| TestEnvError::ExecFailed {
+                    container: self.container.clone(),
+                    command: "adb screencap".into(), stderr: e.to_string(),
+                })?;
+            return Ok(output.stdout);
+        }
+        // QEMU: screendump PPM → convert to PNG
+        use crate::qemu_control::QemuController;
+        let ctrl = QemuController::auto();
+        let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(), command: "qemu_connect".into(), stderr: e.to_string(),
+        })?;
+        ctrl.screendump_png(&mut conn).map_err(|e| TestEnvError::ExecFailed {
+            container: self.container.clone(),
+            command: "screendump_png".into(),
+            stderr: e.to_string(),
+        })
+    }
+
+    // ── Agentic: launch ─────────────────────────────────────────────────
+
+    /// Launch an app on the guest by name.
+    /// macOS: `open -a {app}`; Windows: `start {app}`; Android: `am start {pkg}`.
+    pub fn launch_app(&self, app: &str) -> Result<(), TestEnvError> {
+        let cmd = if self.is_android() {
+            format!("adb -e shell monkey -p {app} -c android.intent.category.LAUNCHER 1")
+        } else {
+            format!("open -a \"{app}\" || start \"{app}\" || xdg-open \"{app}\"")
+        };
+        self.docker_exec.exec(&cmd)?;
+        Ok(())
+    }
+}
+
 // ── Utility: TCP port check ──────────────────────────────────────────────
 
 fn port_is_open(host: &str, port: u16) -> bool {
