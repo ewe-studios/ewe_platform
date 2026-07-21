@@ -15,10 +15,10 @@ services:
     image: ewestudios/macos:latest
     container_name: ewe_macos
     environment:
-      VERSION: "15"
+      VERSION: "15.7"
       RAM_SIZE: "8G"
       CPU_CORES: "4"
-      DISK_SIZE: "64G"
+      DISK_SIZE: "128G"
       CLIPBOARD: "Y"
     devices:
       - /dev/kvm
@@ -30,14 +30,14 @@ services:
       - 5900:5900/tcp
       - 5900:5900/udp
     volumes:
-      - /home/darkvoid/Boxxed/@dev/macos:/storage
+      - /home/darkvoid/Boxxed/@dev/sandbox/macos:/storage
       - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
     restart: unless-stopped
     stop_grace_period: 2m
     profiles: [macos]
 
   android:
-    image: dockurr/android
+    image: ewe-android:latest
     container_name: ewe_android
     environment:
       ANDROID_VERSION: "14.0"
@@ -47,7 +47,7 @@ services:
     devices:
       - /dev/kvm
     ports:
-      - "8007:8006"   # web UI (VNC viewer)
+      - "8007:8006" # web UI (VNC viewer)
     volumes:
       - ./android_shared:/shared
     profiles: [android]
@@ -57,7 +57,7 @@ services:
     container_name: ewe_windows
     environment:
       VERSION: "11"
-      RAM_SIZE: "8G"
+      RAM_SIZE: "16G"
       CPU_CORES: "4"
       DISK_SIZE: "128G"
       CLIPBOARD: "Y"
@@ -67,12 +67,12 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - "8008:8006"       # web UI (VNC viewer)
-      - "3389:3389/tcp"   # RDP (preferred after install)
-      - "3389:3389/udp"   # RDP (UDP for better performance)
-      - "5900:5900/tcp"   # raw VNC
+      - "8008:8006" # web UI (VNC viewer)
+      - "3389:3389/tcp" # RDP (preferred after install)
+      - "3389:3389/udp" # RDP (UDP for better performance)
+      - "5900:5900/tcp" # raw VNC
     volumes:
-      - /home/darkvoid/Boxxed/@dev/windows:/storage
+      - /home/darkvoid/Boxxed/@dev/sandbox/windows:/storage
       - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
     restart: unless-stopped
     stop_grace_period: 2m

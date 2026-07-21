@@ -116,6 +116,7 @@ RUN useradd -m -s /bin/bash "${DEV_USER}" \
     && groupadd -f docker \
     && usermod -aG docker "${DEV_USER}" \
     && (groupmod -g 990 kvm 2>/dev/null; usermod -aG kvm "${DEV_USER}" || true) \
+    && mkdir -p /etc/sudoers.d \
     && echo "${DEV_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DEV_USER}
 
 EXPOSE 22 5901 6081 5037 5554 5555
