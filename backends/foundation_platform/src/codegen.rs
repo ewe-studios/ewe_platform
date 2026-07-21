@@ -54,6 +54,40 @@ pub fn generate_platform_code() {
         generate_app_modules(&apps, &generated_dir);
     }
 
+    // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
+    // app-shell/ and app-shell-*/ crates compile to wasm32-wasip1.
+    let mut shells: Vec<AppDistribution> = Vec::new();
+    let shell_dir = project_root.join("app-shell");
+    if shell_dir.join("Cargo.toml").exists() {
+        shells.push(AppDistribution {
+            name: "app_shell".into(),
+            crate_dir: shell_dir,
+            route_prefix: "/shell/".into(),
+        });
+    }
+    if let Ok(entries) = std::fs::read_dir(&project_root) {
+        for e in entries.filter_map(std::result::Result::ok) {
+            let p = e.path();
+            let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+            if n.starts_with("app-shell-") && p.is_dir() && p.join("Cargo.toml").exists() {
+                shells.push(AppDistribution {
+                    name: n.replace('-', "_"),
+                    crate_dir: p,
+                    route_prefix: format!("/{n}/"),
+                });
+            }
+        }
+    }
+    if !shells.is_empty() {
+        let shell_out = manifest_dir.join("shell_wasm");
+        std::fs::create_dir_all(&shell_out).ok();
+        for s in &shells {
+            build_wasmtime_app(&s.crate_dir, &shell_out);
+        }
+        let generated_dir = manifest_dir.join("src").join("generated");
+        generate_wasmtime_modules(&shells, &generated_dir);
+    }
+
     // Patch tauri.conf.json BEFORE tauri_build reads it.
     // Sets the initial window URL to bypass WebViewAssetLoader.
     if let Some(first) = apps.first() {
@@ -217,6 +251,49 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     println!("cargo:warning=generated {} app modules", apps.len());
 }
 
+/// Generate per-app Rust modules for wasmtime shell apps (F33).
+///
+/// Produces `src/generated/shell/{name}.rs` with a `fn builder() -> WasmtimeBuilder`
+/// that uses `include_bytes!` to embed the compiled `.wasm` binary.
+fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
+    let shell_dir = generated_dir.join("shell");
+    std::fs::create_dir_all(&shell_dir).ok();
+
+    let mut mod_lines = String::from("// Auto-generated (F33 — wasmtime shell)\n\n");
+
+    for app in apps {
+        let module_name = app.name.replace('-', "_");
+        // Use the crate name directly for the wasm file lookup.
+        let wasm_name = app.crate_dir
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or(&app.name);
+        let content = format!(
+            "// Generated — wasmtime shell for \"{name}\" (F33, Surface 3)\n\
+             // Route prefix: {route_prefix}\n\
+             //\n\
+             // The compiled WASM binary lives in shell_wasm/{wasm_name}.wasm.\n\
+             // Loads via include_bytes! and wraps in a WasmtimeBuilder.\n\n\
+             use foundation_wasmtime::WasmtimeBuilder;\n\n\
+             #[must_use]\n\
+             pub fn builder() -> WasmtimeBuilder {{\n\
+             \x20   let wasm_bytes: &[u8] = include_bytes!(concat!(\n\
+             \x20       env!(\"CARGO_MANIFEST_DIR\"),\n\
+             \x20       \"/shell_wasm/{wasm_name}.wasm\"\n\
+             \x20   ));\n\
+             \x20   WasmtimeBuilder::new(wasm_bytes).with_name(\"{name}\")\n\
+             }}\n",
+            name = app.name,
+            route_prefix = app.route_prefix,
+            wasm_name = wasm_name,
+        );
+        std::fs::write(shell_dir.join(format!("{module_name}.rs")), &content).ok();
+        let _ = writeln!(mod_lines, "pub mod {module_name};");
+    }
+    std::fs::write(shell_dir.join("mod.rs"), &mod_lines).ok();
+    println!("cargo:warning=generated {} wasmtime shell modules", apps.len());
+}
+
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
     let conf_path = manifest_dir.join("tauri.conf.json");
     if let Ok(content) = std::fs::read_to_string(&conf_path) {
@@ -263,6 +340,7 @@ fn mode_str(k: AnnotationKind) -> &'static str {
         AnnotationKind::WasmWorker => "wasm_worker",
         AnnotationKind::WasmService => "wasm_service",
         AnnotationKind::PlatformBin => "platform_bin",
+        AnnotationKind::WasmApp => "wasm_app",
     }
 }
 

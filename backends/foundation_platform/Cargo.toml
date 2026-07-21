@@ -40,6 +40,9 @@ tracing = { workspace = true }
 # `multi` enables NativeHttpClient; `ssl-rustls-ring` provides TLS.
 foundation_netio = { path = "../foundation_netio", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
 
+# Wasmtime shell — Surface 3 WASM runtime (F33)
+foundation_wasmtime = { path = "../foundation_wasmtime" }
+
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }
 

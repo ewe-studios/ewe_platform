@@ -1,15 +1,12 @@
 [package]
 name = "foundation_wasmtime"
 version = "0.1.0"
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
+edition = "2021"
+rust-version = "1.78"
 description = "Wasmtime shell — run WASM modules in-process alongside the Tauri shell (Surface 3)"
 
 [dependencies]
 wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime"] }
 foundation_errstacks = { path = "../foundation_errstacks" }
 derive_more = { version = "2", features = ["display", "error", "from"] }
-tracing = { workspace = true }
+tracing = "0.1"

@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F33-wasmtime-shell"
 this_file: "specifications/52-tauri-foundation-platform/features/F33-wasmtime-shell/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: 2026-07-21
 

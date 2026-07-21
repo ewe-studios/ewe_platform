@@ -117,6 +117,10 @@ pub struct PlatformSession {
     /// Window manager (F35). Bridges Tauri WebView lifecycle with the pool.
     /// `None` in tests; injected by `PlatformBuilder` in production.
     window_manager: crate::window::WindowManager,
+
+    /// Wasmtime shell registry (F33). Named WASM modules that run in-process
+    /// via wasmtime (Surface 3). Registered at setup time, built on first request.
+    pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -158,6 +162,7 @@ impl PlatformSession {
             app_isolation: crate::multi_app::AppIsolation::new(),
             workers_: crate::worker::WorkerRegistry::new(),
             window_manager: crate::window::WindowManager::new(),
+            wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
         })
     }
 }
