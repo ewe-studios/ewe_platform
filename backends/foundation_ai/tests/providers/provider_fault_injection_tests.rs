@@ -481,3 +481,54 @@ fn responses_malformed_json_on_a_200_is_an_error() {
         "a malformed 200 body must not be treated as a valid completion"
     );
 }
+
+#[valtron_test]
+fn responses_retryable_status_is_retried_the_configured_number_of_times() {
+    // /v1/responses carries its own retry loop, so OpenAI's coverage does not
+    // apply to it.
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+    let server = TestHttpServer::with_response(move |_req| {
+        counter.fetch_add(1, Ordering::SeqCst);
+        json_error(
+            503,
+            "Service Unavailable",
+            br#"{"error":{"message":"try later","type":"server_error"}}"#,
+        )
+    });
+
+    let model = responses_model_for(&server, 2);
+    // Exclude get_model's own catalog lookup.
+    hits.store(0, Ordering::SeqCst);
+
+    assert!(model.generate(interaction(), None).is_err());
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        3,
+        "max_retries(2) must give 1 initial attempt + 2 retries"
+    );
+}
+
+#[valtron_test]
+fn responses_non_retryable_status_is_not_retried() {
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+    let server = TestHttpServer::with_response(move |_req| {
+        counter.fetch_add(1, Ordering::SeqCst);
+        json_error(
+            400,
+            "Bad Request",
+            br#"{"error":{"message":"bad param","type":"invalid_request_error"}}"#,
+        )
+    });
+
+    let model = responses_model_for(&server, 3);
+    hits.store(0, Ordering::SeqCst);
+
+    assert!(model.generate(interaction(), None).is_err());
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        1,
+        "a 400 is the caller's fault — retrying wastes time and money"
+    );
+}

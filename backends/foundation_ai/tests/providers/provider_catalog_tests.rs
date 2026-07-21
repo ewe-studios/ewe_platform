@@ -384,3 +384,61 @@ fn responses_get_all_surfaces_a_transport_failure() {
         "a failing catalog fetch must error, not yield an empty list"
     );
 }
+
+#[valtron_test]
+fn responses_get_one_returns_the_first_match() {
+    let server = catalog_server();
+    let provider = responses_provider_for(&server);
+    let spec = provider
+        .get_one(ModelId::Name("gpt-4o".into(), None))
+        .expect("a matching model resolves");
+    assert!(spec.name.starts_with("gpt-4o"), "got: {spec:?}");
+}
+
+#[valtron_test]
+fn responses_get_one_with_no_match_is_not_found() {
+    let server = catalog_server();
+    let provider = responses_provider_for(&server);
+    assert!(
+        provider.get_one(ModelId::Name("absent".into(), None)).is_err(),
+        "an unmatched model must be NotFound, not an empty success"
+    );
+}
+
+#[valtron_test]
+fn responses_get_model_by_spec_resolves_via_the_specs_id() {
+    let server = catalog_server();
+    let provider = responses_provider_for(&server);
+    let spec = provider
+        .get_one(ModelId::Name("gpt-4o".into(), None))
+        .expect("spec resolves");
+    assert!(
+        provider.get_model_by_spec(spec).is_ok(),
+        "a spec from the catalog must load a model"
+    );
+}
+
+#[valtron_test]
+fn responses_repeated_get_model_is_served_from_cache() {
+    // The Responses provider keeps its own models_cache, separate from the Chat
+    // Completions one, so it needs its own proof that a repeat resolve does not
+    // re-fetch the catalog.
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+    let server = TestHttpServer::with_response(move |_req| {
+        counter.fetch_add(1, Ordering::SeqCst);
+        json_ok(CATALOG)
+    });
+    let provider = responses_provider_for(&server);
+
+    let id = ModelId::Name("gpt-4o".into(), None);
+    provider.get_model(id.clone()).expect("first resolve");
+    let after_first = hits.load(Ordering::SeqCst);
+
+    provider.get_model(id).expect("second resolve");
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        after_first,
+        "the second resolve must hit the cache, not the network"
+    );
+}
