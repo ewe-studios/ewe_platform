@@ -1650,6 +1650,142 @@ mod tests {
         assert!(parse_models_dev_response(body, "test").is_empty());
     }
 
+    // -----------------------------------------------------------------
+    // apply_overrides — hand-maintained corrections to upstream data
+    // -----------------------------------------------------------------
+    //
+    // Upstream catalogs get some entries wrong (missing cache pricing, a
+    // context window reported far below the real one). These overrides patch
+    // them. A silently-dropped override understates cost or truncates prompts
+    // at a fraction of the model's real capacity.
+
+    fn model(provider: &str, id: &str) -> ModelEntry {
+        entry(
+            id,
+            id,
+            "anthropic-messages",
+            provider,
+            "https://example.test",
+            false,
+            false,
+            (0.0, 0.0, 0.0, 0.0),
+            4096,
+            4096,
+        )
+    }
+
+    #[test]
+    fn apply_overrides_sets_claude_opus_45_cache_pricing() {
+        // Upstream omits cache read/write pricing for this model; without the
+        // override every cached call is costed at zero.
+        let mut models = vec![model("anthropic", "claude-opus-4-5")];
+        apply_overrides(&mut models);
+        assert!(
+            (models[0].cost_cache_read - 0.5).abs() < 1e-9,
+            "cache read pricing must be patched in, got {}",
+            models[0].cost_cache_read
+        );
+        assert!(
+            (models[0].cost_cache_write - 6.25).abs() < 1e-9,
+            "cache write pricing must be patched in, got {}",
+            models[0].cost_cache_write
+        );
+    }
+
+    #[test]
+    fn apply_overrides_widens_claude_opus_46_context_window() {
+        // Reported as a small window upstream; the real one is 200k. Trusting
+        // the upstream value would truncate prompts at a fraction of capacity.
+        for provider in ["anthropic", "opencode"] {
+            let mut models = vec![model(provider, "claude-opus-4-6")];
+            apply_overrides(&mut models);
+            assert_eq!(
+                models[0].context_window, 200_000,
+                "{provider}/claude-opus-4-6 must be widened to 200k"
+            );
+        }
+    }
+
+    #[test]
+    fn apply_overrides_widens_opencode_sonnet_context_windows() {
+        for id in ["claude-sonnet-4-5", "claude-sonnet-4"] {
+            let mut models = vec![model("opencode", id)];
+            apply_overrides(&mut models);
+            assert_eq!(
+                models[0].context_window, 200_000,
+                "opencode/{id} must be widened to 200k"
+            );
+        }
+    }
+
+    #[test]
+    fn apply_overrides_patches_bedrock_by_substring() {
+        // The bedrock id carries a region prefix, so the rule matches on a
+        // substring rather than equality.
+        let mut models = vec![model(
+            "amazon-bedrock",
+            "us.anthropic.claude-opus-4-6-v1:0",
+        )];
+        apply_overrides(&mut models);
+        assert_eq!(models[0].context_window, 200_000);
+        assert!((models[0].cost_cache_read - 0.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn apply_overrides_leaves_unrelated_models_alone() {
+        // The contrast case: an over-broad rule would rewrite models it should
+        // not touch, which is harder to notice than a missing override.
+        let mut models = vec![model("openai", "gpt-4o")];
+        apply_overrides(&mut models);
+        assert_eq!(models[0].context_window, 4096, "unrelated model untouched");
+        assert!((models[0].cost_cache_read - 0.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn apply_overrides_matches_on_provider_not_just_id() {
+        // Same id under a provider the rule does not name must NOT be patched.
+        let mut models = vec![model("some-other-vendor", "claude-opus-4-5")];
+        apply_overrides(&mut models);
+        assert!(
+            (models[0].cost_cache_read - 0.0).abs() < 1e-9,
+            "the override must be provider-scoped, not id-only"
+        );
+    }
+
+    #[test]
+    fn has_finds_by_provider_and_id_together() {
+        let models = vec![model("anthropic", "claude-opus-4-5")];
+        assert!(has(&models, "anthropic", "claude-opus-4-5"));
+        assert!(!has(&models, "openai", "claude-opus-4-5"), "provider must match");
+        assert!(!has(&models, "anthropic", "other"), "id must match");
+    }
+
+    // -----------------------------------------------------------------
+    // FetchPending — progress labels for the catalog fetch
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn fetch_pending_display_names_its_source() {
+        // These strings surface in generator progress output; a blank or
+        // source-less label makes a stalled fetch impossible to attribute.
+        let connecting = FetchPending::Connecting { source: "models.dev" };
+        let awaiting = FetchPending::AwaitingResponse { source: "openrouter" };
+
+        assert!(connecting.to_string().contains("models.dev"));
+        assert!(connecting.to_string().contains("Connecting"));
+        assert!(awaiting.to_string().contains("openrouter"));
+        assert!(awaiting.to_string().contains("Awaiting"));
+    }
+
+    #[test]
+    fn verify_struct_shape_builds_a_descriptor() {
+        // A compile-time shape guard for the generated code. Calling it proves
+        // the literal still matches ModelProviderDescriptor's fields — if the
+        // struct gains a field, this stops compiling, which is the point.
+        let d = verify_struct_shape();
+        assert_eq!(d.context_window, 0);
+    }
+
     #[test]
     fn parse_models_dev_bad_json_is_empty() {
         assert!(parse_models_dev_response("not json", "test").is_empty());
