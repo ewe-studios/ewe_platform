@@ -491,11 +491,14 @@ impl Model for LlamaModels {
         let params = specs.unwrap_or_default();
         let is_embedding = is_embedding_request(&interaction.messages);
 
-        // Apply chat template if messages are present
-        let prompt = if interaction.messages.is_empty() {
-            interaction.system_prompt.unwrap_or_default()
+        // Apply chat template if messages are present. BOS handling is
+        // delegated to `tokenize_prompt`, which ensures exactly one leading BOS
+        // whether or not the template emitted one (Gemma-4's does not) — a
+        // doubled or missing BOS both degrade output.
+        let (prompt, templated) = if interaction.messages.is_empty() {
+            (interaction.system_prompt.unwrap_or_default(), false)
         } else {
-            apply_chat_template(&model, &interaction)?
+            (apply_chat_template(&model, &interaction)?, true)
         };
 
         if is_embedding {
@@ -539,7 +542,7 @@ impl Model for LlamaModels {
             .new_context(&backend, ctx_params)
             .map_err(Into::<GenerationError>::into)?;
         let mut sampler = build_sampler_chain(&params);
-        generate_text(&model, &mut ctx, &mut sampler, &prompt, &params, &spec)
+        generate_text(&model, &mut ctx, &mut sampler, &prompt, templated, &params, &spec)
     }
 
     fn stream(
@@ -610,6 +613,9 @@ struct LlamaCppStreamInner {
     finished: bool,
     /// Stored prompt string (evaluated lazily)
     prompt: Option<String>,
+    /// Whether `prompt` came from a chat template (drives BOS handling; see
+    /// `tokenize_prompt`).
+    prompt_templated: bool,
 }
 
 impl LlamaCppStream {
@@ -653,10 +659,11 @@ impl LlamaCppStream {
             let model_inner = model.inner.lock().unwrap();
             Arc::clone(&model_inner.model)
         };
-        let prompt = if interaction.messages.is_empty() {
-            interaction.system_prompt.clone().unwrap_or_default()
+        // Templated prompts already carry BOS; only a raw prompt needs one added.
+        let (prompt, prompt_templated) = if interaction.messages.is_empty() {
+            (interaction.system_prompt.clone().unwrap_or_default(), false)
         } else {
-            apply_chat_template(&model_arc, interaction)?
+            (apply_chat_template(&model_arc, interaction)?, true)
         };
 
         // If MTP is engaged (config selects Mtp with a separate head path), build
@@ -678,6 +685,7 @@ impl LlamaCppStream {
                 prompt_evaluated: false,
                 finished: false,
                 prompt: Some(prompt),
+                prompt_templated,
             })),
         })
     }
@@ -834,7 +842,7 @@ impl Iterator for LlamaCppStream {
             tracing::trace!("stream_next: evaluating token generation count");
             // Extract prompt early to avoid lock conflicts
             let prompt = inner.prompt.take().unwrap_or_default();
-            let Ok(tokens) = model.str_to_token(&prompt, AddBos::Always) else {
+            let Ok(tokens) = tokenize_prompt(&model, &prompt, inner.prompt_templated) else {
                 inner.finished = true;
                 return Some(stream_error("failed to tokenize prompt"));
             };
@@ -1070,6 +1078,43 @@ fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::base_types::Tool> {
     shed.all_tools()
 }
 
+/// Tokenize a prompt with exactly one leading BOS, regardless of template.
+///
+/// WHY: chat templates disagree about BOS. Some emit `{{ bos_token }}` (so the
+/// rendered string already contains `<bos>`); Gemma-4's GGUF template does
+/// **not** and starts straight at `<|turn>system`. Blindly adding BOS
+/// (`AddBos::Always`) doubles it for the first kind; blindly omitting it
+/// (`AddBos::Never`) leaves the second kind with none. Both degrade output —
+/// a doubled or missing BOS is a known cause of degenerate first tokens.
+///
+/// WHAT: tokenizes with `parse_special = true` and no auto-BOS (so any `<bos>`
+/// already in the string becomes the BOS token rather than literal text), then
+/// prepends the model's BOS only if the first token is not already BOS.
+///
+/// HOW: `templated` selects the policy. A raw prompt (no chat template) has no
+/// special tokens and follows `AddBos::Always` as before.
+fn tokenize_prompt(
+    model: &LlamaModel,
+    prompt: &str,
+    templated: bool,
+) -> Result<Vec<LlamaToken>, crate::errors::GenerationError> {
+    if !templated {
+        return model
+            .str_to_token(prompt, AddBos::Always)
+            .map_err(Into::into);
+    }
+
+    let mut tokens = model
+        .str_to_token(prompt, AddBos::Never)
+        .map_err(Into::<crate::errors::GenerationError>::into)?;
+
+    let bos = model.token_bos();
+    if tokens.first() != Some(&bos) {
+        tokens.insert(0, bos);
+    }
+    Ok(tokens)
+}
+
 /// Apply a chat template to the interaction messages.
 ///
 /// Uses a custom template if provided, otherwise falls back to the model's default.
@@ -1188,7 +1233,10 @@ fn apply_chat_template(
     }
 
     match model.apply_jinja_chat_template(&chat_messages, true) {
-        Ok(prompt) => Ok(prompt),
+        Ok(prompt) => {
+            tracing::trace!("apply_chat_template (jinja) => {prompt:?}");
+            Ok(prompt)
+        }
         Err(jinja_err) => {
             tracing::debug!(
                 "Jinja chat template failed ({jinja_err}); falling back to legacy template path"
@@ -1518,6 +1566,7 @@ fn generate_text(
     ctx: &mut LlamaModelContext,
     sampler: &mut LlamaSampler,
     prompt: &str,
+    templated: bool,
     params: &ModelParams,
     _spec: &ModelSpec,
 ) -> GenerationResult<Vec<Messages>> {
@@ -1527,9 +1576,7 @@ fn generate_text(
     // fallback.
 
     // Tokenize the prompt
-    let tokens = model
-        .str_to_token(prompt, AddBos::Always)
-        .map_err(Into::<GenerationError>::into)?;
+    let tokens = tokenize_prompt(model, prompt, templated)?;
 
     tracing::trace!("generae: prompt={prompt}");
     // Create batch and add sequence for prompt

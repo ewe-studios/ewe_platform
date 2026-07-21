@@ -81,7 +81,7 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 | S6 architectures | Not started | Decision 02 |
 | S7 test matrix | **Partial** | 6 session/provider tests landed; see `test-matrix.md` |
 | S8 generated weights | Not started | Spike required |
-| S9 generation quality | Not started | Doubled-BOS is the leading hypothesis |
+| S9 generation quality | DONE | conditional BOS (docs/fixes/007); model answers coherently |
 
 ## Decisions
 
