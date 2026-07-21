@@ -143,8 +143,8 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.2 | `stream()` produces text | both | **done** |
 | 8.3 | `generate()` and `stream()` agree structurally for one interaction | both | **done** |
 | 8.4 | Stream advances past its first token (KV cache progresses) | both | **done** |
-| 8.5 | Stream terminates on EOG | both | todo |
-| 8.6 | Stream terminates on `max_tokens` | both | todo |
+| 8.5 | Stream terminates on EOG | both | **done** |
+| 8.6 | Stream terminates on `max_tokens` | both | **done** |
 | 8.7 | Inference context created lazily on the polling thread | gguf | **done** |
 | 8.8 | Context is never cloned/double-freed (UAF regression guard) | gguf | **done** |
 | 8.9 | `interaction.messages` reach the prompt (not just system) | both | todo |

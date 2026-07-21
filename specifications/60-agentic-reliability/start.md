@@ -99,7 +99,7 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 | 07 | Bump candle 0.10.2 → 0.11.0, before the architecture work | Resolved |
 | 08 | Coverage tool: **`cargo-llvm-cov`** (source-based, workspace-aware, lcov + html) | Resolved |
 | 09 | Whether coverage gates CI or only reports | **Open** |
-| 10 | Whether GGUF fixtures are committed or generated at test time from the safetensors | **Open** |
+| 10 | GGUF fixtures are COMMITTED (tiny-llama-f16.gguf, 2.7MB) — offline, deterministic | Resolved |
 
 ## Non-goals
 

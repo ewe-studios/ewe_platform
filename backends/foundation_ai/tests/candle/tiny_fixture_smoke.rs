@@ -335,3 +335,72 @@ fn tiny_random_gemma2_stream_advances() {
     }
     assert!(text_tokens >= 1, "gemma2 stream must advance (got {items} items)");
 }
+
+// ---------------------------------------------------------------------------
+// Full AgentSession through a REAL candle model, offline (matrix 7.1 on candle).
+//
+// This is the seam-through-session junction where docs/fixes/006 lived: the
+// AgentLoop driving a real streaming provider (not the mock's trivial stream).
+// PreloadedProvider serves the loaded fixture into a router, so run_turn
+// exercises the loop AND the real candle stream together, with no download.
+
+#[valtron_test]
+fn agent_session_run_turn_through_candle_fixture() {
+    use foundation_ai::agentic::{
+        AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    };
+    use foundation_ai::types::PreloadedProvider;
+    use foundation_ai::types::{SessionId, SessionRecord};
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    // Concrete CandleModels (Clone via Arc) for PreloadedProvider.
+    let dir = fixture_dir("tiny-random-LlamaForCausalLM");
+    let model = CandleBackend::cpu()
+        .get_model_by_spec(ModelSpec {
+            name: "tiny-llama".to_string(),
+            id: ModelId::Name("tiny-llama".to_string(), None),
+            devices: None,
+            model_location: Some(dir.to_string_lossy().to_string().into()),
+            lora_location: None,
+        })
+        .expect("fixture loads");
+    let model_id = ModelId::Name("tiny-llama".into(), None);
+    let router = PreloadedProvider::new(model, model_id.clone()).into_router();
+
+    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
+        AgentSession::builder(SessionId::new(), router)
+            .with_system_prompt("You are a helpful assistant.")
+            .with_model(model_id.clone())
+            .with_config(AgentConfig {
+                primary_model: model_id,
+                model_params: params(),
+                ..Default::default()
+            })
+            .with_context_config(ContextConfig::default())
+            .with_memory_config(MemoryConfig::default())
+            .with_error_policy(ErrorPolicy::new())
+            .build()
+            .expect("session builds");
+
+    let records = session
+        .run_turn(Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "Hi.".into(),
+                signature: None,
+            }),
+            signature: None,
+        })
+        .expect("a real candle turn must complete, not error");
+
+    // Structural (random weights => gibberish): the turn ran end-to-end and did
+    // not short-circuit to only a Summary (the docs/fixes/006 symptom).
+    assert!(
+        records
+            .iter()
+            .any(|r| matches!(r, SessionRecord::Conversation { .. })),
+        "run_turn through a real candle model must emit a conversation record, \
+         not just a Summary: {records:?}"
+    );
+}
