@@ -532,3 +532,143 @@ fn responses_non_retryable_status_is_not_retried() {
         "a 400 is the caller's fault — retrying wastes time and money"
     );
 }
+
+// ---------------------------------------------------------------------------
+// The /v1/embeddings path
+// ---------------------------------------------------------------------------
+//
+// `generate()` routes to `/v1/embeddings` instead of `/v1/chat/completions`
+// when the interaction carries an `Assistant` message whose content is
+// `ModelOutput::Embedding` — a marker, not real content. That whole branch had
+// no coverage: a caller asking for embeddings would otherwise be silently sent
+// to the chat endpoint and get prose back instead of a vector.
+
+const EMBEDDING_BODY: &[u8] = br#"{
+    "object": "list",
+    "model": "text-embedding-3-small",
+    "data": [{"index": 0, "object": "embedding", "embedding": [0.1, 0.2, 0.3]}],
+    "usage": {"prompt_tokens": 4, "completion_tokens": 0, "total_tokens": 4}
+}"#;
+
+/// An interaction carrying the embedding marker plus the text to embed.
+fn embedding_interaction(texts: &[&str]) -> ModelInteraction {
+    use foundation_ai::types::{ModelOutput, ModelProviders, StopReason, UsageCosting, UsageReport};
+
+    let mut messages: Vec<Messages> = texts
+        .iter()
+        .map(|t| Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: (*t).into(),
+                signature: None,
+            }),
+            signature: None,
+        })
+        .collect();
+
+    // The marker that switches generate() onto the embeddings endpoint.
+    messages.push(Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
+        model: ModelId::Name("text-embedding-3-small".into(), None),
+        timestamp: foundation_compact::SystemTime::UNIX_EPOCH,
+        usage: UsageReport {
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            cost: UsageCosting::zero(foundation_ai::types::CostStatus::Estimated),
+        },
+        content: ModelOutput::Embedding {
+            dimensions: 0,
+            values: Vec::new(),
+        },
+        stop_reason: StopReason::Stop,
+        provider: ModelProviders::OPENAI,
+        error_detail: None,
+        signature: None,
+        metadata: None,
+    });
+
+    ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages,
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    }
+}
+
+#[valtron_test]
+fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
+    // Capture the path so we can prove it went to /embeddings, not
+    // /chat/completions — sending an embedding request to chat would return
+    // prose where the caller expects a vector.
+    let seen = Arc::new(std::sync::Mutex::new(String::new()));
+    let recorder = Arc::clone(&seen);
+
+    let server = TestHttpServer::with_response(move |req| {
+        *recorder.lock().unwrap() = format!("{:?}", req.path.url);
+        response(200, "OK", "application/json", EMBEDDING_BODY)
+    });
+
+    let model = model_for(&server, 0);
+    let out = model
+        .generate(embedding_interaction(&["embed me"]), None)
+        .expect("an embedding request must succeed");
+
+    let path = seen.lock().unwrap().clone();
+    assert!(
+        path.contains("embeddings"),
+        "the request must go to the embeddings endpoint, got: {path}"
+    );
+    assert!(!out.is_empty(), "an embedding response must yield a message");
+}
+
+#[valtron_test]
+fn an_embedding_response_is_returned_as_a_vector() {
+    let server = TestHttpServer::with_response(|_req| {
+        response(200, "OK", "application/json", EMBEDDING_BODY)
+    });
+    let model = model_for(&server, 0);
+
+    let out = model
+        .generate(embedding_interaction(&["embed me"]), None)
+        .expect("embedding request succeeds");
+
+    use foundation_ai::types::ModelOutput;
+    let has_embedding = out.iter().any(|m| {
+        matches!(
+            m,
+            Messages::Assistant {
+                content: ModelOutput::Embedding { .. },
+                ..
+            }
+        )
+    });
+    assert!(
+        has_embedding,
+        "the result must be an Embedding output, not text: {out:?}"
+    );
+}
+
+#[valtron_test]
+fn an_embedding_response_with_no_data_is_an_error() {
+    // An empty `data` array must not be reported as a successful embedding —
+    // the caller would get no vector and no explanation.
+    let empty = br#"{"object":"list","model":"m","data":[],"usage":null}"#;
+    let server = TestHttpServer::with_response(move |_req| {
+        response(200, "OK", "application/json", empty)
+    });
+    let model = model_for(&server, 0);
+
+    let err = model
+        .generate(embedding_interaction(&["x"]), None)
+        .expect_err("an empty data array must error");
+    assert!(
+        err.to_string().to_lowercase().contains("embedding"),
+        "the error must name what was missing: {err}"
+    );
+}
