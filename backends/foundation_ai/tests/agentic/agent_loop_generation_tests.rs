@@ -667,3 +667,27 @@ fn tool_result_is_fed_back_into_next_assemble() {
         "the tool's result must be fed back into the next model interaction"
     );
 }
+
+/// Matrix 3.5 — a hard abort set before the boundary terminates the loop
+/// without generating. Previously the Abort cancel code was never honored.
+#[test]
+fn abort_terminates_the_loop_before_generation() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("should not be reached")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hi"));
+    // Abort before driving — the outer boundary must terminate to Ending.
+    h.cancel.store(2, std::sync::atomic::Ordering::SeqCst); // CancelCode::Abort
+
+    let records = drive(&mut h);
+
+    assert!(
+        assistant_texts(&records).is_empty(),
+        "an aborted turn must not generate an assistant reply: {records:?}"
+    );
+    assert!(
+        summary_count(&records).is_some(),
+        "an aborted turn still emits its Summary and terminates: {records:?}"
+    );
+}

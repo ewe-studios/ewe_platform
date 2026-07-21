@@ -482,6 +482,16 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         self.inner.queues.push_follow_up(msg);
     }
 
+    /// Request a hard abort of the running turn.
+    ///
+    /// The signal is shared with the `AgentLoop`, which checks it at its outer
+    /// and inner boundaries and terminates the turn (emitting its `Summary`)
+    /// rather than starting another generation. Safe to call from another thread
+    /// while `run_turn` is in flight.
+    pub fn abort(&self) {
+        self.inner.queues.abort();
+    }
+
     /// Synchronous teardown (Decision 01): flush message buffer, drain queues,
     /// persist remaining messages, reset cancel signal.
     /// # Errors

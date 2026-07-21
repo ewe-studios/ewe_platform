@@ -73,7 +73,7 @@ Every state and every edge out of it.
 | 3.2 | `follow_up()` queues, processed after current work | mock | **done** |
 | 3.3 | Priority drains before follow-up in the same boundary | mock | **done** |
 | 3.4 | `CancelCode::PauseForPriority` set on priority push | mock | **done** |
-| 3.5 | `CancelCode::Abort` terminates the loop | mock | todo |
+| 3.5 | `CancelCode::Abort` terminates the loop | mock | **done** |
 | 3.6 | `reset_cancel()` clears the signal after handling | mock | **done** |
 | 3.7 | Queues are shared (push before schedule is seen by the loop) | mock | **done** |
 | 3.8 | Multi-turn: follow-up continues the same session context | both | **done** |

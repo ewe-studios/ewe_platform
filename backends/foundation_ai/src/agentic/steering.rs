@@ -139,6 +139,18 @@ impl SteeringQueues {
         CancelCode::load(&self.cancel_signal)
     }
 
+    /// Request a hard abort of the running turn — the loop terminates at its
+    /// next boundary check.
+    pub fn abort(&self) {
+        CancelCode::Abort.store(&self.cancel_signal);
+    }
+
+    /// Whether a hard abort has been requested.
+    #[must_use]
+    pub fn is_aborted(&self) -> bool {
+        self.cancel_code() == CancelCode::Abort
+    }
+
     /// Reset the cancel signal after handling.
     pub fn reset_cancel(&self) {
         CancelCode::reset(&self.cancel_signal);

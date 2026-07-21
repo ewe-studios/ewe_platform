@@ -277,6 +277,16 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_outer_boundary(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        // A hard abort requested via `AgentSession::abort` (or `steer`'s Abort
+        // code) terminates the turn at this boundary. Previously the Abort code
+        // existed but nothing set it and the loop never read it — a stubbed
+        // cancel path (spec-60 matrix 3.5).
+        if self.queues.is_aborted() {
+            self.queues.reset_cancel();
+            self.state = AgentLoopState::Ending;
+            return TaskStatus::Pending(AgentProgress::SessionEnding);
+        }
+
         self.outer_iteration += 1;
         if self.outer_iteration > self.config.max_outer_iterations {
             self.state = AgentLoopState::Ending;
@@ -323,6 +333,13 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_assemble(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        // Honor a hard abort mid-turn (before starting another generation).
+        if self.queues.is_aborted() {
+            self.queues.reset_cancel();
+            self.state = AgentLoopState::Ending;
+            return TaskStatus::Pending(AgentProgress::SessionEnding);
+        }
+
         // Check priority queue — front-inject interruption.
         if self.queues.has_priority() {
             let msgs = self.queues.drain_priority();
