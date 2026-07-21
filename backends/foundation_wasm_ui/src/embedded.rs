@@ -48,3 +48,10 @@ pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-brid
 /// refresh buttons. Styled via CSS — no native bridge. Auto-hides on scroll.
 /// Injected by F24 ScriptInjector.
 pub const FLOATING_NAV_JS: &str = include_str!("../runtimes/floating-nav.js");
+
+/// Stack viewport (`runtimes/stack-viewport.js`, F35):
+/// Screenshot-swap overlay for single-WebView navigation (mobile/desktop).
+/// Provides `window.__eweViewport.captureScreenshot()`, `showOverlay()`,
+/// and `hideOverlay()` for instant back-navigation with screenshot flash.
+/// Injected by F24 ScriptInjector.
+pub const STACK_VIEWPORT_JS: &str = include_str!("../runtimes/stack-viewport.js");

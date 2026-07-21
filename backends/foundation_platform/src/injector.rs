@@ -167,7 +167,20 @@ impl ScriptInjector {
             ],
         });
 
-        // 5. Floating navigation toolbar (F29 Stage 4)
+        // 5. Stack viewport — screenshot-swap overlay (F35)
+        injector.register(InjectedScript {
+            id: "stack_viewport".into(),
+            sources: vec![
+                ScriptSource::Disk {
+                    relative_path: PathBuf::from("public/runtimes/stack-viewport.js"),
+                },
+                ScriptSource::Static {
+                    source: foundation_wasm_ui::embedded::STACK_VIEWPORT_JS,
+                },
+            ],
+        });
+
+        // 6. Floating navigation toolbar (F29 Stage 4)
         injector.register(InjectedScript {
             id: "floating_nav".into(),
             sources: vec![

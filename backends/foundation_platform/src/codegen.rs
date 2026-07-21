@@ -57,37 +57,42 @@ pub fn generate_platform_code() {
     }
 
     // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
-    // app-shell/ and app-shell-*/ crates compile to wasm32-wasip1.
+    // Only generates modules if foundation_wasmtime is in Cargo.toml deps.
+    let has_wasmtime_dep = std::fs::read_to_string(manifest_dir.join("Cargo.toml"))
+        .map(|c| c.contains("foundation_wasmtime"))
+        .unwrap_or(false);
     let mut shells: Vec<AppDistribution> = Vec::new();
-    let shell_dir = project_root.join("app-shell");
-    if shell_dir.join("Cargo.toml").exists() {
-        shells.push(AppDistribution {
-            name: "app_shell".into(),
-            crate_dir: shell_dir,
-            route_prefix: "/shell/".into(),
-        });
-    }
-    if let Ok(entries) = std::fs::read_dir(&project_root) {
-        for e in entries.filter_map(std::result::Result::ok) {
-            let p = e.path();
-            let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
-            if n.starts_with("app-shell-") && p.is_dir() && p.join("Cargo.toml").exists() {
-                shells.push(AppDistribution {
-                    name: n.replace('-', "_"),
-                    crate_dir: p,
-                    route_prefix: format!("/{n}/"),
-                });
+    if has_wasmtime_dep {
+        let shell_dir = project_root.join("app-shell");
+        if shell_dir.join("Cargo.toml").exists() {
+            shells.push(AppDistribution {
+                name: "app_shell".into(),
+                crate_dir: shell_dir,
+                route_prefix: "/shell/".into(),
+            });
+        }
+        if let Ok(entries) = std::fs::read_dir(&project_root) {
+            for e in entries.filter_map(std::result::Result::ok) {
+                let p = e.path();
+                let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+                if n.starts_with("app-shell-") && p.is_dir() && p.join("Cargo.toml").exists() {
+                    shells.push(AppDistribution {
+                        name: n.replace('-', "_"),
+                        crate_dir: p,
+                        route_prefix: format!("/{n}/"),
+                    });
+                }
             }
         }
-    }
-    if !shells.is_empty() {
-        let shell_out = manifest_dir.join("shell_wasm");
-        std::fs::create_dir_all(&shell_out).ok();
-        for s in &shells {
-            build_wasmtime_app(&s.crate_dir, &shell_out);
+        if !shells.is_empty() {
+            let shell_out = manifest_dir.join("shell_wasm");
+            std::fs::create_dir_all(&shell_out).ok();
+            for s in &shells {
+                build_wasmtime_app(&s.crate_dir, &shell_out);
+            }
+            let generated_dir = manifest_dir.join("src").join("generated");
+            generate_wasmtime_modules(&shells, &generated_dir);
         }
-        let generated_dir = manifest_dir.join("src").join("generated");
-        generate_wasmtime_modules(&shells, &generated_dir);
     }
 
     // Patch tauri.conf.json BEFORE tauri_build reads it.
