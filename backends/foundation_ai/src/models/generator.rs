@@ -1519,3 +1519,84 @@ pub fn generate_model_descriptors() -> Result<GenerationResult, BoxedError> {
         provider_counts,
     })
 }
+
+// ===========================================================================
+// Tests — the pure, offline helpers of this code-gen tool. The network fetch
+// path (create_fetch_task / generate_model_descriptors) is exercised under the
+// `external-service-tests` feature. These functions are private code-gen
+// helpers, so per the house rule this is a legitimate src-level test module.
+// ===========================================================================
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_helpers_render_expected() {
+        assert_eq!(format_f64(0.0), "0.0");
+        assert_eq!(format_f64(1.5), "1.5");
+        assert_eq!(format_f64(3.0), "3.0");
+        // >= 10_000 gets thousands separators.
+        assert!(format_f64(12_345.0).contains('_') || format_f64(12_345.0).contains(','));
+
+        assert_eq!(format_int_with_separators("1000000"), "1_000_000");
+        assert_eq!(format_int_with_separators("999"), "999");
+        assert!(!format_u32(128_000).is_empty());
+    }
+
+    #[test]
+    fn api_variant_mapping_known_and_custom() {
+        assert_eq!(api_to_variant("anthropic-messages"), "ModelAPI::AnthropicMessages");
+        assert_eq!(api_to_variant("openai-completions"), "ModelAPI::OpenAICompletions");
+        assert!(api_to_variant("something-else").contains("Custom"));
+    }
+
+    #[test]
+    fn provider_variant_and_filename_mapping() {
+        assert_eq!(provider_to_variant("openai"), "ModelProviders::OPENAI");
+        assert_eq!(provider_to_variant("anthropic"), "ModelProviders::ANTHROPIC");
+        assert!(provider_to_variant("brand-new").contains("Custom"));
+        assert_eq!(provider_to_filename("vercel-ai-gateway"), "vercel_ai_gateway");
+    }
+
+    #[test]
+    fn static_catalogs_are_nonempty() {
+        assert!(!static_codex_models().is_empty());
+        assert!(!static_cloud_code_assist().is_empty());
+        assert!(!static_antigravity().is_empty());
+        assert!(!static_vertex().is_empty());
+        assert!(!static_kimi_fallbacks().is_empty());
+    }
+
+    #[test]
+    fn parse_openrouter_response_keeps_only_tool_models() {
+        let body = r#"{"data":[
+            {"id":"vendor/with-tools","name":"With Tools","context_length":8192,
+             "supported_parameters":["tools","temperature"],
+             "architecture":{"modality":"text"},
+             "pricing":{"prompt":"0.000001","completion":"0.000002"}},
+            {"id":"vendor/no-tools","name":"No Tools","context_length":4096,
+             "supported_parameters":["temperature"],
+             "architecture":{"modality":"text"},
+             "pricing":{"prompt":"0","completion":"0"}}
+        ]}"#;
+        let models = parse_openrouter_response(body, "test");
+        // Only the tool-capable model survives the filter.
+        assert_eq!(models.len(), 1, "only tool-capable models are kept");
+    }
+
+    #[test]
+    fn parse_openrouter_response_bad_json_is_empty() {
+        assert!(parse_openrouter_response("not json", "test").is_empty());
+    }
+
+    #[test]
+    fn deduplicate_groups_by_provider_and_id() {
+        let models = static_codex_models();
+        let grouped = deduplicate(models);
+        assert!(!grouped.is_empty(), "grouping must produce provider buckets");
+        // Every bucket is non-empty.
+        for (_provider, by_id) in &grouped {
+            assert!(!by_id.is_empty());
+        }
+    }
+}
