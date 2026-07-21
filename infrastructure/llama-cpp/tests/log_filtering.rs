@@ -27,10 +27,10 @@ use tracing_subscriber::EnvFilter;
 /// The target `infrastructure_llama_cpp::log` stamps on every native log event
 /// (see the `log_cs!` macro's `Metadata::new(.., "llama-cpp-2", ..)`).
 ///
-/// `tracing`'s `target:` argument needs a literal, so the emission below repeats
-/// the string; this assertion keeps the two spellings from drifting apart.
+/// `tracing`'s `target:` argument needs a string literal, so `capture()` repeats
+/// the spelling; `constant_matches_the_emitted_target` below pins the two
+/// together so they cannot drift.
 const NATIVE_LOG_TARGET: &str = "llama-cpp-2";
-const _: () = assert!(NATIVE_LOG_TARGET.len() == "llama-cpp-2".len());
 
 /// The directive `answerme-agent` ships in its `#[valtron(tracing = ...)]`.
 /// Keep in sync with apps/answerme-agent/src/main.rs.
@@ -95,6 +95,21 @@ fn native_logged(directives: &str) -> bool {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+#[test]
+fn constant_matches_the_emitted_target() {
+    // `capture()` must emit at exactly NATIVE_LOG_TARGET, or every other test
+    // here would be asserting against a target the real logs never use. Proven
+    // by filtering on the constant and observing the event disappear.
+    let filtered = capture(&format!("info,{NATIVE_LOG_TARGET}=off"));
+    assert!(
+        !filtered.contains("NATIVE_MARKER"),
+        "the constant must name the target capture() emits at: {filtered:?}"
+    );
+    // …and the event does appear when that directive is absent, so the check
+    // above cannot pass vacuously.
+    assert!(capture("info").contains("NATIVE_MARKER"));
+}
 
 #[test]
 fn correct_target_directive_silences_native_logs() {
