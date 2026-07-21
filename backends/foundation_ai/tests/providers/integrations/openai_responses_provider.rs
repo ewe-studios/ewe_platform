@@ -19,10 +19,13 @@ use foundation_core::valtron::Stream;
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::client::http_client::HttpClient;
 
-fn setup_responses_provider() -> impl Model {
-    let base_url =
-        std::env::var("LLAMA_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:8999".into());
-    let api_key = std::env::var("LLAMA_SERVER_API_KEY").unwrap_or_default();
+fn setup_responses_provider(
+    guard: &foundation_ai::toolbox::llama_server_harness::LlamaServerGuard,
+) -> impl Model {
+    // From the running server, not env — an empty LLAMA_SERVER_API_KEY was
+    // rejected 401 by the harness's --api-key.
+    let base_url = guard.base_url();
+    let api_key = guard.api_key.clone();
 
     let resolver = foundation_netio::shared::client::SystemDnsResolver;
     let http_client: Arc<dyn HttpClient> = Arc::new(
@@ -45,8 +48,8 @@ fn setup_responses_provider() -> impl Model {
 /// Test: generate a response via the Responses API.
 #[valtron_test]
 fn test_llama_server_responses_generate() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_responses_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".into()),
@@ -89,8 +92,8 @@ fn test_llama_server_responses_generate() {
 /// Test: streaming via the Responses API.
 #[valtron_test]
 fn test_llama_server_responses_stream() {
-    let _llama_server_guard = start_llama_server();
-    let model = setup_responses_provider();
+    let llama_server_guard = start_llama_server();
+    let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
         system_prompt: None,
