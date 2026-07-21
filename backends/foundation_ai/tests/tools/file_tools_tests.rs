@@ -190,12 +190,12 @@ fn edit_replace_all() {
 #[test]
 fn tool_definitions_expose_names_and_categories() {
     let fs = Arc::new(MemoryFs::new());
-    assert_eq!(ReadTool::new(fs.clone()).definition().name, "read");
-    assert_eq!(ReadTool::new(fs.clone()).definition().category, "read");
-    assert_eq!(WriteTool::new(fs.clone()).definition().name, "write");
-    assert_eq!(WriteTool::new(fs.clone()).definition().category, "write");
-    assert_eq!(EditTool::new(fs.clone()).definition().name, "edit");
-    assert_eq!(EditTool::new(fs).definition().category, "edit");
+    assert_eq!(ReadTool::new(fs.clone()).definition().name(), "read");
+    assert_eq!(ReadTool::new(fs.clone()).definition().category().unwrap(), "read");
+    assert_eq!(WriteTool::new(fs.clone()).definition().name(), "write");
+    assert_eq!(WriteTool::new(fs.clone()).definition().category().unwrap(), "write");
+    assert_eq!(EditTool::new(fs.clone()).definition().name(), "edit");
+    assert_eq!(EditTool::new(fs).definition().category().unwrap(), "edit");
 }
 
 // ---------------------------------------------------------------------------
@@ -272,14 +272,14 @@ fn registering_file_tools_fills_shed_slots() {
     register_shell_tool(&mgr);
 
     let shed = mgr.build_toolshed();
-    assert!(shed.read.is_some(), "read slot filled");
-    assert!(shed.write.is_some(), "write slot filled");
-    assert!(shed.edit.is_some(), "edit slot filled");
-    assert!(shed.shell.is_some(), "shell slot filled");
+    // Under F19 every tool is collected into `tools` (no named slots).
+    let has = |n: &str| shed.tools.iter().any(|t| t.name() == n);
+    assert!(has("read"), "read tool present");
+    assert!(has("write"), "write tool present");
+    assert!(has("edit"), "edit tool present");
+    assert!(has("bash"), "bash tool present");
     // shed meta-tool appears once real tools exist.
     assert!(shed.shed.is_some(), "shed meta-tool present");
-    assert_eq!(shed.read.as_ref().unwrap().name, "read");
-    assert_eq!(shed.shell.as_ref().unwrap().name, "bash");
 }
 
 #[test]

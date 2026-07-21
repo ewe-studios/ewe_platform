@@ -324,15 +324,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
         let registered = self.tool_manager.names();
-        let shed_name = self.toolshed.shed.as_ref().map(|t| t.name.as_str());
+        let shed_name = self.toolshed.shed.as_ref().map(|t| t.name());
         for tool in self.toolshed.all_tools() {
-            if shed_name == Some(tool.name.as_str()) {
+            if shed_name == Some(tool.name()) {
                 continue;
             }
-            if !registered.contains(&tool.name) {
+            if !registered.contains(&tool.name().to_string()) {
                 return Err(ErrorTrace::new(AgenticError::Session(format!(
                     "toolshed tool '{}' not registered with ToolCallManager",
-                    tool.name
+                    tool.name()
                 ))));
             }
         }

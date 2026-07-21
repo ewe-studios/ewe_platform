@@ -50,9 +50,9 @@ fn search_context_tool_definition() {
     let ctx = make_context_provider();
     let tool = SearchContextTool::new(ctx);
     let def = tool.definition();
-    assert_eq!(def.name, "search_context");
-    assert_eq!(def.category, "search");
-    assert!(def.description.contains("knowledge"));
+    assert_eq!(def.name(), "search_context");
+    assert_eq!(def.category().unwrap(), "search");
+    assert!(def.definitions().next().unwrap().description.contains("knowledge"));
 }
 
 #[test]
@@ -197,9 +197,9 @@ fn make_vfs_tool_with_files() -> SearchFileTool {
 fn search_file_tool_definition() {
     let tool = make_vfs_tool();
     let def = tool.definition();
-    assert_eq!(def.name, "search_file");
-    assert_eq!(def.category, "search_files");
-    assert!(def.description.contains("grep"));
+    assert_eq!(def.name(), "search_file");
+    assert_eq!(def.category().unwrap(), "search_files");
+    assert!(def.definitions().next().unwrap().description.contains("grep"));
 }
 
 #[test]
@@ -281,14 +281,15 @@ fn search_tools_register_in_toolshed() {
     mgr.register(Arc::new(make_vfs_tool()));
 
     let shed = mgr.build_toolshed();
-    assert!(shed.search.is_some(), "search slot should be populated");
-    assert_eq!(shed.search.as_ref().unwrap().name, "search_context");
-
+    // Both search tools are collected into `tools` (no named slots under F19).
     assert!(
-        shed.search_files.is_some(),
-        "search_files slot should be populated"
+        shed.tools.iter().any(|t| t.name() == "search_context"),
+        "search_context tool should be present"
     );
-    assert_eq!(shed.search_files.as_ref().unwrap().name, "search_file");
+    assert!(
+        shed.tools.iter().any(|t| t.name() == "search_file"),
+        "search_file tool should be present"
+    );
 }
 
 #[test]

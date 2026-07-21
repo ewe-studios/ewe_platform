@@ -1357,12 +1357,13 @@ fn build_chat_request_covers_tool_and_format_branches() {
         },
     };
 
-    let read_tool = Tool {
+    let read_tool = Tool::SingleCommand(ToolDefinition {
         name: "read".to_string(),
+        category: "test".into(),
         description: "read a file".to_string(),
-        arguments: None,
+        arguments: foundation_ai::types::Args::empty(),
         returns: None,
-    };
+    });
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -1408,7 +1409,7 @@ fn build_chat_request_covers_tool_and_format_branches() {
                 signature: None,
             },
         ],
-        tools_shed: ToolShed::default().with_read(Some(read_tool)),
+        tools_shed: ToolShed::default().with_tool(read_tool),
         chat_template: None,
         tool_choice: Some(ToolChoice::Function(ToolChoiceFunction {
             tool_type: "function".to_string(),

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::agentic::embedding::EmbeddingProvider;
 use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::types::Tool;
 use crate::types::{ArgType, TextContent, UserModelContent};
 
 use foundation_vectors::store::{VectorEntry, VectorMetadata, VectorStore};
@@ -162,7 +163,7 @@ pub struct ToolSummary {
 
 #[async_trait]
 impl ToolImpl for ShedTool {
-    fn definition(&self) -> ToolDefinition {
+    fn definition(&self) -> Tool {
         let schema = serde_json::json!({
             "type": "object",
             "properties": {
@@ -182,12 +183,13 @@ impl ToolImpl for ShedTool {
         let opts = foundation_jsonschema::ValidationOptions::with_schema(schema);
         let args = crate::types::Args::new(opts);
 
-        ToolDefinition {
+        Tool::SingleCommand(ToolDefinition {
             name: "shed".into(),
             description: "Search the tool registry for available tools by natural language description. Use this to discover what tools are available for a task.".into(),
             arguments: args,
             category: "discovery".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(

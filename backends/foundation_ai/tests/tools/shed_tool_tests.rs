@@ -152,6 +152,7 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
         description: desc.into(),
         arguments: foundation_ai::types::Args::new(opts),
         category: category.into(),
+        returns: None,
     }
 }
 
@@ -243,8 +244,8 @@ fn shed_tool_definition_has_correct_name() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let shed = ShedTool::new(discovery);
     let def = shed.definition();
-    assert_eq!(def.name, "shed");
-    assert_eq!(def.category, "discovery");
+    assert_eq!(def.name(), "shed");
+    assert_eq!(def.category().unwrap(), "discovery");
 }
 
 // ---------------------------------------------------------------------------
@@ -269,22 +270,15 @@ fn with_defaults_registers_shed() {
 fn toolshed_all_tools_includes_shed() {
     let shed = ToolShed::default();
     let tools = shed.all_tools();
-    assert!(tools.iter().any(|t| t.name == "shed"));
+    assert!(tools.iter().any(|t| t.name() == "shed"));
 }
 
 #[test]
 fn toolshed_all_tools_empty_when_no_fields_set() {
     let shed = ToolShed {
         shed: None,
-        memory: None,
-        delegate: None,
-        read: None,
-        edit: None,
-        write: None,
-        search: None,
-        search_files: None,
-        shell: None,
-    };
+        tools: Vec::new(),
+        };
     let tools = shed.all_tools();
     assert!(tools.is_empty());
 }

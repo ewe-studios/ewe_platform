@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::types::Tool;
 use crate::types::{ArgType, Args, TextContent, UserModelContent};
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
@@ -150,8 +151,8 @@ impl<D, M> SearchContextTool<D, M> {
 
 #[async_trait]
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchContextTool<D, M> {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "search_context".into(),
             description: "Search your knowledge — semantic recall over prior messages, \
                           distilled memory (observations/reflections), and the code-graph. \
@@ -174,7 +175,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchCo
                     .build(),
             ),
             category: "search".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(
@@ -278,8 +280,8 @@ impl SearchFileTool {
 
 #[async_trait]
 impl ToolImpl for SearchFileTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "search_file".into(),
             description: "Search files: grep file content, find by path pattern, \
                           multi-file grep. NOT for memory recall — use search_context."
@@ -305,7 +307,8 @@ impl ToolImpl for SearchFileTool {
                     .build(),
             ),
             category: "search_files".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(

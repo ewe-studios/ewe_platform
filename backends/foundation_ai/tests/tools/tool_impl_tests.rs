@@ -1,3 +1,4 @@
+use foundation_ai::types::{Tool, ToolDefinition};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -9,13 +10,14 @@ struct EchoTool;
 
 #[async_trait]
 impl ToolImpl for EchoTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "echo".into(),
             description: "Echoes the message argument".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        }
+        returns: None,
+        })
     }
 
     async fn execute(
@@ -90,12 +92,14 @@ fn build_toolshed_populates_by_category() {
         mgr.register(Arc::new(EchoTool));
 
         let shed = mgr.build_toolshed();
-        assert_eq!(shed.shell.as_ref().unwrap().name, "echo");
+        // One tool, collected into `tools` (no named slots under F19).
+        assert_eq!(shed.tools.len(), 1);
+        let echo = &shed.tools[0];
+        assert_eq!(echo.name(), "echo");
         assert_eq!(
-            shed.shell.as_ref().unwrap().description,
+            echo.definitions().next().unwrap().description,
             "Echoes the message argument"
         );
-        assert!(shed.read.is_none());
     })
 }
 
@@ -111,8 +115,7 @@ fn build_toolshed_empty_has_no_shed_meta_tool() {
             shed.shed.is_none(),
             "empty registry must not include the shed meta-tool"
         );
-        assert!(shed.shell.is_none());
-        assert!(shed.read.is_none());
+        assert!(shed.tools.is_empty());
     })
 }
 
@@ -124,7 +127,7 @@ fn build_toolshed_with_tools_includes_shed_meta_tool() {
         mgr.register(Arc::new(EchoTool));
         let shed = mgr.build_toolshed();
         assert_eq!(
-            shed.shed.as_ref().unwrap().name,
+            shed.shed.as_ref().unwrap().name(),
             "shed",
             "a populated registry should offer the shed meta-tool"
         );

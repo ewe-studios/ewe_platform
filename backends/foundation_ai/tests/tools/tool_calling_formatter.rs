@@ -10,7 +10,7 @@ use foundation_ai::types::{
     UserModelContent,
 };
 
-use foundation_ai::types::{Tool, ToolFormatter};
+use foundation_ai::types::{Tool, ToolDefinition, ToolFormatter};
 use foundation_jsonschema::{scheme, ValidationOptions};
 use std::time::SystemTime;
 
@@ -22,12 +22,13 @@ fn make_tool(name: &str, description: &str) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
-    Tool {
+    Tool::SingleCommand(ToolDefinition {
         name: name.to_string(),
+        category: "search".into(),
         description: description.to_string(),
-        arguments: Some(Args::new(opts)),
+        arguments: Args::new(opts),
         returns: None,
-    }
+    })
 }
 
 // ============================================================================

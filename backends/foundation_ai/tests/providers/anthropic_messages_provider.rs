@@ -10,7 +10,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
 use foundation_ai::types::{
     Args, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason,
-    TextContent, Tool, ToolShed, UserModelContent,
+    TextContent, Tool, ToolDefinition, ToolShed, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
@@ -833,31 +833,25 @@ fn test_build_anthropic_request_basic() {
 
 #[test]
 fn test_build_anthropic_request_with_tools() {
-    let test_tool = Tool {
+    let test_tool = Tool::SingleCommand(ToolDefinition {
         name: "get_weather".into(),
+        category: "search".into(),
         description: "Get weather info".into(),
-        arguments: Some(Args::from_value(serde_json::json!({
+        arguments: Args::from_value(serde_json::json!({
             "type": "object",
             "properties": {
                 "location": { "type": "string" }
             },
             "required": ["location"],
-        }))),
+        })),
         returns: None,
-    };
+    });
     let interaction = ModelInteraction {
         system_prompt: None,
         soul: None,
         tools_shed: ToolShed {
             shed: Some(test_tool.clone()),
-            memory: None,
-            delegate: None,
-            read: Some(test_tool.clone()),
-            edit: Some(test_tool.clone()),
-            write: Some(test_tool.clone()),
-            search: Some(test_tool.clone()),
-            search_files: Some(test_tool.clone()),
-            shell: None,
+            tools: vec![test_tool.clone(), test_tool.clone()],
         },
         messages: vec![],
         chat_template: None,
@@ -869,7 +863,7 @@ fn test_build_anthropic_request_with_tools() {
 
     assert!(request.tools.is_some());
     let tools = request.tools.unwrap();
-    assert_eq!(tools.len(), 6); // shed + read + edit + write + search
+    assert_eq!(tools.len(), 3); // shed + 2 tools, one function each
     assert_eq!(tools[0].name, "get_weather");
     assert_eq!(tools[0].description, "Get weather info");
 }

@@ -2,6 +2,7 @@
 //!
 //! Tests workflow building (topological staging), retry config, and error classification.
 
+use foundation_ai::types::Tool;
 use async_trait::async_trait;
 use foundation_ai::agentic::{
     FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolDefinition,
@@ -21,13 +22,14 @@ struct EchoTool;
 
 #[async_trait]
 impl ToolImpl for EchoTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "echo".into(),
             description: "Echoes input".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        }
+        returns: None,
+        })
     }
 
     async fn execute(
@@ -57,13 +59,14 @@ struct FailingTool {
 
 #[async_trait]
 impl ToolImpl for FailingTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "fail".into(),
             description: "Always fails".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        }
+        returns: None,
+        })
     }
 
     async fn execute(
@@ -377,13 +380,14 @@ struct FlakyTool {
 
 #[async_trait]
 impl ToolImpl for FlakyTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "flaky".into(),
             description: "Fails then succeeds".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        }
+        returns: None,
+        })
     }
 
     async fn execute(
@@ -453,7 +457,7 @@ fn per_tool_retry_config_round_trips() {
 fn get_def_returns_registered_definition() {
     let m = mgr();
     let def = m.get_def("echo").expect("echo is registered");
-    assert_eq!(def.name, "echo");
+    assert_eq!(def.name(), "echo");
     assert!(m.get_def("nope").is_none(), "unknown tool has no definition");
 }
 
@@ -463,13 +467,14 @@ struct PanicTool;
 
 #[async_trait]
 impl ToolImpl for PanicTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "boom".into(),
             description: "Panics".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        }
+        returns: None,
+        })
     }
     async fn execute(
         &self,
@@ -500,8 +505,8 @@ struct StrictTool;
 
 #[async_trait]
 impl ToolImpl for StrictTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "strict".into(),
             description: "Requires a 'path' argument".into(),
             arguments: Args::from_value(serde_json::json!({
@@ -510,7 +515,8 @@ impl ToolImpl for StrictTool {
                 "required": ["path"]
             })),
             category: "read".into(),
-        }
+        returns: None,
+        })
     }
     async fn execute(
         &self,

@@ -406,7 +406,7 @@ pub fn last_user_contains(needle: &str) -> impl Fn(&ModelInteraction) -> bool + 
 /// True when the `ToolShed` contains a tool named `name`.
 pub fn tools_shed_has(name: impl Into<String>) -> impl Fn(&ModelInteraction) -> bool + Send + Sync {
     let name = name.into();
-    move |mi: &ModelInteraction| mi.tools_shed.all_tools().iter().any(|t| t.name == name)
+    move |mi: &ModelInteraction| mi.tools_shed.all_tools().iter().any(|t| t.name() == name)
 }
 
 /// True when the system prompt contains `needle`.
@@ -508,13 +508,14 @@ impl MockTool {
 
 #[async_trait]
 impl ToolImpl for MockTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> crate::types::Tool {
+        crate::types::Tool::SingleCommand(ToolDefinition {
             name: self.name.clone(),
+            category: self.category.clone(),
             description: self.description.clone(),
             arguments: crate::types::Args::from_value(serde_json::json!({})),
-            category: self.category.clone(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(

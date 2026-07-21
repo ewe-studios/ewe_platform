@@ -1151,14 +1151,7 @@ fn apply_chat_template(
                 system_content.push_str("Available tools:\n");
             }
             for tool in &all_tools {
-                let args = tool
-                    .arguments
-                    .as_ref()
-                    .and_then(|a| a.schema.get("properties"))
-                    .and_then(|p| p.as_object())
-                    .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
-                    .unwrap_or_default();
-                let _ = writeln!(system_content, "- {}({})", tool.name, args);
+                let _ = writeln!(system_content, "- {}({})", tool.name(), tool.arg_summary());
             }
         }
     }

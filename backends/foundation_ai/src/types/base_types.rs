@@ -676,6 +676,12 @@ impl std::fmt::Debug for Args {
 }
 
 impl Args {
+    /// An `Args` for a tool that takes no arguments: an empty JSON object schema.
+    #[must_use]
+    pub fn empty() -> Self {
+        Self::new(foundation_jsonschema::scheme::object().build())
+    }
+
     /// Create an `Args` from a `ValidationOptions` (produced by a scheme builder).
     ///
     /// The schema is extracted from the `ValidationOptions` via `.clone_schema()`.
@@ -1174,12 +1180,144 @@ impl Messages {
     }
 }
 
+/// A single callable tool command: its LLM-facing identity, argument schema, and
+/// optional return schema. One `ToolDefinition` == one `ToolImpl` registered under
+/// `name`. This is THE tool descriptor — `ToolImpl::definition` returns it and
+/// `agentic::tool_impl` re-exports it (F19 consolidation).
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct Tool {
+pub struct ToolDefinition {
+    /// Unique tool name — the `ToolCallManager` registry key.
     pub name: String,
+    /// Category tag for shed discovery / grouping (F10/F19).
+    pub category: String,
+    /// Human-readable description shown to the LLM.
     pub description: String,
-    pub arguments: Option<Args>,
+    /// JSON-Schema of expected arguments (an empty object when the tool takes none).
+    pub arguments: Args,
+    /// Optional JSON-Schema of the tool's result.
     pub returns: Option<Args>,
+}
+
+/// A tool as presented to a model: either a single command, or a group of related
+/// commands (e.g. `memory` → add/replace/remove; `delegate` → start/stop/pause/
+/// check/result).
+///
+/// Providers render BOTH variants into their own instruction format — the group
+/// is preserved (never flattened at the shed layer) so a provider is free to
+/// express a `MultiCommands` tool as one discriminated tool or as several
+/// functions, as its API prefers.
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub enum Tool {
+    /// A leaf capability (e.g. `read`, `bash`).
+    SingleCommand(ToolDefinition),
+    /// A capability exposing several commands under one logical tool.
+    MultiCommands(String, Vec<ToolDefinition>),
+}
+
+impl Tool {
+    /// The tool's registry name: the command name for `SingleCommand`, the group
+    /// name for `MultiCommands` (e.g. `"screenshot"`).
+    #[must_use]
+    pub fn name(&self) -> &str {
+        match self {
+            Tool::SingleCommand(d) => &d.name,
+            Tool::MultiCommands(name, _) => name,
+        }
+    }
+
+    /// The tool's category (the first command's category for a group).
+    #[must_use]
+    pub fn category(&self) -> Option<&str> {
+        self.definitions().next().map(|d| d.category.as_str())
+    }
+
+    /// Iterate the tool's command definition(s): one for `SingleCommand`, its
+    /// commands for `MultiCommands`. Convenience for providers rendering commands.
+    pub fn definitions(&self) -> impl Iterator<Item = &ToolDefinition> {
+        match self {
+            Tool::SingleCommand(d) => std::slice::from_ref(d).iter(),
+            Tool::MultiCommands(_, v) => v.iter(),
+        }
+    }
+
+    /// A short human argument summary for text-based tool prompts (llama.cpp /
+    /// candle): the property names for a `SingleCommand`, or `command: a|b|c` for
+    /// a `MultiCommands` tool.
+    #[must_use]
+    pub fn arg_summary(&self) -> String {
+        fn prop_keys(schema: &serde_json::Value) -> String {
+            schema
+                .get("properties")
+                .and_then(serde_json::Value::as_object)
+                .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
+                .unwrap_or_default()
+        }
+        match self {
+            Tool::SingleCommand(d) => prop_keys(&d.arguments.schema),
+            Tool::MultiCommands(_, cmds) => format!(
+                "command: {}",
+                cmds.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join("|")
+            ),
+        }
+    }
+
+    /// The `(name, description, parameters-schema)` a function-calling provider
+    /// exposes to the LLM — **one function per `Tool`** (never flattened):
+    ///
+    /// - `SingleCommand` → the command's own name / description / args schema.
+    /// - `MultiCommands` → the group name, a synthesized description listing the
+    ///   commands, and a discriminated `oneOf` parameters schema: each branch
+    ///   pins `command` to one command name (a `const`) and carries that
+    ///   command's own properties/required. The model picks a `command` and
+    ///   supplies that command's args.
+    #[must_use]
+    pub fn function_spec(&self) -> (String, String, serde_json::Value) {
+        match self {
+            Tool::SingleCommand(d) => {
+                (d.name.clone(), d.description.clone(), d.arguments.schema.clone())
+            }
+            Tool::MultiCommands(name, cmds) => {
+                let branches: Vec<serde_json::Value> = cmds
+                    .iter()
+                    .map(|c| {
+                        let mut props = c
+                            .arguments
+                            .schema
+                            .get("properties")
+                            .and_then(serde_json::Value::as_object)
+                            .cloned()
+                            .unwrap_or_default();
+                        props.insert(
+                            "command".to_string(),
+                            serde_json::json!({ "const": c.name, "description": c.description }),
+                        );
+                        let mut required = c
+                            .arguments
+                            .schema
+                            .get("required")
+                            .and_then(serde_json::Value::as_array)
+                            .cloned()
+                            .unwrap_or_default();
+                        required.push(serde_json::json!("command"));
+                        serde_json::json!({
+                            "type": "object",
+                            "properties": props,
+                            "required": required,
+                        })
+                    })
+                    .collect();
+
+                let description = format!(
+                    "{name} tool. Set 'command' to one of: {}.",
+                    cmds.iter()
+                        .map(|c| c.name.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
+                (name.clone(), description, serde_json::json!({ "oneOf": branches }))
+            }
+        }
+    }
 }
 
 /// Strategy for tool selection in model interactions.
@@ -1214,140 +1352,62 @@ pub struct ToolFunctionRef {
     pub name: String,
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct MemoryTool {
-    pub add: Tool,
-    pub replace: Tool,
-    pub remove: Tool,
-}
-
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct DelegationTool {
-    pub start: Tool,
-    pub stop: Tool,
-    pub pause: Tool,
-    pub check: Tool,
-    pub result: Tool,
-}
-
+/// The set of tools a model is offered (F19). No capability is privileged with a
+/// dedicated field: `shed` is the optional discovery meta-tool, and everything
+/// else — `read`, `write`, `memory` (multi), `delegate` (multi), … — lives in
+/// `tools` as a `Tool` (single or multi command).
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolShed {
     /// The `shed` meta-tool — when present, tells the agent to query the
     /// `ToolCallManager` for any tools registered into its internal store.
     /// `None` when the model should have zero tools.
     pub shed: Option<Tool>,
-    pub memory: Option<MemoryTool>,
-    pub delegate: Option<DelegationTool>,
-    pub read: Option<Tool>,
-    pub edit: Option<Tool>,
-    pub write: Option<Tool>,
-    /// Knowledge search (semantic / memory / graph) — F16 / F32.
-    pub search: Option<Tool>,
-    /// Filesystem search via fff-search — F32. First-class, distinct from `search`.
-    pub search_files: Option<Tool>,
-    /// Cross-platform shell: bash on linux/macOS, PowerShell on Windows
-    /// (the `ToolImpl` selects at runtime). Was `bash: Option<Tool>`.
-    pub shell: Option<Tool>,
+    /// Every offered tool, single- or multi-command. `category` lives on each
+    /// `ToolDefinition`.
+    pub tools: Vec<Tool>,
 }
 
 impl Default for ToolShed {
     fn default() -> Self {
         Self {
-            shed: Some(Tool {
+            shed: Some(Tool::SingleCommand(ToolDefinition {
                 name: "shed".into(),
+                category: "shed".into(),
                 description: "Query the tool registry for available tools by category or search."
                     .into(),
-                arguments: None,
+                arguments: Args::empty(),
                 returns: None,
-            }),
-            memory: None,
-            delegate: None,
-            read: None,
-            edit: None,
-            write: None,
-            search: None,
-            search_files: None,
-            shell: None,
+            })),
+            tools: Vec::new(),
         }
     }
 }
 
 impl ToolShed {
+    /// Add one tool (single or multi command) to the shed.
     #[must_use]
-    pub fn with_read(mut self, t: Option<Tool>) -> Self {
-        self.read = t;
-        self
-    }
-    #[must_use]
-    pub fn with_edit(mut self, t: Option<Tool>) -> Self {
-        self.edit = t;
-        self
-    }
-    #[must_use]
-    pub fn with_write(mut self, t: Option<Tool>) -> Self {
-        self.write = t;
-        self
-    }
-    #[must_use]
-    pub fn with_search(mut self, t: Option<Tool>) -> Self {
-        self.search = t;
-        self
-    }
-    #[must_use]
-    pub fn with_search_files(mut self, t: Option<Tool>) -> Self {
-        self.search_files = t;
-        self
-    }
-    #[must_use]
-    pub fn with_shell(mut self, t: Option<Tool>) -> Self {
-        self.shell = t;
+    pub fn with_tool(mut self, tool: Tool) -> Self {
+        self.tools.push(tool);
         self
     }
 
+    /// Replace the shed's tool list.
     #[must_use]
-    pub fn with_memory(mut self, t: Option<MemoryTool>) -> Self {
-        self.memory = t;
+    pub fn with_tools(mut self, tools: Vec<Tool>) -> Self {
+        self.tools = tools;
         self
     }
 
-    #[must_use]
-    pub fn with_delegate(mut self, t: Option<DelegationTool>) -> Self {
-        self.delegate = t;
-        self
-    }
-
-    /// Flatten the shed into the full list of tools the LLM sees: the optional
-    /// `shed` meta-tool, every populated category tool, and the memory/delegate
-    /// sub-tools when present. Returns empty when shed is `None` and no tools set.
+    /// The full list of tools the model sees: the optional `shed` meta-tool
+    /// followed by every offered tool. The `Tool` enum is preserved (a provider
+    /// decides how to render `MultiCommands`); nothing is flattened here.
     #[must_use]
     pub fn all_tools(&self) -> Vec<Tool> {
-        let mut tools: Vec<Tool> = self.shed.iter().cloned().collect();
-        tools.extend(
-            [
-                &self.read,
-                &self.edit,
-                &self.write,
-                &self.search,
-                &self.search_files,
-                &self.shell,
-            ]
-            .into_iter()
-            .flatten()
-            .cloned(),
-        );
-        if let Some(mem) = &self.memory {
-            tools.push(mem.add.clone());
-            tools.push(mem.replace.clone());
-            tools.push(mem.remove.clone());
-        }
-        if let Some(del) = &self.delegate {
-            tools.push(del.start.clone());
-            tools.push(del.stop.clone());
-            tools.push(del.pause.clone());
-            tools.push(del.check.clone());
-            tools.push(del.result.clone());
-        }
-        tools
+        self.shed
+            .iter()
+            .cloned()
+            .chain(self.tools.iter().cloned())
+            .collect()
     }
 }
 
@@ -1514,23 +1574,16 @@ impl ToolFormatter for TextBasedFormatter {
         tools: &[Tool],
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         Ok(serde_json::Value::Array(
+            // One entry per tool; a MultiCommands tool becomes one discriminated
+            // function (`command` selects the sub-command). See Tool::function_spec.
             tools
                 .iter()
                 .map(|tool| {
-                    // Use the Args schema if present, otherwise default to empty object
-                    let params = tool.arguments.as_ref().map_or_else(
-                        || {
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": {},
-                            })
-                        },
-                        |a| a.schema.clone(),
-                    );
+                    let (name, description, parameters) = tool.function_spec();
                     serde_json::json!({
-                        "name": &tool.name,
-                        "description": tool.description,
-                        "parameters": params,
+                        "name": name,
+                        "description": description,
+                        "parameters": parameters,
                     })
                 })
                 .collect(),

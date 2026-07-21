@@ -695,24 +695,17 @@ impl ToolFormatter for OpenAIFormatter {
         tools: &[Tool],
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         Ok(serde_json::Value::Array(
+            // One function per tool; a MultiCommands tool becomes one discriminated
+            // function (`command` selects the sub-command). See Tool::function_spec.
             tools
                 .iter()
                 .map(|tool| {
-                    // Use the Args schema if present, otherwise default to empty object
-                    let parameters = tool.arguments.as_ref().map_or_else(
-                        || {
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": {},
-                            })
-                        },
-                        |a| a.schema.clone(),
-                    );
+                    let (name, description, parameters) = tool.function_spec();
                     serde_json::json!({
                         "type": "function",
                         "function": {
-                            "name": &tool.name,
-                            "description": tool.description,
+                            "name": name,
+                            "description": description,
                             "parameters": parameters,
                         },
                     })
@@ -1790,13 +1783,16 @@ pub fn build_chat_request(
         } else {
             Some(
                 all.iter()
-                    .map(|tool| OpenAITool {
-                        tool_type: String::from("function"),
-                        function: OpenAIFunction {
-                            name: tool.name.clone(),
-                            description: Some(tool.description.clone()),
-                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                        },
+                    .map(|tool| {
+                        let (name, description, parameters) = tool.function_spec();
+                        OpenAITool {
+                            tool_type: String::from("function"),
+                            function: OpenAIFunction {
+                                name,
+                                description: Some(description),
+                                parameters: Some(parameters),
+                            },
+                        }
                     })
                     .collect::<Vec<_>>(),
             )

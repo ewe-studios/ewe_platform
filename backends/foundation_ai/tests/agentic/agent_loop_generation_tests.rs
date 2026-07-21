@@ -618,7 +618,7 @@ fn assembled_interaction_carries_system_message_and_tools() {
             }
             // The registered tool must reach the toolshed handed to the model.
             let shed = &mi.tools_shed;
-            if shed.search.is_some() || shed.shell.is_some() || shed.shed.is_some() {
+            if !shed.tools.is_empty() || shed.shed.is_some() {
                 t.store(true, Ordering::SeqCst);
             }
             true

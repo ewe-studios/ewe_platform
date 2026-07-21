@@ -687,22 +687,15 @@ impl ToolFormatter for AnthropicFormatter {
         tools: &[Tool],
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         Ok(serde_json::Value::Array(
+            // One tool entry per `Tool`; a MultiCommands tool renders as one
+            // discriminated tool (`command` selects the sub-command).
             tools
                 .iter()
                 .map(|tool| {
-                    // Use the Args schema if present, otherwise default to empty object
-                    let input_schema = tool.arguments.as_ref().map_or_else(
-                        || {
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": {},
-                            })
-                        },
-                        |a| a.schema.clone(),
-                    );
+                    let (name, description, input_schema) = tool.function_spec();
                     serde_json::json!({
-                        "name": &tool.name,
-                        "description": tool.description,
+                        "name": name,
+                        "description": description,
                         "input_schema": input_schema,
                     })
                 })

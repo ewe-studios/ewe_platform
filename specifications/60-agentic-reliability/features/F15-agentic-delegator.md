@@ -83,13 +83,14 @@ candle providers already configured — no new provider wiring.
 `spawner` builds children at `depth + 1`; the delegator refuses `start` at
 `max_depth`, bounding recursion.
 
-## Progress-in-single-mode note
+## Execution note
 
-In the multi (threaded) executor the child runs on pool workers regardless of
-consumption, so `check` sees buffered results. In single/wasm the stream must be
-driven — which `check`/`result` do when the agent polls. Either way the work
-advances; it just needs poll calls in single mode (the agent makes them to obtain
-the outcome).
+We launch **one valtron task** — the child turn, via `run_turn_stream` →
+`execute(agent_loop)` — into the valtron loop, and hold the returned stream as
+the handle. We are not spawning workers or managing threads; valtron owns how the
+task is driven. The delegator's job is only to (a) launch the task, (b) observe
+it through the stream (`check`/`result` pull ready values and detect completion),
+and (c) close it (`stop` → `abort()`).
 
 ## Testing
 

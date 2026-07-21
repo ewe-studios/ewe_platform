@@ -717,12 +717,15 @@ impl ResponsesModel {
             } else {
                 Some(
                     all.iter()
-                        .map(|tool| ResponseTool {
-                            tool_type: String::from("function"),
-                            name: tool.name.clone(),
-                            description: Some(tool.description.clone()),
-                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                            strict: None,
+                        .map(|tool| {
+                            let (name, description, parameters) = tool.function_spec();
+                            ResponseTool {
+                                tool_type: String::from("function"),
+                                name,
+                                description: Some(description),
+                                parameters: Some(parameters),
+                                strict: None,
+                            }
                         })
                         .collect::<Vec<_>>(),
                 )

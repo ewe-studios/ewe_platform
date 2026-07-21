@@ -1170,14 +1170,7 @@ fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
         }
         system.push_str("Available tools:\n");
         for t in &tools {
-            let args = t
-                .arguments
-                .as_ref()
-                .and_then(|a| a.schema.get("properties"))
-                .and_then(|p| p.as_object())
-                .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
-                .unwrap_or_default();
-            system.push_str(&format!("- {}({})\n", t.name, args));
+            system.push_str(&format!("- {}({})\n", t.name(), t.arg_summary()));
         }
     }
     if !system.is_empty() {
@@ -1242,16 +1235,7 @@ fn build_prompt(chat_template: Option<&ChatTemplate>, interaction: &ModelInterac
             }
             let tool_defs = all_tools
                 .iter()
-                .map(|t| {
-                    let args = t
-                        .arguments
-                        .as_ref()
-                        .and_then(|a| a.schema.get("properties"))
-                        .and_then(|p| p.as_object())
-                        .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
-                        .unwrap_or_default();
-                    format!("- {}({})", t.name, args)
-                })
+                .map(|t| format!("- {}({})", t.name(), t.arg_summary()))
                 .collect::<Vec<_>>()
                 .join("\n");
             parts.push(format!("Tools:\n{tool_defs}"));

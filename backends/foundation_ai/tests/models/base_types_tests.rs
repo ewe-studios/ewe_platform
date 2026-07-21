@@ -8,7 +8,7 @@ use foundation_ai::agentic::testing::zero_usage;
 use foundation_ai::types::{
     ArgType, CacheRetention, KVCacheType, LlamaConfig, Messages, MimeType, ModelAPI, ModelId,
     ModelOutput, ModelProviders, SplitMode, StopReason, TextBasedFormatter, ThinkingLevels, Tool,
-    ToolFormatter, UsageReport,
+    ToolDefinition, ToolFormatter, UsageReport,
 };
 
 // ---------------------------------------------------------------------------
@@ -207,12 +207,13 @@ fn text_formatter_parses_all_json_arg_types() {
 #[test]
 fn text_formatter_format_tools_and_instructions() {
     let formatter = TextBasedFormatter;
-    let tools = vec![Tool {
+    let tools = vec![Tool::SingleCommand(ToolDefinition {
         name: "ping".to_string(),
+        category: "test".into(),
         description: "pong".to_string(),
-        arguments: None,
+        arguments: foundation_ai::types::Args::empty(),
         returns: None,
-    }];
+    })];
     let formatted = formatter.format_tools(&tools).unwrap();
     let arr = formatted.as_array().expect("array of tool schemas");
     assert_eq!(arr.len(), 1);

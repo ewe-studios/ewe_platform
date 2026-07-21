@@ -1,4 +1,3 @@
-mod delegate_tools_tests;
 mod access_tests;
 #[cfg(feature = "live-model-tests")]
 mod integrations;

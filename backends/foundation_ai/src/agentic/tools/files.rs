@@ -19,6 +19,7 @@ use async_trait::async_trait;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
 use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::types::Tool;
 use crate::types::{ArgType, TextContent, UserModelContent};
 use crate::types::base_types::Args;
 
@@ -81,8 +82,8 @@ impl<F: AsyncVfsFileSystem + 'static> ReadTool<F> {
 
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "read".into(),
             description: "Read a text file. Args: path (required), optional offset (1-indexed \
                           start line) and limit (max lines)."
@@ -95,7 +96,8 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
                     .build(),
             ),
             category: "read".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(
@@ -147,8 +149,8 @@ impl<F: AsyncVfsFileSystem + 'static> WriteTool<F> {
 
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "write".into(),
             description: "Create or overwrite a text file. Args: path (required), content \
                           (required). Returns the number of bytes written."
@@ -160,7 +162,8 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
                     .build(),
             ),
             category: "write".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(
@@ -197,8 +200,8 @@ impl<F: AsyncVfsFileSystem + 'static> EditTool<F> {
 
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "edit".into(),
             description: "Replace an exact string in a file. Args: path, old_string, new_string, \
                           optional replace_all (default false). old_string must be unique unless \
@@ -213,7 +216,8 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
                     .build(),
             ),
             category: "edit".into(),
-        }
+            returns: None,
+        })
     }
 
     async fn execute(
@@ -298,8 +302,8 @@ impl BashTool {
 
 #[async_trait]
 impl ToolImpl for BashTool {
-    fn definition(&self) -> ToolDefinition {
-        ToolDefinition {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
             name: "bash".into(),
             description: "Run a shell command. Args: command (required), optional cwd. Returns \
                           stdout, stderr and the exit code."
@@ -311,7 +315,8 @@ impl ToolImpl for BashTool {
                     .build(),
             ),
             category: "shell".into(),
-        }
+            returns: None,
+        })
     }
 
     #[cfg(not(target_family = "wasm"))]

@@ -17,6 +17,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 // ---------------------------------------------------------------------------
+// ToolDefinition — the single, shared descriptor (F19). Defined in the types
+// layer and re-exported here so `ToolImpl::definition() -> ToolDefinition` and
+// every `impl ToolImpl` keep referring to `tool_impl::ToolDefinition` unchanged.
+pub use crate::types::base_types::ToolDefinition;
+
+// ---------------------------------------------------------------------------
 // ToolError
 
 /// Error types for tool execution — Clone + `PartialEq` so F02's `AgenticError` can
@@ -52,22 +58,6 @@ impl std::fmt::Display for ToolError {
 }
 
 // ---------------------------------------------------------------------------
-// ToolDefinition
-
-/// The LLM-facing definition of a tool, built by implementers.
-#[derive(Debug, Clone)]
-pub struct ToolDefinition {
-    /// Unique tool name (used as the registry key).
-    pub name: String,
-    /// Human-readable description shown to the LLM.
-    pub description: String,
-    /// JSON-Schema of expected arguments.
-    pub arguments: Args,
-    /// Category tag for shed discovery (F10).
-    pub category: String,
-}
-
-// ---------------------------------------------------------------------------
 // ToolCallResult
 
 /// The result of a tool execution. Becomes `Messages::ToolResult.content`.
@@ -86,8 +76,11 @@ pub struct ToolCallResult {
 /// `Arc<dyn ToolImpl>` in the `ToolCallManager`.
 #[async_trait]
 pub trait ToolImpl: Send + Sync {
-    /// The LLM-facing definition (name, description, JSON-Schema args).
-    fn definition(&self) -> ToolDefinition;
+    /// The tool's own declaration of its shape (F19): `Tool::SingleCommand` for a
+    /// leaf capability, or `Tool::MultiCommands(name, commands)` for a tool that
+    /// exposes several commands (dispatched on the `command` argument). The
+    /// registry keys the tool by `Tool::name()`.
+    fn definition(&self) -> Tool;
 
     /// Run the tool with validated arguments. Async (async-first).
     /// Cancellation = valtron stops polling the future and drops it —
@@ -246,7 +239,7 @@ struct ToolCallManagerInner {
     tools: std::sync::RwLock<HashMap<String, Arc<dyn ToolImpl>>>,
     /// Cached definitions keyed by tool name — `build_toolshed` reads from this
     /// instead of looping the tools map and calling `definition()` each time.
-    defs: std::sync::RwLock<HashMap<String, ToolDefinition>>,
+    defs: std::sync::RwLock<HashMap<String, Tool>>,
     /// Per-tool retry config overrides (F11).
     retry_configs: std::sync::RwLock<HashMap<String, ToolRetryConfig>>,
     session_id: crate::types::SessionId,
@@ -276,7 +269,7 @@ impl ToolCallManager {
         let mut tools = self.inner.tools.write().unwrap();
         let mut defs = self.inner.defs.write().unwrap();
 
-        let tool_name = def.name.clone();
+        let tool_name = def.name().to_string();
         defs.insert(tool_name.clone(), def);
         tools.insert(tool_name, tool);
     }
@@ -301,7 +294,7 @@ impl ToolCallManager {
     #[must_use]
     /// # Errors
     /// Returns [`ToolError`] if a dependency fails.
-    pub fn get_def(&self, name: &str) -> Option<ToolDefinition> {
+    pub fn get_def(&self, name: &str) -> Option<Tool> {
         self.inner.defs.read().unwrap().get(name).cloned()
     }
 
@@ -313,23 +306,25 @@ impl ToolCallManager {
         self.inner.tools.read().unwrap().keys().cloned().collect()
     }
 
-    /// Collect all cached definitions grouped by category — no looping over
-    /// live tools, just a single read of the defs hashmap.
-    fn defs_by_category(&self) -> HashMap<String, Tool> {
+    /// Collect the registered tools' own `Tool` declarations, name-sorted for
+    /// determinism, with the `shed` meta-tool (registered as `SingleCommand`
+    /// named `shed`) pulled aside. Returns `(shed_tool, other_tools)`. No
+    /// grouping: each tool declares its own shape (single or multi command).
+    fn collected_tools(&self) -> (Option<Tool>, Vec<Tool>) {
         let defs = self.inner.defs.read().unwrap();
-        defs.values()
-            .map(|d| {
-                (
-                    d.category.clone(),
-                    Tool {
-                        name: d.name.clone(),
-                        description: d.description.clone(),
-                        arguments: Some(d.arguments.clone()),
-                        returns: None,
-                    },
-                )
-            })
-            .collect()
+        let mut all: Vec<Tool> = defs.values().cloned().collect();
+        all.sort_by(|a, b| a.name().cmp(b.name()));
+
+        let mut shed = None;
+        let mut tools = Vec::new();
+        for tool in all {
+            if tool.name() == "shed" {
+                shed = Some(tool);
+            } else {
+                tools.push(tool);
+            }
+        }
+        (shed, tools)
     }
 
     /// Validate arguments against the tool's JSON-Schema, then execute.
@@ -366,121 +361,33 @@ impl ToolCallManager {
         }
     }
 
-    /// Build the `ToolShed` from cached definitions. `shed` is always present;
-    /// category tools are populated from the cached defs (no looping);
-    /// `memory`/`delegate` are assembled from tools matching `memory_*` /
-    /// `delegate_(start|check|pause|resume|result)` name prefixes.
+    /// Build the `ToolShed` from the registered tools (F19): each tool's own
+    /// `Tool` declaration is collected into `tools` (no grouping). The `shed`
+    /// meta-tool is included only when there is at least one real tool to
+    /// discover — advertising it to a tool-less agent injected a phantom `shed()`
+    /// into every prompt (small models visibly wasted reasoning; see
+    /// docs/fixes/007).
     #[must_use]
     pub fn build_toolshed(&self) -> ToolShed {
-        let by_cat = self.defs_by_category();
-        let memory = self.build_memory_tool();
-        let delegate = self.build_delegate_tool();
+        let (shed_tool, tools) = self.collected_tools();
 
-        // The `shed` meta-tool exists to let the model DISCOVER other tools, so
-        // it only makes sense when there are tools to discover. Advertising it
-        // to a tool-less agent injected a phantom `shed()` into every prompt —
-        // small models visibly wasted reasoning trying to interpret it (see
-        // docs/fixes/007). Include it only when the registry has real tools.
-        let has_tools = memory.is_some()
-            || delegate.is_some()
-            || ["read", "edit", "write", "search", "search_files", "shell"]
-                .iter()
-                .any(|c| by_cat.contains_key(*c));
+        let shed = if tools.is_empty() {
+            None
+        } else {
+            shed_tool.or_else(|| {
+                Some(Tool::SingleCommand(ToolDefinition {
+                    name: "shed".into(),
+                    category: "shed".into(),
+                    description:
+                        "Search the tool registry for available tools by category or free-text query."
+                            .into(),
+                    arguments: Args::empty(),
+                    returns: None,
+                }))
+            })
+        };
 
-        let shed = has_tools.then(|| Tool {
-            name: "shed".into(),
-            description:
-                "Search the tool registry for available tools by category or free-text query."
-                    .into(),
-            arguments: None,
-            returns: None,
-        });
-
-        ToolShed {
-            shed,
-            memory,
-            delegate,
-            read: by_cat.get("read").cloned(),
-            edit: by_cat.get("edit").cloned(),
-            write: by_cat.get("write").cloned(),
-            search: by_cat.get("search").cloned(),
-            search_files: by_cat.get("search_files").cloned(),
-            shell: by_cat.get("shell").cloned(),
-        }
-    }
-
-    /// Build `MemoryTool` from tools whose names start with `memory_`.
-    fn build_memory_tool(&self) -> Option<crate::types::MemoryTool> {
-        let defs = self.inner.defs.read().unwrap();
-
-        let add = defs.get("memory_add").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let replace = defs.get("memory_replace").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let remove = defs.get("memory_remove").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-
-        Some(crate::types::MemoryTool {
-            add,
-            replace,
-            remove,
-        })
-    }
-
-    /// Build `DelegationTool` from tools whose names start with `delegate_`.
-    fn build_delegate_tool(&self) -> Option<crate::types::DelegationTool> {
-        let defs = self.inner.defs.read().unwrap();
-
-        let start = defs.get("delegate_start").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let stop = defs.get("delegate_stop").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let pause = defs.get("delegate_pause").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let check = defs.get("delegate_check").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-        let result = defs.get("delegate_result").map(|d| Tool {
-            name: d.name.clone(),
-            description: d.description.clone(),
-            arguments: Some(d.arguments.clone()),
-            returns: None,
-        })?;
-
-        Some(crate::types::DelegationTool {
-            start,
-            stop,
-            pause,
-            check,
-            result,
-        })
+        ToolShed { shed, tools }
     }
 
     /// Register the default tool set + the shed discovery tool.
@@ -658,4 +565,3 @@ impl ToolCallManager {
 
 // ---------------------------------------------------------------------------
 // Tests
-
