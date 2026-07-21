@@ -150,3 +150,60 @@ fn candle_generate_and_stream_agree_in_shape() {
     );
     assert!(gen_text, "both paths should produce text");
 }
+
+// ---------------------------------------------------------------------------
+// Sampling — matrix 8.15/8.19 (spec-60/S3).
+
+/// Matrix 8.15 — temperature <= 0 is greedy/argmax: fully deterministic.
+#[valtron_test]
+fn candle_greedy_is_deterministic() {
+    let model = load_tiny_llama();
+    let greedy = ModelParams {
+        max_tokens: 6,
+        temperature: 0.0,
+        ..Default::default()
+    };
+
+    let a = model.generate(greeting(), Some(greedy.clone())).expect("gen a");
+    let b = model.generate(greeting(), Some(greedy)).expect("gen b");
+
+    let text = |out: &[Messages]| -> String {
+        out.iter()
+            .filter_map(|m| match m {
+                Messages::Assistant { content: ModelOutput::Text(t), .. } => Some(t.content.clone()),
+                _ => None,
+            })
+            .collect()
+    };
+    assert_eq!(text(&a), text(&b), "greedy decoding must be reproducible");
+}
+
+/// Matrix 8.19 — the same seed reproduces the same stochastic sequence.
+#[valtron_test]
+fn candle_seeded_sampling_is_reproducible() {
+    let model = load_tiny_llama();
+    let seeded = ModelParams {
+        max_tokens: 6,
+        temperature: 0.8,
+        top_k: 40.0,
+        seed: Some(1234),
+        ..Default::default()
+    };
+
+    let a = model.generate(greeting(), Some(seeded.clone())).expect("gen a");
+    let b = model.generate(greeting(), Some(seeded)).expect("gen b");
+
+    let text = |out: &[Messages]| -> String {
+        out.iter()
+            .filter_map(|m| match m {
+                Messages::Assistant { content: ModelOutput::Text(t), .. } => Some(t.content.clone()),
+                _ => None,
+            })
+            .collect()
+    };
+    assert_eq!(
+        text(&a),
+        text(&b),
+        "the same seed must reproduce the same sampled sequence"
+    );
+}

@@ -153,11 +153,11 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | 8.12 | Model weights cached — second load is a cache hit | both | todo |
 | 8.13 | Cache key distinguishes differing configs | both | todo |
 | 8.14 | Cold-start race loads once, not once per caller | both | todo |
-| 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | todo |
+| 8.15 | Sampling: `temperature<=0` → greedy/argmax | both | **done** |
 | 8.16 | Sampling: `top_k` changes output | candle | todo |
 | 8.17 | Sampling: `top_p` changes output | candle | todo |
 | 8.18 | Sampling: `repeat_penalty` changes output | candle | todo |
-| 8.19 | Seeded sampling reproducible across two runs | candle | todo |
+| 8.19 | Seeded sampling reproducible across two runs | candle | **done** |
 | 8.20 | Unsupported architecture fails loudly, no silent Llama fallback | candle | todo |
 | 8.21 | Architecture detected from `config.json` when unconfigured | candle | todo |
 | 8.22 | Each supported architecture loads | candle/gen | todo |

@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 
 use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
+use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
@@ -626,6 +627,8 @@ impl Model for CandleModels {
 
         let mut all_tokens = input_ids.clone();
         let mut next_tokens = input_ids;
+        // One processor for the whole generation so its rng advances per token.
+        let mut processor = build_logits_processor(&params);
 
         for index in 0..params.max_tokens {
             let input_tensor =
@@ -635,7 +638,8 @@ impl Model for CandleModels {
             let seq_start = if index == 0 { 0 } else { all_tokens.len() - 1 };
             let logits = forward(&mut inner, &input_tensor, seq_start)?;
 
-            let next_token = sample_token(&logits, &params).map_err(GenerationError::Candle)?;
+            let next_token = sample_next(&mut processor, &logits, &params, &all_tokens)
+                .map_err(GenerationError::Candle)?;
 
             if inner.eos_token_id == Some(next_token) {
                 break;
@@ -727,6 +731,8 @@ struct CandleStreamState {
     tokens_generated: usize,
     finished: bool,
     initialized: bool,
+    /// Persisted across polls so its rng advances token to token (spec-60/S3).
+    processor: LogitsProcessor,
 }
 
 impl CandleStream {
@@ -758,10 +764,13 @@ impl CandleStream {
                     .map_err(GenerationError::Candle)?;
         }
 
+        let processor = build_logits_processor(&params);
+
         Ok(Self {
             inner: Arc::new(Mutex::new(CandleStreamState {
                 model,
                 params,
+                processor,
                 all_tokens: input_ids,
                 input_len,
                 tokens_generated: 0,
@@ -831,10 +840,17 @@ impl Iterator for CandleStream {
                 return Some(Stream::Pending(ModelState::Finished));
             };
 
-        #[allow(clippy::manual_let_else)]
-            let next_token = if let Ok(t) = sample_token(&logits, &params) { t } else {
-                state.finished = true;
-                return Some(Stream::Pending(ModelState::Finished));
+            let next_token = {
+                // Reborrow so `processor` (mut) and `all_tokens` (shared) are
+                // disjoint field borrows rather than two borrows of the guard.
+                let st = &mut *state;
+                match sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
+                    Ok(t) => t,
+                    Err(_) => {
+                        st.finished = true;
+                        return Some(Stream::Pending(ModelState::Finished));
+                    }
+                }
             };
 
             let eos_hit = model_inner
@@ -980,95 +996,83 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
     parts.join("\n")
 }
 
-fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_core::Error> {
-    // Logits shape: [batch, seq_len, vocab] or [seq_len, vocab] or [vocab]
-    // Extract the last token's logits as a 1-d [vocab] tensor.
-    let dims = logits.dims();
-    let last_logits = match dims.len() {
-        3 => {
-            // [batch, seq_len, vocab] -> narrow to last position in seq
-            let seq_len = dims[1];
-            logits.narrow(1, seq_len - 1, 1)?.squeeze(0)?.squeeze(0)?
-        }
-        2 => {
-            // [seq_len, vocab] -> take last row
-            let seq_len = dims[0];
-            logits.get(seq_len - 1)?
-        }
-        1 => {
-            // Already [vocab]
-            logits.clone()
-        }
-        _ => {
-            return Err(candle_core::Error::msg(format!(
-                "Unexpected logits rank: {} (dims: {:?})",
-                dims.len(),
-                dims
-            )));
+/// Build candle's `LogitsProcessor` from `ModelParams`.
+///
+/// WHY: the previous sampler was hand-rolled, honoured only temperature and
+/// top-k (top-p and repeat-penalty in `ModelParams` were silently ignored), and
+/// used unseeded `fastrand`, so candle generation could not be reproduced. This
+/// adopts candle's own sampler, which implements the full set, and threads the
+/// seed so a caller can force determinism (spec-60/S3).
+///
+/// HOW: the processor holds its own rng and must persist across the whole
+/// generation so the rng advances token to token — build it ONCE per
+/// generate()/stream, not per token.
+fn build_logits_processor(params: &ModelParams) -> LogitsProcessor {
+    // A fixed default seed keeps runs reproducible even when the caller sets
+    // none; an explicit seed overrides it.
+    let seed = u64::from(params.seed.unwrap_or(299_792_458));
+    let temperature = f64::from(params.temperature);
+
+    let sampling = if temperature <= 0.0 {
+        // temperature <= 0 => greedy/argmax (also the deterministic test mode).
+        Sampling::ArgMax
+    } else {
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let top_k = params.top_k.round() as usize;
+        let top_p = f64::from(params.top_p);
+        let use_top_p = top_p > 0.0 && top_p < 1.0;
+        match (top_k, use_top_p) {
+            (0, true) => Sampling::TopP { p: top_p, temperature },
+            (0, false) => Sampling::All { temperature },
+            (k, true) => Sampling::TopKThenTopP { k, p: top_p, temperature },
+            (k, false) => Sampling::TopK { k, temperature },
         }
     };
 
-    if params.temperature <= 0.0 {
-        return argmax(&last_logits);
-    }
-
-    let scaled = (&last_logits / f64::from(params.temperature))?;
-
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    let top_k = params.top_k.round() as usize;
-    if top_k > 0 {
-        return sample_top_k(&scaled, top_k);
-    }
-
-    sample_from_logits(&scaled)
+    LogitsProcessor::from_sampling(seed, sampling)
 }
 
-#[allow(clippy::cast_possible_truncation)]
-fn argmax(logits: &Tensor) -> Result<u32, candle_core::Error> {
-    let vec: Vec<f32> = logits.to_vec1()?;
-    let (max_idx, _) = vec
-        .iter()
-        .enumerate()
-        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
-        .unwrap_or((0, &0.0));
-    Ok(max_idx as u32)
-}
-
-#[allow(clippy::cast_possible_truncation)]
-fn sample_top_k(logits: &Tensor, k: usize) -> Result<u32, candle_core::Error> {
-    let vec: Vec<f32> = logits.to_vec1()?;
-    let mut indexed: Vec<(usize, f32)> = vec.into_iter().enumerate().collect();
-    indexed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    indexed.truncate(k);
-
-    let max_val = indexed[0].1;
-    let exps: Vec<f32> = indexed.iter().map(|(_, v)| (v - max_val).exp()).collect();
-    let sum: f32 = exps.iter().sum();
-    let probs: Vec<f32> = exps.iter().map(|e| e / sum).collect();
-
-    let r: f32 = fastrand::f32();
-    let mut cumsum = 0.0;
-    for (i, p) in probs.iter().enumerate() {
-        cumsum += p;
-        if r < cumsum {
-            return Ok(indexed[i].0 as u32);
+/// Reduce raw model logits to a 1-D `[vocab]` tensor for the last position.
+fn last_position_logits(logits: &Tensor) -> Result<Tensor, candle_core::Error> {
+    let dims = logits.dims();
+    match dims.len() {
+        3 => {
+            let seq_len = dims[1];
+            logits.narrow(1, seq_len - 1, 1)?.squeeze(0)?.squeeze(0)
         }
+        2 => {
+            let seq_len = dims[0];
+            logits.get(seq_len - 1)
+        }
+        1 => Ok(logits.clone()),
+        _ => Err(candle_core::Error::msg(format!(
+            "Unexpected logits rank: {} (dims: {dims:?})",
+            dims.len()
+        ))),
     }
-    Ok(indexed.last().unwrap().0 as u32)
 }
 
-#[allow(clippy::cast_possible_truncation)]
-fn sample_from_logits(logits: &Tensor) -> Result<u32, candle_core::Error> {
-    let probs = candle_nn::ops::softmax(logits, 0)?;
-    let vec: Vec<f32> = probs.to_vec1()?;
+/// Sample the next token: apply repeat penalty (if configured) over the recent
+/// context, then draw from `processor`.
+fn sample_next(
+    processor: &mut LogitsProcessor,
+    logits: &Tensor,
+    params: &ModelParams,
+    context: &[u32],
+) -> Result<u32, candle_core::Error> {
+    let last = last_position_logits(logits)?;
 
-    let r: f32 = fastrand::f32();
-    let mut cumsum = 0.0;
-    for (i, p) in vec.iter().enumerate() {
-        cumsum += p;
-        if r < cumsum {
-            return Ok(i as u32);
-        }
-    }
-    Ok((vec.len() - 1) as u32)
+    let penalized = if (params.repeat_penalty - 1.0).abs() > f32::EPSILON && !context.is_empty() {
+        // Match the llama.cpp path: penalize over the last 64 tokens.
+        let start = context.len().saturating_sub(64);
+        candle_transformers::utils::apply_repeat_penalty(
+            &last,
+            params.repeat_penalty,
+            &context[start..],
+        )?
+    } else {
+        last
+    };
+
+    processor.sample(&penalized)
 }
