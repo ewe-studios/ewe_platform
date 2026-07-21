@@ -443,6 +443,7 @@ pub enum ToolBehavior {
 pub struct MockTool {
     pub name: String,
     pub description: String,
+    pub category: String,
     pub behavior: ToolBehavior,
     attempt: AtomicU32,
 }
@@ -453,6 +454,10 @@ impl MockTool {
         Self {
             name: name.into(),
             description: "mock tool".into(),
+            // Default to a recognized category so the tool actually populates
+            // the ToolShed handed to the model (build_toolshed groups by
+            // category). "mock" is not a recognized slot; "shell" is.
+            category: "shell".into(),
             behavior,
             attempt: AtomicU32::new(0),
         }
@@ -462,6 +467,13 @@ impl MockTool {
     #[must_use]
     pub fn with_description(mut self, desc: impl Into<String>) -> Self {
         self.description = desc.into();
+        self
+    }
+
+    /// Builder: set the tool category (drives which ToolShed slot it fills).
+    #[must_use]
+    pub fn with_category(mut self, category: impl Into<String>) -> Self {
+        self.category = category.into();
         self
     }
 
@@ -501,7 +513,7 @@ impl ToolImpl for MockTool {
             name: self.name.clone(),
             description: self.description.clone(),
             arguments: crate::types::Args::from_value(serde_json::json!({})),
-            category: "mock".into(),
+            category: self.category.clone(),
         }
     }
 

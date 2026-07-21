@@ -581,3 +581,48 @@ fn max_inner_iterations_bounds_a_non_converging_tool_loop() {
         "a capped inner loop must still reach Ending and emit a Summary: {records:?}"
     );
 }
+
+/// Matrix 1.10 — the interaction sent to the model carries the system prompt,
+/// the user's message text, and the registered tools. Uses the mock's matcher,
+/// which receives the exact ModelInteraction the loop assembled.
+#[test]
+fn assembled_interaction_carries_system_message_and_tools() {
+    use foundation_ai::agentic::testing::MockTool;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc as StdArc;
+
+    let saw_system = StdArc::new(AtomicBool::new(false));
+    let saw_user = StdArc::new(AtomicBool::new(false));
+    let saw_tool = StdArc::new(AtomicBool::new(false));
+    let (s, u, t) = (saw_system.clone(), saw_user.clone(), saw_tool.clone());
+
+    let mut mock = MockModelProvider::new();
+    mock.on(
+        move |mi| {
+            if mi.system_prompt.is_some() {
+                s.store(true, Ordering::SeqCst);
+            }
+            if mi.messages.iter().any(|m| {
+                matches!(m, Messages::User { content: foundation_ai::types::UserModelContent::Text(tc), .. } if tc.content.contains("find me"))
+            }) {
+                u.store(true, Ordering::SeqCst);
+            }
+            // The registered tool must reach the toolshed handed to the model.
+            let shed = &mi.tools_shed;
+            if shed.search.is_some() || shed.shell.is_some() || shed.shed.is_some() {
+                t.store(true, Ordering::SeqCst);
+            }
+            true
+        },
+        vec![mock_text("ok")],
+    );
+
+    let tool = Arc::new(MockTool::returning("search", "results"));
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let _ = h.follow_up.push(user_msg("find me something"));
+    drive(&mut h);
+
+    assert!(saw_system.load(Ordering::SeqCst), "interaction must carry the system prompt");
+    assert!(saw_user.load(Ordering::SeqCst), "interaction must carry the user message text");
+    assert!(saw_tool.load(Ordering::SeqCst), "interaction must carry the registered tools");
+}

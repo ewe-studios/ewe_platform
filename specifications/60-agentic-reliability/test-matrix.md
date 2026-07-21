@@ -27,18 +27,18 @@ Every state and every edge out of it.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 1.1 | `Initializing` emits `Init` and moves to `OuterBoundary` | mock | todo |
-| 1.2 | `OuterBoundary` with priority messages → drains, resets cancel, `InnerAssemble` | mock | todo |
-| 1.3 | `OuterBoundary` with follow-up messages → drains, `InnerAssemble` | mock | todo |
+| 1.1 | `Initializing` emits `Init` and moves to `OuterBoundary` | mock | **done** |
+| 1.2 | `OuterBoundary` with priority messages → drains, resets cancel, `InnerAssemble` | mock | **done** |
+| 1.3 | `OuterBoundary` with follow-up messages → drains, `InnerAssemble` | mock | **done** |
 | 1.4 | `OuterBoundary` with both → **priority drains first** | mock | **done** |
-| 1.5 | `OuterBoundary` with empty queues → `Ending` | mock | todo |
-| 1.6 | `OuterBoundary` past `max_outer_iterations` → `Ending` | mock | todo |
+| 1.5 | `OuterBoundary` with empty queues → `Ending` | mock | **done** |
+| 1.6 | `OuterBoundary` past `max_outer_iterations` → `Ending` | mock | **done** |
 | 1.7 | `InnerAssemble` with priority pending → front-injects, stays in assemble | mock | todo |
-| 1.8 | `InnerAssemble` with exhausted budget → `Ending` + `BudgetExhausted` | mock | todo |
+| 1.8 | `InnerAssemble` with exhausted budget → `Ending` + `BudgetExhausted` | mock | **done** |
 | 1.9 | `InnerAssemble` router failure → `handle_error`, no panic | mock | **done** |
-| 1.10 | `InnerAssemble` builds interaction carrying system prompt + messages + toolshed | both | todo |
+| 1.10 | `InnerAssemble` builds interaction carrying system prompt + messages + toolshed | both | **done** |
 | 1.11 | `InnerGenerate` pumps stream, collects messages | both | **done** |
-| 1.12 | `InnerGenerate` on stream end with no tool calls → `OutputProcessing` | mock | todo |
+| 1.12 | `InnerGenerate` on stream end with no tool calls → `OutputProcessing` | mock | **done** |
 | 1.13 | `InnerGenerate` on stream end with tool calls → `InnerToolCalls` | mock | **done** |
 | 1.14 | `InnerGenerate` on provider error → `FailedAction`, `run_turn` returns `Err` | both | **done** |
 | 1.15 | `InnerToolCalls` extracts calls into `InnerExecuting` | mock | **done** |
@@ -46,8 +46,8 @@ Every state and every edge out of it.
 | 1.17 | `InnerExecuting` tool failure → recorded, loop continues per policy | mock | **done** |
 | 1.18 | `InnerExecuting` cancellation signal → aborts in-flight tools | mock | todo |
 | 1.19 | `InnerEmitResults` emits results and returns to `InnerAssemble` | mock | **done** |
-| 1.20 | `InnerAssemble` past `max_inner_iterations` → breaks out | mock | todo |
-| 1.21 | `OutputProcessing` fires memory triggers and persists | mock | todo |
+| 1.20 | `InnerAssemble` past `max_inner_iterations` → breaks out | mock | **done** |
+| 1.21 | `OutputProcessing` fires memory triggers and persists | mock | **done** |
 | 1.22 | `Ending` emits `Summary` with accurate `message_count` + usage | mock | **done** |
 | 1.23 | `Done` yields `None` and the task completes | mock | **done** |
 | 1.24 | Full happy path: user msg → assistant reply, one outer iteration | both | **done** |
@@ -82,7 +82,7 @@ Every state and every edge out of it.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 4.1 | `ToolShed` definitions reach the prompt | both | todo |
+| 4.1 | `ToolShed` definitions reach the prompt | both | **done** |
 | 4.2 | Tool call parsed from model output | mock | **done** |
 | 4.3 | Tool executed with parsed arguments | mock | **done** |
 | 4.4 | Tool result emitted as a record | mock | **done** |

@@ -299,5 +299,11 @@ fn tool_definition_has_correct_name() {
     let tool = MockTool::returning("my_tool", "result");
     let def = tool.definition();
     assert_eq!(def.name, "my_tool");
-    assert_eq!(def.category, "mock");
+    // Default category is a RECOGNIZED slot ("shell") so the mock tool actually
+    // populates the ToolShed handed to the model; override via with_category.
+    assert_eq!(def.category, "shell");
+    assert_eq!(
+        MockTool::returning("t", "r").with_category("search").definition().category,
+        "search"
+    );
 }
