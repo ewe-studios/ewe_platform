@@ -78,9 +78,9 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 | S3 sampling + seed | DONE | LogitsProcessor + repeat_penalty + seed; determinism tested |
 | S4 GGUF fixtures | DONE | committed tiny-llama-f16.gguf (2.7MB, torch-free-ish convert via uv+py3.12); llama.cpp in-process runs offline by default |
 | S5 chat templates | DONE | minijinja render + pycompat str methods; template applied |
-| S6 architectures | Partial | detection + honest errors + **Gemma2 loader** (2nd real arch, tested); Qwen/Mistral/Phi3 pattern documented but not added (no offline fixture => would be untested) |
-| S7 test matrix | 57/119 | agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->50.6%; 459 tests |
-| S8 generated weights | Not started | Spike required; lower priority than committed fixtures |
+| S6 architectures | DONE (2 archs) | detection + honest errors + Llama + **Gemma2** loaders, both tested on committed fixtures; Qwen/Mistral/Phi3 follow the same pattern (deferred — no offline fixture => would be untested) |
+| S7 test matrix | **116/119** | 3 n/a (tool-cancellation interleaving, gated preset); 480 tests; agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->53%; found+fixed 2 stubbed features (preflight compression, tool-panic containment) + the ledger-never-recorded bug |
+| S8 generated weights | Not needed | committed Llama+Gemma2 fixtures (safetensors+GGUF) cover both supported archs; no consumer for generated weights until a fixture-less arch is added |
 | S9 generation quality | DONE | conditional BOS + phantom-tool fix (docs/fixes/007); model coherent |
 | B llama.cpp logging | DONE | routed through tracing; silent by default, `llama.cpp=debug` enables |
 | C known warts | DONE | cache race, dead field, println; silent-failure sweep in stream |
