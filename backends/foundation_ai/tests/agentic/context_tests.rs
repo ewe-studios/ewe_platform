@@ -350,3 +350,149 @@ fn graph_search_falls_back_to_hybrid_not_silently_empty() {
         );
     });
 }
+
+// ---------------------------------------------------------------------------
+// search_from_memory — the SearchMode matrix
+// ---------------------------------------------------------------------------
+//
+// `search_from_memory` is the synchronous recall path the agent loop uses to
+// pull relevant history into a turn. Each SearchMode routes differently, and
+// two of them (Graph, Hybrid) deliberately fall back rather than returning
+// empty — a silent empty result reads as "nothing relevant" and quietly
+// degrades answer quality instead of surfacing the missing capability.
+
+/// Memory carrying one working-memory fact, for the Memory-tier searches.
+fn memory_with_fact(fact: &str) -> SessionMemory {
+    SessionMemory {
+        working: Some(working_memory(fact)),
+        observation: None,
+        reflection: None,
+    }
+}
+
+#[test]
+fn semantic_search_falls_back_to_keywords_without_an_embedder() {
+    // No embedder is wired here, so Semantic must degrade to keyword matching
+    // rather than returning nothing.
+    let provider = provider_seeded(&["the capital of france is paris"]);
+    let hits = provider.search_from_memory(
+        "paris",
+        SearchMode::Semantic,
+        5,
+        &SessionMemory::default(),
+    );
+    assert!(
+        !hits.is_empty(),
+        "Semantic must fall back to keyword recall when no embedder is wired"
+    );
+}
+
+#[test]
+fn memory_mode_searches_the_memory_tiers() {
+    let provider = provider_seeded(&[]);
+    let hits = provider.search_from_memory(
+        "dark mode",
+        SearchMode::Memory,
+        5,
+        &memory_with_fact("user prefers dark mode"),
+    );
+    assert!(
+        !hits.is_empty(),
+        "Memory mode must find a matching working-memory fact"
+    );
+}
+
+#[test]
+fn memory_mode_ignores_the_message_log() {
+    // Memory mode reads tiers only; a match that exists solely in messages must
+    // not appear, or the mode's contract is meaningless.
+    let provider = provider_seeded(&["only in the message log"]);
+    let hits = provider.search_from_memory(
+        "message log",
+        SearchMode::Memory,
+        5,
+        &SessionMemory::default(),
+    );
+    assert!(
+        hits.is_empty(),
+        "Memory mode must not search the message log: {hits:?}"
+    );
+}
+
+#[test]
+fn graph_mode_falls_back_instead_of_returning_empty() {
+    // Graph traversal is deliberately not wired (no session knowledge graph).
+    // It must fall back to hybrid recall — returning empty would read as
+    // "no results" and silently degrade the turn.
+    let provider = provider_seeded(&["graph fallback content here"]);
+    let hits = provider.search_from_memory(
+        "fallback",
+        SearchMode::Graph,
+        5,
+        &SessionMemory::default(),
+    );
+    assert!(
+        !hits.is_empty(),
+        "Graph must fall back to recall, not return empty"
+    );
+}
+
+#[test]
+fn search_returns_nothing_for_a_query_that_matches_nothing() {
+    // The contrast case: the fallbacks above must not be manufacturing hits.
+    let provider = provider_seeded(&["completely unrelated text"]);
+    let hits = provider.search_from_memory(
+        "zzzznomatchzzzz",
+        SearchMode::Semantic,
+        5,
+        &SessionMemory::default(),
+    );
+    assert!(hits.is_empty(), "a non-matching query must yield no hits: {hits:?}");
+}
+
+#[test]
+fn search_is_case_insensitive() {
+    let provider = provider_seeded(&["The Capital Of France"]);
+    let hits = provider.search_from_memory(
+        "CAPITAL",
+        SearchMode::Semantic,
+        5,
+        &SessionMemory::default(),
+    );
+    assert!(
+        !hits.is_empty(),
+        "recall must not miss a match on case alone"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Accessors + config
+// ---------------------------------------------------------------------------
+
+#[test]
+fn accessors_expose_the_wired_components() {
+    let provider = provider(ContextConfig::default());
+    // Each accessor is the extension point callers use to reach into a built
+    // provider; a wrong field would hand back another session's state.
+    assert!(!provider.session_id().to_string().is_empty());
+    let _ = provider.message_api();
+    let _ = provider.memory_store();
+    let _ = provider.ledger();
+    let _ = provider.config();
+}
+
+#[test]
+fn set_config_replaces_the_active_config() {
+    let mut provider = provider(ContextConfig::default());
+    let before = provider.config().recent_message_count;
+
+    let mut replacement = ContextConfig::default();
+    replacement.recent_message_count = before + 7;
+    provider.set_config(replacement);
+
+    assert_eq!(
+        provider.config().recent_message_count,
+        before + 7,
+        "set_config must take effect, not be silently dropped"
+    );
+}
