@@ -62,8 +62,13 @@ fn model_dir() -> PathBuf {
 // Scoped filter, not a bare `trace`: a global trace level pulls in `mio`'s
 // per-poll events, which fire continuously under the REPL's raw-mode input loop
 // and shred the prompt. Trace what we own, silence the transport churn.
+//
+// llama.cpp/ggml now route their native logs through tracing (targets
+// `llama.cpp` and `ggml`), so the model-loader dump and per-tensor `repack:`
+// spam is silenced here by default. To see it, add e.g. `llama.cpp=debug` to
+// this directive (or the RUST_LOG env, which overrides it).
 #[valtron(
-    tracing = "info,answerme_agent=trace,foundation_ai=trace,mio=off,polling=off",
+    tracing = "info,answerme_agent=trace,foundation_ai=trace,mio=off,polling=off,llama.cpp=off,ggml=off",
     tracing_targets = true,
     tracing_names = true
 )]

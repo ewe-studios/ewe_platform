@@ -193,8 +193,8 @@ The rows that matter most: every `docs/fixes/006` defect lived here.
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
 | 11.1 | Worker-thread tracing reaches the subscriber | mock | todo |
-| 11.2 | llama.cpp logs silent by default | gguf | todo |
-| 11.3 | llama.cpp logs enabled by `llamacpp=debug` directive | gguf | todo |
+| 11.2 | llama.cpp logs silent by default | gguf | **done** |
+| 11.3 | llama.cpp logs enabled by `llamacpp=debug` directive | gguf | **done** |
 | 11.4 | No `println!` on library paths | — | todo |
 | 11.5 | Fixtures load offline with no network | both | **done** (candle) |
 | 11.6 | Whole default suite runs with network disabled | both | todo |
