@@ -112,6 +112,8 @@ where
     default_model: ModelId,
     output_base: String,
     user: UserId,
+    /// Tools provisioned on every child sub-agent session (e.g. write, read).
+    child_tools: Vec<Arc<dyn ToolImpl>>,
 }
 
 impl<D, M> AgentTool<D, M>
@@ -120,6 +122,9 @@ where
     M: MemoryStore + Default + 'static,
 {
     /// Create a new agent tool.
+    ///
+    /// `child_tools` are registered on every sub-agent session so the child
+    /// can produce output (at minimum: `write` and `read`).
     #[must_use]
     pub fn new(
         router: ProviderRouter,
@@ -128,6 +133,7 @@ where
         default_model: ModelId,
         output_base: String,
         user: UserId,
+        child_tools: Vec<Arc<dyn ToolImpl>>,
     ) -> Self {
         Self {
             router,
@@ -137,6 +143,7 @@ where
             default_model,
             output_base,
             user,
+            child_tools,
         }
     }
 
@@ -214,6 +221,12 @@ where
             tool: TOOL.into(),
             reason: format!("failed to build child session: {e}"),
         })?;
+
+        // Provision the child session with the tools it needs to produce output
+        // (at minimum: write, read — supplied by the caller at construction).
+        for tool in &self.child_tools {
+            child_session.tool_manager().register(Arc::clone(tool));
+        }
 
         let prompt = Messages::User {
             id: foundation_compact::ids::new_scru128(),
@@ -635,6 +648,10 @@ fn truncate_summary(content: &str) -> String {
 
 /// Register the `agent` tool onto a [`ToolCallManager`].
 ///
+/// `child_tools` are provisioned on every sub-agent session the tool spawns.
+/// At minimum this should include `write` and `read` so the sub-agent can
+/// produce output.
+///
 /// [`ToolCallManager`]: crate::agentic::tool_impl::ToolCallManager
 pub fn register_agent_tool<D, M>(
     manager: &crate::agentic::tool_impl::ToolCallManager,
@@ -644,6 +661,7 @@ pub fn register_agent_tool<D, M>(
     default_model: ModelId,
     output_base: &str,
     user: UserId,
+    child_tools: Vec<Arc<dyn ToolImpl>>,
 ) where
     D: DocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
@@ -655,6 +673,534 @@ pub fn register_agent_tool<D, M>(
         default_model,
         output_base.to_string(),
         user,
+        child_tools,
     );
     manager.register(Arc::new(tool));
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    use crate::agentic::memory_store::KvMemoryStore;
+    use crate::agentic::testing::{mock_text, MockModelProvider, MockTool};
+    use crate::agentic::tool_impl::{ToolCallManager, ToolError, ToolImpl};
+    use crate::agentic::UserId;
+    use crate::types::routable_provider::ProviderRouter;
+    use crate::types::{
+        ArgType, ModelId, SessionId, TextContent, Tool, UserModelContent,
+    };
+
+    use super::*;
+
+    type D = MemoryDocumentStore;
+    type M = KvMemoryStore<MemoryStorage>;
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    fn cmd(command: &str, pairs: &[(&str, &str)]) -> HashMap<String, ArgType> {
+        let mut m = HashMap::new();
+        m.insert("command".to_string(), ArgType::Text(command.to_string()));
+        for (k, v) in pairs {
+            m.insert((*k).to_string(), ArgType::Text((*v).to_string()));
+        }
+        m
+    }
+
+    fn empty_router() -> ProviderRouter {
+        ProviderRouter::builder().build()
+    }
+
+    fn test_user() -> UserId {
+        UserId("test".into())
+    }
+
+    fn test_tool() -> AgentTool<D, M> {
+        AgentTool::new(
+            empty_router(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation".into(),
+            test_user(),
+            vec![],
+        )
+    }
+
+    fn tool_router(router: ProviderRouter) -> AgentTool<D, M> {
+        AgentTool::new(
+            router,
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation".into(),
+            test_user(),
+            vec![],
+        )
+    }
+
+    fn as_json(
+        result: &crate::agentic::tool_impl::ToolCallResult,
+    ) -> serde_json::Value {
+        match &result.content {
+            UserModelContent::Text(t) => {
+                serde_json::from_str(&t.content).unwrap_or_else(|_| {
+                    serde_json::json!({"raw": t.content})
+                })
+            }
+            _ => serde_json::json!({}),
+        }
+    }
+
+    fn poll_until_done(
+        t: &AgentTool<D, M>,
+        id: &str,
+        max_iters: usize,
+    ) -> Option<serde_json::Value> {
+        for _ in 0..max_iters {
+            let check = futures_lite::future::block_on(
+                t.execute(cmd("check", &[("id", id)])),
+            )
+            .expect("check");
+            let check_json = as_json(&check);
+            let state = check_json["state"].as_str().unwrap_or("unknown");
+            match state {
+                "Done" => return Some(check_json),
+                "Failed" => return Some(check_json),
+                _ => std::thread::sleep(std::time::Duration::from_millis(10)),
+            }
+        }
+        None
+    }
+
+    // ------------------------------------------------------------------
+    // definition
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn definition_is_multi_commands() {
+        let t = test_tool();
+        match t.definition() {
+            Tool::MultiCommands(name, cmds) => {
+                assert_eq!(name, "agent");
+                assert_eq!(cmds.len(), 6);
+                let names: Vec<&str> = cmds.iter().map(|c| c.name.as_str()).collect();
+                for cmd in &["start", "check", "result", "pause", "resume", "stop"] {
+                    assert!(names.contains(cmd), "missing command: {cmd}");
+                }
+                let start = cmds.iter().find(|c| c.name == "start").unwrap();
+                let required: Vec<&str> = start.arguments.schema["required"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| v.as_str().unwrap())
+                    .collect();
+                assert!(required.contains(&"command"));
+                assert!(required.contains(&"task"));
+            }
+            other => panic!("expected MultiCommands, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn definition_name_is_agent() {
+        assert_eq!(test_tool().definition().name(), "agent");
+    }
+
+    #[test]
+    fn definition_function_spec_discriminated() {
+        let t = test_tool();
+        let (name, desc, schema) = t.definition().function_spec();
+        assert_eq!(name, "agent");
+        assert!(desc.contains("start"));
+        let branches = schema["oneOf"].as_array().unwrap();
+        assert_eq!(branches.len(), 6);
+        for (i, expected) in
+            ["start", "check", "result", "pause", "resume", "stop"]
+                .iter()
+                .enumerate()
+        {
+            let got = branches[i]["properties"]["command"]["const"]
+                .as_str()
+                .unwrap();
+            assert_eq!(got, *expected);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // argument validation
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn unknown_command_errors() {
+        futures_lite::future::block_on(async {
+            let err = test_tool()
+                .execute(cmd("nonexistent", &[]))
+                .await
+                .unwrap_err();
+            match err {
+                ToolError::InvalidArguments { reason, .. } => {
+                    assert!(reason.contains("unknown agent command"));
+                }
+                other => panic!("expected InvalidArguments, got {other:?}"),
+            }
+        });
+    }
+
+    #[test]
+    fn start_missing_task_errors() {
+        futures_lite::future::block_on(async {
+            let err = test_tool().execute(cmd("start", &[])).await.unwrap_err();
+            match err {
+                ToolError::InvalidArguments { reason, .. } => {
+                    assert!(reason.contains("'task'"));
+                }
+                other => panic!("expected InvalidArguments, got {other:?}"),
+            }
+        });
+    }
+
+    #[test]
+    fn start_empty_task_errors() {
+        futures_lite::future::block_on(async {
+            let err = test_tool()
+                .execute(cmd("start", &[("task", "   ")]))
+                .await
+                .unwrap_err();
+            match err {
+                ToolError::InvalidArguments { reason, .. } => {
+                    assert!(reason.contains("must not be empty"));
+                }
+                other => panic!("expected InvalidArguments, got {other:?}"),
+            }
+        });
+    }
+
+    #[test]
+    fn depth_cap_blocks_delegation() {
+        futures_lite::future::block_on(async {
+            let t = AgentTool::<D, M>::new(
+                empty_router(),
+                5,
+                5,
+                ModelId::Name("mock".into(), None),
+                "/tmp".into(),
+                test_user(),
+                vec![],
+            );
+            let err = t
+                .execute(cmd("start", &[("task", "anything")]))
+                .await
+                .unwrap_err();
+            match err {
+                ToolError::Execution { reason, .. } => {
+                    assert!(reason.contains("depth cap"));
+                }
+                other => panic!("expected Execution, got {other:?}"),
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // unknown ids
+    // ------------------------------------------------------------------
+
+    fn assert_unknown_id(command: &str) {
+        futures_lite::future::block_on(async {
+            let err = test_tool()
+                .execute(cmd(command, &[("id", "ghost")]))
+                .await
+                .unwrap_err();
+            assert!(
+                matches!(err, ToolError::InvalidArguments { .. }),
+                "{command}: expected InvalidArguments, got {err:?}"
+            );
+        });
+    }
+
+    #[test]
+    fn check_unknown_id_errors() {
+        assert_unknown_id("check");
+    }
+
+    #[test]
+    fn result_unknown_id_errors() {
+        assert_unknown_id("result");
+    }
+
+    #[test]
+    fn pause_unknown_id_errors() {
+        assert_unknown_id("pause");
+    }
+
+    #[test]
+    fn resume_unknown_id_errors() {
+        assert_unknown_id("resume");
+    }
+
+    #[test]
+    fn stop_unknown_id_errors() {
+        assert_unknown_id("stop");
+    }
+
+    // ------------------------------------------------------------------
+    // integration: full cycle with mock provider (valtron pool)
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn start_returns_immediately_with_id() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("sub-agent result")]);
+        let t = tool_router(mock.into_router());
+
+        let result = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "write hello world")])),
+        )
+        .expect("start");
+
+        let json = as_json(&result);
+        assert_eq!(json["status"], "running");
+        assert!(!json["id"].as_str().unwrap().is_empty());
+        assert!(!json["session_id"].as_str().unwrap().is_empty());
+        assert!(json["output_location"]
+            .as_str()
+            .unwrap()
+            .contains("test-delegation"));
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn full_cycle_start_check_result() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("task completed successfully")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "write hello")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        let done = poll_until_done(&t, &id, 200);
+        assert!(done.is_some(), "sub-agent never completed after 2s");
+        let done_json = done.unwrap();
+        assert_eq!(done_json["state"], "Done");
+        assert!(!done_json["location"].as_str().unwrap().is_empty());
+
+        let result = futures_lite::future::block_on(
+            t.execute(cmd("result", &[("id", &id)])),
+        )
+        .expect("result");
+        let rj = as_json(&result);
+        assert!(!rj["location"].as_str().unwrap().is_empty());
+        assert!(rj["summary"].as_str().unwrap().len() > 0);
+
+        // Cleanup: after result, id is freed → check fails
+        let err = futures_lite::future::block_on(
+            t.execute(cmd("check", &[("id", &id)])),
+        )
+        .unwrap_err();
+        assert!(matches!(err, ToolError::InvalidArguments { .. }));
+    }
+
+    // ------------------------------------------------------------------
+    // pause / resume
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn pause_reports_paused_on_check() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        // Pause
+        let pause = futures_lite::future::block_on(
+            t.execute(cmd("pause", &[("id", &id)])),
+        )
+        .expect("pause");
+        assert_eq!(as_json(&pause)["status"], "paused");
+
+        // Check → Paused
+        let check = futures_lite::future::block_on(
+            t.execute(cmd("check", &[("id", &id)])),
+        )
+        .expect("check");
+        assert_eq!(as_json(&check)["state"], "Paused");
+
+        // Resume
+        let resume = futures_lite::future::block_on(
+            t.execute(cmd("resume", &[("id", &id)])),
+        )
+        .expect("resume");
+        assert_eq!(as_json(&resume)["status"], "resumed");
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn resume_idempotent_when_not_paused() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("ok")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        // Resume without prior pause — succeeds
+        let resume = futures_lite::future::block_on(
+            t.execute(cmd("resume", &[("id", &id)])),
+        )
+        .expect("resume");
+        assert_eq!(as_json(&resume)["status"], "resumed");
+    }
+
+    // ------------------------------------------------------------------
+    // stop
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn stop_removes_run_without_keep_session() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("reply")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "stuff")])),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        let stop = futures_lite::future::block_on(
+            t.execute(cmd("stop", &[("id", &id)])),
+        )
+        .expect("stop");
+        assert_eq!(as_json(&stop)["status"], "stopped");
+
+        // Run removed → check errors
+        let err = futures_lite::future::block_on(
+            t.execute(cmd("check", &[("id", &id)])),
+        )
+        .unwrap_err();
+        assert!(matches!(err, ToolError::InvalidArguments { .. }));
+    }
+
+    #[foundation_core::valtron::valtron_test]
+    fn stop_with_keep_session_preserves_run() {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("reply")]);
+        let t = tool_router(mock.into_router());
+
+        let start = futures_lite::future::block_on(
+            t.execute(cmd(
+                "start",
+                &[("task", "stuff"), ("keep_session", "true")],
+            )),
+        )
+        .expect("start");
+        let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+        // Stop with keep_session
+        futures_lite::future::block_on(
+            t.execute(cmd("stop", &[("id", &id)])),
+        )
+        .expect("stop");
+
+        // Run preserved → check still works
+        let check = futures_lite::future::block_on(
+            t.execute(cmd("check", &[("id", &id)])),
+        )
+        .expect("check");
+        let state = as_json(&check)["state"].as_str().unwrap().to_string();
+        assert!(state != "Started", "should not still be Started: {state}");
+    }
+
+    // ------------------------------------------------------------------
+    // child tool provisioning
+    // ------------------------------------------------------------------
+
+    #[foundation_core::valtron::valtron_test]
+    fn child_tools_provisioned_on_sub_agent() {
+        let write_tool: Arc<dyn ToolImpl> =
+            Arc::new(MockTool::returning("write", "wrote /tmp/out.json"));
+
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text("result")]);
+
+        let t = AgentTool::<D, M>::new(
+            mock.into_router(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation".into(),
+            test_user(),
+            vec![write_tool],
+        );
+
+        let result = futures_lite::future::block_on(
+            t.execute(cmd("start", &[("task", "write something")])),
+        )
+        .expect("start");
+        let json = as_json(&result);
+        assert_eq!(json["status"], "running");
+        assert!(!json["session_id"].as_str().unwrap().is_empty());
+    }
+
+    // ------------------------------------------------------------------
+    // registration
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn register_adds_to_manager() {
+        let manager = ToolCallManager::new(SessionId::new());
+        assert!(!manager.names().contains(&"agent".to_string()));
+
+        register_agent_tool::<D, M>(
+            &manager,
+            empty_router(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/delegation",
+            test_user(),
+            vec![],
+        );
+
+        assert!(manager.names().contains(&"agent".to_string()));
+    }
+
+    #[test]
+    fn toolshed_contains_agent_after_registration() {
+        let manager = ToolCallManager::new(SessionId::new());
+        register_agent_tool::<D, M>(
+            &manager,
+            empty_router(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/delegation",
+            test_user(),
+            vec![],
+        );
+
+        let shed = manager.build_toolshed();
+        assert!(
+            shed.tools.iter().any(|t| t.name() == "agent"),
+            "toolshed should contain agent: {shed:?}"
+        );
+    }
 }
