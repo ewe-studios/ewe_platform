@@ -5,4 +5,5 @@ mod tool_exec_tests;
 mod tool_impl_tests;
 mod file_tools_tests;
 mod memory_tools_tests;
+mod search_file_native_tests;
 mod workflow_tests;

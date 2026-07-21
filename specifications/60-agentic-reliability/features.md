@@ -65,7 +65,7 @@ implemented, or explicitly deferred.
 | F15 | `delegate` tool — `DelegationTool` slot has NO impl | 36/F14 | Not started |
 | F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | **DONE** — cosine embedding recall in ContextProvider (keyword fallback when no embedder); AgentSessionBuilder::with_embedder; 2 tests prove feline→cat semantic match |
 | F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | **DONE** — honestly disabled: no session knowledge graph exists (code_graph indexes CODE), so Graph warns + falls back to hybrid recall instead of silently empty; 1 test |
-| F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | Not started |
+| F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | **DONE** — enabled vfs-search-fff (native); SearchFileTool::native uses native_vfs_searcher cascade (fff→CLI→in-code); 1 test proves fff hits the real repo |
 
 ## Working agreements
 

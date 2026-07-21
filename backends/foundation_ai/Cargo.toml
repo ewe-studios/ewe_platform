@@ -48,7 +48,9 @@ futures-lite = "2"
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search"] }
+# vfs-search-fff (F18): the real fff search engine for native search_file, via
+# the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search", "vfs-search-fff"] }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]

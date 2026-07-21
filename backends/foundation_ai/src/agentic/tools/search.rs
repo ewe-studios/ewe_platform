@@ -83,6 +83,17 @@ impl VfsSearchBackend {
         let searcher = foundation_nativeapis::vfs_searcher(fs);
         Self { searcher, root }
     }
+
+    /// Native cascade backend (F18): routes through `native_vfs_searcher` —
+    /// the real fff search engine first, then CLI `rg`/`grep`, then the in-code
+    /// VFS walk as the fallback. Use this for searching the real filesystem on
+    /// native targets; `from_vfs` (in-code only) remains the wasm/VFS path.
+    #[cfg(not(target_family = "wasm"))]
+    #[must_use]
+    pub fn from_vfs_native<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+        let searcher = foundation_nativeapis::native_vfs_searcher(fs);
+        Self { searcher, root }
+    }
 }
 
 impl FileSearch for VfsSearchBackend {
@@ -250,6 +261,17 @@ impl SearchFileTool {
     pub fn from_searcher(searcher: Box<dyn VfsSearcher>, root: String) -> Self {
         Self {
             backend: Arc::new(VfsSearchBackend::new(searcher, root)),
+        }
+    }
+
+    /// Native `search_file` backed by the fff cascade (F18). On native this uses
+    /// the production fff engine (falling back to CLI/in-code); prefer this over
+    /// [`Self::from_vfs`] when searching the real filesystem.
+    #[cfg(not(target_family = "wasm"))]
+    #[must_use]
+    pub fn native<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+        Self {
+            backend: Arc::new(VfsSearchBackend::from_vfs_native(fs, root)),
         }
     }
 }
