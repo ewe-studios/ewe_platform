@@ -3,6 +3,7 @@ mod embedding_provider_tests;
 mod huggingface_gguf_provider;
 mod llamacpp_config_tests;
 mod llamacpp_fixture;
+mod model_trait_surface_tests;
 mod openai_message_shapes_tests;
 mod openai_provider;
 mod provider_catalog_tests;
