@@ -117,6 +117,23 @@ fn gguf_config_builder_full_chain_and_clone() {
 }
 
 #[valtron_test]
+fn gguf_config_auth_provider_and_clone_drops_secret() {
+    use foundation_ai::backends::llamacpp::LlamaBackendConfig;
+    use foundation_ai::types::AuthProvider;
+
+    // `.token()` populates the auth credential; AuthProvider exposes it.
+    let config = HuggingFaceGGUFConfig::builder()
+        .token("hf_secret")
+        .llama_config(LlamaBackendConfig::default())
+        .build();
+    assert!(config.auth().is_some(), "token sets the auth credential");
+
+    // Clone intentionally drops the (non-Clone) secret — documents the behaviour.
+    let cloned = config.clone();
+    assert!(cloned.auth().is_none(), "clone drops the auth secret");
+}
+
+#[valtron_test]
 fn gguf_provider_describes_itself() {
     let config = HuggingFaceGGUFConfig::default();
     let provider = HuggingFaceGGUFProvider::new(config).unwrap();

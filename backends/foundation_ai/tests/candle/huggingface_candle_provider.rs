@@ -115,6 +115,25 @@ fn test_candle_config_builder_full_chain_and_clone() {
     assert_eq!(cloned.dtype, config.dtype);
 }
 
+/// Provider Debug + Clone + config AuthProvider (offline, no network).
+#[test]
+fn test_candle_provider_debug_clone_and_auth() {
+    use foundation_ai::types::AuthProvider;
+
+    let config = HuggingFaceCandleConfig::builder()
+        .hf_token("hf_secret")
+        .cache_dir(std::env::temp_dir().join("candle_dbg_test"))
+        .build();
+    assert!(config.auth().is_some(), "hf_token sets the auth credential");
+
+    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    // Debug renders without panicking; Clone yields an independent handle.
+    let dbg = format!("{provider:?}");
+    assert!(dbg.contains("HuggingFaceCandleProvider"), "Debug: {dbg}");
+    let cloned = provider.clone();
+    assert!(format!("{cloned:?}").contains("HuggingFaceCandleProvider"));
+}
+
 /// Test downloading SmolLM2 safetensors model from HuggingFace Hub.
 ///
 /// Uses `HuggingFaceTB/SmolLM2-135M` — a small model (~270MB safetensors).
