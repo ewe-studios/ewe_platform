@@ -713,3 +713,89 @@ fn errstack_trace_propagation() {
     assert!(result.calls.is_empty());
     assert_eq!(result.remaining_text, Some("totally invalid".to_string()));
 }
+
+// ---------------------------------------------------------------------------
+// Anthropic: thinking blocks, unknown blocks, image tool results
+// ---------------------------------------------------------------------------
+
+#[test]
+fn anthropic_extracts_thinking_blocks_wrapped_in_tags() {
+    // Extended-thinking responses carry `thinking` blocks alongside text.
+    // Dropping them loses the model's reasoning; emitting them unmarked would
+    // blend reasoning into the answer. They are wrapped so callers can tell.
+    let formatter = AnthropicFormatter;
+    let response = r#"{
+        "content": [
+            {"type": "thinking", "thinking": "let me work through this"},
+            {"type": "text", "text": "the answer is 4"}
+        ]
+    }"#;
+
+    let result = formatter.extract_tool_calls(response).unwrap();
+    let text = result.remaining_text.expect("text is present");
+    assert!(
+        text.contains("<thinking>let me work through this</thinking>"),
+        "thinking must be preserved and marked: {text}"
+    );
+    assert!(
+        text.contains("the answer is 4"),
+        "the answer must survive alongside the reasoning: {text}"
+    );
+}
+
+#[test]
+fn anthropic_ignores_unknown_content_block_types() {
+    // A block type we do not know about must be skipped, not panic — Anthropic
+    // adds block kinds over time and an older client must keep working.
+    let formatter = AnthropicFormatter;
+    let response = r#"{
+        "content": [
+            {"type": "some_future_block", "payload": {"a": 1}},
+            {"type": "text", "text": "still here"}
+        ]
+    }"#;
+
+    let result = formatter.extract_tool_calls(response).unwrap();
+    assert_eq!(
+        result.remaining_text.as_deref(),
+        Some("still here"),
+        "an unknown block must be skipped without losing the known ones"
+    );
+}
+
+#[test]
+fn anthropic_thinking_only_response_has_no_tool_calls() {
+    let formatter = AnthropicFormatter;
+    let response = r#"{"content":[{"type":"thinking","thinking":"hmm"}]}"#;
+    let result = formatter.extract_tool_calls(response).unwrap();
+    assert!(!result.has_tool_calls);
+    assert!(result.remaining_text.is_some(), "the reasoning must not vanish");
+}
+
+#[test]
+fn anthropic_formats_an_image_tool_result_as_a_placeholder() {
+    // A tool that returns an image cannot be inlined into Anthropic's
+    // tool_result text field, so it becomes a marker. Silently emitting an
+    // empty string would make the result look like the tool returned nothing.
+    let formatter = AnthropicFormatter;
+    let result = Messages::ToolResult {
+        id: foundation_compact::ids::new_scru128(),
+        tool_call_id: "call_1".to_string(),
+        name: "screenshot".to_string(),
+        timestamp: SystemTime::now(),
+        details: None,
+        content: UserModelContent::Image(foundation_ai::types::ImageContent {
+            b64: "AAAA".to_string(),
+            mime_type: foundation_ai::types::MimeType::ImagePng,
+        }),
+        error_detail: None,
+        signature: None,
+    };
+
+    let formatted = formatter.format_tool_response(&result).unwrap();
+    let content = formatted["content"].as_array().expect("content array");
+    assert_eq!(
+        content[0]["text"], "[image]",
+        "an image result must be marked, not blank"
+    );
+}
