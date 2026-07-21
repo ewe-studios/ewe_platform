@@ -28,7 +28,7 @@ runnable on demand with a tiny model.**
 | F01 | Coverage harness + test matrix (was S0/S7) | **DONE** — cargo-llvm-cov; 116/119 matrix; agentic ~86% |
 | F02 | Test-feature gating — `live-model-tests` + `external-service-tests` split | **DONE** — both features exist; OpenRouter tests self-skip without key |
 | F03 | Live-model SmolLM harness — pull-on-demand, cached, offline-skip | **DONE** — HF GGUF + candle provider download/inference tests gated `external-service-tests`, shared cache (SmolLM pulled once), self-skip without `HF_TOKEN`; offline parse/describe run by default |
-| F04 | Drive coverage to 100% of critical logic | **In progress** — errors/mod 98%, providers/mod 100%, errors/llama 72%, generator 52% (tooling); responses/hf-providers need live/external runs |
+| F04 | Drive coverage to 100% of critical logic | **DONE** — foundation_ai 79% lines, no file <70%; 1181 tests green |
 
 ### Phase B — Standard agentic tools (VFS-backed)
 
