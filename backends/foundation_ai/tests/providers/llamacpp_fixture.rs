@@ -22,7 +22,7 @@ fn fixture_gguf() -> std::path::PathBuf {
         .join("../../artefacts/test-models/tiny-random-LlamaForCausalLM/tiny-llama-f16.gguf")
 }
 
-fn load() -> impl Model {
+fn load() -> foundation_ai::backends::llamacpp::LlamaModels {
     let path = fixture_gguf();
     assert!(path.exists(), "committed GGUF fixture missing: {path:?}");
     let config = LlamaBackendConfig::builder()
@@ -100,4 +100,57 @@ fn tiny_gguf_stream_advances() {
         }
     }
     assert!(text >= 1, "stream must produce at least one text token");
+}
+
+/// Full AgentSession::run_turn through the committed llama.cpp GGUF, offline.
+///
+/// The most direct regression guard for docs/fixes/006 and 007: those bugs were
+/// in the llama.cpp STREAM, driven by the AgentLoop. This runs that exact path
+/// end to end on every `cargo test` — the loop pumping the real LlamaCppStream.
+#[valtron_test]
+fn agent_session_run_turn_through_gguf() {
+    use foundation_ai::agentic::{
+        AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    };
+    use foundation_ai::types::{PreloadedProvider, SessionId, SessionRecord};
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    let model = load(); // concrete LlamaModels (Clone via Arc)
+    let model_id = ModelId::Name("tiny-llama-gguf".into(), None);
+    let router = PreloadedProvider::new(model, model_id.clone()).into_router();
+
+    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
+        AgentSession::builder(SessionId::new(), router)
+            .with_system_prompt("You are a helpful assistant.")
+            .with_model(model_id.clone())
+            .with_config(AgentConfig {
+                primary_model: model_id,
+                model_params: params(),
+                ..Default::default()
+            })
+            .with_context_config(ContextConfig::default())
+            .with_memory_config(MemoryConfig::default())
+            .with_error_policy(ErrorPolicy::new())
+            .build()
+            .expect("session builds");
+
+    let records = session
+        .run_turn(Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "Hi.".into(),
+                signature: None,
+            }),
+            signature: None,
+        })
+        .expect("a real llama.cpp turn must complete, not error");
+
+    assert!(
+        records
+            .iter()
+            .any(|r| matches!(r, SessionRecord::Conversation { .. })),
+        "run_turn through the GGUF must emit a conversation record, not just a \
+         Summary (the docs/fixes/006 short-circuit): {records:?}"
+    );
 }
