@@ -154,3 +154,68 @@ fn agent_session_run_turn_through_gguf() {
          Summary (the docs/fixes/006 short-circuit): {records:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Model trait surface on a real loaded GGUF
+// ---------------------------------------------------------------------------
+//
+// The existing fixture tests load the model and immediately generate, so
+// spec/descriptor/costing/tool_formatter were never called. Those four are how
+// callers inspect a model before using it: tool_formatter() in particular
+// decides whether tools are sent as native JSON or as XML text, and llama.cpp
+// has no native tool API — it MUST get the text-based formatter, or every tool
+// call goes out in a shape the model was never prompted to produce.
+
+#[valtron_test]
+fn loaded_gguf_reports_its_spec() {
+    let model = load();
+    assert_eq!(
+        model.spec().name,
+        "tiny-llama-gguf",
+        "spec must name the model actually loaded"
+    );
+}
+
+#[valtron_test]
+fn loaded_gguf_descriptor_identifies_llamacpp() {
+    let model = load();
+    let d = model
+        .descriptor()
+        .expect("the llama.cpp model exposes a descriptor");
+    assert_eq!(d.id, "llamacpp");
+    assert_eq!(
+        d.provider,
+        foundation_ai::types::ModelProviders::LLAMACPP,
+        "a local model must not claim a cloud provider's identity"
+    );
+    assert_eq!(
+        d.inputs,
+        foundation_ai::types::MessageType::TextAndImages,
+        "llama.cpp supports multimodal input via mtmd"
+    );
+}
+
+#[valtron_test]
+fn loaded_gguf_costing_starts_at_zero() {
+    // Local inference is free, but the accumulator must still exist and start
+    // clean — a budget check reads this and must not see garbage.
+    let model = load();
+    let usage = model.costing().expect("costing is available");
+    assert_eq!(usage.total_tokens, 0.0);
+}
+
+#[valtron_test]
+fn loaded_gguf_uses_the_text_based_tool_formatter() {
+    // llama.cpp has no native function-calling API, so tools have to be
+    // described in the prompt and parsed back out of the text. Getting a
+    // native-JSON formatter here would silently break every tool call.
+    let model = load();
+    let formatter = model.tool_formatter();
+    let instructions = formatter
+        .tool_calling_instructions()
+        .expect("a text-based model MUST supply prompt instructions for tools");
+    assert!(
+        instructions.contains("<ToolCall>"),
+        "the XML tool-call convention must be described to the model: {instructions}"
+    );
+}
