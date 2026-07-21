@@ -999,6 +999,17 @@ where
             None => true,
         }
     }
+
+    /// True once the underlying task stream is closed (the task finished and
+    /// will produce no more items). Combined with is_empty, lets a holder detect
+    /// completion without blocking.
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        match &self.0 {
+            Some(inner) => inner.is_closed(),
+            None => true,
+        }
+    }
 }
 
 unsafe impl<T> Send for DrivenStreamIterator<T>
