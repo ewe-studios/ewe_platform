@@ -7,6 +7,7 @@ services:
       GPU: "Y"
       FORCE_HOST_CURSOR: "Y"
       KEEP_AWAKE: "N"
+      CLIPBOARD: "Y"
     devices:
       - /dev/kvm
       - /dev/net/tun
@@ -18,8 +19,6 @@ services:
       - 8006:8006
       - 5900:5900/tcp
       - 5900:5900/udp
-    environment:
-      CLIPBOARD: "Y"
     volumes:
       - ./chromeos:/storage
       - /dev/dri:/dev/dri:rw

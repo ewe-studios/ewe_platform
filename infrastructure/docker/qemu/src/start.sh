@@ -18,13 +18,20 @@ set -Eeuo pipefail
 #   10-*.sh — pre-config (before config.sh runs)
 #   20-*.sh — pre-boot (after config, before QEMU starts)
 #   30-*.sh — post-boot (after QEMU PID exists, for background tasks)
+#
+# Hooks are sourced with errexit RELAXED (set +e) so one failing hook
+# doesn't abort the entire boot. Hook authors should handle their own
+# errors. Variables like QEMU_DIR and PROCESS are defined by later scripts
+# — early hooks should use defaults or check before referencing them.
 
 HOOK_DIR="/run/hooks"
 if [ -d "$HOOK_DIR" ] && ls "$HOOK_DIR"/*.sh >/dev/null 2>&1; then
+  set +e  # Relax: a hook error shouldn't kill the boot
   for hook in $(ls "$HOOK_DIR"/*.sh 2>/dev/null | sort); do
-    info "Hook: ${hook##*/}"
-    . "$hook"
+    echo "[hook] ${hook##*/}"
+    . "$hook" || echo "[hook] ${hook##*/} FAILED (continuing)"
   done
+  set -e  # Restore
 fi
 
 # ── Environment overrides ─────────────────────────────────────────────────
@@ -46,6 +53,6 @@ fi
 #   VERSION            OS version to install.
 #   CLIPBOARD          Enable shared clipboard. Default: N
 
-info "QEMU customization hooks loaded (0 hooks run)"
+echo "[hook] QEMU customization hooks loaded"
 
 return 0
