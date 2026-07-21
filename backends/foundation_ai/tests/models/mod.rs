@@ -1,6 +1,7 @@
 mod context_tests;
 mod costing_tests;
 mod base_errors_tests;
+mod base_types_tests;
 mod llama_errors_tests;
 mod errors_tests;
 mod sampler_chain;
