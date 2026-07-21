@@ -6,6 +6,7 @@ mod agent_loop_generation_tests;
 mod agent_loop_tests;
 mod agentic_types_tests;
 mod base_types_tests;
+mod context_tests;
 mod errors_policy_tests;
 mod loop_detection_tests;
 mod message_api_tests;

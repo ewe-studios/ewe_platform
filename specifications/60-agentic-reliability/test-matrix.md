@@ -111,12 +111,12 @@ Every state and every edge out of it.
 
 | # | Behaviour | Tier | Status |
 |---|-----------|------|--------|
-| 6.1 | `hydrate_sync` loads working memory into context | mock | todo |
-| 6.2 | Context assembled in documented order (system → working → reflection → recent) | mock | todo |
+| 6.1 | `hydrate_sync` loads working memory into context | mock | **done** |
+| 6.2 | Context assembled in documented order (system → working → reflection → recent) | mock | **done** |
 | 6.3 | Memory triggers fire on `OutputProcessing` | mock | todo |
 | 6.4 | User prompt persisted via `MessageApi` | both | **done** |
 | 6.5 | Assistant reply persisted | mock | **done** |
-| 6.6 | `MessageApi::recent(n)` returns the last n | mock | todo |
+| 6.6 | `MessageApi::recent(n)` returns the last n | mock | **done** |
 | 6.7 | `flush()` writes buffered records | mock | todo |
 | 6.8 | Session resume rehydrates prior state | mock | todo |
 | 6.9 | `end()` drains queues and persists remaining messages | mock | **done** |
