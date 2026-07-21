@@ -64,6 +64,10 @@ pub mod progress;
 pub mod slider;
 pub mod surfaces;
 
+// Platform — Cross-cutting platform UI (remote pages, navigation)
+pub mod floating_nav;
+pub mod remote_page;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -105,3 +109,5 @@ pub use pickers::{autocomplete, combobox, select, PickItem, SelectConfig};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };
+pub use floating_nav::{floating_nav, FloatingNavConfig};
+pub use remote_page::{remote_page, RemotePageConfig};

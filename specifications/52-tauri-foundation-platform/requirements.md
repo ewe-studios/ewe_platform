@@ -83,6 +83,9 @@ This specification defines the creation of a new `foundation_platform` crate to 
 | F26 | Streaming Channels: Tauri Channels | Medium | F25 |
 | F27 | WASM Runtime IPC & Capability Triggers (host→wasm) | Critical | F23, F25 |
 | F28 | WASM ConcurrentQueue Stream Registry + JS Stream Objects | High | F25, F26, F27 |
+| F29 | Platform completeness: zero stubs, full-stack platform | Critical | F06, F14, F18, F21 |
+| F30 | Docker-based test infrastructure | High | F29, F13 |
+| F31 | Platform UI components (remote_page, floating_nav) | High | F29, F24 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)

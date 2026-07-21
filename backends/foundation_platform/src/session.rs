@@ -106,6 +106,10 @@ pub struct PlatformSession {
     /// screenshots, and the multi-WebView pool. Wrapped in `RwLock` so
     /// route handlers can push/pop without `&mut self`.
     webview_stack: RwLock<crate::stack::WebViewStack>,
+
+    /// Per-app isolation registry (F21). Maps route prefixes to WebView labels,
+    /// profiles, capability allowlists. Resolved during route dispatch.
+    app_isolation: crate::multi_app::AppIsolation,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -144,6 +148,7 @@ impl PlatformSession {
             webview_stack: RwLock::new(crate::stack::WebViewStack::new(
                 crate::stack::StackConfig::default(),
             )),
+            app_isolation: crate::multi_app::AppIsolation::new(),
         })
     }
 }
@@ -555,6 +560,11 @@ impl PlatformSession {
     /// Panics if the internal `RwLock` is poisoned.
     pub fn webview_stack_mut(&self) -> std::sync::RwLockWriteGuard<'_, crate::stack::WebViewStack> {
         self.webview_stack.write().unwrap()
+    }
+
+    /// Access the per-app isolation registry (F21).
+    pub fn app_isolation(&self) -> &crate::multi_app::AppIsolation {
+        &self.app_isolation
     }
 
     pub fn register_streaming_ipc<S: crate::ipc::streaming::StreamingIpc + 'static>(&self, ipc: S) {

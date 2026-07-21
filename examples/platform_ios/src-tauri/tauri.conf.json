@@ -1,0 +1,28 @@
+{
+  "app": {
+    "windows": [
+      {
+        "height": 600,
+        "title": "Foundation Platform - iOS",
+        "url": "ewe://localhost/app/",
+        "width": 800
+      }
+    ],
+    "withGlobalTauri": false
+  },
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "public"
+  },
+  "bundle": {
+    "resources": {
+      "public/app/*": "app/"
+    },
+    "iOS": {
+      "minimumSystemVersion": "15.0"
+    }
+  },
+  "identifier": "com.ewe.platform.ios",
+  "productName": "Foundation Platform",
+  "version": "0.1.0"
+}

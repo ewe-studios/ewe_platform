@@ -258,12 +258,18 @@ pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
                                     .to_string()
                             })
                         });
+                        // Parse annotation target: #[wasm_bin(target = "wasip1", ...)]
+                        let target = t.find("target")
+                            .and_then(|pos| t[pos + 6..].trim_start().strip_prefix('='))
+                            .map(|rest| rest.trim().trim_matches('"').trim_matches('#'))
+                            .map(|s| s.split(',').next().unwrap_or(s).trim_matches('"').to_string())
+                            .unwrap_or_else(|| String::from("wasm32-unknown-unknown"));
                         if let Some(n) = name {
                             v.push(Annotation {
                                 name: n,
                                 kind: k,
                                 file: p.clone(),
-                                target: String::from("unknown"),
+                                target,
                             });
                         }
                     }
