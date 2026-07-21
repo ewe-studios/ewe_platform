@@ -72,16 +72,18 @@ Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
 
 | Stage | Status | Notes |
 |-------|--------|-------|
-| S0 coverage harness | DONE | cargo-llvm-cov + llvm-tools installed; baseline captured |
+| S0 coverage harness | DONE | cargo-llvm-cov + llvm-tools; measured throughout |
 | S1 candle 0.11 | DONE | bumped, zero breaking changes |
-| S2 state into model | Not started | Decision 06 |
-| S3 sampling + seed | Not started | Adopt `LogitsProcessor` |
-| S4 GGUF fixtures | Not started | `tools/llama.cpp/convert_hf_to_gguf.py` is vendored |
+| S2 state into model | DONE | per-arch state (decision 06); Llama external cache, Gemma2 internal |
+| S3 sampling + seed | DONE | LogitsProcessor + repeat_penalty + seed; determinism tested |
+| S4 GGUF fixtures | Blocked | convert_hf_to_gguf.py needs torch 2.11 — deferred pending dep decision |
 | S5 chat templates | DONE | minijinja render + pycompat str methods; template applied |
-| S6 architectures | Partial | detection + honest errors (8.20/8.21); loaders for Qwen/Mistral/Phi3 need S2 |
-| S7 test matrix | Partial | 42/119 rows; agent_loop 21%->74%, session 70%->89%, candle 28%->72% |
-| S8 generated weights | Not started | Spike required |
-| S9 generation quality | DONE | conditional BOS (docs/fixes/007); model answers coherently |
+| S6 architectures | Partial | detection + honest errors + **Gemma2 loader** (2nd real arch, tested); Qwen/Mistral/Phi3 pattern documented but not added (no offline fixture => would be untested) |
+| S7 test matrix | 57/119 | agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->50.6%; 459 tests |
+| S8 generated weights | Not started | Spike required; lower priority than committed fixtures |
+| S9 generation quality | DONE | conditional BOS + phantom-tool fix (docs/fixes/007); model coherent |
+| B llama.cpp logging | DONE | routed through tracing; silent by default, `llama.cpp=debug` enables |
+| C known warts | DONE | cache race, dead field, println; silent-failure sweep in stream |
 
 ## Decisions
 
