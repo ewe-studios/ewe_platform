@@ -718,13 +718,15 @@ impl ResponsesModel {
                 Some(
                     all.iter()
                         .map(|tool| {
-                            let (name, description, parameters) = tool.function_spec();
+                            let spec = tool.function_spec();
                             ResponseTool {
                                 tool_type: String::from("function"),
-                                name,
-                                description: Some(description),
-                                parameters: Some(parameters),
-                                strict: None,
+                                name: spec.name,
+                                description: Some(spec.description),
+                                parameters: Some(spec.parameters),
+                                // Responses API: signal strict when a return schema
+                                // is declared so the model knows to adhere to it.
+                                strict: spec.returns.as_ref().map(|_| true),
                             }
                         })
                         .collect::<Vec<_>>(),

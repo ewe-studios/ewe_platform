@@ -1198,6 +1198,30 @@ pub struct ToolDefinition {
     pub returns: Option<Args>,
 }
 
+/// The canonical tool spec a provider renders into its own format.
+///
+/// Returned by [`Tool::function_spec`]. Providers map the four fields to their
+/// wire format:
+/// - **OpenAI Chat**: `function.name/description/parameters` + `strict: true`
+///   when `returns` is present.
+/// - **OpenAI Responses**: `ResponseTool.name/description/parameters/strict`.
+/// - **Anthropic**: `name/description/input_schema` (no output-schema slot —
+///   `returns` is ignored).
+/// - **Text-based** (llama.cpp / Candle): `name/description/parameters` +
+///   appends "*Returns:* `$schema`" to `description` when `returns` is present.
+#[derive(Debug, Clone)]
+pub struct ToolFunctionSpec {
+    /// Tool/group name — the registry key.
+    pub name: String,
+    /// Human-readable description.
+    pub description: String,
+    /// JSON-Schema of expected arguments (`parameters` / `input_schema`).
+    pub parameters: serde_json::Value,
+    /// Optional JSON-Schema of the tool's result. Providers that support
+    /// structured-output may route this as a strict output schema.
+    pub returns: Option<serde_json::Value>,
+}
+
 /// A tool as presented to a model: either a single command, or a group of related
 /// commands (e.g. `memory` → add/replace/remove; `delegate` → start/stop/pause/
 /// check/result).
@@ -1261,21 +1285,17 @@ impl Tool {
         }
     }
 
-    /// The `(name, description, parameters-schema)` a function-calling provider
-    /// exposes to the LLM — **one function per `Tool`** (never flattened):
-    ///
-    /// - `SingleCommand` → the command's own name / description / args schema.
-    /// - `MultiCommands` → the group name, a synthesized description listing the
-    ///   commands, and a discriminated `oneOf` parameters schema: each branch
-    ///   pins `command` to one command name (a `const`) and carries that
-    ///   command's own properties/required. The model picks a `command` and
-    ///   supplies that command's args.
+    /// The canonical (name, description, parameters, returns) a function-calling
+    /// provider exposes to the LLM — one function per `Tool`, never flattened.
     #[must_use]
-    pub fn function_spec(&self) -> (String, String, serde_json::Value) {
+    pub fn function_spec(&self) -> ToolFunctionSpec {
         match self {
-            Tool::SingleCommand(d) => {
-                (d.name.clone(), d.description.clone(), d.arguments.schema.clone())
-            }
+            Tool::SingleCommand(d) => ToolFunctionSpec {
+                name: d.name.clone(),
+                description: d.description.clone(),
+                parameters: d.arguments.schema.clone(),
+                returns: d.returns.as_ref().map(|r| r.schema.clone()),
+            },
             Tool::MultiCommands(name, cmds) => {
                 let branches: Vec<serde_json::Value> = cmds
                     .iter()
@@ -1314,7 +1334,20 @@ impl Tool {
                         .collect::<Vec<_>>()
                         .join(", ")
                 );
-                (name.clone(), description, serde_json::json!({ "oneOf": branches }))
+
+                // For MultiCommands, the per-command `returns` schemas (if any)
+                // are collected; the first non-None wins as the tool-level
+                // return schema.
+                let returns = cmds.iter().find_map(|c| {
+                    c.returns.as_ref().map(|r| r.schema.clone())
+                });
+
+                ToolFunctionSpec {
+                    name: name.clone(),
+                    description,
+                    parameters: serde_json::json!({ "oneOf": branches }),
+                    returns,
+                }
             }
         }
     }
@@ -1579,11 +1612,21 @@ impl ToolFormatter for TextBasedFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let (name, description, parameters) = tool.function_spec();
+                    let spec = tool.function_spec();
+                    // Text-based models: append the return schema to the
+                    // description so the model knows what shape to produce.
+                    let desc = match &spec.returns {
+                        Some(ret) => format!(
+                            "{}\nReturns: {}",
+                            spec.description,
+                            serde_json::to_string(ret).unwrap_or_default()
+                        ),
+                        None => spec.description,
+                    };
                     serde_json::json!({
-                        "name": name,
-                        "description": description,
-                        "parameters": parameters,
+                        "name": spec.name,
+                        "description": desc,
+                        "parameters": spec.parameters,
                     })
                 })
                 .collect(),

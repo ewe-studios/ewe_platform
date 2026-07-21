@@ -819,10 +819,10 @@ mod tests {
     #[test]
     fn definition_function_spec_discriminated() {
         let t = test_tool();
-        let (name, desc, schema) = t.definition().function_spec();
-        assert_eq!(name, "agent");
-        assert!(desc.contains("start"));
-        let branches = schema["oneOf"].as_array().unwrap();
+        let spec = t.definition().function_spec();
+        assert_eq!(spec.name, "agent");
+        assert!(spec.description.contains("start"));
+        let branches = spec.parameters["oneOf"].as_array().unwrap();
         assert_eq!(branches.len(), 6);
         for (i, expected) in
             ["start", "check", "result", "pause", "resume", "stop"]

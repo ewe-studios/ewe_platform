@@ -700,15 +700,22 @@ impl ToolFormatter for OpenAIFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let (name, description, parameters) = tool.function_spec();
-                    serde_json::json!({
+                    let spec = tool.function_spec();
+                    let mut func = serde_json::json!({
                         "type": "function",
                         "function": {
-                            "name": name,
-                            "description": description,
-                            "parameters": parameters,
+                            "name": spec.name,
+                            "description": spec.description,
+                            "parameters": spec.parameters,
                         },
-                    })
+                    });
+                    // OpenAI: when a tool declares a return schema, signal strict
+                    // structured-output mode so the model knows its output will be
+                    // validated against that schema.
+                    if spec.returns.is_some() {
+                        func["function"]["strict"] = serde_json::json!(true);
+                    }
+                    func
                 })
                 .collect(),
         ))
@@ -1316,6 +1323,11 @@ pub struct OpenAIFunction {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Value>,
+    /// When `true`, the model uses structured output for this function call
+    /// (the `returns` schema from `ToolDefinition`). OpenAI Chat Completions
+    /// only — other providers ignore this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1784,13 +1796,14 @@ pub fn build_chat_request(
             Some(
                 all.iter()
                     .map(|tool| {
-                        let (name, description, parameters) = tool.function_spec();
+                        let spec = tool.function_spec();
                         OpenAITool {
                             tool_type: String::from("function"),
                             function: OpenAIFunction {
-                                name,
-                                description: Some(description),
-                                parameters: Some(parameters),
+                                name: spec.name,
+                                description: Some(spec.description),
+                                parameters: Some(spec.parameters),
+                                strict: spec.returns.as_ref().map(|_| true),
                             },
                         }
                     })

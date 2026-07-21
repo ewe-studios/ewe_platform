@@ -692,11 +692,13 @@ impl ToolFormatter for AnthropicFormatter {
             tools
                 .iter()
                 .map(|tool| {
-                    let (name, description, input_schema) = tool.function_spec();
+                    let spec = tool.function_spec();
+                    // Anthropic's tool_use block has no output-schema slot —
+                    // `spec.returns` is ignored here.
                     serde_json::json!({
-                        "name": name,
-                        "description": description,
-                        "input_schema": input_schema,
+                        "name": spec.name,
+                        "description": spec.description,
+                        "input_schema": spec.parameters,
                     })
                 })
                 .collect(),
