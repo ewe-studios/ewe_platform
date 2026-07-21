@@ -68,7 +68,7 @@ fn model_dir() -> PathBuf {
 // spam is silenced here by default. To see it, add e.g. `llama.cpp=debug` to
 // this directive (or the RUST_LOG env, which overrides it).
 #[valtron(
-    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama.cpp=off,llama_cpp_2=off,ggml=off",
+    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off,llama.cpp=off,ggml=off",
     tracing_targets = true,
     tracing_names = true
 )]
