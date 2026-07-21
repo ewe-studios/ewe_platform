@@ -209,6 +209,8 @@ pub enum AnnotationKind {
     WasmWorker,
     WasmService,
     PlatformBin,
+    /// Surface 3: WASM compiled to wasm32-wasip1, hosted in wasmtime.
+    WasmApp,
 }
 fn mode_str(k: AnnotationKind) -> &'static str {
     match k {
