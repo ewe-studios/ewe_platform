@@ -404,3 +404,56 @@ fn agent_session_run_turn_through_candle_fixture() {
          not just a Summary: {records:?}"
     );
 }
+
+/// Matrix 3.8 / 7.4 — multi-turn continuity through a real candle model, offline.
+/// A second run_turn on the same session must also complete (the loop re-enters
+/// cleanly and the shared model handle keeps working across turns).
+#[valtron_test]
+fn candle_session_handles_multiple_turns() {
+    use foundation_ai::agentic::{
+        AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    };
+    use foundation_ai::types::{PreloadedProvider, SessionId, SessionRecord};
+    use foundation_db::{MemoryDocumentStore, MemoryStorage};
+
+    let dir = fixture_dir("tiny-random-LlamaForCausalLM");
+    let model = CandleBackend::cpu()
+        .get_model_by_spec(ModelSpec {
+            name: "tiny-llama".to_string(),
+            id: ModelId::Name("tiny-llama".to_string(), None),
+            devices: None,
+            model_location: Some(dir.to_string_lossy().to_string().into()),
+            lora_location: None,
+        })
+        .expect("fixture loads");
+    let model_id = ModelId::Name("tiny-llama".into(), None);
+
+    let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
+        AgentSession::builder(SessionId::new(), PreloadedProvider::new(model, model_id.clone()).into_router())
+            .with_system_prompt("You are a helpful assistant.")
+            .with_model(model_id.clone())
+            .with_config(AgentConfig { primary_model: model_id, model_params: params(), ..Default::default() })
+            .with_context_config(ContextConfig::default())
+            .with_memory_config(MemoryConfig::default())
+            .with_error_policy(ErrorPolicy::new())
+            .build()
+            .expect("session builds");
+
+    let msg = |t: &str| Messages::User {
+        id: foundation_compact::ids::new_scru128(),
+        role: MessageRole::User,
+        content: UserModelContent::Text(TextContent { content: t.into(), signature: None }),
+        signature: None,
+    };
+
+    let first = session.run_turn(msg("Hi.")).expect("turn 1");
+    let second = session.run_turn(msg("Again?")).expect("turn 2 must also complete");
+
+    let has_conv = |r: &[SessionRecord]| r.iter().any(|x| matches!(x, SessionRecord::Conversation { .. }));
+    assert!(has_conv(&first) && has_conv(&second), "both turns must produce conversation records");
+
+    // The user prompts from both turns must be in history (continuity).
+    let history = session.message_api().all().expect("history");
+    let user_turns = history.iter().filter(|r| matches!(r, SessionRecord::Conversation { message: Messages::User { .. } })).count();
+    assert!(user_turns >= 2, "both user turns must be persisted for continuity: {user_turns}");
+}

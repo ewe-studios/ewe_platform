@@ -76,7 +76,7 @@ Every state and every edge out of it.
 | 3.5 | `CancelCode::Abort` terminates the loop | mock | todo |
 | 3.6 | `reset_cancel()` clears the signal after handling | mock | **done** |
 | 3.7 | Queues are shared (push before schedule is seen by the loop) | mock | **done** |
-| 3.8 | Multi-turn: follow-up continues the same session context | both | todo |
+| 3.8 | Multi-turn: follow-up continues the same session context | both | **done** |
 
 ## 4. Tools
 
