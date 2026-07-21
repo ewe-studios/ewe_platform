@@ -245,6 +245,78 @@ presets. It never applies to models without an MTP head. See
 
 ---
 
+## 9. ToolPreset — pre-built tool collections
+
+`harness::ToolPreset` bundles tool implementations for quick registration,
+mirroring the `register_*` functions in `agentic::tools`. Presets compose and
+double as the source of `child_tools` for the F15 agent tool.
+
+```rust
+use foundation_ai::harness::ToolPreset;
+
+// Single-tool presets:
+ToolPreset::files(fs)       // → read, write, edit
+ToolPreset::shell()         // → bash
+ToolPreset::memory(h)       // → memory add/remove/replace (MultiCommands)
+ToolPreset::shed(d)         // → tool discovery metatool
+ToolPreset::agent(...)      // → agent start/check/result/… (F15, MultiCommands)
+```
+
+### Compose presets
+
+```rust
+let preset = ToolPreset::files(my_fs)
+    .merge(ToolPreset::shell())
+    .merge(ToolPreset::memory(my_hierarchy));
+
+// Or with the + operator:
+let preset = ToolPreset::files(my_fs) + ToolPreset::shell();
+```
+
+### Use presets
+
+```rust
+// 1. Register on an existing ToolCallManager:
+preset.register_all(session.tool_manager());
+
+// 2. Build a fresh ToolCallManager:
+let mgr = preset.into_manager(session_id);
+
+// 3. As child tools for the agent tool (F15):
+let child_tools = preset.as_child_tools();   // Vec<Arc<dyn ToolImpl>>
+let agent_tool = ToolPreset::agent::<Doc, Mem>(
+    router, 0, 5, model, "/tmp/delegations", user, child_tools,
+);
+```
+
+### Composite presets
+
+| Preset | Contents |
+|--------|----------|
+| `minimal_sub_agent(fs)` | files + shell (safe for sub-agents — no delegation) |
+| `standard(fs, hierarchy, discovery)` | files + shell + memory + shed |
+
+### With agent presets
+
+```rust
+use foundation_ai::harness::{self, ToolPreset};
+
+// Build the model preset as usual:
+let builder = harness::claude_session::<Doc, Mem>(session_id, &api_key)?;
+
+// Build a tool preset and register on the session:
+let tools = ToolPreset::standard(fs, hierarchy, discovery);
+// … then pass to the session builder's tool manager after build().
+
+// Or for agent delegation:
+let child_tools = ToolPreset::minimal_sub_agent(fs).as_child_tools();
+let agent = ToolPreset::agent::<Doc, Mem>(
+    router, 0, 5, model, "/tmp/delegations", user, child_tools,
+);
+```
+
+---
+
 ## Reference: full public surface
 
 ```rust
@@ -253,7 +325,7 @@ providers::{Glm52, Qwen36, Ornith10, Gemma4E4b, Gemma4_26b, Gemma4E2b}  // + ::M
 CloudPresets  // ::claude_opus, ::claude_sonnet, ::openai_gpt4, ::openai_gpt4o, ::openai_responses
 CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI
 Q3_K_M, Q4_K_M, Q5_K_M, Q8_0
-RouterMix, RouterPreset
+RouterMix, RouterPreset, ToolPreset
 
 // Combo functions (each has _router and _session):
 glm52_gemma_*, qwen36_gemma_*, gemma_*, claude_*, openai_chat_*, openai_responses_*

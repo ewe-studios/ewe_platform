@@ -1,9 +1,10 @@
+mod file_tools_tests;
+mod function_spec_tests;
+mod memory_tools_tests;
+mod search_file_native_tests;
 mod search_tests;
 mod shed_tool_tests;
 mod tool_calling_formatter;
 mod tool_exec_tests;
 mod tool_impl_tests;
-mod file_tools_tests;
-mod memory_tools_tests;
-mod search_file_native_tests;
 mod workflow_tests;

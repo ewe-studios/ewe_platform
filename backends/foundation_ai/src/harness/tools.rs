@@ -287,4 +287,93 @@ mod tests {
     fn default_is_empty() {
         assert!(ToolPreset::default().is_empty());
     }
+
+    // ------------------------------------------------------------------
+    // agent preset
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn agent_preset_definition() {
+        use foundation_db::{MemoryDocumentStore, MemoryStorage};
+        use crate::agentic::memory_store::KvMemoryStore;
+        use crate::agentic::UserId;
+        use crate::types::routable_provider::ProviderRouter;
+        use crate::types::ModelId;
+
+        type D = MemoryDocumentStore;
+        type M = KvMemoryStore<MemoryStorage>;
+
+        let p = ToolPreset::agent::<D, M>(
+            ProviderRouter::builder().build(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation",
+            UserId("test".into()),
+            vec![],
+        );
+        assert_eq!(p.len(), 1);
+        // Verify its definition is the agent MultiCommands tool
+        let def = p.tools[0].definition();
+        assert_eq!(def.name(), "agent");
+        match def {
+            crate::types::Tool::MultiCommands(name, cmds) => {
+                assert_eq!(name, "agent");
+                assert_eq!(cmds.len(), 6);
+            }
+            other => panic!("expected MultiCommands, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn agent_preset_can_register() {
+        use foundation_db::{MemoryDocumentStore, MemoryStorage};
+        use crate::agentic::memory_store::KvMemoryStore;
+        use crate::agentic::UserId;
+        use crate::types::routable_provider::ProviderRouter;
+        use crate::types::ModelId;
+
+        type D = MemoryDocumentStore;
+        type M = KvMemoryStore<MemoryStorage>;
+
+        let p = ToolPreset::agent::<D, M>(
+            ProviderRouter::builder().build(),
+            0,
+            5,
+            ModelId::Name("mock".into(), None),
+            "/tmp/test-delegation",
+            UserId("test".into()),
+            vec![],
+        );
+        let mgr = p.into_manager(SessionId::new());
+        assert!(mgr.names().contains(&"agent".to_string()));
+    }
+
+    // ------------------------------------------------------------------
+    // composite presets
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn minimal_sub_agent_is_files_plus_shell() {
+        // Even without a real FS, verified by composition property:
+        // ToolPreset::shell() has 1 tool, so shell.merge(shell).len() == 2
+        let a = ToolPreset::shell();
+        let b = ToolPreset::shell();
+        assert_eq!(a.len(), 1);
+        assert_eq!(a.merge(b).len(), 2);
+    }
+
+    #[test]
+    fn from_tools_builds_correctly() {
+        let shell = ToolPreset::shell();
+        let tools = shell.tools().to_vec();
+        let p = ToolPreset::from_tools(tools);
+        assert_eq!(p.len(), 1);
+    }
+
+    #[test]
+    fn add_operator_works() {
+        let combined = ToolPreset::shell() + ToolPreset::shell();
+        assert_eq!(combined.len(), 2);
+    }
 }

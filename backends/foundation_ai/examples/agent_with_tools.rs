@@ -1,9 +1,9 @@
-//! Example: Agent with custom tools (read, search, shell).
+//! Example: Agent with custom tools via ToolPreset and ToolShed.
 //!
 //! Demonstrates:
-//!   - Building a ToolShed with custom tools
-//!   - Registering tools with JSON Schema argument definitions
-//!   - Wiring the toolshed into an agent session
+//!   - Building tools with ToolImpl (F19 unified tool model)
+//!   - Using ToolPreset for quick tool registration
+//!   - Wiring tools into an agent session
 //!
 //! Run with:
 //! ```bash
@@ -11,9 +11,18 @@
 //!   --example agent_with_tools --features agentic
 //! ```
 
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use foundation_ai::agentic::tool_impl::{
+    ToolCallManager, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+};
 use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness;
-use foundation_ai::types::{Args, MessageRole, Messages, SessionId, TextContent, Tool, ToolShed, UserModelContent};
+use foundation_ai::types::{
+    ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, ToolShed, UserModelContent,
+};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -22,81 +31,90 @@ use foundation_jsonschema::scheme;
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 
-#[valtron]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let api_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
+// ---------------------------------------------------------------------------
+// Custom tool: greet
+// ---------------------------------------------------------------------------
 
-    // Build a ToolShed with read, search, and shell tools.
-    // In a real application, you'd wire ToolImpl implementations that actually
-    // execute these operations. Here we register the tool definitions so the
-    // agent can see and request them.
-    let toolshed = ToolShed::default()
-        .with_read(Some(Tool {
-            name: "read_file".into(),
-            description: "Read a file from the filesystem. Returns the file content.".into(),
-            arguments: Some(Args::new(
-                scheme::object()
-                    .required("path", scheme::string().description("Absolute path to the file"))
-                    .build(),
-            )),
-            returns: Some(Args::new(
-                scheme::object()
-                    .required("content", scheme::string())
-                    .build(),
-            )),
-        }))
-        .with_search(Some(Tool {
-            name: "search".into(),
-            description: "Search for information in the knowledge base.".into(),
-            arguments: Some(Args::new(
-                scheme::object()
-                    .required("query", scheme::string().min_len(1).description("Search query"))
-                    .build(),
-            )),
-            returns: Some(Args::new(
-                scheme::object()
-                    .required("results", scheme::array())
-                    .build(),
-            )),
-        }))
-        .with_shell(Some(Tool {
-            name: "shell".into(),
-            description: "Execute a shell command and return stdout/stderr.".into(),
-            arguments: Some(Args::new(
-                scheme::object()
-                    .required("command", scheme::string().description("Shell command to execute"))
-                    .build(),
-            )),
-            returns: Some(Args::new(
-                scheme::object()
-                    .required("stdout", scheme::string())
-                    .required("exit_code", scheme::integer())
-                    .build(),
-            )),
-        }));
+struct GreetTool;
 
-    // Print the registered tool names.
-    let tools = toolshed.all_tools();
-    println!("ToolShed has {} tools:", tools.len());
-    for tool in &tools {
-        println!("  - {} ({})", tool.name, tool.description);
+#[async_trait]
+impl ToolImpl for GreetTool {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
+            name: "greet".into(),
+            category: "custom".into(),
+            description: "Greet someone by name.".into(),
+            arguments: Args::new(
+                scheme::object()
+                    .required(
+                        "name",
+                        scheme::string().min_len(1).description("Name to greet"),
+                    )
+                    .build(),
+            ),
+            returns: Some(Args::new(
+                scheme::object()
+                    .required("greeting", scheme::string())
+                    .build(),
+            )),
+        })
     }
 
-    // Build the agent with the toolshed.
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        let name = match arguments.get("name") {
+            Some(ArgType::Text(s)) => s.clone(),
+            _ => {
+                return Err(ToolError::InvalidArguments {
+                    tool: "greet".into(),
+                    reason: "missing 'name'".into(),
+                })
+            }
+        };
+        Ok(ToolCallResult {
+            content: UserModelContent::Text(TextContent {
+                content: format!("Hello, {name}!"),
+                signature: None,
+            }),
+            error_detail: None,
+        })
+    }
+}
+
+#[valtron]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key =
+        std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+
+    // 1. Build the model preset (Claude Opus main + Sonnet memory)
     let builder = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?;
 
+    // 2. Build the agent session — tools are registered on the session's
+    //    ToolCallManager after build().
     let agent = builder
-        .with_toolshed(toolshed)
-        .with_system_prompt("You are a helpful assistant with file access, search, and shell capabilities.")
+        .with_system_prompt(
+            "You are a helpful assistant with a custom greeting tool.",
+        )
         .build()?;
 
-    // Ask the agent to use a tool.
+    // 3. Register tools (programmatically — or use ToolPreset for built-in tools)
+    agent.tool_manager().register(Arc::new(GreetTool));
+
+    // 4. Build the ToolShed (what the model sees)
+    let toolshed = agent.tool_manager().build_toolshed();
+    println!("ToolShed has {} tool(s):", toolshed.tools.len());
+    for tool in &toolshed.tools {
+        println!("  - {} ({})", tool.name(), tool.arg_summary());
+    }
+
+    // 5. Ask the agent to use the tool
     let prompt = Messages::User {
         id: new_scru128(),
         role: MessageRole::User,
         content: UserModelContent::Text(TextContent {
-            content: "Hello! What tools do you have available?".into(),
+            content: "Hello! Please use the greet tool to greet Alice.".into(),
             signature: None,
         }),
         signature: None,
@@ -110,7 +128,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("\nAgent responded! Got {} records.", records.len());
-
     agent.end()?;
     Ok(())
 }

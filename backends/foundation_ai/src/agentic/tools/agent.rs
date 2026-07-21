@@ -695,7 +695,7 @@ mod tests {
     use crate::agentic::UserId;
     use crate::types::routable_provider::ProviderRouter;
     use crate::types::{
-        ArgType, ModelId, SessionId, TextContent, Tool, UserModelContent,
+        ArgType, ModelId, SessionId, Tool, UserModelContent,
     };
 
     use super::*;

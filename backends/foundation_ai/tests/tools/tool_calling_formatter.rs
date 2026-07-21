@@ -554,6 +554,156 @@ fn tool_calling_error_display() {
         .contains("failed to format result for 'weather'"));
 }
 
+// ============================================================================
+// function_spec — returns field propagation
+// ============================================================================
+
+fn make_tool_with_returns(name: &str, description: &str, returns_schema: serde_json::Value) -> Tool {
+    let opts: ValidationOptions = scheme::object()
+        .required("query", scheme::string().min_len(1))
+        .build();
+    let returns_opts = ValidationOptions::with_schema(returns_schema);
+    Tool::SingleCommand(ToolDefinition {
+        name: name.to_string(),
+        category: "search".into(),
+        description: description.to_string(),
+        arguments: Args::new(opts),
+        returns: Some(Args::new(returns_opts)),
+    })
+}
+
+#[test]
+fn function_spec_returns_propagated() {
+    let tool = make_tool_with_returns(
+        "search",
+        "Search the web",
+        serde_json::json!({"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}),
+    );
+    let spec = tool.function_spec();
+    assert_eq!(spec.name, "search");
+    assert!(spec.returns.is_some());
+    let ret = spec.returns.unwrap();
+    assert_eq!(ret["type"], "object");
+    assert!(ret["properties"].get("url").is_some());
+}
+
+#[test]
+fn function_spec_returns_none_when_absent() {
+    let tool = make_tool("search", "Search");
+    let spec = tool.function_spec();
+    assert!(spec.returns.is_none());
+}
+
+#[test]
+fn function_spec_multi_commands_collects_first_returns() {
+    let returns_a = ValidationOptions::with_schema(serde_json::json!({"type": "string"}));
+    let returns_b = ValidationOptions::with_schema(serde_json::json!({"type": "integer"}));
+    let tool = Tool::MultiCommands(
+        "multi".into(),
+        vec![
+            ToolDefinition {
+                name: "cmd_a".into(), category: "multi".into(),
+                description: "A".into(),
+                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                returns: Some(Args::new(returns_a)),
+            },
+            ToolDefinition {
+                name: "cmd_b".into(), category: "multi".into(),
+                description: "B".into(),
+                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                returns: Some(Args::new(returns_b)),
+            },
+        ],
+    );
+    let spec = tool.function_spec();
+    assert_eq!(spec.name, "multi");
+    // First non-None returns wins
+    assert!(spec.returns.is_some());
+    assert_eq!(spec.returns.unwrap()["type"], "string");
+}
+
+// ============================================================================
+// OpenAIFormatter — strict / returns
+// ============================================================================
+
+#[test]
+fn openai_format_tools_emits_strict_when_returns_present() {
+    let formatter = OpenAIFormatter;
+    let tool = make_tool_with_returns(
+        "search",
+        "Search",
+        serde_json::json!({"type": "object", "properties": {"url": {"type": "string"}}}),
+    );
+    let result = formatter.format_tools(&[tool]).unwrap();
+    let arr = result.as_array().unwrap();
+    let func = &arr[0]["function"];
+    assert_eq!(func["strict"], true, "strict must be true when returns is present");
+}
+
+#[test]
+fn openai_format_tools_no_strict_when_returns_absent() {
+    let formatter = OpenAIFormatter;
+    let tool = make_tool("search", "Search");
+    let result = formatter.format_tools(&[tool]).unwrap();
+    let arr = result.as_array().unwrap();
+    let func = &arr[0]["function"];
+    // strict should be absent (not false, not null)
+    assert!(func.get("strict").is_none(), "strict should be absent: {func}");
+}
+
+// ============================================================================
+// AnthropicFormatter — ignores returns
+// ============================================================================
+
+#[test]
+fn anthropic_format_tools_ignores_returns() {
+    let formatter = AnthropicFormatter;
+    let tool = make_tool_with_returns(
+        "search",
+        "Search",
+        serde_json::json!({"type": "object", "properties": {"url": {"type": "string"}}}),
+    );
+    let result = formatter.format_tools(&[tool]).unwrap();
+    let arr = result.as_array().unwrap();
+    let obj = &arr[0];
+    // Anthropic has no output_schema / strict field
+    assert!(obj.get("output_schema").is_none());
+    assert!(obj.get("strict").is_none());
+    assert_eq!(obj["name"], "search");
+}
+
+// ============================================================================
+// TextBasedFormatter — Returns: embedded in description
+// ============================================================================
+
+#[test]
+fn text_based_format_tools_embeds_returns_in_description() {
+    let formatter = TextBasedFormatter;
+    let tool = make_tool_with_returns(
+        "search",
+        "Search the web",
+        serde_json::json!({"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}),
+    );
+    let result = formatter.format_tools(&[tool]).unwrap();
+    let arr = result.as_array().unwrap();
+    let desc = arr[0]["description"].as_str().unwrap();
+    assert!(desc.contains("Search the web"));
+    assert!(desc.contains("Returns:"), "expected Returns: in description, got: {desc}");
+    assert!(desc.contains("required"), "expected schema in description, got: {desc}");
+    assert!(desc.contains("url"), "expected 'url' prop in description, got: {desc}");
+}
+
+#[test]
+fn text_based_format_tools_no_returns_in_description_when_absent() {
+    let formatter = TextBasedFormatter;
+    let tool = make_tool("search", "Search the web");
+    let result = formatter.format_tools(&[tool]).unwrap();
+    let arr = result.as_array().unwrap();
+    let desc = arr[0]["description"].as_str().unwrap();
+    assert_eq!(desc, "Search the web");
+    assert!(!desc.contains("Returns:"), "should not have Returns: {desc}");
+}
+
 #[test]
 fn errstack_trace_propagation() {
     let formatter = TextBasedFormatter;
