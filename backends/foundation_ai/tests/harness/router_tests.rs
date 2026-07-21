@@ -241,15 +241,19 @@ fn preset_session_bridge_builds_offline() {
     use foundation_ai::types::SessionId;
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
+    // `from_name` is only deterministic within the same millisecond (it embeds a
+    // time-ordered timestamp — see SessionId docs), so mint the id ONCE and reuse
+    // it on both sides. Comparing two independent `from_name` calls is racy.
+    let sid = SessionId::from_name("harness-test");
     let builder = gemma_session::<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>(
-        SessionId::from_name("harness-test"),
+        sid.clone(),
         Some(throwaway_gguf_config()),
         Some(throwaway_gguf_config()),
     )
     .expect("session bridge builds offline");
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         builder.build().expect("session builds");
-    assert_eq!(*session.session_id(), SessionId::from_name("harness-test"));
+    assert_eq!(*session.session_id(), sid);
 }
 
 // ---------------------------------------------------------------------------
