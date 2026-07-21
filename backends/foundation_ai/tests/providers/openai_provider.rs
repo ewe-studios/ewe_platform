@@ -1305,3 +1305,164 @@ fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
         "refusal mapped"
     );
 }
+
+// ---------------------------------------------------------------------------
+// build_chat_request — tool-call/tool-result/thinking messages, tools array,
+// every output_format + tool_choice arm (pure request construction) — F04
+// ---------------------------------------------------------------------------
+
+#[test]
+fn build_chat_request_covers_tool_and_format_branches() {
+    use std::time::SystemTime;
+
+    use foundation_ai::types::{
+        CostStatus, JsonSchema, MessageRole, Messages, ModelInteraction, ModelOutput, ModelParams,
+        OutputFormat, TextContent, Tool, ToolChoice, ToolChoiceFunction, ToolFunctionRef, ToolShed,
+        UsageCosting, UsageReport, UserModelContent,
+    };
+
+    let zero_usage = UsageReport {
+        input: 0.0,
+        output: 0.0,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: 0.0,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status: CostStatus::Actual,
+        },
+    };
+
+    let read_tool = Tool {
+        name: "read".to_string(),
+        description: "read a file".to_string(),
+        arguments: None,
+        returns: None,
+    };
+
+    let interaction = ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages: vec![
+            // Assistant thinking → assistant text message.
+            Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
+                model: ModelId::Name("m".to_string(), None),
+                timestamp: SystemTime::now(),
+                usage: zero_usage,
+                content: ModelOutput::ThinkingContent {
+                    thinking: "let me think".to_string(),
+                    signature: None,
+                },
+                stop_reason: StopReason::Stop,
+                provider: foundation_ai::types::ModelProviders::OPENAI,
+                error_detail: None,
+                signature: None,
+                metadata: None,
+            },
+            // Tool result → "tool" role message correlated by tool_call_id.
+            Messages::ToolResult {
+                id: foundation_compact::ids::new_scru128(),
+                tool_call_id: "call-42".to_string(),
+                name: "read".to_string(),
+                timestamp: SystemTime::now(),
+                details: None,
+                content: UserModelContent::Text(TextContent {
+                    content: "file contents".to_string(),
+                    signature: None,
+                }),
+                error_detail: None,
+                signature: None,
+            },
+            Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: MessageRole::User,
+                content: UserModelContent::Text(TextContent {
+                    content: "go".to_string(),
+                    signature: None,
+                }),
+                signature: None,
+            },
+        ],
+        tools_shed: ToolShed::default().with_read(Some(read_tool)),
+        chat_template: None,
+        tool_choice: Some(ToolChoice::Function(ToolChoiceFunction {
+            tool_type: "function".to_string(),
+            function: ToolFunctionRef {
+                name: "read".to_string(),
+            },
+        })),
+    };
+
+    let params = ModelParams {
+        output_format: Some(OutputFormat::JsonSchema(JsonSchema {
+            name: "out".to_string(),
+            description: Some("structured".to_string()),
+            schema: serde_json::json!({"type": "object"}),
+            strict: Some(true),
+        })),
+        ..Default::default()
+    };
+
+    let request = build_chat_request("gpt-4o-mini", &interaction, &params, false);
+
+    // A "tool" role message with the correlation id is present.
+    assert!(
+        request
+            .messages
+            .iter()
+            .any(|m| m.role == "tool" && m.tool_call_id.as_deref() == Some("call-42")),
+        "tool-result message rendered"
+    );
+    // Tools array built from the populated shed.
+    assert!(request.tools.is_some(), "tools array present");
+    // response_format + tool_choice populated (Function arm).
+    assert!(request.response_format.is_some(), "json-schema response format");
+    assert!(request.tool_choice.is_some(), "function tool_choice");
+}
+
+#[test]
+fn build_chat_request_output_format_and_tool_choice_simple_arms() {
+    use foundation_ai::types::{
+        MessageRole, Messages, ModelInteraction, ModelParams, OutputFormat, TextContent,
+        ToolChoice, ToolShed, UserModelContent,
+    };
+
+    fn interaction(tc: ToolChoice) -> ModelInteraction {
+        ModelInteraction {
+            system_prompt: None,
+            soul: None,
+            messages: vec![Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: MessageRole::User,
+                content: UserModelContent::Text(TextContent {
+                    content: "hi".to_string(),
+                    signature: None,
+                }),
+                signature: None,
+            }],
+            tools_shed: ToolShed::default(),
+            chat_template: None,
+            tool_choice: Some(tc),
+        }
+    }
+
+    for (fmt, tc) in [
+        (OutputFormat::Text, ToolChoice::Auto),
+        (OutputFormat::JsonObject, ToolChoice::None),
+        (OutputFormat::Text, ToolChoice::Required),
+    ] {
+        let params = ModelParams {
+            output_format: Some(fmt),
+            ..Default::default()
+        };
+        let req = build_chat_request("m", &interaction(tc), &params, false);
+        assert!(req.response_format.is_some());
+        assert!(req.tool_choice.is_some());
+    }
+}
