@@ -59,37 +59,28 @@ fn model_dir() -> PathBuf {
         })
 }
 
-// Scoped filter, not a bare `trace`: a global trace level pulls in `mio`'s
-// per-poll events, which fire continuously under the REPL's raw-mode input loop
-// and shred the prompt. Trace what we own, silence the transport churn.
+// A plain `info` is all this needs, because the noisy libraries now log at
+// levels that respect it rather than requiring per-app silencing:
 //
-// llama.cpp/ggml route their native logs through tracing, and the target for
-// BOTH is the literal `llama-cpp-2` — see the `log_cs!` macro in
-// infrastructure/llama-cpp/src/log.rs, which hard-codes it in `Metadata::new`.
-// `llama.cpp` and `ggml` are only the `module` FIELD value on those events, so
-// directives like `llama.cpp=off` match nothing and silence nothing; that is
-// why the model-loader dump and per-tensor `repack:` spam kept flooding the
-// REPL. `llama-cpp-2=off` is the directive that actually works.
-// Regression-locked by infrastructure/llama-cpp/tests/log_filtering.rs.
+//   * llama.cpp/ggml native logs — their INFO is a 165-line model-loader dump,
+//     so `infrastructure_llama_cpp::log::tracing_level_for` emits it at DEBUG
+//     (ggml WARN/ERROR still pass through, which is why a few genuine model
+//     warnings appear on load). This used to need `llama-cpp-2=off`, and note
+//     that the target really is the literal `llama-cpp-2`: `llama.cpp` and
+//     `ggml` are only the `module` FIELD on those events, so directives naming
+//     them match nothing. Locked by infrastructure/llama-cpp/tests/log_filtering.rs.
+//   * valtron pool lifecycle — worker start/stop, shutdown, registry clearing
+//     are at DEBUG; only a worker panic is loud, and it is an ERROR.
+//   * mio/polling — quiet at INFO on their own.
 //
-// To see the native logs again, change `llama-cpp-2=off` to `llama-cpp-2=debug`
-// here and rebuild. RUST_LOG will NOT do it: `try_init_tracing_with` only reads
-// RUST_LOG when no explicit `tracing = "..."` is given (foundation_compact/src/
-// trace/mod.rs — `Some(s) => EnvFilter::new(s)`, `None => try_from_default_env`),
-// and this entry point always supplies one. Measured on the shipped directive:
-// 0 stderr lines from llama.cpp; flipped to `=debug`: 1214 lines, 1200 of them
-// the model-loader metadata dump.
+// Measured on this directive: 5 stderr lines around a one-line answer, all of
+// them real warnings. Before the library fixes it was 181.
 //
-// The valtron pool logs its own lifecycle — worker STARTED/STOPPED, shutdown,
-// registry clearing — at INFO and WARN, which put 11 more lines around a
-// one-line answer. They describe routine startup and teardown rather than
-// anything actionable, so this CLI drops them to `error`: a worker that fails
-// for real still reports, the routine chatter does not.
-#[valtron(
-    tracing = "info",
-    tracing_targets = true,
-    tracing_names = true
-)]
+// To see the native dump, use `debug` here and rebuild. RUST_LOG will NOT do
+// it: `try_init_tracing_with` only reads RUST_LOG when no explicit
+// `tracing = "..."` is given (foundation_compact/src/trace/mod.rs), and this
+// entry point always supplies one.
+#[valtron(tracing = "info", tracing_targets = true, tracing_names = true)]
 fn main() {
     let cli = Cli::parse();
     let session = build_session();
@@ -166,7 +157,7 @@ fn run_repl(session: &Session) {
         .continuation_prompt("|... ")
         .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.")
         .goodbye("Goodbye!")
-        .theme(theme())
+        .theme(ReplTheme::from_env("ANSWERME_THEME"))
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());
@@ -189,29 +180,6 @@ fn run_repl(session: &Session) {
             Err(e) => repl.report_error(format!("error: {e}")),
         }
     }
-}
-
-/// The palette the session is drawn in.
-///
-/// Reads `ANSWERME_THEME` so a palette can be tried without a rebuild; anything
-/// unrecognised falls back to the default rather than failing to start over a
-/// cosmetic setting.
-fn theme() -> ReplTheme {
-    let Ok(name) = std::env::var("ANSWERME_THEME") else {
-        return ReplTheme::default();
-    };
-
-    ReplTheme::by_name(&name).unwrap_or_else(|| {
-        tracing::warn!(
-            "unknown ANSWERME_THEME {name:?}, using the default; known palettes: {}",
-            ReplTheme::palettes()
-                .iter()
-                .map(|(known, _)| *known)
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-        ReplTheme::default()
-    })
 }
 
 /// Wrap raw input text as a user message for the session.
@@ -243,6 +211,13 @@ fn extract_assistant_text(records: &[SessionRecord]) -> String {
                     tracing::debug!("user message: {content:?}");
                 }
             }
+            // The agent threw its own turn away and asked again; drop what it
+            // had already streamed so the retry replaces it instead of being
+            // appended to it.
+            SessionRecord::Retracted { reason, .. } => {
+                tracing::debug!("turn retracted: {reason}");
+                parts.clear();
+            }
             SessionRecord::Summary { message_count, .. } => {
                 tracing::debug!("summary: message_count={message_count}");
             }
@@ -257,6 +232,6 @@ fn extract_assistant_text(records: &[SessionRecord]) -> String {
     if parts.is_empty() {
         "(no response)".into()
     } else {
-        parts.join(" ")
+        parts.concat()
     }
 }

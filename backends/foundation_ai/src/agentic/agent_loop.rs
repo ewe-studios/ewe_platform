@@ -24,7 +24,9 @@ use foundation_db::traits::DocumentStore;
 
 use crate::agentic::context::{AgentContext, ContextProvider};
 use crate::agentic::errors::{AgentAction, AgenticError, CircuitBreaker, ErrorPolicy};
-use crate::agentic::loop_detection::{Escalation, LoopDetection, LoopDetector, LoopDetectorConfig};
+use crate::agentic::loop_detection::{
+    is_vacuous_answer, Escalation, LoopDetection, LoopDetector, LoopDetectorConfig,
+};
 use crate::agentic::memory::{MemoryAction, MemoryHierarchy};
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::message_api::MessageApi;
@@ -215,7 +217,53 @@ pub struct AgentLoop<D, M> {
     config: AgentConfig,
     inner_iteration: usize,
     outer_iteration: usize,
+    /// Text of the user message this turn is answering.
+    ///
+    /// Kept so a bare-number reply can be judged against what was asked — `0`
+    /// answering "how many" is correct, `0` answering "hello" is not.
+    last_user_prompt: String,
     message_count: u64,
+}
+
+/// The text of a whole turn, as the caller will eventually read it.
+///
+/// Streaming models emit one `Messages::Assistant` per token, so the turn's
+/// answer only exists once the fragments are put back together. Thinking
+/// content is excluded: it is the model reasoning to itself, not its answer,
+/// and a turn whose only visible output is punctuation is vacuous however much
+/// it thought first.
+fn assembled_answer(collected: &[Messages]) -> String {
+    let mut answer = String::new();
+    for message in collected {
+        if let Messages::Assistant {
+            content: ModelOutput::Text(text),
+            ..
+        } = message
+        {
+            answer.push_str(&text.content);
+        }
+    }
+    answer
+}
+
+/// The nudge sent when a turn produced no usable answer.
+///
+/// Names the actual problem rather than reusing the loop wording — a model told
+/// "you are repeating yourself" when it in fact said nothing has been given the
+/// wrong correction.
+fn vacuous_answer_redirect() -> Messages {
+    Messages::User {
+        id: foundation_compact::ids::new_scru128(),
+        role: MessageRole::System,
+        content: UserModelContent::Text(TextContent {
+            content: "Your last reply contained no answer - only punctuation or \
+                      whitespace. Answer the user's question directly, in plain \
+                      words."
+                .into(),
+            signature: None,
+        }),
+        signature: None,
+    }
 }
 
 impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
@@ -255,6 +303,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             config,
             inner_iteration: 0,
             outer_iteration: 0,
+            last_user_prompt: String::new(),
             message_count: 0,
         }
     }
@@ -340,6 +389,14 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         );
         if !follow_up_msgs.is_empty() {
             for msg in follow_up_msgs {
+                if let Messages::User {
+                    role: MessageRole::User,
+                    content: UserModelContent::Text(ref text),
+                    ..
+                } = msg
+                {
+                    self.last_user_prompt.clone_from(&text.content);
+                }
                 self.push_user_message(msg);
             }
             self.inner_iteration = 0;
@@ -587,6 +644,23 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             });
                         }
                         Escalation::Terminate => {
+                            // A model repeating the SAME empty answer is the
+                            // vacuous case wearing a loop's clothes, and the
+                            // agreed remedy there is to hand the weak answer
+                            // over, not to replace it with an error. Failing
+                            // here would turn `.` into "loop detected", which
+                            // is strictly worse for whoever asked.
+                            //
+                            // A loop of substantive text still terminates —
+                            // that is real token burn and stopping is the point.
+                            if is_vacuous_answer(&assembled_answer(collected)) {
+                                tracing::debug!(
+                                    "agent: repeated empty answer, passing it \
+                                     through rather than failing the turn"
+                                );
+                                break;
+                            }
+
                             // redirect_count is small (bounded by max_redirects).
                             #[allow(clippy::cast_possible_truncation)]
                             let occurrences = self.detector.redirect_count() as u32;
@@ -601,6 +675,84 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     }
                 }
             }
+        }
+
+        // A turn can finish having said nothing usable — a lone `.` or `,` and
+        // little else. That is not a loop, but it is just as useless to the
+        // caller, so it earns the same remedy: say what was wrong and let the
+        // model have another go.
+        //
+        // Checked on the ASSEMBLED turn, not per message: a streaming model
+        // emits one `Messages::Assistant` per token, and almost every single
+        // token looks vacuous on its own.
+        // A turn that called a tool is exempt: it legitimately produces no text,
+        // and the tool result is the progress. Everything else — including a
+        // turn that emitted nothing at all — is judged on its text, because an
+        // empty answer is exactly as useless as a bare `.`.
+        let called_a_tool = collected.iter().any(|message| {
+            matches!(
+                message,
+                Messages::Assistant {
+                    content: ModelOutput::ToolCall { .. },
+                    ..
+                }
+            )
+        });
+        // Set when the ladder ran out on a vacuous answer, so the reset below
+        // can tell "this turn was fine" from "this turn was junk we gave up on".
+        let mut gave_up_on_a_bad_answer = false;
+
+        if !called_a_tool {
+            let answer = assembled_answer(collected);
+            if self.detector.check_answer(&answer, &self.last_user_prompt) != LoopDetection::NoLoop
+            {
+                match self.detector.escalate() {
+                    Escalation::Redirect | Escalation::SwitchModelOrTemperature { .. } => {
+                        tracing::debug!(
+                            answer = %answer,
+                            attempt = self.detector.redirect_count(),
+                            "agent: turn produced no usable answer, asking again"
+                        );
+                        self.push_user_message(vacuous_answer_redirect());
+                        self.state = AgentLoopState::InnerAssemble;
+                        // Streaming already handed the caller every token of the
+                        // turn being thrown away, so tell it to drop them —
+                        // otherwise the retry's answer is appended to the junk
+                        // it was meant to replace.
+                        return TaskStatus::Ready(SessionRecord::Retracted {
+                            id: foundation_compact::ids::new_scru128(),
+                            reason: format!(
+                                "turn produced no usable answer ({answer:?}), retrying"
+                            ),
+                            timestamp: std::time::SystemTime::now(),
+                        });
+                    }
+                    // Deliberately NOT a failure. Out of retries, the best thing
+                    // left is the weak answer itself — terminating would turn a
+                    // poor reply into no reply, which is strictly worse for the
+                    // caller. A real loop still terminates, because there the
+                    // point is to stop burning tokens.
+                    Escalation::Terminate => {
+                        gave_up_on_a_bad_answer = true;
+                        tracing::debug!(
+                            answer = %answer,
+                            "agent: still no usable answer after retries, passing it through"
+                        );
+                    }
+                }
+            }
+        }
+
+        // A turn that came back good earns a fresh allowance: one bad patch
+        // early in a session must not leave it one hiccup from giving up hours
+        // later, which is what happened when nothing ever reset this.
+        //
+        // Giving up on a bad answer is NOT that. Resetting there hands the next
+        // outer pass a full ladder to spend on the same junk, so a model stuck
+        // producing `0` burns max_redirects retries per outer iteration instead
+        // of max_redirects in total. The count stands until something works.
+        if !gave_up_on_a_bad_answer {
+            self.detector.reset();
         }
 
         // Persist the accepted assistant turn to session history.

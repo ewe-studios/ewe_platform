@@ -34,8 +34,7 @@ const NATIVE_LOG_TARGET: &str = "llama-cpp-2";
 
 /// The directive `answerme-agent` ships in its `#[valtron(tracing = ...)]`.
 /// Keep in sync with apps/answerme-agent/src/main.rs.
-const SHIPPED_DIRECTIVE: &str = "info,answerme_agent=info,foundation_ai=info,mio=off,\
-                                 polling=off,llama-cpp-2=off";
+const SHIPPED_DIRECTIVE: &str = "info";
 
 // ---------------------------------------------------------------------------
 // Capturing writer
@@ -157,16 +156,45 @@ fn underscore_spelling_does_not_match_hyphenated_target() {
 }
 
 #[test]
-fn shipped_directive_silences_native_logs_but_keeps_app_logs() {
-    // Guard the exact directive the app ships, so a future edit that drops or
-    // misspells the target fails here rather than in a noisy REPL.
+fn the_shipped_directive_keeps_the_apps_own_logs() {
+    // Guard the exact directive the app ships. It no longer needs to name the
+    // native target at all — see `native_dump_is_quiet_under_a_plain_info_filter`
+    // for why — but it must still let the app's own INFO through.
     let out = capture(SHIPPED_DIRECTIVE);
     assert!(
+        out.contains("APP_MARKER"),
+        "the shipped directive must keep the app's own INFO: {out:?}"
+    );
+}
+
+#[test]
+fn native_dump_is_quiet_under_a_plain_info_filter() {
+    // The real contract, and the reason the app's directive shrank to "info":
+    // llama.cpp's model-loader dump arrives at ggml INFO, which
+    // `log::tracing_level_for` emits at tracing DEBUG. So a plain `info`
+    // filter drops it without anyone naming `llama-cpp-2` at all.
+    //
+    // Emitted at DEBUG here to match what the bridge really does; the mapping
+    // that guarantees it is unit-tested in `log::level_mapping_tests`.
+    let buffer = Buffer::default();
+    let subscriber = tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::new("info"))
+        .with_writer(buffer.clone())
+        .with_ansi(false)
+        .finish();
+
+    tracing::subscriber::with_default(subscriber, || {
+        tracing::debug!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_MARKER");
+        tracing::warn!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_WARNING");
+    });
+
+    let out = buffer.contents();
+    assert!(
         !out.contains("NATIVE_MARKER"),
-        "answerme-agent's directive must silence native llama.cpp logs: {out:?}"
+        "the native dump must not survive a plain `info` filter: {out:?}"
     );
     assert!(
-        out.contains("APP_MARKER"),
-        "answerme-agent's directive must keep the app's own INFO: {out:?}"
+        out.contains("NATIVE_WARNING"),
+        "a real native warning must still reach the user: {out:?}"
     );
 }

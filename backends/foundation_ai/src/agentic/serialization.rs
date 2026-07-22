@@ -162,6 +162,11 @@ impl SessionRecordRow {
                     row.output_tokens = Some(usage.output.min(u64::from(u32::MAX)) as u32);
                 }
             }
+            SessionRecord::Retracted { id, reason, .. } => {
+                row.id = id.to_string();
+                row.title = Some("retracted".to_string());
+                row.summary = Some(reason.clone());
+            }
         }
         Ok(row)
     }
@@ -202,6 +207,7 @@ fn record_type_of(record: &SessionRecord) -> &'static str {
         SessionRecord::Reflection { .. } => "reflection",
         SessionRecord::FailedAction { .. } => "failed_action",
         SessionRecord::Summary { .. } => "summary",
+        SessionRecord::Retracted { .. } => "retracted",
     }
 }
 

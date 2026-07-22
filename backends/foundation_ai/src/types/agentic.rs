@@ -174,6 +174,26 @@ pub enum SessionRecord {
     /// A provider-facing message (user/assistant/tool-result).
     Conversation { message: Messages },
 
+    /// Discard the assistant output already streamed for this turn.
+    ///
+    /// WHY it has to exist: the agent loop can only judge a turn once it is
+    /// complete, but a streaming consumer has already been handed every token
+    /// by then. When the loop rejects that turn and asks the model again, the
+    /// rejected text is sitting in the consumer's buffer — without this the
+    /// retry's answer is appended to the junk it was meant to replace, and the
+    /// user reads ".  Hello." instead of "Hello.".
+    ///
+    /// WHAT: consumers should drop the assistant messages they have collected
+    /// for the current turn and keep whatever arrives after it. User messages
+    /// and tool results are unaffected.
+    Retracted {
+        #[serde(default = "fresh_record_id")]
+        id: Id,
+        /// Why the turn was withdrawn, for logs and diagnostics.
+        reason: String,
+        timestamp: SystemTime,
+    },
+
     /// Permanent curated facts about the user/session (Decision 03, Tier 1).
     WorkingMemory {
         #[serde(default = "fresh_record_id")]

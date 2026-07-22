@@ -21,7 +21,8 @@ use foundation_ai::agentic::testing::{mock_text, mock_tool_call, MockModelProvid
 use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
     AgentConfig, AgentLoop, ContextConfig, ContextProvider, ErrorPolicy, KvMemoryStore,
-    MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues, TokenLedger,
+    LoopDetectorConfig, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
+    SteeringQueues, TokenLedger,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
@@ -1130,5 +1131,159 @@ fn mid_generation_steering_drains_the_priority_queue() {
     assert!(
         h.priority.is_empty(),
         "the priority queue must be drained, or the loop re-interrupts forever"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Vacuous answers — the loop asks again rather than handing back junk
+//
+// Small models routinely end a turn with a bare `.` or, in reply to a greeting,
+// a bare `0`. These drive a real turn through the loop, because the interesting
+// behaviour is not the predicate (unit-tested in loop_detection_tests) but what
+// the loop does with it: retract what it already streamed, ask again, and know
+// when to stop asking.
+
+/// Records the loop emitted to say "drop what I already sent you".
+fn retractions(records: &[SessionRecord]) -> Vec<String> {
+    records
+        .iter()
+        .filter_map(|r| match r {
+            SessionRecord::Retracted { reason, .. } => Some(reason.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn a_vacuous_turn_is_retried_and_the_good_answer_replaces_it() {
+    // First call answers with punctuation, second answers properly.
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_text(".")]);
+    mock.on_any(vec![mock_text("Hello. How can I help you?")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("hello"));
+
+    let records = drive(&mut h);
+    let texts = assistant_texts(&records);
+
+    assert!(
+        texts.iter().any(|t| t.contains("How can I help you")),
+        "the retry's answer should reach the caller: {texts:?}"
+    );
+    assert_eq!(
+        retractions(&records).len(),
+        1,
+        "the loop must withdraw the turn it threw away: {records:?}"
+    );
+}
+
+#[test]
+fn the_withdrawn_text_is_not_left_in_front_of_the_answer() {
+    // The bug this guards: streaming hands the caller every token before the
+    // turn can be judged, so without a retraction the retry's answer is
+    // appended to the junk it was meant to replace and the user reads
+    // ".  Hello." instead of "Hello.".
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(0, vec![mock_text(".")]);
+    mock.on_any(vec![mock_text("Paris")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("What is the capital of France?"));
+
+    let records = drive(&mut h);
+
+    // Everything before the retraction is withdrawn; what survives is the answer.
+    let surviving: Vec<String> = records
+        .iter()
+        .skip_while(|r| !matches!(r, SessionRecord::Retracted { .. }))
+        .filter_map(|r| match r {
+            SessionRecord::Conversation {
+                message: Messages::Assistant { content, .. },
+            } => match content {
+                ModelOutput::Text(t) => Some(t.content.clone()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(
+        surviving.concat(),
+        "Paris",
+        "only the retry's answer should follow the retraction: {records:?}"
+    );
+}
+
+#[test]
+fn a_real_answer_is_never_retried() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Paris")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("What is the capital of France?"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        retractions(&records).is_empty(),
+        "a good answer must not be withdrawn: {records:?}"
+    );
+    assert_eq!(assistant_texts(&records), vec!["Paris".to_string()]);
+}
+
+#[test]
+fn a_bare_number_is_kept_when_the_question_asked_for_one() {
+    // The regression the conservative rule exists to avoid: `4` is the answer.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("4")]);
+
+    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let _ = h.follow_up.push(user_msg("What is 2+2?"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        retractions(&records).is_empty(),
+        "a correct numeric answer must not be retried: {records:?}"
+    );
+    assert_eq!(assistant_texts(&records), vec!["4".to_string()]);
+}
+
+#[test]
+fn a_model_stuck_on_junk_stops_being_asked_and_never_fails_the_turn() {
+    // Two things codified here:
+    //   1. the retry budget is spent ONCE, not refilled per outer iteration —
+    //      the loop only resets the ladder after a turn that came back good, so
+    //      a model stuck on `.` cannot burn max_redirects retries over and over;
+    //   2. running out of retries passes the weak answer through rather than
+    //      failing, because no answer is worse for the caller than a poor one.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text(".")]);
+
+    let config = AgentConfig {
+        ..config_for("mock")
+    };
+    let mut h = harness_with(mock.into_router(), config);
+    let _ = h.follow_up.push(user_msg("hello"));
+
+    let records = drive(&mut h);
+
+    assert!(
+        !has_failed_action(&records),
+        "a weak answer must not be turned into no answer: {records:?}"
+    );
+
+    let attempts = retractions(&records).len();
+    assert!(
+        attempts <= LoopDetectorConfig::default().max_redirects,
+        "the ladder should be spent once ({attempts} retries against a budget of \
+         {}), not refilled for each outer pass: {records:?}",
+        LoopDetectorConfig::default().max_redirects
+    );
+
+    assert!(
+        assistant_texts(&records).iter().any(|t| t.contains('.')),
+        "the last attempt should still reach the caller: {records:?}"
     );
 }

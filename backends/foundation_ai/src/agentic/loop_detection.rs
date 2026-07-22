@@ -37,6 +37,19 @@ pub struct LoopDetectorConfig {
     pub max_redirects: usize,
     pub try_model_change: bool,
     pub temperature_delta: f32,
+    /// Whether a bare number is judged against the question that prompted it.
+    ///
+    /// A reply of `0` to "hello" is junk; the same `0` answering "how many are
+    /// left" is correct. With this on, a number-only reply is only rejected
+    /// when the question shows no sign of wanting a number. See
+    /// [`question_expects_a_number`] for the (English-only) heuristic.
+    pub judge_bare_numbers_against_question: bool,
+    /// Whether a turn that produced no usable answer earns another attempt.
+    ///
+    /// Small models routinely end a turn with nothing but punctuation — a bare
+    /// `.` or `,` — which is not a loop but is just as useless to the caller,
+    /// and the remedy is the same: say so and let the model try again.
+    pub detect_vacuous_answers: bool,
 }
 
 impl Default for LoopDetectorConfig {
@@ -48,6 +61,8 @@ impl Default for LoopDetectorConfig {
             max_redirects: 3,
             try_model_change: true,
             temperature_delta: 0.3,
+            detect_vacuous_answers: true,
+            judge_bare_numbers_against_question: true,
         }
     }
 }
@@ -136,6 +151,12 @@ pub enum LoopDetection {
         pattern: Vec<ToolCallSignature>,
         repetitions: usize,
     },
+    /// The turn finished without saying anything usable.
+    ///
+    /// Carries the offending text so the caller can log what was rejected.
+    VacuousAnswer {
+        text: String,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +233,114 @@ fn extract_tool_signatures(output: &ModelOutput) -> Option<ToolCallSignature> {
         } => Some(ToolCallSignature::from_tool_call(name, arguments)),
         _ => None,
     }
+}
+
+// ---------------------------------------------------------------------------
+// Vacuous answers
+
+/// Whether `text` is an answer in name only.
+///
+/// WHY: models — small ones especially — sometimes end a turn having emitted
+/// nothing but a stray punctuation token. It is not a loop, but it is just as
+/// useless to whoever asked, and it is worth another attempt.
+///
+/// WHAT: true when, after trimming, the text is empty or contains no
+/// alphanumeric character at all. `.`, `...`, `,`, `-` and whitespace qualify.
+///
+/// HOW: deliberately conservative. A bare `0` or `4` is NOT vacuous, because it
+/// is a perfectly good answer to "how many" or "what is 2+2", and discarding it
+/// would burn a turn to replace a correct reply with a possibly worse one. Only
+/// text carrying no alphanumeric information at all is rejected.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_ai::agentic::is_vacuous_answer;
+///
+/// assert!(is_vacuous_answer("."));
+/// assert!(is_vacuous_answer("  ...  "));
+/// assert!(is_vacuous_answer(""));
+///
+/// assert!(!is_vacuous_answer("0"));
+/// assert!(!is_vacuous_answer("Paris"));
+/// assert!(!is_vacuous_answer(". Paris"));
+/// ```
+#[must_use]
+pub fn is_vacuous_answer(text: &str) -> bool {
+    !text.chars().any(char::is_alphanumeric)
+}
+
+/// Whether `text` is nothing but a number.
+///
+/// Digits with punctuation around them (`0`, `-1`, `42%`, `3.5`) count; anything
+/// carrying a letter does not, because the letters are the answer.
+#[must_use]
+pub fn is_bare_number(text: &str) -> bool {
+    text.chars().any(|c| c.is_ascii_digit()) && !text.chars().any(char::is_alphabetic)
+}
+
+/// Phrases that mean the asker wants a quantity back.
+///
+/// English only, and deliberately short. This is a heuristic guarding a retry,
+/// so a miss costs one wasted turn rather than a wrong answer — that budget does
+/// not justify shipping a phrasebook.
+const QUANTITY_PHRASES: [&str; 19] = [
+    "how many",
+    "how much",
+    "how old",
+    "how long",
+    "how far",
+    "how tall",
+    "number of",
+    "number",
+    "integer",
+    "float",
+    "date",
+    "count",
+    "total",
+    "sum",
+    "percent",
+    "average",
+    "quantity",
+    "calculate",
+    "compute",
+];
+
+/// Whether `question` looks like it wants a number for an answer.
+///
+/// WHY it exists: a bare `0` cannot be judged on its own — it is junk in reply
+/// to "hello" and correct in reply to "how many are left". The question is the
+/// only context available to tell those apart.
+///
+/// WHAT: true when the question contains a digit, or one of a short list of
+/// English quantity phrases.
+///
+/// HOW: substring match on the lowercased question.
+///
+/// # Limitations
+/// English only. "¿Cuántos planetas?" answered `8` will be judged as not
+/// expecting a number and earn a needless retry. Set
+/// [`LoopDetectorConfig::judge_bare_numbers_against_question`] to `false` for
+/// non-English deployments.
+///
+/// # Examples
+///
+/// ```
+/// use foundation_ai::agentic::question_expects_a_number;
+///
+/// assert!(question_expects_a_number("What is 2+2?"));
+/// assert!(question_expects_a_number("How many planets are there?"));
+/// assert!(!question_expects_a_number("hello"));
+/// ```
+#[must_use]
+pub fn question_expects_a_number(question: &str) -> bool {
+    if question.chars().any(|c| c.is_ascii_digit()) {
+        return true;
+    }
+    let lowered = question.to_lowercase();
+    QUANTITY_PHRASES
+        .iter()
+        .any(|phrase| lowered.contains(phrase))
 }
 
 // ---------------------------------------------------------------------------
@@ -351,6 +480,33 @@ impl LoopDetector {
         }
     }
 
+    /// Check a whole turn's assembled answer for vacuity.
+    ///
+    /// WHY this is separate from [`LoopDetector::check`]: `check` runs per
+    /// model output, and a streaming model emits one output per token. A single
+    /// token is almost always "vacuous" on its own, so the question can only be
+    /// asked of the assembled turn.
+    ///
+    /// `question` is the user's own message this turn is answering; it is what
+    /// makes a bare `0` judgeable. Pass an empty string when there is none.
+    pub fn check_answer(&mut self, answer: &str, question: &str) -> LoopDetection {
+        if !self.config.detect_vacuous_answers {
+            return LoopDetection::NoLoop;
+        }
+
+        let vacuous = is_vacuous_answer(answer)
+            || (self.config.judge_bare_numbers_against_question
+                && is_bare_number(answer)
+                && !question_expects_a_number(question));
+
+        if vacuous {
+            return LoopDetection::VacuousAnswer {
+                text: answer.to_string(),
+            };
+        }
+        LoopDetection::NoLoop
+    }
+
     pub fn escalate(&mut self) -> Escalation {
         self.redirect_count += 1;
         if self.redirect_count == 1 {
@@ -378,4 +534,3 @@ impl LoopDetector {
         &self.config
     }
 }
-

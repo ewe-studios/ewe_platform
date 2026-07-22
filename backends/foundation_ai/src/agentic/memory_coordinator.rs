@@ -37,6 +37,7 @@ impl PromotableDocument for SessionRecord {
                 SessionRecord::Reflection { .. } => "reflection",
                 SessionRecord::FailedAction { .. } => "failed_action",
                 SessionRecord::Summary { .. } => "summary",
+                SessionRecord::Retracted { .. } => "retracted",
             }
             .to_string(),
         )

@@ -53,13 +53,9 @@ log_cs!(
     DEBUG_FIELDS,
     DebugCallsite
 );
-log_cs!(
-    tracing_core::Level::INFO,
-    INFO_CS,
-    INFO_META,
-    INFO_FIELDS,
-    InfoCallsite
-);
+// No INFO callsite: nothing maps to tracing INFO any more. See
+// `tracing_level_for` — llama.cpp's INFO is a load-time dump and is emitted at
+// DEBUG so a plain `info` filter stays usable without per-app directives.
 log_cs!(
     tracing_core::Level::WARN,
     WARN_CS,
@@ -411,6 +407,8 @@ mod tests {
 
     #[test]
     fn cont_disabled_log() {
+        // Feeds ggml DEBUG (emitted at tracing TRACE) into an INFO subscriber,
+        // so nothing should be captured.
         let logger = create_logger(tracing::Level::INFO);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
         let log_ptr =
@@ -448,7 +446,10 @@ mod tests {
 
     #[test]
     fn cont_enabled_log() {
-        let logger = create_logger(tracing::Level::INFO);
+        // DEBUG, not INFO: ggml INFO is emitted at tracing DEBUG (see
+        // `tracing_level_for`), so a subscriber at INFO would filter the very
+        // events this test is about and assert on an empty log.
+        let logger = create_logger(tracing::Level::DEBUG);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
         let log_ptr =
             std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();

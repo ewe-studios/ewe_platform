@@ -36,8 +36,8 @@ pub use errors::{
     LoopDetection, UserId,
 };
 pub use loop_detection::{
-    Escalation, LoopDetection as InlineLoopDetection, LoopDetector, LoopDetectorConfig,
-    ToolCallSignature,
+    is_bare_number, is_vacuous_answer, question_expects_a_number, Escalation, LoopDetection as InlineLoopDetection, LoopDetector,
+    LoopDetectorConfig, ToolCallSignature,
 };
 pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
 pub use memory_coordinator::MemoryCoordinator;

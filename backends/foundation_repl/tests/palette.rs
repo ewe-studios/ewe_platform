@@ -202,3 +202,97 @@ fn every_palette_keeps_the_shared_layout_settings() {
         );
     }
 }
+
+// ── Looking a palette up ────────────────────────────────────────────────
+
+#[test]
+fn named_returns_the_palette() {
+    assert_eq!(ReplTheme::named("dusk"), ReplTheme::dusk());
+    assert_eq!(ReplTheme::named("ABYSS"), ReplTheme::abyss());
+}
+
+#[test]
+#[should_panic(expected = "unknown REPL palette")]
+fn named_panics_on_a_typo_because_the_author_wrote_it() {
+    // A name baked into a call site can only be a typo, and a typo that
+    // silently drew some other palette would be worse than a loud failure.
+    let _ = ReplTheme::named("nebular");
+}
+
+#[test]
+fn named_panic_lists_what_would_have_worked() {
+    let panic = std::panic::catch_unwind(|| ReplTheme::named("chartreuse"))
+        .expect_err("an unknown palette must panic");
+    let message = panic
+        .downcast_ref::<String>()
+        .expect("panic payload should be a String");
+
+    for (known, _) in ReplTheme::palettes() {
+        assert!(
+            message.contains(known),
+            "the panic should name {known:?} as an option: {message}"
+        );
+    }
+}
+
+#[test]
+fn from_env_uses_the_default_when_unset() {
+    // A variable name no other test touches, so this stays independent of
+    // whatever else is running in the process.
+    assert_eq!(
+        ReplTheme::from_env("FOUNDATION_REPL_TEST_UNSET_VAR"),
+        ReplTheme::default()
+    );
+}
+
+#[test]
+fn from_env_reads_a_valid_palette() {
+    let var = "FOUNDATION_REPL_TEST_VALID";
+    std::env::set_var(var, "abyss");
+    assert_eq!(ReplTheme::from_env(var), ReplTheme::abyss());
+    std::env::remove_var(var);
+}
+
+#[test]
+fn from_env_falls_back_rather_than_failing_on_a_bad_value() {
+    // Runtime input from whoever launched the program: refusing to start over a
+    // mistyped colour would turn a cosmetic preference into an outage.
+    let var = "FOUNDATION_REPL_TEST_BAD";
+    std::env::set_var(var, "chartreuse");
+    assert_eq!(ReplTheme::from_env(var), ReplTheme::default());
+    std::env::remove_var(var);
+}
+
+#[test]
+fn from_env_treats_an_empty_value_as_no_preference() {
+    // `FOO= cmd` is how a shell "unsets" a variable in practice.
+    let var = "FOUNDATION_REPL_TEST_EMPTY";
+    std::env::set_var(var, "   ");
+    assert_eq!(ReplTheme::from_env(var), ReplTheme::default());
+    std::env::remove_var(var);
+}
+
+#[test]
+fn from_env_ignores_surrounding_whitespace() {
+    let var = "FOUNDATION_REPL_TEST_PADDED";
+    std::env::set_var(var, "  dusk\n");
+    assert_eq!(ReplTheme::from_env(var), ReplTheme::dusk());
+    std::env::remove_var(var);
+}
+
+#[test]
+fn from_env_or_uses_the_given_fallback() {
+    let var = "FOUNDATION_REPL_TEST_FALLBACK";
+    assert_eq!(
+        ReplTheme::from_env_or(var, ReplTheme::slate()),
+        ReplTheme::slate()
+    );
+
+    std::env::set_var(var, "not-a-palette");
+    assert_eq!(
+        ReplTheme::from_env_or(var, ReplTheme::slate()),
+        ReplTheme::slate(),
+        "a bad value should land on the caller's fallback, not the crate default"
+    );
+    std::env::remove_var(var);
+}

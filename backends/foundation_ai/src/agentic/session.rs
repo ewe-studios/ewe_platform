@@ -473,6 +473,21 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
                     if let SessionRecord::FailedAction { ref error, .. } = record {
                         return Err(ErrorTrace::new(error.clone()));
                     }
+                    // The loop withdrew the turn it had already streamed. Drop
+                    // the assistant messages collected so far and keep whatever
+                    // the retry produces; user turns and tool results stand.
+                    if let SessionRecord::Retracted { ref reason, .. } = record {
+                        tracing::debug!(%reason, "run_turn: dropping a withdrawn turn");
+                        records.retain(|kept| {
+                            !matches!(
+                                kept,
+                                SessionRecord::Conversation {
+                                    message: Messages::Assistant { .. }
+                                }
+                            )
+                        });
+                        continue;
+                    }
                     records.push(record);
                 }
                 Stream::Pending(_)

@@ -5115,7 +5115,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_html"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "criterion",
@@ -5559,7 +5559,6 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "foundation_wasm_ui",
- "getrandom 0.3.4",
  "js-sys",
  "portpicker",
  "rustls 0.23.40",

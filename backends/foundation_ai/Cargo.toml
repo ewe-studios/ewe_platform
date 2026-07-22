@@ -106,12 +106,19 @@ tokio = { version = "1", features = ["macros", "rt"] }
 [[test]]
 name = "foundation_ai_tests"
 path = "tests/mod.rs"
-required-features = ["agentic", "llamacpp", "candle"]
+# `testing` is required for the same reason as `agentic_tests`: tests/models
+# imports `agentic::testing`, which only exists under that feature, so without
+# it the target fails to compile rather than skipping cleanly.
+required-features = ["agentic", "llamacpp", "candle", "testing"]
 
 [[test]]
 name = "agentic_tests"
 path = "tests/agentic/mod.rs"
-required-features = ["agentic"]
+# `testing` too, so the target is all-or-nothing. It used to be gated per-module
+# inside mod.rs, which meant `--features agentic` reported "188 passed" while
+# silently skipping 44 — a suite that looks green while omitting the half that
+# drives real turns.
+required-features = ["agentic", "testing"]
 
 [[test]]
 name = "provider_tests"
