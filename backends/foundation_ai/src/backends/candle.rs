@@ -198,9 +198,115 @@ impl CandleBackend {
     /// Create a CPU backend with default config.
     #[must_use]
     pub fn cpu() -> Self {
+        Self::cpu_with_config(CandleBackendConfig::default())
+    }
+
+    /// Create a CPU backend with an explicit config.
+    #[must_use]
+    pub fn cpu_with_config(config: CandleBackendConfig) -> Self {
         Self::Cpu {
-            config: CandleBackendConfig::default(),
+            config,
             cache: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Create a CUDA backend on `device_id`, with default config.
+    ///
+    /// Construction is lazy — the device is opened on first load, not here — so
+    /// this cannot fail. Use [`try_cuda`](Self::try_cuda) when a caller needs a
+    /// missing or unusable GPU reported up front rather than at load time.
+    ///
+    /// Before this existed, the `Cuda` variant had no public constructor at all:
+    /// enabling the `candle-cuda` feature compiled the CUDA arms but nothing
+    /// could build a value that reached them, so the backend never ran on a GPU.
+    #[cfg(feature = "candle-cuda")]
+    #[must_use]
+    pub fn cuda(device_id: usize) -> Self {
+        Self::cuda_with_config(device_id, CandleBackendConfig::default())
+    }
+
+    /// Create a CUDA backend on `device_id`, with an explicit config.
+    #[cfg(feature = "candle-cuda")]
+    #[must_use]
+    pub fn cuda_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+        Self::Cuda {
+            config,
+            device_id,
+            cache: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Create a CUDA backend on `device_id`, validating the device now.
+    ///
+    /// Opens the CUDA device eagerly so an absent GPU, a driver/library
+    /// mismatch, or an out-of-range ordinal surfaces here as a clear error
+    /// rather than deep inside the first model load. The returned backend
+    /// reuses the already-opened device.
+    ///
+    /// # Errors
+    ///
+    /// Returns the underlying [`candle_core::Error`] when the device cannot be
+    /// opened.
+    #[cfg(feature = "candle-cuda")]
+    pub fn try_cuda(device_id: usize) -> Result<Self, candle_core::Error> {
+        // Open once to validate; the backend re-opens lazily via `device()`,
+        // which is cheap once the driver context exists.
+        let _device = Device::new_cuda(device_id)?;
+        Ok(Self::cuda(device_id))
+    }
+
+    /// Create a Metal backend on `device_id`, with default config.
+    #[cfg(all(target_vendor = "apple", feature = "candle"))]
+    #[must_use]
+    pub fn metal(device_id: usize) -> Self {
+        Self::metal_with_config(device_id, CandleBackendConfig::default())
+    }
+
+    /// Create a Metal backend on `device_id`, with an explicit config.
+    #[cfg(all(target_vendor = "apple", feature = "candle"))]
+    #[must_use]
+    pub fn metal_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+        Self::Metal {
+            config,
+            device_id,
+            cache: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Select the best available accelerator, falling back to CPU.
+    ///
+    /// Tries CUDA device 0 (then Metal on Apple), and drops to CPU when no
+    /// accelerator is usable. The choice is never silent: the selected device is
+    /// logged at `info`, and a CUDA attempt that fails is logged at `warn` with
+    /// the reason, so a run that quietly lands on CPU can still be diagnosed
+    /// after the fact — a GPU job that secretly ran on CPU is the failure this
+    /// method exists to make visible.
+    #[must_use]
+    pub fn best_available() -> Self {
+        // A CUDA success returns eagerly. The Apple and non-Apple tails are
+        // mutually exclusive by cfg, so exactly one is ever the tail expression
+        // — no unreachable-code warning under any feature combination.
+        #[cfg(feature = "candle-cuda")]
+        {
+            match Self::try_cuda(0) {
+                Ok(backend) => {
+                    tracing::info!(device = "cuda:0", "candle: using CUDA accelerator");
+                    return backend;
+                }
+                Err(err) => {
+                    tracing::warn!(%err, "candle: CUDA unavailable, falling back");
+                }
+            }
+        }
+        #[cfg(all(target_vendor = "apple", feature = "candle"))]
+        {
+            tracing::info!(device = "metal:0", "candle: using Metal accelerator");
+            Self::metal(0)
+        }
+        #[cfg(not(all(target_vendor = "apple", feature = "candle")))]
+        {
+            tracing::info!(device = "cpu", "candle: using CPU");
+            Self::cpu()
         }
     }
 

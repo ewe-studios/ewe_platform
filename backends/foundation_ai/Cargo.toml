@@ -171,7 +171,16 @@ mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
 candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "minijinja", "dep:foundation_deployment_huggingface"]
-candle-cuda = ["candle", "candle-core/cuda"]
+# CUDA needs the cuda feature on EVERY candle crate, not just candle-core: the
+# fused ops (rms-norm, softmax, rope) live in candle-nn and error with "no cuda
+# implementation for rms-norm" if only candle-core/cuda is on, while the model
+# code is in candle-transformers.
+candle-cuda = [
+    "candle",
+    "candle-core/cuda",
+    "candle-nn/cuda",
+    "candle-transformers/cuda",
+]
 candle-gpu = ["candle-cuda"]
 
 # Multi-threaded executor

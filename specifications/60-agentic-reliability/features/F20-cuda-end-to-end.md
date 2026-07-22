@@ -1,11 +1,35 @@
 ---
 feature: "F20 — CUDA end-to-end for candle and llama.cpp"
-status: "not-started"
+status: "in-progress"
 priority: "high"
 depends_on: ["F03"]
 ---
 
 # F20 — CUDA end-to-end for candle and llama.cpp
+
+## Progress (2026-07-22, post-reboot)
+
+**Candle CUDA works end-to-end.** The tiny Llama fixture loads and generates on
+the RTX 4070 Ti SUPER; 6 gated tests green (`tests/candle/candle_cuda_tests.rs`).
+
+- **B1 resolved** — reboot synced the driver (kernel + userspace both 610.43.03);
+  `nvidia-smi` lists both GPUs.
+- **B2 resolved** — `CandleBackend` gained `cuda`, `try_cuda` (eager device
+  open), `cuda_with_config`, `cpu_with_config`, Apple `metal`/`metal_with_config`,
+  and `best_available` (detect + report, never a silent CPU downgrade). The
+  `Cuda` variant is now reachable, so the 6 previously-uncoverable `cfg` arms are
+  exercised.
+- **W2 resolved** — cudarc 0.17.8 tops out at `cuda-13000`; the installed toolkit
+  is 13.3. `CUDARC_CUDA_VERSION=13000` forces the 13.0 bindings, which are
+  minor-compatible with 13.3. Build env: `CUDARC_CUDA_VERSION=13000
+  CUDA_COMPUTE_CAP=89`.
+- **Feature-wiring bug fixed** — `candle-cuda` enabled only `candle-core/cuda`,
+  so the fused ops in candle-nn errored with "no cuda implementation for
+  rms-norm". Now enables cuda on candle-core, candle-nn AND candle-transformers.
+
+Still open: **B3/W4** (llama.cpp — defaults to 0 offload layers; needs a
+read-back of layers actually offloaded so a test proves GPU use rather than
+assuming it), and a CPU-vs-CUDA output comparison on the fixture.
 
 ## Goal
 
