@@ -12,11 +12,16 @@ keywords = ["shell_repl", "repl", "tui", "terminal"]
 [dependencies]
 tracing = { workspace = true }
 unicode-width = "0.2"
-crossterm = { version = "0.28", optional = true }
+crossterm = { version = "0.29", optional = true }
 # No backend feature here: the terminal backend is pulled in by `native` and the
 # browser backend by `ratzilla`. Cargo features are additive, so asking for
 # crossterm at the dependency level would drag it into wasm builds, where it
 # cannot compile.
+#
+# `native` selects crossterm 0.29 to match what `ratatui-crossterm` enables by
+# default. Selecting 0.28 does not replace that default, it adds to it, and
+# downstream users end up compiling two copies of crossterm and its whole
+# mio/signal-hook/rustix tail.
 ratatui = { version = "0.30.2", default-features = false, features = [
   "std",
   "all-widgets",
@@ -37,7 +42,7 @@ tracing-test = { workspace = true }
 
 [features]
 default = ["native", "colors"]
-native = ["dep:crossterm", "dep:ratatui", "ratatui/crossterm_0_28"]
+native = ["dep:crossterm", "dep:ratatui", "ratatui/crossterm_0_29"]
 colors = ["native"]
 history-file = ["dep:serde", "dep:serde_json"]
 wasm = ["dep:js-sys", "dep:web-sys"]
