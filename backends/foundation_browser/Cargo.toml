@@ -13,17 +13,17 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # `multi` is REQUIRED: foundation_netio's native WebSocket client is
 # `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
-foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.
 foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["ssl-rustls-ring"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
 # serve <mount-stream> without a build step.
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", features = ["embedded-js"] }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.1" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

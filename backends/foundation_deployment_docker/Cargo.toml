@@ -58,7 +58,7 @@ version = "0.0.1"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.3"
+version = "0.0.4"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
@@ -66,7 +66,7 @@ version = "0.0.1"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.foundation_errstacks]
 path = "../foundation_errstacks"
@@ -81,7 +81,7 @@ optional = true
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.4"
+version = "0.0.5"
 
 [dependencies.foundation_netio]
 features = [
@@ -89,7 +89,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"

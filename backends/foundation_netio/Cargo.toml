@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,12 +16,12 @@ workspace = true
 [dependencies]
 # -- Workspace dependencies
 
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", default-features = false }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -80,7 +80,7 @@ quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"]
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
 wasm-bindgen-test = "=0.3.76"
 # Proc-macro crate — always compiled for host, safe for all targets.
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }

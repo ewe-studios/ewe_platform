@@ -16,7 +16,7 @@ crate-type = ["rlib", "cdylib"]
 # Data plane primitives (feature 00). wasm gets the netstack only; native additionally
 # needs poll/fd for the UDP socket + reactor used by the tunnel driver.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 
 # Seed -> key derivation (decision 03: HKDF-BLAKE2s).
@@ -40,7 +40,7 @@ toml = { workspace = true }
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
 boringtun = { version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
 smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
@@ -48,7 +48,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in — `Connector` lives in `foundation_netio::http`, which is itself gated
 # behind `multi`.
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # the Noise-PSK control channel for bootstrap (decision 06; native-only per decision 01).
@@ -56,7 +56,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-fe
 # Enable the multi-threaded executor so EventReadinessPtr + Send+S Sync is
 # available to foundation_netio's ExchangeContinuation (which requires Send on
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
-foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the

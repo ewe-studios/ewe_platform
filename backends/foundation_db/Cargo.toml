@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -12,14 +12,14 @@ keywords = ["database", "storage", "turso", "foundation"]
 [dependencies]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
-foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["crypto-chacha"] }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", features = ["crypto-chacha"] }
 # foundation_netio stays available on every target (it has a wasm `fetch`
 # client), but only with the wasm-safe base here. Its default `multi` feature —
 # and the `foundation_core/multi` it pulls — would force the single-threaded CF
 # wasm storage code onto valtron's Send-required path, so `multi` (plus the
 # native-only TLS/socket HTTP features) is added only on native, below.
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false, features = ["standard", "std"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false, features = ["standard", "std"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -57,7 +57,7 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # the D1/R2 REST clients in src/native/ use. Unioned with the wasm-safe base
 # above; on wasm only the base applies, so `multi` never reaches the wasm build.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "compression", "wire-native", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "compression", "wire-native", "multi"] }
 
 # Native-only storage backends — excluded on wasm32 to avoid
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
@@ -70,7 +70,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std", "multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["std", "multi"] }
 
 [features]
 default = ["turso", "d1", "r2"]

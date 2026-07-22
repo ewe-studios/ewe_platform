@@ -13,21 +13,21 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 
 # -- Workspace dependencies
 
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 # foundation_deployment_huggingface is native-only (uses reqwest/std networking)
 # pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
-foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.1" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["serde"] }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
+foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.2" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", features = ["serde"] }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
-foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
 foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
 concurrent-queue = "2.5.0"
@@ -58,7 +58,7 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = [
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
-infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.1", optional = true }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2", optional = true }
 
 # Candle ML framework (optional, behind feature flags)
 [dependencies.candle-core]
@@ -100,7 +100,7 @@ futures-lite = "2"
 # Native-only: lets tests construct the source llama.cpp error types to cover the
 # From/Display conversions in errors/llama.rs (already a build dep via llamacpp).
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
-infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.1" }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2" }
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [[test]]

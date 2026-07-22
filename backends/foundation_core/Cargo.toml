@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -22,14 +22,14 @@ crate-type = ["rlib"]
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 
 # -- Workspace dependencies
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }

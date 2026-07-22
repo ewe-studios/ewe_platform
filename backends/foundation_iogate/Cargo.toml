@@ -18,7 +18,7 @@ tracing = { workspace = true }
 # edges here — not in netio — keeps netio free of the nativeapis→foundation_db
 # →netio dependency cycle. See Feature 48.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
 
 # ── Linux gains the io_uring completion path ────────────────────────────

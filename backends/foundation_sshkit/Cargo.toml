@@ -10,7 +10,7 @@ description = "SSH orchestration — connection pooling, host abstraction, comma
 
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
 
 ssh2 = "0.9"
 

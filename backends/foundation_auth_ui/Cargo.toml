@@ -10,10 +10,10 @@ description = "WASM UI components for authentication — login, register, MFA, a
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0" }
 foundation_signals = { path = "../foundation_signals", version = "0.0.1" }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.1" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
 foundation_ui_components = { path = "../foundation_ui_components", version = "0.1.0" }
 
 serde = { version = "1.0", features = ["derive"] }

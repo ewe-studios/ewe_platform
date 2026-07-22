@@ -1,6 +1,6 @@
 [package]
 name = "foundation_codegentools"
-version = "0.1.0"
+version = "0.1.1"
 description = "Code generation tooling: WASM binary generation, schema codegen, crate scanning, and build tooling for the ewe platform"
 edition.workspace = true
 rust-version.workspace = true
@@ -14,8 +14,8 @@ cli = ["dep:clap"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_codegen = { path = "../foundation_codegen", version = "0.1.0", features = ["wat"] }
-foundation_openapi = { path = "../foundation_openapi", version = "0.0.1" }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.1", features = ["wat"] }
+foundation_openapi = { path = "../foundation_openapi", version = "0.0.2" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }

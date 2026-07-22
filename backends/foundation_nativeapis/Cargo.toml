@@ -13,18 +13,18 @@ keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.4", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.0", optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true, default-features = false }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.2", optional = true, default-features = false }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2", optional = true }
 
 io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
@@ -77,11 +77,11 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
 
 [dev-dependencies]
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"

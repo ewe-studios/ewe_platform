@@ -10,11 +10,11 @@ description = "Development tooling server: reverse proxy, file watcher, hot relo
 keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 foundation_runtimes = { path = "../foundation_runtimes", version = "0.0.3" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 

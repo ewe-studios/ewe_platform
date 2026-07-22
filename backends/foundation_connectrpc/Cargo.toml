@@ -10,13 +10,13 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 tracing = "0.1"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
@@ -36,7 +36,7 @@ serde_json = { workspace = true }
 serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 futures-lite = "2"
 

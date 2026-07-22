@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 base85rs = "0.1"
@@ -15,7 +15,7 @@ workspace = true
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.3"
+version = "0.0.4"
 
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
@@ -29,12 +29,12 @@ version = "0.0.1"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.4"
+version = "0.0.5"
 
 [dependencies.foundation_netio]
 default-features = false
 path = "../foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 
 # Native: SSL + multi for the REST API client.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
@@ -44,14 +44,14 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 
 # wasm32: wasm-fetch for the Workers runtime (no SSL/multi threads).
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
 default-features = false
 features = ["wasm-fetch"]
 path = "../foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.serde]
 workspace = true
