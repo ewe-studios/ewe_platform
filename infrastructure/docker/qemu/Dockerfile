@@ -56,7 +56,9 @@ RUN <<EOF
     x11vnc \
     openbox \
     xterm \
-    libpulse0
+    libpulse0 \
+    libxcomposite1 \
+    libx11-6
 
   # Install QMP + websockify (noVNC proxy — shared by all downstream images)
   pip3 install --no-cache-dir --break-system-packages --root-user-action=ignore "qemu.qmp==${VERSION_QMP}" websockify

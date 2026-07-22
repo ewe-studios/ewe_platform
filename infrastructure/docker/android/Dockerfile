@@ -26,7 +26,8 @@ RUN <<EOF
   apt-get --no-install-recommends -y install \
     openjdk-21-jdk-headless \
     cpu-checker \
-    unzip
+    unzip \
+    libx11-6
 
   apt-get clean
 
