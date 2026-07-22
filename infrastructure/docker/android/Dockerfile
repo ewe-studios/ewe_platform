@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 #
 # Android emulator built on the QEMU base — same pattern as macOS + Windows.
-# The emulator runs inside QEMU's qemu-system-x86 (via the SDK emulator binary).
-# Display is captured via Xvfb + x11vnc + noVNC (budtmo/docker-android pattern).
+# The emulator renders to an X11 display captured by x11vnc + noVNC.
+# Full QEMU (with VNC) replaces the SDK's headless binary.
 
 FROM scratch AS runner
 COPY --from=ewestudios/qemu:7.37 / /
@@ -20,9 +20,7 @@ ARG DEBCONF_NONINTERACTIVE_SEEN="true"
 RUN <<EOF
   set -eu
 
-  # ── X11 display stack (capture emulator to VNC) ──
-  # QEMU is ALREADY present from the base image (qemu-system-x86).
-  # The emulator bundles its own QEMU binary — we just need X11 + Java.
+  # ── X11 display stack + Java ──
   apt-get update
   apt-get --no-install-recommends -y install \
     xvfb \
@@ -31,16 +29,15 @@ RUN <<EOF
     xterm \
     openjdk-21-jdk-headless \
     cpu-checker \
-    unzip
+    unzip \
+    libpulse0
 
   apt-get clean
 
-  # Install websockify (noVNC proxy — not in base image)
+  # websockify (noVNC proxy, not in base image)
   pip3 install --no-cache-dir --break-system-packages websockify
 
-  # Set version file
   echo "$VERSION_ARG" > /etc/version
-
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
@@ -65,16 +62,22 @@ RUN mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools" \
         "system-images;android-${ANDROID_API_LEVEL};default;x86_64" \
     && rm -rf "${ANDROID_SDK_ROOT}/.temp" "${ANDROID_SDK_ROOT}/.download_cache"
 
-# ── Pre-create AVD ───────────────────────────────────────────────────────
-RUN echo "no" | avdmanager create avd \
-    --name "test_avd" \
-    --package "system-images;android-${ANDROID_API_LEVEL};default;x86_64" \
-    --device "pixel_6" \
-    --force
-
-# ── Hooks + entrypoint ────────────────────────────────────────────────────
+# ── Pre-create device AVDs ──────────────────────────────────────────────
+# libpulse0 installed above — SDK's full QEMU needs it. x11vnc captures
+# the X11 display so we don't need QEMU VNC, but the emulator binary
+# requires the full qemu-system-x86_64 + libpulse to boot.
+# 2 phones + 2 tablets. Select at runtime via DEVICE env var.
+# Available IDs from SDK: pixel_6, Nexus 5, Nexus 5X, Nexus 6, Nexus 6P,
+#   Nexus 7 2013, Nexus 7, Nexus 9, Nexus 10, pixel_c, Pixel 8, etc.
+#   See `avdmanager list device` for the full catalog.
+# ── Hooks + entrypoint + AVD script ─────────────────────────────────────
 COPY --chmod=755 ./src /run/
 COPY --chmod=755 ./hooks /run/hooks/
+
+# Pre-create 4 AVDs: 2 phones (pixel_6, nexus_5) + 2 tablets (pixel_c, nexus_7)
+# Select at runtime via DEVICE env var (e.g. DEVICE=nexus_5).
+ARG ANDROID_API_LEVEL
+RUN /run/create-avds.sh
 
 VOLUME /storage
 EXPOSE 22 5554 5555 5900 6080 8006
@@ -85,5 +88,7 @@ ENV CPU_CORES="2"
 ENV DISK_SIZE="8G"
 ENV ANDROID_AVD_HOME=/root/.android/avd
 ENV DISPLAY=:99
+# Default device: Pixel 6. Override in docker-compose or `docker run -e DEVICE=...`
+ENV DEVICE="pixel_6"
 
 ENTRYPOINT ["/usr/bin/tini", "-s", "/run/entry.sh"]

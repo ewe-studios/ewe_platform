@@ -44,6 +44,7 @@ services:
       RAM_SIZE: "4G"
       CPU_CORES: "2"
       DISK_SIZE: "8G"
+      DEVICE: "pixel_6"   # phone: pixel_6, Nexus 5 | tablet: pixel_c, Nexus 7
     devices:
       - /dev/kvm
     ports:
