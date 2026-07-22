@@ -40,6 +40,13 @@ macro_rules! log_cs {
     };
 }
 log_cs!(
+    tracing_core::Level::TRACE,
+    TRACE_CS,
+    TRACE_META,
+    TRACE_FIELDS,
+    TraceCallsite
+);
+log_cs!(
     tracing_core::Level::DEBUG,
     DEBUG_CS,
     DEBUG_META,
@@ -83,17 +90,70 @@ impl Module {
     }
 }
 
+/// Map a ggml log level onto the tracing level the event is emitted at.
+///
+/// WHY the levels are shifted down rather than passed through: llama.cpp's
+/// notion of INFO is a load-time diagnostic dump — 165 lines of tensor and
+/// vocabulary metadata on every single model load — not the handful of
+/// application-level events a Rust caller means by `info`. Passing it through
+/// meant every binary embedding this crate had to carry a `llama-cpp-2=off`
+/// directive just to make `RUST_LOG=info` usable, and anyone who forgot got a
+/// wall of C output. Shifting the mapping puts that dump behind `debug`, where
+/// a caller asks for it deliberately.
+///
+/// WHAT: ggml DEBUG becomes TRACE, ggml INFO becomes DEBUG. WARN and ERROR pass
+/// through untouched, because a native warning or error IS actionable and must
+/// survive a caller quietening this crate.
+pub(super) const fn tracing_level_for(
+    level: infrastructure_llama_bindings::ggml_log_level,
+) -> tracing_core::Level {
+    match level {
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG => tracing_core::Level::TRACE,
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO => tracing_core::Level::DEBUG,
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_WARN => tracing_core::Level::WARN,
+        _ => tracing_core::Level::ERROR,
+    }
+}
+
 fn meta_for_level(
     level: infrastructure_llama_bindings::ggml_log_level,
 ) -> (&'static Metadata<'static>, &'static OverridableFields) {
     match level {
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG => (&DEBUG_META, &DEBUG_FIELDS),
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO => (&INFO_META, &INFO_FIELDS),
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG => (&TRACE_META, &TRACE_FIELDS),
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO => (&DEBUG_META, &DEBUG_FIELDS),
         infrastructure_llama_bindings::GGML_LOG_LEVEL_WARN => (&WARN_META, &WARN_FIELDS),
         infrastructure_llama_bindings::GGML_LOG_LEVEL_ERROR => (&ERROR_META, &ERROR_FIELDS),
         _ => {
             unreachable!("Illegal log level to be called here")
         }
+    }
+}
+
+#[cfg(test)]
+mod level_mapping_tests {
+    use super::tracing_level_for;
+    use infrastructure_llama_bindings as bindings;
+    use tracing_core::Level;
+
+    #[test]
+    fn native_info_is_demoted_so_a_plain_info_filter_stays_quiet() {
+        // The model-loader dump arrives at ggml INFO. If this ever maps back to
+        // tracing INFO, `RUST_LOG=info` floods again.
+        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_INFO), Level::DEBUG);
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_DEBUG),
+            Level::TRACE
+        );
+    }
+
+    #[test]
+    fn native_problems_are_never_demoted() {
+        // A caller that quietens this crate must still hear about real faults.
+        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_WARN), Level::WARN);
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_ERROR),
+            Level::ERROR
+        );
     }
 }
 

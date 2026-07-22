@@ -441,25 +441,25 @@ impl PoolGuard {
     /// Clears the global registries; the lifecycle lock (held until this guard
     /// drops) guarantees no other pool can be running concurrently.
     pub fn shutdown(&self) {
-        tracing::warn!("PoolGuard::shutdown() called - pool shutting down");
+        tracing::debug!("PoolGuard::shutdown() called - pool shutting down");
         if self
             .shut_down
             .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
             .is_ok()
         {
-            tracing::warn!("PoolGuard::shutdown() - signaling kill to all threads");
+            tracing::debug!("PoolGuard::shutdown() - signaling kill to all threads");
             // Shut down background workers first (they share the kill signal)
             if let Some(ref bg) = self.bg_registry {
-                tracing::warn!("PoolGuard::shutdown() - shutting down background workers");
+                tracing::debug!("PoolGuard::shutdown() - shutting down background workers");
                 bg.shutdown();
             }
 
             self.registry.shutdown();
-            tracing::warn!("Clearing global pool registery");
+            tracing::debug!("clearing the global pool registry");
             clear_global_registries();
-            tracing::warn!("Cleared global pool registery");
+            tracing::debug!("cleared the global pool registry");
         } else {
-            tracing::warn!("PoolGuard::shutdown() - already shut down, skipping");
+            tracing::debug!("PoolGuard::shutdown() - already shut down, skipping");
         }
     }
 
@@ -1610,7 +1610,7 @@ impl ThreadRegistry {
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
-            tracing::info!("Worker thread({}) {} STARTED", &worker_tag, seed_clone);
+            tracing::debug!("worker thread({}) {} started", &worker_tag, seed_clone);
 
             // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
@@ -1656,12 +1656,15 @@ impl ThreadRegistry {
                 );
             }) {
                 Ok(()) => {
-                    tracing::warn!("Worker thread({}) {} STOPPED (ok)", &worker_tag, seed_clone);
+                    tracing::debug!("worker thread({}) {} stopped cleanly", &worker_tag, seed_clone);
                     Ok(())
                 }
                 Err(err) => {
-                    tracing::warn!(
-                        "Worker thread({}) {} STOPPED (panic: {:?})",
+                    // Error, not warn: a worker dying to a panic is a real
+                    // fault, and callers that quieten this module's routine
+                    // chatter down to `error` must still hear about it.
+                    tracing::error!(
+                        "worker thread({}) {} stopped by panic: {:?}",
                         &worker_tag,
                         seed_clone,
                         err

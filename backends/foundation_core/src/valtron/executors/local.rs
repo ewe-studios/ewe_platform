@@ -868,8 +868,10 @@ impl ExecutorState {
     pub fn wake_up(&self, target: Entry) {
         // Check if entry still exists in local_tasks
         if !self.local_tasks.borrow_mut().has(&target) {
-            tracing::warn!(
-                "[SLEEPER] Task {:?} no longer exists in local_tasks, skipping wake_up",
+            // Expected race, not a fault: a sleeper can mature after its task
+            // was combined or removed. The skip is the designed behaviour.
+            tracing::debug!(
+                "[SLEEPER] task {:?} no longer in local_tasks, skipping wake_up",
                 target
             );
             return;
@@ -1300,7 +1302,7 @@ impl ExecutorState {
                             )))
                         }
                         SpawnType::Broadcasted | SpawnType::None | SpawnType::Scheduled => {
-                            tracing::info!("Spawned process without parent, adding back to queue: {:?} - id: {:?}", info, top_entry);
+                            tracing::trace!("spawned process without parent, requeueing: {:?} - id: {:?}", info, top_entry);
 
                             // push entry back into processing mut
                             self.processing.borrow_mut().push_front(top_entry);
@@ -1392,8 +1394,8 @@ impl ExecutorState {
                         ))))
                     }
                     _ => {
-                        tracing::info!(
-                            "Spawned process without parent, adding back to queue: {:?} - id: {:?}",
+                        tracing::trace!(
+                            "spawned process without parent, requeueing: {:?} - id: {:?}",
                             info,
                             top_entry
                         );

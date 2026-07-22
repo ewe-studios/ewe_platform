@@ -3820,7 +3820,7 @@ where
         }
 
         if self.sources.is_empty() {
-            tracing::info!("Source is empty, returning None");
+            tracing::trace!("source is empty, returning None");
             return None;
         }
 

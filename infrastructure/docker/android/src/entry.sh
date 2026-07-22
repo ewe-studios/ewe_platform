@@ -6,20 +6,40 @@ echo "=== ewe-android starting ==="
 AVD_NAME="${DEVICE:-pixel_6}"
 echo "Device: ${AVD_NAME}"
 
-# ── Emulator libs (Qt + tcmalloc from SDK) ───────────────────────────
+# ── Emulator shared libs (Qt + tcmalloc + WebRTC from SDK) ───────────
 export LD_LIBRARY_PATH="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
+
+# ── Suppress nested VM warning ───────────────────────────────────────
+mkdir -p /root/.config/Android\ Open\ Source\ Project
+cat > "/root/.config/Android Open Source Project/Emulator.conf" << 'EOF'
+[General]
+showNestedWarning=false
+EOF
+
+# ── docker-android boot sequence ─────────────────────────────────────
+echo "Starting Xvfb on :0..."
+Xvfb :0 -screen 0 ${SCREEN_WIDTH:-1080}x${SCREEN_HEIGHT:-2400}x${SCREEN_DEPTH:-24} -ac +extension GLX &
+sleep 1
+
+echo "Starting openbox..."
+openbox --replace &
+sleep 1
+
+echo "Starting x11vnc on :5900..."
+x11vnc -display :0 -forever -nopw -shared -quiet -rfbport 5900 &
+sleep 1
+
+echo "Starting noVNC on :6080..."
+websockify --web /usr/share/novnc 6080 localhost:5900 &
+sleep 1
 
 # ── ADB ──────────────────────────────────────────────────────────────
 adb start-server
 
-# ── Emulator ─────────────────────────────────────────────────────────
-# docker-android verified pattern: -no-window, -gpu swiftshader_indirect.
-# gfxstream renders to GPU framebuffer (not X11). ADB screencap is the
-# official graphics capture path.
+# ── Emulator — renders its window to DISPLAY=:0 ──────────────────────
 echo "Starting emulator: ${AVD_NAME}"
 nohup emulator \
     -avd "${AVD_NAME}" \
-    -no-window \
     -no-audio \
     -no-boot-anim \
     -gpu swiftshader_indirect \
@@ -41,18 +61,15 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     fi
     sleep 2; ELAPSED=$((ELAPSED + 2))
 done
-[ $ELAPSED -ge $TIMEOUT ] && echo "WARNING: timeout" && tail -5 /tmp/emulator.log
+[ $ELAPSED -ge $TIMEOUT ] && echo "WARNING: timeout" && tail -10 /tmp/emulator.log
 
 adb -e shell settings put secure show_ime_with_hard_keyboard 0 2>/dev/null || true
 
-# ── Screen server (ADB screencap → HTTP, port 6080) ──────────────────
-python3 /run/screencap-http.py 6080 &
-echo "Screen: http://localhost:6080/"
-
 echo ""
 echo "=== ewe-android ready ==="
-echo "  Device:  ${AVD_NAME}"
-echo "  Screen:  http://localhost:6080/"
+echo "  Device:  ${AVD_NAME} (${SCREEN_WIDTH:-1080}x${SCREEN_HEIGHT:-2400})"
+echo "  noVNC:   http://localhost:6080/vnc.html"
+echo "  VNC:     vnc://localhost:5900"
 echo "  ADB:     adb connect localhost:5554"
 echo ""
 avdmanager list avd 2>/dev/null | grep "Name:" | sed 's/.*Name: /  /'

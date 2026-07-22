@@ -464,12 +464,111 @@ impl ReplTheme {
     }
 
     /// Look a palette up by name, case-insensitively.
+    ///
+    /// The non-committal form: returns `None` for an unknown name and leaves
+    /// the caller to decide what that means. [`ReplTheme::named`] and
+    /// [`ReplTheme::from_env`] are the two opinionated forms.
     #[must_use]
     pub fn by_name(name: &str) -> Option<Self> {
         Self::palettes()
             .into_iter()
             .find(|(known, _)| known.eq_ignore_ascii_case(name))
             .map(|(_, theme)| theme)
+    }
+
+    /// The palette called `name`, panicking if there is no such palette.
+    ///
+    /// WHY it panics where [`ReplTheme::from_env`] does not: this name comes
+    /// from the program author, baked into the call site, so an unknown one is a
+    /// typo that will never work and should surface on the first run rather
+    /// than silently drawing a palette nobody chose.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_repl::ReplTheme;
+    ///
+    /// assert_eq!(ReplTheme::named("abyss"), ReplTheme::abyss());
+    /// ```
+    ///
+    /// # Panics
+    /// Panics if `name` is not one of [`ReplTheme::palettes`], listing the
+    /// names that would have worked.
+    #[must_use]
+    pub fn named(name: &str) -> Self {
+        Self::by_name(name).unwrap_or_else(|| {
+            panic!(
+                "unknown REPL palette {name:?}; available palettes: {}",
+                Self::palette_names()
+            )
+        })
+    }
+
+    /// The palette named by the `variable` environment variable.
+    ///
+    /// WHY it does not panic where [`ReplTheme::named`] does: this name comes
+    /// from whoever is running the program, and refusing to start over a
+    /// mistyped colour scheme turns a cosmetic preference into an outage. An
+    /// unknown value is logged and the default is used.
+    ///
+    /// Unset means "no preference" and yields [`ReplTheme::default`]. Use
+    /// [`ReplTheme::from_env_or`] to fall back to something else.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_repl::ReplTheme;
+    ///
+    /// // Nothing set, so the default is used.
+    /// assert_eq!(ReplTheme::from_env("REPL_THEME_DOC_EXAMPLE"), ReplTheme::default());
+    /// ```
+    #[must_use]
+    pub fn from_env(variable: &str) -> Self {
+        Self::from_env_or(variable, Self::default())
+    }
+
+    /// The palette named by the `variable` environment variable, or `fallback`.
+    ///
+    /// Behaves like [`ReplTheme::from_env`] but lets an application pick its
+    /// own house palette as the starting point instead of the crate default.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_repl::ReplTheme;
+    ///
+    /// let theme = ReplTheme::from_env_or("REPL_THEME_DOC_EXAMPLE_2", ReplTheme::dusk());
+    /// assert_eq!(theme, ReplTheme::dusk());
+    /// ```
+    #[must_use]
+    pub fn from_env_or(variable: &str, fallback: Self) -> Self {
+        let Ok(name) = std::env::var(variable) else {
+            return fallback;
+        };
+
+        // An empty or whitespace-only value is what an unset shell variable
+        // looks like after `FOO= cmd`, so treat it as "no preference" too.
+        if name.trim().is_empty() {
+            return fallback;
+        }
+
+        Self::by_name(name.trim()).unwrap_or_else(|| {
+            tracing::warn!(
+                "unknown palette {name:?} in {variable}; using the fallback. \
+                 Available palettes: {}",
+                Self::palette_names()
+            );
+            fallback
+        })
+    }
+
+    /// The known palette names, comma separated, for diagnostics.
+    fn palette_names() -> String {
+        Self::palettes()
+            .iter()
+            .map(|(name, _)| *name)
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 }
 
