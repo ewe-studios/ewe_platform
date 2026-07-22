@@ -368,6 +368,11 @@ let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
 
 ## 6. Tools
 
+> For the built-in `read`/`write`/`edit`/`bash` tools, the `ToolPreset`
+> helpers, and sub-agent delegation, see the dedicated guide:
+> **[Getting Started: Tools & Presets](03-tools-and-presets.md)**. This section
+> is the quick version.
+
 ### 6.1. Default ToolShed
 
 Default: only the `shed` meta-tool (tool registry lookup). No actual
@@ -505,8 +510,10 @@ cargo run -p foundation_ai --example agent_with_tools --features agentic
 
 ## See Also
 
-- **Doc 00-1** — Getting Started: Providers (provider setup, persistence)
-- **Doc 01** — Agentic loop internals
-- **Doc 04** — Tools (tool registry, execution DAG)
-- **Doc 08** — AgentSession deep dive (preflight, resume protocol)
-- **Doc 12** — Harness presets (RouterMix, RouterPreset)
+- **[Getting Started: Providers](01-providers.md)** — provider setup, persistence
+- **[Getting Started: Tools & Presets](03-tools-and-presets.md)** — file/shell tools, presets, delegation
+- **[Doc 01 — Agentic loop](../01-agentic-loop.md)** — loop internals
+- **[Doc 04 — Tools](../04-tools.md)** — tool registry, execution DAG
+- **[Doc 08 — AgentSession](../08-how-to-agent-session.md)** — preflight, resume protocol
+- **[Doc 12 — Harness presets](../12-how-to-harness-presets.md)** — RouterMix, RouterPreset
+- **[Doc 14 — GPU Acceleration](../14-gpu-acceleration.md)** — CUDA, Metal, Vulkan

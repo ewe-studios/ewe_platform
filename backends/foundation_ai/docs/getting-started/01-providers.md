@@ -20,14 +20,18 @@ scratch.
 | `llamacpp` | `llama.cpp` GGUF inference + GPU backends | Local inference |
 | `candle` | Candle (safetensors) inference | Local ML framework |
 | `agentic` | Agent loop, session, tools, memory | Agent system |
-| `metal` / `vulkan` / `cuda` | GPU acceleration | Local with GPU |
+| `candle-cuda` / `cuda` / `metal` / `vulkan` | GPU acceleration | Local with GPU |
 | `testing` | `MockModelProvider`, `MockTool` | Unit tests |
 
-The `llamacpp` feature is on by default (along with `candle` and `agentic`).
+The `llamacpp`, `candle`, and `agentic` features are on by default. For GPU
+setup, see the **[GPU Acceleration](../14-gpu-acceleration.md)** deep dive.
 
 ```toml
 [dependencies]
-foundation_ai = { path = "../backends/foundation_ai", default-features = false, features = ["agentic"] }
+foundation_ai = { version = "0.0.1", default-features = false, features = ["agentic"] }
+foundation_auth = "0.0.1"
+foundation_db = "0.0.1"
+serde_json = "1"
 # Add "llamacpp" for local GGUF models, or rely on cloud providers only.
 ```
 
