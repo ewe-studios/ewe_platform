@@ -77,10 +77,16 @@ fn model_dir() -> PathBuf {
 // RUST_LOG when no explicit `tracing = "..."` is given (foundation_compact/src/
 // trace/mod.rs — `Some(s) => EnvFilter::new(s)`, `None => try_from_default_env`),
 // and this entry point always supplies one. Measured on the shipped directive:
-// 11 stderr lines, 0 from llama.cpp; flipped to `=debug`: 1214 lines, 1200 of
-// them the model-loader metadata dump.
+// 0 stderr lines from llama.cpp; flipped to `=debug`: 1214 lines, 1200 of them
+// the model-loader metadata dump.
+//
+// The valtron pool logs its own lifecycle — worker STARTED/STOPPED, shutdown,
+// registry clearing — at INFO and WARN, which put 11 more lines around a
+// one-line answer. They describe routine startup and teardown rather than
+// anything actionable, so this CLI drops them to `error`: a worker that fails
+// for real still reports, the routine chatter does not.
 #[valtron(
-    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off",
+    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off,foundation_core::valtron::executors=error",
     tracing_targets = true,
     tracing_names = true
 )]
