@@ -86,7 +86,7 @@ fn model_dir() -> PathBuf {
 // anything actionable, so this CLI drops them to `error`: a worker that fails
 // for real still reports, the routine chatter does not.
 #[valtron(
-    tracing = "info,answerme_agent=info,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off,foundation_core::valtron::executors=error",
+    tracing = "info,answerme_agent=debug,foundation_ai=info,mio=off,polling=off,llama-cpp-2=off,foundation_core::valtron::executors=error",
     tracing_targets = true,
     tracing_names = true
 )]
