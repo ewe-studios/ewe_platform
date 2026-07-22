@@ -15,7 +15,7 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 # Data plane primitives (feature 00). wasm gets the netstack only; native additionally
 # needs poll/fd for the UDP socket + reactor used by the tunnel driver.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", default-features = false, features = ["netstack"] }
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
@@ -48,7 +48,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in — `Connector` lives in `foundation_netio::http`, which is itself gated
 # behind `multi`.
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # the Noise-PSK control channel for bootstrap (decision 06; native-only per decision 01).
@@ -57,7 +57,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-fe
 # available to foundation_netio's ExchangeContinuation (which requires Send on
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
 foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the
 # RustCrypto backends (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s) — no C crypto, so
@@ -86,7 +86,7 @@ web-sys = { version = "0.3", features = [
 ] }
 js-sys = "0.3"
 # For wasm32, the netstack (smoltcp) is all we need — no poll/fd reactor.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", default-features = false, features = ["netstack"] }
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
 getrandom = { version = "0.2", features = ["js"] }
 

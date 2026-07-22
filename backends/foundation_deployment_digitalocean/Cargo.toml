@@ -18,7 +18,7 @@ version = "0.0.5"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.2"
+version = "0.0.3"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
@@ -34,7 +34,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.3"
 
 [dependencies.serde]
 workspace = true
@@ -47,7 +47,7 @@ workspace = true
 
 [dev-dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.2"
+version = "0.0.3"
 
 [dev-dependencies.foundation_deployment]
 path = "../foundation_deployment"
@@ -55,11 +55,11 @@ version = "0.0.1"
 
 [dev-dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.3"
 
 [dev-dependencies.foundation_testing]
 path = "../foundation_testing"
-version = "0.0.1"
+version = "0.0.2"
 
 [features]
 default = ["digitalocean"]

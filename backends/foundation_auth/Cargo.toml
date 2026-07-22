@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,8 +11,8 @@ keywords.workspace = true
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
@@ -82,14 +82,14 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", features = ["multi"] }
 
 # NOTE: `default-features = false` is required here. Cargo unions default-features
 # across a crate's dependency declarations, so without it this target line would
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"

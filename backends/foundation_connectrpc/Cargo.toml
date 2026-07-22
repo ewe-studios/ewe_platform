@@ -13,11 +13,11 @@ keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.2", optional = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", optional = true }
+foundation_auth = { path = "../foundation_auth", version = "0.0.2", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"

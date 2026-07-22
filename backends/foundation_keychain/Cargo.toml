@@ -33,22 +33,22 @@ thiserror = { workspace = true }
 
 # Foundation deps
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false }
 # Cross-platform HTTP client (`default_http_client`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on
 # native via foundation_db/turso, wasm-fetch on wasm — see per-target sections).
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
 # `default-features = false` is required: foundation_auth's default `turso` feature is
 # native-only and, via cargo's default-features union, would otherwise pull
 # foundation_db/turso → foundation_db/multi → foundation_netio/multi into the wasm build
 # and break compilation. Backend features are added per-target below (decision 03).
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false }
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
 # `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
 # build a D1-backed StorageProvider from the env binding.
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
+foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
 # worker-rs: `#[event(fetch)]` entry point + Request/Response/Env/D1.
 worker = { version = "0.8.3", features = ["d1"] }
 # Needed by the #[durable_object] / #[wasm_bindgen] proc macros for DO structs.
@@ -59,8 +59,8 @@ wasm-bindgen = "0.2"
 # password hashing on Workers (decision 01 — all crypto via foundation_auth).
 # NOTE: `wasm-bindgen-session` (foundation_auth D1CredentialStore) is added in the auth/login
 # stage that actually uses it — the vault-CRUD stages talk to foundation_db's D1 directly.
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["wasm-pbkdf2"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false, features = ["wasm-fetch"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false, features = ["wasm-pbkdf2"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false, features = ["wasm-fetch"] }
 # Workers DO/WebSocket machinery (spec-57 F010). Pulls the general DurableObject
 # helpers + WebSocket accept primitives built in foundation_deployment_cloudflare.
 foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.1", default-features = false, features = ["workers"] }
@@ -69,10 +69,10 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["server", "turso"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false, features = ["turso"] }
 # Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
 ssh-key = { version = "0.6", features = ["ed25519", "rsa"] }
 age = { version = "0.10" }

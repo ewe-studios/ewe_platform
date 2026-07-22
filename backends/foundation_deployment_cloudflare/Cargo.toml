@@ -34,7 +34,7 @@ version = "0.0.5"
 [dependencies.foundation_netio]
 default-features = false
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.3"
 
 # Native: SSL + multi for the REST API client.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
@@ -44,14 +44,14 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.3"
 
 # wasm32: wasm-fetch for the Workers runtime (no SSL/multi threads).
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
 default-features = false
 features = ["wasm-fetch"]
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.3"
 
 [dependencies.serde]
 workspace = true

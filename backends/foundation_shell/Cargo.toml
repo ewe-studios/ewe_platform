@@ -24,7 +24,7 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 
 [dev-dependencies]
-foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+foundation_testing = { path = "../foundation_testing", version = "0.0.2" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_vectors"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,8 +16,8 @@ libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["std"], optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.2", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.1", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -39,8 +39,8 @@ tempfile = "3"
 async-trait = "0.1"
 futures-lite = "2"
 foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["std", "multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.2", features = ["turso", "libsql"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
+foundation_db = { path = "../foundation_db", version = "0.0.3", features = ["turso", "libsql"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.3" }
 
 [features]
 code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python", "dep:tree-sitter-go"]
