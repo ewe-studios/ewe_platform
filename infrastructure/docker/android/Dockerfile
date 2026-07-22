@@ -5,7 +5,7 @@
 # Full QEMU (with VNC) replaces the SDK's headless binary.
 
 FROM scratch AS runner
-COPY --from=ewestudios/qemu:7.37-x11 / /
+COPY --from=ewestudios/qemu:7.37 / /
 
 ARG VERSION_ARG="0.0"
 ARG ANDROID_SDK_ROOT=/opt/android-sdk
