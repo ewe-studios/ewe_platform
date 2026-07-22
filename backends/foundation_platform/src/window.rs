@@ -22,26 +22,21 @@ use crate::stack::{WebViewPool, WebViewState};
 /// In production this wraps Tauri's `AppHandle`; in tests it's absent.
 pub trait WindowOps: Send + Sync + 'static {
     /// Create a new WebView window with the given label and initial URL.
-    /// The window is created HIDDEN — call `show()` to make it visible.
     fn create(&self, label: &str, url: &str);
-
     /// Navigate an existing window to a new URL.
     fn navigate(&self, label: &str, url: &str);
-
     /// Show a window (make visible, bring to front).
     fn show(&self, label: &str);
-
     /// Hide a window (keep alive, not visible).
     fn hide(&self, label: &str);
-
     /// Close/destroy a window permanently.
     fn close(&self, label: &str);
-
     /// Capture a screenshot of the window as PNG bytes.
     fn screenshot(&self, label: &str) -> Vec<u8>;
-
     /// Evaluate JavaScript in the window.
     fn eval(&self, label: &str, script: &str);
+    /// Open a URL in the system browser (external navigation).
+    fn open_url(&self, url: &str);
 }
 
 // ── Tauri-backed implementation ──────────────────────────────────────────
@@ -127,6 +122,15 @@ mod tauri_impl {
                 let _ = window.eval(script);
             }
         }
+
+        fn open_url(&self, url: &str) {
+            // Tauri: open in default OS browser via window.open + escape hatch.
+            // On desktop this creates a new browser tab; on Android it fires
+            // an intent that the system browser handles.
+            if let Some(window) = self.app_handle.get_webview_window("main") {
+                let _ = window.eval(&format!("window.open('{url}','_blank')"));
+            }
+        }
     }
 }
 
@@ -135,8 +139,6 @@ pub use tauri_impl::TauriWindowOps;
 
 // ── Noop implementation (for tests) ──────────────────────────────────────
 
-/// A no-op `WindowOps` for tests. All methods are silent — the pool
-/// operates without real windows.
 pub struct NoopWindowOps;
 
 impl WindowOps for NoopWindowOps {
@@ -147,6 +149,7 @@ impl WindowOps for NoopWindowOps {
     fn close(&self, _label: &str) {}
     fn screenshot(&self, _label: &str) -> Vec<u8> { Vec::new() }
     fn eval(&self, _label: &str, _script: &str) {}
+    fn open_url(&self, _url: &str) {}
 }
 
 // ── Window manager — high-level operations over WindowOps + Pool ──────────
@@ -219,6 +222,35 @@ impl WindowManager {
         };
         ops.close(label);
         pool.remove(label);
+    }
+
+    /// Navigate an existing window to a new URL.
+    pub fn navigate(&self, pool: &mut WebViewPool, label: &str, url: &str) {
+        let ops_guard = self.ops.lock().unwrap();
+        let ops = match ops_guard.as_ref() {
+            Some(o) => o,
+            None => return,
+        };
+        ops.navigate(label, url);
+        pool.set_route(label, url);
+    }
+
+    /// Open a URL in the system browser via Tauri shell (external navigation).
+    pub fn open_external(&self, _pool: &mut WebViewPool, url: &str) {
+        let ops_guard = self.ops.lock().unwrap();
+        if let Some(ops) = ops_guard.as_ref() {
+            ops.open_url(url);
+        }
+    }
+
+    /// Capture a screenshot of a window as PNG bytes.
+    pub fn screenshot(&self, _pool: &mut WebViewPool, label: &str) -> Vec<u8> {
+        let ops_guard = self.ops.lock().unwrap();
+        if let Some(ops) = ops_guard.as_ref() {
+            ops.screenshot(label)
+        } else {
+            Vec::new()
+        }
     }
 
     /// Check if window ops are available (false in tests).

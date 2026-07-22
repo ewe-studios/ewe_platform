@@ -4,10 +4,10 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F06-webview-stack"
 this_file: "specifications/52-tauri-foundation-platform/features/F06-webview-stack/feature.md"
 
-status: completed
-priority: high
+status: in-progress
+priority: critical
 created: 2026-07-17
-updated: 2026-07-21
+updated: 2026-07-22
 
 depends_on:
   - "F01-session-backbone"
@@ -15,165 +15,128 @@ depends_on:
 
 tasks:
   completed: 7
-  uncompleted: 0
-  total: 7
-  completion_percentage: 100%
+  uncompleted: 4
+  total: 11
+  completion_percentage: 64%
 ---
 
-# F06 — Single-WebView stack manager (v1)
+# F06 — Multi-WebView stack manager (Hotwire Native model)
 
-## Overview
+## Problem (revised 2026-07-22)
 
-Implement Basecamp-model single-WebView + screenshot-swap stack manager. v1
-operates with one shared WebView. Screenshot capture on deactivation, instant
-screenshot display on back navigation, stale content detection, back-gesture
-integration. Multi-WebView (desktop+unstable) is post-MVP.
+The original v1 spec described a single-WebView + screenshot-swap model.
+This was wrong. Hotwire Native does NOT use screenshots — it creates a
+**new native ViewController/Activity with its own WebView** on every push.
+The old WebView stays alive. On pop, the previous screen is already
+rendered — it's the native stack popping, not a screenshot hack.
 
-[Decision 10](../decisions/10-multi-webview-stack.md).
+Tauri v2 supports multiple WebViews on ALL platforms (desktop AND Android).
+`WebviewWindowBuilder::new(app_handle, label, url)` creates a new WebView
+backed by a new window/activity/fragment on every platform. Mobile does
+not use screenshots — it uses the native back gesture.
 
----
+## Solution: Hotwire Native model
 
-## Part A — WebViewSlot and slot state
-
-```rust
-// foundation_platform/src/stack.rs
-
-pub struct WebViewSlot {
-    pub route: String,
-    pub page_identity: Option<PageIdentity>,
-    pub webview: Option<Webview<R>>,
-    pub screenshot: Option<Vec<u8>>,
-    pub state: SlotState,
-    pub is_content_stale: bool,
-}
-
-impl WebViewSlot {
-    pub fn capture_screenshot(&mut self) {
-        if let Some(wv) = &self.webview {
-            // JS canvas-based capture: evaluate_script("canvas.toDataURL()")
-            // Store as base64-encoded PNG
-            let script = "document.documentElement.outerHTML"; // placeholder
-            // wv.evaluate_script(script) → parse → encode → store
-            self.screenshot = Some(vec![]); // placeholder
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SlotState { Screenshot, Preloading, Ready, Active, Transitioning }
-```
-
-### A.2 — WebViewStack
-
-```rust
-pub struct WebViewStack<R: Runtime> {
-    window: WebviewWindow<R>,
-    slots: Vec<WebViewSlot>,
-    active_index: usize,
-    config: StackConfig,
-}
-
-pub struct StackConfig {
-    pub max_screenshots: usize,         // default: 10
-    pub screenshot_memory_budget: usize, // default: 50MB
-    /// Single shared WebView for v1 (Basecamp model).
-    /// All screens share this — the pool is this one WebView.
-    pub shared_webview: Option<Webview<R>>,
-}
-```
-
-### A.3 — Navigation: push (v1 Basecamp model)
+Each `Presentation::Push` or `Presentation::Modal` creates a NEW WebView
+window. The old WebView stays alive behind it. The pool tracks all
+WebViews by label. On pop, the platform calls `window.close()` on the
+top WebView, revealing the previous one — already rendered, instant.
 
 ```
-1. User taps link → session intercepts → RouteDecision
-2. If Presentation::Push:
-   - Deactivate current: screenshot captured, slot → Screenshot
-   - Move shared WebView to new screen: navigate to new URL
-   - foundation-wasm-ui.js re-injected, content loads
-   - Animate: old screenshot slides left, new content slides in
-3. Previous slot shows its screenshot, has no live WebView.
+Presentation::Push:
+  1. WindowManager.ensure("wv_3", url) → creates new WebView window
+  2. Pool: push new entry with label "wv_3", state Loading
+  3. Previous slot state → Ready (hidden, alive)
+  4. New slot state → Active (visible, focused)
+
+Presentation::Pop (triggered by back):
+  1. Pool: pop top slot
+  2. WindowManager.close("wv_3") → destroys top WebView
+  3. WindowManager.activate("wv_2") → shows previous WebView
+  4. Previous WebView is already rendered — no screenshot, no reload
+
+Presentation::Morph:
+  1. Same WebView, in-place navigate
+  2. Pool: update active slot's route, depth unchanged
+
+Presentation::Replace:
+  1. Same WebView, in-place navigate
+  2. Pool: update active slot's route, depth unchanged
+
+Presentation::Root:
+  1. Destroy all WebViews except the new root
+  2. Pool: clear, push single root slot
 ```
 
-### A.4 — Navigation: pop (v1)
+### No screenshots on mobile
 
-```
-1. User taps back → stack manager pops top slot
-2. Previous slot has screenshot (Screenshot):
-   - Show screenshot INSTANTLY (feels fast, exactly like Basecamp)
-   - Move shared WebView to this slot, navigate to route
-   - Screenshot → Active once content loads
-3. If content is stale (isShowingStaleContent) → reload after visible
-```
+Screenshots are a Basecamp v1 hack. Hotwire Native doesn't need them
+because the previous WebView is already alive and rendered. On back,
+you just show it — the WebView's DOM is still in memory with the full
+page state (scroll position, form input, JS state). This is superior
+to a frozen screenshot in every way.
 
-### A.5 — Screenshot lifecycle
+On DESKTOP, if multi-window is enabled (user opted in), Push creates a
+separate OS window. The screenshot-swap model is a fallback for
+single-window desktop mode (F35's v2 scenario), but it's NOT the
+primary model — it's an optional optimization for constrained UIs.
 
-```rust
-impl<R: Runtime> WebViewStack<R> {
-    /// Push a new screen onto the stack.
-    pub fn push(&mut self, route: &str, view_kind: ViewKind) {
-        // 1. Capture screenshot of current active slot
-        if let Some(slot) = self.slots.get_mut(self.active_index) {
-            slot.capture_screenshot();
-            slot.state = SlotState::Screenshot;
-        }
+### Back navigation
 
-        // 2. Create new slot, navigate shared WebView to new URL
-        let mut new_slot = WebViewSlot::new(route);
-        if let Some(wv) = &self.config.shared_webview {
-            let _ = wv.navigate(Url::parse(&format!("ewe://localhost{}", route)).unwrap());
-            new_slot.webview = Some(/* shared WebView moves here */);
-        }
-        new_slot.state = SlotState::Active;
+The platform hooks Tauri's window close event. When a pushed WebView
+is closed (back gesture on Android, Cmd+W on desktop), the platform:
+1. Pops the stack
+2. Activates the previous WebView
+3. No screenshot, no reload — the WebView was alive the whole time
 
-        // 3. Add to slots, update active index
-        self.slots.push(new_slot);
-        self.active_index = self.slots.len() - 1;
-    }
+## Requirements
 
-    /// Pop the top screen.
-    pub fn pop(&mut self) {
-        if self.slots.len() <= 1 { return; }
+### R1. `WebViewSlot` — per-slot data ✅
+- `route`, `page_identity`, `state: SlotState`, `is_content_stale`
+- `webview_label: String` — the Tauri window label for this slot
 
-        // Remove top slot
-        self.slots.pop();
+### R2. `WebViewPool` — label → state tracking ✅
+- `get_or_create(label)`, `get(label)`, `set_state()`, `set_route()`
+- `find_idle()` for preload reuse
 
-        // Activate previous slot
-        self.active_index = self.slots.len() - 1;
-        let prev = &mut self.slots[self.active_index];
+### R3. `WebViewStack` — navigation state machine ✅
+- `push_with_presentation()` — branches per mode
+- `pop()` — close top WebView, activate previous
+- `morph()` / `replace()` — in-place navigate
+- `set_root()` — destroy all, new root
 
-        // Show screenshot instantly, reload behind it
-        prev.show_screenshot();
-        if prev.is_content_stale {
-            prev.reload();
-            prev.is_content_stale = false;
-        }
-        prev.state = SlotState::Active;
-    }
-}
-```
+### R4. `record_presentation` — wired to WindowManager 🔄
+- Push/Modal → `WindowManager.ensure(label, url)` creates NEW WebView
+- Morph/Replace → `WindowManager.navigate(label, url)` navigates existing
+- Root → `WindowManager.close()` all except new root
+- External → `tauri::api::shell::open()` system browser
 
-### A.5 — Session integration
+### R5. `WindowManager` — per-window lifecycle ✅
+- `ensure(label, url)` → create if missing, navigate if exists
+- `activate(label)` → show + focus
+- `deactivate(label)` → hide
+- `destroy(label)` → close + remove from pool
 
-```rust
-// Registered as a session subsystem:
-session.register_subsystem(WebViewStack::new(config));
+### R6. Desktop single-window fallback ⚠️ deferred
+- Single-window mode uses screenshot-swap as optimization
+- Multi-window mode (default on desktop) uses the Push=NewWindow model
+- Mobile always uses Push=NewWindow (native back gesture)
 
-// On navigation decisions, the stack manager reacts:
-session.on_navigate(|intent, session| {
-    match intent.presentation {
-        Presentation::Push => session.stack().push(&intent.url, intent.view_kind),
-        Presentation::Pop => session.stack().pop(),
-        Presentation::Replace => session.stack().replace_current(&intent.url),
-        Presentation::Root => session.stack().set_root(&intent.url),
-        _ => { /* Morph, Modal, External handled elsewhere */ }
-    }
-});
-```
+### R7. Back button integration — Tauri window close hook 🔄
+- `window.on_close_requested()` → pool.pop() → activate previous
+- Android back gesture → same flow
 
----
+### R8. No screenshots for Push on mobile 🔄
+- Previous WebView stays alive, hidden
+- Back reveals it instantly — DOM state preserved
+- Screenshots only used for single-window desktop fallback
 
-## Verification
+## Files
 
-```bash
-cargo test --package foundation_platform -- stack
-```
+| File | Action |
+|------|--------|
+| `backends/foundation_platform/src/stack.rs` | WebViewPool, WebViewStack, SlotState |
+| `backends/foundation_platform/src/window.rs` | WindowManager, WindowOps, TauriWindowOps |
+| `backends/foundation_platform/src/session.rs` | record_presentation → WindowManager wiring |
+| `backends/foundation_platform/src/builder.rs` | PlatformBuilder injects TauriWindowOps |
+| `backends/foundation_wasm_ui/runtimes/stack-viewport.js` | Optional: screenshot overlay for single-window |

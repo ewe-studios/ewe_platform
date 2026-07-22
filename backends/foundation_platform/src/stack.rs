@@ -187,6 +187,12 @@ impl WebViewPool {
     pub fn remove(&mut self, label: &str) {
         self.views.remove(label);
     }
+
+    /// All WebView labels currently in the pool (F35 — Hotwire Native).
+    #[must_use]
+    pub fn labels(&self) -> Vec<String> {
+        self.views.keys().cloned().collect()
+    }
 }
 
 // ── Preload entry ────────────────────────────────────────────────────
