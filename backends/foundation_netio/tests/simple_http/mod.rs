@@ -22,6 +22,7 @@ mod compression_tests;
 mod connection_tests;
 mod cookie_tests;
 mod redacted_headers_tests;
+mod try_clone_tests;
 mod dns_tests;
 mod eof_handling_tests;
 mod errors_tests;

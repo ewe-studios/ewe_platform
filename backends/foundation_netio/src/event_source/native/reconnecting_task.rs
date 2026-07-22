@@ -16,7 +16,7 @@
 use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::shared::client::DnsResolver;
 use crate::shared::http::timeout::TimeoutCalculator;
-use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
+use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod, TryClone};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use std::time::{Duration, Instant};
@@ -247,13 +247,20 @@ where
         // as a connection error and retried, so every attempt burns the same way
         // and the stream dies with "max retries exhausted".
         //
-        // `Text`/`Bytes` are replayable, so clone them. The iterator variants are
-        // single-shot streams that genuinely cannot be replayed — those keep the
-        // original take-semantics rather than silently resending a spent body.
-        let body = match self.config.body {
-            Some(SendSafeBody::Text(ref t)) => Some(SendSafeBody::Text(t.clone())),
-            Some(SendSafeBody::Bytes(ref b)) => Some(SendSafeBody::Bytes(b.clone())),
-            _ => self.config.body.take(),
+        // `SendSafeBody::try_clone` decides what is replayable: owned payloads
+        // copy, single-shot streams refuse. A refused body keeps the original
+        // take-semantics — it applies to the first connection and no other,
+        // because handing out a second handle to a spent stream would send an
+        // empty body rather than the intended one.
+        let body = match self.config.body.as_ref() {
+            Some(body) => match body.try_clone() {
+                Ok(replayable) => Some(replayable),
+                Err(err) => {
+                    debug!(%err, "body cannot be replayed; applying to this connection only");
+                    self.config.body.take()
+                }
+            },
+            None => None,
         };
         if let Some(body) = body {
             task = task.with_body(body);
