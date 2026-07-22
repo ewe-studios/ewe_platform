@@ -10,7 +10,7 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }

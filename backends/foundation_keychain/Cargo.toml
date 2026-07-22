@@ -32,7 +32,7 @@ thiserror = { workspace = true }
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
 # Cross-platform HTTP client (`default_http_client`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on
@@ -84,7 +84,7 @@ tempfile = "3"
 tracing-test = { workspace = true }
 tracing-subscriber = { workspace = true }
 # valtron multi-worker pool for #[valtron_test] async tests.
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
 # Docker container support for #[docker_container] test macro.
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
 

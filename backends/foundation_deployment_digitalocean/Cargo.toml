@@ -14,7 +14,7 @@ workspace = true
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.4"
+version = "0.0.5"
 
 [dependencies.foundation_db]
 path = "../foundation_db"

@@ -69,7 +69,7 @@ wasm-embedded-js = [
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
 which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"

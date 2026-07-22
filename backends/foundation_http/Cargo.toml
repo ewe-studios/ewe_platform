@@ -10,7 +10,7 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 

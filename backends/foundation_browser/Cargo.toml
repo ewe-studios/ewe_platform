@@ -13,7 +13,7 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # `multi` is REQUIRED: foundation_netio's native WebSocket client is
 # `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.

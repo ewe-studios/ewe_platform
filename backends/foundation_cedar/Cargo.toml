@@ -16,7 +16,7 @@ serde_json = "1.0"
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
 smol_str = "0.3"
 
-foundation_core = { path = "../foundation_core", version = "0.0.4", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.5", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.2", optional = true, default-features = false }
 
 [dev-dependencies]

@@ -19,7 +19,7 @@ foundation_platform = { path = "../../../backends/foundation_platform" }
 
 [dependencies]
 tauri = { version = "2.11.5", features = [] }
-foundation_core = { path = "../../../backends/foundation_core", version = "0.0.3", features = ["multi"] }
+foundation_core = { path = "../../../backends/foundation_core", version = "0.0.5", features = ["multi"] }
 foundation_platform = { path = "../../../backends/foundation_platform" }
 foundation_ui_traits = { path = "../../../backends/foundation_ui_traits" }
 foundation_wasm = { path = "../../../backends/foundation_wasm" }

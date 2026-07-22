@@ -10,7 +10,7 @@ description = "Reverse proxy — SSL termination, zero-downtime deploys, health-
 
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
 foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }

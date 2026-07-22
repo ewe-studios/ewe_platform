@@ -19,7 +19,7 @@ foundation_packager = { path = "../../backends/foundation_packager", version = "
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.1" }
-foundation_core = { path = "../../backends/foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.5", features = ["multi"] }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.1" }
 foundation_runtimes = { path = "../../backends/foundation_runtimes", version = "0.0.3" }

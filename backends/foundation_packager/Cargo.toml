@@ -10,7 +10,7 @@ repository.workspace = true
 keywords = ["templating", "code-generation", "project-scaffolding"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 derive_more = { workspace = true }

@@ -12,7 +12,7 @@ keywords = ["database", "storage", "turso", "foundation"]
 [dependencies]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["std"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["std"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.1", features = ["crypto-chacha"] }
 # foundation_netio stays available on every target (it has a wasm `fetch`
 # client), but only with the wasm-safe base here. Its default `multi` feature —
@@ -70,7 +70,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["std", "multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["std", "multi"] }
 
 [features]
 default = ["turso", "d1", "r2"]

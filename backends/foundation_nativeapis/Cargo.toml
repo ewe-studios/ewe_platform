@@ -13,7 +13,7 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.5", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.1", optional = true }
@@ -77,7 +77,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
 
 [dev-dependencies]
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }

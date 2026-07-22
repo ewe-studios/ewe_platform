@@ -34,7 +34,7 @@ sha2 = "0.10"
 toml = "0.8"
 urlencoding = "2.1"
 walkdir = "2.5"
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.2" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }

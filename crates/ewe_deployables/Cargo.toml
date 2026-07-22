@@ -11,7 +11,7 @@ keywords.workspace = true
 
 [dependencies]
 # Foundation crates
-foundation_core = { path = "../../backends/foundation_core", version = "0.0.3" }
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.1" }
 foundation_deployment = { path = "../../backends/foundation_deployment", version = "0.0.1", features = ["cloudflare", "cloudflare_workers", "gcp", "gcp_run"] }
 foundation_db = { path = "../../backends/foundation_db", version = "0.0.1", default-features = false }
