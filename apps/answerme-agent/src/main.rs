@@ -223,6 +223,6 @@ fn extract_assistant_text(records: &[SessionRecord]) -> String {
     if parts.is_empty() {
         "(no response)".into()
     } else {
-        parts.join("\n")
+        parts.join(" ")
     }
 }

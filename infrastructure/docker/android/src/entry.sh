@@ -6,13 +6,16 @@ echo "=== ewe-android starting ==="
 AVD_NAME="${DEVICE:-pixel_6}"
 echo "Device: ${AVD_NAME}"
 
-# ── Emulator Qt libs ─────────────────────────────────────────────────
+# ── Emulator libs (Qt + tcmalloc from SDK) ───────────────────────────
 export LD_LIBRARY_PATH="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
 
 # ── ADB ──────────────────────────────────────────────────────────────
 adb start-server
 
 # ── Emulator ─────────────────────────────────────────────────────────
+# docker-android verified pattern: -no-window, -gpu swiftshader_indirect.
+# gfxstream renders to GPU framebuffer (not X11). ADB screencap is the
+# official graphics capture path.
 echo "Starting emulator: ${AVD_NAME}"
 nohup emulator \
     -avd "${AVD_NAME}" \
@@ -42,7 +45,7 @@ done
 
 adb -e shell settings put secure show_ime_with_hard_keyboard 0 2>/dev/null || true
 
-# ── Screen server: ADB screencap → HTTP auto-refresh (port 6080) ────
+# ── Screen server (ADB screencap → HTTP, port 6080) ──────────────────
 python3 /run/screencap-http.py 6080 &
 echo "Screen: http://localhost:6080/"
 

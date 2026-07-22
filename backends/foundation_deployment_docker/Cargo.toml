@@ -70,7 +70,7 @@ version = "0.0.2"
 
 [dependencies.foundation_errstacks]
 path = "../foundation_errstacks"
-version = "0.0.1"
+version = "0.0.2"
 
 # HTTP/2 server for the BuildKit session sidecar (serves FileSync back to
 # buildkitd). Optional; only the `buildkit` feature needs it.

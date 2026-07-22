@@ -5,7 +5,7 @@
 # Full QEMU (with VNC) replaces the SDK's headless binary.
 
 FROM scratch AS runner
-COPY --from=ewestudios/qemu:7.37 / /
+COPY --from=ewestudios/qemu:7.37-x11 / /
 
 ARG VERSION_ARG="0.0"
 ARG ANDROID_SDK_ROOT=/opt/android-sdk
@@ -21,13 +21,12 @@ RUN <<EOF
   set -eu
 
   # ── Java + Android-specific deps ──
-  # X11 stack (xvfb, x11vnc, openbox, xterm, libpulse0) comes from QEMU base.
+  # X11 display stack (xvfb, x11vnc, openbox, xterm) comes from QEMU base.
   apt-get update
   apt-get --no-install-recommends -y install \
     openjdk-21-jdk-headless \
     cpu-checker \
-    unzip \
-    libx11-6
+    unzip
 
   apt-get clean
 
@@ -80,7 +79,7 @@ ENV RAM_SIZE="4G"
 ENV CPU_CORES="2"
 ENV DISK_SIZE="8G"
 ENV ANDROID_AVD_HOME=/root/.android/avd
-ENV DISPLAY=:99
+ENV DISPLAY=:0
 # Emulator QEMU needs Qt + tcmalloc + WebRTC from the SDK's lib64 dir.
 ENV EMULATOR_LIB64="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
 # Default device: Pixel 6. Override in docker-compose or `docker run -e DEVICE=...`

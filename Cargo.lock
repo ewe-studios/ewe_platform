@@ -4738,11 +4738,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_conditional"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "foundation_config"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "derive_more",
  "serde",
@@ -5051,7 +5051,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "derive_more",
  "futures-core",
@@ -5183,7 +5183,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_logging"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -5342,7 +5342,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_packager"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cargo_toml 0.20.5",
  "derive_more",
@@ -5414,13 +5414,16 @@ dependencies = [
 
 [[package]]
 name = "foundation_repl"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "crossterm 0.28.1",
  "js-sys",
  "ratatui",
  "serde",
  "serde_json",
+ "tracing",
+ "tracing-test",
+ "unicode-width 0.2.2",
  "web-sys",
 ]
 

@@ -25,7 +25,7 @@ version = "0.0.1"
 
 [dependencies.foundation_errstacks]
 path = "../foundation_errstacks"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"

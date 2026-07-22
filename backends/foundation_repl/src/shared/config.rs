@@ -1,52 +1,37 @@
 //! Configuration types for customizing the REPL.
 //!
-//! [`ReplConfig`] holds prompt strings, banners, and limits.
-//! [`ReplColors`] (behind the `colors` feature) controls ANSI colors.
+//! [`ReplConfig`] holds prompt strings, banners, limits and the visual
+//! [`ReplTheme`](crate::ReplTheme) the input box and output region are drawn in.
 
-#[cfg(feature = "colors")]
-use crossterm::style::Color;
+use core::fmt;
 
-/// Color configuration for the REPL display.
-#[cfg(feature = "colors")]
-#[derive(Debug, Clone)]
-pub struct ReplColors {
-    /// Prompt foreground color. Default: DarkGreen.
-    pub prompt_color: Color,
-    /// Continuation prompt foreground color. Default: DarkYellow.
-    pub continuation_prompt_color: Color,
-    /// Response text foreground color. Default: None (no change).
-    pub response_color: Option<Color>,
-    /// Error text foreground color. Default: Red.
-    pub error_color: Color,
-}
-
-#[cfg(feature = "colors")]
-impl Default for ReplColors {
-    fn default() -> Self {
-        Self {
-            prompt_color: Color::DarkGreen,
-            continuation_prompt_color: Color::DarkYellow,
-            response_color: None,
-            error_color: Color::Red,
-        }
-    }
-}
+use crate::shared::theme::ReplTheme;
 
 /// Full configuration for a REPL session.
-#[derive(Debug, Clone)]
+///
+/// WHY: everything a caller is likely to want to change — what the prompt says,
+/// what the box looks like, how much text is accepted — lives in one value that
+/// can be built once and reused.
+///
+/// WHAT: prompt strings, the optional banner and goodbye lines, an input length
+/// ceiling, and the theme.
+///
+/// HOW: build one with [`Repl::builder()`](crate::Repl::builder), or start from
+/// [`ReplConfig::default()`] and adjust fields directly.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReplConfig {
-    /// Primary prompt string (e.g. "| ").
+    /// Primary prompt string (e.g. `"| "`).
     pub prompt: String,
-    /// Continuation prompt for multiline input (e.g. "... ").
+    /// Continuation prompt for multiline input (e.g. `"|... "`).
     pub continuation_prompt: String,
     /// Welcome banner shown on startup.
     pub banner: Option<String>,
     /// Goodbye message shown on exit.
     pub goodbye: Option<String>,
-    /// Maximum input length (chars). None = unlimited.
+    /// Maximum input length in bytes. `None` means unlimited.
     pub max_input_length: Option<usize>,
-    #[cfg(feature = "colors")]
-    pub colors: ReplColors,
+    /// Colours, border and padding used to draw the REPL.
+    pub theme: ReplTheme,
 }
 
 impl Default for ReplConfig {
@@ -57,8 +42,20 @@ impl Default for ReplConfig {
             banner: None,
             goodbye: None,
             max_input_length: Some(64 * 1024),
-            #[cfg(feature = "colors")]
-            colors: ReplColors::default(),
+            theme: ReplTheme::default(),
         }
+    }
+}
+
+impl fmt::Display for ReplConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "ReplConfig(prompt {:?}, max input {}, {})",
+            self.prompt,
+            self.max_input_length
+                .map_or_else(|| "unlimited".to_string(), |limit| limit.to_string()),
+            self.theme
+        )
     }
 }

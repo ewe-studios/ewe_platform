@@ -56,7 +56,9 @@ RUN <<EOF
     x11vnc \
     openbox \
     xterm \
-    libpulse0 \
+    libxcomposite-dev \
+    feh \
+    x11-xkb-utils \
     libxcomposite1 \
     libx11-6
 
