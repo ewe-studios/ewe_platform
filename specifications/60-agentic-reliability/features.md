@@ -73,6 +73,12 @@ implemented, or explicitly deferred.
 |---|---------|--------|
 | F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **In progress** — see features/F19-unified-tool-model.md |
 
+### Phase F — GPU execution
+
+| # | Feature | Status |
+|---|---------|--------|
+| F20 | CUDA end-to-end for candle and llama.cpp — `CandleBackend::Cuda` is declared but has no constructor (unconstructible today); llama.cpp defaults to `n_gpu_layers = 0` and needs the `cuda` feature to be built with GPU support at all; workstation driver/userspace skew (610.43.02 vs .03) blocks all of it | **Not started** — see features/F20-cuda-end-to-end.md |
+
 ## Working agreements
 
 - No `#[traced_test]` — `#[valtron_test]` handles tracing.

@@ -1,0 +1,145 @@
+---
+feature: "F20 — CUDA end-to-end for candle and llama.cpp"
+status: "not-started"
+priority: "high"
+depends_on: ["F03"]
+---
+
+# F20 — CUDA end-to-end for candle and llama.cpp
+
+## Goal
+
+Local inference runs **on the GPU** through both backends — `candle` and
+`llama.cpp` — from a public API a caller can actually reach, proven by a test
+that fails if execution silently falls back to CPU.
+
+Today neither backend can reach the GPU on this workstation, for three
+independent reasons. Each is a separate work item below.
+
+## Measured starting state (2026-07-22)
+
+Hardware present and adequate; nothing here needs new silicon.
+
+| Item | Value |
+|---|---|
+| GPU 0 | NVIDIA RTX 4070 Ti SUPER (AD102, Ada, SM 8.9) |
+| GPU 1 | NVIDIA RTX 4060 Ti (AD106, Ada, SM 8.9) |
+| CUDA toolkit | `nvcc` 13.3 (`/opt/cuda`) |
+| Kernel module | `610.43.02` (open kernel module) |
+| Userspace lib | `libnvidia-ml.so.610.43.03` |
+| `nvidia-smi` | **fails** — `Driver/library version mismatch` |
+| `cudarc` (lockfile) | 0.17.8 |
+| `candle-core` | 0.11 |
+
+Two GPUs matters: it makes `main_gpu`, `split_mode` and `tensor_split`
+meaningful to test rather than degenerate single-device no-ops.
+
+## The three blockers
+
+### B1 — Driver/userspace version skew (environment)
+
+The loaded kernel module is `610.43.02`; the userspace libraries installed on
+Jul 10 are `610.43.03`. NVML refuses to initialise across that skew, so
+**every** CUDA path fails before any of our code runs. The modules are in use
+(`nvidia` refcount 115, `nvidia_drm` bound alongside `amdgpu`), so they cannot
+be unloaded live on a running display server.
+
+*Resolution:* reboot to load the matching `610.43.03` module. This is an
+operator action, not a code change. Everything below is untestable until
+`nvidia-smi` reports both GPUs.
+
+### B2 — Candle's CUDA backend is unconstructible (code)
+
+`CandleBackend` (`src/backends/candle.rs:175`) declares a `Cuda` variant behind
+`#[cfg(feature = "candle-cuda")]`, and every internal `match` handles it —
+`config()`, `device()` (`Device::new_cuda(*device_id)`), `cache()`,
+`name()`. But the only public constructor is `cpu()` (line 200). No `cuda()`,
+no `new_cuda(device_id)`, no auto-detect.
+
+The variant is therefore reachable only by an internal re-wrap at line 256,
+which preserves an *already existing* `Cuda` value that nothing can create. **As
+shipped, `candle-cuda` cannot execute on a GPU no matter what flags are set** —
+enabling the Cargo feature compiles the arms and changes nothing observable.
+
+This also explains the 6 permanently-uncovered `cfg` sites at
+`candle.rs:182,210,221,231,255,276`: they are unreachable by construction, not
+merely untested.
+
+### B3 — llama.cpp defaults to CPU and needs a compile-time feature (code + build)
+
+Better shape than candle: `LlamaBackendConfig` already exposes `n_gpu_layers`,
+`main_gpu`, `split_mode` and `tensor_split` as builder setters
+(`llamacpp.rs:119-152, 230-280`), and `n_gpu_layers` reaches llama.cpp via
+`params.with_n_gpu_layers()` at line 187. Two gaps:
+
+1. `n_gpu_layers` defaults to `0` — "CPU-only by default" (line 144). Correct as
+   a safe default, but it means a caller who enables the `cuda` feature and
+   changes nothing else still runs entirely on CPU.
+2. The `cuda` Cargo feature must be on for llama.cpp to be *built* with CUDA
+   support (`cuda = ["llamacpp", "infrastructure_llama_cpp/cuda"]`). Without it
+   the setters are accepted and silently ignored by a CPU-only build.
+
+The dangerous combination is that both failures are **silent**: wrong feature
+flags or a zero layer count produce correct answers, slowly, with no warning.
+
+## Work items
+
+- **W1** (operator) Reboot; confirm `nvidia-smi` lists both GPUs and
+  `nvidia-smi -q` reports driver `610.43.03`.
+- **W2** Verify toolchain compatibility *before* writing code: `cudarc` 0.17.8
+  and `candle-core` 0.11 against **CUDA 13.3**. CUDA 13 is very new and cudarc
+  pins supported toolkit versions via features. If unsupported, decide between
+  pinning a CUDA 12.x toolkit alongside 13.3 or bumping candle/cudarc. Record
+  the decision in `decisions/`.
+- **W3** Give candle a real CUDA entry point: `CandleBackend::cuda(device_id)`,
+  plus a `try_cuda()`/`best_available()` that falls back to CPU **and says so**
+  through a return value or log — never a silent downgrade. Mirror for Metal so
+  Apple does not regress.
+- **W4** Make llama.cpp GPU use explicit and verifiable: a helper that offloads
+  all layers (e.g. `n_gpu_layers(u32::MAX)` semantics as llama.cpp defines it),
+  and a way to *read back* how many layers actually landed on GPU so a test can
+  assert offload happened rather than assuming it.
+- **W5** Detection + diagnostics: one shared "is CUDA usable right now" probe
+  that distinguishes *not compiled in*, *no device*, and *driver/library
+  mismatch* (B1's exact failure). Surface the mismatch as an actionable error —
+  it is the single most likely field failure and today it appears as an opaque
+  init error.
+- **W6** Build/CI: document the feature matrix (`cuda`, `cuda_static`,
+  `candle-cuda`/`candle-gpu`) and what each produces. Ensure a CPU-only build
+  still compiles with the CUDA features absent.
+
+## Acceptance criteria
+
+1. `nvidia-smi` healthy; `cargo test -p foundation_ai --features cuda,candle-cuda`
+   builds.
+2. A public API creates a CUDA candle backend and runs a generation whose output
+   is byte-comparable to the CPU path on the committed tiny fixtures.
+3. A llama.cpp generation runs with layers demonstrably offloaded, asserted from
+   a read-back count — **not** inferred from wall-clock speed.
+4. Requesting CUDA when it is unavailable produces a *distinguishable* error per
+   B1/B2/B3 cause; falling back to CPU is either explicit or refused.
+5. Both GPUs exercised: `main_gpu = 1` and a two-way `tensor_split` run.
+6. The 6 `candle.rs` `cfg(candle-cuda)` sites become genuinely covered — they
+   are unreachable today (B2), so this is the honest close of that coverage gap
+   rather than an excuse note.
+7. CPU-only build with no CUDA features still compiles and passes.
+
+## Test plan
+
+Gate GPU tests behind a new `gpu-tests` feature, self-skipping when no device is
+present, matching the existing `live-model-tests` / `external-service-tests`
+convention — a machine without an NVIDIA card must never fail the suite.
+
+The load-bearing assertion is **item 3**: a test that passes when the model
+silently ran on CPU is worse than no test, because it certifies the exact bug
+this feature exists to prevent. Assert on a read-back offload count.
+
+## Notes / risks
+
+- CUDA 13.3 with cudarc 0.17.8 is the largest unknown (W2) and is worth
+  resolving before any other code work.
+- `candle-core`'s `metal` feature is correctly Apple-gated
+  (`Cargo.toml:91`); do not "fix" it.
+- `nvidia_drm` is bound alongside `amdgpu` on this box; the AMD Raphael iGPU is
+  present. Keep display duties on whichever device currently drives them —
+  compute work should target the discrete cards explicitly by index.
