@@ -26,6 +26,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
 };
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
+use foundation_ai::types::ModelParams;
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelProvider, TextContent, ToolShed,
     UserModelContent,
@@ -670,5 +671,162 @@ fn an_embedding_response_with_no_data_is_an_error() {
     assert!(
         err.to_string().to_lowercase().contains("embedding"),
         "the error must name what was missing: {err}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Responses build_request: instructions + parameter gating
+// ---------------------------------------------------------------------------
+//
+// `build_request` folds system_prompt and soul into one `instructions` field
+// and gates each optional parameter on a sentinel. Both matter: dropping `soul`
+// loses the agent's persona, and sending `temperature: 0` when the caller meant
+// "unset" changes model behaviour rather than leaving the vendor default.
+
+/// Run one generate() against a recording server and return the request body.
+fn responses_request_body(interaction: ModelInteraction, params: Option<ModelParams>) -> String {
+    use foundation_netio::shared::http::SendSafeBody;
+
+    let seen = Arc::new(std::sync::Mutex::new(String::new()));
+    let recorder = Arc::clone(&seen);
+
+    let server = TestHttpServer::with_response(move |req| {
+        // The client may send either representation; read both so the capture
+        // cannot silently come back empty (which would make every "field is
+        // absent" assertion below pass vacuously).
+        let captured = match &req.body {
+            SendSafeBody::Text(t) => t.clone(),
+            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).into_owned(),
+            _ => String::new(),
+        };
+        *recorder.lock().unwrap() = captured;
+        response(
+            200,
+            "OK",
+            "application/json",
+            br#"{"id":"r1","object":"response","created_at":1,"model":"gpt-4o",
+                 "status":"completed","output":[],
+                 "usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}"#,
+        )
+    });
+
+    let model = responses_model_for(&server, 0);
+    let _ = model.generate(interaction, params);
+    let body = seen.lock().unwrap().clone();
+    assert!(
+        !body.is_empty(),
+        "the request body must have been captured — an empty capture would make \
+         every absence assertion below pass for the wrong reason"
+    );
+    body
+}
+
+fn interaction_with(system: Option<&str>, soul: Option<&str>) -> ModelInteraction {
+    ModelInteraction {
+        system_prompt: system.map(str::to_string),
+        soul: soul.map(str::to_string),
+        messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "hi".into(),
+                signature: None,
+            }),
+            signature: None,
+        }],
+        tools_shed: ToolShed::default(),
+        chat_template: None,
+        tool_choice: None,
+    }
+}
+
+#[valtron_test]
+fn system_prompt_and_soul_are_combined() {
+    let body = responses_request_body(
+        interaction_with(Some("SYSTEM_MARKER"), Some("SOUL_MARKER")),
+        None,
+    );
+    assert!(body.contains("SYSTEM_MARKER"), "system prompt must be sent: {body}");
+    assert!(
+        body.contains("SOUL_MARKER"),
+        "soul must not be dropped — it carries the agent's persona: {body}"
+    );
+}
+
+#[valtron_test]
+fn a_soul_alone_still_becomes_instructions() {
+    let body = responses_request_body(interaction_with(None, Some("SOUL_ONLY")), None);
+    assert!(
+        body.contains("SOUL_ONLY"),
+        "a soul with no system prompt must still be sent: {body}"
+    );
+}
+
+#[valtron_test]
+fn a_system_prompt_alone_becomes_instructions() {
+    let body = responses_request_body(interaction_with(Some("SYS_ONLY"), None), None);
+    assert!(body.contains("SYS_ONLY"), "{body}");
+}
+
+#[valtron_test]
+fn neither_prompt_nor_soul_omits_instructions() {
+    // The field is skipped when None; sending `"instructions":null` would be a
+    // different request than omitting it.
+    let body = responses_request_body(interaction_with(None, None), None);
+    assert!(
+        !body.contains("\"instructions\":null"),
+        "an absent instruction must be omitted, not sent as null: {body}"
+    );
+}
+
+#[valtron_test]
+fn a_zero_temperature_is_omitted_rather_than_sent() {
+    // `0.0` is the struct default meaning "unset". Sending it would pin the
+    // model to greedy decoding instead of using the vendor default.
+    let params = ModelParams {
+        temperature: 0.0,
+        max_tokens: 0,
+        top_p: 0.0,
+        ..Default::default()
+    };
+    let body = responses_request_body(interaction_with(Some("s"), None), Some(params));
+    assert!(
+        !body.contains("temperature"),
+        "an unset temperature must not reach the vendor: {body}"
+    );
+    assert!(
+        !body.contains("max_output_tokens"),
+        "an unset max_tokens must not reach the vendor: {body}"
+    );
+}
+
+#[valtron_test]
+fn explicit_parameters_are_sent() {
+    let params = ModelParams {
+        temperature: 0.7,
+        max_tokens: 256,
+        top_p: 0.9,
+        ..Default::default()
+    };
+    let body = responses_request_body(interaction_with(Some("s"), None), Some(params));
+    assert!(body.contains("temperature"), "{body}");
+    assert!(body.contains("max_output_tokens"), "{body}");
+    assert!(body.contains("top_p"), "{body}");
+}
+
+#[valtron_test]
+fn a_top_p_of_one_is_omitted_as_a_no_op() {
+    // top_p = 1.0 selects the whole distribution, i.e. no nucleus sampling.
+    // The gate is `> 0.0 && < 1.0`, so 1.0 is treated as unset.
+    let params = ModelParams {
+        top_p: 1.0,
+        temperature: 0.5,
+        max_tokens: 16,
+        ..Default::default()
+    };
+    let body = responses_request_body(interaction_with(Some("s"), None), Some(params));
+    assert!(
+        !body.contains("top_p"),
+        "top_p = 1.0 is a no-op and must be omitted: {body}"
     );
 }
