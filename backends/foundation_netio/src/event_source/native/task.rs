@@ -320,8 +320,32 @@ where
 
                 builder = builder.with_method(config.method);
 
-                // Add Accept and Cache-Control headers
-                builder = builder.add_header_raw(SimpleHeader::ACCEPT, "text/event-stream");
+                // `Host` is mandatory on HTTP/1.1. RFC 7230 §5.4: a server MUST
+                // answer a request that lacks it with 400. Omitting it made every
+                // SSE request to a spec-compliant vendor fail as a bare
+                // "BadRequest", which the reconnect logic then treated as a
+                // transient connection error and retried identically to
+                // exhaustion.
+                if let Some(host) = url.host_str() {
+                    let authority = match url.port() {
+                        Some(port) => format!("{host}:{port}"),
+                        None => host,
+                    };
+                    builder = builder.add_header_raw(SimpleHeader::HOST, authority);
+                }
+
+                // Add Accept and Cache-Control headers.
+                //
+                // Only default `Accept` when the caller has not supplied one:
+                // `add_header_raw` appends, so an SSE client that sets its own
+                // produced `accept: text/event-stream, text/event-stream`.
+                let caller_set_accept = config
+                    .headers
+                    .iter()
+                    .any(|(name, _)| *name == SimpleHeader::ACCEPT);
+                if !caller_set_accept {
+                    builder = builder.add_header_raw(SimpleHeader::ACCEPT, "text/event-stream");
+                }
                 builder = builder.add_header_raw(SimpleHeader::CACHE_CONTROL, "no-cache");
 
                 // Add custom headers
@@ -373,10 +397,63 @@ where
                 // clone_stream() returns SharedByteBufferStream<RawStream>
                 let stream = connection.clone_stream();
 
-                // Render full HTTP request (headers + body) and write to socket
+                // Render the full HTTP request (headers + body), then write it.
+                //
+                // Rendered into a buffer first so the exact bytes can be traced.
+                // A wire-level mismatch here (a missing body, wrong framing) shows
+                // up only as an opaque vendor 4xx, and without the bytes there is
+                // no way to tell our request apart from a working `curl` one.
+                let mut rendered: Vec<u8> = Vec::new();
+                if let Err(err) = Http11::Request(*request).http_render_to_writer(&mut rendered) {
+                    // Previously discarded: a request that failed to render was
+                    // still "sent", so the connection hung awaiting a response to
+                    // bytes that were never written.
+                    error!(?err, "Failed to render SSE request");
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
+                    return None;
+                }
+
+                // Redact credentials: this renders the FULL request, and an
+                // `authorization` header would otherwise be written verbatim into
+                // any log sink that has trace enabled.
+                if tracing::enabled!(tracing::Level::TRACE) {
+                    let text = String::from_utf8_lossy(&rendered);
+                    let safe: String = text
+                        .split("\r\n")
+                        .map(|line| {
+                            let lower = line.to_ascii_lowercase();
+                            if lower.starts_with("authorization:")
+                                || lower.starts_with("proxy-authorization:")
+                                || lower.starts_with("cookie:")
+                            {
+                                let name = line.split(':').next().unwrap_or("header");
+                                format!("{name}: <redacted>")
+                            } else {
+                                line.to_string()
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\r\n");
+                    trace!(bytes = rendered.len(), request = %safe, "SSE request wire bytes");
+                }
+
                 let mut stream_writer = stream.clone();
-                let _ = Http11::Request(*request).http_render_to_writer(&mut stream_writer);
-                let _ = stream_writer.flush();
+                if let Err(err) = stream_writer.write_all(&rendered) {
+                    error!(?err, "Failed to write SSE request to socket");
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
+                    return None;
+                }
+                if let Err(err) = stream_writer.flush() {
+                    error!(?err, "Failed to flush SSE request");
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
+                    return None;
+                }
 
                 debug!(state = "Connecting", "Request sent, awaiting HTTP response");
 

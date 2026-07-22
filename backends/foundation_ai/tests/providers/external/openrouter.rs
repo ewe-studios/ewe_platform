@@ -70,7 +70,16 @@ fn interaction(text: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        // Deliberately EMPTY, not `ToolShed::default()`: the default ships a
+        // `shed` tool, and offering any tool lets the model reply with a
+        // `tool_calls` delta instead of text — mistral-nemo does exactly that,
+        // finishing with `finish_reason: "tool_calls"` and no content. These
+        // tests assert on text, so the tool has to be off the table or they fail
+        // on the model's discretion rather than on our streaming path.
+        tools_shed: ToolShed {
+            shed: None,
+            tools: Vec::new(),
+        },
         chat_template: None,
         tool_choice: None,
     }

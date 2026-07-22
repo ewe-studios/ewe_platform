@@ -170,7 +170,8 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
     #[derive(Clone, Default)]
     struct CapturedRequests {
-        requests: Arc<std::sync::Mutex<Vec<(String, String, String)>>>, // (method, body, auth)
+        // (method, body, auth, host, accept)
+        requests: Arc<std::sync::Mutex<Vec<(String, String, String, String, String)>>>,
     }
 
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
@@ -212,7 +213,25 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
                 .cloned()
                 .unwrap_or_default();
 
-            captured.requests.lock().unwrap().push((method, body, auth));
+            let host = req
+                .headers
+                .get(&SimpleHeader::HOST)
+                .and_then(|v| v.first())
+                .cloned()
+                .unwrap_or_default();
+
+            // Joined so a duplicated value is visible to the assertion.
+            let accept = req
+                .headers
+                .get(&SimpleHeader::ACCEPT)
+                .map(|v| v.join(", "))
+                .unwrap_or_default();
+
+            captured
+                .requests
+                .lock()
+                .unwrap()
+                .push((method, body, auth, host, accept));
 
             // First connection: send one event then drop (triggers reconnect)
             if conn_num == 0 {
@@ -269,8 +288,22 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
     );
 
     // First connection: POST + body + auth
-    let (method, body, auth) = &requests[0];
+    let (method, body, auth, host, accept) = &requests[0];
     assert_eq!(method, "POST", "First connection should use POST");
+    // RFC 7230 §5.4 makes Host mandatory on HTTP/1.1; a server MUST answer a
+    // request without it with 400. Omitting it made every SSE request to a
+    // spec-compliant vendor fail as an opaque "BadRequest" that the reconnect
+    // logic retried to exhaustion.
+    assert!(
+        !host.is_empty(),
+        "HTTP/1.1 requires a Host header — without it the server returns 400"
+    );
+    // `add_header_raw` appends, so defaulting Accept when the caller already set
+    // one produced `text/event-stream, text/event-stream`.
+    assert_eq!(
+        accept, "text/event-stream",
+        "Accept must not be duplicated, got: {accept}"
+    );
     assert!(
         body.contains(r#""model":"qwen2.5""#),
         "First connection should include JSON body, got: {body}"
@@ -283,10 +316,14 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
     // Second connection (reconnection): POST + the SAME body + auth.
     // The body must be replayed: the method stays POST, so an empty body here
     // is a malformed request the vendor rejects outright.
-    let (method, body, auth) = &requests[1];
+    let (method, body, auth, host, _accept) = &requests[1];
     assert_eq!(
         method, "POST",
         "Reconnection should use POST, got: {method}"
+    );
+    assert!(
+        !host.is_empty(),
+        "the reconnect must also carry Host, or it is rejected with 400"
     );
     assert!(
         body.contains(r#""model":"qwen2.5""#),
