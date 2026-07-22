@@ -37,14 +37,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     curl \
     git \
     rsync \
-    # X11 + VNC (same as linux/Dockerfile)
-    x11vnc \
-    xvfb \
-    openbox \
-    xterm \
-    novnc \
-    websockify \
-    nginx \
+    # SSH + Python HTTP (ADB screencap served via Python, no VNC/X11 needed)
     openssh-server \
     docker.io \
     wget \
@@ -121,13 +114,14 @@ RUN useradd -m -s /bin/bash "${DEV_USER}" \
 
 EXPOSE 22 5901 6081 5037 5554 5555
 
-# Android emulator uses these ports:
-#   5554 = emulator console (ADB)
-#   5555 = second emulator instance (if needed)
-#   5037 = ADB server
+# Ports:
+#   22   = SSH for test command dispatch
+#   5901 = QEMU VNC display (emulator screen, via -qemu -vnc :1)
+#   6081 = noVNC web viewer (http://localhost:6081/vnc.html)
+#   5037 = ADB server (host can adb connect localhost:5037)
+#   5554 = emulator ADB console
+#   5555 = second emulator instance
 
-ENV DISPLAY=:99
-ENV RESOLUTION=1280x720
 ENV ANDROID_AVD_HOME=/root/.android/avd
 ENV ANDROID_EMULATOR_HEADLESS=true
 

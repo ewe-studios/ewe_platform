@@ -47,11 +47,11 @@ services:
     devices:
       - /dev/kvm
     ports:
-      - "8007:8006"     # dockurr web UI (VNC viewer)
-      - "5901:5901"     # raw VNC (vnc://localhost:5901)
+      - "5901:5901"     # QEMU VNC — emulator display (vnc://localhost:5901)
       - "6081:6081"     # noVNC web viewer (http://localhost:6081/vnc.html)
-      - "5554:5554"     # emulator console (ADB over TCP)
-      - "5555:5555"     # second emulator (if needed)
+      - "5554:5554"     # emulator ADB (adb connect localhost:5554)
+      - "5555:5555"     # second emulator instance
+      - "5022:22"       # SSH (ssh developer@localhost -p 5022)
     volumes:
       - ./android_shared:/shared
     profiles: [android]

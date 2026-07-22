@@ -6,7 +6,7 @@ SSH_KEY_FILE="/tmp/authorized_keys"
 
 echo "=== ewe-test-android starting ==="
 
-# ── SSH setup ────────────────────────────────────────────────────────────────
+# ── SSH setup ────────────────────────────────────────────────────────────
 if [ -f "${SSH_KEY_FILE}" ]; then
     mkdir -p "/home/${DEV_USER}/.ssh"
     cat "${SSH_KEY_FILE}" >> "/home/${DEV_USER}/.ssh/authorized_keys"
@@ -17,32 +17,17 @@ if [ -f "${SSH_KEY_FILE}" ]; then
 fi
 /usr/sbin/sshd -D &
 
-# ── X11 + VNC ────────────────────────────────────────────────────────────────
-Xvfb "${DISPLAY}" -screen 0 "${RESOLUTION}x24" -ac +extension GLX +render &
-sleep 1
-openbox --replace &
-sleep 1
-
-# VNC on port 5901 (5900 used by Linux test image when co-located)
-x11vnc -display "${DISPLAY}" -forever -nopw -shared -rfbport 5901 -quiet &
-echo "VNC running on port 5901"
-
-websockify --web /usr/share/novnc 6081 localhost:5901 &
-echo "noVNC available at http://localhost:6081/vnc.html"
-
-# ── KVM check ────────────────────────────────────────────────────────────────
+# ── KVM check ────────────────────────────────────────────────────────────
 if [ -e /dev/kvm ]; then
-    echo "KVM available — emulator will use hardware acceleration"
+    echo "KVM available"
 else
-    echo "WARNING: /dev/kvm not found — emulator will run in software mode (slow)"
+    echo "WARNING: /dev/kvm not found"
 fi
 
-# ── ADB server ───────────────────────────────────────────────────────────────
-adb start-server
-echo "ADB server running on port 5037"
+# ── ADB server ───────────────────────────────────────────────────────────
+adb -a -P 5037 start-server 2>/dev/null || adb start-server
 
-# ── Android emulator ─────────────────────────────────────────────────────────
-# Start the pre-created AVD in headless mode (no GUI window — uses QEMU directly)
+# ── Android emulator ─────────────────────────────────────────────────────
 AVD_NAME="${ANDROID_AVD_NAME:-test_avd}"
 
 echo "Starting Android emulator: ${AVD_NAME}"
@@ -60,10 +45,9 @@ nohup emulator \
 EMULATOR_PID=$!
 echo "Emulator PID: ${EMULATOR_PID}"
 
-# ── Wait for emulator to boot ────────────────────────────────────────────────
+# ── Wait for emulator to boot ────────────────────────────────────────────
 echo "Waiting for emulator to boot..."
-TIMEOUT=120
-ELAPSED=0
+TIMEOUT=120; ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
     if adb -e shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; then
         echo "Emulator booted in ${ELAPSED}s"
@@ -74,16 +58,55 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
 done
 
 if [ $ELAPSED -ge $TIMEOUT ]; then
-    echo "WARNING: Emulator did not boot within ${TIMEOUT}s. Tests may fail."
-    echo "Last 20 lines of emulator log:"
-    tail -20 /tmp/emulator.log
+    echo "WARNING: Emulator did not boot within ${TIMEOUT}s."
 fi
 
+# ── ADB screencap → PNG → HTTP (visual emulator access) ──────────────────
+# Serves the latest Android screenshot on port 6081.
+# Refresh the page to get a fresh screenshot. No VNC/QEMU display needed.
+cat > /tmp/screencap_server.py << 'PYEOF'
+import http.server, subprocess, sys, os
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/":
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.end_headers()
+            html = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Android Emulator</title>
+<meta http-equiv="refresh" content="2">
+<style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh}
+img{max-width:100%;max-height:100vh}</style></head>
+<body><img src="/screen.png" onerror="this.src='/screen.png?retry='+Date.now()"></body></html>"""
+            self.wfile.write(html.encode())
+        elif self.path.startswith("/screen.png"):
+            try:
+                result = subprocess.run(
+                    ["adb", "-e", "exec-out", "screencap", "-p"],
+                    capture_output=True, timeout=5
+                )
+                self.send_response(200)
+                self.send_header("Content-type", "image/png")
+                self.send_header("Cache-Control", "no-cache")
+                self.end_headers()
+                self.wfile.write(result.stdout)
+            except Exception as e:
+                self.send_error(500, str(e))
+        else:
+            self.send_error(404)
+
+http.server.HTTPServer(("0.0.0.0", 6081), Handler).serve_forever()
+PYEOF
+
+python3 /tmp/screencap_server.py &
+echo "ADB screencap server running on port 6081"
+echo "  Browser: http://localhost:6081/ (auto-refreshes every 2s)"
+
 echo "=== ewe-test-android ready ==="
-echo "  SSH:   ssh ${DEV_USER}@localhost -p 22"
-echo "  VNC:   vnc://localhost:5901"
-echo "  Web:   http://localhost:6081/vnc.html"
-echo "  ADB:   adb connect localhost:5555"
-echo "  Emulator: PID ${EMULATOR_PID}, AVD ${AVD_NAME}"
+echo "  Screen:  http://localhost:6081/"
+echo "  ADB:     adb connect localhost:5554"
+echo "  SSH:     ssh ${DEV_USER}@localhost -p 5022"
+echo "  Emulator: PID ${EMULATOR_PID}"
 
 tail -f /dev/null
