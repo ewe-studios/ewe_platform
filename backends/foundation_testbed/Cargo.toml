@@ -126,17 +126,6 @@ clap = { version = "4", features = ["derive"], optional = true }
 # — it must not live under the wasm32-only target table.
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
 
-# getrandom needs its wasm backend on wasm32. It's a transitive dep
-# (walrus→wasmparser→hashbrown→ahash→const-random→getrandom).
-#
-# The feature is `wasm_js`, not `js`: `js` was getrandom 0.2's name for it and
-# no 0.3.x release has ever had it, so this entry could never resolve. It only
-# stayed hidden because the lockfile pinned a resolution nobody re-checked —
-# any re-resolve fails the whole workspace with "getrandom does not have that
-# feature".
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3", features = ["wasm_js"] }
-
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"

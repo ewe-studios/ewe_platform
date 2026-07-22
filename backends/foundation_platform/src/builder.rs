@@ -173,7 +173,7 @@ impl<R: Runtime> PlatformBuilder<R> {
             // mirror path works (the scripts are designed for both ESM and IIFE).
             let scripts = session.script_injector().resolve_all();
             if let Some(window) = app.get_webview_window("main") {
-                let is_mobile = cfg!(mobile);
+                let is_mobile = cfg!(target_os = "android") || cfg!(target_os = "ios");
                 for script in &scripts {
                     let to_eval = if is_mobile {
                         // Strip top-level `export` so classic-script eval works on WebView.
