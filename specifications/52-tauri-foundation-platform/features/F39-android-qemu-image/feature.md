@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F39-android-qemu-image"
 this_file: "specifications/52-tauri-foundation-platform/features/F39-android-qemu-image/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-22
 
