@@ -1047,3 +1047,88 @@ fn a_zero_outer_iteration_cap_ends_immediately() {
         "a zero cap must not permit a generation: {records:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Mid-generation steering
+// ---------------------------------------------------------------------------
+//
+// A priority message that lands WHILE the model is streaming is handled
+// separately from one that lands at the outer boundary: the in-flight
+// generation is discarded and the turn re-assembles with the new message. That
+// branch is what makes an interrupt feel immediate instead of waiting for the
+// current answer to finish, and it had no coverage.
+
+#[test]
+fn a_priority_message_during_generation_discards_and_reassembles() {
+    use foundation_ai::agentic::AgentProgress;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("original answer")]);
+
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let _ = h.follow_up.push(user_msg("first question"));
+
+    let mut injected = false;
+    let mut saw_mid_gen_steering = false;
+
+    for _ in 0..2_000 {
+        match h.agent.next_status() {
+            None => break,
+            Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
+                // The loop is now inside InnerGenerate. Inject here so the
+                // priority is seen mid-stream rather than at the boundary.
+                if !injected {
+                    h.priority
+                        .push(user_msg("urgent interrupt"))
+                        .expect("priority queue accepts");
+                    injected = true;
+                }
+            }
+            Some(TaskStatus::Pending(AgentProgress::Steering { source })) => {
+                if source == "mid_gen_priority" {
+                    saw_mid_gen_steering = true;
+                }
+            }
+            Some(_) => {}
+        }
+    }
+
+    assert!(injected, "the test never reached the generating state");
+    assert!(
+        saw_mid_gen_steering,
+        "a priority message arriving mid-generation must be reported as \
+         mid_gen_priority steering, not deferred to the next boundary"
+    );
+}
+
+#[test]
+fn mid_generation_steering_drains_the_priority_queue() {
+    use foundation_ai::agentic::AgentProgress;
+
+    // If the queue were not drained the loop would re-interrupt forever,
+    // never producing an answer.
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("answer")]);
+
+    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let _ = h.follow_up.push(user_msg("question"));
+
+    let mut injected = false;
+    for _ in 0..2_000 {
+        match h.agent.next_status() {
+            None => break,
+            Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
+                if !injected {
+                    h.priority.push(user_msg("urgent")).expect("push");
+                    injected = true;
+                }
+            }
+            Some(_) => {}
+        }
+    }
+
+    assert!(
+        h.priority.is_empty(),
+        "the priority queue must be drained, or the loop re-interrupts forever"
+    );
+}
