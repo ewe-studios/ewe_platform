@@ -20,22 +20,15 @@ ARG DEBCONF_NONINTERACTIVE_SEEN="true"
 RUN <<EOF
   set -eu
 
-  # ── X11 display stack + Java ──
+  # ── Java + Android-specific deps ──
+  # X11 stack (xvfb, x11vnc, openbox, xterm, libpulse0) comes from QEMU base.
   apt-get update
   apt-get --no-install-recommends -y install \
-    xvfb \
-    x11vnc \
-    openbox \
-    xterm \
     openjdk-21-jdk-headless \
     cpu-checker \
-    unzip \
-    libpulse0
+    unzip
 
   apt-get clean
-
-  # websockify (noVNC proxy, not in base image)
-  pip3 install --no-cache-dir --break-system-packages websockify
 
   echo "$VERSION_ARG" > /etc/version
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -63,9 +56,8 @@ RUN mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools" \
     && rm -rf "${ANDROID_SDK_ROOT}/.temp" "${ANDROID_SDK_ROOT}/.download_cache"
 
 # ── Pre-create device AVDs ──────────────────────────────────────────────
-# libpulse0 installed above — SDK's full QEMU needs it. x11vnc captures
-# the X11 display so we don't need QEMU VNC, but the emulator binary
-# requires the full qemu-system-x86_64 + libpulse to boot.
+# QEMU deps (xvfb, x11vnc, openbox, xterm, libpulse0, websockify)
+# all come from the QEMU base image. Only Android-specific deps here.
 # 2 phones + 2 tablets. Select at runtime via DEVICE env var.
 # Available IDs from SDK: pixel_6, Nexus 5, Nexus 5X, Nexus 6, Nexus 6P,
 #   Nexus 7 2013, Nexus 7, Nexus 9, Nexus 10, pixel_c, Pixel 8, etc.
@@ -88,6 +80,8 @@ ENV CPU_CORES="2"
 ENV DISK_SIZE="8G"
 ENV ANDROID_AVD_HOME=/root/.android/avd
 ENV DISPLAY=:99
+# Emulator QEMU needs Qt + tcmalloc + WebRTC from the SDK's lib64 dir.
+ENV EMULATOR_LIB64="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
 # Default device: Pixel 6. Override in docker-compose or `docker run -e DEVICE=...`
 ENV DEVICE="pixel_6"
 
