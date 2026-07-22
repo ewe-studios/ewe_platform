@@ -7,7 +7,10 @@ AVD_NAME="${DEVICE:-pixel_6}"
 echo "Device: ${AVD_NAME}"
 
 # ── Emulator shared libs (Qt + tcmalloc + WebRTC from SDK) ───────────
-export LD_LIBRARY_PATH="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
+# NOTE: scoped to the emulator process only — DO NOT export globally.
+# Qt ships its own libfreetype.so.6 which lacks FT_Get_Transform,
+# so global LD_LIBRARY_PATH breaks openbox/x11vnc/Xvfb.
+EMULATOR_LD_LIBRARY_PATH="/opt/android-sdk/emulator/lib64:/opt/android-sdk/emulator/lib64/qt/lib"
 
 # ── Suppress nested VM warning ───────────────────────────────────────
 mkdir -p /root/.config/Android\ Open\ Source\ Project
@@ -38,7 +41,9 @@ adb start-server
 
 # ── Emulator — renders its window to DISPLAY=:0 ──────────────────────
 echo "Starting emulator: ${AVD_NAME}"
-nohup emulator \
+# Scope the emulator's LD_LIBRARY_PATH so Qt/tcmalloc libs don't
+# infect Xvfb/openbox/x11vnc (Qt ships a stale libfreetype.so.6).
+nohup env LD_LIBRARY_PATH="${EMULATOR_LD_LIBRARY_PATH}" emulator \
     -avd "${AVD_NAME}" \
     -no-audio \
     -no-boot-anim \

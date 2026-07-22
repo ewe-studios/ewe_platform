@@ -83,6 +83,9 @@ RUN <<EOF
 
   apt-get clean
 
+  # Force ldconfig so downstream COPY --from images inherit a valid cache.
+  ldconfig
+
   # Configure QEMU
   mkdir -p /etc/qemu
   echo "allow br0" > /etc/qemu/bridge.conf
