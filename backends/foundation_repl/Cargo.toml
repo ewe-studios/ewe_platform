@@ -13,23 +13,36 @@ keywords = ["shell_repl", "repl", "tui", "terminal"]
 tracing = { workspace = true }
 unicode-width = "0.2"
 crossterm = { version = "0.28", optional = true }
+# No backend feature here: the terminal backend is pulled in by `native` and the
+# browser backend by `ratzilla`. Cargo features are additive, so asking for
+# crossterm at the dependency level would drag it into wasm builds, where it
+# cannot compile.
 ratatui = { version = "0.30.2", default-features = false, features = [
-  "crossterm_0_28",
+  "std",
+  "all-widgets",
+  "layout-cache",
 ], optional = true }
+ratzilla = { version = "0.3.1", optional = true }
 js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", features = ["console"], optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 
 [dev-dependencies]
+ratatui = { version = "0.30.2", default-features = false, features = [
+  "std",
+  "all-widgets",
+] }
 tracing-test = { workspace = true }
 
 [features]
 default = ["native", "colors"]
-native = ["dep:crossterm", "dep:ratatui"]
+native = ["dep:crossterm", "dep:ratatui", "ratatui/crossterm_0_28"]
 colors = ["native"]
 history-file = ["dep:serde", "dep:serde_json"]
 wasm = ["dep:js-sys", "dep:web-sys"]
+# A browser surface via ratzilla. Enable instead of `native`, not alongside it.
+ratzilla = ["dep:ratzilla", "dep:ratatui"]
 
 [lints]
 workspace = true

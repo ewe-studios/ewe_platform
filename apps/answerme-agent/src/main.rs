@@ -22,7 +22,7 @@ use foundation_ai::types::{Messages, ModelId, SessionId, SessionRecord};
 use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_core::valtron::valtron;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
-use foundation_repl::Repl;
+use foundation_repl::{Repl, ReplTheme};
 
 /// The concrete session type — spelled once so both commands share it.
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
@@ -156,28 +156,62 @@ fn run_ask(session: &Session, question: String) {
 }
 
 /// Interactive: drive the REPL loop, one turn per line of input.
+///
+/// A local Gemma turn takes seconds, so it runs behind an activity indicator —
+/// without one the terminal is indistinguishable from a hung process for the
+/// whole generation.
 fn run_repl(session: &Session) {
     let repl = Repl::builder()
         .prompt("| ")
         .continuation_prompt("|... ")
-        .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.\n")
+        .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.")
         .goodbye("Goodbye!")
+        .theme(theme())
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());
 
     for input in repl.messages() {
-        if input.is_empty() {
+        if input.trim().is_empty() {
             continue;
         }
 
         tracing::trace!("agent: sending message to model: {input}");
 
-        match session.run_turn(user_message(input)) {
-            Ok(records) => repl.reply(&extract_assistant_text(&records)),
-            Err(e) => repl.reply(&format!("error: {e}")),
+        let thinking = repl.animation("thinking");
+        let outcome = session.run_turn(user_message(input));
+        thinking.finish();
+
+        match outcome {
+            Ok(records) => repl.reply(extract_assistant_text(&records)),
+            // `report_error` styles this as an error rather than as the model's
+            // own words, which `reply` would have done.
+            Err(e) => repl.report_error(format!("error: {e}")),
         }
     }
+}
+
+/// The palette the session is drawn in.
+///
+/// Reads `ANSWERME_THEME` so a palette can be tried without a rebuild; anything
+/// unrecognised falls back to the default rather than failing to start over a
+/// cosmetic setting.
+fn theme() -> ReplTheme {
+    let Ok(name) = std::env::var("ANSWERME_THEME") else {
+        return ReplTheme::default();
+    };
+
+    ReplTheme::by_name(&name).unwrap_or_else(|| {
+        tracing::warn!(
+            "unknown ANSWERME_THEME {name:?}, using the default; known palettes: {}",
+            ReplTheme::palettes()
+                .iter()
+                .map(|(known, _)| *known)
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        ReplTheme::default()
+    })
 }
 
 /// Wrap raw input text as a user message for the session.

@@ -4,8 +4,30 @@
 //! [`ReplDisplay`] draws the input box and everything printed above it.
 //! Both are implemented by the native (ratatui + crossterm) and wasm backends.
 
+use std::sync::{Arc, Mutex};
+
+use crate::shared::activity::ActivityView;
 use crate::shared::layout::InputView;
-use crate::shared::theme::ReplTheme;
+
+/// The renderer, shared between the REPL and the activity thread.
+///
+/// WHY: the animation runs on its own thread while the caller's thread is
+/// blocked, so both need to reach the same renderer — and only one of them may
+/// be drawing at a time or a spinner frame would land in the middle of a line
+/// of streamed text.
+#[cfg(not(target_arch = "wasm32"))]
+pub type BoxedDisplay = Box<dyn ReplDisplay + Send>;
+
+/// An owned renderer.
+///
+/// wasm has no threads, so nothing here ever crosses one — and browser handles
+/// (DOM nodes, canvases, WebGL contexts) are not `Send`, so requiring it would
+/// rule out every real browser backend.
+#[cfg(target_arch = "wasm32")]
+pub type BoxedDisplay = Box<dyn ReplDisplay>;
+
+/// The renderer, shared between the REPL and the activity indicator.
+pub type SharedDisplay = Arc<Mutex<BoxedDisplay>>;
 
 /// Reads keystrokes and assembles multiline input.
 pub trait ReplInput {
@@ -44,11 +66,6 @@ pub trait ReplInput {
 /// WHAT: implementors own whatever terminal state the redraw needs, and are
 /// expected to restore the terminal when dropped.
 pub trait ReplDisplay {
-    /// Create the backend's renderer with the theme it should draw in.
-    fn new(theme: ReplTheme) -> Self
-    where
-        Self: Sized;
-
     /// Print the startup banner above the input area.
     fn print_banner(&mut self, banner: &str);
 
@@ -69,6 +86,24 @@ pub trait ReplDisplay {
 
     /// Print an error above the input area.
     fn print_error(&mut self, msg: &str);
+
+    /// Draw the activity indicator in place of the input box.
+    ///
+    /// Called repeatedly by the animation thread. Any text already streamed
+    /// through [`ReplDisplay::stream_push`] but not yet committed is drawn
+    /// above the indicator.
+    fn render_activity(&mut self, view: &ActivityView<'_>);
+
+    /// Append streamed text to the live output tail.
+    ///
+    /// Text arrives in arbitrary fragments — implementations must not assume a
+    /// fragment is a whole line, and must not add newlines of their own.
+    fn stream_push(&mut self, text: &str);
+
+    /// Take the activity indicator down, flushing anything still streaming.
+    ///
+    /// Must be safe to call when no activity is running.
+    fn end_activity(&mut self);
 
     /// Clear the screen, keeping the input area alive.
     fn clear_screen(&mut self);

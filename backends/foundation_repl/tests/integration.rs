@@ -2,7 +2,7 @@
 //!
 //! These test the observable behavior without needing a real terminal.
 
-use foundation_shell_repl::{CommandRegistry, CommandResult, ReplConfig};
+use foundation_repl::{CommandRegistry, CommandResult, ReplConfig};
 
 // ── Command registry tests ──────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ fn builtin_version_returns_version() {
     let result = reg.try_handle("/version").unwrap();
     match result {
         CommandResult::Output(text) => {
-            assert!(text.contains("foundation_shell_repl"));
+            assert!(text.contains("foundation_repl"));
         }
         _ => panic!("version should return Output"),
     }
@@ -41,23 +41,18 @@ fn builtin_exit_returns_exit() {
 }
 
 #[test]
-fn builtin_clear_returns_terminal() {
+fn builtin_clear_returns_clear() {
     let reg = CommandRegistry::new();
     let result = reg.try_handle("/clear").unwrap();
-    assert!(matches!(result, CommandResult::Terminal(_)));
+    assert!(matches!(result, CommandResult::Clear));
 }
 
 #[test]
-fn unknown_command_returns_error() {
+fn unregistered_command_is_reported_as_unknown_not_answered() {
+    // The registry says "nobody claimed this"; deciding what it means is the
+    // application's job, since it may implement its own slash syntax.
     let reg = CommandRegistry::new();
-    let result = reg.try_handle("/unknown").unwrap();
-    match result {
-        CommandResult::Output(text) => {
-            assert!(text.contains("Unknown command"));
-            assert!(text.contains("unknown"));
-        }
-        _ => panic!("unknown command should return Output"),
-    }
+    assert_eq!(reg.try_handle("/unknown"), Some(CommandResult::Unknown));
 }
 
 #[test]

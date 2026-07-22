@@ -5,6 +5,8 @@
 //! feature flag.
 
 #[cfg(feature = "wasm")]
-pub mod input;
-#[cfg(feature = "wasm")]
 pub mod display;
+#[cfg(feature = "wasm")]
+pub mod input;
+#[cfg(feature = "ratzilla")]
+pub mod ratzilla;
