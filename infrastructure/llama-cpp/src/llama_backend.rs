@@ -38,11 +38,12 @@ impl LlamaBackend {
     /// only, so `llama.cpp=off` and `ggml=off` are silently inert; they look
     /// like they work because these events are already below the default level.
     ///
-    /// * silence:  `llama-cpp-2=off`
+    /// * silence:  `llama-cpp-2=off` (or just `info` — token-type warnings and
+    ///   the loader dump are both demoted to DEBUG so a plain `info` filter is
+    ///   quiet)
     /// * reveal:   `llama-cpp-2=debug`
     ///
-    /// Regression-locked by `tests/log_filtering.rs`, which asserts that the
-    /// module-named directives do NOT filter these events.
+    /// Regression-locked by `tests/log_filtering.rs`.
     ///
     /// HOW: `send_logs_to_tracing` installs the C log callback via
     /// `llama_log_set`/`ggml_log_set`. It is guarded by a `Once` here so repeated

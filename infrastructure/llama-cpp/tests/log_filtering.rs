@@ -170,12 +170,10 @@ fn the_shipped_directive_keeps_the_apps_own_logs() {
 #[test]
 fn native_dump_is_quiet_under_a_plain_info_filter() {
     // The real contract, and the reason the app's directive shrank to "info":
-    // llama.cpp's model-loader dump arrives at ggml INFO, which
-    // `log::tracing_level_for` emits at tracing DEBUG. So a plain `info`
-    // filter drops it without anyone naming `llama-cpp-2` at all.
-    //
-    // Emitted at DEBUG here to match what the bridge really does; the mapping
-    // that guarantees it is unit-tested in `log::level_mapping_tests`.
+    // llama.cpp's model-loader dump (ggml INFO) and token-type warnings (ggml
+    // WARN) are both mapped to tracing DEBUG by `tracing_level_for`. A plain
+    // `info` filter drops them without anyone naming `llama-cpp-2` at all.
+    // Real errors (ggml ERROR → tracing ERROR) still reach the user.
     let buffer = Buffer::default();
     let subscriber = tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::new("info"))
@@ -184,17 +182,17 @@ fn native_dump_is_quiet_under_a_plain_info_filter() {
         .finish();
 
     tracing::subscriber::with_default(subscriber, || {
-        tracing::debug!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_MARKER");
-        tracing::warn!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_WARNING");
+        tracing::debug!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_DEBUG");
+        tracing::error!(target: "llama-cpp-2", module = "llama.cpp", "NATIVE_ERROR");
     });
 
     let out = buffer.contents();
     assert!(
-        !out.contains("NATIVE_MARKER"),
-        "the native dump must not survive a plain `info` filter: {out:?}"
+        !out.contains("NATIVE_DEBUG"),
+        "ggml INFO/WARN → tracing DEBUG must not survive a plain `info` filter: {out:?}"
     );
     assert!(
-        out.contains("NATIVE_WARNING"),
-        "a real native warning must still reach the user: {out:?}"
+        out.contains("NATIVE_ERROR"),
+        "ggml ERROR → tracing ERROR must still reach the user: {out:?}"
     );
 }

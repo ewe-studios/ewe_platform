@@ -64,8 +64,8 @@ fn model_dir() -> PathBuf {
 //
 //   * llama.cpp/ggml native logs — their INFO is a 165-line model-loader dump,
 //     so `infrastructure_llama_cpp::log::tracing_level_for` emits it at DEBUG
-//     (ggml WARN/ERROR still pass through, which is why a few genuine model
-//     warnings appear on load). This used to need `llama-cpp-2=off`, and note
+//     (ggml WARN is also demoted to DEBUG so a plain `info` filter drops it;
+//     only a real ERROR survives). This used to need `llama-cpp-2=off`, and note
 //     that the target really is the literal `llama-cpp-2`: `llama.cpp` and
 //     `ggml` are only the `module` FIELD on those events, so directives naming
 //     them match nothing. Locked by infrastructure/llama-cpp/tests/log_filtering.rs.
@@ -73,8 +73,7 @@ fn model_dir() -> PathBuf {
 //     are at DEBUG; only a worker panic is loud, and it is an ERROR.
 //   * mio/polling — quiet at INFO on their own.
 //
-// Measured on this directive: 5 stderr lines around a one-line answer, all of
-// them real warnings. Before the library fixes it was 181.
+// Measured on this directive: 0 stderr lines around a one-line answer.
 //
 // To see the native dump, use `debug` here and rebuild. RUST_LOG will NOT do
 // it: `try_init_tracing_with` only reads RUST_LOG when no explicit
