@@ -47,7 +47,11 @@ services:
     devices:
       - /dev/kvm
     ports:
-      - "8007:8006" # web UI (VNC viewer)
+      - "8007:8006"     # dockurr web UI (VNC viewer)
+      - "5901:5901"     # raw VNC (vnc://localhost:5901)
+      - "6081:6081"     # noVNC web viewer (http://localhost:6081/vnc.html)
+      - "5554:5554"     # emulator console (ADB over TCP)
+      - "5555:5555"     # second emulator (if needed)
     volumes:
       - ./android_shared:/shared
     profiles: [android]
