@@ -229,16 +229,28 @@ impl OpenAIProvider {
         headers
     }
 
+    /// Build a JSON request for `url`.
+    ///
+    /// An empty `body` means there is no payload, which for this API is always a
+    /// read (`GET /v1/models/{id}`), so the method follows the body. Sending
+    /// those as `POST` with `content-length: 0` made the vendor answer 404 — and
+    /// because the caller falls back to synthesised model info on any error, the
+    /// lookup silently never succeeded.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
         let uri =
             Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        let (method, body) = if body.is_empty() {
+            (SimpleMethod::GET, SendSafeBody::None)
+        } else {
+            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+        };
         Ok(PreparedRequest {
-            method: SimpleMethod::POST,
+            method,
             url: uri,
             headers,
-            body: SendSafeBody::Text(body.to_string()),
+            body,
             extensions: Extensions::default(),
         })
     }
@@ -497,16 +509,28 @@ impl OpenAIModel {
         headers
     }
 
+    /// Build a JSON request for `url`.
+    ///
+    /// An empty `body` means there is no payload, which for this API is always a
+    /// read (`GET /v1/models/{id}`), so the method follows the body. Sending
+    /// those as `POST` with `content-length: 0` made the vendor answer 404 — and
+    /// because the caller falls back to synthesised model info on any error, the
+    /// lookup silently never succeeded.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
         let uri =
             Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        let (method, body) = if body.is_empty() {
+            (SimpleMethod::GET, SendSafeBody::None)
+        } else {
+            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+        };
         Ok(PreparedRequest {
-            method: SimpleMethod::POST,
+            method,
             url: uri,
             headers,
-            body: SendSafeBody::Text(body.to_string()),
+            body,
             extensions: Extensions::default(),
         })
     }

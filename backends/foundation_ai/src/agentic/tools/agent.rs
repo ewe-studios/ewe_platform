@@ -157,7 +157,7 @@ where
     // ------------------------------------------------------------------
 
     /// `start` — schedule a sub-agent turn, return immediately.
-    async fn start(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn start(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         if self.depth >= self.max_depth {
             return Err(ToolError::Execution {
                 tool: TOOL.into(),
@@ -194,9 +194,18 @@ where
         // Runaway guard. Models emit integers inconsistently (u64 / i64 /
         // stringified), so accept all three spellings. `0` is rejected rather
         // than silently creating a sub-agent that can never take a step.
+        //
+        // Converted with `try_from` rather than `as`: on a 32-bit target an
+        // `as` cast silently wraps, so a caller asking for a huge cap could be
+        // handed a tiny one and the sub-agent would stop early for no visible
+        // reason. An out-of-range value is rejected instead.
+        let too_large = || ToolError::InvalidArguments {
+            tool: TOOL.into(),
+            reason: "'max_iterations' is larger than this platform supports".into(),
+        };
         let max_iterations: Option<usize> = match args.get("max_iterations") {
-            Some(ArgType::U64(n)) => Some(*n as usize),
-            Some(ArgType::I64(n)) if *n > 0 => Some(*n as usize),
+            Some(ArgType::U64(n)) => Some(usize::try_from(*n).map_err(|_| too_large())?),
+            Some(ArgType::I64(n)) if *n > 0 => Some(usize::try_from(*n).map_err(|_| too_large())?),
             Some(ArgType::I64(_)) => {
                 return Err(ToolError::InvalidArguments {
                     tool: TOOL.into(),
@@ -247,8 +256,7 @@ where
 
         // Instruct the sub-agent where to write its result.
         let prompt_text = format!(
-            "{}\n\nWrite your final result to: {}\nWhen finished, include a brief 1-2 line summary in your final message.",
-            task, output_location
+            "{task}\n\nWrite your final result to: {output_location}\nWhen finished, include a brief 1-2 line summary in your final message."
         );
 
         let child_session = builder.build().map_err(|e| ToolError::Execution {
@@ -314,7 +322,7 @@ where
     }
 
     /// `check` — non-blocking drain: report latest status.
-    async fn check(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn check(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let id = text_arg(args, "id")?;
         let mut runs = self.runs.lock().unwrap();
         let run = runs
@@ -341,7 +349,7 @@ where
 
     /// `result` — when done, return location + summary; clean up unless
     /// `keep_session`.
-    async fn result(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn result(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let id = text_arg(args, "id")?;
 
         // Drain and extract under one mutable borrow.
@@ -393,7 +401,7 @@ where
     }
 
     /// `pause` — set the suspend flag.
-    async fn pause(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn pause(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let id = text_arg(args, "id")?;
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
@@ -409,7 +417,7 @@ where
     }
 
     /// `resume` — clear the suspend flag.
-    async fn resume(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn resume(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let id = text_arg(args, "id")?;
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
@@ -425,7 +433,7 @@ where
     }
 
     /// `stop` — set the abort flag + abort the child session.
-    async fn stop(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn stop(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let id = text_arg(args, "id")?;
         let mut runs = self.runs.lock().unwrap();
         let run = runs.get_mut(&id).ok_or_else(|| unknown_id(&id))?;
@@ -482,10 +490,12 @@ where
                         run.latest = AgentStatus::Working {
                             iteration: run.iteration,
                         };
-                        if let Messages::Assistant { ref content, .. } = message {
-                            if let crate::types::ModelOutput::Text(ref tc) = content {
-                                run.summary = Some(truncate_summary(&tc.content));
-                            }
+                        if let Messages::Assistant {
+                            content: crate::types::ModelOutput::Text(ref tc),
+                            ..
+                        } = message
+                        {
+                            run.summary = Some(truncate_summary(&tc.content));
                         }
                     }
                     SessionRecord::FailedAction { ref error, .. } => {
@@ -505,10 +515,7 @@ where
                     };
                     break;
                 }
-                Some(Stream::Init)
-                | Some(Stream::Ignore)
-                | Some(Stream::Wait)
-                | Some(Stream::Delayed(_)) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Wait | Stream::Delayed(_)) => {
                     continue;
                 }
                 Some(Stream::Spread(_)) => {
@@ -559,17 +566,6 @@ where
                 "required": ["command", "task"]
             }),
         );
-
-        fn id_schema(command_name: &str) -> foundation_jsonschema::ValidationOptions {
-            foundation_jsonschema::ValidationOptions::with_schema(serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "command": { "const": command_name },
-                    "id": { "type": "string", "description": "Delegation id returned by start" }
-                },
-                "required": ["command", "id"]
-            }))
-        }
 
         Tool::MultiCommands(
             TOOL.to_string(),
@@ -626,12 +622,12 @@ where
     ) -> Result<ToolCallResult, ToolError> {
         let command = text_arg(&arguments, "command")?;
         match command.as_str() {
-            "start" => self.start(&arguments).await,
-            "check" => self.check(&arguments).await,
-            "result" => self.result(&arguments).await,
-            "pause" => self.pause(&arguments).await,
-            "resume" => self.resume(&arguments).await,
-            "stop" => self.stop(&arguments).await,
+            "start" => self.start(&arguments),
+            "check" => self.check(&arguments),
+            "result" => self.result(&arguments),
+            "pause" => self.pause(&arguments),
+            "resume" => self.resume(&arguments),
+            "stop" => self.stop(&arguments),
             other => Err(ToolError::InvalidArguments {
                 tool: TOOL.into(),
                 reason: format!(
@@ -645,6 +641,21 @@ where
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Schema for the commands whose only argument is a delegation id.
+///
+/// `check`, `result` and `stop` differ solely in the `command` constant, so the
+/// shape is built once rather than repeated three times.
+fn id_schema(command_name: &str) -> foundation_jsonschema::ValidationOptions {
+    foundation_jsonschema::ValidationOptions::with_schema(serde_json::json!({
+        "type": "object",
+        "properties": {
+            "command": { "const": command_name },
+            "id": { "type": "string", "description": "Delegation id returned by start" }
+        },
+        "required": ["command", "id"]
+    }))
+}
 
 fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolError> {
     match args.get(key) {

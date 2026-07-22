@@ -148,6 +148,30 @@ pub enum AgentLoopState {
     Done,
 }
 
+impl AgentLoopState {
+    /// The variant's name, for diagnostics.
+    ///
+    /// WHY: the state carries live stream handles, so it cannot derive `Debug`.
+    /// Each `transition_*` method takes the state by value and requires one
+    /// specific variant; when that expectation is violated the panic needs to
+    /// say which state was actually found, or the report is just "entered
+    /// unreachable code" and the caller has to reconstruct the sequence by hand.
+    pub(crate) const fn variant_name(&self) -> &'static str {
+        match self {
+            Self::Initializing => "Initializing",
+            Self::OuterBoundary => "OuterBoundary",
+            Self::InnerAssemble => "InnerAssemble",
+            Self::InnerGenerate { .. } => "InnerGenerate",
+            Self::InnerToolCalls { .. } => "InnerToolCalls",
+            Self::InnerExecuting { .. } => "InnerExecuting",
+            Self::InnerEmitResults { .. } => "InnerEmitResults",
+            Self::OutputProcessing => "OutputProcessing",
+            Self::Ending => "Ending",
+            Self::Done => "Done",
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // AgentLoop
 
@@ -243,9 +267,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     /// buffer duplicated it, was never drained (unbounded growth), and was read
     /// only by a debug counter, so it was removed.
     pub fn push_user_message(&mut self, msg: Messages) {
-        let _ = self.message_api.append(SessionRecord::Conversation {
-            message: msg,
-        });
+        let _ = self
+            .message_api
+            .append(SessionRecord::Conversation { message: msg });
     }
 
     /// Current state label (for diagnostics).
@@ -436,12 +460,14 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         // We need to take ownership of the state to pump the stream.
+        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let actual = previous.variant_name();
         let AgentLoopState::InnerGenerate {
             mut stream,
             mut collected,
-        } = std::mem::replace(&mut self.state, AgentLoopState::Done)
+        } = previous
         else {
-            unreachable!()
+            panic!("transition_inner_generate requires AgentLoopState::InnerGenerate, found {actual}")
         };
 
         // Pump one item from the stream.
@@ -658,10 +684,12 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_tool_calls(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
-        let AgentLoopState::InnerToolCalls { calls } =
-            std::mem::replace(&mut self.state, AgentLoopState::Done)
-        else {
-            unreachable!()
+        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let actual = previous.variant_name();
+        let AgentLoopState::InnerToolCalls { calls } = previous else {
+            panic!(
+                "transition_inner_tool_calls requires AgentLoopState::InnerToolCalls, found {actual}"
+            )
         };
 
         // Build the workflow (topological sort by depends_on).
@@ -706,15 +734,19 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_executing(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let actual = previous.variant_name();
         let AgentLoopState::InnerExecuting {
             calls,
             mut results,
             idx,
             mut active,
             mut cancel_signals,
-        } = std::mem::replace(&mut self.state, AgentLoopState::Done)
+        } = previous
         else {
-            unreachable!("Should never be in another state but AgentLoopState::InnerExecuting")
+            panic!(
+                "transition_inner_executing requires AgentLoopState::InnerExecuting, found {actual}"
+            )
         };
 
         // Check for steering cancel — abort all in-flight tool futures.
@@ -865,10 +897,12 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_emit_results(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
-        let AgentLoopState::InnerEmitResults { results, idx } =
-            std::mem::replace(&mut self.state, AgentLoopState::Done)
-        else {
-            unreachable!()
+        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let actual = previous.variant_name();
+        let AgentLoopState::InnerEmitResults { results, idx } = previous else {
+            panic!(
+                "transition_inner_emit_results requires AgentLoopState::InnerEmitResults, found {actual}"
+            )
         };
 
         if idx >= results.len() {

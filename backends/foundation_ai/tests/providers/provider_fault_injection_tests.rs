@@ -699,7 +699,13 @@ fn responses_request_body(interaction: ModelInteraction, params: Option<ModelPar
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).into_owned(),
             _ => String::new(),
         };
-        *recorder.lock().unwrap() = captured;
+        // Record only the generation request. `get_model` first performs a
+        // catalog read against `/models/{id}`, which carries no body — recording
+        // unconditionally let that bodyless request clobber the payload we came
+        // to inspect.
+        if !captured.is_empty() {
+            *recorder.lock().unwrap() = captured;
+        }
         response(
             200,
             "OK",
