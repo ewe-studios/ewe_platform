@@ -320,47 +320,11 @@ pub enum SendSafeBody {
     SseStream(Option<BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>>),
 }
 
-/// Why a value could not be cloned.
-///
-/// WHY: some payloads are backed by a single-shot source that can be consumed
-/// exactly once. Saying so explicitly beats returning `None`, which cannot
-/// distinguish "nothing to clone" from "refuses to clone".
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TryCloneError {
-    /// The value wraps a stream that can only be read once, so any copy would
-    /// share — and race on — the same exhausted source.
-    NotReplayable(&'static str),
-}
-
-impl std::fmt::Display for TryCloneError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotReplayable(what) => {
-                write!(f, "{what} is a single-shot stream and cannot be replayed")
-            }
-        }
-    }
-}
-
-impl std::error::Error for TryCloneError {}
-
-/// A clone that is allowed to fail.
-///
-/// WHY: `Clone` is all-or-nothing, so a type with even one non-clonable variant
-/// cannot implement it — leaving callers to hand-roll a `match` per call site
-/// and silently disagree about which variants are safe to copy. `TryClone` puts
-/// that judgement on the type itself.
-pub trait TryClone: Sized {
-    /// Why the clone was refused.
-    type Error;
-
-    /// Clone the value, or explain why it cannot be cloned.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the value is backed by a single-shot source.
-    fn try_clone(&self) -> std::result::Result<Self, Self::Error>;
-}
+// `TryClone`/`TryCloneError` live in foundation_core so any crate can implement
+// the capability without depending on the HTTP layer. Re-exported below so
+// `foundation_netio::shared::http::TryClone` keeps resolving for callers who
+// reach for it alongside `SendSafeBody`.
+pub use foundation_core::traits::{TryClone, TryCloneError};
 
 impl TryClone for SendSafeBody {
     type Error = TryCloneError;
