@@ -18,6 +18,8 @@ fn hello_dashboard() {
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"🏠 App"</a>
                 <a href="ewe://localhost/app-hello/home"
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"👋 Hello"</a>
+                <a href="ewe://localhost/presentation/"
+                   style="padding:8px 14px;background:#112240;color:#ffb86c;border:1px solid #3a2a1a;border-radius:6px;text-decoration:none;font-size:13px">"🎬 Presentation"</a>
                 <a href="ewe://localhost/api/status"
                    style="padding:8px 14px;background:#112240;color:#64ffda;border:1px solid #233554;border-radius:6px;text-decoration:none;font-size:13px">"⚡ API"</a>
                 <a href="ewe://localhost/remote/example.com"

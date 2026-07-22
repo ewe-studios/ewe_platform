@@ -1,0 +1,28 @@
+# Git
+.git/
+.github
+.gitignore
+
+# IDE
+**/*.idea
+backup
+
+# Python
+**/*.egg-info
+**/*.pyc
+**/__pycache__
+**/venv
+
+# Unit Test
+**/.coverage
+**/coverage.xml
+**/xunit.xml
+**/coverage
+tmp/
+
+docker
+documentations
+example
+images
+*.md
+*.sh

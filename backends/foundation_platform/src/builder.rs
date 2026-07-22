@@ -166,11 +166,24 @@ impl<R: Runtime> PlatformBuilder<R> {
                 crate::window::TauriWindowOps::new(app.handle().clone()).into_boxed()
             );
 
-            // F24: resolve and eval all platform runtime scripts
+            // F24: resolve and eval all platform runtime scripts.
+            // On mobile (Android/iOS), `window.eval()` treats the injected JS as a
+            // classic script — the `export` keyword causes a SyntaxError. We strip
+            // `export` statements on mobile so the `globalThis.FoundationWasmRuntime`
+            // mirror path works (the scripts are designed for both ESM and IIFE).
             let scripts = session.script_injector().resolve_all();
             if let Some(window) = app.get_webview_window("main") {
+                let is_mobile = cfg!(mobile);
                 for script in &scripts {
-                    let _ = window.eval(script);
+                    let to_eval = if is_mobile {
+                        // Strip top-level `export` so classic-script eval works on WebView.
+                        script.replace("export ", "// export ")
+                    } else {
+                        script.clone()
+                    };
+                    if !to_eval.is_empty() {
+                        let _ = window.eval(&to_eval);
+                    }
                 }
             }
 

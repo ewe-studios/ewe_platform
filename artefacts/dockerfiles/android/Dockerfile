@@ -37,7 +37,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     curl \
     git \
     rsync \
-    # SSH + Python HTTP (ADB screencap served via Python, no VNC/X11 needed)
+    # SSH + ADB screencap screen server (Python3 built-in)
     openssh-server \
     docker.io \
     wget \
