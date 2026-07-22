@@ -11,20 +11,20 @@ keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 
 [dependencies]
 # -- workspace dependency
-foundation_codegentools = { path = "../../backends/foundation_codegentools", version = "0.1.0", features = ["cli"] }
+foundation_codegentools = { path = "../../backends/foundation_codegentools", version = "0.1.1", features = ["cli"] }
 # Feature 20: each runtime crate owns its build CLI.
-foundation_wasm = { path = "../../backends/foundation_wasm", version = "0.0.3" }
+foundation_wasm = { path = "../../backends/foundation_wasm", version = "0.0.4" }
 foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", version = "0.1.0" }
 foundation_packager = { path = "../../backends/foundation_packager", version = "0.1.0" }
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.1" }
-foundation_core = { path = "../../backends/foundation_core", version = "0.0.3", features = ["multi"] }
-foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.1" }
 foundation_runtimes = { path = "../../backends/foundation_runtimes", version = "0.0.3" }
-foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.4" }
-foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.4" }
+foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.5" }
+foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.5" }
 foundation_deployment = { path = "../../backends/foundation_deployment", version = "0.0.1" }
 
 # base crates
