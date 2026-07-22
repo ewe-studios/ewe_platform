@@ -76,6 +76,59 @@ statuses / malformed bodies to exercise retry + error-mapping branches.
 - [ ] `harness/agents.rs` — cover the remaining session builders offline.
 - [ ] Re-measure; list any excused regions with justification.
 
+## Open follow-ups (2026-07-22)
+
+### 1. Flaky: `system_prompt_and_soul_are_combined` — INVESTIGATE NEXT RUN
+
+`providers::provider_fault_injection_tests::system_prompt_and_soul_are_combined`
+failed **once** during a full-suite run, then passed on the immediate rerun and
+3/3 in isolation. **Not explained — do not close until it is.**
+
+What is known:
+
+- The assertion that fired is the helper's own guard: *"the request body must
+  have been captured"*. So `seen` was empty when read, meaning no non-empty body
+  ever reached the recorder.
+- It appeared right after catalog reads switched from POST to GET
+  (`build_prepared_request` now picks the method from the body). That made the
+  `/models/{id}` lookup **bodyless**, and the recorder was overwriting on every
+  request — so the bodyless catalog read clobbered the generation payload the
+  test exists to inspect. The recorder now ignores empty bodies, which fixed the
+  reproducible form of this.
+- The single failure survived that fix, so the empty-capture path is reachable by
+  some other route. Current suspicion is contention under full-suite load
+  (the generation request not reaching the server, or the read racing the
+  handler), but that is a guess and has not been demonstrated.
+
+Next steps: run the full suite in a loop to reproduce; if it reproduces, have the
+recorder collect **every** request (method + path + body) rather than keeping one
+slot, and assert on the generation request by path. That turns "capture was
+empty" into "here is exactly what the server did receive", which is the
+information the current failure mode lacks.
+
+The guard is doing its job — it converted a test that would have passed
+vacuously into one that fails loudly. Keep it.
+
+### 2. Workspace clippy debt — scoped, not swept
+
+Under `-W clippy::pedantic` the workspace emits **1159** warnings, concentrated
+in `foundation_nostd` and `foundation_auth`. This session cleared only the two
+files raised in review:
+
+| File | Before | After |
+|---|---|---|
+| `agentic/tools/agent.rs` | 19 | **0** |
+| `agentic/agent_loop.rs` | 0 | **0** |
+| `foundation_core/src/traits/` (new) | — | **0** |
+
+One of the 19 was a real defect rather than lint noise: `max_iterations` parsed
+`u64`/`i64` with `as usize`, which wraps on a 32-bit target — a caller asking for
+a large cap could be handed a tiny one and the sub-agent would stop early with no
+visible cause. Now `try_from` with an explicit out-of-range error.
+
+The remaining 1159 are untouched and out of scope here; sweeping them belongs in
+its own feature so the diff is reviewable.
+
 ## Done when
 
 Coverage report shows no critical file below the reviewed bar; 0% files

@@ -92,6 +92,59 @@ enum EventSourceState {
     Closed(EventSourceCloseReason),
 }
 
+/// Render an SSE request and write it to the socket.
+///
+/// WHY: extracted from the connecting state so the state machine reads as one
+/// step per line. It also keeps the failure handling honest — render and flush
+/// results used to be discarded, so a request that never reached the wire was
+/// still treated as sent and the connection hung waiting for a reply to bytes
+/// that were never written.
+///
+/// HOW: renders into a buffer first, which is what makes the bytes traceable.
+/// A wire-level mismatch (a missing header, wrong framing) surfaces only as an
+/// opaque vendor 4xx; without the bytes there is no way to tell our request
+/// apart from a working `curl` one.
+fn send_request<W: Write>(request: SimpleIncomingRequest, writer: &mut W) -> std::io::Result<()> {
+    let mut rendered: Vec<u8> = Vec::new();
+    Http11::Request(request)
+        .http_render_to_writer(&mut rendered)
+        .map_err(|err| std::io::Error::other(format!("failed to render SSE request: {err:?}")))?;
+
+    if tracing::enabled!(tracing::Level::TRACE) {
+        trace!(
+            bytes = rendered.len(),
+            request = %redact_credentials(&String::from_utf8_lossy(&rendered)),
+            "SSE request wire bytes"
+        );
+    }
+
+    writer.write_all(&rendered)?;
+    writer.flush()
+}
+
+/// Blank out credential headers in a rendered request.
+///
+/// WHY: the trace above prints the FULL request. Without this, a bearer token or
+/// session cookie is written verbatim into every sink that has trace enabled.
+fn redact_credentials(rendered: &str) -> String {
+    rendered
+        .split("\r\n")
+        .map(|line| {
+            let lower = line.to_ascii_lowercase();
+            if lower.starts_with("authorization:")
+                || lower.starts_with("proxy-authorization:")
+                || lower.starts_with("cookie:")
+            {
+                let name = line.split(':').next().unwrap_or("header");
+                format!("{name}: <redacted>")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\r\n")
+}
+
 pub struct EventSourceTask<R>
 where
     R: DnsResolver + Send + 'static,
@@ -397,58 +450,9 @@ where
                 // clone_stream() returns SharedByteBufferStream<RawStream>
                 let stream = connection.clone_stream();
 
-                // Render the full HTTP request (headers + body), then write it.
-                //
-                // Rendered into a buffer first so the exact bytes can be traced.
-                // A wire-level mismatch here (a missing body, wrong framing) shows
-                // up only as an opaque vendor 4xx, and without the bytes there is
-                // no way to tell our request apart from a working `curl` one.
-                let mut rendered: Vec<u8> = Vec::new();
-                if let Err(err) = Http11::Request(*request).http_render_to_writer(&mut rendered) {
-                    // Previously discarded: a request that failed to render was
-                    // still "sent", so the connection hung awaiting a response to
-                    // bytes that were never written.
-                    error!(?err, "Failed to render SSE request");
-                    self.state = Some(EventSourceState::Closed(
-                        EventSourceCloseReason::ConnectionError,
-                    ));
-                    return None;
-                }
-
-                // Redact credentials: this renders the FULL request, and an
-                // `authorization` header would otherwise be written verbatim into
-                // any log sink that has trace enabled.
-                if tracing::enabled!(tracing::Level::TRACE) {
-                    let text = String::from_utf8_lossy(&rendered);
-                    let safe: String = text
-                        .split("\r\n")
-                        .map(|line| {
-                            let lower = line.to_ascii_lowercase();
-                            if lower.starts_with("authorization:")
-                                || lower.starts_with("proxy-authorization:")
-                                || lower.starts_with("cookie:")
-                            {
-                                let name = line.split(':').next().unwrap_or("header");
-                                format!("{name}: <redacted>")
-                            } else {
-                                line.to_string()
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\r\n");
-                    trace!(bytes = rendered.len(), request = %safe, "SSE request wire bytes");
-                }
-
                 let mut stream_writer = stream.clone();
-                if let Err(err) = stream_writer.write_all(&rendered) {
-                    error!(?err, "Failed to write SSE request to socket");
-                    self.state = Some(EventSourceState::Closed(
-                        EventSourceCloseReason::ConnectionError,
-                    ));
-                    return None;
-                }
-                if let Err(err) = stream_writer.flush() {
-                    error!(?err, "Failed to flush SSE request");
+                if let Err(err) = send_request(*request, &mut stream_writer) {
+                    error!(?err, "Failed to send SSE request");
                     self.state = Some(EventSourceState::Closed(
                         EventSourceCloseReason::ConnectionError,
                     ));
