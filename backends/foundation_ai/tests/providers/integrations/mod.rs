@@ -1,4 +1,6 @@
 mod anthropic_provider;
+#[cfg(feature = "cuda")]
+mod llamacpp_cuda;
 mod llamacpp_inprocess;
 mod llamacpp_provider;
 mod openai_chat_completion_provider;

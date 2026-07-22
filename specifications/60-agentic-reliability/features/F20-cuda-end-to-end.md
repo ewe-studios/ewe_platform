@@ -27,9 +27,28 @@ the RTX 4070 Ti SUPER; 6 gated tests green (`tests/candle/candle_cuda_tests.rs`)
   so the fused ops in candle-nn errored with "no cuda implementation for
   rms-norm". Now enables cuda on candle-core, candle-nn AND candle-transformers.
 
-Still open: **B3/W4** (llama.cpp — defaults to 0 offload layers; needs a
-read-back of layers actually offloaded so a test proves GPU use rather than
-assuming it), and a CPU-vs-CUDA output comparison on the fixture.
+**llama.cpp CUDA works end-to-end too.** The committed tiny GGUF loads with full
+offload and generates; 3 gated tests green
+(`tests/providers/integrations/llamacpp_cuda.rs`).
+
+- **B3 resolved** — added `LlamaBackendConfig::builder().offload_all_layers()`
+  (passes `u32::MAX`, which llama.cpp clamps to the model's depth). The default
+  stays 0/CPU-only, so GPU use is never accidental.
+- **W4** — llama.cpp exposes no per-model "layers actually offloaded" counter, so
+  the honest proof that this is a GPU build (not a CPU one ignoring
+  `n_gpu_layers`) is `LlamaBackend::supports_gpu_offload()` returning true AND a
+  device being present; the test asserts both, then generates with full offload.
+- The llama.cpp CUDA library builds against the 13.3 toolkit (CMake/nvcc,
+  ~21 min) with `CUDARC_CUDA_VERSION=13000 CUDA_COMPUTE_CAP=89`.
+- Test discoverability: the `integrations` test module was gated only on
+  `live-model-tests`; now `any(live-model-tests, cuda)` so the GPU test (which
+  uses a committed fixture) runs under `--features cuda` alone. The other
+  integration tests self-skip without their downloaded models.
+
+Still open: a CPU-vs-CUDA output comparison on the fixture (acceptance #2's
+"byte-comparable" — deferred pending a decision on floating-point tolerance
+between CPU and GPU argmax), and the two-way `tensor_split` multi-GPU llama.cpp
+run (acceptance #5; candle's second-GPU path is already covered).
 
 ## Goal
 

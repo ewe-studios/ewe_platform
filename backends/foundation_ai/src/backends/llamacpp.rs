@@ -232,6 +232,25 @@ impl LlamaBackendConfigBuilder {
         self
     }
 
+    /// Offload every layer to the GPU.
+    ///
+    /// WHY: the default is 0 (CPU-only), so a caller who builds with the `cuda`
+    /// feature but forgets to set a layer count still runs entirely on CPU — a
+    /// silent non-acceleration. This states the intent directly instead of
+    /// leaving the caller to guess a "big enough" number.
+    ///
+    /// HOW: passes `u32::MAX`, which llama.cpp clamps to the model's actual layer
+    /// count, so full offload happens regardless of depth. Has no effect unless
+    /// the build includes GPU support — check [`LlamaBackend::supports_gpu_offload`]
+    /// to confirm at runtime.
+    ///
+    /// [`LlamaBackend::supports_gpu_offload`]: infrastructure_llama_cpp::llama_backend::LlamaBackend::supports_gpu_offload
+    #[must_use]
+    pub fn offload_all_layers(mut self) -> Self {
+        self.config.n_gpu_layers = u32::MAX;
+        self
+    }
+
     /// Set the context length (max tokens).
     #[must_use]
     pub fn context_length(mut self, n: usize) -> Self {

@@ -13,7 +13,11 @@ mod provider_fault_injection_tests;
 #[cfg(feature = "llamacpp")]
 mod llamacpp_provider;
 
-#[cfg(feature = "live-model-tests")]
+// Also compiled under `cuda`: the GPU integration test uses a committed fixture,
+// so it must be reachable with just the `cuda` feature. The other integration
+// tests here self-skip when their downloaded models are absent, so pulling them
+// in under `cuda` costs nothing.
+#[cfg(any(feature = "live-model-tests", feature = "cuda"))]
 mod integrations;
 
 #[cfg(feature = "external-service-tests")]
