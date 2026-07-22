@@ -14,8 +14,8 @@
 [submodule ".agents"]
 	path = .agents
 	url = https://github.com/ewe-studios/agentic-coding-starter.git
-[submodule "tools/llama.cpp"]
-	path = tools/llama.cpp
+[submodule "infrastructure/llama-bindings/llama.cpp"]
+	path = infrastructure/llama-bindings/llama.cpp
 	url = https://github.com/ggml-org/llama.cpp
 [submodule "artefacts/models/whisper.cpp"]
 	path = artefacts/models/whisper.cpp

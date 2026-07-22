@@ -7605,7 +7605,7 @@ dependencies = [
 
 [[package]]
 name = "infrastructure_llama_bindings"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bindgen 0.72.1",
  "cc",

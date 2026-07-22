@@ -18,10 +18,9 @@ DEPOT_DIR = "{{env.TOOLS_DIR}}/depot_tools"
 DAWN_DIR = "{{env.TOOLS_DIR}}/dawn"
 EMSDK_DIR = "{{env.TOOLS_DIR}}/emsdk"
 WHISPER_DIR = "{{env.TOOLS_DIR}}/whisper.cpp"
-LLAMA_SUBMODULE_PATH = "tools/llama.cpp"
+LLAMA_SUBMODULE_PATH = "infrastructure/llama-bindings/llama.cpp"
 LLAMA_DIR = "{{config_root}}/{{env.LLAMA_SUBMODULE_PATH}}"
 LLAMA_BINDINGS_DIR = "{{config_root}}/infrastructure/llama-bindings"
-LLAMA_SYMLINK_DIR = "{{env.LLAMA_BINDINGS_DIR}}/llama.cpp"
 NO_CAPTURE = "{{ env.NO_CAPTURE | default(value='--show-output') }}"
 TARGET_TEST = "{{ env.TARGET_TEST | default(value='') }}"
 _.path = ["./node_modules/.bin", "{{env.DEPOT_DIR}}"]
@@ -196,29 +195,8 @@ gclient sync
 echo "✓ Dawn cloned and synced at $DAWN_DIR"
 """
 
-[tasks."tools:llama:symlink"]
-description = "Create symlink from LLAMA_SYMLINK_DIR to ../../tools/llama.cpp"
-run = """
-#!/usr/bin/env bash
-set -e
-LINK="$LLAMA_SYMLINK_DIR"
-TARGET="../../{{env.LLAMA_SUBMODULE_PATH}}"
-if [ -L "$LINK" ]; then
-    echo "Symlink already exists: $LINK"
-else
-    if [ -d "$LINK" ]; then
-        echo "ERROR: directory exists at $LINK, cannot create symlink"
-        echo "Remove the directory first, then re-run this task"
-        exit 1
-    fi
-    ln -s "$TARGET" "$LINK"
-    echo "Created symlink: $LINK -> $TARGET"
-fi
-"""
-
 [tasks."tools:llama:init"]
 description = "Initialize and update llama.cpp submodule"
-depends = ["tools:llama:symlink"]
 run = """
 #!/usr/bin/env bash
 set -e

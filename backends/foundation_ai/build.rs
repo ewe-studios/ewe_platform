@@ -27,7 +27,7 @@ fn main() {
         .and_then(|p| p.parent())
         .expect("expected project root two levels up from foundation_ai");
 
-    let llama_dir = project_root.join("tools/llama.cpp");
+    let llama_dir = project_root.join("infrastructure/llama-bindings/llama.cpp");
     let output_dir = project_root.join("support/bin");
     let output_bin = output_dir.join("llama-server");
 
@@ -37,7 +37,7 @@ fn main() {
             "cargo:warning=llama.cpp source not found at {}",
             llama_dir.display()
         );
-        println!("cargo:warning=Run: git submodule update --init tools/llama.cpp");
+        println!("cargo:warning=Run: git submodule update --init infrastructure/llama-bindings/llama.cpp");
         return;
     }
 

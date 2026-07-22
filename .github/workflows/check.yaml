@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          git submodule update --init --recursive tools/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Link prebuilt Dawn and emsdk from image
         run: |
           mkdir -p tools
@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 1
       - name: Checkout llama.cpp
         run: |
-          git submodule update --init --recursive tools/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Prepare clean build context
         run: |
           mkdir -p /tmp/ewe-docker-build
@@ -96,7 +96,7 @@ jobs:
       - name: Pull the accompany tools
         run: |
           git submodule update --init --recursive tools/emsdk
-          git submodule update --init --recursive tools/llama.cpp
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Install depot_tools
         run: |
           git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
@@ -127,7 +127,7 @@ jobs:
 #        run: |
 #          git submodule update --init --recursive tools/emsdk
 #          git submodule update --init --depth=1 tools/dawn
-#          git submodule update --init --recursive tools/llama.cpp
+#          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
 #      - name: Setup Rust
 #        uses: dtolnay/rust-toolchain@stable
 #        with:

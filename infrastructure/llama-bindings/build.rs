@@ -224,10 +224,29 @@ fn main() {
     ))
     .expect("failed to collect EMSDK_DIR path");
 
-    let llama_src = std::fs::canonicalize(Path::new(
-        &env::var("LLAMA_DIR").expect("get LLAMA_DIR environment"),
-    ))
-    .expect("failed to collect LLAMA_DIR path");
+    let llama_src = {
+        let vendored = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("llama.cpp");
+        let from_env = env::var("LLAMA_DIR").ok().map(PathBuf::from);
+        let resolved = match from_env {
+            Some(ref p) if p.is_dir() => p.clone(),
+            Some(ref p) => {
+                println!(
+                    "cargo:warning=LLAMA_DIR={} does not exist, falling back to vendored copy at {}",
+                    p.display(),
+                    vendored.display()
+                );
+                vendored
+            }
+            None => vendored,
+        };
+        std::fs::canonicalize(&resolved)
+            .unwrap_or_else(|e| {
+                panic!(
+                    "failed to resolve llama.cpp source directory {}: {e}",
+                    resolved.display()
+                )
+            })
+    };
 
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
@@ -573,7 +592,7 @@ fn main() {
     config.define("LLAMA_CURL", "OFF");
 
     // Ignore external/system llama.cpp installations that may have stale CMake configs.
-    // We always build from the bundled tools/llama.cpp directory.
+    // We always build from the vendored llama.cpp directory.
     // Note: even if `system-ggml` cargo feature is enabled, we force OFF here to
     // avoid finding broken external configs. The build always uses bundled llama.cpp.
     if let Ok(home) = env::var("HOME") {
@@ -864,7 +883,7 @@ fn main() {
 
     // system-ggml is intentionally NOT supported here. When an external llama.cpp
     // is installed (e.g. ~/apps/llama.cpp), its CMake configs may be stale or broken.
-    // We always build from the bundled tools/llama.cpp directory.
+    // We always build from the vendored llama.cpp directory.
 
     // General
     config

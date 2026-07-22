@@ -1,7 +1,7 @@
 [package]
 name = "infrastructure_llama_bindings"
 description = "Low Level Bindings to llama.cpp (originally: utilityai/llama-cpp-rs/llama-cpp-sys-2)"
-version = "0.0.2"
+version = "0.0.3"
 links = "llama"
 edition.workspace = true
 rust-version.workspace = true
@@ -12,7 +12,11 @@ keywords.workspace = true
 
 include = [
     "wrapper.h",
+    "wrapper_chat.h",
+    "wrapper_chat.cpp",
     "wrapper_mtmd.h",
+    "wrapper_mtp.h",
+    "wrapper_mtp.cpp",
     "build.rs",
     "/src",
 
