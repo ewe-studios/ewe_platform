@@ -38,7 +38,14 @@ fn provider_or_skip() -> Option<impl Model> {
         // `{base_url}/{api_version}/{endpoint}` and `api_version` defaults to
         // "v1". Passing ".../api/v1" here produced ".../api/v1/v1/chat/completions",
         // which OpenRouter answers with a 404 HTML page.
-        .with_base_url("https://openrouter.ai/api".to_string())
+        //
+        // `OPENROUTER_BASE_URL` redirects these tests at a local listener so the
+        // raw request bytes can be inspected — the streaming failure is a
+        // wire-level difference from what `curl` sends, not a payload problem.
+        .with_base_url(
+            std::env::var("OPENROUTER_BASE_URL")
+                .unwrap_or_else(|_| "https://openrouter.ai/api".to_string()),
+        )
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)));
     let provider = OpenAIProvider::with_http_client(http)
         .create(Some(config))
