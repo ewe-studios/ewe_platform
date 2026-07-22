@@ -16,7 +16,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 foundation_runtimes = { path = "../foundation_runtimes", version = "0.0.3" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 tracing.workspace = true
 derive_more.workspace = true

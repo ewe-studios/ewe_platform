@@ -1,6 +1,6 @@
 [package]
 name = "foundation_conditional"
-version = "0.1.0"
+version = "0.1.1"
 description = "Block-level conditional compilation macros for gating code on feature flags"
 edition.workspace = true
 rust-version.workspace = true

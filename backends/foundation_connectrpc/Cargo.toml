@@ -11,7 +11,7 @@ keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
@@ -31,7 +31,7 @@ brotli = { version = "8", optional = true }
 
 [dev-dependencies]
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }

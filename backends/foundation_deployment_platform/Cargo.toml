@@ -13,7 +13,7 @@ keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"
 # Foundation crates
 foundation_core = { path = "../foundation_core", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate

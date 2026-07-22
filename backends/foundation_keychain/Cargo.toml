@@ -68,7 +68,7 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).

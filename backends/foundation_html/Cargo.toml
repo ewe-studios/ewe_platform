@@ -11,8 +11,8 @@ keywords.workspace = true
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_conditional = { path = "../foundation_conditional", version = "0.1.0" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_conditional = { path = "../foundation_conditional", version = "0.1.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 derive_more = { workspace = true }
 

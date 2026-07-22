@@ -17,7 +17,7 @@ crate-type = ["rlib", "cdylib"]
 # needs poll/fd for the UDP socket + reactor used by the tunnel driver.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", default-features = false, features = ["netstack"] }
 foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 # Seed -> key derivation (decision 03: HKDF-BLAKE2s).
 hkdf = "0.12"

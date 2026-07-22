@@ -15,6 +15,7 @@ js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", features = ["console"], optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+ratatui = { version = "0.30.2", default-features = false, features = ["crossterm_0_28"], optional = true }
 
 [dev-dependencies]
 
@@ -24,6 +25,7 @@ native = ["dep:crossterm"]
 colors = ["native"]
 history-file = ["dep:serde", "dep:serde_json"]
 wasm = ["dep:js-sys", "dep:web-sys"]
+ratatui = ["dep:ratatui"]
 
 [lints]
 workspace = true
