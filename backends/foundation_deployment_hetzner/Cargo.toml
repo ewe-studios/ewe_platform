@@ -72,7 +72,7 @@ workspace = true
 [package]
 description = "Hetzner Cloud API v1 client — VPS provisioning and SSH keys"
 name = "foundation_deployment_hetzner"
-version = "0.1.0"
+version = "0.1.1"
 
 [package.authors]
 workspace = true

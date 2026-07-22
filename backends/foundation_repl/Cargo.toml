@@ -7,7 +7,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-keywords = ["foundation_shell_repl", "repl", "tui", "terminal"]
+keywords = ["shell_repl", "repl", "tui", "terminal"]
 
 [dependencies]
 crossterm = { version = "0.28", optional = true }

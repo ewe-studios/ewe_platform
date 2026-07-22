@@ -215,7 +215,7 @@ workspace = true
 [package]
 description = "Cloudflare API v4 client — DNS records, zones, certificates"
 name = "foundation_deployment_cloudflare"
-version = "0.1.0"
+version = "0.1.1"
 
 [package.authors]
 workspace = true

@@ -7,6 +7,6 @@ description = "Wasmtime shell — run WASM modules in-process alongside the Taur
 
 [dependencies]
 wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime"] }
-foundation_errstacks = { path = "../foundation_errstacks" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 derive_more = { version = "2", features = ["display", "error", "from"] }
 tracing = "0.1"

@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Build-time helpers for cross-platform compilation: target detection, EMSDK wiring, codegen-backend detection, and wasm target classification"
-keywords = ["foundation_buildtools", "build-tools"]
+keywords = ["buildtools", "build-tools"]
 
 [lints]
 workspace = true

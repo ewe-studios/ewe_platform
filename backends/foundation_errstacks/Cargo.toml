@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Minimal, ergonomic, derive_more-friendly context-aware error traces for the ewe_platform project (no_std + alloc capable)"
-keywords = ["foundation_errstacks", "error-handling", "no_std"]
+keywords = ["errstacks", "error-handling", "no_std"]
 
 [features]
 # `std` is on by default for ergonomic downstream use, but downstream

@@ -7,7 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Cross-platform native APIs: I/O readiness polling, io_uring, file watching, and interprocess messaging"
-keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
+keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 
 [lib]
 crate-type = ["rlib", "cdylib"]
