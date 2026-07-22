@@ -146,19 +146,28 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 // -- SseTestServer-based tests (reconnection behavior)
 
 /// WHY: Verify that when an SSE connection drops abruptly (simulating network
-/// failure), the reconnecting task actually reconnects and re-sends headers
-/// but NOT the body (which is `take()`n on first connection).
+/// failure), the reconnecting task reconnects and re-sends the headers AND a
+/// replayable body.
+///
+/// This previously asserted the opposite — that the body is dropped on
+/// reconnect, because it was `take()`n. That codified a bug rather than a
+/// contract: the task keeps POSTing (the method is deliberately preserved), so
+/// a bodyless reconnect sends `POST` with no payload. A real SSE-over-POST
+/// vendor answers that with `400 "JSON parsing failed"`, which the task counts
+/// as a connection error and retries, so every attempt fails identically and
+/// the stream dies with "max retries exhausted". Replaying the body is what
+/// makes reconnection actually work for OpenAI/OpenRouter chat completions.
 ///
 /// WHAT: Uses `SseTestServer` with `abrupt_drop` close behavior to trigger
 /// a reconnection, then verifies:
 /// 1. Reconnection occurs (>= 2 connections seen)
 /// 2. Both connections have POST method
-/// 3. Only the first connection has the body
+/// 3. BOTH connections carry the JSON body
 /// 4. Both connections have the Authorization header
 #[test]
 #[serial(valtron_pool)]
 #[traced_test]
-fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
+fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
     #[derive(Clone, Default)]
     struct CapturedRequests {
         requests: Arc<std::sync::Mutex<Vec<(String, String, String)>>>, // (method, body, auth)
@@ -271,15 +280,18 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
         "First connection should include Authorization header, got: {auth}"
     );
 
-    // Second connection (reconnection): POST + NO body + auth
+    // Second connection (reconnection): POST + the SAME body + auth.
+    // The body must be replayed: the method stays POST, so an empty body here
+    // is a malformed request the vendor rejects outright.
     let (method, body, auth) = &requests[1];
     assert_eq!(
         method, "POST",
         "Reconnection should use POST, got: {method}"
     );
     assert!(
-        body.is_empty(),
-        "Reconnection should NOT include body (body is take()n), got: {body}"
+        body.contains(r#""model":"qwen2.5""#),
+        "Reconnection must replay the JSON body — a bodyless POST is rejected \
+         with 400 and burns every retry, got: {body}"
     );
     assert!(
         auth.contains("Bearer test-key-123"),

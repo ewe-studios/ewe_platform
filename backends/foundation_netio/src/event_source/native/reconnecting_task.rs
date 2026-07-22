@@ -205,14 +205,16 @@ where
         self
     }
 
-    /// Set the request body (applied only on the first connection).
+    /// Set the request body, replayed on every connection attempt.
     ///
     /// WHY: Some SSE endpoints (e.g. `OpenAI` chat completions) require POST with a JSON body.
-    /// WHAT: Returns Self with the body applied to the initial inner task.
-    /// On reconnect, the body is dropped — only the URL, method, and headers are re-sent.
+    /// WHAT: Returns Self with the body applied to each inner task, including
+    /// reconnections — the method stays POST, so a reconnect without the body
+    /// would be a malformed request the vendor rejects with 400.
+    /// Non-replayable (iterator) bodies still apply only to the first connection.
     #[must_use]
     pub fn with_body(mut self, body: SendSafeBody) -> Self {
-        debug!("Setting request body (first connection only)");
+        debug!("Setting request body");
         self.config.body = Some(body);
         self.config.method = SimpleMethod::POST;
         self
@@ -220,8 +222,9 @@ where
 
     /// Create a new inner [`EventSourceTask`] for (re)connection.
     ///
-    /// NOTE: Body is taken via `take()` so it only applies on the first connection.
-    /// The method is preserved across all reconnections.
+    /// NOTE: A replayable body (`Text`/`Bytes`) is cloned onto every connection,
+    /// matching the preserved POST method. Single-shot iterator bodies cannot be
+    /// replayed and so apply only to the first connection.
     fn create_inner_task(&mut self) -> Option<EventSourceTask<R>> {
         let mut task = EventSourceTask::connect(self.resolver.clone(), &self.config.url).ok()?;
 
@@ -233,8 +236,26 @@ where
             task = task.with_header(name.clone(), value);
         }
 
-        // Apply body only on first connection (taken so None on reconnect)
-        if let Some(body) = self.config.body.take() {
+        // Replay the body on EVERY connection attempt, not just the first.
+        //
+        // The WHATWG `EventSource` reconnect is a bodyless GET, which is where
+        // "first connection only" came from. But this task also drives POST SSE
+        // endpoints (OpenAI/OpenRouter chat completions — see `with_body`), and
+        // those need their JSON body on every attempt. Dropping it while
+        // `with_method` faithfully preserves POST produces a bodyless POST, which
+        // the vendor answers with 400 "JSON parsing failed"; that is then counted
+        // as a connection error and retried, so every attempt burns the same way
+        // and the stream dies with "max retries exhausted".
+        //
+        // `Text`/`Bytes` are replayable, so clone them. The iterator variants are
+        // single-shot streams that genuinely cannot be replayed — those keep the
+        // original take-semantics rather than silently resending a spent body.
+        let body = match self.config.body {
+            Some(SendSafeBody::Text(ref t)) => Some(SendSafeBody::Text(t.clone())),
+            Some(SendSafeBody::Bytes(ref b)) => Some(SendSafeBody::Bytes(b.clone())),
+            _ => self.config.body.take(),
+        };
+        if let Some(body) = body {
             task = task.with_body(body);
         }
 

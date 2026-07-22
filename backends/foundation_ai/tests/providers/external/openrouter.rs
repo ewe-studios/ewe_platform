@@ -15,7 +15,13 @@ use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::client::http_client::HttpClient;
 
 /// A cheap, widely-available OpenRouter model with tool support.
-const MODEL: &str = "openai/gpt-4o-mini";
+///
+/// Not `openai/gpt-4o-mini`: routing to OpenAI through OpenRouter returns
+/// `403 "prohibited due to a violation of provider Terms Of Service"` unless the
+/// account has the matching data policy enabled, so it fails for reasons that
+/// have nothing to do with this crate. Mistral Nemo is served directly, is
+/// roughly half the price, and advertises `tools` support.
+const MODEL: &str = "mistralai/mistral-nemo";
 
 fn provider_or_skip() -> Option<impl Model> {
     let key = std::env::var("OPENROUTER_API_KEY").ok()?;
@@ -28,7 +34,11 @@ fn provider_or_skip() -> Option<impl Model> {
         Duration::from_secs(60),
     ));
     let config = OpenAIConfig::new()
-        .with_base_url("https://openrouter.ai/api/v1".to_string())
+        // Base URL must NOT include the version segment: `build_url` composes
+        // `{base_url}/{api_version}/{endpoint}` and `api_version` defaults to
+        // "v1". Passing ".../api/v1" here produced ".../api/v1/v1/chat/completions",
+        // which OpenRouter answers with a 404 HTML page.
+        .with_base_url("https://openrouter.ai/api".to_string())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)));
     let provider = OpenAIProvider::with_http_client(http)
         .create(Some(config))
@@ -99,18 +109,41 @@ fn openrouter_stream_advances() {
     let stream = model
         .stream(interaction("Count: one two three."), Some(params()))
         .expect("stream should be created");
+    // Bounded: a stream that never yields text must fail on the assertion
+    // rather than spin until the HTTP read timeout. Non-`Next` items are normal
+    // scheduling churn, so the cap is generous.
+    const MAX_ITEMS: usize = 5_000;
+
     let mut text_tokens = 0;
-    for item in stream {
-        if let Stream::Next(Messages::Assistant {
-            content: ModelOutput::Text(_),
-            ..
-        }) = item
-        {
-            text_tokens += 1;
+    let mut seen: Vec<String> = Vec::new();
+    for (i, item) in stream.enumerate() {
+        if seen.len() < 12 {
+            let mut d = format!("{item:?}");
+            d.truncate(160);
+            seen.push(d);
         }
-        if text_tokens >= 2 {
+        match item {
+            Stream::Next(Messages::Assistant {
+                content: ModelOutput::Text(_),
+                ..
+            }) => text_tokens += 1,
+            Stream::Next(_) => {}
+            // A network stream reports back-pressure instead of blocking. The
+            // local-model tests can spin because tokens land synchronously;
+            // here, spinning never gives the transport a chance to progress, so
+            // the scheduling states have to be honoured.
+            Stream::Delayed(d) => std::thread::sleep(d),
+            _ => std::thread::sleep(Duration::from_millis(10)),
+        }
+        if text_tokens >= 2 || i >= MAX_ITEMS {
             break;
         }
     }
-    assert!(text_tokens >= 1, "openrouter stream must produce tokens");
+    // Report what actually arrived: "must produce tokens" alone gives no way to
+    // tell a transport failure from a shape mismatch in the decoded message.
+    assert!(
+        text_tokens >= 1,
+        "openrouter stream must produce text tokens; got {text_tokens}.\nFirst items observed:\n{}",
+        seen.join("\n")
+    );
 }
