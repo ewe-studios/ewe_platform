@@ -25,6 +25,7 @@ fn nav_buttons(current: &str) -> String {
     let pages = [
         ("/app/", "🏠 App"),
         ("/app-hello/", "👋 Hello"),
+        ("/presentation/", "🎬 Presentation"),
         ("/remote/example.com", "🌐 Remote"),
         ("/api/invoke", "⚡ Invoke"),
         ("/api/system", "💻 System"),
