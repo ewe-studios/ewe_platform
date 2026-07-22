@@ -1,5 +1,7 @@
 # Platform
 
+**This is pretty alpha software, use at your own risk**
+
 A series of crates providing different functionality and binaries for projects.
 
 ## Test Structure
