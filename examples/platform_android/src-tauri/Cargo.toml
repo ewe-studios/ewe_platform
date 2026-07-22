@@ -9,7 +9,7 @@ name = "platform_android_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
-foundation_core = { path = "../../../backends/foundation_core", version = "0.0.3", features = ["multi"] }
+foundation_core = { path = "../../../backends/foundation_core", version = "0.0.4", features = ["multi"] }
 foundation_platform = { path = "../../../backends/foundation_platform" }
 foundation_ui_traits = { path = "../../../backends/foundation_ui_traits" }
 foundation_wasm = { path = "../../../backends/foundation_wasm" }

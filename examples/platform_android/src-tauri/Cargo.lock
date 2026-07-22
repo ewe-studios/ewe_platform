@@ -1298,7 +1298,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_arrow"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -1316,7 +1316,7 @@ version = "0.0.1"
 
 [[package]]
 name = "foundation_codegen"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "custom_debug",
  "derive_more",
@@ -1334,7 +1334,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cfg-if",
  "fstr",
@@ -1349,7 +1349,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -1370,7 +1370,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "derive_more",
  "tracing",
@@ -1378,7 +1378,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -1398,7 +1398,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -1433,7 +1433,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.4"
+version = "0.0.5"
 
 [[package]]
 name = "foundation_platform"
@@ -1465,15 +1465,15 @@ dependencies = [
 
 [[package]]
 name = "foundation_theme"
-version = "0.0.1"
+version = "0.0.2"
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.1"
+version = "0.0.2"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "clap",
  "concurrent-queue",

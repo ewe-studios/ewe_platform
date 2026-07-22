@@ -43,6 +43,7 @@ nohup emulator \
     -no-audio \
     -no-boot-anim \
     -gpu swiftshader_indirect \
+    -accel on \
     -netdelay none \
     -netspeed full \
     ${ANDROID_EMULATOR_EXTRA_ARGS:-} \
