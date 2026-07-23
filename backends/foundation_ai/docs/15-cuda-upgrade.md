@@ -140,3 +140,4 @@ survives being true.
 | `Driver/library version mismatch` from `nvidia-smi` | kernel module vs userspace skew. **Reboot** — no build configuration works around it |
 | Builds and runs, output is wrong or garbage | wrong-ABI bind. The parity test is the check; re-examine `CUDARC_CUDA_VERSION` against the toolkit |
 | GPU tests all `ok` suspiciously fast | they skipped. See "Confirm the tests did not skip" |
+| `E0432: unresolved imports foundation_nativeapis::{VfsSearcher, …}` in **doctests** only | a stale build artifact after alternating the `cuda` and CPU-only feature sets — not a code or feature problem (resolution is identical under both). Rerun; it self-corrects. `cargo clean -p foundation_nativeapis` if it persists. |
