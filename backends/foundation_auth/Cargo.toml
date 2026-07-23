@@ -109,8 +109,26 @@ turso = ["foundation_db/turso"]
 server = ["dep:foundation_http", "dep:futures-core", "dep:futures-lite"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
-# Wasm compatibility — browser crypto and JS time APIs
-wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
+# Wasm compatibility — browser crypto and JS time APIs.
+#
+# The wasm-bindgen deps belong here, not in an opt-in feature: the code that
+# needs them (`shared/password_hash.rs`'s SubtleCrypto PBKDF2) is gated on
+# `cfg(target_family = "wasm")`, i.e. on the TARGET, so it compiles for every
+# wasm build whether or not a feature was chosen. Leaving the deps behind
+# `wasm-pbkdf2` meant `--features wasm` alone compiled that code with `js_sys`,
+# `wasm_bindgen`, `wasm_bindgen_futures` and `web_sys` all unlinked. On wasm
+# SubtleCrypto is the only PBKDF2 implementation there is, so these are
+# mandatory, not optional.
+wasm = [
+  "uuid/js",
+  "chrono/wasmbind",
+  "dep:getrandom",
+  "getrandom/js",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
 # Wasm-bindgen OAuth client using browser fetch API
 wasm-bindgen-oauth = [
   "wasm",
@@ -120,14 +138,10 @@ wasm-bindgen-oauth = [
   "dep:web-sys",
 ]
 
-# PBKDF2 on WASM (needs web-sys for SubtleCrypto, js-sys/wasm-bindgen-futures for JS interop)
-wasm-pbkdf2 = [
-  "wasm",
-  "dep:wasm-bindgen",
-  "dep:wasm-bindgen-futures",
-  "dep:js-sys",
-  "dep:web-sys",
-]
+# PBKDF2 on WASM. Retained as a back-compat alias — the deps it used to add now
+# come with `wasm` itself, because the code using them is target-gated and so
+# cannot be opted out of on a wasm build.
+wasm-pbkdf2 = ["wasm"]
 # Async session manager for wasm32 (D1-backed)
 wasm-bindgen-session = [
   "wasm",

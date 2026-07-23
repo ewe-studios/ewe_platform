@@ -724,7 +724,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             reason: format!(
                                 "turn produced no usable answer ({answer:?}), retrying"
                             ),
-                            timestamp: std::time::SystemTime::now(),
+                            timestamp: foundation_compact::SystemTime::now(),
                         });
                     }
                     // Deliberately NOT a failure. Out of retries, the best thing

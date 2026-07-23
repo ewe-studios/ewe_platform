@@ -98,13 +98,19 @@ fn status_only(status: u16, text: &str, body: &str) -> HttpResponse {
 /// and a Candle model needs three or more (config, tokenizer, weights) — so
 /// against the default server every download after the first fails with "No
 /// response intro received" on a connection the server had already closed.
-/// A blocking read with a short timeout makes the connection genuinely
-/// reusable, which is what the client expects of a real Hub.
+///
+/// The timeout has to exceed the client's *inter-request gap*, not just cover
+/// one read. At 500ms this still failed under full-suite load: the pause
+/// between two sequential downloads on a busy machine outran the server's idle
+/// timeout, it closed, and the pooled connection was dead on reuse. Five
+/// seconds is the same order as a real Hub's keep-alive idle window, and the
+/// cost is only that a background handler thread lingers that long after the
+/// last request of a test.
 fn hub<F>(handler: F) -> TestHttpServer
 where
     F: Fn(&foundation_testing::http::HttpRequest) -> HttpResponse + Send + 'static,
 {
-    TestHttpServer::with_response(handler).blocking_read(Some(Duration::from_millis(500)))
+    TestHttpServer::with_response(handler).blocking_read(Some(Duration::from_secs(5)))
 }
 
 /// One `RepoTreeEntry::File` as the Hub serialises it.

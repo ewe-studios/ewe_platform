@@ -17,7 +17,11 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.3", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.3" }
+# Feature set is chosen per target below. netio's default set (`wire-native`,
+# `ssl`, `multi`) is the native stack and does not compile for wasm; the wasm
+# build needs `wasm-fetch`, which is what makes `HttpClientBuilder::build()`
+# return a real `FetchHttpClient` instead of hitting its `unimplemented!()`.
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
 # foundation_deployment_huggingface is native-only (uses reqwest/std networking)
 # pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
@@ -40,7 +44,18 @@ lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ahash = "0.8"
+# `default-features = false` is load-bearing: ahash's default set pulls in
+# `runtime-rng`, which depends on the `getrandom` crate, which hard
+# `compile_error!`s on wasm32-unknown-unknown unless a backend cfg is set. This
+# crate's only edge asking for that was this line — `arrow-array` already asks
+# for the wasm-safe `compile-time-rng`, so we now unify with it instead of
+# dragging in getrandom for the whole graph.
+#
+# Nothing here needs per-process seeding: ahash is used for four internal
+# digests (embedding buckets, tool-call loop-detection signatures), not for a
+# HashMap keyed by adversarial input. Loop detection is arguably better off
+# deterministic.
+ahash = { version = "0.8", default-features = false, features = ["std", "compile-time-rng"] }
 # Tool-boundary panic containment in the agentic loop (catch_unwind on the
 # tool future). Also a dev-dependency for block_on in tests.
 futures-lite = "2"
@@ -49,6 +64,7 @@ clap = { version = "4.5", features = ["derive"], optional = true }
 tracing-subscriber = { version = "0.3", features = ["fmt"], optional = true }
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_netio = { path = "../foundation_netio", version = "0.0.3" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.3", features = ["turso"], default-features = false }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
@@ -56,7 +72,16 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", 
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.1", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
+# `wasm-fetch` is what compiles the `FetchHttpClient` arm of
+# `HttpClientBuilder::build()`. Without it the builder compiles but panics with
+# `unimplemented!("no HTTP client backend available")` at runtime, so every
+# provider on wasm would be a client-less object that fails on first request.
+foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false, features = ["wasm-fetch", "std"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.3", features = ["wasm"], default-features = false }
+# The VFS-backed file + search tools are core to the agentic loop, so wasm gets
+# them too — just without `vfs-search-fff`, whose fff-search/git2 backend is
+# native-only. `vfs` + `vfs-search` (regex) compile clean for wasm32.
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", default-features = false, features = ["vfs", "vfs-search"] }
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]

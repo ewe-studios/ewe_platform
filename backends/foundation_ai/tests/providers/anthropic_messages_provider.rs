@@ -14,21 +14,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
-use std::net::SocketAddr;
-use std::sync::Arc;
-
-fn server_addr(server: &TestHttpServer) -> SocketAddr {
-    server
-        .base_url()
-        .strip_prefix("http://")
-        .unwrap()
-        .parse()
-        .unwrap()
-}
 
 fn json_response(body: &[u8]) -> HttpResponse {
     HttpResponse {
@@ -76,9 +63,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 }
 
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
-    let addr = server_addr(server);
-    let resolver = StaticSocketAddr::new(addr);
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(

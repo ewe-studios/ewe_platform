@@ -5,7 +5,6 @@
 //!   2. Environment: `LLAMA_SERVER_TEST=1`
 
 use foundation_core::valtron::valtron_test;
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
@@ -16,8 +15,7 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 fn setup_responses_provider(
     guard: &foundation_ai::toolbox::llama_server_harness::LlamaServerGuard,
@@ -27,10 +25,9 @@ fn setup_responses_provider(
     let base_url = guard.base_url();
     let api_key = guard.api_key.clone();
 
-    let resolver = foundation_netio::shared::client::SystemDnsResolver;
-    let http_client: Arc<dyn HttpClient> = Arc::new(
-        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
-    );
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .read_timeout(Duration::from_secs(30))
+        .build();
 
     let config = ResponsesConfig::new()
         .with_base_url(base_url)

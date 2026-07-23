@@ -15,7 +15,7 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::SystemTime;
+use foundation_compact::SystemTime;
 
 use async_trait::async_trait;
 use foundation_db::traits::DocumentStore;

@@ -41,16 +41,19 @@ use crate::agentic::{AgentSessionBuilder, MemoryStore};
 #[cfg(feature = "candle")]
 use crate::backends::candle::CandleArchitecture;
 #[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 use crate::backends::huggingface_candle_provider::{
     HuggingFaceCandleConfig, HuggingFaceCandleProvider,
 };
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use crate::types::{ModelId, SessionId};
 
 use super::providers::{
-    CloudPresets, Gemma4E2b, Gemma4_26b, Glm52, Qwen36, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O,
-    OPENAI_GPT4O_MINI,
+    CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI,
 };
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+use super::providers::{Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
 use super::router::{RouterMix, RouterPreset};
 
 /// `ModelId::Name` from a model id string, default quantization.
@@ -68,6 +71,7 @@ fn named(id: &str) -> ModelId {
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn glm52_gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
@@ -84,6 +88,7 @@ pub fn glm52_gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn glm52_gemma_session<D, M>(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
@@ -105,6 +110,7 @@ where
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn qwen36_gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
@@ -121,6 +127,7 @@ pub fn qwen36_gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn qwen36_gemma_session<D, M>(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
@@ -142,6 +149,7 @@ where
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
@@ -158,6 +166,7 @@ pub fn gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub fn gemma_session<D, M>(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
@@ -285,6 +294,7 @@ where
 /// # Errors
 /// Returns an error string if the Candle provider cannot be constructed.
 #[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 pub fn candle_llama_router(
     repo_id: &str,
     config: Option<HuggingFaceCandleConfig>,
@@ -306,6 +316,7 @@ pub fn candle_llama_router(
 /// # Errors
 /// Returns an error string if the Candle provider cannot be constructed.
 #[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 pub fn candle_llama_session<D, M>(
     session_id: SessionId,
     repo_id: &str,

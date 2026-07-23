@@ -1,7 +1,6 @@
 //! OpenRouter (OpenAI-compatible) — exercises the `OpenAIProvider` send + SSE
 //! parse paths against a real service. Self-skips without `OPENROUTER_API_KEY`.
 
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
@@ -11,8 +10,7 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 /// A cheap, widely-available OpenRouter model with tool support.
 ///
@@ -28,11 +26,20 @@ fn provider_or_skip() -> Option<impl Model> {
     if key.is_empty() {
         return None;
     }
-    let resolver = foundation_netio::shared::client::SystemDnsResolver;
-    let http: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::with_expect_continue_timeout(
-        resolver,
-        Duration::from_secs(60),
-    ));
+    // `HttpClientBuilder` rather than `NativeHttpClient`: it is the
+    // platform-agnostic seam, resolving to the native client or the wasm fetch
+    // client at compile time, so this test does not pin the suite to native.
+    //
+    // The timeouts are not tuning — they are the only thing that bounds this
+    // test. A stream iterator that blocks inside `next()` never gets to return
+    // `Delayed`, so a wall-clock check between items can never fire; the limit
+    // has to live in the transport. Without them, a stream that connects but
+    // never delivers wedges the whole test binary (valtron serialises the pool,
+    // so every other test queues behind it with no indication of why).
+    let http: DynNetClient = HttpClientBuilder::new()
+        .connect_timeout(Duration::from_secs(20))
+        .read_timeout(Duration::from_secs(30))
+        .build();
     let config = OpenAIConfig::new()
         // Base URL must NOT include the version segment: `build_url` composes
         // `{base_url}/{api_version}/{endpoint}` and `api_version` defaults to

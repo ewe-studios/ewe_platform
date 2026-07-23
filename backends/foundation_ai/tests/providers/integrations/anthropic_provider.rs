@@ -21,9 +21,7 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
-use std::sync::Arc;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::time::Duration;
 
 // ============================================================================
@@ -44,10 +42,9 @@ fn setup_llama_server_provider() -> impl Model {
     // Matches the llama-server --api-key flag in mise configuration.
     let api_key = "test-api-key-123";
 
-    let resolver = foundation_netio::shared::client::SystemDnsResolver;
-    let http_client: Arc<dyn HttpClient> = Arc::new(
-        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
-    );
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .read_timeout(Duration::from_secs(30))
+        .build();
 
     let config = AnthropicConfig::new()
         .with_base_url(base_url)

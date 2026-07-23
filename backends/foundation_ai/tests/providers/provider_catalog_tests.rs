@@ -13,7 +13,6 @@
 //!
 //! HOW: offline — the catalog is ours. No vendor credentials.
 
-use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
@@ -25,23 +24,12 @@ use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, Respon
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-fn server_addr(server: &TestHttpServer) -> SocketAddr {
-    server
-        .base_url()
-        .strip_prefix("http://")
-        .expect("http base_url")
-        .parse()
-        .expect("valid addr")
-}
 
 fn json_ok(body: &[u8]) -> HttpResponse {
     HttpResponse {
@@ -67,8 +55,7 @@ const CATALOG: &[u8] = br#"{
 }"#;
 
 fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -327,8 +314,7 @@ fn anthropic_get_one_resolves_the_synthesised_spec() {
 // ---------------------------------------------------------------------------
 
 fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)

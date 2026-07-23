@@ -1,7 +1,7 @@
 //! OpenAI-compatible HTTP provider for connecting to `OpenAI`, llama.cpp server,
 //! vLLM, `Ollama`, `OpenRouter`, and any `OpenAI`-compatible endpoint.
 //!
-//! Uses `foundation_netio`'s `HttpClient` (`NativeHttpClient`) for HTTP I/O with
+//! Uses `foundation_netio`'s `HttpClient` (built via `HttpClientBuilder`) for HTTP I/O with
 //! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
@@ -348,9 +348,13 @@ impl ModelProvider for OpenAIProvider {
             self.config = cfg;
         }
 
-        #[cfg(not(target_family = "wasm"))]
+        // `HttpClientBuilder` is the platform-agnostic seam: it resolves to the
+        // native client or the wasm fetch client at compile time. The previous
+        // `foundation_netio::http::default_http_client()` was native-only, which
+        // is why this had to be `cfg(not(wasm))` — and that gate meant a wasm
+        // build got a provider with no HTTP client at all.
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(foundation_netio::HttpClientBuilder::new().build());
         }
 
         Ok(self)

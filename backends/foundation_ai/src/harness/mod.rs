@@ -53,18 +53,33 @@ pub mod providers;
 pub mod router;
 pub mod tools;
 
+// Cloud presets and the quantization name constants are plain data — portable.
 pub use providers::{
-    with_mtp, CloudPresets, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, CLAUDE_OPUS,
-    CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI, Q3_K_M, Q4_K_M, Q5_K_M, Q8_0, Qwen36,
+    CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI, Q3_K_M, Q4_K_M,
+    Q5_K_M, Q8_0,
+};
+
+// Local GGUF model presets exist only where llama.cpp does.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+pub use providers::{
+    with_mtp, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, Qwen36,
 };
 
 pub use router::{RouterMix, RouterPreset};
 pub use tools::ToolPreset;
 
-#[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 pub use agents::{candle_llama_router, candle_llama_session};
+
+// Cloud sessions are transport-only — available everywhere, including wasm.
 pub use agents::{
-    claude_router, claude_session, gemma_router, gemma_session, glm52_gemma_router,
-    glm52_gemma_session, openai_chat_router, openai_chat_session, openai_responses_router,
-    openai_responses_session, qwen36_gemma_router, qwen36_gemma_session,
+    claude_router, claude_session, openai_chat_router, openai_chat_session,
+    openai_responses_router, openai_responses_session,
+};
+
+// Local GGUF sessions require llama.cpp.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+pub use agents::{
+    gemma_router, gemma_session, glm52_gemma_router, glm52_gemma_session, qwen36_gemma_router,
+    qwen36_gemma_session,
 };

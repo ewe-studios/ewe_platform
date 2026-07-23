@@ -173,8 +173,11 @@ fn gguf_provider_describes_itself() {
 #[cfg(feature = "external-service-tests")]
 mod live {
     use super::*;
+    // `Model` lives here rather than at file scope: it is only used by these
+    // gated tests, so importing it above warns as unused whenever
+    // `external-service-tests` is off.
     use foundation_ai::types::{
-        MessageRole, Messages, ModelInteraction, ModelParams, TextContent, ToolShed,
+        MessageRole, Messages, Model, ModelInteraction, ModelParams, TextContent, ToolShed,
         UserModelContent,
     };
 

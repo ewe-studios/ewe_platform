@@ -17,7 +17,6 @@
 //! not make the suite slow; a separate test covers that a retryable status is
 //! actually retried. No vendor credentials: the server is ours.
 
-use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
@@ -33,23 +32,12 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-fn server_addr(server: &TestHttpServer) -> SocketAddr {
-    server
-        .base_url()
-        .strip_prefix("http://")
-        .expect("test server base_url is http")
-        .parse()
-        .expect("valid socket addr")
-}
 
 /// A canned response with an explicit status and body.
 fn response(status: u16, status_text: &str, content_type: &str, body: &[u8]) -> HttpResponse {
@@ -74,8 +62,7 @@ fn json_error(status: u16, status_text: &str, body: &[u8]) -> HttpResponse {
 /// Retries default to 3 with exponential backoff; the failure tests pass 0 so a
 /// non-recoverable status fails immediately instead of sleeping.
 fn model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -336,8 +323,7 @@ fn a_retry_eventually_succeeds() {
 // ---------------------------------------------------------------------------
 
 fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -430,8 +416,7 @@ fn anthropic_non_retryable_status_is_not_retried() {
 // ---------------------------------------------------------------------------
 
 fn responses_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -694,13 +679,31 @@ struct SeenRequest {
 /// Run one generate() against a recording server and return the request body.
 ///
 /// Every request is recorded, not just the last one: `get_model` performs a
-/// bodyless catalog read against `/models/{id}` before the generation POST, so a
+/// catalog read against `/models/{id}` before the generation POST, so a
 /// single-slot recorder both loses the payload under test and — when the
 /// generation request never arrives — reports nothing but "the capture was
 /// empty", which is the one fact that does not help. Keeping the whole
 /// transcript means a failure prints exactly what the server did receive, and
 /// the generate() result is printed alongside it so a transport error is not
 /// mistaken for a request that was never sent.
+///
+/// `blocking_read` is what makes the capture trustworthy. `TestHttpServer`
+/// defaults to a *non-blocking* read: if the request body has not landed in the
+/// socket by the time the server reads, it takes the `WouldBlock` and hands the
+/// handler a request with an **empty body** — no error, no retry. That is the
+/// mechanism behind this helper's long-standing intermittent failure, caught in
+/// the act by the transcript above:
+///
+/// ```text
+/// generate() succeeded
+/// requests seen:
+///   POST /v1/models/o3-mini body=""
+///   POST /v1/responses      body=""
+/// ```
+///
+/// Both requests arrived and the provider was satisfied, yet the payload the
+/// test exists to inspect was gone. A blocking read with a timeout makes the
+/// server wait for the body it was sent.
 fn responses_request_body(interaction: ModelInteraction, params: Option<ModelParams>) -> String {
     use foundation_netio::shared::http::SendSafeBody;
 
@@ -729,7 +732,8 @@ fn responses_request_body(interaction: ModelInteraction, params: Option<ModelPar
                  "status":"completed","output":[],
                  "usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}"#,
         )
-    });
+    })
+    .blocking_read(Some(std::time::Duration::from_millis(500)));
 
     let model = responses_model_for(&server, 0);
     let outcome = model.generate(interaction, params);

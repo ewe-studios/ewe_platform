@@ -277,6 +277,12 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
 /// execution is a distinct capability that only makes sense on a native host.
 pub struct BashTool {
     /// Max wall-clock time before the command is killed.
+    ///
+    /// Read only by the native `sh -c` path. On wasm there is no process to
+    /// spawn and `execute` returns "unsupported on this target", so the field is
+    /// carried but unused — kept rather than cfg'd away so the public
+    /// constructor/builder surface is identical on every target.
+    #[cfg_attr(target_family = "wasm", allow(dead_code))]
     timeout: std::time::Duration,
 }
 
