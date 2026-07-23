@@ -184,8 +184,18 @@ sometimes omits what it needs.
   `foundation_db` is exactly that consumer — its manifest says netio "has a wasm
   `fetch` client" while pulling netio without the feature.
 
-A workspace scan found only these two instances; nine other hits were verified
-false positives. Both fixed by making the dependencies unconditional on the
+A third instance is the same shape without the target dimension:
+`foundation_ai/src/agentic/tools/search.rs` imports `VfsSearcher`,
+`VfsSearchMatch` and `VfsSearchKind` **ungated**, while `foundation_nativeapis`
+exports them only under its `vfs-search` feature. It compiles solely because
+this crate's two dependency edges both request that feature — a link nothing
+recorded until it was written down at the import site. Drop the feature from
+either edge and you get a bare `E0432` pointing at *our* import rather than at
+the missing feature. The compiler error names the symptom, never the cause,
+which is what makes this shape expensive.
+
+A workspace scan found only the two target-gated instances; nine other hits were
+verified false positives. Both fixed by making the dependencies unconditional on the
 target, since on wasm they are not a choice.
 
 `foundation_ai` had never been built for wasm at all — five layered blockers,

@@ -18,6 +18,22 @@ use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolI
 use crate::types::Tool;
 use crate::types::{ArgType, Args, TextContent, UserModelContent};
 use foundation_db::traits::DocumentStore;
+// `VfsSearcher`, `VfsSearchMatch` and `VfsSearchKind` are exported by
+// foundation_nativeapis ONLY under its `vfs-search` feature
+// (`foundation_nativeapis/src/lib.rs`, `shared/vfs/mod.rs`). These imports are
+// deliberately ungated because this crate's search tools are not optional — so
+// BOTH dependency edges in Cargo.toml must keep requesting it:
+//
+//   [target.'cfg(not(target_family = "wasm"))'.dependencies]
+//   foundation_nativeapis = { …, features = ["vfs", "vfs-search", "vfs-search-fff"] }
+//   [target.'cfg(target_family = "wasm")'.dependencies]
+//   foundation_nativeapis = { …, features = ["vfs", "vfs-search"] }   # no fff: native-only
+//
+// Drop `vfs-search` from either and this file fails with a bare
+// `E0432: unresolved import` pointing here rather than at the missing feature.
+// That is exactly the "ungated code, feature-gated dependency" trap catalogued
+// in specifications/60-agentic-reliability/findings.md — recorded here because
+// the compiler error names the symptom, never the cause.
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
 // ---------------------------------------------------------------------------
