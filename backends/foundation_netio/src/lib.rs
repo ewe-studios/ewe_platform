@@ -76,3 +76,6 @@ pub mod http_stream;
 
 #[cfg(all(feature = "ssl-native-tls", not(target_family = "wasm")))]
 extern crate native_tls;
+
+#[cfg(feature = "cli")]
+pub mod cli;

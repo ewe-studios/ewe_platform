@@ -8,3 +8,6 @@ pub mod tinytemplate;
 
 pub(crate) use files::*;
 pub use package::*;
+
+#[cfg(feature = "cli")]
+pub mod cli;

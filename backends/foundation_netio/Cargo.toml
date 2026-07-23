@@ -38,6 +38,8 @@ chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
 tracing = { version = "0.1.41" }
+tracing-subscriber = { version = "0.3", features = ["fmt"] }
+clap = { version = "4.5", features = ["derive"], optional = true }
 thiserror = { version = "2.0" }
 regex = "1.12.2"
 base64 = "0.22"
@@ -87,7 +89,6 @@ foundation_testing = { path = "../foundation_testing" }
 
 serial_test = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
-tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 futures-lite = "2"
 ntest = { workspace = true }
@@ -95,6 +96,7 @@ tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"
 
 [features]
+cli = ["dep:clap"]
 debug_trace = ["standard", "log_debug"]
 debug_block = []
 trace_block = []

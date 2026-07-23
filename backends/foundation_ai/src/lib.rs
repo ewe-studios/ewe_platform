@@ -18,3 +18,6 @@ pub mod types;
 
 #[cfg(feature = "toolbox")]
 pub mod toolbox;
+
+#[cfg(feature = "cli")]
+pub mod cli;

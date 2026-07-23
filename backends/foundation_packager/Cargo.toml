@@ -25,10 +25,13 @@ serde_json = { version = "1.0.114" }
 serde_with = { version = "3.6.1" }
 minijinja = { version = "2.0.0", features = ["loader"] }
 
+clap = { version = "4.5", features = ["derive"], optional = true }
+tracing-subscriber = { version = "0.3", features = ["fmt"], optional = true }
 [dev-dependencies]
 tracing-test = { version = "0.2.5" }
 
 [features]
+cli = ["dep:clap", "dep:tracing-subscriber"]
 debug_block = ["foundation_conditional/debug_block"]
 trace_block = ["foundation_conditional/trace_block"]
 

@@ -45,6 +45,8 @@ ahash = "0.8"
 # tool future). Also a dev-dependency for block_on in tests.
 futures-lite = "2"
 
+clap = { version = "4.5", features = ["derive"], optional = true }
+tracing-subscriber = { version = "0.3", features = ["fmt"], optional = true }
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.3", features = ["turso"], default-features = false }
@@ -152,6 +154,7 @@ path = "tests/memory/mod.rs"
 required-features = ["agentic"]
 
 [features]
+cli = ["dep:clap", "dep:tracing-subscriber"]
 default = ["llamacpp", "candle", "agentic"]
 llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
 agentic = []
