@@ -71,7 +71,7 @@ implemented, or explicitly deferred.
 
 | # | Feature | Status |
 |---|---------|--------|
-| F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **In progress** — see features/F19-unified-tool-model.md |
+| F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **DONE** — every `Done when` clause verified against the code; the outstanding one (per-provider multi-command rendering coverage) closed by `tests/providers/multi_command_rendering_tests.rs`. Deviation: `MultiCommands` carries the group name. See features/F19-unified-tool-model.md |
 
 ### Phase F — GPU execution
 
@@ -102,12 +102,11 @@ implemented, or explicitly deferred.
 
 ## Completion status — NOT complete
 
-Phases A, B, C (bar F10) and D are done. The spec stays open on three features:
+Phases A, B, C (bar F10) and D are done. The spec stays open on two features:
 
 | # | State | What is left |
 |---|---|---|
 | F10 | Partial | Candle multi-architecture — Llama + Gemma2 done; Qwen/Mistral/Phi3 need fixtures that do not exist yet |
-| F19 | In progress | The `Tool` enum unification. `Done when` is unmet: providers must render both `Tool` variants, `all_tools` must stop flattening, and `MemoryTool`/`DelegationTool` plus the special `ToolShed` fields must be gone |
 | F20 | In progress | CUDA runs end-to-end on both backends, but the `Done when` list is unmet — two-GPU `main_gpu`/`tensor_split` runs, the offload-count assertion (a test that passes when the model silently ran on CPU is worse than no test), and `gpu-tests` gating |
 
 Do **not** move this spec to `specifications/completed/` until those three

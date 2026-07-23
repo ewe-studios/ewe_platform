@@ -8,6 +8,7 @@ mod huggingface_hub_fault_injection;
 mod llamacpp_config_tests;
 mod llamacpp_fixture;
 mod model_trait_surface_tests;
+mod multi_command_rendering_tests;
 mod openai_message_shapes_tests;
 mod openai_provider;
 mod provider_catalog_tests;

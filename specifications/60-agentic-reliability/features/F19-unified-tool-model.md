@@ -1,6 +1,6 @@
 ---
 feature: "F19 — Unified tool model (Tool enum + single ToolDefinition)"
-status: "in-progress"
+status: "complete"
 priority: "high"
 depends_on: ["F05-F09", "F14"]
 blocks: ["F15"]
@@ -117,3 +117,47 @@ renders both `Tool` variants into correct instructions; no flattening in
 `all_tools`; `MemoryTool`/`DelegationTool` and the special `ToolShed` fields are
 gone; existing tests green + new coverage for multi-command rendering per
 provider.
+
+## Verified complete (2026-07-23)
+
+Every `Done when` clause checked against the code, not against memory:
+
+| Clause | Where |
+|---|---|
+| One `ToolDefinition` | `types/base_types.rs:1188` — the only definition; `agentic/tool_impl.rs` re-exports it, so `ToolImpl::definition()` is unchanged |
+| One `Tool` enum | `types/base_types.rs:1234` — `SingleCommand(ToolDefinition)` / `MultiCommands(String, Vec<ToolDefinition>)` |
+| `ToolShed { shed, tools }` | `types/base_types.rs:1393` — exactly two fields; the special slots are gone |
+| No flattening in `all_tools` | `types/base_types.rs:1438` — chains `shed` + `tools`, returns `Vec<Tool>`, enum preserved |
+| `MemoryTool`/`DelegationTool` gone | no descriptor structs remain in the types layer. `agentic::tools::memory::MemoryTool` still exists and is *supposed* to — it is the `ToolImpl`, which reports itself as `Tool::MultiCommands`, not a bespoke descriptor with a dedicated slot |
+| Every provider renders both variants | cloud providers via the shared `Tool::function_spec()` (OpenAI, Anthropic, Responses); local backends (llama.cpp, candle) via `Tool::name()` + `Tool::arg_summary()`, both of which match on the enum |
+
+**Deviation from the design above:** `MultiCommands` carries the group name —
+`MultiCommands(String, Vec<ToolDefinition>)` rather than the
+`MultiCommands(Vec<ToolDefinition>)` sketched in the Design section. The group
+needs a name of its own to render as one function (`memory`), which cannot be
+derived from its sub-commands.
+
+Note `llamacpp.rs`'s `flatten_tools()` is a misleading name, not a violation:
+it is a one-line passthrough to `shed.all_tools()` and returns `Vec<Tool>` with
+the enum intact.
+
+### The clause that was actually outstanding
+
+*"new coverage for multi-command rendering per provider"* was the only unmet
+one. `tests/tools/function_spec_tests.rs` covered the shared `function_spec()`
+helper, but `tests/providers/` had **zero** multi-command coverage — nothing
+asserted that a provider turns a `MultiCommands` into a payload its vendor
+accepts. Each wraps it differently (OpenAI nests under `function`, Anthropic
+uses `input_schema` and has no output-schema slot, the text formatter folds
+returns into the description), so the shared helper being right does not imply
+the providers are.
+
+Closed by `tests/providers/multi_command_rendering_tests.rs` (6 tests). The
+load-bearing one is `a_multi_command_tool_is_one_entry_for_every_provider`: it
+guards against rendering one entry *per command*, which would show the model
+`memory_add`/`memory_remove`/`memory_replace` as three unrelated tools — exactly
+the flattened world F19 removed.
+
+Verified the tests detect a regression rather than merely passing: removing the
+`command` discriminator from `function_spec` fails the OpenAI and Anthropic
+tests.
