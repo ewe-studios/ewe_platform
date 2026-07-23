@@ -16,7 +16,6 @@ use tracing_subscriber::FmtSubscriber;
 use foundation_macros::EmbedDirectoryAs;
 use foundation_nostd::embeddable::DirectoryData;
 use foundation_nostd::embeddable::EmbeddableDirectory;
-use foundation_runtimes::js_runtimes::AssetHostRuntimes;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -31,45 +30,6 @@ async fn index_handler() -> Response {
             tracing::info!("Falling back to public index: public/index.html");
             let content = String::from_utf8(html_data).expect("should generate str");
             Html(content).into_response()
-        }
-        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
-    }
-}
-
-async fn megatron_handler(req: Request) -> Response {
-    let request_path = req.uri().path();
-    tracing::info!(
-        "[MegatronHandler] Received request for path: {}",
-        request_path
-    );
-
-    let instance = AssetHostRuntimes;
-    let relative_request_path = request_path.replace("/megatron/", "");
-    tracing::info!(
-        "[MegatronHandler] Pulling static file: {}",
-        &relative_request_path,
-    );
-
-    match instance.request_utf8(relative_request_path.as_str()) {
-        Some((file_content, file_info)) => {
-            if file_info.is_some_and(|info| info.mime_type.is_some_and(|t| t == "text/html")) {
-                return Html(file_content).into_response();
-            }
-
-            if std::path::Path::new(&request_path)
-                .extension()
-                .is_some_and(|ext| ext.eq_ignore_ascii_case("wasm"))
-            {
-                if let Ok(response) = Response::builder()
-                    .status(StatusCode::OK)
-                    .header("CONTENT-TYPE", "application/wasm")
-                    .body(body::Body::from(file_content.clone()))
-                {
-                    return response;
-                }
-            }
-
-            file_content.into_response()
         }
         None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
     }
@@ -159,8 +119,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
 
     let app = Router::new()
         .route("/", get(index_handler))
-        .route("/public/*path", get(public_handler))
-        .route("/megatron/*path", get(megatron_handler));
+        .route("/public/*path", get(public_handler));
 
     let listener = tokio::net::TcpListener::bind(format!("{service_addr}:{service_port}"))
         .await
