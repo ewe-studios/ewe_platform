@@ -29,10 +29,18 @@ pub fn bin_wrapper(name: &str) -> String {
 }
 
 /// `wasm_bin` with jsruntime_single support.
+///
+/// When `use_bundle` is true, the entrypoint is loaded via dynamic `import()`
+/// from a classic `<script>` tag, and `bundle.js` is already present as a
+/// classic `<script src>` earlier in the HTML. The entrypoint must NOT
+/// statically `import` bundle.js — static imports fail on Android WebView
+/// through Tauri's custom protocol, and the import is unnecessary anyway
+/// because `FoundationWasmRuntime` and `FoundationWasmUiRuntime` are already
+/// installed on `globalThis` by the classic script.
 #[must_use]
 pub fn bin_wrapper_with_bundle(name: &str, use_bundle: bool) -> String {
     let imports = if use_bundle {
-        "import './bundle.js';"
+        "// FoundationWasmRuntime is on globalThis from bundle.js (loaded as <script> in HTML)"
     } else {
         "import './foundation-wasm-ui.js';\nimport './platform-scheme-interceptor.js';\nimport { FoundationWasm } from './foundation-wasm.js';"
     };

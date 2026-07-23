@@ -403,7 +403,13 @@ impl WasmBundleGenerator {
             }
         }
 
-        // Generate index.html — readable HTML, one <script> per entrypoint.
+        // Generate index.html — one regular <script> per entrypoint using
+        // dynamic import(). Static imports inside <script type="module">
+        // fail on Android WebView when served through Tauri's custom
+        // protocol handler (ewe://localhost / http://ewe.localhost) because
+        // the WebView resolves relative module specifiers against a base
+        // URL it cannot navigate. Dynamic import() is an expression, works
+        // in classic scripts on Chrome 63+, and resolves correctly.
         let bins: Vec<_> = self.entrypoints.iter()
             .filter(|ep| matches!(ep.mode, BundleMode::Bin))
             .collect();
@@ -412,10 +418,12 @@ impl WasmBundleGenerator {
             for ep in &bins {
                 let name = &ep.name;
                 init_blocks.push_str(&format!(
-                    r#"  <script type="module">
-    // ── {name} ──
-    import {{ init }} from './{name}.js';
-    init().then(function() {{
+                    r#"  <script>
+    // ── {name} ── (dynamic import — static <script type="module">
+    //  fails on Android WebView through custom protocols)
+    import('./{name}.js').then(function(m) {{
+      return m.init();
+    }}).then(function() {{
       console.log('[platform] {name}: WASM active');
     }}).catch(function(err) {{
       console.error('[platform] {name}:', err);

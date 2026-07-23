@@ -15,10 +15,12 @@
   <script src="bundle.js"></script>
 </head>
 <body>
-  <script type="module">
-    // ── platform_dashboard ──
-    import { init } from './platform_dashboard.js';
-    init().then(function() {
+  <script>
+    // ── platform_dashboard ── (dynamic import — static <script type="module">
+    //  fails on Android WebView through custom protocols)
+    import('./platform_dashboard.js').then(function(m) {
+      return m.init();
+    }).then(function() {
       console.log('[platform] platform_dashboard: WASM active');
     }).catch(function(err) {
       console.error('[platform] platform_dashboard:', err);

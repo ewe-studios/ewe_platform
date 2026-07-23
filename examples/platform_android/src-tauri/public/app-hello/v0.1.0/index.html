@@ -15,10 +15,12 @@
   <script src="bundle.js"></script>
 </head>
 <body>
-  <script type="module">
-    // ── hello_dashboard ──
-    import { init } from './hello_dashboard.js';
-    init().then(function() {
+  <script>
+    // ── hello_dashboard ── (dynamic import — static <script type="module">
+    //  fails on Android WebView through custom protocols)
+    import('./hello_dashboard.js').then(function(m) {
+      return m.init();
+    }).then(function() {
       console.log('[platform] hello_dashboard: WASM active');
     }).catch(function(err) {
       console.error('[platform] hello_dashboard:', err);
