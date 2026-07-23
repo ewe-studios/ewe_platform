@@ -459,7 +459,7 @@ pub fn find_passkeys_by_user(
     user_id: &str,
 ) -> Result<Vec<Passkey>, StorageOpError> {
     let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE user_id = ?";
-    let mut stream = store
+    let stream = store
         .query(sql, &[DataValue::Text(user_id.to_string())])
         .map_err(|e| StorageOpError::Query(e.to_string()))?;
     let mut results = Vec::new();

@@ -3,7 +3,7 @@ use std::time;
 
 use foundation_toolings::{
     types::{Http1, ProxyRemoteConfig, ProxyType},
-    DevService, ProjectDefinition, VecStringExt,
+    ProjectDefinition, VecStringExt,
 };
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -154,7 +154,6 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
     };
 
-    let dev_service = DevService::new(definition);
     let shutdown = Arc::new(foundation_core::synca::OnSignal::new());
     setup_ctrlc_handler(shutdown.clone());
 

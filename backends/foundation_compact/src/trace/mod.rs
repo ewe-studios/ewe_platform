@@ -12,7 +12,7 @@
 
 /// Configuration for [`try_init_tracing_with`] — every knob the
 /// `tracing_subscriber::fmt` builder exposes, gathered into one struct so callers
-/// and the `#[valtron_test]` macro can tune tracing without touching the RUST_LOG
+/// and the `#[valtron_test]` macro can tune tracing without touching the `RUST_LOG`
 /// env var.
 ///
 /// Defaults: stderr, no targets/file/line/ansi, thread ids on, filter from

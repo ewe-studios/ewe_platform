@@ -125,11 +125,22 @@ fn openrouter_stream_advances() {
     let stream = model
         .stream(interaction("Count: one two three."), Some(params()))
         .expect("stream should be created");
-    // Bounded: a stream that never yields text must fail on the assertion
-    // rather than spin until the HTTP read timeout. Non-`Next` items are normal
-    // scheduling churn, so the cap is generous.
+    // Bounded twice over, and both bounds are load-bearing.
+    //
+    // `MAX_ITEMS` alone is not a bound on how long this test runs: `Delayed(d)`
+    // sleeps for whatever back-off the transport asks for, so a stream that
+    // reconnects instead of delivering can spend seconds per item and still be
+    // thousands of items from the cap. That is not hypothetical — it wedged a
+    // full coverage run, and because valtron serialises the pool, every other
+    // test in the binary sat behind it with no indication of why.
+    //
+    // `DEADLINE` is therefore the real limit: whatever the stream is doing, the
+    // test stops asking after this long and reports what it saw.
     const MAX_ITEMS: usize = 5_000;
+    const DEADLINE: Duration = Duration::from_secs(90);
 
+    let started = std::time::Instant::now();
+    let mut timed_out = false;
     let mut text_tokens = 0;
     let mut seen: Vec<String> = Vec::new();
     for (i, item) in stream.enumerate() {
@@ -147,11 +158,16 @@ fn openrouter_stream_advances() {
             // A network stream reports back-pressure instead of blocking. The
             // local-model tests can spin because tokens land synchronously;
             // here, spinning never gives the transport a chance to progress, so
-            // the scheduling states have to be honoured.
-            Stream::Delayed(d) => std::thread::sleep(d),
+            // the scheduling states have to be honoured — but each sleep is
+            // capped so one long back-off cannot overshoot the deadline.
+            Stream::Delayed(d) => std::thread::sleep(d.min(Duration::from_millis(250))),
             _ => std::thread::sleep(Duration::from_millis(10)),
         }
         if text_tokens >= 2 || i >= MAX_ITEMS {
+            break;
+        }
+        if started.elapsed() >= DEADLINE {
+            timed_out = true;
             break;
         }
     }
@@ -159,7 +175,10 @@ fn openrouter_stream_advances() {
     // tell a transport failure from a shape mismatch in the decoded message.
     assert!(
         text_tokens >= 1,
-        "openrouter stream must produce text tokens; got {text_tokens}.\nFirst items observed:\n{}",
+        "openrouter stream must produce text tokens; got {text_tokens} after {:?}{}.\n\
+         First items observed:\n{}",
+        started.elapsed(),
+        if timed_out { " (deadline reached)" } else { "" },
         seen.join("\n")
     );
 }

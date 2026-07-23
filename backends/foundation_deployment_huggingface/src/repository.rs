@@ -478,13 +478,20 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 
     tracing::debug!("Received initial response with status={}", &status);
 
-    if status_num == 400 {
-        // return Err(HuggingFaceError::Http {
-        //     status: status_code(&response.get_status()),
-        //     url: url.clone(),
-        //     body: format!("HTTP {}", status_code(&response.get_status())),
-        // });
-
+    // Any error status must fail the download, not be written to disk.
+    //
+    // This used to check `== 400` only. Every other error status — 401/403 on a
+    // gated repo, 404 on a moved revision, 429, 5xx — fell through to the write
+    // path below, so the error body was saved *as the model file* and the
+    // function returned `Ok(destination)`. The caller then cached a JSON error
+    // page under `model.safetensors` / `*.gguf`, and because the cache lookup
+    // only checks that the file exists, the corruption survived every retry:
+    // the real failure surfaced much later as an unreadable-tensor or bad-magic
+    // error pointing at the loader instead of at the download.
+    //
+    // 3xx is deliberately excluded — the client follows redirects (HF serves
+    // files via a CDN redirect), so a 3xx here is the transport's business.
+    if status_num >= 400 {
         let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
 
         tracing::trace!("Read body stream for response body");

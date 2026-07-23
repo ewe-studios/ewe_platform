@@ -657,7 +657,7 @@ fn impl_embeddable_directory(
         Err(err) => {
             panic!(
                 "Failed to call fs.exists on file: {:} due to {:?}",
-                &embed_directory_candidate.display(),
+                embed_directory_candidate.display(),
                 err
             );
         }
@@ -668,7 +668,7 @@ fn impl_embeddable_directory(
         Err(err) => {
             panic!(
                 "Failed to call fs.exists on file: {:} due to {:?}",
-                &embed_directory_candidate.display(),
+                embed_directory_candidate.display(),
                 err
             );
         }
@@ -1378,7 +1378,7 @@ pub fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, inde
                 let file_parent_relative_str =
                     String::from(file_directory_parent_relative.to_str().expect("get path"));
                 let file_hash = get_file_hash(entry.path().as_path()).expect("generate hash");
-                let file_etag = format!("\"{}\"", &file_hash);
+                let file_etag = format!("\"{file_hash}\"");
                 let file_mime_type = MimeGuess::from_path(entry.path())
                     .first()
                     .map(|v| v.to_string());
@@ -1459,7 +1459,7 @@ pub fn get_file(target_file: &Path, with_utf16: bool) -> Result<EmbeddableFile, 
     }
 
     let file_content_hash = generate_hash(&file_content);
-    let file_content_etag = format!("\"{}\"", &file_content_hash);
+    let file_content_etag = format!("\"{file_content_hash}\"");
 
     let file_metadata = file
         .metadata()

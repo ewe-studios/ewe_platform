@@ -421,10 +421,7 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
 fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
     let config = container_config(def, platform);
 
-    let lookup_key = match &def.lookup_key {
-        Some(k) => quote! { ::core::option::Option::Some(::std::string::String::from(#k)) },
-        None => quote! { ::core::option::Option::None },
-    };
+    let lookup_key = if let Some(k) = &def.lookup_key { quote! { ::core::option::Option::Some(::std::string::String::from(#k)) } } else { quote! { ::core::option::Option::None } };
 
     // `required = true` means a missing daemon is a hard failure, so the
     // graceful-skip arm is left out of the generated match entirely and any

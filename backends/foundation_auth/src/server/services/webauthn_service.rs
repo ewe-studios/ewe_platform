@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{AuthStore, KeyValueStore, PasskeyStore, StoredPasskey};
+use foundation_db::{AuthStore, KeyValueStore, PasskeyStore};
 
 use serde::{Deserialize, Serialize};
 

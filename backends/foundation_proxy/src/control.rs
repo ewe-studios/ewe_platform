@@ -31,7 +31,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::config::BackendState;
-use crate::router::Router;
 use crate::state::ProxyState;
 
 /// RPC request from the CLI.

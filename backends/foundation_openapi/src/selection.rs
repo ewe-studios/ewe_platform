@@ -1,7 +1,7 @@
 //! Selecting the slice of a spec we actually generate.
 //!
 //! **WHY:** Vendor specs are enormous and we use a sliver of them — Linode's is
-//! 9.3 MB across 334 paths, DigitalOcean's ~3 MB covering their whole platform,
+//! 9.3 MB across 334 paths, `DigitalOcean`'s ~3 MB covering their whole platform,
 //! and a provider crate needs about six endpoints. Generating the rest buries the
 //! crate in types nothing calls (`foundation_deployment_cloudflare` carries
 //! thousands with no consumer). Cargo features gate *compilation*, not
@@ -22,7 +22,7 @@ use crate::spec::{OpenApiSpec, Operation};
 ///
 /// Empty means **everything** — the whole spec, exactly as before this existed.
 /// Any non-empty list narrows it: an operation is selected when it matches at
-/// least one entry of *any* populated list (the lists are ORed, not ANDed —
+/// least one entry of *any* populated list (the lists are `ORed`, not `ANDed` —
 /// `paths` and `tags` are two ways of naming the same thing, not a filter chain).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Selection {
@@ -135,7 +135,7 @@ impl Selection {
     }
 
     /// The one place the rule lives: a path glob, a tag, or an operation id —
-    /// ORed, because they are three ways of naming the same thing.
+    /// `ORed`, because they are three ways of naming the same thing.
     fn matches(&self, path: &str, tags: Option<&[String]>, operation_id: Option<&str>) -> bool {
         if self.is_all() {
             return true;

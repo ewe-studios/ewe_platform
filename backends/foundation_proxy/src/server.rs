@@ -161,7 +161,7 @@ impl ProxyServer {
         // obtain the cert once, and build the acceptor. The same cert also feeds
         // the HTTP/3 (QUIC) front end when enabled.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
-        let mut h3_local_addr: Option<SocketAddr> = None;
+        let h3_local_addr: Option<SocketAddr> = None;
         let mut redirect_local_addr: Option<SocketAddr> = None;
         if use_tls {
             let cert_manager = tls::build_cert_manager(&config, Arc::new(client.clone()))?;

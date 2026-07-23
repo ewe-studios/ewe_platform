@@ -13,7 +13,7 @@ use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
 use foundation_ai::types::{
-    Model, ModelId, ModelProvider, Quantization,
+    ModelId, ModelProvider, Quantization,
 };
 use foundation_core::valtron::valtron_test;
 
@@ -232,9 +232,16 @@ mod live {
     fn gguf_download_of_nonexistent_repo_errors() {
         // A nonexistent repo 404s (no token needed) — exercises download_model's
         // body + error mapping without a large download. Gated (needs network).
-        let config = HuggingFaceGGUFConfig::builder()
-            .cache_dir(&cache_dir())
-            .build();
+        //
+        // The cache assertion is the point: the Hub's error body used to be
+        // written straight to the destination file and the download reported as
+        // successful, so the failure only surfaced later in the loader — and the
+        // poisoned file then satisfied the cache check on every later run.
+        let cache_dir = cache_dir();
+        let poisoned = cache_dir.join("ewe-platform-nonexistent--does-not-exist-xyz-404");
+        let _ = std::fs::remove_dir_all(&poisoned);
+
+        let config = HuggingFaceGGUFConfig::builder().cache_dir(&cache_dir).build();
         let provider = HuggingFaceGGUFProvider::new(config).expect("provider builds");
         let bad = ModelId::Name(
             "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
@@ -244,6 +251,19 @@ mod live {
             provider.get_model(bad).is_err(),
             "a nonexistent repo must fail to download"
         );
+
+        if let Ok(entries) = std::fs::read_dir(&poisoned) {
+            let left: Vec<_> = entries
+                .flatten()
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .collect();
+            assert!(
+                left.is_empty(),
+                "a failed download must not leave files behind — they would be \
+                 served from cache as a real model forever after: {left:?}"
+            );
+        }
+        let _ = std::fs::remove_dir_all(&poisoned);
     }
 
     #[valtron_test]

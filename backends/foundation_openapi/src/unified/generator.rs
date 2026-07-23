@@ -1,4 +1,4 @@
-//! Unified code generator for OpenAPI specs.
+//! Unified code generator for `OpenAPI` specs.
 //!
 //! WHY: Generates cohesive per-endpoint units (types + clients + provider impl).
 //!
@@ -31,8 +31,7 @@ fn regex_shared_type_names(content: &str) -> Vec<String> {
                     && clean
                         .chars()
                         .next()
-                        .map(|c| c.is_uppercase() || c == '_')
-                        .unwrap_or(false)
+                        .is_some_and(|c| c.is_uppercase() || c == '_')
                 {
                     names.push(clean.to_string());
                 }
@@ -69,7 +68,7 @@ const RUST_KEYWORDS: &[&str] = &[
 /// NOTE: This does NOT work for field names — use `escape_field_keyword` instead.
 fn escape_rust_keyword(ident: &str) -> String {
     if RUST_KEYWORDS.contains(&ident) {
-        format!("r#{}", ident)
+        format!("r#{ident}")
     } else {
         ident.to_string()
     }
@@ -83,7 +82,7 @@ fn escape_rust_keyword(ident: &str) -> String {
 /// that handles keywords and casing but assumes the key is otherwise already an
 /// identifier. Vendors do not cooperate — Cloudflare keys properties `13335` (an
 /// ASN), `*` and `$metadata`; Linode uses `+and`/`+gt` for filter operators;
-/// DigitalOcean has `pg_partman_bgw.interval`. Those went straight into the
+/// `DigitalOcean` has `pg_partman_bgw.interval`. Those went straight into the
 /// output as `pub 13335: …`, which does not parse.
 ///
 /// The wire name is preserved regardless: the caller emits `#[serde(rename)]`
@@ -150,7 +149,7 @@ fn escape_field_keyword(ident: &str) -> String {
     if ident == "self" {
         "_self".to_string()
     } else if RUST_KEYWORDS.contains(&ident) {
-        format!("r#{}", ident)
+        format!("r#{ident}")
     } else {
         ident.to_string()
     }
@@ -160,7 +159,7 @@ fn escape_field_keyword(ident: &str) -> String {
 /// `r#move` is invalid syntax, so we rename problematic keywords with a `_` suffix.
 fn sanitize_module_name(name: &str) -> String {
     if RUST_KEYWORDS.contains(&name) {
-        format!("{}_mod", name)
+        format!("{name}_mod")
     } else {
         name.to_string()
     }
@@ -173,14 +172,14 @@ fn rename_std_type_conflict(type_name: &str) -> String {
         "String", "Vec", "Option", "Result", "Box", "Rc", "Arc", "Cow", "HashMap", "BTreeMap",
     ];
     if std_types.contains(&type_name) {
-        format!("{}Type", type_name)
+        format!("{type_name}Type")
     } else {
         type_name.to_string()
     }
 }
 
 /// Extract inner type names from a type string (handles Vec<T>, Option<T>, etc.).
-/// Adds extracted type names to the all_types set.
+/// Adds extracted type names to the `all_types` set.
 fn extract_type_names_from_generic(
     type_str: &str,
     all_types: &mut std::collections::BTreeSet<String>,
@@ -219,7 +218,7 @@ fn extract_type_names_from_generic(
 }
 
 /// Collect all type names referenced via $ref in a schema, recursively.
-/// Adds found type names (in PascalCase) to seen_types and types_to_process.
+/// Adds found type names (in `PascalCase`) to `seen_types` and `types_to_process`.
 fn collect_referenced_type_names(
     schema: &crate::spec::Schema,
     seen_types: &mut std::collections::BTreeSet<String>,
@@ -260,7 +259,7 @@ fn collect_referenced_type_names(
 
     // Collect from properties
     if let Some(properties) = &schema.properties {
-        for (_prop_name, prop_schema) in properties {
+        for prop_schema in properties.values() {
             // Check if property is a $ref
             if let Some(ref_path) = &prop_schema.ref_path {
                 let ref_name = ref_path
@@ -317,7 +316,7 @@ fn collect_referenced_type_names(
 }
 
 /// Build a map of which types reference which other types (dependency graph).
-/// Returns: Map<type_name, Set<types it references>>
+/// Returns: Map<`type_name`, Set<types it references>>
 fn build_type_dependencies(
     schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
 ) -> std::collections::HashMap<String, std::collections::HashSet<String>> {
@@ -362,7 +361,7 @@ fn collect_refs_from_schema(
 
     // Collect from properties
     if let Some(properties) = &schema.properties {
-        for (_k, prop) in properties {
+        for prop in properties.values() {
             if let Some(ref_path) = &prop.ref_path {
                 let ref_name = ref_path
                     .trim_start_matches("#/components/schemas/")
@@ -434,7 +433,7 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">"))
     {
         if recursive_types.contains(inner) {
-            return format!("Option<Box<{}>>", inner);
+            return format!("Option<Box<{inner}>>");
         }
     }
     // Handle Vec<T> -> Vec<Box<T>> if T is recursive
@@ -443,7 +442,7 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">"))
     {
         if recursive_types.contains(inner) {
-            return format!("Vec<Box<{}>>", inner);
+            return format!("Vec<Box<{inner}>>");
         }
     }
     // Handle Option<Vec<T>> -> Option<Vec<Box<T>>> if T is recursive
@@ -452,19 +451,19 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">>"))
     {
         if recursive_types.contains(inner) {
-            return format!("Option<Vec<Box<{}>>>", inner);
+            return format!("Option<Vec<Box<{inner}>>>");
         }
     }
     // Direct type reference that is recursive
     if recursive_types.contains(field_type) {
-        return format!("Box<{}>", field_type);
+        return format!("Box<{field_type}>");
     }
 
     field_type.to_string()
 }
 
-/// Transform an OpenAPI path into a Rust format! string.
-/// Converts `{param}` placeholders to `{}` only for params in path_params.
+/// Transform an `OpenAPI` path into a Rust format! string.
+/// Converts `{param}` placeholders to `{}` only for params in `path_params`.
 /// Other braces are escaped as literal braces.
 /// Returns the escaped path and the list of param names in URL order.
 fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<String>) {
@@ -493,12 +492,11 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                                 .push(to_snake_case(&sanitize_identifier(matching_param)));
                         } else {
                             // Unknown param - escape as literal braces
-                            result.push_str(&format!("{{{{{}}}}}", param_content));
+                            result.push_str(&format!("{{{{{param_content}}}}}"));
                         }
                         break;
-                    } else {
-                        param_content.push(chars.next().unwrap());
                     }
+                    param_content.push(chars.next().unwrap());
                 }
             }
             '}' => {
@@ -513,7 +511,7 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
 }
 
 /// Sanitize a group name for use as a directory/file name and Rust identifier.
-/// Converts PascalCase to snake_case, removes redundant words, and normalizes identifiers.
+/// Converts `PascalCase` to `snake_case`, removes redundant words, and normalizes identifiers.
 fn sanitize_group_name(name: &str) -> String {
     // Step 1: Convert PascalCase/CamelCase to snake_case
     // Insert underscore before each uppercase letter that follows a lowercase letter or digit
@@ -523,7 +521,7 @@ fn sanitize_group_name(name: &str) -> String {
     for (i, c) in name.chars().enumerate() {
         if c.is_uppercase() {
             // Insert underscore before uppercase if previous char was lowercase or digit
-            if i > 0 && prev_was_upper_or_digit == false {
+            if i > 0 && !prev_was_upper_or_digit {
                 snake_case.push('_');
             }
             snake_case.push(c.to_ascii_lowercase());
@@ -570,7 +568,7 @@ fn sanitize_group_name(name: &str) -> String {
         // Keep first 40 chars + underscore + hash of last 10
         let hash = result.len() % 1000;
         result.truncate(40);
-        result = format!("{}_{}", result, hash);
+        result = format!("{result}_{hash}");
     }
 
     if result.is_empty() {
@@ -619,7 +617,7 @@ fn update_cargo_toml(
     let mut doc: Value = toml::from_str(&content)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
 
-    let provider_feature = provider.replace('-', "_").replace('/', "_");
+    let provider_feature = provider.replace(['-', '/'], "_");
 
     // Get or create features table
     let features = doc
@@ -646,7 +644,7 @@ fn update_cargo_toml(
     // Remove all existing feature flags for this specific provider (not parent)
     let keys_to_remove: Vec<String> = features
         .keys()
-        .filter(|k| k.starts_with(&format!("{}_", provider_feature)))
+        .filter(|k| k.starts_with(&format!("{provider_feature}_")))
         .cloned()
         .collect();
     for key in keys_to_remove {
@@ -660,7 +658,7 @@ fn update_cargo_toml(
     for group in groups {
         let safe_name = sanitize_group_name(&group.name);
         let safe_name = sanitize_module_name(&safe_name);
-        let feature_name = format!("{}_{}", provider_feature, safe_name);
+        let feature_name = format!("{provider_feature}_{safe_name}");
         features.insert(feature_name.clone(), Value::Array(vec![]));
         group_features.push(feature_name);
     }
@@ -682,7 +680,7 @@ fn update_cargo_toml(
         let mut sub_providers: Vec<String> = Vec::new();
         for key in features.keys() {
             // Match keys like "gcp_admin", "gcp_cloudkms" but NOT "gcp_admin_applications"
-            if key.starts_with(&format!("{}_", parent)) {
+            if key.starts_with(&format!("{parent}_")) {
                 let parts: Vec<&str> = key.split('_').collect();
                 if parts.len() == 2 {
                     // This is a sub-provider (exactly 2 parts: parent_subprovider)
@@ -716,7 +714,7 @@ pub struct UnifiedGenerator {
     output_dir: PathBuf,
     /// Optional override: write files directly to this directory instead of
     /// `output_dir.join(provider)`. Used for providers split into their own
-    /// crate (e.g. cloudflare → foundation_deployment_cloudflare/src).
+    /// crate (e.g. cloudflare → `foundation_deployment_cloudflare/src`).
     provider_dir_override: Option<PathBuf>,
 }
 
@@ -757,6 +755,7 @@ impl From<std::fmt::Error> for GenError {
 }
 
 impl UnifiedGenerator {
+    #[must_use]
     pub fn new(output_dir: PathBuf) -> Self {
         Self { output_dir, provider_dir_override: None }
     }
@@ -829,9 +828,7 @@ impl UnifiedGenerator {
         } else {
             self.output_dir
                 .ancestors()
-                .nth(2)
-                .map(|p| p.join("Cargo.toml"))
-                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+                .nth(2).map_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"), |p| p.join("Cargo.toml"))
         };
 
         if cargo_toml_path.exists() {
@@ -864,7 +861,7 @@ impl UnifiedGenerator {
         let mut out = String::new();
 
         // File header
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
         writeln!(
             out,
             "//! Auto-generated API module for {} {}.",
@@ -877,12 +874,11 @@ impl UnifiedGenerator {
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out, "//!")?;
-        writeln!(out, "//! Feature flag: `{}_{} `", provider_safe, safe_name)?;
+        writeln!(out, "//! Feature flag: `{provider_safe}_{safe_name} `")?;
         writeln!(out)?;
         writeln!(
             out,
-            "#![cfg(feature = \"{}_{}\")]",
-            provider_safe, safe_name
+            "#![cfg(feature = \"{provider_safe}_{safe_name}\")]"
         )?;
         writeln!(
             out,
@@ -918,8 +914,7 @@ impl UnifiedGenerator {
             if !type_name
                 .chars()
                 .next()
-                .map(|c| c.is_alphabetic() || c == '_')
-                .unwrap_or(false)
+                .is_some_and(|c| c.is_alphabetic() || c == '_')
             {
                 continue;
             }
@@ -1116,12 +1111,12 @@ impl UnifiedGenerator {
                 )?;
             } else {
                 // No schema found - generate placeholder struct
-                writeln!(out, "/// `{}` response type.", safe_type_name)?;
+                writeln!(out, "/// `{safe_type_name}` response type.")?;
                 writeln!(
                     out,
                     "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
                 )?;
-                writeln!(out, "pub struct {} {{", safe_type_name)?;
+                writeln!(out, "pub struct {safe_type_name} {{")?;
                 writeln!(
                     out,
                     "    /// Raw JSON value - full schema generated from `OpenAPI`"
@@ -1162,23 +1157,23 @@ impl UnifiedGenerator {
             // references an undefined type (`E0425`).
             writeln!(out, "/// Arguments for [`{}_request`].", ep.operation_id)?;
             writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
-            writeln!(out, "pub struct {} {{", args_name)?;
+            writeln!(out, "pub struct {args_name} {{")?;
 
             for param in &ep.path_params {
                 let param_name =
                     escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                writeln!(out, "    /// Path parameter: `{}`.", param)?;
-                writeln!(out, "    pub {}: String,", param_name)?;
+                writeln!(out, "    /// Path parameter: `{param}`.")?;
+                writeln!(out, "    pub {param_name}: String,")?;
             }
             for param in &ep.query_params {
                 let param_name =
                     escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                writeln!(out, "    /// Query parameter: `{}`.", param)?;
-                writeln!(out, "    pub {}: Option<String>,", param_name)?;
+                writeln!(out, "    /// Query parameter: `{param}`.")?;
+                writeln!(out, "    pub {param_name}: Option<String>,")?;
             }
             if let Some(rt) = &ep.request_type {
                 writeln!(out, "    /// Request body.")?;
-                writeln!(out, "    pub body: {},", rt)?;
+                writeln!(out, "    pub body: {rt},")?;
             }
 
             writeln!(out, "}}")?;
@@ -1213,7 +1208,7 @@ impl UnifiedGenerator {
         Ok(())
     }
 
-    /// Generate a type definition from an OpenAPI schema.
+    /// Generate a type definition from an `OpenAPI` schema.
     fn generate_type_from_schema(
         &self,
         out: &mut String,
@@ -1225,7 +1220,7 @@ impl UnifiedGenerator {
         use crate::spec::Schema as SpecSchema;
         use std::collections::BTreeMap;
 
-        writeln!(out, "/// `{}` type.", type_name)?;
+        writeln!(out, "/// `{type_name}` type.")?;
         writeln!(
             out,
             "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
@@ -1235,7 +1230,7 @@ impl UnifiedGenerator {
         // so we must emit per-field #[serde(rename)] when the original name differs
         // from the snake_cased field name. A single rename_all can't handle mixed
         // specs like Docker (ApiVersion + architecture in the same schema).
-        writeln!(out, "pub struct {} {{", type_name)?;
+        writeln!(out, "pub struct {type_name} {{")?;
 
         // Handle allOf - merge properties from all members
         if let Some(all_of) = &schema.all_of {
@@ -1266,17 +1261,17 @@ impl UnifiedGenerator {
                 // that is required AND not nullable can be a bare T.
                 let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
-                writeln!(out, "    /// `{}` property.", prop_name)?;
+                writeln!(out, "    /// `{prop_name}` property.")?;
                 // Emit per-field serde rename when the snake_cased field name
                 // differs from the original property name (handles PascalCase,
                 // camelCase, and mixed-casing specs like Docker).
                 if prop_name.as_str() != field_name.as_str() {
-                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                    writeln!(out, "    #[serde(rename = \"{prop_name}\")]")?;
                 }
                 if is_required {
-                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
+                    writeln!(out, "    pub {field_name}: {rust_type},")?;
                 } else {
-                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
+                    writeln!(out, "    pub {field_name}: Option<{rust_type}>,")?;
                 }
             }
         }
@@ -1300,16 +1295,16 @@ impl UnifiedGenerator {
                 // nullable means "the value may be null". Both can hold.
                 let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
 
-                writeln!(out, "    /// {} property.", prop_name)?;
+                writeln!(out, "    /// {prop_name} property.")?;
                 // Emit per-field serde rename when the snake_cased field name
                 // differs from the original property name.
                 if prop_name != &field_name {
-                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
+                    writeln!(out, "    #[serde(rename = \"{prop_name}\")]")?;
                 }
                 if is_required {
-                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
+                    writeln!(out, "    pub {field_name}: {rust_type},")?;
                 } else {
-                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
+                    writeln!(out, "    pub {field_name}: Option<{rust_type}>,")?;
                 }
             }
         }
@@ -1332,7 +1327,7 @@ impl UnifiedGenerator {
         Ok(())
     }
 
-    /// Convert an OpenAPI schema to a Rust type string.
+    /// Convert an `OpenAPI` schema to a Rust type string.
     fn schema_to_rust_type(
         &self,
         schema: &crate::spec::Schema,
@@ -1367,7 +1362,7 @@ impl UnifiedGenerator {
             Some("array") => {
                 if let Some(items) = &schema.items {
                     let item_type = self.schema_to_rust_type(items, schemas);
-                    format!("Vec<{}>", item_type)
+                    format!("Vec<{item_type}>")
                 } else {
                     "Vec<serde_json::Value>".to_string()
                 }
@@ -1396,9 +1391,7 @@ impl UnifiedGenerator {
         let fn_prefix = to_snake_case(&sanitize_identifier(&ep.operation_id));
         let return_type = ep
             .response_type
-            .as_ref()
-            .map(|rt| rt.as_rust_type().to_string())
-            .unwrap_or_else(|| "()".to_string());
+            .as_ref().map_or_else(|| "()".to_string(), |rt| rt.as_rust_type().to_string());
 
         let args_name = format!(
             "{}Args",
@@ -1440,8 +1433,7 @@ impl UnifiedGenerator {
         writeln!(out, "/// ```ignore")?;
         writeln!(
             out,
-            "/// let response = {}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{",
-            fn_prefix
+            "/// let response = {fn_prefix}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{"
         )?;
         writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\");")?;
         writeln!(out, "/// }})).await?;")?;
@@ -1453,9 +1445,9 @@ impl UnifiedGenerator {
             || !ep.query_params.is_empty()
             || ep.request_type.is_some();
         let args_binding = if args_uses { "args" } else { "_args" };
-        writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
+        writeln!(out, "pub async fn {fn_prefix}_request<F>(")?;
         writeln!(out, "    client: DynNetClient,")?;
-        writeln!(out, "    {}: &{},", args_binding, args_name)?;
+        writeln!(out, "    {args_binding}: &{args_name},")?;
         // WHY: The base URL (e.g. "http://localhost/v1.53") is configurable so
         // callers can point at remote Docker daemons, not just Unix-socket-local.
         // For providers whose spec declares an explicit baseUrl, the caller
@@ -1463,7 +1455,7 @@ impl UnifiedGenerator {
         // DockerClient::base_url().
         writeln!(out, "    base_url: &str,")?;
         writeln!(out, "    builder_mod: Option<F>,")?;
-        writeln!(out, ") -> Result<ApiResponse<{}>, super::shared::ApiError>", return_type)?;
+        writeln!(out, ") -> Result<ApiResponse<{return_type}>, super::shared::ApiError>")?;
         writeln!(out, "where")?;
         writeln!(out, "    F: FnOnce(&mut PreparedRequestBuilder),")?;
         writeln!(out, "{{")?;
@@ -1472,7 +1464,7 @@ impl UnifiedGenerator {
         // (e.g. "http://localhost/v1.53"); we format the path separately then
         // join — avoids nested format!() indentation issues.
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        writeln!(out, "    let path = format!(\"{}\",", escaped_path)?;
+        writeln!(out, "    let path = format!(\"{escaped_path}\",")?;
         for param_name in &params_in_url_order {
             let safe_param = escape_rust_keyword(param_name);
             writeln!(out, "        args.{safe_param},")?;
@@ -1485,8 +1477,7 @@ impl UnifiedGenerator {
         let method_lower = ep.method.to_lowercase();
         writeln!(
             out,
-            "    let mut builder = PreparedRequestBuilder::{}(&endpoint_url)",
-            method_lower
+            "    let mut builder = PreparedRequestBuilder::{method_lower}(&endpoint_url)"
         )?;
         writeln!(
             out,
@@ -1546,7 +1537,7 @@ impl UnifiedGenerator {
             writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
         } else {
             writeln!(out, "    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
-            writeln!(out, "    let parsed: {} = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
+            writeln!(out, "    let parsed: {return_type} = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;")?;
             writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: parsed }})")?;
         }
         writeln!(out, "}}")?;
@@ -1555,11 +1546,11 @@ impl UnifiedGenerator {
         Ok(())
     }
 
-    /// Resolve a PascalCase type name to the original OpenAPI spec schema key.
+    /// Resolve a `PascalCase` type name to the original `OpenAPI` spec schema key.
     ///
     /// The `schemas` map uses the spec's original keys (typically `snake_case`),
     /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
-    /// (some specs use PascalCase keys), then convert to snake_case.
+    /// (some specs use `PascalCase` keys), then convert to `snake_case`.
     fn resolve_schema_key<'a>(
         type_name: &str,
         schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
@@ -1601,11 +1592,11 @@ impl UnifiedGenerator {
 
     /// Generate shared module for cross-group types.
     ///
-    /// WHY: Types used by multiple groups (shared_resources) must live in one place so
+    /// WHY: Types used by multiple groups (`shared_resources`) must live in one place so
     /// group modules can import them via `super::shared::`. The OLD behaviour was to emit
     /// a `HashMap<String, Value>` stub for every shared type regardless of the actual
-    /// OpenAPI schema. The NEW behaviour resolves each type's schema and generates a
-    /// properly typed struct with real fields, only falling back to HashMap when the
+    /// `OpenAPI` schema. The NEW behaviour resolves each type's schema and generates a
+    /// properly typed struct with real fields, only falling back to `HashMap` when the
     /// schema truly cannot be resolved.
     fn generate_shared_module(
         &self,
@@ -1713,8 +1704,7 @@ impl UnifiedGenerator {
             if !type_name
                 .chars()
                 .next()
-                .map(|c| c.is_alphabetic() || c == '_')
-                .unwrap_or(false)
+                .is_some_and(|c| c.is_alphabetic() || c == '_')
             {
                 continue;
             }
@@ -1765,12 +1755,12 @@ impl UnifiedGenerator {
                 // No schema found — emit a placeholder HashMap wrapper so the
                 // generated code still compiles (callers should investigate
                 // why the schema wasn't resolved).
-                writeln!(out, "/// Shared type: `{}`.", safe_name)?;
+                writeln!(out, "/// Shared type: `{safe_name}`.")?;
                 writeln!(
                     out,
                     "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
                 )?;
-                writeln!(out, "pub struct {} {{", safe_name)?;
+                writeln!(out, "pub struct {safe_name} {{")?;
                 writeln!(out, "    #[serde(flatten)]")?;
                 writeln!(
                     out,
@@ -1794,10 +1784,10 @@ impl UnifiedGenerator {
         _shared_resources: &[String],
         generated_dir: &Path,
     ) -> Result<(), GenError> {
-        let feature_name = provider.replace('-', "_").replace('/', "_");
+        let feature_name = provider.replace(['-', '/'], "_");
 
         let mut out = String::new();
-        writeln!(out, "//! Auto-generated module for {provider}.",)?;
+        writeln!(out, "//! Auto-generated module for {provider}.")?;
         writeln!(out, "//!")?;
         writeln!(
             out,

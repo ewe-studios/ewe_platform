@@ -12,7 +12,6 @@
 
 use std::sync::Arc;
 
-use bytes::Bytes;
 use foundation_netio::shared::client::body_reader::{collect_bytes_from_send_safe, collect_strings_from_send_safe};
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
@@ -22,7 +21,6 @@ use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::config::ProxyError;
 
 // ── Constants ──────────────────────────────────────────────────────────
 
@@ -262,7 +260,7 @@ impl AcmeClient {
         })
         .map_err(|e| format!("serialize account: {e}"))?;
 
-        let payload_b64 = base64_url(&payload);
+        let _payload_b64 = base64_url(&payload);
         let jws = build_jws(&dir.new_account, &nonce, &payload, None, self.jwk.as_ref());
 
         let signed = self.sign_jws(&jws)?;
@@ -297,7 +295,7 @@ impl AcmeClient {
 
         let payload = serde_json::to_string(&NewOrderRequest { identifiers })
             .map_err(|e| format!("serialize order: {e}"))?;
-        let payload_b64 = base64_url(&payload);
+        let _payload_b64 = base64_url(&payload);
         let jws = build_jws(
             &dir.new_order,
             &nonce,
@@ -363,7 +361,7 @@ impl AcmeClient {
         );
         let payload = serde_json::to_string(&FinalizeRequest { csr: csr_b64 })
             .map_err(|e| format!("serialize finalize: {e}"))?;
-        let payload_b64 = base64_url(&payload);
+        let _payload_b64 = base64_url(&payload);
         let jws = build_jws(
             finalize_url,
             &nonce,

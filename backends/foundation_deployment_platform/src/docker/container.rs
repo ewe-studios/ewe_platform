@@ -2,9 +2,7 @@
 
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
-use std::time::{Duration, Instant};
 
-use foundation_core::valtron::sleep_async;
 use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
 
 use foundation_deployment_docker::client::{
@@ -320,7 +318,7 @@ impl ContainerHandle {
     /// colon (e.g. `"localhost:5000/img"`) is not a tag separator.
     fn split_image_tag(image: &str) -> (String, Option<String>) {
         // The last segment is after the final `/`. If it contains `:`, that's the tag.
-        let last_segment = image.rsplit('/').next().unwrap_or(image);
+        let _last_segment = image.rsplit('/').next().unwrap_or(image);
         if let Some((repo, tag)) = image.rsplit_once(':') {
             // Only split if the colon is in the last path segment (not a registry port).
             if repo.rsplit('/').next().map_or(true, |s| !s.contains(':')) {

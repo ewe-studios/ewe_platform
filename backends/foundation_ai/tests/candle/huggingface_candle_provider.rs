@@ -249,12 +249,22 @@ fn test_candle_get_model_by_spec_without_location_errors() {
 
 /// A nonexistent repo 404s — exercises download_model's body + error mapping
 /// without a large download. Gated (needs network).
+///
+/// Asserting only `is_err()` was not enough: the Hub's error body used to be
+/// *written to disk* as config.json/tokenizer.json/model.safetensors and the
+/// download reported success, so this test passed on the loader rejecting the
+/// garbage afterwards. Worse, the poisoned directory then satisfied the cache
+/// check on every later run. The cache must be left clean.
 #[cfg(feature = "external-service-tests")]
 #[test]
 fn test_candle_download_of_nonexistent_repo_errors() {
     let _guard = init_valtron();
+    let cache_dir = get_artefacts_dir(get_project_root().as_path());
+    let poisoned = cache_dir.join("ewe-platform-nonexistent--does-not-exist-xyz-404");
+    let _ = std::fs::remove_dir_all(&poisoned);
+
     let config = HuggingFaceCandleConfig::builder()
-        .cache_dir(get_artefacts_dir(get_project_root().as_path()))
+        .cache_dir(&cache_dir)
         .build();
     let provider = HuggingFaceCandleProvider::new(config).unwrap();
     let bad = ModelId::Name("ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(), None);
@@ -262,6 +272,16 @@ fn test_candle_download_of_nonexistent_repo_errors() {
         provider.get_model(bad).is_err(),
         "a nonexistent repo must fail to download"
     );
+
+    for artefact in ["config.json", "tokenizer.json", "model.safetensors"] {
+        let path = poisoned.join(artefact);
+        assert!(
+            !path.exists(),
+            "a failed download must not leave {artefact} behind — it would be \
+             served from cache as a real model forever after: {path:?}"
+        );
+    }
+    let _ = std::fs::remove_dir_all(&poisoned);
 }
 
 /// Test SmolLM2 safetensors model inference via HuggingFaceCandleProvider.

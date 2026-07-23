@@ -8,6 +8,7 @@ use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, I
 use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
 mod generated;
+mod embedded_apps;
 
 // ── HTML helpers ──────────────────────────────────────────────────────
 
@@ -407,9 +408,11 @@ impl RouteResponder for ModeReportPage {
 // ── Setup ────────────────────────────────────────────────────────────
 
 fn setup_routes(session: &PlatformSession) {
-    let root = session.bundle_root();
-    let app_responder = generated::app::AppAssets::build(root.clone());
-    let hello_responder = generated::app_hello::AppAssets::build(root.clone());
+    // EmbeddedAppResponder — reads from compile-time bytes (F22 Android).
+    // On Android Tauri does NOT extract bundle.resources to disk;
+    // these embedded responders serve the WASM apps without fs access.
+    let app_responder = embedded_apps::embedded_app();
+    let hello_responder = embedded_apps::embedded_app_hello();
 
     session.register_route_with(
         "/app/*",

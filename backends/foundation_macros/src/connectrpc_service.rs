@@ -1,4 +1,4 @@
-//! Code-first ConnectRPC service generation (Feature 27, Decision 10 Mode 3).
+//! Code-first `ConnectRPC` service generation (Feature 27, Decision 10 Mode 3).
 //!
 //! WHY: Proto is not the only source of truth. A service may be defined as a
 //! plain Rust trait via `#[foundation_connectrpc::service(package = "…", codecs(…))]`, and
@@ -7,7 +7,7 @@
 //!
 //! WHAT: Two proc-macro entry points:
 //!   - `#[service]` (attribute) — transforms a trait into the full set of
-//!     ConnectRPC service items, also emitting a `#[macro_export]` descriptor
+//!     `ConnectRPC` service items, also emitting a `#[macro_export]` descriptor
 //!     macro for cross-crate generation.
 //!   - `generate!` (function-like) — syntactic sugar that expands a cross-crate
 //!     descriptor macro inside a module.
@@ -15,7 +15,7 @@
 //! HOW: The attribute macro parses the trait, classifies each method's stream
 //! shape by return type and argument pattern, then emits the service name
 //! constant, procedure module, trait (with default unimplemented bodies),
-//! registration fn, UnimplementedHandler, typed Client struct, ClientTrait,
+//! registration fn, `UnimplementedHandler`, typed Client struct, `ClientTrait`,
 //! and the descriptor macro.
 
 use proc_macro2::TokenStream;
@@ -74,7 +74,7 @@ impl Parse for ServiceAttr {
 
 // ── RPC method shape ───────────────────────────────────────────────────────
 
-/// The four ConnectRPC streaming shapes (Decision 04).
+/// The four `ConnectRPC` streaming shapes (Decision 04).
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MethodKind {
     Unary,
@@ -85,7 +85,7 @@ enum MethodKind {
 
 /// Information extracted from one trait method.
 struct MethodInfo {
-    /// snake_case variant (e.g. `"greet"`).
+    /// `snake_case` variant (e.g. `"greet"`).
     snake: String,
     /// Token stream of the request inner type (e.g. `GreetRequest`).
     req_type: TokenStream,
@@ -292,23 +292,20 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
         return quote!(()); // Fallback
     }
 
-    match non_self[1] {
-        FnArg::Typed(PatType { ty, .. }) => {
-            // Request<T> → T
-            if let Some(t) = extract_type_arg(ty, "Request") {
-                return quote!(#t);
-            }
-
-            // impl Stream<Item = ConnectResult<T>> → T
-            if type_mentions_stream(ty) {
-                return extract_stream_item_inner(ty);
-            }
-
-            // Fallback: emit the type as-is
-            quote!(#ty)
+    if let FnArg::Typed(PatType { ty, .. }) = non_self[1] {
+        // Request<T> → T
+        if let Some(t) = extract_type_arg(ty, "Request") {
+            return quote!(#t);
         }
-        _ => quote!(()),
-    }
+
+        // impl Stream<Item = ConnectResult<T>> → T
+        if type_mentions_stream(ty) {
+            return extract_stream_item_inner(ty);
+        }
+
+        // Fallback: emit the type as-is
+        quote!(#ty)
+    } else { quote!(()) }
 }
 
 /// Extract the response type from the return type.
@@ -317,29 +314,26 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
 /// - `ConnectResult<Response<T>>` → `T` (unary / client-stream)
 /// - `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T` (server / bidi)
 fn extract_res_type(ret: &ReturnType) -> TokenStream {
-    match ret {
-        ReturnType::Type(_, ty) => {
-            // Streaming FIRST: `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T`.
-            // This must precede the `Response` unwrap: `extract_response_from_connect_result`
-            // falls back to returning the whole `ConnectResult` inner when it finds no
-            // `Response<…>`, which for a streaming method is the `impl Stream<…>` type —
-            // the wrong answer (and illegal nested `impl Trait` downstream).
-            if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
-                if type_mentions_stream(inner) {
-                    return extract_stream_item_inner(inner);
-                }
+    if let ReturnType::Type(_, ty) = ret {
+        // Streaming FIRST: `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T`.
+        // This must precede the `Response` unwrap: `extract_response_from_connect_result`
+        // falls back to returning the whole `ConnectResult` inner when it finds no
+        // `Response<…>`, which for a streaming method is the `impl Stream<…>` type —
+        // the wrong answer (and illegal nested `impl Trait` downstream).
+        if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
+            if type_mentions_stream(inner) {
+                return extract_stream_item_inner(inner);
             }
-
-            // Unary / client-stream: `ConnectResult<Response<T>>` → `T`.
-            if let Some(r) = extract_response_from_connect_result(ty) {
-                return r;
-            }
-
-            // Fallback
-            quote!(#ty)
         }
-        _ => quote!(()),
-    }
+
+        // Unary / client-stream: `ConnectResult<Response<T>>` → `T`.
+        if let Some(r) = extract_response_from_connect_result(ty) {
+            return r;
+        }
+
+        // Fallback
+        quote!(#ty)
+    } else { quote!(()) }
 }
 
 /// Extract method information from a trait method.
@@ -368,7 +362,7 @@ fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
 
 // ── Name conversion ────────────────────────────────────────────────────────
 
-/// Convert snake_case to PascalCase (e.g. `greet_group` → `GreetGroup`).
+/// Convert `snake_case` to `PascalCase` (e.g. `greet_group` → `GreetGroup`).
 fn to_pascal_case(name: &str) -> String {
     name.split('_')
         .filter(|s| !s.is_empty())
@@ -395,12 +389,11 @@ fn to_snake_case(name: &str) -> String {
                 let prev = chars[i - 1];
                 let next = chars.get(i + 1).copied();
                 let prev_lower = prev.is_lowercase() || prev.is_ascii_digit();
-                let next_lower = next.map_or(false, |n| n.is_lowercase());
-                if prev_lower || (next_lower && i + 1 < len) {
-                    if result.as_bytes().last() != Some(&b'_') {
+                let next_lower = next.is_some_and(char::is_lowercase);
+                if (prev_lower || (next_lower && i + 1 < len))
+                    && result.as_bytes().last() != Some(&b'_') {
                         result.push('_');
                     }
-                }
             }
             result.push(c.to_ascii_lowercase());
         } else if c == '-' {
@@ -642,7 +635,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     let client_trait_ident = format_ident!("{}ClientExt", svc_name);
     let descriptor_macro_ident = format_ident!("{}_rpc_definitions", svc_snake);
 
-    let qualified_name = format!("{}.{}", package, svc_name);
+    let qualified_name = format!("{package}.{svc_name}");
 
     // ── Procedure constants ───────────────────────────────────────────────
     let procedure_consts: Vec<TokenStream> = methods
@@ -650,7 +643,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         .map(|m| {
             let const_name = Ident::new(&m.snake.to_uppercase(), m.span);
             let pascal_name = to_pascal_case(&m.snake);
-            let path = format!("/{}.{}/{}", package, svc_name, pascal_name);
+            let path = format!("/{package}.{svc_name}/{pascal_name}");
             quote! {
                 /// Procedure path for #path.
                 pub const #const_name: &str = #path;

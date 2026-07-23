@@ -378,7 +378,7 @@ impl PlatformSession {
         &self,
         route: &str,
         presentation: &Presentation,
-        target: Option<&str>,
+        _target: Option<&str>,
     ) {
         let win_mgr = self.window_manager();
         if let Ok(mut stack) = self.webview_stack.write() {

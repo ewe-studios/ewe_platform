@@ -18,7 +18,7 @@ use std::net::SocketAddr;
 use foundation_wireguard::{NetworkId, SeedBits, WgSeed};
 
 
-use super::config::{ContainerConfig, PortMapping, PortProtocol};
+use super::config::{ContainerConfig, PortProtocol};
 
 // ---------------------------------------------------------------------------
 // Env var names (normative — must match WgConfig::from_env)

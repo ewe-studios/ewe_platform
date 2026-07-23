@@ -13,7 +13,6 @@ mod local;
 mod models;
 mod schema;
 mod tcp_capture;
-mod testbed;
 mod wasm_bins;
 mod wasm_bundle;
 // mod watchful; // temporarily disabled (ewe_watchers excluded from workspace)
@@ -38,7 +37,6 @@ async fn main() -> std::result::Result<(), BoxedError> {
     commander = schema::register(commander);
     commander = wasm_bins::register(commander);
     commander = wasm_bundle::register(commander);
-    commander = testbed::register(commander);
 
     let matches = commander.get_matches();
     match matches.subcommand() {
@@ -51,7 +49,6 @@ async fn main() -> std::result::Result<(), BoxedError> {
         // Some(("watch", arguments)) => watchful::run(arguments)?,
         Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,
         Some(("gen_model_descriptors", arguments)) => models::run(arguments)?,
-        Some(("testbed", arguments)) => testbed::run(arguments)?,
         _ => {}
     }
 

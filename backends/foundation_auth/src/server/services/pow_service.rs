@@ -4,7 +4,6 @@
 //! Client hashes `(challenge + nonce)` until hash has enough leading zeros.
 //! Server validates by hashing once.
 
-use std::sync::Arc;
 
 use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};

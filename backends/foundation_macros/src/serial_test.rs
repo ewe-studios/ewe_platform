@@ -28,7 +28,7 @@ pub(crate) fn serial_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
     if func.sig.asyncness.is_some() {
         return syn::Error::new_spanned(
-            &func.sig.asyncness,
+            func.sig.asyncness,
             "#[serial_test] does not support async functions",
         )
         .to_compile_error();

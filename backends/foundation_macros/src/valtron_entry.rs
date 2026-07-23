@@ -186,8 +186,8 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
 /// call from the parsed macro args. Called at macro expansion time (not inside
 /// `quote!`), so the returned tokens are spliced directly into the test body.
 ///
-/// For `#[valtron_test]` (is_test=true): tracing is always on (defaults to "info").
-/// For `#[valtron]` (is_test=false): tracing is OFF unless explicitly requested
+/// For `#[valtron_test]` (`is_test=true)`: tracing is always on (defaults to "info").
+/// For `#[valtron]` (`is_test=false)`: tracing is OFF unless explicitly requested
 /// via `tracing = "debug"` or similar.
 fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool) -> proc_macro2::TokenStream {
     // For #[valtron] (non-test), skip tracing unless explicitly requested.

@@ -1,6 +1,10 @@
 mod anthropic_messages_provider;
 mod embedding_provider_tests;
 mod huggingface_gguf_provider;
+
+// Drives both HF providers against a fake Hub, so it needs both backends.
+#[cfg(all(feature = "llamacpp", feature = "candle"))]
+mod huggingface_hub_fault_injection;
 mod llamacpp_config_tests;
 mod llamacpp_fixture;
 mod model_trait_surface_tests;

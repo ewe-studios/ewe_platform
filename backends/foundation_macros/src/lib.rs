@@ -771,7 +771,7 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
 }
 
-/// `wireguard!` — compile-time WireGuard mesh configuration (spec-55, feature 09).
+/// `wireguard!` — compile-time `WireGuard` mesh configuration (spec-55, feature 09).
 ///
 /// Desugars a custom block syntax into a `WgConfig` builder chain.
 /// Unknown keys and missing required fields are compile errors.
@@ -902,9 +902,9 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 // ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
 
-/// `#[service]` — code-first ConnectRPC (Decision 10 Mode 3).
+/// `#[service]` — code-first `ConnectRPC` (Decision 10 Mode 3).
 ///
-/// Transforms a Rust trait definition into a full ConnectRPC service:
+/// Transforms a Rust trait definition into a full `ConnectRPC` service:
 /// service name constant, procedure path constants (R1), the trait with
 /// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
 /// (R2), typed client (R4), and an exported descriptor macro for cross-crate
@@ -931,7 +931,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
     connectrpc_service::expand_service(attr.into(), item.into()).into()
 }
 
-/// `generate!` — cross-crate ConnectRPC artifact generation.
+/// `generate!` — cross-crate `ConnectRPC` artifact generation.
 ///
 /// Re-expands a descriptor macro exported by `#[service]` in
 /// another crate inside a new module.

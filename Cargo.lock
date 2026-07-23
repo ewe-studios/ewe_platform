@@ -4108,7 +4108,6 @@ dependencies = [
  "foundation_nostd",
  "foundation_packager",
  "foundation_runtimes",
- "foundation_testbed",
  "foundation_toolings",
  "foundation_wasm",
  "foundation_wasm_ui",

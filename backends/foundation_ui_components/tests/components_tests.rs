@@ -13,9 +13,9 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use foundation_signals::{Context, EventData};
+use foundation_signals::EventData;
 use foundation_ui_components::{
-    accordion, autocomplete, avatar, button, checkbox, collapsible, combobox, context_menu, dialog,
+    accordion, autocomplete, avatar, button, checkbox, collapsible, combobox, dialog,
     field, fieldset, form, input, menubar, meter, navigation_menu, number_field, otp_field,
     parent_check_state, popover, progress, radio_group, scroll_area, select, separator, skeleton,
     slider, switch, tabs, toast_viewport, toggle, tooltip, AccordionConfig, AccordionItem,
@@ -29,7 +29,7 @@ use foundation_ui_components::{
     button_with_click, menu, toolbar,
 };
 use foundation_ui_traits::{DomOp, Html};
-use foundation_wasm_ui::{html, App, SharedInstructionReceiver, Slot};
+use foundation_wasm_ui::{html, App, Slot};
 
 fn attr<'a>(h: &'a Html, name: &str) -> Option<&'a str> {
     h.attributes

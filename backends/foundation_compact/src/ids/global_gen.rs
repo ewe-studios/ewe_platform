@@ -26,6 +26,7 @@ pub fn new() -> Id {
 /// global generator.
 ///
 /// This function is thread-safe.
+#[must_use]
 pub fn new_string() -> String {
     new().into()
 }
@@ -52,7 +53,7 @@ impl GlobalGenInner {
     }
 }
 
-/// A CSPRNG backed by our vendored StdRng + SysRng for reseeding.
+/// A CSPRNG backed by our vendored `StdRng` + `SysRng` for reseeding.
 #[derive(Debug)]
 struct GlobalGenRng {
     inner: crate::rng::StdRng,

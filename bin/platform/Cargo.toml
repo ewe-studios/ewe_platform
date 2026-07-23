@@ -73,7 +73,6 @@ toml = { version = "0.8" }
 regex = { version = "1.10" }
 
 # -- platform (VM/container orchestration)
-foundation_testbed = { path = "../../backends/foundation_testbed", version = "0.0.2", features = ["cli"] }
 foundation_deployment_platform = { path = "../../backends/foundation_deployment_platform", version = "0.1.1", features = ["vms"] }
 
 [features]

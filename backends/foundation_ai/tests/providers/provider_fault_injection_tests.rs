@@ -683,29 +683,44 @@ fn an_embedding_response_with_no_data_is_an_error() {
 // loses the agent's persona, and sending `temperature: 0` when the caller meant
 // "unset" changes model behaviour rather than leaving the vendor default.
 
+/// One request as the test server saw it.
+#[derive(Clone)]
+struct SeenRequest {
+    method: String,
+    path: String,
+    body: String,
+}
+
 /// Run one generate() against a recording server and return the request body.
+///
+/// Every request is recorded, not just the last one: `get_model` performs a
+/// bodyless catalog read against `/models/{id}` before the generation POST, so a
+/// single-slot recorder both loses the payload under test and — when the
+/// generation request never arrives — reports nothing but "the capture was
+/// empty", which is the one fact that does not help. Keeping the whole
+/// transcript means a failure prints exactly what the server did receive, and
+/// the generate() result is printed alongside it so a transport error is not
+/// mistaken for a request that was never sent.
 fn responses_request_body(interaction: ModelInteraction, params: Option<ModelParams>) -> String {
     use foundation_netio::shared::http::SendSafeBody;
 
-    let seen = Arc::new(std::sync::Mutex::new(String::new()));
+    let seen: Arc<std::sync::Mutex<Vec<SeenRequest>>> = Arc::new(std::sync::Mutex::new(Vec::new()));
     let recorder = Arc::clone(&seen);
 
     let server = TestHttpServer::with_response(move |req| {
         // The client may send either representation; read both so the capture
         // cannot silently come back empty (which would make every "field is
         // absent" assertion below pass vacuously).
-        let captured = match &req.body {
+        let body = match &req.body {
             SendSafeBody::Text(t) => t.clone(),
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).into_owned(),
             _ => String::new(),
         };
-        // Record only the generation request. `get_model` first performs a
-        // catalog read against `/models/{id}`, which carries no body — recording
-        // unconditionally let that bodyless request clobber the payload we came
-        // to inspect.
-        if !captured.is_empty() {
-            *recorder.lock().unwrap() = captured;
-        }
+        recorder.lock().unwrap().push(SeenRequest {
+            method: format!("{:?}", req.method),
+            path: req.path.url.clone(),
+            body,
+        });
         response(
             200,
             "OK",
@@ -717,14 +732,36 @@ fn responses_request_body(interaction: ModelInteraction, params: Option<ModelPar
     });
 
     let model = responses_model_for(&server, 0);
-    let _ = model.generate(interaction, params);
-    let body = seen.lock().unwrap().clone();
-    assert!(
-        !body.is_empty(),
-        "the request body must have been captured — an empty capture would make \
-         every absence assertion below pass for the wrong reason"
-    );
-    body
+    let outcome = model.generate(interaction, params);
+
+    let requests = seen.lock().unwrap().clone();
+    let transcript = if requests.is_empty() {
+        "<the server received no requests at all>".to_string()
+    } else {
+        requests
+            .iter()
+            .map(|r| format!("  {} {} body={:?}", r.method, r.path, r.body))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    let outcome = match &outcome {
+        Ok(_) => "generate() succeeded".to_string(),
+        Err(e) => format!("generate() failed: {e}"),
+    };
+
+    // The generation request is the one carrying a payload; the catalog read is
+    // bodyless. Match on that rather than on position, so an extra preflight
+    // request cannot silently shift which body is inspected.
+    requests
+        .into_iter()
+        .find(|r| !r.body.is_empty())
+        .map(|r| r.body)
+        .unwrap_or_else(|| {
+            panic!(
+                "no request with a body reached the server — every \"field is absent\" \
+                 assertion would have passed for the wrong reason.\n{outcome}\nrequests seen:\n{transcript}"
+            )
+        })
 }
 
 fn interaction_with(system: Option<&str>, soul: Option<&str>) -> ModelInteraction {

@@ -14,7 +14,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, DataValue, SqlRow};
+use foundation_db::{QueryStore, DataValue};
 
 use crate::server::models::provider::UpstreamProvider;
 use crate::shared::upstream_client::UpstreamProfile;
@@ -174,7 +174,7 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
         provider: &UpstreamProvider,
         upstream_sub: &str,
     ) -> Result<Option<String>, ProvisioningError> {
-        let mut stream = self
+        let stream = self
             .query_store
             .query(
                 "SELECT user_id FROM user_provider_links \
@@ -207,7 +207,7 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
         &self,
         email: &str,
     ) -> Result<Option<String>, ProvisioningError> {
-        let mut stream = self
+        let stream = self
             .query_store
             .query(
                 "SELECT id FROM users WHERE email = ? AND email_verified = 1 LIMIT 2",
@@ -305,7 +305,7 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
         &self,
         user_id: &str,
     ) -> Result<Vec<String>, ProvisioningError> {
-        let mut stream = self
+        let stream = self
             .query_store
             .query(
                 "SELECT provider_id FROM user_provider_links WHERE user_id = ?",

@@ -62,7 +62,7 @@ impl Serve for ProxyHandler {
         req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let start = std::time::Instant::now();
+        let _start = std::time::Instant::now();
 
         // Decision 22: during draining, respond 503 so clients retry elsewhere.
         if self.state.is_draining() {

@@ -1,4 +1,4 @@
-//! Analyzer for OpenAPI specs with provider-specific grouping logic.
+//! Analyzer for `OpenAPI` specs with provider-specific grouping logic.
 //!
 //! WHY: Analyzes specs to determine optimal grouping and detect shared resources.
 //!
@@ -765,7 +765,7 @@ impl Default for AnalysisOptions {
     }
 }
 
-/// Analyze an OpenAPI spec and return grouping information.
+/// Analyze an `OpenAPI` spec and return grouping information.
 pub fn analyze_spec(
     spec_content: &str,
     provider: &str,
@@ -785,7 +785,7 @@ pub fn analyze_spec(
     if groups_map.is_empty() {
         if provider.contains('/') {
             // Multi-spec sub-provider: one group per spec
-            let spec_group = provider.split('/').last().unwrap_or(provider).to_string();
+            let spec_group = provider.split('/').next_back().unwrap_or(provider).to_string();
             let all_endpoints = processor.endpoints();
             groups_map.insert(spec_group, all_endpoints);
         } else {

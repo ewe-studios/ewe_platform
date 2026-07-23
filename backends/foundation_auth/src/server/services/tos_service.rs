@@ -4,7 +4,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 
 use super::super::models::{TosAcceptance, TosVersion};
 use super::super::storage::{HandlerStorage, StorageOpError};

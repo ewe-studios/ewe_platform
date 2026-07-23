@@ -206,7 +206,7 @@ impl ContainerConfig {
     #[must_use]
     /// Bind-mount a host path read-only — the container can read it but any
     /// write is refused by the kernel.
-    #[must_use]
+    
     pub fn volume_read_only(
         mut self,
         host_path: impl Into<PathBuf>,

@@ -17,7 +17,7 @@ use alloc::vec::Vec;
 #[derive(Debug, Clone)]
 pub struct NavigationIntent {
     /// Full URL being navigated to
-    /// (e.g. "ewe://localhost/app/items/42?proto=arrow")
+    /// (e.g. "<ewe://localhost/app/items/42?proto=arrow>")
     pub url: String,
 
     /// HTTP method semantics: GET (link click, initial load), POST (form
@@ -67,8 +67,8 @@ pub struct RouteDecision {
     /// How the navigation is presented in the UI stack.
     pub presentation: Presentation,
 
-    /// What kind of view renders this route: WebView or platform-native OS
-    /// view. The platform does NOT need to know the content format (DomOps,
+    /// What kind of view renders this route: `WebView` or platform-native OS
+    /// view. The platform does NOT need to know the content format (`DomOps`,
     /// HTML, Arrow, WASM module, etc.). That is `foundation_wasm_ui`'s
     /// concern.
     pub view_kind: ViewKind,
@@ -80,8 +80,8 @@ pub struct RouteDecision {
     /// Cache behavior for this route (offline strategy).
     pub cache_policy: CachePolicy,
 
-    /// WebView trust profile for this route (gates platform services).
-    /// Only enforced when `view_kind` is WebView; native views have their
+    /// `WebView` trust profile for this route (gates platform services).
+    /// Only enforced when `view_kind` is `WebView`; native views have their
     /// own OS-level trust model.
     pub profile: Profile,
 
@@ -91,7 +91,7 @@ pub struct RouteDecision {
 
     /// Identifies which IPC target to talk to. Only meaningful when
     /// `source` is `IpcShell`. The session looks up this name in the
-    /// wasm_app registry. Can also be set implicitly by route path
+    /// `wasm_app` registry. Can also be set implicitly by route path
     /// auto-resolution (`/{name}/*` routes).
     pub target: Option<String>,
 
@@ -117,7 +117,7 @@ pub struct RouteDecision {
 /// automatically based on this value — the user never picks a transport.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RouteSource {
-    /// App code generates content inside the WebView. No transport needed —
+    /// App code generates content inside the `WebView`. No transport needed —
     /// the session signals the route change via `postMessage` and the
     /// in-WebView code renders directly.
     WebviewApp,
@@ -136,21 +136,21 @@ pub enum RouteSource {
 
 // ── Presentation ────────────────────────────────────────────────────────────
 
-/// How the navigation appears in the UI stack. Drives the WebView stack
+/// How the navigation appears in the UI stack. Drives the `WebView` stack
 /// manager ([decision 21](10-multi-webview-stack.md)).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Presentation {
-    /// Replace the current screen's content in-place (default). The WebView's
+    /// Replace the current screen's content in-place (default). The `WebView`'s
     /// DOM is morphed/patched without a navigation transition.
     Morph,
 
     /// Push a new screen onto the navigation stack. Screenshot captured,
-    /// new WebView created from pool, slide animation.
+    /// new `WebView` created from pool, slide animation.
     Push,
 
     /// Present a modal screen over the current stack. Slides up from bottom
     /// (mobile) or appears as sheet/dialog (desktop). Modal has its own
-    /// independent WebView.
+    /// independent `WebView`.
     Modal,
 
     /// Replace the current screen in the stack (no new stack entry). Current
@@ -170,21 +170,21 @@ pub enum Presentation {
 
 /// What kind of view renders this route. The platform does NOT need to know
 /// the content format — that is `foundation_wasm_ui`'s concern inside the
-/// WebView, or the native view component's concern on the native side.
+/// `WebView`, or the native view component's concern on the native side.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ViewKind {
-    /// Content renders in a WebView (the default). `foundation_wasm_ui`
+    /// Content renders in a `WebView` (the default). `foundation_wasm_ui`
     /// handles ALL rendering — the platform delivers bytes; the bootstrap
     /// script dispatches on Content-Type.
     WebView,
 
-    /// Content renders in a platform-native OS view. SwiftUI `View` on iOS,
+    /// Content renders in a platform-native OS view. `SwiftUI` `View` on iOS,
     /// Jetpack `Composable` on Android, native widget on desktop.
     ///
     /// **Post-MVP.** The enum variant exists now so the type system doesn't
     /// change later, but the native view registry and instantiation code
-    /// ship after the WebView rendering path is stable. MVP renders
-    /// everything in WebViews.
+    /// ship after the `WebView` rendering path is stable. MVP renders
+    /// everything in `WebViews`.
     Native,
 }
 
@@ -199,15 +199,15 @@ pub enum ProtocolHint {
     /// delivered as-is. This is the default.
     Default,
 
-    /// Prefer columnar v1 encoding (DomOps batches, wasm-loop, no-std).
+    /// Prefer columnar v1 encoding (`DomOps` batches, wasm-loop, no-std).
     Columnar,
 
-    /// Prefer Arrow RecordBatch binary — raw columnar bytes cast to `&[u8]`.
+    /// Prefer Arrow `RecordBatch` binary — raw columnar bytes cast to `&[u8]`.
     /// Single batch, no streaming metadata. The default for data payloads.
     Arrow,
 
-    /// Prefer Arrow IPC streaming format — Schema + DictionaryBatch +
-    /// RecordBatch messages with continuation markers and EOS indicator.
+    /// Prefer Arrow IPC streaming format — Schema + `DictionaryBatch` +
+    /// `RecordBatch` messages with continuation markers and EOS indicator.
     /// For multi-batch streams and external interop (pyarrow, Flight).
     ArrowIpc,
 
@@ -247,7 +247,7 @@ pub enum CachePolicy {
 
 // ── Profile ─────────────────────────────────────────────────────────────────
 
-/// WebView trust profile for this route. Each profile gates which platform
+/// `WebView` trust profile for this route. Each profile gates which platform
 /// services the content can access. The session backbone enforces this at
 /// runtime — every service call checks the active profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -311,10 +311,10 @@ pub struct PageIdentity {
 /// The actual encode/decode logic lives in `foundation_wasm_ui`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Protocol {
-    /// DomOp batches — wasm-loop, no-std, TypedArray-friendly.
+    /// `DomOp` batches — wasm-loop, no-std, TypedArray-friendly.
     Columnar,
 
-    /// Raw RecordBatch binary — single batch, no streaming metadata.
+    /// Raw `RecordBatch` binary — single batch, no streaming metadata.
     Arrow,
 
     /// Arrow IPC streaming format — multi-batch, Schema + EOS.

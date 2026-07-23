@@ -3,13 +3,13 @@
 //! **WHY:** selecting six endpoints out of Linode's 334 is only half the job —
 //! the components they *don't* use have to go too, or the crate still carries
 //! them. Linode alone ships 77 `components/schemas` that **nothing references**
-//! (its spec has zero `$ref`s), and DigitalOcean's 7814 refs reach far beyond the
+//! (its spec has zero `$ref`s), and `DigitalOcean`'s 7814 refs reach far beyond the
 //! handful of paths a VPS crate calls.
 //!
 //! **WHAT:** [`prune_to_selection`] drops unselected operations, then removes
 //! every component nothing kept can reach.
 //!
-//! **HOW:** on raw JSON, not the typed spec. DigitalOcean refs into
+//! **HOW:** on raw JSON, not the typed spec. `DigitalOcean` refs into
 //! `components/responses` (3758), `headers` (1372) and `parameters` (833), and
 //! only `schemas` is modelled — walking the JSON follows all of them for free.
 //! Reachability is a fixed-point walk from the surviving paths, following `$ref`

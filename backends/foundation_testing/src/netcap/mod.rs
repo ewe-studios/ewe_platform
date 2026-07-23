@@ -14,7 +14,7 @@ use std::{
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_netio::shared::http::{
-    self, Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
+    Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
     ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 

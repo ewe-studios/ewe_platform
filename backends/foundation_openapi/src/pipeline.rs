@@ -151,7 +151,7 @@ impl Pipeline {
         }
     }
 
-    /// Pin the vendor's API version (Linode `v4`, DigitalOcean `v2`, Hetzner `v1`).
+    /// Pin the vendor's API version (Linode `v4`, `DigitalOcean` `v2`, Hetzner `v1`).
     ///
     /// It is fixed into the client so callers never pass it — an API version is
     /// not a per-call decision. Linode needs this most: its paths carry the

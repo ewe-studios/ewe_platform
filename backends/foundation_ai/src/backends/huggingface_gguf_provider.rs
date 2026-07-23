@@ -56,6 +56,12 @@ pub struct HuggingFaceGGUFProvider {
 pub struct HuggingFaceGGUFConfig {
     /// `HuggingFace` API token (optional for public models).
     pub auth: Option<foundation_auth::AuthCredential>,
+    /// Hub endpoint to talk to, e.g. `https://huggingface.co`.
+    ///
+    /// `None` keeps the `HFClient` default (the `HF_ENDPOINT` environment
+    /// variable, else the public Hub). Set it to reach a mirror or a private
+    /// Hub deployment without exporting a process-wide environment variable.
+    pub endpoint: Option<String>,
     /// Local cache directory for downloaded GGUF files.
     pub cache_dir: PathBuf,
     /// Default quantization when not specified in `ModelId`.
@@ -70,6 +76,7 @@ impl Default for HuggingFaceGGUFConfig {
     fn default() -> Self {
         Self {
             auth: None,
+            endpoint: None,
             cache_dir: default_cache_dir(),
             default_quantization: Some("q4_k_m".to_string()),
             llama_config: LlamaBackendConfig::default(),
@@ -82,6 +89,7 @@ impl Clone for HuggingFaceGGUFConfig {
     fn clone(&self) -> Self {
         Self {
             auth: None,
+            endpoint: self.endpoint.clone(),
             cache_dir: self.cache_dir.clone(),
             default_quantization: self.default_quantization.clone(),
             llama_config: self.llama_config.clone(),
@@ -150,6 +158,15 @@ impl HuggingFaceGGUFConfigBuilder {
         self.config.auth = Some(foundation_auth::AuthCredential::SecretOnly(
             foundation_auth::ConfidentialText::new(token.into()),
         ));
+        self
+    }
+
+    /// Set the Hub endpoint (mirror or private deployment).
+    ///
+    /// Overrides `HF_ENDPOINT` for this provider only.
+    #[must_use]
+    pub fn endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.config.endpoint = Some(endpoint.into());
         self
     }
 
@@ -227,17 +244,20 @@ impl HuggingFaceGGUFProvider {
     ///
     /// Returns an error if the `HFClient` cannot be initialized.
     pub fn new(config: HuggingFaceGGUFConfig) -> ModelProviderResult<Self> {
-        let hf_client = HFClient::builder()
-            .token(
-                config
-                    .auth
-                    .as_ref()
-                    .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
-                        _ => String::new(),
-                    })
-                    .unwrap_or_default(),
-            )
+        let mut client_builder = HFClient::builder().token(
+            config
+                .auth
+                .as_ref()
+                .map(|a| match a {
+                    foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                    _ => String::new(),
+                })
+                .unwrap_or_default(),
+        );
+        if let Some(endpoint) = &config.endpoint {
+            client_builder = client_builder.endpoint(endpoint.clone());
+        }
+        let hf_client = client_builder
             .build()
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
@@ -573,13 +593,25 @@ fn find_gguf_file_in_repo(
             ))))
         })?;
 
-    // Collect all entries from the stream
-    let entries: Vec<_> = tree
-        .filter_map(|s| match s {
-            Stream::Next(Ok(entry)) => Some(entry),
-            _ => None,
-        })
-        .collect();
+    // Collect all entries from the stream.
+    //
+    // `repo_list_tree` reports HTTP and JSON failures as `Err` items *inside*
+    // the stream, not as an `Err` from the call above. Dropping them turned a
+    // 500 from the Hub into "no GGUF file matching quantization 'q4_k_m' found
+    // in repository" — a message that sends the caller looking for a
+    // quantization problem they do not have. Surface the first failure instead.
+    let mut entries = Vec::new();
+    for item in tree {
+        match item {
+            Stream::Next(Ok(entry)) => entries.push(entry),
+            Stream::Next(Err(e)) => {
+                return Err(ModelProviderErrors::FailedFetching(Box::new(
+                    std::io::Error::other(format!("Failed to list repository files: {e}")),
+                )))
+            }
+            _ => {}
+        }
+    }
 
     // Find matching GGUF file
     let pattern = HuggingFaceGGUFProvider::quantization_to_filename_pattern(quantization);

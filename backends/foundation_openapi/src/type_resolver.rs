@@ -78,7 +78,7 @@ impl TypeResolver {
 
     /// Resolve a request body type, handling arrays by wrapping in Vec<>.
     ///
-    /// For array types, returns `Vec<ItemType>` where ItemType is resolved from the items schema.
+    /// For array types, returns `Vec<ItemType>` where `ItemType` is resolved from the items schema.
     /// For object types, returns the type name directly.
     /// For non-generatable types, returns None.
     #[must_use]

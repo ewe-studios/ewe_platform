@@ -1,4 +1,4 @@
-//! #[platform_test] attribute macro — sets up a test with PlatformSession.
+//! #[`platform_test`] attribute macro — sets up a test with `PlatformSession`.
 //!
 //! Supports optional backends:
 //!
@@ -62,8 +62,7 @@ fn parse_args(attr: TokenStream) -> PlatformTestArgs {
 /// Quick check: is a Docker container running?
 fn docker_running_check(image: &str) -> String {
     format!(
-        "docker ps --filter name={img} --format '{{{{.Status}}}}' 2>/dev/null | grep -q Up",
-        img = image
+        "docker ps --filter name={image} --format '{{{{.Status}}}}' 2>/dev/null | grep -q Up"
     )
 }
 

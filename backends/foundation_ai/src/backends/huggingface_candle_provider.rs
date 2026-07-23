@@ -50,6 +50,12 @@ impl Clone for HuggingFaceCandleProvider {
 #[derive(Debug)]
 pub struct HuggingFaceCandleConfig {
     pub auth: Option<foundation_auth::AuthCredential>,
+    /// Hub endpoint to talk to, e.g. `https://huggingface.co`.
+    ///
+    /// `None` keeps the `HFClient` default (the `HF_ENDPOINT` environment
+    /// variable, else the public Hub). Set it to reach a mirror or a private
+    /// Hub deployment without exporting a process-wide environment variable.
+    pub endpoint: Option<String>,
     pub cache_dir: PathBuf,
     pub context_length: usize,
     pub dtype: CandleDType,
@@ -60,6 +66,7 @@ impl Default for HuggingFaceCandleConfig {
     fn default() -> Self {
         Self {
             auth: None,
+            endpoint: None,
             cache_dir: default_cache_dir(),
             context_length: 4096,
             dtype: CandleDType::F32,
@@ -72,6 +79,7 @@ impl Clone for HuggingFaceCandleConfig {
     fn clone(&self) -> Self {
         Self {
             auth: None,
+            endpoint: self.endpoint.clone(),
             cache_dir: self.cache_dir.clone(),
             context_length: self.context_length,
             dtype: self.dtype,
@@ -138,6 +146,15 @@ impl HuggingFaceCandleConfigBuilder {
         self
     }
 
+    /// Set the Hub endpoint (mirror or private deployment).
+    ///
+    /// Overrides `HF_ENDPOINT` for this provider only.
+    #[must_use]
+    pub fn endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.config.endpoint = Some(endpoint.into());
+        self
+    }
+
     #[must_use]
     pub fn cache_dir(mut self, path: impl Into<PathBuf>) -> Self {
         self.config.cache_dir = path.into();
@@ -175,17 +192,20 @@ impl HuggingFaceCandleProvider {
     /// # Errors
     /// Returns [`GenerationError`] if the model cannot be loaded.
     pub fn new(config: HuggingFaceCandleConfig) -> ModelProviderResult<Self> {
-        let hf_client = HFClient::builder()
-            .token(
-                config
-                    .auth
-                    .as_ref()
-                    .map(|a| match a {
-                        foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
-                        _ => String::new(),
-                    })
-                    .unwrap_or_default(),
-            )
+        let mut client_builder = HFClient::builder().token(
+            config
+                .auth
+                .as_ref()
+                .map(|a| match a {
+                    foundation_auth::AuthCredential::SecretOnly(t) => t.get(),
+                    _ => String::new(),
+                })
+                .unwrap_or_default(),
+        );
+        if let Some(endpoint) = &config.endpoint {
+            client_builder = client_builder.endpoint(endpoint.clone());
+        }
+        let hf_client = client_builder
             .build()
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
@@ -367,14 +387,22 @@ impl HuggingFaceCandleProvider {
             )))
         })?;
 
-        #[allow(clippy::match_same_arms)]
-        let entries: Vec<_> = tree
-            .filter_map(|s| match s {
-                Stream::Next(Ok(entry)) => Some(entry),
-                Stream::Next(Err(_)) => None,
-                _ => None,
-            })
-            .collect();
+        // `repo_list_tree` reports HTTP and JSON failures as `Err` items *inside*
+        // the stream. Dropping them made a failed listing indistinguishable from
+        // a repository that genuinely holds no safetensors — the caller would be
+        // told the model has no weights when the Hub simply returned a 500.
+        let mut entries = Vec::new();
+        for item in tree {
+            match item {
+                Stream::Next(Ok(entry)) => entries.push(entry),
+                Stream::Next(Err(e)) => {
+                    return Err(ModelProviderErrors::FailedFetching(Box::new(
+                        std::io::Error::other(format!("Failed to list repository files: {e}")),
+                    )))
+                }
+                _ => {}
+            }
+        }
 
         let mut safetensors_files: Vec<String> = entries
             .iter()

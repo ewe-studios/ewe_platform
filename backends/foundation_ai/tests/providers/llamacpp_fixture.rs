@@ -12,8 +12,7 @@
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelSpec, TextContent, ToolShed, UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec, TextContent, ToolShed, UserModelContent,
 };
 use foundation_ai::types::ModelState;
 use foundation_core::valtron::{valtron_test, Stream};

@@ -143,13 +143,10 @@ pub fn theme(input: TokenStream) -> TokenStream {
         let name = t.name.as_ref();
         let category = t.category.as_ref();
         let light = t.light.as_ref();
-        let dark = match &t.dark {
-            Some(d) => {
-                let d = d.as_ref();
-                quote! { ::core::option::Option::Some(#d) }
-            }
-            None => quote! { ::core::option::Option::None },
-        };
+        let dark = if let Some(d) = &t.dark {
+            let d = d.as_ref();
+            quote! { ::core::option::Option::Some(#d) }
+        } else { quote! { ::core::option::Option::None } };
         quote! { #ft::ThemeToken::from_static(#name, #category, #light, #dark) }
     });
 

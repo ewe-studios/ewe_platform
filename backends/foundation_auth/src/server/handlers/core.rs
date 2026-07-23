@@ -6,7 +6,7 @@ use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
-use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
+use super::super::models::DeviceCode;
 use super::super::services::{TokenService, TokenServiceError};
 use super::super::services::user_service;
 use super::super::services::{PowService, PowSolution};
@@ -16,9 +16,9 @@ use super::super::services::{
     PasskeyLoginStartRequest, PasskeyLoginFinishRequest,
 };
 use super::super::storage::{
-    self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
+    self, HandlerStorage, StorageOpError, find_client_by_id, update_user_lockout,
 };
-use foundation_db::{KeyValueStore, MemoryStorage, core::storage_provider::QueryStore};
+use foundation_db::{KeyValueStore, core::storage_provider::QueryStore};
 
 use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
 use crate::shared::provider::{ProviderMapping, ProviderType, UpstreamProvider};
@@ -585,8 +585,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                 self.storage.query_store.as_ref(), &u.id,
                 u.failed_login_attempts, u.locked_until,
             );
-            let remaining = max.saturating_sub(u.failed_login_attempts);
-            let lockout_dur = self.config.password_policy.lockout_duration;
+            let _remaining = max.saturating_sub(u.failed_login_attempts);
+            let _lockout_dur = self.config.password_policy.lockout_duration;
             // Note: in a full implementation, we'd persist via update_user_lockout here.
             // For now, return the attempts remaining count.
             let remaining = max.saturating_sub(user.failed_login_attempts);
