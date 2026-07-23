@@ -371,6 +371,10 @@ setInterval(function(){{
 }
 
 /// Responder that reports which presentation mode was used.
+/// Each mode gets a visually distinct page with a monotonic counter so
+/// navigation is observable — a Push that created a new WebView, a Morph
+/// that reused one, and a back/pop that returned to the previous slot are
+/// all distinguishable by what's shown.
 struct ModeReportPage;
 impl RouteResponder for ModeReportPage {
     fn respond(
@@ -380,24 +384,47 @@ impl RouteResponder for ModeReportPage {
         session: &PlatformSession,
     ) -> tauri::http::Response<Vec<u8>> {
         let route = foundation_platform::pattern::extract_path(&intent.url);
-        let mode = format!("{:?}", decision.presentation);
-        let target = decision.target.as_deref().unwrap_or("(none)").to_string();
         let stack = session.webview_stack();
         let depth = stack.depth();
         let active = stack.active_route().unwrap_or("(none)").to_string();
         drop(stack);
 
+        static VISIT: AtomicU64 = AtomicU64::new(0);
+        let tick = VISIT.fetch_add(1, Ordering::Relaxed);
+        let ts = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0);
+
+        // Visual identity per mode — same colors as the dashboard buttons
+        let (mode_name, emoji, color, bg) = match decision.presentation {
+            foundation_ui_traits::Presentation::Push => ("Push", "➕", "#ff79c6", "#1a0a1a"),
+            foundation_ui_traits::Presentation::Modal => ("Modal", "🪟", "#bd93f9", "#121024"),
+            foundation_ui_traits::Presentation::Morph => ("Morph", "🔄", "#50fa7b", "#0a1a0a"),
+            foundation_ui_traits::Presentation::Replace => ("Replace", "🔀", "#ffb86c", "#1a120a"),
+            foundation_ui_traits::Presentation::Root => ("Root", "🧹", "#ff5555", "#1a0a0a"),
+            _ => ("?", "❓", "#ccc", "#111"),
+        };
+
         let body = format!(
-            r##"<h1>Route: {route}</h1>
-<p>Presentation: <b style="color:#64ffda">{mode}</b></p>
-<p>Target WebView: <b>{target}</b></p>
-<p>Stack depth: <b>{depth}</b></p>
-<p>Active: <b>{active}</b></p>
+            r##"<h1>{emoji} {mode_name}</h1>
+<div style="background:{bg};border:2px solid {color};border-radius:8px;padding:16px;margin:12px 0">
+  <p>Route: <b style="color:#64ffda">{route}</b></p>
+  <p>Stack depth: <b style="font-size:24px;color:{color}">{depth}</b></p>
+  <p>Active: <b>{active}</b></p>
+  <p style="color:#8892b0;font-size:11px">render #{tick} · {ts}</p>
+</div>
+<div style="margin-top:12px">
+  <a href="ewe://localhost/nav_push">➕ Push</a>
+  <a href="ewe://localhost/nav_morph">🔄 Morph</a>
+  <a href="ewe://localhost/nav_replace">🔀 Replace</a>
+  <a href="ewe://localhost/nav_root">🧹 Root</a>
+</div>
 <div style="margin-top:16px">
-<a href="ewe://localhost/presentation/">← Back to Presentation Tests</a>
+  <a href="ewe://localhost/presentation/">← Back to Demo Index</a>
 </div>"##,
         );
-        let html = page_html(&format!("{mode} Demo"), &body, &nav_buttons(&route), "");
+        let html = page_html(&format!("{emoji} {mode_name}"), &body, &nav_buttons(&route), "");
         html_response(html)
     }
 }

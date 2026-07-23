@@ -43,6 +43,23 @@ pub enum SlotState {
     Transitioning,
 }
 
+// ── Slot kind ────────────────────────────────────────────────────────
+
+/// How a slot was pushed onto the stack — determines back-button behavior.
+///
+/// WHY: Push and Modal both create a new WebView, but back should return to
+/// the previous screen on Push and dismiss only the overlay on Modal. Without
+/// this tag, `pop()` cannot tell whether it's popping the main stack or just
+/// a transient sheet.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SlotKind {
+    /// A full-screen push. Back navigates to the previous slot.
+    FullScreen,
+    /// A modal overlay. Back closes the modal without changing the underlying
+    /// stack. The slot underneath is left exactly as it was.
+    Modal,
+}
+
 // ── WebView slot ─────────────────────────────────────────────────────
 
 /// A single screen in the navigation stack.
@@ -52,6 +69,8 @@ pub struct WebViewSlot {
     pub screenshot: Option<Vec<u8>>,
     pub state: SlotState,
     pub is_content_stale: bool,
+    /// How this slot was pushed — FullScreen or Modal.
+    pub kind: SlotKind,
 }
 
 impl WebViewSlot {
@@ -63,6 +82,19 @@ impl WebViewSlot {
             screenshot: None,
             state: SlotState::Active,
             is_content_stale: false,
+            kind: SlotKind::FullScreen,
+        }
+    }
+
+    #[must_use]
+    pub fn new_modal(route: &str) -> Self {
+        Self {
+            route: route.to_string(),
+            page_identity: None,
+            screenshot: None,
+            state: SlotState::Active,
+            is_content_stale: false,
+            kind: SlotKind::Modal,
         }
     }
 
@@ -311,18 +343,12 @@ impl WebViewStack {
 
     // ── Navigation: push ──────────────────────────────────────────
 
-    /// Push a new screen onto the stack (Basecamp model).
-    ///
-    /// 1. Capture screenshot of current active screen
-    /// 2. Deactivate current: state → Screenshot
-    /// 3. Create new slot, set Active
-    /// 4. Navigate shared `WebView` to new route
+    /// Push a new FullScreen slot. Back navigates to the previous slot.
     pub fn push(
         &mut self,
         route: &str,
         webview: &dyn WebViewOps,
     ) {
-        // 1. Capture screenshot of current active
         if let Some(slot) = self.slots.get_mut(self.active_index) {
             let ss = webview.screenshot();
             slot.set_screenshot(ss);
@@ -330,33 +356,51 @@ impl WebViewStack {
             self.screenshot_bytes += slot.screenshot.as_ref().map_or(0, std::vec::Vec::len);
         }
 
-        // 2. Create new slot
         let mut new_slot = WebViewSlot::new(route);
         new_slot.state = SlotState::Active;
         self.slots.push(new_slot);
         self.active_index = self.slots.len() - 1;
-
-        // 3. Navigate WebView to new route
         webview.navigate(route);
-
-        // 4. Evict old screenshots if over budget
         self.evict_if_needed();
+    }
+
+    /// Push a Modal slot. The slot underneath stays at its route — backing
+    /// out of a modal only dismisses the modal, never touches the main stack.
+    pub fn push_modal(
+        &mut self,
+        route: &str,
+        webview: &dyn WebViewOps,
+    ) {
+        if let Some(slot) = self.slots.get_mut(self.active_index) {
+            slot.state = SlotState::Ready;
+        }
+
+        let mut new_slot = WebViewSlot::new_modal(route);
+        new_slot.state = SlotState::Active;
+        self.slots.push(new_slot);
+        self.active_index = self.slots.len() - 1;
+        webview.navigate(route);
     }
 
     // ── Navigation: pop ───────────────────────────────────────────
 
-    /// Pop the top screen and navigate back (Basecamp model).
+    /// Pop the top screen.
     ///
-    /// 1. Drop the top slot
-    /// 2. Previous slot has a screenshot → show it instantly
-    /// 3. Navigate `WebView` to the previous route
-    /// 4. If content is stale → reload after visible
+    /// Modal: just drops the modal slot and reactivates the one underneath
+    /// without navigating — the underlying WebView is still at its route.
+    ///
+    /// FullScreen: drops the top slot, shows screenshot if available, then
+    /// navigates to the previous route.
+    ///
+    /// Returns `None` when the stack has only the root slot — back should
+    /// exit the app or do nothing at that point.
     pub fn pop(&mut self, webview: &dyn WebViewOps) -> Option<String> {
         if self.slots.len() <= 1 {
-            return None; // can't pop the root
+            return None;
         }
 
-        // Drop top slot, free its screenshot memory
+        let top_kind = self.slots[self.active_index].kind;
+
         if let Some(top) = self.slots.get(self.active_index) {
             self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
                 top.screenshot.as_ref().map_or(0, std::vec::Vec::len),
@@ -367,16 +411,21 @@ impl WebViewStack {
 
         let prev = &mut self.slots[self.active_index];
 
-        // Show screenshot instantly if we have one
+        if top_kind == SlotKind::Modal {
+            // Underlying slot was just hidden, not frozen. Reactivate
+            // without navigating — it's still at its content.
+            prev.state = SlotState::Active;
+            prev.clear_screenshot();
+            return Some(format!("dismissed modal → {}", prev.route));
+        }
+
         if prev.screenshot.is_some() {
             webview.eval("showScreenshot()");
         }
 
-        // Navigate to the route
         let route = prev.route.clone();
         webview.navigate(&route);
 
-        // Check stale content
         if prev.is_content_stale {
             webview.reload();
             prev.is_content_stale = false;
@@ -428,12 +477,11 @@ impl WebViewStack {
 
     /// Push a new screen using a named WebView from the pool.
     ///
-    /// `Presentation::Push` creates a new WebView from the pool (or reuses
-    /// an idle one), pushes a new slot, and navigates. The old WebView stays
-    /// alive in the background.
-    ///
-    /// `Presentation::Replace` reuses the current WebView (same as `replace()`).
-    /// `Presentation::Morph` updates in-place without stack change.
+    /// `Push` creates a FullScreen slot; back navigates to the previous.
+    /// `Modal` creates a Modal slot; back dismisses only the overlay.
+    /// `Replace` reuses the current WebView (same as `replace()`).
+    /// `Morph` updates in-place without stack change.
+    /// `Root` clears everything and starts from the named route.
     pub fn push_with_presentation(
         &mut self,
         route: &str,
@@ -448,43 +496,31 @@ impl WebViewStack {
             foundation_ui_traits::Presentation::Replace => {
                 self.replace(route, webview);
             }
-            foundation_ui_traits::Presentation::Push
-            | foundation_ui_traits::Presentation::Modal => {
-                let label = target_label
-                    .map(String::from)
-                    .unwrap_or_else(|| format!("wv_{}", self.slots.len()));
-
-                // Ensure pool exists
-                if self.pool.is_none() {
-                    self.enable_pool();
-                }
-
-                // Mark the pool WebView as active
+            foundation_ui_traits::Presentation::Push => {
+                self.push(route, webview);
                 if let Some(pool) = self.pool.as_mut() {
+                    let label = target_label
+                        .map(String::from)
+                        .unwrap_or_else(|| format!("wv_{}", self.slots.len()));
                     pool.get_or_create(&label);
                     pool.set_state(&label, WebViewState::Active);
                     pool.set_route(&label, route);
                 }
-
-                // Capture screenshot of current, push new slot
-                if let Some(slot) = self.slots.get_mut(self.active_index) {
-                    let ss = webview.screenshot();
-                    slot.set_screenshot(ss);
-                    slot.state = SlotState::Screenshot;
-                    self.screenshot_bytes += slot.screenshot.as_ref().map_or(0, std::vec::Vec::len);
+            }
+            foundation_ui_traits::Presentation::Modal => {
+                // Modal: hide current, push overlay. Back dismisses
+                // only the modal — the slot underneath stays at its route.
+                self.push_modal(route, webview);
+                if let Some(pool) = self.pool.as_mut() {
+                    let label = target_label
+                        .map(String::from)
+                        .unwrap_or_else(|| format!("wv_{}", self.slots.len()));
+                    pool.get_or_create(&label);
+                    pool.set_state(&label, WebViewState::Active);
+                    pool.set_route(&label, route);
                 }
-
-                let mut new_slot = WebViewSlot::new(route);
-                new_slot.state = SlotState::Active;
-                self.slots.push(new_slot);
-                self.active_index = self.slots.len() - 1;
-
-                webview.navigate(route);
-                self.evict_if_needed();
             }
-            foundation_ui_traits::Presentation::External => {
-                // External navigation — don't change the stack.
-            }
+            foundation_ui_traits::Presentation::External => {}
             foundation_ui_traits::Presentation::Root => {
                 self.set_root(route, webview);
             }

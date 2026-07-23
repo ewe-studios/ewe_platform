@@ -124,11 +124,12 @@ mod tauri_impl {
         }
 
         fn open_url(&self, url: &str) {
-            // Tauri: open in default OS browser via window.open + escape hatch.
-            // On desktop this creates a new browser tab; on Android it fires
-            // an intent that the system browser handles.
+            // `window.open(url, '_system')` tells the WebView to delegate to
+            // the OS. On Android this triggers an Intent.ACTION_VIEW that
+            // the system browser handles; on desktop it opens the default
+            // browser. More reliable than `_blank` which may open in-app.
             if let Some(window) = self.app_handle.get_webview_window("main") {
-                let _ = window.eval(&format!("window.open('{url}','_blank')"));
+                let _ = window.eval(&format!("window.open('{url}','_system')"));
             }
         }
     }

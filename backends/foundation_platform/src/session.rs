@@ -372,24 +372,37 @@ impl PlatformSession {
 
     /// Record a navigation with its presentation mode in the WebView stack.
     ///
-    /// Implements the HYBRID model (F06, revised 2026-07-22):
+    /// Implements the F06 Hotwire Native model (revised 2026-07-22):
     ///
-    /// - Morph/Replace: in-place navigate in the same WebView.
-    /// - Push/Modal: screenshot old → create NEW WebView → destroy old WebView
-    ///   to free RAM. The screenshot is kept in the slot for instant back-nav.
-    /// - Pop (back): show screenshot instantly (0ms) → navigate WebView to
-    ///   old route in background → fade to live when loaded.
-    /// - Root: destroy all WebViews, create one for the new root.
-    ///
-    /// This gives Hotwire-style native navigation feel without the 50-150MB
-    /// per-WebView RAM cost of keeping multiple WebViews alive.
+    /// - Morph: in-place navigate, same WebView, no stack change.
+    /// - Replace: swap current slot's route, screenshot for back transition.
+    /// - Push: create new FullScreen WebView, push slot, old alive behind.
+    ///   Back pops the top WebView and reveals the previous one.
+    /// - Modal: create new Modal WebView, push slot tagged Modal. Back
+    ///   dismisses only the modal — the slot underneath is untouched.
+    /// - Root: destroy all WebViews, clear stack, create one new root.
+    ///   Back from root exits the app.
+    /// - External: open in OS system browser, no stack change.
     fn record_presentation(
         &self,
         route: &str,
         presentation: &Presentation,
         _target: Option<&str>,
     ) {
+        // A WebViewOps that does nothing: the handler response from
+        // `execute_decision` IS the navigation for single-WebView mode.
+        // Multi-WebView ops go through the WindowManager in each branch.
+        struct ResponderWebview;
+        impl crate::WebViewOps for ResponderWebview {
+            fn navigate(&self, _url: &str) {}
+            fn screenshot(&self) -> Vec<u8> { Vec::new() }
+            fn eval(&self, _script: &str) {}
+            fn reload(&self) {}
+        }
+
         let win_mgr = self.window_manager();
+        let wv = ResponderWebview;
+
         if let Ok(mut stack) = self.webview_stack.write() {
             if stack.depth() == 0 {
                 stack.init(route);
@@ -400,67 +413,32 @@ impl PlatformSession {
                 return;
             }
 
-            let active_idx = stack.active();
-            // Extract the old slot's route before any mutable borrows.
-            let prev_route = stack.slots().get(active_idx)
-                .map(|s| s.route.clone())
-                .unwrap_or_else(|| "main".to_string());
-            let prev_label = prev_route
-                .trim_start_matches('/')
-                .split('/')
-                .next()
-                .unwrap_or("main")
-                .to_string();
-
+            // Capture depth BEFORE any mutable borrows through pool_mut.
+            let depth = stack.depth();
             match presentation {
-                Presentation::Morph | Presentation::Replace => {
-                    // Update route in slot.
-                    if let Some(slot) = stack.slots_mut().get_mut(active_idx) {
-                        slot.route = route.to_string();
-                    }
-                    // Navigate existing window.
-                    if let Some(mut pool) = stack.pool_mut() {
-                        win_mgr.navigate(&mut pool, &prev_label, route);
-                    }
+                Presentation::Morph => {
+                    stack.morph(route, &wv);
                 }
-                Presentation::Push | Presentation::Modal => {
-                    let new_idx = stack.depth();
-                    let label = format!("wv_{new_idx}");
-
-                    // Phase 1: screenshot old, then destroy it to free RAM.
-                    {
-                        let screenshot_data = if let Some(mut pool) = stack.pool_mut() {
-                            let ss = if win_mgr.is_available() {
-                                win_mgr.screenshot(&mut pool, &prev_label)
-                            } else {
-                                Vec::new()
-                            };
-                            win_mgr.destroy(&mut pool, &prev_label);
-                            ss
-                        } else {
-                            Vec::new()
-                        };
-
-                        // Record screenshot in the old slot.
-                        if let Some(slot) = stack.slots_mut().get_mut(active_idx) {
-                            if !screenshot_data.is_empty() {
-                                slot.screenshot = Some(screenshot_data);
-                            }
-                            slot.state = crate::stack::SlotState::Screenshot;
-                        }
-                    }
-
-                    // Phase 2: create new WebView.
+                Presentation::Replace => {
+                    stack.replace(route, &wv);
+                }
+                Presentation::Push => {
                     if let Some(mut pool) = stack.pool_mut() {
-                        win_mgr.ensure(&mut pool, &label, route);
-                        pool.set_state(&label, crate::stack::WebViewState::Active);
-                        pool.set_route(&label, route);
+                        let new_label = format!("wv_{depth}");
+                        win_mgr.ensure(&mut pool, &new_label, route);
+                        pool.set_state(&new_label, crate::stack::WebViewState::Active);
+                        pool.set_route(&new_label, route);
                     }
-
-                    // Phase 3: push new slot.
-                    let mut new_slot = crate::stack::WebViewSlot::new(route);
-                    new_slot.state = crate::stack::SlotState::Active;
-                    stack.push_slot(new_slot);
+                    stack.push(route, &wv);
+                }
+                Presentation::Modal => {
+                    if let Some(mut pool) = stack.pool_mut() {
+                        let modal_label = format!("modal_{depth}");
+                        win_mgr.ensure(&mut pool, &modal_label, route);
+                        pool.set_state(&modal_label, crate::stack::WebViewState::Active);
+                        pool.set_route(&modal_label, route);
+                    }
+                    stack.push_modal(route, &wv);
                 }
                 Presentation::External => {
                     if let Some(mut pool) = stack.pool_mut() {
@@ -477,7 +455,7 @@ impl PlatformSession {
                         pool.set_state("wv_0", crate::stack::WebViewState::Active);
                         pool.set_route("wv_0", route);
                     }
-                    stack.set_root_slot(route);
+                    stack.set_root(route, &wv);
                 }
             }
         }
