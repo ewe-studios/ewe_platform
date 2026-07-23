@@ -50,7 +50,12 @@ it, so `ToolImpl::definition(&self) -> ToolDefinition` is unchanged. The old
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Tool {
     SingleCommand(ToolDefinition),
-    MultiCommands(Vec<ToolDefinition>),
+    /// The group's own name, then its sub-commands. The group name is what the
+    /// provider renders as the single function/tool (`memory`); each
+    /// `ToolDefinition` in the vec is a sub-command selected via `command`
+    /// (`memory_add`, `memory_remove`, …). The group needs a name of its own
+    /// because it cannot be derived from its sub-commands.
+    MultiCommands(String, Vec<ToolDefinition>),
 }
 ```
 
@@ -130,12 +135,6 @@ Every `Done when` clause checked against the code, not against memory:
 | No flattening in `all_tools` | `types/base_types.rs:1438` — chains `shed` + `tools`, returns `Vec<Tool>`, enum preserved |
 | `MemoryTool`/`DelegationTool` gone | no descriptor structs remain in the types layer. `agentic::tools::memory::MemoryTool` still exists and is *supposed* to — it is the `ToolImpl`, which reports itself as `Tool::MultiCommands`, not a bespoke descriptor with a dedicated slot |
 | Every provider renders both variants | cloud providers via the shared `Tool::function_spec()` (OpenAI, Anthropic, Responses); local backends (llama.cpp, candle) via `Tool::name()` + `Tool::arg_summary()`, both of which match on the enum |
-
-**Deviation from the design above:** `MultiCommands` carries the group name —
-`MultiCommands(String, Vec<ToolDefinition>)` rather than the
-`MultiCommands(Vec<ToolDefinition>)` sketched in the Design section. The group
-needs a name of its own to render as one function (`memory`), which cannot be
-derived from its sub-commands.
 
 Note `llamacpp.rs`'s `flatten_tools()` is a misleading name, not a violation:
 it is a one-line passthrough to `shed.all_tools()` and returns `Vec<Tool>` with

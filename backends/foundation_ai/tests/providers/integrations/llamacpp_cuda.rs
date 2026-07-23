@@ -143,3 +143,199 @@ fn the_tiny_gguf_generates_with_offload() {
     });
     assert!(produced_text, "offloaded generation produced no text: {out:?}");
 }
+
+// ---------------------------------------------------------------------------
+// Multi-GPU placement (spec-60 F20 acceptance #5)
+// ---------------------------------------------------------------------------
+
+/// GPU devices llama.cpp can actually see (the CPU backend is excluded).
+fn gpu_device_count() -> usize {
+    infrastructure_llama_cpp::list_llama_ggml_backend_devices()
+        .into_iter()
+        .filter(|d| !d.backend.eq_ignore_ascii_case("CPU"))
+        .count()
+}
+
+/// The prompt + params shared by the multi-GPU generations below.
+fn greeting() -> ModelInteraction {
+    ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "Hello".into(),
+                signature: None,
+            }),
+            signature: None,
+        }],
+        tools_shed: ToolShed {
+            shed: None,
+            tools: Vec::new(),
+        },
+        chat_template: None,
+        tool_choice: None,
+    }
+}
+
+fn params() -> ModelParams {
+    ModelParams {
+        max_tokens: 8,
+        temperature: 0.0,
+        ..Default::default()
+    }
+}
+
+#[test]
+fn gpu_placement_reaches_llama_cpp() {
+    // The bug this pins: `split_mode`, `main_gpu` and `tensor_split` were stored
+    // on LlamaBackendConfig and never applied — `to_model_params()` set only
+    // `n_gpu_layers`, so all three builder methods were silent no-ops. A caller
+    // pinning work to the second GPU got the default placement and no warning.
+    //
+    // Multi-GPU placement is the worst place for a silent no-op: the answer is
+    // still correct, just computed on the wrong device, so nothing looks broken.
+    //
+    // This asserts on the params llama.cpp receives, so it needs no GPU and runs
+    // anywhere the `cuda` feature compiles.
+    use foundation_ai::types::SplitMode;
+
+    let params = LlamaBackendConfig::builder()
+        .offload_all_layers()
+        .split_mode(SplitMode::Row)
+        .main_gpu(1)
+        .tensor_split(vec![0.5, 0.5])
+        .build()
+        .to_model_params();
+
+    assert_eq!(
+        params.main_gpu(),
+        1,
+        "main_gpu must reach llama.cpp — it was previously dropped on the floor"
+    );
+    assert_eq!(
+        params.split_mode().expect("split mode parses"),
+        infrastructure_llama_cpp::model::params::LlamaSplitMode::Row,
+        "split_mode must reach llama.cpp"
+    );
+    assert_eq!(
+        params.tensor_split(),
+        Some(&[0.5f32, 0.5f32][..]),
+        "tensor_split must reach llama.cpp"
+    );
+}
+
+#[test]
+fn the_defaults_stay_single_gpu_and_cpu_only() {
+    // Placement knobs are opt-in: nothing above may change the default, or every
+    // existing caller silently changes device.
+    let params = LlamaBackendConfig::default().to_model_params();
+    assert_eq!(params.n_gpu_layers(), 0, "default must stay CPU-only");
+    assert_eq!(params.main_gpu(), 0, "default must stay on device 0");
+    assert_eq!(
+        params.tensor_split(),
+        None,
+        "no tensor split by default — llama.cpp decides from free VRAM"
+    );
+}
+
+#[valtron_test]
+fn a_two_way_tensor_split_generates_across_both_gpus() {
+    // Acceptance #5. Needs a second device; self-skips on a one-GPU host.
+    if !gpu_offload_usable() {
+        eprintln!("[skip] llama.cpp build has no GPU offload support");
+        return;
+    }
+    if gpu_device_count() < 2 {
+        eprintln!("[skip] fewer than two GPUs visible to llama.cpp");
+        return;
+    }
+    let gguf = tiny_gguf();
+    if !gguf.exists() {
+        eprintln!("[skip] tiny GGUF fixture missing: {gguf:?}");
+        return;
+    }
+
+    use foundation_ai::types::SplitMode;
+    let config = LlamaBackendConfig::builder()
+        .offload_all_layers()
+        .split_mode(SplitMode::Layer)
+        .tensor_split(vec![0.5, 0.5])
+        .build();
+
+    let spec = ModelSpec {
+        name: "tiny-llama-f16".to_string(),
+        id: ModelId::Name("tiny-llama-f16".to_string(), None),
+        devices: None,
+        model_location: Some(gguf.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+
+    let model = LlamaBackends::LLamaGPU
+        .load_model(spec, &config)
+        .expect("the tiny GGUF must load split across both GPUs");
+
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("generation must succeed with the model split across two GPUs");
+
+    let text: String = out
+        .iter()
+        .filter_map(|m| match m {
+            Messages::Assistant {
+                content: ModelOutput::Text(t),
+                ..
+            } => Some(t.content.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        !text.is_empty(),
+        "a two-way tensor split produced no text: {out:?}"
+    );
+}
+
+#[valtron_test]
+fn main_gpu_one_generates_on_the_second_device() {
+    // The other half of acceptance #5: pin work to device 1 rather than split.
+    if !gpu_offload_usable() {
+        eprintln!("[skip] llama.cpp build has no GPU offload support");
+        return;
+    }
+    if gpu_device_count() < 2 {
+        eprintln!("[skip] fewer than two GPUs visible to llama.cpp");
+        return;
+    }
+    let gguf = tiny_gguf();
+    if !gguf.exists() {
+        eprintln!("[skip] tiny GGUF fixture missing: {gguf:?}");
+        return;
+    }
+
+    use foundation_ai::types::SplitMode;
+    let config = LlamaBackendConfig::builder()
+        .offload_all_layers()
+        .split_mode(SplitMode::None)
+        .main_gpu(1)
+        .build();
+
+    let spec = ModelSpec {
+        name: "tiny-llama-f16".to_string(),
+        id: ModelId::Name("tiny-llama-f16".to_string(), None),
+        devices: None,
+        model_location: Some(gguf.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+
+    let model = LlamaBackends::LLamaGPU
+        .load_model(spec, &config)
+        .expect("the tiny GGUF must load pinned to GPU 1");
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("generation must succeed pinned to the second GPU");
+    assert!(
+        !out.is_empty(),
+        "pinning to main_gpu=1 produced no messages"
+    );
+}

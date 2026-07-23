@@ -174,6 +174,11 @@ export CUDARC_CUDA_VERSION=13000  # see below — required on CUDA 13.1+
 cargo build --features "candle-cuda cuda"
 ```
 
+> **Upgrading any of this?** See
+> [15. Upgrading CUDA](15-cuda-upgrade.md) for the procedure and the
+> verification suite. The pin below is safe to leave alone across CUDA 13.x, but
+> a major-version bump or a `cudarc` upgrade changes the rules.
+
 ### `CUDARC_CUDA_VERSION` — the CUDA 13.1+ footgun
 
 `cudarc` (Candle's CUDA binding) ships a hard-coded table of recognised toolkit

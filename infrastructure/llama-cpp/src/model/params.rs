@@ -119,6 +119,10 @@ pub struct LlamaModelParams {
     kv_overrides: Vec<infrastructure_llama_bindings::llama_model_kv_override>,
     buft_overrides: Vec<infrastructure_llama_bindings::llama_model_tensor_buft_override>,
     devices: Pin<Box<[infrastructure_llama_bindings::ggml_backend_dev_t; LLAMA_CPP_MAX_DEVICES]>>,
+    /// Backing storage for `params.tensor_split`, which llama.cpp holds as a
+    /// borrowed `*const f32`. It must outlive the params, so the owned buffer
+    /// lives here and is pinned — moving it would dangle the pointer.
+    tensor_split: Option<Pin<Box<[f32]>>>,
 }
 
 impl Debug for LlamaModelParams {
@@ -369,6 +373,34 @@ impl LlamaModelParams {
         self
     }
 
+    /// Sets the proportion of the model to place on each GPU.
+    ///
+    /// One entry per device, in device order; the values are relative weights,
+    /// so `[0.5, 0.5]` splits evenly across two GPUs and `[0.7, 0.3]` puts 70%
+    /// on the first. An empty slice clears the split and restores llama.cpp's
+    /// default (proportional to reported free VRAM).
+    ///
+    /// llama.cpp keeps this as a borrowed `*const f32`, so the buffer is owned
+    /// and pinned by this struct for as long as the params live.
+    #[must_use]
+    pub fn with_tensor_split(mut self, split: &[f32]) -> Self {
+        if split.is_empty() {
+            self.tensor_split = None;
+            self.params.tensor_split = std::ptr::null();
+            return self;
+        }
+        let owned: Pin<Box<[f32]>> = Pin::new(split.to_vec().into_boxed_slice());
+        self.params.tensor_split = owned.as_ptr();
+        self.tensor_split = Some(owned);
+        self
+    }
+
+    /// The configured tensor split, if any.
+    #[must_use]
+    pub fn tensor_split(&self) -> Option<&[f32]> {
+        self.tensor_split.as_deref()
+    }
+
     /// sets `devices`
     ///
     /// The devices are specified as indices that correspond to the ggml backend device indices.
@@ -424,6 +456,7 @@ impl Default for LlamaModelParams {
         let default_params = unsafe { infrastructure_llama_bindings::llama_model_default_params() };
         LlamaModelParams {
             params: default_params,
+            tensor_split: None,
             // push the next one to ensure we maintain the iterator invariant of ending with a 0
             kv_overrides: vec![infrastructure_llama_bindings::llama_model_kv_override {
                 key: [0; 128],

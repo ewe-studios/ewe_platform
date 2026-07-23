@@ -44,6 +44,7 @@ Reference and how-to docs for everything the getting-started guides skim:
 | [11. Memory System](docs/11-memory-system.md) | The memory hierarchy and `memory` tool |
 | [12. Harness Presets](docs/12-how-to-harness-presets.md) | One-call model + router setup |
 | [14. GPU Acceleration](docs/14-gpu-acceleration.md) | CUDA, Metal, Vulkan — both backends |
+| [15. Upgrading CUDA](docs/15-cuda-upgrade.md) | What to change when the toolkit, `cudarc`, candle or llama.cpp moves — and how to prove the GPU path still works |
 
 Root-caused bug write-ups live in [`docs/fixes/`](docs/fixes/).
 
@@ -75,7 +76,10 @@ serde_json = "1"
 | `testing` | `MockModelProvider` / `MockTool` for unit tests |
 
 GPU builds need a couple of environment variables — see the
-[GPU Acceleration](docs/14-gpu-acceleration.md) guide.
+[GPU Acceleration](docs/14-gpu-acceleration.md) guide. Before upgrading the CUDA
+toolkit, `cudarc`, candle or llama.cpp, read
+[Upgrading CUDA](docs/15-cuda-upgrade.md) — the `CUDARC_CUDA_VERSION=13000` pin
+is a deliberate floor-rounding and the rules for changing it are not obvious.
 
 ---
 

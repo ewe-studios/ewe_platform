@@ -201,3 +201,62 @@ fn a_second_gpu_is_usable_when_present() {
         Err(_) => eprintln!("[skip] no second CUDA device"),
     }
 }
+
+/// Extract the assistant text from a generation result.
+fn assistant_text(out: &[Messages]) -> String {
+    out.iter()
+        .filter_map(|m| match m {
+            Messages::Assistant {
+                content: ModelOutput::Text(t),
+                ..
+            } => Some(t.content.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[valtron_test]
+fn cuda_and_cpu_agree_on_the_same_fixture() {
+    // Acceptance #2. The spec called for "byte-comparable" output and left the
+    // floating-point question open; this is the resolution.
+    //
+    // Comparing raw logits between CPU and GPU would be wrong — different kernel
+    // orderings give bit-different sums, so a byte comparison of logits fails on
+    // a correct implementation. What CAN be compared is the DECODED TOKEN
+    // SEQUENCE at temperature 0: greedy decoding takes an argmax, and argmax is
+    // stable under the tiny numerical differences between the two backends
+    // unless something is genuinely wrong (weights loaded onto the wrong device,
+    // a fused op computing something else, a dtype mismatch).
+    //
+    // So this asserts on the generated text, which is the thing a caller
+    // actually receives, and is the strongest claim that survives being true.
+    if !cuda_available() {
+        eprintln!("[skip] no usable CUDA device 0");
+        return;
+    }
+
+    let cpu_out = CandleBackend::cpu()
+        .get_model_by_spec(spec())
+        .expect("fixture loads on CPU")
+        .generate(greeting(), Some(params()))
+        .expect("cpu generate");
+
+    let cuda_out = CandleBackend::try_cuda(0)
+        .expect("CUDA device 0 opens")
+        .get_model_by_spec(spec())
+        .expect("fixture loads on CUDA")
+        .generate(greeting(), Some(params()))
+        .expect("cuda generate");
+
+    let cpu_text = assistant_text(&cpu_out);
+    let cuda_text = assistant_text(&cuda_out);
+
+    assert!(!cpu_text.is_empty(), "CPU produced no text — nothing to compare");
+    assert_eq!(
+        cuda_text, cpu_text,
+        "CUDA and CPU disagree at temperature 0 on the same fixture and prompt. \
+         Greedy decoding is argmax, which absorbs benign FP differences, so a \
+         divergence here means the two backends are not computing the same \
+         thing — check dtype, device placement and the fused candle-nn ops."
+    );
+}

@@ -133,6 +133,11 @@ pub struct LlamaBackendConfig {
     pub split_mode: SplitMode,
     /// Main GPU index for multi-GPU systems.
     pub main_gpu: u32,
+    /// Relative proportion of the model to place on each GPU, one entry per
+    /// device in device order. `None` leaves llama.cpp's default (proportional
+    /// to reported free VRAM). Only meaningful with more than one device and a
+    /// `split_mode` other than `None`.
+    pub tensor_split: Option<Vec<f32>>,
     /// Opt-in speculative decoding (MTP). `None` = standard single-token
     /// decoding (the default; zero behavior change unless set).
     pub speculative: Option<SpeculativeConfig>,
@@ -150,6 +155,7 @@ impl Default for LlamaBackendConfig {
             kv_cache_type: KVCacheType::F16,
             split_mode: SplitMode::Layer,
             main_gpu: 0,
+            tensor_split: None,
             speculative: None, // standard decoding by default
         }
     }
@@ -185,7 +191,22 @@ impl LlamaBackendConfig {
     pub fn to_model_params(&self) -> LlamaModelParams {
         let mut params = LlamaModelParams::default();
         params = params.with_n_gpu_layers(self.n_gpu_layers);
-        // Additional model parameters can be added here as needed
+
+        // `split_mode`, `main_gpu` and `tensor_split` used to be stored on the
+        // config and never applied — the builder methods were silent no-ops, so
+        // a caller pinning work to a second GPU or splitting across both got the
+        // default single-GPU placement and no indication anything was ignored.
+        // Multi-GPU behaviour is exactly the kind of thing that "looks like it
+        // worked" because the answer is still correct, just on the wrong device.
+        params = params.with_split_mode(match self.split_mode {
+            SplitMode::None => infrastructure_llama_cpp::model::params::LlamaSplitMode::None,
+            SplitMode::Layer => infrastructure_llama_cpp::model::params::LlamaSplitMode::Layer,
+            SplitMode::Row => infrastructure_llama_cpp::model::params::LlamaSplitMode::Row,
+        });
+        params = params.with_main_gpu(i32::try_from(self.main_gpu).unwrap_or(i32::MAX));
+        if let Some(split) = &self.tensor_split {
+            params = params.with_tensor_split(split);
+        }
         params
     }
 
@@ -302,6 +323,16 @@ impl LlamaBackendConfigBuilder {
 
     /// Set the main GPU index.
     #[must_use]
+    /// Set the proportion of the model placed on each GPU.
+    ///
+    /// One relative weight per device, in device order: `[0.5, 0.5]` splits
+    /// evenly across two GPUs. Requires `split_mode` other than `None`.
+    #[must_use]
+    pub fn tensor_split(mut self, split: impl Into<Vec<f32>>) -> Self {
+        self.config.tensor_split = Some(split.into());
+        self
+    }
+
     pub fn main_gpu(mut self, gpu: u32) -> Self {
         self.config.main_gpu = gpu;
         self

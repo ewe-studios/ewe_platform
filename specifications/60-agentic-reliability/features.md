@@ -71,7 +71,7 @@ implemented, or explicitly deferred.
 
 | # | Feature | Status |
 |---|---------|--------|
-| F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **DONE** — every `Done when` clause verified against the code; the outstanding one (per-provider multi-command rendering coverage) closed by `tests/providers/multi_command_rendering_tests.rs`. Deviation: `MultiCommands` carries the group name. See features/F19-unified-tool-model.md |
+| F19 | Unified tool model — one `ToolDefinition`, `Tool = SingleCommand \| MultiCommands`, `ToolShed { shed, tools: Vec<Tool> }`; delete `MemoryTool`/`DelegationTool` + special slots; providers render the enum (no flattening) | **DONE** — every `Done when` clause verified against the code; the outstanding one (per-provider multi-command rendering coverage) closed by `tests/providers/multi_command_rendering_tests.rs`. See features/F19-unified-tool-model.md |
 
 ### Phase F — GPU execution
 
