@@ -213,22 +213,43 @@ pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
 pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
     println!("cargo:warning=Building wasmtime app: {}", app_dir.display());
 
-    let status = std::process::Command::new("cargo")
-        .args(["build", "--target", "wasm32-wasip1", "--release"])
+    // Cargo sets `$CARGO` in build-script environments to the path of the
+    // cargo binary that invoked the script. Using it resolves the same
+    // toolchain and avoids PATH issues from nested invocations.
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+    let inner_target = app_dir.join("target");
+    let app_dir_display = app_dir.display().to_string();
+    let output = std::process::Command::new(&cargo)
+        .args([
+            "build",
+            "--target", "wasm32-wasip1",
+            "--release",
+            "--target-dir", inner_target.to_str().unwrap_or("target"),
+        ])
         .current_dir(app_dir)
-        .status()
-        .unwrap_or_else(|e| panic!("cargo build failed for wasmtime app {}: {e}", app_dir.display()));
+        .output()
+        .unwrap_or_else(|e| panic!("could not launch {} for wasmtime app {}: {e}", cargo, app_dir_display));
 
-    if !status.success() {
-        println!("cargo:warning=wasmtime app build failed (exit {status})");
+    if !output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        for line in stderr.lines().chain(stdout.lines()) {
+            if !line.is_empty() {
+                println!("cargo:warning=[{}] {}", app_dir_display, line);
+            }
+        }
+        println!(
+            "cargo:warning=wasmtime app {} failed (exit {})",
+            app_dir_display, output.status,
+        );
         return;
     }
 
     let package = wasm_package_name(app_dir);
     let app_id = app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app");
 
-    let wasm_src = app_dir
-        .join("target/wasm32-wasip1/release")
+    let wasm_src = inner_target
+        .join("wasm32-wasip1/release")
         .join(format!("{package}.wasm"));
     assert!(
         wasm_src.exists(),

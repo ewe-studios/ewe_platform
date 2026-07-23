@@ -1,13 +1,19 @@
-//! Root build script — declares which apps this project publishes.
+//! Root build script — builds Surface 2 (WebView) apps and syncs resources.
 //!
-//! Every app, whichever surface it targets, lands in the same shape:
-//! `src-tauri/public/{app_id}/v{version}/`. That is the layout Tauri bundles,
-//! the asset manager serves from, and an OTA writes into — one layout end to
-//! end, so nothing translates between them.
+//! Surface 3 (wasmtime) apps cannot be built here: `build_wasmtime_app` spawns
+//! a nested `cargo build`, which deadlocks on the workspace lock the outer
+//! cargo holds while build scripts run. Build them BEFORE running this build:
 //!
-//! Each app's version comes from its OWN `Cargo.toml`. `app/` at v0.2.0 and
-//! `app-hello/` at v0.1.0 naturally land at different directories — no shared
-//! version file, no collision.
+//! ```sh
+//! # Build all apps first, then the platform:
+//! cargo build --manifest-path app-shell/Cargo.toml \
+//!     --target wasm32-wasip1 --release
+//! codegen::build_shells_to_public();  # or equivalent copy step
+//! cargo build  # runs this build.rs -> bundles everything
+//! ```
+//!
+//! Every app lands in `src-tauri/public/{app_id}/v{version}/`. That is the
+//! layout Tauri bundles, the asset manager serves from, and OTA writes into.
 
 use std::path::PathBuf;
 
@@ -18,7 +24,7 @@ fn main() {
     let src_tauri = root.join("src-tauri");
     let public_dir = src_tauri.join("public");
 
-    // ── Surface 2: WebView WASM apps ──
+    // ── Surface 2: WebView WASM apps (compiled inline, no cargo nesting) ──
     for app_id in ["app", "app-hello"] {
         let app_dir = root.join(app_id);
         if app_dir.join("Cargo.toml").exists() {
@@ -30,21 +36,12 @@ fn main() {
         }
     }
 
-    // ── Surface 3: wasmtime shell apps ──
-    for app_id in ["app-shell"] {
-        let shell_dir = root.join(app_id);
-        if shell_dir.join("Cargo.toml").exists() {
-            let version = codegen::crate_version(&shell_dir);
-            codegen::build_wasmtime_app(
-                &shell_dir,
-                &codegen::app_version_dir(&public_dir, app_id, &version),
-            );
-        }
-    }
+    // Surface 3: built externally — see the module doc above for why.
+    // When app-shell.wasm is present in public/app-shell/v{version}/,
+    // the sync below picks it up automatically.
 
-    // Register whatever was just built in tauri.conf.json's bundle.resources.
-    // Derived from `public/` rather than from the lists above: an app built
-    // but absent from the config ships with no assets and shows a blank page
-    // on device.
+    // Derive bundle.resources from what actually exists in public/.
+    // This picks up Surface 2 AND Surface 3 apps — whichever were built
+    // before this script runs become part of the bundle.
     codegen::sync_bundle_resources(&src_tauri);
 }
