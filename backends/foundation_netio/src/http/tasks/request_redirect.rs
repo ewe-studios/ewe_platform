@@ -96,7 +96,24 @@ pub enum HttpRequestRedirectResponse {
 /// from the same `GetHttpRequestStreamInner` data when needed.
 pub struct GetHttpRequestRedirectTask<R: DnsResolver + Send + 'static>(
     Option<HttpRequestRedirectState<R>>,
+    /// Set once a dead pooled connection has been retried on a fresh dial.
+    ///
+    /// Bounds the retry to exactly one attempt and forces the next connection
+    /// acquisition to bypass the pool — otherwise the retry could check out
+    /// another equally-dead socket for the same host and loop.
+    RetryState,
 );
+
+/// Whether a dead-pooled-connection retry has been used, and is now in flight.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum RetryState {
+    /// No retry used yet; a pooled connection that yields no response may retry.
+    Unused,
+    /// Retrying now — the next connection must be dialled fresh.
+    Redialling,
+    /// The retry has been spent; any further failure is reported as-is.
+    Spent,
+}
 
 impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// Create a new redirect-capable task from the provided inner data.
@@ -107,12 +124,15 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         config: ClientConfig,
         max_redirects: u8,
     ) -> Self {
-        Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
-            data,
-            pool,
-            config,
-            max_redirects,
-        ))))))
+        Self(
+            Some(HttpRequestRedirectState::Init(Some(Box::new((
+                data,
+                pool,
+                config,
+                max_redirects,
+            ))))),
+            RetryState::Unused,
+        )
     }
 
     /// Park the no-body response-head read on a read-readiness signal after a
@@ -234,11 +254,19 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                         let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
 
-                        pool.create_connection_with_proxy(
-                            &descriptor.request_uri,
-                            proxy_config,
-                            None,
-                        )
+                        if self.1 == RetryState::Redialling {
+                            // Retrying after a dead pooled connection: bypass the
+                            // pool, or we may check out another socket the same
+                            // peer closed at the same time.
+                            self.1 = RetryState::Spent;
+                            pool.create_http_connection_fresh(&descriptor.request_uri, None)
+                        } else {
+                            pool.create_connection_with_proxy(
+                                &descriptor.request_uri,
+                                proxy_config,
+                                None,
+                            )
+                        }
                     };
 
                     // 1. Create connection (unix socket or TCP/proxy)
@@ -299,21 +327,64 @@ SendSafeBody::LineFeedStream(_))
                         )));
                     };
 
-                    if let Err(err) = connection.stream_mut().write_all(request_string.as_bytes()) {
-                        tracing::error!("Failed to write request: {}", err);
+                    // Write the request, retrying ONCE on a fresh connection if
+                    // the socket we used came out of the pool.
+                    //
+                    // A pooled connection may have been closed by the peer while
+                    // it sat idle — a server keep-alive shorter than ours, a
+                    // restart, an idle-cull by a load balancer. The pool cannot
+                    // detect this (`ConnectionPool::checkout` validates only idle
+                    // time, and a liveness probe would still race the peer), so
+                    // the failure necessarily surfaces here, on the write. Before
+                    // this, it surfaced to the caller as a bare `WriteFailed` on a
+                    // request that was never actually sent.
+                    //
+                    // The retry is deliberately narrow: only for `from_pool`
+                    // connections, only once, and only for the write/flush — i.e.
+                    // only when we know the request did not reach the server, so
+                    // resending cannot duplicate a side effect. A fresh connection
+                    // that fails to write is a real error and is reported as one.
+                    let write_result = connection
+                        .stream_mut()
+                        .write_all(request_string.as_bytes())
+                        .and_then(|()| connection.stream_mut().flush());
 
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::WriteFailed,
-                        )));
-                    }
+                    if let Err(err) = write_result {
+                        if !connection.is_from_pool() {
+                            tracing::error!("Failed to write request: {}", err);
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::WriteFailed,
+                            )));
+                        }
 
-                    if let Err(err) = connection.stream_mut().flush() {
-                        tracing::error!("Failed to write request: {}", err);
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::WriteFailed,
-                        )));
+                        tracing::debug!(
+                            "Write failed on a pooled connection ({err}) — the peer likely \
+                             closed it while idle; redialling and retrying once"
+                        );
+
+                        let Ok(fresh) =
+                            pool.create_http_connection_fresh(&descriptor.request_uri, None)
+                        else {
+                            tracing::error!("Redial after a dead pooled connection failed");
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::ConnectionError,
+                            )));
+                        };
+                        connection = fresh;
+
+                        let retry = connection
+                            .stream_mut()
+                            .write_all(request_string.as_bytes())
+                            .and_then(|()| connection.stream_mut().flush());
+                        if let Err(err) = retry {
+                            tracing::error!("Failed to write request after redial: {}", err);
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                                HttpClientError::WriteFailed,
+                            )));
+                        }
                     }
 
                     // 3. Set read timeout based on request context
@@ -637,6 +708,34 @@ SendSafeBody::LineFeedStream(_))
                                 return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                             }
                             Some(Ok(_)) | Some(Err(_)) | None => {
+                                // No response at all. On a connection that came
+                                // from the pool this almost always means the peer
+                                // closed it while it sat idle: writing to a
+                                // half-closed socket succeeds (their FIN only
+                                // closed their sending direction), so the failure
+                                // could not surface any earlier than here.
+                                //
+                                // The request provably never reached the server —
+                                // no response bytes arrived — so resending it
+                                // cannot duplicate a side effect. Redial and
+                                // replay it exactly once.
+                                if self.1 == RetryState::Unused && connection.is_from_pool() {
+                                    tracing::debug!(
+                                        "ReadingHead: no response on a pooled connection —                                          the peer closed it while idle; redialling and                                          replaying the request once"
+                                    );
+                                    // Drop the dead connection rather than pooling it.
+                                    drop(connection);
+                                    self.1 = RetryState::Redialling;
+                                    self.0 = Some(HttpRequestRedirectState::Trying(Some(
+                                        Box::new((
+                                            data, pool, config, descriptor, remaining_redirects,
+                                        )),
+                                    )));
+                                    return Some(TaskStatus::Pending(
+                                        HttpOperationState::Connecting,
+                                    ));
+                                }
+
                                 tracing::error!("ReadingHead: no intro received");
                                 self.0 = Some(HttpRequestRedirectState::Done);
                                 return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(

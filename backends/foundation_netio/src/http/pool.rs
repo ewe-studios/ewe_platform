@@ -113,25 +113,23 @@ impl ConnectionPool {
     /// Removes and returns the most-recently-added valid connection if one
     /// exists and is not stale. Otherwise returns `None`.
     ///
-    /// # Known limitation: no liveness probe
+    /// # A returned connection is not guaranteed to be alive
     ///
     /// "Valid" here means *only* "idle for less than [`MAX_IDLE_TIME`]". The
     /// connection is not probed, so a peer that closed the socket earlier than
     /// that — a server-side timeout shorter than ours, a restart, an idle-cull
-    /// by a load balancer — still yields a dead connection, and the caller
-    /// discovers it only when the request fails.
+    /// by a load balancer — still yields a dead connection.
     ///
-    /// Probing alone would not close this: the peer can close between the probe
-    /// and the write, so a probe is an optimisation, not a guarantee. The
-    /// complete fix is to retry once on a fresh connection when a request that
-    /// used a *pooled* connection fails before any response bytes arrive, which
-    /// is what mature HTTP clients do. That needs a `from_pool` marker on
-    /// [`HttpClientConnection`] and a retry arm in the send-request state
-    /// machine, plus a reader accessor in `foundation_core`'s
-    /// `ByteBufferPointer` to reach the socket at all.
+    /// This is by design rather than an omission: a probe cannot close the gap,
+    /// because the peer can close between the probe and the write. Correctness
+    /// therefore lives at the other end — a connection handed out here is marked
+    /// `from_pool`, and the send-request task retries once on a freshly dialled
+    /// connection if the *write* fails (see
+    /// `http/tasks/request_redirect.rs`). The write is the safe place to retry:
+    /// the request provably never reached the server, so resending it cannot
+    /// duplicate a side effect.
     ///
-    /// Until then [`MAX_IDLE_TIME`] is deliberately shorter than common server
-    /// keep-alive windows so the window for handing out a dead socket is small.
+    /// [`MAX_IDLE_TIME`] then just keeps that retry rare rather than routine.
     #[must_use]
     pub fn checkout(&self, host: &str, port: u16) -> Option<SharedByteBufferStream<RawStream>> {
         let key = format!("{host}:{port}");

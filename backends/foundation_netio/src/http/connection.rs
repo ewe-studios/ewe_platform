@@ -28,6 +28,14 @@ pub struct HttpClientConnection {
     pub stream: SharedByteBufferStream<RawStream>,
     host: String,
     port: u16,
+    /// True when this connection came out of the pool rather than being dialled.
+    ///
+    /// A pooled socket may have been closed by the peer since it was stored —
+    /// the pool cannot know (see `ConnectionPool::checkout`). Callers use this
+    /// to decide whether a write failure is worth one retry on a fresh
+    /// connection: for a pooled connection it very likely means "the peer hung
+    /// up while idle", for a freshly dialled one it is a genuine error.
+    from_pool: bool,
 }
 
 impl DerefMut for HttpClientConnection {
@@ -95,6 +103,14 @@ impl HttpClientConnection {
             total_drained,
             iterations
         );
+    }
+}
+
+impl HttpClientConnection {
+    /// Whether this connection was reused from the pool.
+    #[must_use]
+    pub fn is_from_pool(&self) -> bool {
+        self.from_pool
     }
 }
 
@@ -187,7 +203,12 @@ impl HttpClientConnection {
                         RawStream::from_connection(connection)
                             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
                     );
-                    return Ok(Self { stream, host, port });
+                    return Ok(Self {
+                        stream,
+                        host,
+                        port,
+                        from_pool: false,
+                    });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -257,6 +278,7 @@ impl HttpClientConnection {
             stream,
             host: host.into(),
             port,
+            from_pool: false,
         })
     }
 
@@ -393,7 +415,12 @@ impl HttpClientConnection {
                         RawStream::from_connection(connection)
                             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
                     );
-                    return Ok(Self { stream, host, port });
+                    return Ok(Self {
+                        stream,
+                        host,
+                        port,
+                        from_pool: false,
+                    });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -632,6 +659,29 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         url: &Uri,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
+        self.create_http_connection_inner(url, timeout, true)
+    }
+
+    /// Dial a connection, never taking one from the pool.
+    ///
+    /// Used to retry after a pooled connection turned out to be dead.
+    ///
+    /// # Errors
+    /// Returns an error if the connection cannot be established.
+    pub fn create_http_connection_fresh(
+        &self,
+        url: &Uri,
+        timeout: Option<Duration>,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        self.create_http_connection_inner(url, timeout, false)
+    }
+
+    fn create_http_connection_inner(
+        &self,
+        url: &Uri,
+        timeout: Option<Duration>,
+        allow_pool: bool,
+    ) -> Result<HttpClientConnection, HttpClientError> {
         // Extract host/port for pool lookup
         let host = url
             .host_str()
@@ -643,9 +693,16 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         //
         // If your actual `ConnectionPool` API uses different method names, update
         // the calls here to match the real signatures.
-        if let Some(stream) = self.pool.checkout(host.as_str(), port) {
-            // Wrap the pooled RawStream into our HttpClientConnection and return.
-            return Ok(HttpClientConnection { stream, host, port });
+        if allow_pool {
+            if let Some(stream) = self.pool.checkout(host.as_str(), port) {
+                // Wrap the pooled RawStream into our HttpClientConnection and return.
+                return Ok(HttpClientConnection {
+                    stream,
+                    host,
+                    port,
+                    from_pool: true,
+                });
+            }
         }
 
         // No pooled connection available. Use the optional connector if set
@@ -672,7 +729,12 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                 RawStream::from_connection(conn)
                     .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
             );
-            return Ok(HttpClientConnection { stream, host, port });
+            return Ok(HttpClientConnection {
+                stream,
+                host,
+                port,
+                from_pool: false,
+            });
         }
 
         HttpClientConnection::connect_with_tls_config(
@@ -700,7 +762,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
         tracing::trace!("Returning http client connection to the pool");
         // Destructure to move fields out without partially borrowing `conn`.
-        let HttpClientConnection { host, port, stream } = conn;
+        let HttpClientConnection {
+            host, port, stream, ..
+        } = conn;
         // Attempt to put the stream back; ignore failures to avoid panics.
         self.pool.checkin(host.as_str(), port, stream);
     }
@@ -1019,6 +1083,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             stream: proxy_conn.stream,
             host: target_host.to_string(),
             port: target_port,
+            from_pool: false,
         })
     }
 
@@ -1120,6 +1185,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             stream,
             host,
             port: 0,
+            from_pool: false,
         })
     }
 
@@ -1174,6 +1240,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                         stream,
                         host: target_host,
                         port: target_port,
+                        from_pool: false,
                     })
                 }
                 ProxyProtocol::Https => {
