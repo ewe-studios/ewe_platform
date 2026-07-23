@@ -35,7 +35,11 @@ No source file is below 70% lines. The five lowest:
 | `backends/llamacpp.rs` | 77.97 |
 | `agentic/testing.rs` | 80.28 |
 
-### Getting to green cost four real bug fixes, not more tests
+### Getting to green cost real bug fixes, not more tests
+
+Full write-ups of all seven — including the wrong diagnoses that came first —
+are in [../findings.md](../findings.md). The four that directly blocked a green
+run:
 
 The run had never completed green before, and each failure was a genuine
 defect rather than a flaky test:

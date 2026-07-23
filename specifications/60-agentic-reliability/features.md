@@ -28,7 +28,7 @@ runnable on demand with a tiny model.**
 | F01 | Coverage harness + test matrix (was S0/S7) | **DONE** — cargo-llvm-cov; 116/119 matrix; agentic ~86% |
 | F02 | Test-feature gating — `live-model-tests` + `external-service-tests` split | **DONE** — both features exist; OpenRouter tests self-skip without key |
 | F03 | Live-model SmolLM harness — pull-on-demand, cached, offline-skip | **DONE** — HF GGUF + candle provider download/inference tests gated `external-service-tests`, shared cache (SmolLM pulled once), self-skip without `HF_TOKEN`; offline parse/describe run by default |
-| F04 | Drive coverage to 100% of critical logic | **DONE** — foundation_ai 79% lines, no file <70%; 1181 tests green |
+| F04 | Drive coverage to 100% of critical logic | **DONE** — foundation_ai **88.03% lines / 86.74% regions**, no file <70%; **1909 tests, 0 failures** (first fully green full-feature run). Getting to green cost 4 real bug fixes, not more tests — see [findings.md](findings.md) |
 
 ### Phase B — Standard agentic tools (VFS-backed)
 
@@ -62,7 +62,7 @@ implemented, or explicitly deferred.
 | # | Feature | Source | Status |
 |---|---------|--------|--------|
 | F14 | `memory` tool — `MemoryTool` ToolShed slot has NO impl | 36/F10, F15 | **DONE** — memory_add/remove/replace over MemoryHierarchy working memory; 7 tests |
-| F15 | `delegate` tool → **agentic delegator** (background LLM delegation) | 36/F14 | **In progress (redesigned)** — first cut reverted (blocking `run_turn` anti-pattern). New design: a `MultiCommands` `delegate` tool that schedules a child LLM turn as a valtron task on the existing router (user-named model), returns a handle, closeable via `abort()`. Depends on F19. See features/F15-agentic-delegator.md |
+| F15 | `delegate` tool → **agentic delegator** (background LLM delegation) | 36/F14 | **DONE** — `MultiCommands` agent tool schedules a child LLM turn as a valtron task on the existing router; handle + `abort()`. First cut reverted (blocking `run_turn` anti-pattern). Deviation: per-call `persist` override not implemented — durability comes from the D/M type parameters. See features/F15-agentic-delegator.md |
 | F16 | Real semantic recall — `search_context` Semantic mode is KEYWORD matching, not embeddings; wire EmbeddingProvider+VectorStore | 36/F16, F31 | **DONE** — cosine embedding recall in ContextProvider (keyword fallback when no embedder); AgentSessionBuilder::with_embedder; 2 tests prove feline→cat semantic match |
 | F17 | Graph search — `SearchMode::Graph` returns EMPTY (`F27 deferred`); wire or honestly-disable | 36/F27 | **DONE** — honestly disabled: no session knowledge graph exists (code_graph indexes CODE), so Graph warns + falls back to hybrid recall instead of silently empty; 1 test |
 | F18 | fff file search — `foundation_ai` uses the basic `InCodeVfsSearcher`, NOT the real fff engine (`vfs-search-fff` not enabled); route `search_file` through fff on native | 36/F32, F33 | **DONE** — enabled vfs-search-fff (native); SearchFileTool::native uses native_vfs_searcher cascade (fff→CLI→in-code); 1 test proves fff hits the real repo |
@@ -77,7 +77,7 @@ implemented, or explicitly deferred.
 
 | # | Feature | Status |
 |---|---------|--------|
-| F20 | CUDA end-to-end for candle and llama.cpp — `CandleBackend::Cuda` is declared but has no constructor (unconstructible today); llama.cpp defaults to `n_gpu_layers = 0` and needs the `cuda` feature to be built with GPU support at all; workstation driver/userspace skew (610.43.02 vs .03) blocks all of it | **Not started** — see features/F20-cuda-end-to-end.md |
+| F20 | CUDA end-to-end for candle and llama.cpp | **In progress** — driver skew resolved (610.43.03 both sides); candle and llama.cpp each proven running on CUDA end-to-end. Remaining: the `Done when` list in features/F20-cuda-end-to-end.md (two-GPU `main_gpu`/`tensor_split` runs, offload-count assertion, `gpu-tests` gating). |
 
 ## Working agreements
 
@@ -99,3 +99,30 @@ implemented, or explicitly deferred.
    `toolbox/llama_server_harness.rs`. (In progress — coverage run underway.)
 5. **F14–F17**: spec-36 carryover — memory tool, delegate tool, semantic recall,
    graph search, fff file search.
+
+## Completion status — NOT complete
+
+Phases A, B, C (bar F10) and D are done. The spec stays open on three features:
+
+| # | State | What is left |
+|---|---|---|
+| F10 | Partial | Candle multi-architecture — Llama + Gemma2 done; Qwen/Mistral/Phi3 need fixtures that do not exist yet |
+| F19 | In progress | The `Tool` enum unification. `Done when` is unmet: providers must render both `Tool` variants, `all_tools` must stop flattening, and `MemoryTool`/`DelegationTool` plus the special `ToolShed` fields must be gone |
+| F20 | In progress | CUDA runs end-to-end on both backends, but the `Done when` list is unmet — two-GPU `main_gpu`/`tensor_split` runs, the offload-count assertion (a test that passes when the model silently ran on CPU is worse than no test), and `gpu-tests` gating |
+
+Do **not** move this spec to `specifications/completed/` until those three
+close. F04 being green is not the same as the spec being done.
+
+## Where the value actually landed
+
+F04 was framed as a coverage number. The number moved (79.00% → 84.99% →
+88.03% lines), but the return was **seven real defects**, five of them outside
+`foundation_ai`: HF downloads caching vendor error bodies as model files, a
+14-site TOCTOU in valtron that silently dropped delivered stream items, an HTTP
+drain that waited out the peer's keep-alive idle timeout (over a minute per
+request against nginx defaults), a dead-pooled-connection path that fails on the
+read rather than the write, `TestHttpServer` silently handing over empty request
+bodies, and an external test that could not terminate and wedged whole runs.
+
+Full write-ups, including the wrong diagnoses that came first, are in
+[findings.md](findings.md).
