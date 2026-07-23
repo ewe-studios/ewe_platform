@@ -363,38 +363,85 @@ Fields:
 - `rollback_to` (optional): semver version to activate after download
 - `delete_after` (optional): semver version to delete after rollback
 
-### Extraction is now creation, not overwrite
+### Chain of trust: two different things working together
 
-Versioned directories make extraction trivially idempotent:
+The sha256 hash and the Ed25519 signature serve different purposes. Neither is
+sufficient alone. Together they form a complete chain of trust.
 
-```rust
-fn extract_if_needed(app: &App, app_data: &Path, bundle_version: &str) -> PathBuf {
-    let target = app_data.join(bundle_version);
+**sha256 guarantees integrity, NOT authenticity.** Anyone can compute
+`sha256("malware.js")` and put that hash in a manifest. An attacker who
+compromises the CDN can serve any file they want with a matching hash that
+*they* computed. The hash only proves the bytes haven't changed since
+*someone* declared them — it doesn't prove *who* declared them or that
+the declaration is trustworthy.
 
-    // If this version directory already exists, extraction is a no-op.
-    // It was either extracted previously or created by OTA.
-    if !target.exists() {
-        std::fs::create_dir_all(&target).ok();
-        let resolver = app.asset_resolver();
-        for asset_entry in resolver.iter() {
-            let asset_key: String = (*asset_entry.0).to_string();
-            let dest = target.join(&asset_key);
-            if let Some(parent) = dest.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            if let Some(asset) = resolver.get(asset_key) {
-                let _ = std::fs::write(&dest, &asset.bytes);
-            }
-        }
-    }
+**Ed25519 signature guarantees authenticity of the declaration.** Only the
+holder of the private key can produce a valid signature. The app verifies
+this signature against the baked public key. If valid: the sha256 values,
+file paths, versions, and all other manifest fields were declared by us —
+not by an attacker.
 
-    target
-}
+**Together**: the signature proves *we* declared these sha256 values. The
+sha256 verification proves the downloaded bytes match *our* declaration.
+Neither step can be skipped.
+
+```
+Security model for each actor:
+
+┌─ CDN (https://cdn.ewe.studio) ─────────────────────────────────────┐
+│  The CDN is NOT trusted. It can serve whatever it wants.            │
+│  The baked domain is a ROUTING guard, not a TRUST anchor:           │
+│    - Prevents SSRF: no fetching from http://169.254.169.254/       │
+│    - Prevents exfiltration: no fetching from evil-cdn.example.com  │
+│    - Does NOT authenticate content: that's the signature's job     │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ Private key holder (CI/CD pipeline) ──────────────────────────────┐
+│  Signs the manifest. The only entity that CAN sign.                │
+│  If an attacker gets this key, they can sign ANY manifest.         │
+│  Defense: private key in CI/CD secrets, never in source tree,      │
+│           never in APK, never on any device.                        │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ Attacker with CDN access (compromised infra) ─────────────────────┐
+│  Can serve:                                                         │
+│    - Modified files → sha256 mismatch → REJECTED                   │
+│    - Modified manifest → signature invalid → REJECTED              │
+│    - Old valid manifest → sequence check → REJECTED                │
+│    - Manifest signed by attacker → signature invalid (wrong key)   │
+│                                                                     │
+│  Cannot: forge a valid manifest (needs private key)                │
+│          forge valid file hashes (SHA-256 preimage resistance)     │
+│          replay an old manifest (sequence check)                    │
+└────────────────────────────────────────────────────────────────────┘
+
+┌─ Attacker with MITM position (network intercept) ──────────────────┐
+│  Can intercept downloads. Same constraints as CDN attacker:        │
+│    - TLS to baked domain provides transport encryption             │
+│    - Signature + sha256 provide end-to-end content authentication  │
+│    - Even if TLS is broken: sha256 verification catches tampering  │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
-No per-file `exists()` checks. No sentinel files. If the **version directory**
-exists, skip everything. If it doesn't, create it and populate it. One atomic
-decision per launch.
+**The trust anchor is the baked public key.** The CDN, TLS, and domain
+validation are defense-in-depth. The signature is the only thing that
+authenticates content. The sha256 is the only thing that ties downloaded
+bytes to the signed declaration.
+
+**Per-file signatures would add nothing.** They'd be computed with the
+same private key and verified against the same public key. A CDN
+attacker who can't forge a manifest signature also can't forge a
+per-file signature. The manifest-signature + per-file-hash pattern is
+the industry standard: APK signing (v1/v2/v3), Docker Content Trust
+(Notary/TUF), Python PEP 458/480, apt/deb repositories.
+
+### Idempotency
+
+Versioned directories make initialization trivially idempotent: if
+`app/v{version}/` already exists, skip. If it doesn't, create it and
+write the APK-bundled `.ewe_manifest.json` + files. One check per
+version directory, no per-file logic needed. OTA creates new version
+directories that won't collide with APK-bundled ones (different versions).
 
 ### Pruning policy
 
