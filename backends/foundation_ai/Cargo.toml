@@ -14,7 +14,7 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 # -- Workspace dependencies
 
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.3" }
@@ -47,14 +47,14 @@ futures-lite = "2"
 
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", features = ["turso"], default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", features = ["turso"], default-features = false }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", features = ["vfs", "vfs-search", "vfs-search-fff"] }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.1", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", features = ["wasm"], default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", features = ["wasm"], default-features = false }
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]

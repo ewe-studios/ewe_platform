@@ -42,7 +42,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-fe
 # native-only and, via cargo's default-features union, would otherwise pull
 # foundation_db/turso → foundation_db/multi → foundation_netio/multi into the wasm build
 # and break compilation. Backend features are added per-target below (decision 03).
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", default-features = false }
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
@@ -59,7 +59,7 @@ wasm-bindgen = "0.2"
 # password hashing on Workers (decision 01 — all crypto via foundation_auth).
 # NOTE: `wasm-bindgen-session` (foundation_auth D1CredentialStore) is added in the auth/login
 # stage that actually uses it — the vault-CRUD stages talk to foundation_db's D1 directly.
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false, features = ["wasm-pbkdf2"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", default-features = false, features = ["wasm-pbkdf2"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false, features = ["wasm-fetch"] }
 # Workers DO/WebSocket machinery (spec-57 F010). Pulls the general DurableObject
 # helpers + WebSocket accept primitives built in foundation_deployment_cloudflare.
@@ -70,7 +70,7 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 foundation_http = { path = "../foundation_http", version = "0.0.2" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
-foundation_auth = { path = "../foundation_auth", version = "0.0.2", default-features = false, features = ["server", "turso"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.3", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
 foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false, features = ["turso"] }
 # Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
