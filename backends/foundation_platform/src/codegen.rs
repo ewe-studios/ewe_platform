@@ -62,7 +62,7 @@ pub fn generate_platform_code() {
         generate_app_modules(&apps, &generated_dir);
         // After the bundles exist and before Tauri packages them — the
         // manifest describes exactly the bytes that ship (F40).
-        generate_app_manifests(&public_dir, keypair.as_ref());
+        generate_app_manifests(&public_dir, &keypair);
     }
 
     // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
@@ -281,44 +281,60 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
 /// old one. Only the public half is meant to be committed; a `keys/.gitignore`
 /// is written so the private seed cannot be added by accident. In CI the seed
 /// comes from `EWE_OTA_PRIVATE_KEY` and never touches the working tree.
-fn ensure_ota_keys(manifest_dir: &Path) -> Option<crate::manifest::KeyPair> {
+///
+/// # Panics
+///
+/// Panics if the key pair cannot be prepared. Every manifest is signed, so a
+/// build that cannot sign cannot produce a shippable bundle — failing here
+/// says so, where continuing would produce artefacts every device rejects.
+fn ensure_ota_keys(manifest_dir: &Path) -> crate::manifest::KeyPair {
     println!("cargo:rerun-if-env-changed={}", crate::manifest::PRIVATE_KEY_ENV);
-    match crate::manifest::ensure_keys(manifest_dir) {
-        Ok(keypair) => Some(keypair),
-        Err(e) => {
-            // Not fatal: unsigned manifests still carry the hashes, and a
-            // build should not die because a key directory is unwritable.
-            println!("cargo:warning=could not prepare OTA keys: {e}");
-            None
-        }
-    }
+    crate::manifest::ensure_keys(manifest_dir).unwrap_or_else(|e| {
+        panic!(
+            "F40: could not prepare the OTA key pair under {}: {e}\n\
+             Manifests are always signed. Either make the directory writable so a \
+             key pair can be minted, or set {} to a base64 Ed25519 seed.",
+            manifest_dir.display(),
+            crate::manifest::PRIVATE_KEY_ENV,
+        )
+    })
 }
 
-/// Write `.ewe_manifest.json` into every app directory under `public/` (F40).
+/// Write a signed `.ewe_manifest.json` into every app directory under
+/// `public/` (F40).
 ///
 /// WHY: a version directory without a manifest is a directory nothing can
 /// verify, roll back to, or reason about. Generating them here — rather than
 /// asking every project to add a `build.rs` step — means the guarantee
-/// "every version directory has a manifest" holds without anyone opting in.
+/// "every version directory has a signed manifest" holds without anyone
+/// opting in.
 ///
-/// Without a private key the manifests are generated unsigned, which is
-/// correct for a local build: the binary is the trust root there, and CI
-/// supplies the seed for real releases.
-fn generate_app_manifests(public_dir: &Path, keypair: Option<&crate::manifest::KeyPair>) {
+/// # Panics
+///
+/// Panics if signing is unavailable or generation fails. There is no unsigned
+/// mode to degrade to: a key pair is minted automatically, so the only way to
+/// reach this is a broken build environment, and a bundle whose manifests
+/// cannot be verified is not worth shipping.
+fn generate_app_manifests(public_dir: &Path, keypair: &crate::manifest::KeyPair) {
     println!("cargo:rerun-if-env-changed={}", crate::manifest::MANIFEST_DOMAIN_ENV);
+
+    assert!(
+        keypair.can_sign(),
+        "F40: no OTA private key is available, so app manifests cannot be signed.\n\
+         Set {} to a base64 Ed25519 seed, or let the build mint one by making \
+         keys/ writable.",
+        crate::manifest::PRIVATE_KEY_ENV,
+    );
 
     let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".to_string());
     let domain = crate::manifest::manifest_domain_from_env();
 
     match crate::manifest::generate_all_manifests(public_dir, &version, &domain, keypair) {
-        Ok(manifests) => {
-            let signed = manifests.iter().filter(|m| m.signature.is_some()).count();
-            println!(
-                "cargo:warning=generated {} app manifests ({signed} signed) for v{version}",
-                manifests.len()
-            );
-        }
-        Err(e) => println!("cargo:warning=manifest generation failed: {e}"),
+        Ok(manifests) => println!(
+            "cargo:warning=generated {} signed app manifests for v{version}",
+            manifests.len()
+        ),
+        Err(e) => panic!("F40: manifest generation failed: {e}"),
     }
 }
 

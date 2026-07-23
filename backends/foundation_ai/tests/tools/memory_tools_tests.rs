@@ -186,11 +186,12 @@ async fn call(
         name: name.to_string(),
         arguments,
         depends_on: Vec::new(),
+        execution_hint: Default::default(),
     })
     .await
 }
 
-#[valtron_test]
+#[test]
 fn the_canonical_group_plus_command_call_works() {
     use foundation_ai::agentic::tool_impl::ToolCallManager;
     let mgr = ToolCallManager::new(SessionId::new());
@@ -204,7 +205,7 @@ fn the_canonical_group_plus_command_call_works() {
     assert!(out.is_ok(), "the canonical call shape must work: {out:?}");
 }
 
-#[valtron_test]
+#[test]
 fn a_joined_name_call_resolves_to_the_group_and_command() {
     // Multi-command tools render as ONE function named for the group (`memory`)
     // with a `command` argument. Models do not reliably call them that way —
@@ -226,7 +227,7 @@ fn a_joined_name_call_resolves_to_the_group_and_command() {
     );
 }
 
-#[valtron_test]
+#[test]
 fn an_explicit_command_argument_beats_the_joined_name() {
     // The fallback fills in what the model left out; it must never overwrite an
     // argument the model actually supplied.
@@ -249,14 +250,14 @@ fn an_explicit_command_argument_beats_the_joined_name() {
         &[("command", "add"), ("fact", "added not removed")],
     ));
     assert!(out.is_ok(), "explicit command must be honoured: {out:?}");
-    let facts = hierarchy.working_memory_facts();
+    let facts = futures_lite::future::block_on(facts_of(&hierarchy));
     assert!(
         facts.iter().any(|f| f.contains("added not removed")),
         "the explicit `add` must have run, not the name's `remove`: {facts:?}"
     );
 }
 
-#[valtron_test]
+#[test]
 fn an_unknown_joined_name_is_still_an_error() {
     // The fallback must not turn every typo into a silent success. A name whose
     // remainder is not one of the tool's commands stays UnknownTool.

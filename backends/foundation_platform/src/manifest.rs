@@ -122,18 +122,19 @@ fn io_err(path: &Path, source: std::io::Error) -> ManifestError {
 
 // ── Manifest schema ─────────────────────────────────────────────────────
 
-/// Where a manifest came from. Determines whether a signature is expected.
+/// Where a manifest came from.
+///
+/// Both kinds are signed. A key pair is minted on the first build, so there
+/// is no situation in which signing is unavailable and therefore no reason
+/// to define what an unsigned manifest would mean.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display)]
 #[serde(rename_all = "lowercase")]
 pub enum ManifestSource {
-    /// Generated at build time and shipped inside the APK/IPA/bundle. The
-    /// platform's own code signature is the trust root, so `signature` may
-    /// be absent.
+    /// Generated at build time and shipped inside the APK/IPA/bundle.
     #[display("apk")]
     Apk,
 
-    /// Fetched from the CDN. Must carry a valid signature whenever a public
-    /// key is baked into the binary.
+    /// Fetched from the CDN.
     #[display("ota")]
     Ota,
 }
@@ -202,6 +203,11 @@ pub struct Manifest {
     #[serde(default)]
     pub delete_after: Option<String>,
     /// Base64 Ed25519 signature over the canonical JSON of every other field.
+    ///
+    /// Always populated by [`generate_app_manifest`]. It stays `Option` on
+    /// the wire type so a manifest that *omits* it still deserializes and can
+    /// be rejected by [`verify_manifest`] with a reason — a parse error would
+    /// say only "bad JSON", which is a worse answer to an attack.
     #[serde(default)]
     pub signature: Option<String>,
     /// Per-app bundle entries.
@@ -592,30 +598,35 @@ fn collect_files_into(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) -> Manife
     Ok(())
 }
 
-/// Build (and optionally sign) a manifest for one app directory, writing it
-/// to `{app_dir}/.ewe_manifest.json`.
+/// Build and sign a manifest for one app directory, writing it to
+/// `{app_dir}/.ewe_manifest.json`.
 ///
-/// WHY: every version directory carries a manifest — no "maybe it's there"
-/// cases for tooling, rollback, or verification to special-case.
+/// WHY: every version directory carries a signed manifest — no "maybe it's
+/// there", and no "maybe it's signed", for tooling, rollback, or
+/// verification to special-case. [`ensure_keys`] mints a pair on the first
+/// build, so a signing key is always obtainable and an unsigned manifest is
+/// a build misconfiguration rather than a supported mode.
 ///
 /// WHAT: scans `app_dir` recursively, records `sha256` + `size` for each
-/// file, and emits a `source: "apk"` manifest with `sequence: 0`. The APK's
-/// own code signature is the trust root, so the signature is optional here —
-/// but it is added whenever a private key is available, which lets the same
-/// verification path serve both origins.
+/// file, and emits a signed `source: "apk"` manifest with `sequence: 0`.
 ///
 /// # Errors
 ///
-/// Returns [`ManifestError::Io`] if the directory cannot be scanned or the
-/// manifest cannot be written, or [`ManifestError::Json`] on serialization
-/// failure.
+/// - [`ManifestError::NoPrivateKey`] if `keypair` cannot sign.
+/// - [`ManifestError::Io`] if the directory cannot be scanned or the manifest
+///   cannot be written.
+/// - [`ManifestError::Json`] on serialization failure.
 pub fn generate_app_manifest(
     app_dir: &Path,
     app_id: &str,
     bundle_version: &str,
     manifest_domain: &str,
-    keypair: Option<&KeyPair>,
+    keypair: &KeyPair,
 ) -> ManifestResult<Manifest> {
+    // Refuse before doing the work: producing an unsigned manifest would
+    // hand every downstream consumer something it must reject anyway.
+    let seed = keypair.private.ok_or(ManifestError::NoPrivateKey)?;
+
     let mut files = Vec::new();
     for relative in collect_files(app_dir)? {
         let full = app_dir.join(&relative);
@@ -644,10 +655,8 @@ pub fn generate_app_manifest(
         }],
     };
 
-    if let Some(seed) = keypair.and_then(|k| k.private.as_ref()) {
-        let unsigned = manifest.to_json()?;
-        manifest.signature = Some(sign_manifest(&unsigned, seed)?);
-    }
+    let unsigned = manifest.to_json()?;
+    manifest.signature = Some(sign_manifest(&unsigned, &seed)?);
 
     let path = app_dir.join(MANIFEST_FILENAME);
     std::fs::write(&path, manifest.to_json()?).map_err(|e| io_err(&path, e))?;
@@ -656,14 +665,13 @@ pub fn generate_app_manifest(
         app = app_id,
         version = bundle_version,
         files = manifest.apps[0].files.len(),
-        signed = manifest.signature.is_some(),
-        "wrote {MANIFEST_FILENAME}"
+        "wrote signed {MANIFEST_FILENAME}"
     );
 
     Ok(manifest)
 }
 
-/// Generate a manifest for every app directory under `public_dir`.
+/// Generate a signed manifest for every app directory under `public_dir`.
 ///
 /// A subdirectory is an app when it contains an `index.html` — that is what
 /// makes it servable. Directories without one are build scratch space and are
@@ -671,13 +679,14 @@ pub fn generate_app_manifest(
 ///
 /// # Errors
 ///
-/// Returns [`ManifestError::Io`] if `public_dir` cannot be listed, or
-/// propagates any per-app failure from [`generate_app_manifest`].
+/// Returns [`ManifestError::NoPrivateKey`] if `keypair` cannot sign,
+/// [`ManifestError::Io`] if `public_dir` cannot be listed, or propagates any
+/// per-app failure from [`generate_app_manifest`].
 pub fn generate_all_manifests(
     public_dir: &Path,
     bundle_version: &str,
     manifest_domain: &str,
-    keypair: Option<&KeyPair>,
+    keypair: &KeyPair,
 ) -> ManifestResult<Vec<Manifest>> {
     if !public_dir.is_dir() {
         return Ok(Vec::new());

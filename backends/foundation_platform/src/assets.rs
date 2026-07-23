@@ -1269,23 +1269,30 @@ impl PlatformAssetManager {
 
         // 1. Authenticity first. Everything below trusts fields from this
         //    document, so nothing below may run before we know who wrote it.
-        let manifest = match self.manifest_key {
-            Some(key) => crate::manifest::verify_manifest(manifest_json, &key)
-                .map_err(|e| format!("manifest rejected: {e}"))?,
-            None => {
-                let parsed: Manifest = serde_json::from_str(manifest_json)
-                    .map_err(|e| format!("invalid manifest: {e}"))?;
-                if parsed.source == ManifestSource::Ota {
-                    warn!(
-                        "accepting an unsigned OTA manifest — no public key was baked into this build"
-                    );
-                }
-                parsed
-            }
-        };
+        //
+        //    A build with no baked key cannot answer "who wrote this", so it
+        //    has no OTA — accepting an unsigned manifest instead would mean
+        //    anyone who can answer the request can replace the app's code.
+        //    Key generation is automatic (`manifest::ensure_keys` runs on
+        //    every build), so a missing key is a misconfiguration, never a
+        //    situation that needs a permissive path.
+        let key = self
+            .manifest_key
+            .ok_or("OTA is disabled: no manifest public key was baked into this build")?;
 
+        let manifest = crate::manifest::verify_manifest(manifest_json, &key)
+            .map_err(|e| format!("manifest rejected: {e}"))?;
+
+        // verify_manifest already enforces the schema; this is belt-and-braces
+        // in case that ever stops being true.
         if manifest.schema != crate::manifest::MANIFEST_SCHEMA {
             return Err(format!("unsupported manifest schema: {}", manifest.schema));
+        }
+        if manifest.source != ManifestSource::Ota {
+            return Err(format!(
+                "expected an OTA manifest, got source={}",
+                manifest.source
+            ));
         }
 
         // 2. Routing guard (C2). The domain does not authenticate content —

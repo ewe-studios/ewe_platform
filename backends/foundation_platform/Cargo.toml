@@ -74,6 +74,14 @@ vfs-audit = []
 [dev-dependencies]
 tauri = { version = "2.11.5", features = [] }
 tracing-test = { workspace = true }
+# Integration tests in tests/ see only the public API plus dev-dependencies,
+# so the crates they parse fixtures and keys with must be listed again here.
+serde_json = { workspace = true }
+base64 = "0.22"
+# The key-from-environment test mutates a process-global, so it must not run
+# beside anything else that reads the same variable.
+serial_test = { workspace = true }
+foundation_nativeapis = { path = "../foundation_nativeapis", default-features = false, features = ["vfs-native"] }
 
 [[bin]]
 name = "ewe-manifest"

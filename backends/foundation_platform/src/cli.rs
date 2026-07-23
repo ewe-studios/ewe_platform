@@ -134,11 +134,17 @@ fn generate_manifests(args: &[String]) -> Result<(), String> {
 
     // Keys live beside the public dir's project root, which is its parent.
     let project_root = public_dir.parent().unwrap_or(Path::new("."));
-    let keypair = manifest::ensure_keys(project_root).ok();
+    let keypair = manifest::ensure_keys(project_root).map_err(fmt_err)?;
+    if !keypair.can_sign() {
+        return Err(format!(
+            "no private key available — every manifest is signed. \
+             Set {PRIVATE_KEY_ENV}, or run `ewe-manifest init-keys` where \
+             keys/ is writable."
+        ));
+    }
 
-    let manifests =
-        manifest::generate_all_manifests(&public_dir, &version, &domain, keypair.as_ref())
-            .map_err(fmt_err)?;
+    let manifests = manifest::generate_all_manifests(&public_dir, &version, &domain, &keypair)
+        .map_err(fmt_err)?;
 
     if manifests.is_empty() {
         println!("no app directories found under {}", public_dir.display());
@@ -146,12 +152,11 @@ fn generate_manifests(args: &[String]) -> Result<(), String> {
     }
     for manifest in &manifests {
         for app in &manifest.apps {
+            let n = app.files.len();
             println!(
-                "{}/{app_id}/{MANIFEST_FILENAME} — {n} files, {signed}",
-                public_dir.display(),
-                app_id = app.app_id,
-                n = app.files.len(),
-                signed = if manifest.signature.is_some() { "signed" } else { "unsigned" },
+                "{}/{MANIFEST_FILENAME} — {n} file{s}, signed",
+                public_dir.join(&app.app_id).display(),
+                s = if n == 1 { "" } else { "s" },
             );
         }
     }
