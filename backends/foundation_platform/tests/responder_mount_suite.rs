@@ -11,6 +11,7 @@ use std::sync::Arc;
 use foundation_nativeapis::shared::vfs::dynfs::DynFs;
 use foundation_nativeapis::shared::vfs::memory_fs::MemoryFs;
 use foundation_platform::assets::{AssetLayout, PlatformAssetManager};
+use foundation_platform::pattern::PatternRouter;
 use foundation_platform::{webview_app, MobileApp, PlatformSession, RouteResponder};
 use foundation_nostd::embeddable::FileInfo;
 use foundation_nostd::mobile::MobileDirectory;
@@ -41,11 +42,25 @@ fn intent(url: &str) -> NavigationIntent {
     }
 }
 
-/// The decision an app route carries. Its fields are irrelevant here —
-/// `MobileApp` resolves purely from the intent URL and its mount — but the
-/// responder signature requires one.
-fn decision() -> RouteDecision {
-    webview_app()
+/// The decision the **router** produces for `pattern` given `url`.
+///
+/// Going through `PatternRouter` rather than hand-building a decision is the
+/// point: `sub_path` is what the responder now reads, and only the router
+/// fills it in. A hand-made decision would test nothing about how a request
+/// actually reaches an app.
+fn routed(pattern: &str, url: &str) -> RouteDecision {
+    let mut router = PatternRouter::new();
+    router.route(pattern, webview_app());
+    // `PlatformSession::register_route_with` also registers the bare prefix,
+    // because `/app/*` requires a segment after the slash and so cannot match
+    // a bare `/app/`. Mirror that here or the directory request 404s in the
+    // test while working in production.
+    if let Some(prefix) = pattern.strip_suffix("/*") {
+        router.route(prefix, webview_app());
+    }
+    router
+        .resolve_intent(&intent(url))
+        .unwrap_or_else(|| panic!("{pattern} must match {url}"))
 }
 
 /// A session with a Versioned asset manager holding one app's bundle.
@@ -82,7 +97,7 @@ fn a_mounted_responder_strips_its_own_app_segment() {
         "app",
     );
 
-    let response = responder.respond(&intent("/app/index.html"), &decision(), &session);
+    let response = responder.respond(&intent("/app/index.html"), &routed("/app/*", "/app/index.html"), &session);
 
     assert_eq!(response.status(), 200, "body was: {}", body_of(&response));
     assert_eq!(
@@ -102,7 +117,7 @@ fn a_directory_request_serves_the_apps_index() {
     );
 
     for url in ["/app/", "/app"] {
-        let response = responder.respond(&intent(url), &decision(), &session);
+        let response = responder.respond(&intent(url), &routed("/app/*", url), &session);
         assert_eq!(response.status(), 200, "{url} gave: {}", body_of(&response));
         assert_eq!(body_of(&response), "<html>app</html>", "for {url}");
     }
@@ -119,7 +134,7 @@ fn an_unknown_sub_route_falls_back_to_the_apps_index_for_client_side_routing() {
 
     let response = responder.respond(
         &intent("/app/settings/profile"),
-        &decision(),
+        &routed("/app/*", "/app/settings/profile"),
         &session,
     );
 
@@ -147,7 +162,7 @@ fn a_sibling_app_prefix_is_not_mistaken_for_this_one() {
 
     let response = responder.respond(
         &intent("/app-hello/index.html"),
-        &decision(),
+        &routed("/app-hello/*", "/app-hello/index.html"),
         &session,
     );
 
@@ -169,7 +184,7 @@ fn a_missing_file_is_reported_as_not_found() {
 
     let response = responder.respond(
         &intent("/app/missing.wasm"),
-        &decision(),
+        &routed("/app/*", "/app/missing.wasm"),
         &session,
     );
 
@@ -198,7 +213,7 @@ fn content_types_follow_the_extension() {
         ("/app/bundle.js", "application/javascript"),
         ("/app/app.wasm", "application/wasm"),
     ] {
-        let response = responder.respond(&intent(url), &decision(), &session);
+        let response = responder.respond(&intent(url), &routed("/app/*", url), &session);
         assert_eq!(
             response.headers().get("content-type").and_then(|v| v.to_str().ok()),
             Some(expected),
@@ -221,12 +236,12 @@ fn a_mounted_responder_follows_its_app_to_a_new_version() {
         "app",
     );
 
-    let before = responder.respond(&intent("/app/"), &decision(), &session);
+    let before = responder.respond(&intent("/app/"), &routed("/app/*", "/app/"), &session);
     assert_eq!(body_of(&before), "<html>old</html>");
 
     manager.activate("app", "0.1.1").expect("activate");
 
-    let after = responder.respond(&intent("/app/"), &decision(), &session);
+    let after = responder.respond(&intent("/app/"), &routed("/app/*", "/app/"), &session);
     assert_eq!(
         body_of(&after),
         "<html>new</html>",
@@ -249,8 +264,59 @@ fn an_unmounted_responder_keeps_the_pre_f40_behaviour() {
     std::fs::write(dir.join("app/index.html"), "<html>disk</html>").expect("write");
 
     let responder = MobileApp::new(Assets { root: dir.clone() });
-    let response = responder.respond(&intent("/app/index.html"), &decision(), &session);
+    let response = responder.respond(&intent("/app/index.html"), &routed("/app/*", "/app/index.html"), &session);
 
     assert_eq!(response.status(), 200, "body was: {}", body_of(&response));
     assert_eq!(body_of(&response), "<html>disk</html>");
+}
+
+// ── The router owns where a route's prefix ends ─────────────────────────
+//
+// `sub_path` is the seam. A responder must not re-derive it: the router
+// matched the pattern segment by segment and already knows the answer, and a
+// second implementation is free to disagree — which is precisely how
+// `"app-hello".strip_prefix("app")` shipped.
+
+#[test]
+#[traced_test]
+fn the_router_reports_the_path_relative_to_a_routes_literal_prefix() {
+    for (pattern, url, expected) in [
+        ("/app/*", "/app/index.html", "index.html"),
+        ("/app/*", "/app/nested/deep/bundle.js", "nested/deep/bundle.js"),
+        ("/app/*", "/app/", ""),
+        ("/app/*", "/app", ""),
+        ("/app-hello/*", "/app-hello/index.html", "index.html"),
+        ("/api/system", "/api/system", ""),
+    ] {
+        assert_eq!(
+            routed(pattern, url).sub_path.as_deref(),
+            Some(expected),
+            "{pattern} + {url}"
+        );
+    }
+}
+
+#[test]
+#[traced_test]
+fn a_route_prefix_never_matches_a_longer_sibling_segment() {
+    let mut router = PatternRouter::new();
+    router.route("/app/*", webview_app());
+    router.route("/app", webview_app());
+
+    assert!(
+        router.resolve_intent(&intent("/app-hello/index.html")).is_none(),
+        "the router matches whole segments, so `app` cannot claim `app-hello` \
+         — this is why the responder must not do its own prefix arithmetic"
+    );
+}
+
+#[test]
+#[traced_test]
+fn each_app_gets_the_same_relative_path_from_its_own_route() {
+    // Two apps, two routes, one file name. Each responder sees `index.html`
+    // — no responder needs to know its own prefix to get there.
+    assert_eq!(
+        routed("/app/*", "/app/index.html").sub_path,
+        routed("/app-hello/*", "/app-hello/index.html").sub_path,
+    );
 }

@@ -208,7 +208,7 @@ impl SeekableVfsFile for ReadOnlyVfsSeekableFile {
 pub struct ReadOnlyVfsDirectory {
     path: String,
     entries: Vec<VfsDirEntry>,
-    view: Arc<BundleView>,
+    resolver: Arc<dyn AssetSource>,
 }
 
 impl std::fmt::Debug for ReadOnlyVfsDirectory {
@@ -271,7 +271,7 @@ impl VfsDirectory for ReadOnlyVfsDirectory {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let full = join_vfs(&self.path, path);
-        let bytes = self.view.fetch(&full)?;
+        let bytes = self.resolver.fetch(&full)?;
         Ok(ReadOnlyVfsFile::new(full, bytes))
     }
 
@@ -289,19 +289,19 @@ impl VfsDirectory for ReadOnlyVfsDirectory {
     {
         let full = join_vfs(&self.path, path);
         Ok(Box::new(ReadOnlyVfsDirectory {
-            entries: self.view.children(&full),
+            entries: self.resolver.children(&full),
             path: full,
-            view: Arc::clone(&self.view),
+            resolver: Arc::clone(&self.resolver),
         }))
     }
 
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         let full = join_vfs(&self.path, path);
-        self.view.stat(&full)
+        self.resolver.stat(&full)
     }
 
     fn exists(&self, path: &str) -> VfsResult<bool> {
-        Ok(self.view.exists(&join_vfs(&self.path, path)))
+        Ok(self.resolver.exists(&join_vfs(&self.path, path)))
     }
 }
 
@@ -397,147 +397,49 @@ pub trait AssetSource: Send + Sync {
     }
 }
 
-/// The bundle as the VFS above it expects to see it.
-///
-/// WHY: the bundle ships flat — `tauri.conf.json` maps `public/app/*` to
-/// `app/`, so its keys are `app/index.html`. The VFS asks for
-/// `/app/v0.1.0/index.html`, because `{app_id}/v{version}/` is the asset
-/// manager's construct, not the bundle's. Without this translation every
-/// APK-bundled asset resolves to `NotFound` — which is precisely the bug F40
-/// exists to fix.
-///
-/// The translation has to be *self-consistent*, not just a path rewrite. If
-/// `exists("/app/v0.1.0")` answers true, then `list("/app")` must show
-/// `v0.1.0`, or `mkdir_all` skips creating the delta directory (the path
-/// already "exists") while `list_versions` reports none. So the view
-/// synthesises the version directory as a real entry:
-///
-/// ```text
-/// /                    → the app ids, from the bundle's keys
-/// /app                 → [v0.1.0]        (synthesised, one per bundle)
-/// /app/v0.1.0          → index.html, bundle.js, …  (the bundle's own keys)
-/// /app/v0.1.0/nested   → deeper keys, version segment elided
-/// /app/v9.9.9          → nothing: an OTA'd version must never be served
-///                        from the bundle, or a rollback shows wrong bytes
-/// ```
-struct BundleView {
-    source: Arc<dyn AssetSource>,
-    /// `v{version}` — the single version this bundle *is*. `None` when the
-    /// VFS above uses no version directories (desktop/iOS).
-    version_dir: Option<String>,
-}
-
-impl BundleView {
-    /// Drop this bundle's own version segment from a VFS path.
-    fn elide(&self, path: &str) -> String {
-        let Some(version_dir) = self.version_dir.as_deref() else {
-            return path.to_string();
-        };
-        let mut parts = path.split('/').filter(|p| !p.is_empty());
-        let Some(app_id) = parts.next() else {
-            return path.to_string();
-        };
-        if parts.next() != Some(version_dir) {
-            return path.to_string();
-        }
-        let rest: Vec<&str> = parts.collect();
-        if rest.is_empty() {
-            format!("/{app_id}")
-        } else {
-            format!("/{app_id}/{}", rest.join("/"))
-        }
-    }
-
-    /// `Some(app_id)` when `path` is an app directory under a versioned view
-    /// — the one place a version directory has to be synthesised.
-    fn app_root(&self, path: &str) -> Option<String> {
-        self.version_dir.as_ref()?;
-        let mut parts = path.split('/').filter(|p| !p.is_empty());
-        let app_id = parts.next()?;
-        if parts.next().is_some() {
-            return None;
-        }
-        self.source.exists(&format!("/{app_id}")).then(|| app_id.to_string())
-    }
-
-    fn fetch(&self, path: &str) -> VfsResult<Vec<u8>> {
-        self.source.fetch(&self.elide(path))
-    }
-
-    fn exists(&self, path: &str) -> bool {
-        self.source.exists(&self.elide(path))
-    }
-
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.source.stat(&self.elide(path))
-    }
-
-    fn children(&self, path: &str) -> Vec<VfsDirEntry> {
-        if let Some(app_id) = self.app_root(path) {
-            // Exactly one version lives in a bundle: the one it shipped as.
-            let name = self.version_dir.clone().unwrap_or_default();
-            return vec![VfsDirEntry {
-                inode: stable_inode(&format!("/{app_id}/{name}")),
-                name,
-                file_type: VfsFileType::Directory,
-            }];
-        }
-        self.source.children(&self.elide(path))
-    }
-}
-
 /// A read-only `VfsFileSystem` over Tauri's embedded asset bundle.
 ///
 /// Lazy by construction: nothing is read until a path is requested, and
 /// nothing is ever written to disk. This is what makes "zero startup
 /// extraction" true rather than aspirational.
+///
+/// There is no path translation here, deliberately. The bundle ships in the
+/// same shape the VFS asks for — `codegen::patch_tauri_conf_for_ewe` rewrites
+/// `bundle.resources` so `public/app/*` lands at `app/v{version}/` — so a
+/// bundled key *is* a VFS path. Translating instead would mean faking a
+/// directory that has to look consistent to `read`, `exists`, `stat`, and
+/// `list` simultaneously, and any one of them disagreeing breaks a different
+/// caller. The layout was ours to choose, so we chose the one that needs no
+/// translation.
 pub struct AssetResolverFs {
-    view: Arc<BundleView>,
+    source: Arc<dyn AssetSource>,
 }
 
 impl std::fmt::Debug for AssetResolverFs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AssetResolverFs")
-            .field("keys", &self.view.source.keys().len())
-            .field("version_dir", &self.view.version_dir)
+            .field("keys", &self.source.keys().len())
             .finish()
     }
 }
 
 impl std::fmt::Display for AssetResolverFs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AssetResolverFs({} assets)", self.view.source.keys().len())
+        write!(f, "AssetResolverFs({} assets)", self.source.keys().len())
     }
 }
 
 impl AssetResolverFs {
-    /// Wrap any [`AssetSource`], treating its keys as absolute VFS paths.
+    /// Wrap any [`AssetSource`]. Its keys are taken as absolute VFS paths.
     #[must_use]
     pub fn new(source: Arc<dyn AssetSource>) -> Self {
-        Self {
-            view: Arc::new(BundleView { source, version_dir: None }),
-        }
-    }
-
-    /// Wrap an [`AssetSource`] whose keys are flat, under a VFS that uses
-    /// `{app_id}/v{version}/` directories.
-    #[must_use]
-    pub fn versioned(source: Arc<dyn AssetSource>, bundle_version: &str) -> Self {
-        Self {
-            view: Arc::new(BundleView {
-                source,
-                version_dir: Some(format!("{VERSION_PREFIX}{bundle_version}")),
-            }),
-        }
+        Self { source }
     }
 
     /// Wrap a live Tauri [`tauri::AssetResolver`].
     #[must_use]
-    pub fn from_resolver<R: Runtime>(
-        resolver: tauri::AssetResolver<R>,
-        bundle_version: &str,
-    ) -> Self {
-        Self::versioned(Arc::new(TauriAssetSource { resolver }), bundle_version)
+    pub fn from_resolver<R: Runtime>(resolver: tauri::AssetResolver<R>) -> Self {
+        Self::new(Arc::new(TauriAssetSource { resolver }))
     }
 }
 
@@ -582,14 +484,14 @@ impl VfsFileSystem for AssetResolverFs {
     }
 
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.view.stat(&normalize_checked(path)?)
+        self.source.stat(&normalize_checked(path)?)
     }
 
     fn exists(&self, path: &str) -> VfsResult<bool> {
         // A traversal attempt is "does not exist", not an error, so a caller
         // probing the overlay does not get a hard failure from the base.
         match normalize_checked(path) {
-            Ok(p) => Ok(self.view.exists(&p)),
+            Ok(p) => Ok(self.source.exists(&p)),
             Err(_) => Ok(false),
         }
     }
@@ -621,7 +523,7 @@ impl VfsFileSystem for AssetResolverFs {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let normalized = normalize_checked(path)?;
-        let bytes = self.view.fetch(&normalized)?;
+        let bytes = self.source.fetch(&normalized)?;
         Ok(ReadOnlyVfsFile::new(normalized, bytes))
     }
 
@@ -634,13 +536,13 @@ impl VfsFileSystem for AssetResolverFs {
 
     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
         let normalized = normalize_checked(path)?;
-        if normalized != "/" && !self.view.exists(&normalized) {
+        if normalized != "/" && !self.source.exists(&normalized) {
             return Err(ErrorTrace::new(VfsError::NotFound { path: normalized }));
         }
         Ok(ReadOnlyVfsDirectory {
-            entries: self.view.children(&normalized),
+            entries: self.source.children(&normalized),
             path: normalized,
-            view: Arc::clone(&self.view),
+            resolver: Arc::clone(&self.source),
         })
     }
 
@@ -653,12 +555,11 @@ impl VfsFileSystem for AssetResolverFs {
     }
 
     fn inode(&self, path: &str) -> VfsResult<u64> {
-        Ok(stable_inode(&self.view.elide(&normalize_checked(path)?)))
+        Ok(stable_inode(&normalize_checked(path)?))
     }
 
     fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
-        self.view
-            .source
+        self.source
             .keys()
             .into_iter()
             .find(|k| stable_inode(k) == ino)
@@ -671,7 +572,7 @@ impl VfsFileSystem for AssetResolverFs {
 
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
         let path = self.path_by_inode(ino)?;
-        self.view.source.stat(&path)
+        self.source.stat(&path)
     }
 }
 
@@ -1588,14 +1489,9 @@ fn build_platform_vfs<R: Runtime>(app: &App<R>) -> (DynFs, PathBuf, AssetLayout)
         .unwrap_or_else(|_| PathBuf::from("."));
 
     // Base: the APK, read lazily. Delta: AppData, where OTA writes land.
-    //
-    // The bundle version is passed so `/{app_id}/v{version}/…` resolves onto
-    // the bundle's flat `{app_id}/…` keys — tauri.conf.json maps
-    // `public/app/*` to `app/`, with no version segment.
-    let base = AssetResolverFs::from_resolver(
-        app.asset_resolver(),
-        &app.package_info().version.to_string(),
-    );
+    // The bundle already ships as `{app_id}/v{version}/…`, so its keys are
+    // the VFS paths verbatim — nothing to translate.
+    let base = AssetResolverFs::from_resolver(app.asset_resolver());
     match DirectoryDelta::new(&app_data) {
         Ok(delta) => {
             let overlay = OverlayFileSystem::new(base, delta);

@@ -1704,14 +1704,33 @@ no trust anchor and OTA silently disabled, which is a worse failure than
 not starting.
 
 ### 13. Version lifecycle
-- APK version = bundle version (from `tauri.conf.json` → `app.package_info().version`)
-- It is the startup active version for **every** app; `activate()` is a
-  session-scoped override, not a persisted preference
-- New APK → new per-app delta dirs created (empty), old versions pruned per app (keep 2)
+
+**Each app crate carries its own version** — read from `{crate}/Cargo.toml`
+by `codegen::crate_version()`, not from `tauri.conf.json` (which is the
+*platform*'s version). `app/` at v0.2.0, `app-hello/` at v0.1.0, and
+`app-shell/` at v0.3.0 naturally land at different directories:
+
+```
+public/
+  app/v0.2.0/       ← Surface 2, bundled as "app/v0.2.0/"
+  app-hello/v0.1.0/ ← different version, no collision
+  app-shell/v0.3.0/ ← Surface 3, bundled in the same shape
+```
+
+- The startup active version for each app is the binary's `bundle_version`
+  (from `tauri.conf.json` → `PackageInfo::version`) — the default for apps
+  that have not received an OTA. `activate()` is a session-scoped override,
+  not a persisted preference.
+- New APK → delta dirs created per app (empty), old versions pruned per app
+  (keep 2)
 - OTA same version → writes into that app's existing dir, no new directory
-- OTA new version → creates that app's new dir, activates it, prunes that app's oldest
-- Rollback → `activate(app_id, previous_version)`, instant (files are still there)
+- OTA new version → creates that app's new dir, activates it, prunes old
+- Rollback → `activate(app_id, previous_version)`, instant
 - Other apps are never touched by any of the above
+- **Surface 3 apps use the same bundle path.** They differ only in target
+  (wasm32-wasip1) and loader (wasmtime), not in how they are bundled or
+  updated. `sync_bundle_resources()` discovers them from `public/` exactly as
+  it does every other app.
 
 ## Platform behavior matrix
 

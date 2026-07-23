@@ -36,65 +36,73 @@ but neither exists yet. The codegen knows how to build WebView WASM apps
 
 Three layers, all following the EXACT pattern of today's WebView pipeline:
 
-### Layer 1: `build_wasmtime_app()` in codegen
+> **Resolved 2026-07-23 during F40 implementation.** The module is NOW bundled in
+> `public/{app_id}/v{version}/` alongside every other app (F40) and loaded at
+> **runtime** through `PlatformAssetManager::read_app_file`, not `include_bytes!`.
+> An embedded module needs a native rebuild and store release to change — the
+> thing F40 exists to remove. See the verification block below for the actual
+> generated code.
 
-Same shape as `build_wasm_app()` — compiles a crate to wasm32-wasip1,
-copies the `.wasm` to `shell_wasm/{name}.wasm`, copies wasmtime-compatible
-JS shims if needed.
+### Layer 1: `#[wasm_app]` proc macro (foundation_macros)
+
+A compile-time marker in `foundation_macros/src/wasm_modes.rs`, exposed
+as `foundation_macros::wasm_app`. Same shape as `#[wasm_bin]` — validates
+the attribute syntax (`extern`, `desc`, `js`, etc.) and passes the item
+through unchanged. The `extern = "true"` key auto-generates `#[no_mangle]
+pub extern "C"`. The marker is what the build scanner reads.
 
 ```rust
-// foundation_platform/src/codegen.rs — NEW function
+// In the app crate:
+use foundation_macros::wasm_app;
 
-/// Build a single WASM app for wasmtime (surface 3).
-/// Compiles to wasm32-wasip1, outputs to shell_wasm/{name}.wasm.
-pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
-    // Scan for #[wasm_app] annotations
-    let wasm: Vec<_> = scan_for_annotations(&app_dir.join("src"))
-        .into_iter()
-        .filter(|a| matches!(a.kind, AnnotationKind::WasmApp))
-        .collect();
-    if wasm.is_empty() { return; }
-
-    // Compile to wasm32-wasip1 (not wasm32-unknown-unknown!)
-    let status = std::process::Command::new("cargo")
-        .args(["build", "--target", "wasm32-wasip1", "--release"])
-        .current_dir(app_dir)
-        .status()
-        .expect("cargo build failed for wasmtime app");
-
-    // Copy .wasm to output
-    std::fs::create_dir_all(out_dir).ok();
-    let wasm_src = app_dir.join("target/wasm32-wasip1/release")
-        .join(format!("{}.wasm", app_dir.file_name().unwrap().to_str().unwrap()));
-    let wasm_dst = out_dir.join(format!("{}.wasm", app_dir.file_name().unwrap().to_str().unwrap()));
-    std::fs::copy(&wasm_src, &wasm_dst).ok();
+#[wasm_app(extern = "true")]
+fn init() {
+    // Surface 3 entrypoint
 }
 ```
 
-### Layer 2: `generate_wasmtime_modules()` in codegen
+### Layer 2: `build_wasmtime_app()` in codegen
 
-Called by `generate_platform_code()`. Discovers `app-shell/` and
-`app-shell-*/` dirs (same pattern as `app/` and `app-*/`).
+Called **explicitly** from the project's root `build.rs` — no annotation
+gate on explicit calls. Auto-discovery (`generate_platform_code`) still
+filters on `#[wasm_app]` so it does not compile every `app-shell*`
+directory it finds.
 
-Generates a Rust module that wraps the compiled `.wasm` in a
-`WasmtimeBuilder`:
+Compiles the crate to `wasm32-wasip1`, resolves the cargo package name
+(which may differ from the directory — `app-shell/` holds package
+`app_shell`), and copies the artefact to the caller's chosen output
+directory. Panics if the artefact is missing rather than silently
+skipping.
+
+### Layer 3: `generate_wasmtime_modules()` in codegen
+
+Called by `generate_platform_code()`. Generates a Rust module that loads
+the module **at runtime** through the asset manager:
 
 ```rust
 // Generated in src/generated/shell/app_shell.rs
+// Route prefix: /shell/
+//
+// The module is bundled at public/app-shell/v0.1.0/app-shell.wasm
+// and loaded at runtime through the asset manager.
 
+use foundation_platform::PlatformSession;
 use foundation_wasmtime::WasmtimeBuilder;
 
-/// Returns a WasmtimeBuilder pre-loaded with the compiled WASM bytes.
-/// Call session.register_wasmtime("shell", builder) in setup_routes().
-pub fn builder() -> WasmtimeBuilder {
-    let wasm_bytes: &[u8] = include_bytes!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shell_wasm/app_shell.wasm"
-    ));
-    WasmtimeBuilder::new(wasm_bytes)
-        .with_name("app_shell")
+pub const APP_ID: &str = "app-shell";
+pub const MODULE_FILE: &str = "app-shell.wasm";
+
+/// Load this shell's module for the app's currently active version.
+/// Returns `None` when the module is absent.
+pub fn builder(session: &PlatformSession) -> Option<WasmtimeBuilder> {
+    let manager = session.asset_manager()?;
+    let bytes = manager.read_app_file(APP_ID, MODULE_FILE).ok()?;
+    Some(WasmtimeBuilder::new(bytes).with_name(APP_ID))
 }
 ```
+
+The module ships INSIDE `public/app-shell/v{version}/` (F40), so Tauri
+bundles it via `bundle.resources` and an OTA can replace it.
 
 ### Layer 3: `foundation_wasmtime` crate
 
@@ -136,22 +144,46 @@ impl WasmtimeInstance {
 }
 ```
 
-### Integration with root build.rs
+### Integration with root build.rs (F40 compliance)
 
-The user adds ONE line:
+Surface 3 apps share the build-declaration pattern of every other app.
+Each crate's version comes from its own `Cargo.toml`, so two apps at
+different versions naturally land at different directories — no shared
+version file, no collision.
 
 ```rust
 // examples/platform_android/build.rs (root)
 fn main() {
     let root = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    let public_dir = root.join("src-tauri").join("public");
+    let src_tauri = root.join("src-tauri");
+    let public_dir = src_tauri.join("public");
 
-    // Surface 1: WebView WASM (existing)
-    foundation_platform::codegen::build_wasm_app(&root.join("app"), &public_dir.join("app"));
+    // Surface 2: WebView WASM
+    for app_id in ["app", "app-hello"] {
+        let app_dir = root.join(app_id);
+        if app_dir.join("Cargo.toml").exists() {
+            let version = codegen::crate_version(&app_dir);
+            codegen::build_wasm_app(
+                &app_dir,
+                &codegen::app_version_dir(&public_dir, app_id, &version),
+            );
+        }
+    }
 
-    // Surface 3: wasmtime WASM (NEW)
-    let shell_dir = root.join("src-tauri").join("shell_wasm");
-    foundation_platform::codegen::build_wasmtime_app(&root.join("app-shell"), &shell_dir);
+    // Surface 3: wasmtime WASM — same shape, different loader
+    for app_id in ["app-shell"] {
+        let shell_dir = root.join(app_id);
+        if shell_dir.join("Cargo.toml").exists() {
+            let version = codegen::crate_version(&shell_dir);
+            codegen::build_wasmtime_app(
+                &shell_dir,
+                &codegen::app_version_dir(&public_dir, app_id, &version),
+            );
+        }
+    }
+
+    // Derive bundle.resources from what was actually built.
+    codegen::sync_bundle_resources(&src_tauri);
 }
 ```
 
@@ -161,10 +193,13 @@ And in `setup_routes()`:
 fn setup_routes(session: &PlatformSession) {
     // ... existing routes ...
 
-    // Register the wasmtime-backed app
-    let builder = generated::shell::app_shell::builder();
-    session.register_wasmtime("shell", builder);
-    session.route("/shell/*", wasmtime_app("shell"));
+    // The module loads at RUNTIME through the asset manager, so the version
+    // directory follows whichever version is currently active — a shell OTA
+    // takes effect on the next request without a native rebuild.
+    if let Some(builder) = generated::shell::app_shell::builder(session) {
+        session.register_wasmtime("shell", builder);
+        session.route("/shell/*", wasmtime_app("shell"));
+    }
 }
 ```
 

@@ -35,16 +35,18 @@ pub struct WebviewApp<A: EmbeddableDirectory + Send + Sync + 'static> {
 
 /// Mobile asset responder — uses `MobileDirectory` + `MobileDisk` (F22).
 ///
-/// When `mount` is set (F40), the responder knows which app it serves. That
-/// buys two things a bare disk read cannot provide:
+/// When `mount` is set (F40), the responder knows which app it serves, so its
+/// reads go through the session's [`PlatformAssetManager`]. On Android that is
+/// the only way to reach bundled bytes — they are never on disk, so
+/// `std::fs::read()` sees nothing.
 ///
-/// - The leading app segment is stripped from the request path. With per-app
-///   version directories the responder's root already *is* the app directory,
-///   so an unstripped `app/index.html` would resolve to
-///   `.../app/v0.1.0/app/index.html`.
-/// - Reads go through the session's [`PlatformAssetManager`] when one is
-///   installed. On Android that is the only way to reach APK-bundled bytes —
-///   they are never on disk, so `std::fs::read()` sees nothing.
+/// The route-relative path comes from `RouteDecision::sub_path`, which the
+/// router already computed when it matched the pattern. Re-deriving it here
+/// would be a second implementation of prefix matching that can disagree with
+/// the first: a bare `strip_prefix("app")` also fires on `app-hello`, quietly
+/// handing one app's request to another. The router matches whole segments
+/// against a literal pattern, so it cannot make that mistake — and there is
+/// no reason for two places to know where a route's prefix ends.
 pub struct MobileApp<A: MobileDisk + Send + Sync + 'static> {
     assets: A,
     /// The app id this responder serves, when it is mounted at one.
@@ -61,9 +63,9 @@ impl<A: MobileDisk + Send + Sync + 'static> MobileApp<A> {
 
     /// Serve `assets` as the app `app_id` (F40).
     ///
-    /// `app_id` is both the route segment stripped from incoming paths and
-    /// the key used to resolve the app's active version through the session's
-    /// asset manager.
+    /// `app_id` is the key used to resolve the app's active version through
+    /// the session's asset manager. Where the route's prefix ends is the
+    /// router's business, not this responder's — see `RouteDecision::sub_path`.
     pub fn mounted_at(assets: A, app_id: impl Into<String>) -> Self {
         Self { assets, mount: Some(app_id.into()) }
     }
@@ -72,8 +74,8 @@ impl<A: MobileDisk + Send + Sync + 'static> MobileApp<A> {
 /// Where a `MobileApp` reads its bytes from.
 ///
 /// The manager path and the disk path resolve *different* namespaces — VFS
-/// paths relative to `base_root` versus filesystem paths under the
-/// responder's own root — so probing has to go through one seam rather than
+/// paths relative to an app's active version versus filesystem paths under
+/// the responder's own root — so probing goes through one seam rather than
 /// being inlined at each of the four call sites below.
 struct AssetReader<'a, A: MobileDisk> {
     assets: &'a A,
@@ -85,46 +87,43 @@ impl<A: MobileDisk> AssetReader<'_, A> {
     fn read(&self, target: &str) -> Option<Vec<u8>> {
         match (&self.manager, self.mount) {
             // Mounted with a manager: the VFS resolves delta (OTA'd) over
-            // base (APK), which is what makes Android work at all.
+            // base (bundle), which is what makes Android work at all.
             (Some(manager), Some(app_id)) => manager.read_app_file(app_id, target).ok(),
-            // Mounted without a manager: plain disk under the app root.
-            (None, Some(_)) => self.assets.read_utf8_for(target),
-            // Unmounted: pre-F40 behaviour, path used verbatim.
-            (_, None) => self.assets.read_utf8_for(target),
-        }
-    }
-
-    /// Strip the app segment when this responder is mounted at one.
-    ///
-    /// Only a whole leading segment counts: a bare `strip_prefix("app")` would
-    /// also fire on `app-hello/index.html` and hand that app's request to
-    /// this one as `-hello/index.html`.
-    fn strip(&self, path: &str) -> String {
-        let Some(app_id) = self.mount else {
-            return path.to_string();
-        };
-        match path.strip_prefix(app_id) {
-            Some("") => String::new(),
-            Some(rest) if rest.starts_with('/') => rest.trim_start_matches('/').to_string(),
-            _ => path.to_string(),
+            // No manager: plain disk under the responder's own root.
+            _ => self.assets.read_utf8_for(target),
         }
     }
 }
 
-fn serve_response<A: MobileDisk>(reader: &AssetReader<'_, A>, intent: &NavigationIntent) -> Response<Vec<u8>> {
-    let raw = pattern::extract_path(&intent.url).trim_start_matches('/').to_string();
-    let path = reader.strip(&raw);
+fn serve_response<A: MobileDisk>(
+    reader: &AssetReader<'_, A>,
+    intent: &NavigationIntent,
+    decision: &RouteDecision,
+) -> Response<Vec<u8>> {
+    // The router already worked out where this route's prefix ends when it
+    // matched the pattern; `sub_path` is that answer, already normalised —
+    // no leading or trailing slash, and empty when the request is for the
+    // route root. Only fall back to the raw URL when there is none: an
+    // unmounted responder, or one invoked outside the router. Normalise that
+    // the same way so one set of rules covers both.
+    let path = match (&decision.sub_path, reader.mount) {
+        (Some(sub), Some(_)) => sub.clone(),
+        _ => pattern::extract_path(&intent.url).trim_matches('/').to_string(),
+    };
 
-    // Concrete file with extension — serve directly.
-    let file = if Path::new(&path).extension().is_some() {
+    let file = if path.is_empty() {
+        // Nothing left after the prefix: this is the route root, so serve the
+        // entry point. No separate trailing-slash case — `/app` and `/app/`
+        // both normalise to the same empty remainder.
+        "index.html".to_string()
+
+    // A concrete file with an extension — serve exactly that, or 404. Falling
+    // back to index.html here would hand a `.wasm` request an HTML body.
+    } else if Path::new(&path).extension().is_some() {
         path.clone()
 
-    // Directory path ending in / (or the mount root) — serve index.html.
-    } else if path.ends_with('/') || path.is_empty() {
-        format!("{path}index.html")
-
-    // Try {path} as a file, then {path}/index.html, then fall back to
-    // the app's index.html (SPA client-side routing).
+    // Try {path} as a file, then {path}/index.html, then the entry point
+    // (SPA client-side routing).
     } else if reader.read(&path).is_some() {
         path.clone()
     } else {
@@ -135,6 +134,7 @@ fn serve_response<A: MobileDisk>(reader: &AssetReader<'_, A>, intent: &Navigatio
             // Already inside one app — its index is the SPA entry point.
             "index.html".to_string()
         } else {
+            // Unmounted: the first segment names the app, pre-F40 style.
             let root = path.split('/').next().unwrap_or("");
             format!("{root}/index.html")
         }
@@ -169,13 +169,13 @@ impl<A: EmbeddableDirectory + Send + Sync + 'static> RouteResponder for WebviewA
 }
 
 impl<A: MobileDisk + Send + Sync + 'static> RouteResponder for MobileApp<A> {
-    fn respond(&self, intent: &NavigationIntent, _decision: &RouteDecision, session: &PlatformSession) -> Response<Vec<u8>> {
+    fn respond(&self, intent: &NavigationIntent, decision: &RouteDecision, session: &PlatformSession) -> Response<Vec<u8>> {
         let reader = AssetReader {
             assets: &self.assets,
             mount: self.mount.as_deref(),
             manager: session.asset_manager(),
         };
-        serve_response(&reader, intent)
+        serve_response(&reader, intent, decision)
     }
 }
 

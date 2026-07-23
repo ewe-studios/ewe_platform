@@ -723,22 +723,30 @@ pub fn generate_all_manifests(
         return Ok(Vec::new());
     }
 
-    let mut app_dirs = Vec::new();
+    // `(app_id, directory-holding-index.html)`. The build lays `public/` out
+    // as `{app_id}/v{version}/`, but a hand-assembled tree may still be flat,
+    // so both are accepted — the app id is the top-level directory either way.
+    let mut app_dirs: Vec<(String, PathBuf)> = Vec::new();
     let entries = std::fs::read_dir(public_dir).map_err(|e| io_err(public_dir, e))?;
     for entry in entries {
         let entry = entry.map_err(|e| io_err(public_dir, e))?;
         let path = entry.path();
-        if path.is_dir() && path.join("index.html").is_file() {
-            app_dirs.push(path);
+        if !path.is_dir() {
+            continue;
+        }
+        let app_id = entry.file_name().to_string_lossy().to_string();
+
+        let versioned = path.join(format!("v{bundle_version}"));
+        if versioned.join("index.html").is_file() {
+            app_dirs.push((app_id, versioned));
+        } else if path.join("index.html").is_file() {
+            app_dirs.push((app_id, path));
         }
     }
     app_dirs.sort();
 
     let mut manifests = Vec::with_capacity(app_dirs.len());
-    for dir in app_dirs {
-        let app_id = dir
-            .file_name()
-            .map_or_else(String::new, |n| n.to_string_lossy().to_string());
+    for (app_id, dir) in app_dirs {
         manifests.push(generate_app_manifest(
             &dir,
             &app_id,

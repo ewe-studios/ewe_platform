@@ -56,13 +56,19 @@ pub fn generate_platform_code() {
 
     if !apps.is_empty() {
         let public_dir = manifest_dir.join("public");
-        build_all_wasm_apps(&apps, &public_dir);
+        // Each app at its crate's own version: `public/{app_id}/v{version}/`.
+        // Two apps at different versions naturally land in different
+        // directories — no collision, no single version for all.
+        for app in &apps {
+            let version = crate_version(&app.crate_dir);
+            let out = app_version_dir(&public_dir, &app.name, &version);
+            build_wasm_app(&app.crate_dir, &out);
+            prune_stale_public_versions(&public_dir, &app.name, &version);
+        }
         let generated_dir = manifest_dir.join("src").join("generated");
         std::fs::create_dir_all(&generated_dir).ok();
         generate_app_modules(&apps, &generated_dir);
-        // After the bundles exist and before Tauri packages them — the
-        // manifest describes exactly the bytes that ship (F40).
-        generate_app_manifests(&public_dir, &keypair);
+        generate_app_manifests(&public_dir, &apps, &keypair);
     }
 
     // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
@@ -94,35 +100,94 @@ pub fn generate_platform_code() {
             }
         }
         if !shells.is_empty() {
-            let shell_out = manifest_dir.join("shell_wasm");
-            std::fs::create_dir_all(&shell_out).ok();
+            // Surface 3 modules under `public/` in the same versioned shape as
+            // every other app, so Tauri bundles them and an OTA can replace them.
+            let public_dir = manifest_dir.join("public");
             for s in &shells {
-                build_wasmtime_app(&s.crate_dir, &shell_out);
+                let version = crate_version(&s.crate_dir);
+                let out = app_version_dir(&public_dir, &s.name, &version);
+                build_wasmtime_app(&s.crate_dir, &out);
+                prune_stale_public_versions(&public_dir, &s.name, &version);
             }
             let generated_dir = manifest_dir.join("src").join("generated");
             generate_wasmtime_modules(&shells, &generated_dir);
+            generate_app_manifests(&public_dir, &shells, &keypair);
         }
     }
 
     // Patch tauri.conf.json BEFORE tauri_build reads it.
-    // Sets the initial window URL to bypass WebViewAssetLoader.
     if let Some(first) = apps.first() {
         patch_tauri_conf_for_ewe(&manifest_dir, &first.route_prefix);
     } else {
         patch_tauri_conf_for_ewe(&manifest_dir, "/__platform__/");
     }
+    // Derive resources from what the build actually wrote to public/.
+    sync_bundle_resources(&manifest_dir);
 
     tauri_build::build();
 }
 
-/// Build all discovered WASM app bundles.
+/// Read the `version` field from a crate's `Cargo.toml`.
+///
+/// WHY: each app CRATE owns its version independently. `app/Cargo.toml` at
+/// v0.2.0 and `app-hello/Cargo.toml` at v0.1.0 ship to different version
+/// directories. Reading a single version from `tauri.conf.json` is one
+/// version for every app — the pre-app-first design.
+///
+/// Falls back to `0.0.0` when the file is unreadable.
+#[must_use]
+pub fn crate_version(crate_dir: &Path) -> String {
+    std::fs::read_to_string(crate_dir.join("Cargo.toml"))
+        .ok()
+        .and_then(|toml| {
+            toml.lines()
+                .skip_while(|l| !l.trim_start().starts_with("version"))
+                .next()
+                .and_then(|l| l.split('=').nth(1))
+                .map(|v| v.trim().trim_matches(['"', '\''].as_slice()).to_string())
+        })
+        .unwrap_or_else(|| "0.0.0".to_string())
+}
+
+/// Where an app's assets live in `public/`: `public/{app_id}/v{version}/`.
+///
+/// Same shape the asset manager serves from at runtime and the layout Tauri
+/// bundles — one layout end to end, so nothing translates between them.
+#[must_use]
+pub fn app_version_dir(public_dir: &Path, app_id: &str, version: &str) -> PathBuf {
+    public_dir.join(app_id).join(format!("v{version}"))
+}
+
+/// Delete stale version directories for one app under `public/`.
+///
+/// Only `v{semver}` directories other than the current version are touched.
+fn prune_stale_public_versions(public_dir: &Path, app_id: &str, current: &str) {
+    let app_dir = public_dir.join(app_id);
+    let Ok(entries) = std::fs::read_dir(&app_dir) else { return };
+    let current_v = format!("v{current}");
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name == current_v || !entry.path().is_dir() { continue }
+        let is_version_dir = name.strip_prefix('v').is_some_and(|v| {
+            let parts: Vec<&str> = v.split('.').collect();
+            parts.len() == 3 && parts.iter().all(|p| p.parse::<u64>().is_ok())
+        });
+        if is_version_dir {
+            std::fs::remove_dir_all(entry.path()).ok();
+            println!("cargo:warning=removed stale bundle version {app_id}/{name}");
+        }
+    }
+}
+
+/// Build all discovered WASM app bundles, each at its crate's own version.
 ///
 /// # Panics
 ///
 /// Panics if a WASM app build fails.
 pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
     for app in apps {
-        build_wasm_app(&app.crate_dir, &public_dir.join(&app.name));
+        let version = crate_version(&app.crate_dir);
+        build_wasm_app(&app.crate_dir, &app_version_dir(public_dir, &app.name, &version));
     }
 }
 
@@ -136,15 +201,16 @@ pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
 /// # Panics
 ///
 /// Panics if `cargo build` fails or the output directory can't be created.
+/// Build a wasmtime app crate and copy its artefact to `out_dir`.
+///
+/// Explicitly called from `build.rs` — no annotation gate here. The caller
+/// named this crate, and an annotation-based discovery filter belongs in
+/// auto-discovery (`generate_platform_code`), not on explicit calls.
+///
+/// # Panics
+///
+/// Panics if `cargo build` fails or the output artefact is missing.
 pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
-    let apps: Vec<_> = scan_for_annotations(&app_dir.join("src"))
-        .into_iter()
-        .filter(|a| matches!(a.kind, AnnotationKind::WasmApp))
-        .collect();
-    if apps.is_empty() {
-        return;
-    }
-
     println!("cargo:warning=Building wasmtime app: {}", app_dir.display());
 
     let status = std::process::Command::new("cargo")
@@ -158,17 +224,40 @@ pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
         return;
     }
 
-    let name = app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app");
+    let package = wasm_package_name(app_dir);
+    let app_id = app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app");
+
     let wasm_src = app_dir
         .join("target/wasm32-wasip1/release")
-        .join(format!("{name}.wasm"));
-    if wasm_src.exists() {
-        std::fs::create_dir_all(out_dir).ok();
-        let wasm_dst = out_dir.join(format!("{name}.wasm"));
-        std::fs::copy(&wasm_src, &wasm_dst)
-            .unwrap_or_else(|e| panic!("failed to copy wasmtime app to output: {e}"));
-        println!("cargo:warning=wasmtime app copied to {}", wasm_dst.display());
-    }
+        .join(format!("{package}.wasm"));
+    assert!(
+        wasm_src.exists(),
+        "wasmtime app {} built but produced no module at {}. \
+         Expected package name {package:?} — check [package].name in its Cargo.toml.",
+        app_dir.display(), wasm_src.display()
+    );
+
+    std::fs::create_dir_all(out_dir).ok();
+    let wasm_dst = out_dir.join(format!("{app_id}.wasm"));
+    std::fs::copy(&wasm_src, &wasm_dst)
+        .unwrap_or_else(|e| panic!("failed to copy wasmtime app to output: {e}"));
+    println!("cargo:warning=wasmtime app copied to {}", wasm_dst.display());
+}
+
+/// The cargo package name for a crate directory.
+fn wasm_package_name(app_dir: &Path) -> String {
+    std::fs::read_to_string(app_dir.join("Cargo.toml"))
+        .ok()
+        .and_then(|toml| {
+            toml.lines()
+                .skip_while(|l| !l.trim_start().starts_with("name"))
+                .next()
+                .and_then(|l| l.split('=').nth(1))
+                .map(|v| v.trim().trim_matches(['"', '\''].as_slice()).to_string())
+        })
+        .unwrap_or_else(|| {
+            app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app").replace('-', "_")
+        })
 }
 
 /// Build a single WASM app from its crate directory.
@@ -315,7 +404,16 @@ fn ensure_ota_keys(manifest_dir: &Path) -> crate::manifest::KeyPair {
 /// mode to degrade to: a key pair is minted automatically, so the only way to
 /// reach this is a broken build environment, and a bundle whose manifests
 /// cannot be verified is not worth shipping.
-fn generate_app_manifests(public_dir: &Path, keypair: &crate::manifest::KeyPair) {
+/// Write a signed `.ewe_manifest.json` into each app's version directory.
+///
+/// Each app's version comes from its own `Cargo.toml` — `app/` at v0.2.0
+/// and `app-hello/` at v0.1.0 write manifests into different directories,
+/// with their respective versions declared inside the manifest itself.
+fn generate_app_manifests(
+    public_dir: &Path,
+    apps: &[AppDistribution],
+    keypair: &crate::manifest::KeyPair,
+) {
     println!("cargo:rerun-if-env-changed={}", crate::manifest::MANIFEST_DOMAIN_ENV);
 
     assert!(
@@ -326,63 +424,71 @@ fn generate_app_manifests(public_dir: &Path, keypair: &crate::manifest::KeyPair)
         crate::manifest::PRIVATE_KEY_ENV,
     );
 
-    let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".to_string());
     let domain = crate::manifest::manifest_domain_from_env();
 
-    match crate::manifest::generate_all_manifests(public_dir, &version, &domain, keypair) {
-        Ok(manifests) => println!(
-            "cargo:warning=generated {} signed app manifests for v{version}",
-            manifests.len()
-        ),
-        Err(e) => panic!("F40: manifest generation failed: {e}"),
+    for app in apps {
+        let version = crate_version(&app.crate_dir);
+        let dir = app_version_dir(public_dir, &app.name, &version);
+        if !dir.is_dir() {
+            continue;
+        }
+        match crate::manifest::generate_app_manifest(&dir, &app.name, &version, &domain, keypair) {
+            Ok(manifest) => println!(
+                "cargo:warning=signed manifest for {}/v{version} ({} files)",
+                app.name, manifest.apps[0].files.len()
+            ),
+            Err(e) => panic!("F40: manifest generation for {} failed: {e}", app.name),
+        }
     }
 }
 
-/// Generate per-app Rust modules for wasmtime shell apps (F33).
+/// Generate per-app Rust modules for wasmtime shell apps (F33, F40).
 ///
-/// Produces `src/generated/shell/{name}.rs` with a `fn builder() -> WasmtimeBuilder`
-/// that uses `include_bytes!` to embed the compiled `.wasm` binary.
+/// The module is loaded at RUNTIME through the asset manager, not embedded
+/// with `include_bytes!`. An embedded module needs a native rebuild and a
+/// store release to change — the thing F40 exists to remove.
 fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
     let shell_dir = generated_dir.join("shell");
     std::fs::create_dir_all(&shell_dir).ok();
 
-    let mut mod_lines = String::from("// Auto-generated (F33 — wasmtime shell)\n\n");
+    let mut mod_lines = String::from("// Auto-generated (F33 — wasmtime shell, F40 — runtime-loaded)\n\n");
 
     for app in apps {
         let module_name = app.name.replace('-', "_");
-        // Use the crate name directly for the wasm file lookup.
-        let wasm_name = app.crate_dir
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or(&app.name);
+        let app_id = app.name.as_str();
+        let version = crate_version(&app.crate_dir);
         let content = format!(
-            "// Generated — wasmtime shell for \"{name}\" (F33, Surface 3)\n\
+            "// Generated — wasmtime shell for \"{app_id}\" (F33, Surface 3, F40)\n\
              // Route prefix: {route_prefix}\n\
              //\n\
-             // The compiled WASM binary lives in shell_wasm/{wasm_name}.wasm.\n\
-             // Loads via include_bytes! and wraps in a WasmtimeBuilder.\n\n\
+             // The module is bundled at public/{app_id}/v{version}/{app_id}.wasm\n\
+             // and loaded at runtime through the asset manager. That is what\n\
+             // lets an OTA replace it — embedded bytes would need a native\n\
+             // rebuild and a store release to change.\n\n\
+             use foundation_platform::PlatformSession;\n\
              use foundation_wasmtime::WasmtimeBuilder;\n\n\
+             pub const APP_ID: &str = \"{app_id}\";\n\
+             pub const MODULE_FILE: &str = \"{app_id}.wasm\";\n\n\
+             /// Load this shell's module for the app's currently active version.\n\
+             ///\n\
+             /// Returns `None` when the module is absent — a build that did\n\
+             /// not produce it, or an OTA mid-flight. The caller decides\n\
+             /// whether that is fatal.\n\
              #[must_use]\n\
-             pub fn builder() -> WasmtimeBuilder {{\n\
-             \x20   let wasm_bytes: &[u8] = include_bytes!(concat!(\n\
-             \x20       env!(\"CARGO_MANIFEST_DIR\"),\n\
-             \x20       \"/shell_wasm/{wasm_name}.wasm\"\n\
-             \x20   ));\n\
-             \x20   WasmtimeBuilder::new(wasm_bytes).with_name(\"{name}\")\n\
+             pub fn builder(session: &PlatformSession) -> Option<WasmtimeBuilder> {{\n\
+             \x20   let manager = session.asset_manager()?;\n\
+             \x20   let bytes = manager.read_app_file(APP_ID, MODULE_FILE).ok()?;\n\
+             \x20   Some(WasmtimeBuilder::new(bytes).with_name(APP_ID))\n\
              }}\n",
-            name = app.name,
+            app_id = app_id,
             route_prefix = app.route_prefix,
-            wasm_name = wasm_name,
+            version = version,
         );
         std::fs::write(shell_dir.join(format!("{module_name}.rs")), &content).ok();
         let _ = writeln!(mod_lines, "pub mod {module_name};");
     }
     std::fs::write(shell_dir.join("mod.rs"), &mod_lines).ok();
 
-    // Declare `shell` in the parent `generated/mod.rs`. `generate_app_modules`
-    // writes that file first and only knows about the WebView apps, so without
-    // this append the whole `shell/` tree is unreachable — the F33 wasmtime
-    // modules would be generated but never compiled in.
     let parent_mod = generated_dir.join("mod.rs");
     let existing = std::fs::read_to_string(&parent_mod).unwrap_or_default();
     if !existing.contains("pub mod shell;") {
@@ -395,26 +501,118 @@ fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
 
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
     let conf_path = manifest_dir.join("tauri.conf.json");
-    if let Ok(content) = std::fs::read_to_string(&conf_path) {
-        // Parse the JSON, add url to the first window, write back
-        if let Ok(mut val) = serde_json::from_str::<serde_json::Value>(&content) {
-            let target_url = format!("ewe://localhost{route_prefix}");
-            if let Some(windows) = val
-                .get_mut("app")
-                .and_then(|a| a.get_mut("windows"))
-                .and_then(|w| w.as_array_mut())
-                .and_then(|arr| arr.first_mut())
-            {
-                windows["url"] = serde_json::Value::String(target_url);
-                if let Ok(patched) = serde_json::to_string_pretty(&val) {
-                    if patched != content {
-                        std::fs::write(&conf_path, &patched).ok();
-                        println!("cargo:warning=patched tauri.conf.json url");
-                    }
-                }
-            }
+    let Ok(content) = std::fs::read_to_string(&conf_path) else { return };
+    let Ok(mut val) = serde_json::from_str::<serde_json::Value>(&content) else { return };
+    let target_url = format!("ewe://localhost{route_prefix}");
+    if let Some(windows) = val
+        .get_mut("app")
+        .and_then(|a| a.get_mut("windows"))
+        .and_then(|w| w.as_array_mut())
+        .and_then(|arr| arr.first_mut())
+    {
+        windows["url"] = serde_json::Value::String(target_url);
+    }
+    if let Ok(patched) = serde_json::to_string_pretty(&val) {
+        if patched != content {
+            std::fs::write(&conf_path, &patched).ok();
+            println!("cargo:warning=patched tauri.conf.json url");
         }
     }
+}
+
+/// Replace `bundle.resources` public/ entries with [`discover_bundle_entries`]
+/// output, preserving every non-public entry the project authored.
+///
+/// Public so tests can drive the config write without touching disk.
+pub fn replace_bundle_resources(
+    conf: &mut serde_json::Value,
+    entries: &[(String, String, String)],
+) {
+    let Some(bundle) = conf.get_mut("bundle").and_then(serde_json::Value::as_object_mut) else {
+        return;
+    };
+    let mut resources: serde_json::Map<String, serde_json::Value> = bundle
+        .get("resources")
+        .and_then(serde_json::Value::as_object)
+        .map(|existing| {
+            existing
+                .iter()
+                .filter(|(s, _)| !s.starts_with("public/"))
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    for (source, app_id, version) in entries {
+        resources.insert(
+            source.clone(),
+            serde_json::Value::String(format!("{app_id}/v{version}/")),
+        );
+    }
+    bundle.insert("resources".to_string(), serde_json::Value::Object(resources));
+}
+
+/// Derive `bundle.resources` from what `public/` actually contains (F40).
+///
+/// WHY: a second list (the config) is a second thing to keep in sync with the
+/// first (the build output). An app built but absent from the config ships
+/// with no assets — a blank page on device. Reading the directory the build
+/// just wrote means the config describes exactly what exists, with the
+/// version each app actually carries rather than a single version for all.
+///
+/// Returns the app ids registered.
+pub fn sync_bundle_resources(src_tauri_dir: &Path) -> Vec<String> {
+    let conf_path = src_tauri_dir.join("tauri.conf.json");
+    let Ok(content) = std::fs::read_to_string(&conf_path) else { return Vec::new() };
+    let Ok(mut conf) = serde_json::from_str::<serde_json::Value>(&content) else { return Vec::new() };
+
+    let entries = discover_bundle_entries(&src_tauri_dir.join("public"));
+
+    let mut app_ids: Vec<String> = entries.iter().map(|(_, id, _)| id.clone()).collect();
+    app_ids.sort();
+    app_ids.dedup();
+
+    replace_bundle_resources(&mut conf, &entries);
+
+    if let Ok(patched) = serde_json::to_string_pretty(&conf) {
+        if patched != content {
+            std::fs::write(&conf_path, &patched).ok();
+            println!("cargo:warning=registered {} app(s) in bundle.resources: {}",
+                entries.len(), app_ids.join(", "));
+        }
+    }
+    app_ids.sort();
+    app_ids.dedup();
+    app_ids
+}
+
+/// `(source_glob, app_id, version)` for every `{app_id}/v{version}/` under `public/`.
+#[must_use]
+pub fn discover_bundle_entries(public_dir: &Path) -> Vec<(String, String, String)> {
+    let Ok(apps) = std::fs::read_dir(public_dir) else { return Vec::new() };
+    let mut entries = Vec::new();
+    for app in apps.flatten() {
+        if !app.path().is_dir() { continue }
+        let app_id = app.file_name().to_string_lossy().to_string();
+        let Ok(versions) = std::fs::read_dir(app.path()) else { continue };
+        for v in versions.flatten() {
+            let name = v.file_name().to_string_lossy().to_string();
+            let bare = match name.strip_prefix('v') {
+                Some(b) => b.to_string(),
+                None => continue,
+            };
+            if !v.path().is_dir() { continue }
+            let parts: Vec<&str> = bare.split('.').collect();
+            if parts.len() != 3 || parts.iter().any(|p| p.parse::<u64>().is_err()) { continue }
+            entries.push((
+                format!("public/{app_id}/v{bare}/**/*"),
+                app_id.clone(),
+                bare,
+            ));
+        }
+    }
+    entries.sort();
+    entries
 }
 
 #[derive(Debug, Clone)]
@@ -469,6 +667,8 @@ pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
                         Some(AnnotationKind::WasmService)
                     } else if t.starts_with("#[platform_bin") {
                         Some(AnnotationKind::PlatformBin)
+                    } else if t.starts_with("#[wasm_app") {
+                        Some(AnnotationKind::WasmApp)
                     } else {
                         None
                     };

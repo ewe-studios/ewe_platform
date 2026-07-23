@@ -92,10 +92,32 @@ impl Pattern {
 // ── Matching ─────────────────────────────────────────────────────────
 
 impl Pattern {
-    /// Returns the suffix (portion of path after the matched prefix) if
-    /// the pattern matches, or `None` if it doesn't. For `/app/*` matching
-    /// `/app/v1/something`, returns `"v1/something"`. For exact matches
-    /// (no wildcards), returns an empty string.
+    /// The request path **relative to this route's literal prefix**, or
+    /// `None` if the pattern does not match.
+    ///
+    /// WHY: a responder mounted on a route needs to know which part of the URL
+    /// is addressed to *it*. The router is the only thing that knows where a
+    /// route's prefix ends — it just matched the pattern segment by segment —
+    /// so it is the only thing that should compute this. A responder
+    /// re-deriving it by string surgery is a second implementation of prefix
+    /// matching, and `"app-hello".strip_prefix("app")` succeeding is what that
+    /// costs.
+    ///
+    /// The prefix is the pattern's leading run of literal segments. Everything
+    /// after it is the remainder:
+    ///
+    /// ```text
+    /// /app/*        + /app/index.html   -> "index.html"
+    /// /app/*        + /app/a/b          -> "a/b"
+    /// /app          + /app/index.html   -> "index.html"
+    /// /app          + /app/             -> ""
+    /// /api/system   + /api/system       -> ""
+    /// ```
+    ///
+    /// Note this is *not* "whatever the pattern failed to consume". `*`
+    /// consumes a segment, so that reading would drop `index.html` from the
+    /// first line above and leave a responder unable to tell which file was
+    /// asked for.
     #[must_use]
     pub fn match_suffix(&self, path: &str) -> Option<String> {
         let path_segments: Vec<&str> = path
@@ -104,8 +126,15 @@ impl Pattern {
             .filter(|s| !s.is_empty())
             .collect();
 
-        let consumed = self.match_count(&path_segments, 0, 0)?;
-        Some(path_segments[consumed..].join("/"))
+        self.match_count(&path_segments, 0, 0)?;
+
+        let prefix_len = self
+            .segments
+            .iter()
+            .take_while(|s| matches!(s, PatternSegment::Literal(_)))
+            .count()
+            .min(path_segments.len());
+        Some(path_segments[prefix_len..].join("/"))
     }
 
     fn match_count(&self, path: &[&str], seg: usize, pos: usize) -> Option<usize> {

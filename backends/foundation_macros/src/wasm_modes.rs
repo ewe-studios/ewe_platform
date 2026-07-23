@@ -22,6 +22,18 @@ pub(crate) fn wasm_bin(attr: TokenStream, item: TokenStream) -> TokenStream {
     expand_mode("wasm_bin", false, attr, item, true)
 }
 
+/// `#[wasm_app]` — Surface 3 wasmtime entrypoint (F33, F40).
+///
+/// Compile-time marker only. The build pipeline (`scan_for_annotations`)
+/// reads `#[wasm_app` from source text to discover wasm32-wasip1 crates,
+/// compiles them, and bundles the `.wasm` for runtime loading through the
+/// asset manager. The attribute accepts the same keys as `#[wasm_bin]`
+/// (`extern`, `desc`, `js`, etc.) but applies no transformation beyond
+/// `extern = "true"` — the marker is what matters.
+pub(crate) fn wasm_app(attr: TokenStream, item: TokenStream) -> TokenStream {
+    expand_mode("wasm_app", false, attr, item, true)
+}
+
 pub(crate) fn wasm_worker(attr: TokenStream, item: TokenStream) -> TokenStream {
     expand_mode("wasm_worker", false, attr, item, true)
 }

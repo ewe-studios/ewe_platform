@@ -69,58 +69,88 @@ fn builder_ignores_irrelevant_fields() {
     assert!(d2.target.is_none());
 }
 
-// ── MobileDirectory path resolution (F22 codegen wiring) ──────────
+// ── MobileDirectory path resolution (F22 wiring, F40 layout) ──────────
+//
+// These check the *wiring*: that the example's `public/` tree really contains
+// what a request resolves to. They drive the responder rather than
+// re-implementing its path logic inline — a copy of `serve_response` here
+// would keep passing after the real one changed, which is how the previous
+// version of these tests survived the move to versioned directories while
+// asserting a layout that no longer existed.
+
+use foundation_platform::codegen::app_version_dir;
+use foundation_platform::pattern::PatternRouter;
+use foundation_platform::{webview_app, MobileApp, PlatformSession, RouteResponder};
+use foundation_nostd::embeddable::FileInfo;
+use foundation_nostd::mobile::MobileDirectory;
+use foundation_ui_traits::{IntentSource, Method, NavigationIntent};
+
+struct ExampleAssets {
+    root: std::path::PathBuf,
+}
+
+impl MobileDirectory for ExampleAssets {
+    const FILES_METADATA: &'static [FileInfo] = &[];
+    fn root_str(&self) -> &str {
+        self.root.to_str().unwrap_or("")
+    }
+}
+
+fn example_src_tauri() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples/platform_android/src-tauri")
+}
+
+/// Serve `url` from the example's real `public/app/v{version}/` directory.
+fn serve_from_example(url: &str) -> tauri::http::Response<Vec<u8>> {
+    let src_tauri = example_src_tauri();
+    let version = "0.1.0"; // the example crate's version — what crate_version would return
+    let root = app_version_dir(&src_tauri.join("public"), "app", version);
+    assert!(
+        root.is_dir(),
+        "the example must have been built into its versioned layout; missing {root:?}"
+    );
+
+    let intent = NavigationIntent {
+        url: url.to_string(),
+        method: Method::Get,
+        source: IntentSource::LinkClick,
+        referrer: None,
+    };
+
+    let mut router = PatternRouter::new();
+    router.route("/app/*", webview_app());
+    router.route("/app", webview_app());
+    let decision = router
+        .resolve_intent(&intent)
+        .unwrap_or_else(|| panic!("no route matched {url}"));
+
+    // No asset manager: reads go straight to disk under `root`, which is what
+    // makes this a check of the on-disk layout rather than of the VFS.
+    let session = PlatformSession::new_test(src_tauri);
+    MobileApp::mounted_at(ExampleAssets { root }, "app").respond(&intent, &decision, &session)
+}
 
 #[test]
 fn mobile_directory_serves_app_index_html() {
-    use foundation_platform::pattern::extract_path;
-    use std::path::Path;
+    let response = serve_from_example("ewe://localhost/app/");
 
-    // Exact same logic as serve_response + MobileDisk::read_utf8_for.
-    let url = "ewe://localhost/app/";
-    let path = extract_path(url).trim_start_matches('/').to_string();
-    assert_eq!(path, "app/");
-
-    let file = if Path::new(&path).extension().is_some() {
-        path.clone()
-    } else {
-        format!("{path}index.html").trim_start_matches('/').to_string()
-    };
-    assert_eq!(file, "app/index.html");
-
-    // The actual file on disk.
-    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../examples/platform_android/src-tauri/public");
-    let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
-
-    let data = std::fs::read(&location).unwrap();
-    let body = String::from_utf8_lossy(&data);
-    assert!(!body.is_empty(), "index.html should not be empty");
-    assert!(body.contains("<!DOCTYPE html>"), "should contain doctype");
+    assert_eq!(response.status(), 200);
+    let body = String::from_utf8_lossy(response.body()).to_string();
+    assert!(
+        body.contains("<!DOCTYPE html>"),
+        "a directory request must serve the app's entry point, got: {body:.120}"
+    );
 }
 
 #[test]
 fn mobile_directory_serves_app_bundle_js() {
-    use foundation_platform::pattern::extract_path;
-    use std::path::Path;
+    let response = serve_from_example("ewe://localhost/app/bundle.js");
 
-    let url = "ewe://localhost/app/bundle.js";
-    let path = extract_path(url).trim_start_matches('/').to_string();
-    assert_eq!(path, "app/bundle.js");
-
-    let file = if Path::new(&path).extension().is_some() {
-        path.clone()
-    } else {
-        format!("{path}index.html").trim_start_matches('/').to_string()
-    };
-    assert_eq!(file, "app/bundle.js");
-
-    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../examples/platform_android/src-tauri/public");
-    let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
-
-    let data = std::fs::read(&location).unwrap();
-    assert!(!data.is_empty(), "bundle.js should not be empty");
+    assert_eq!(response.status(), 200);
+    assert!(!response.body().is_empty(), "bundle.js should not be empty");
+    assert_eq!(
+        response.headers().get("content-type").and_then(|v| v.to_str().ok()),
+        Some("application/javascript"),
+    );
 }

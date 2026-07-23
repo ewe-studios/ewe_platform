@@ -11,3 +11,4 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
+foundation_macros = { path = "../../../backends/foundation_macros" }

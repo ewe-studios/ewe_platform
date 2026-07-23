@@ -2,12 +2,12 @@
   "schema": 1,
   "source": "apk",
   "manifest_domain": "cdn.ewe.studio",
-  "created_at": "2026-07-23T09:04:39Z",
+  "created_at": "2026-07-23T10:42:39Z",
   "sequence": 0,
   "base_url": "https://cdn.ewe.studio/bundles",
   "rollback_to": null,
   "delete_after": null,
-  "signature": "31ngFB3ZpXL0FQ/3S0+A2f+fU16UDQDhgpT6hhDg31JKkU1CfPX8cFwIiLebkGHKtr10VFxrsHnrK0F5sOf+Cg==",
+  "signature": "5ps3eRjetBCd9WrY2gnIK+GW37hB2iA5DfoK3oyis/+OWaL6IHhPopKOp3PVemdYyg89lNQ3gHRBu7UpXiKKAA==",
   "apps": [
     {
       "app_id": "app",

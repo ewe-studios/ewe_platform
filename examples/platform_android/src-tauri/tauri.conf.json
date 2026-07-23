@@ -3,7 +3,7 @@
     "windows": [
       {
         "height": 600,
-        "title": "Foundation Platform - Android",
+        "title": "Foundation Platform",
         "url": "ewe://localhost/app/",
         "width": 800
       }
@@ -16,8 +16,8 @@
   },
   "bundle": {
     "resources": {
-      "public/app-hello/*": "app-hello/",
-      "public/app/*": "app/"
+      "public/app-hello/v0.1.0/**/*": "app-hello/v0.1.0/",
+      "public/app/v0.1.0/**/*": "app/v0.1.0/"
     }
   },
   "identifier": "com.ewe.platform",

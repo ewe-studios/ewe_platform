@@ -1,21 +1,19 @@
-//! App Shell — Surface 3 WASM module (wasmtime).
+//! App Shell — Surface 3 WASM module (wasmtime, F33).
 //!
 //! Compiles to wasm32-wasip1. The host (foundation_wasmtime) imports
 //! `ewe::log` and calls exported functions directly in-process.
 //!
-//! This is a minimal demo. In production, a #[wasm_app] crate would
-//! handle ewe:// routes, call session APIs through imports, and return
-//! responses through WASM linear memory.
+//! Bundled in `public/app-shell/v{version}/` alongside every other app (F40)
+//! and loaded at runtime through the asset manager — so an OTA can replace
+//! the shell without a native rebuild or a store release.
 
-// Marked with #[wasm_app] so codegen discovers it.
-// (In a real app this would be a proc macro; for now it's a comment
-//  that `build_wasmtime_app` scans for via the `WasmApp` AnnotationKind.)
-
+use foundation_macros::wasm_app;
 use std::io::Write;
 
 /// The host calls this at startup. Writes a greeting to stdout (WASI).
-#[no_mangle]
-pub extern "C" fn init() {
+/// `extern = "true"` tells the macro to emit `#[no_mangle] pub extern "C"`.
+#[wasm_app(extern = "true")]
+fn init() {
     println!("[app-shell] Surface 3: wasmtime shell initialized");
     std::io::stdout().flush().ok();
 }

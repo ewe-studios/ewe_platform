@@ -630,167 +630,29 @@ fn concurrent_reads_and_mutations_stay_consistent() {
     assert_eq!(manager.list_versions("app"), vec!["0.1.3", "0.1.4"]);
 }
 
-// ── Bundle version elision ──────────────────────────────────────────────
+// ── The bundle ships in the layout the VFS asks for ─────────────────────
 //
-// The bundle ships flat: tauri.conf.json maps `public/app/*` to `app/`, so
-// its keys are `app/index.html`. The VFS above asks for
-// `/app/v0.1.0/index.html`, because the version segment is the asset
-// manager's construct and not the bundle's. Without elision every
-// APK-bundled asset resolves to NotFound — which is exactly the bug F40
-// exists to fix, so it gets its own tests.
+// codegen lays `public/` out as `{app_id}/v{version}/` and rewrites
+// `bundle.resources` to match on both sides, so a bundled key IS a VFS path.
+// Nothing translates between them at runtime. These tests pin that down: if
+// the build ever reverts to a flat layout, they fail here rather than as a
+// blank page on device.
 
-/// The Android arrangement with a *flat* bundle, as a real APK provides.
-fn flat_bundle_manager(version: &str, bundle: &[(&str, &str)]) -> PlatformAssetManager {
-    let base = AssetResolverFs::versioned(BundledAssets::new(bundle), version);
-    let overlay = OverlayFileSystem::new(base, MemoryDelta::new());
-    PlatformAssetManager::from_vfs(
-        DynFs::new(Arc::new(overlay)),
-        std::path::PathBuf::from("/data/app"),
-        version,
-        AssetLayout::Versioned,
-        None,
-        None,
-    )
-}
-
-#[test]
-#[traced_test]
-fn a_flat_bundle_key_is_reachable_through_the_version_directory() {
-    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
-
-    assert_eq!(
-        manager.read_app_file("app", "index.html").expect("read"),
-        b"<html>apk</html>".to_vec(),
-        "the APK has no v0.1.0/ segment; without eliding it, nothing bundled \
-         is ever found and every page 404s on a fresh install"
-    );
-}
-
-#[test]
-#[traced_test]
-fn elision_reaches_nested_bundle_paths() {
-    let manager = flat_bundle_manager(
-        "0.1.0",
-        &[("app/nested/deep/dashboard.wasm", "\0asm-bytes")],
-    );
-
-    assert_eq!(
-        manager
-            .read_app_file("app", "nested/deep/dashboard.wasm")
-            .expect("read"),
-        b"\0asm-bytes".to_vec()
-    );
-}
-
-#[test]
-#[traced_test]
-fn elision_applies_only_to_this_bundles_own_version() {
-    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
-
-    assert!(
-        manager.read("/app/v9.9.9/index.html").is_err(),
-        "an OTA'd version directory must never be silently served from the \
-         bundle — that would make a rollback serve the wrong bytes"
-    );
-    assert!(
-        manager.read("/app/v0.2.0/index.html").is_err(),
-        "only the version the bundle actually shipped may be elided"
-    );
-}
-
-#[test]
-#[traced_test]
-fn an_ota_write_still_shadows_the_elided_bundle_copy() {
-    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
-
-    manager
-        .write("/app/v0.1.0/index.html", b"<html>ota</html>")
-        .expect("write to delta");
-
-    assert_eq!(
-        manager.read_app_file("app", "index.html").expect("read"),
-        b"<html>ota</html>".to_vec(),
-        "elision must not bypass the delta layer"
-    );
-}
-
-#[test]
-#[traced_test]
-fn a_flat_bundle_still_lists_its_apps() {
-    let manager = flat_bundle_manager(
-        "0.1.0",
-        &[
-            ("app/index.html", "a"),
-            ("app-hello/index.html", "b"),
-            ("app-settings/index.html", "c"),
-        ],
-    );
-
-    assert_eq!(
-        manager.list_apps(),
-        vec!["app", "app-hello", "app-settings"],
-        "initialize() creates each app's version directory from this list, so \
-         a bundle whose apps are invisible gets no delta directories at all"
-    );
-}
-
-#[test]
-#[traced_test]
-fn a_bundle_file_is_not_mistaken_for_a_version_directory() {
-    let manager = flat_bundle_manager(
-        "0.1.0",
-        &[("app/index.html", "a"), ("app/vendor.js", "b")],
-    );
-
-    assert_eq!(
-        manager.list_versions("app"),
-        vec!["0.1.0"],
-        "the bundle provides exactly one version — its own — and `vendor.js` \
-         starts with `v` but is neither a directory nor semver; counting it \
-         would put a file on the prune list"
-    );
-}
-
-#[test]
-#[traced_test]
-fn the_bundle_presents_a_self_consistent_version_directory() {
-    // If `exists()` says the version directory is there, `list()` has to show
-    // it — otherwise `mkdir_all` skips creating the delta (the path already
-    // "exists") while `list_versions` reports none, and no app ever gets a
-    // writable directory to receive an OTA.
-    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html/>")]);
-
-    assert!(
-        manager.exists("/app/v0.1.0").expect("exists"),
-        "the bundle's content is reachable at this path"
-    );
-    assert_eq!(
-        manager.list_versions("app"),
-        vec!["0.1.0"],
-        "…so the parent listing must agree that it is there"
-    );
-}
-
-// ── End-to-end: the Android launch sequence ─────────────────────────────
-
-/// The exact key shape a real APK produces.
-///
-/// `tauri.conf.json` in `examples/platform_android` declares:
-///   "public/app/*"       -> "app/"
-///   "public/app-hello/*" -> "app-hello/"
-/// so the bundle's keys carry no version segment at all.
+/// The key shape a real APK produces once `bundle.resources` is patched:
+///   "public/app/v0.1.0/*"       -> "app/v0.1.0/"
+///   "public/app-hello/v0.1.0/*" -> "app-hello/v0.1.0/"
 const REAL_APK_KEYS: &[(&str, &str)] = &[
-    ("app/index.html", "<html>app v0.1.0</html>"),
-    ("app/bundle.js", "console.log('app')"),
-    ("app/platform_dashboard.wasm", "\0asm-dashboard"),
-    ("app-hello/index.html", "<html>hello v0.1.0</html>"),
-    ("app-hello/hello.js", "console.log('hello')"),
+    ("app/v0.1.0/index.html", "<html>app v0.1.0</html>"),
+    ("app/v0.1.0/bundle.js", "console.log('app')"),
+    ("app/v0.1.0/nested/deep/dashboard.wasm", "\0asm-dashboard"),
+    ("app/v0.1.0/.ewe_manifest.json", "{}"),
+    ("app-hello/v0.1.0/index.html", "<html>hello v0.1.0</html>"),
 ];
 
-/// Reproduce `initialize()` for Android: versioned base over a writable
-/// delta, then the startup step that creates each app's delta directory.
-fn android_launch(bundle_version: &str) -> PlatformAssetManager {
-    let base = AssetResolverFs::versioned(BundledAssets::new(REAL_APK_KEYS), bundle_version);
+/// Reproduce `initialize()` for Android: the bundle as a read-only base over
+/// a writable delta, then the startup step that creates the delta directories.
+fn android_launch(bundle_version: &str, keys: &[(&str, &str)]) -> PlatformAssetManager {
+    let base = AssetResolverFs::new(BundledAssets::new(keys));
     let overlay = OverlayFileSystem::new(base, MemoryDelta::new());
     let manager = PlatformAssetManager::from_vfs(
         DynFs::new(Arc::new(overlay)),
@@ -807,28 +669,52 @@ fn android_launch(bundle_version: &str) -> PlatformAssetManager {
 #[test]
 #[traced_test]
 fn android_first_launch_serves_every_bundled_file_without_extracting_anything() {
-    let manager = android_launch("0.1.0");
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
 
-    // This is the assertion the whole feature exists for. Before F40 each of
-    // these was "Not Found: index.html" on device.
+    // The assertion the whole feature exists for. Before F40 each of these
+    // was "Not Found: index.html" on device.
     for (app, file, expected) in [
         ("app", "index.html", "<html>app v0.1.0</html>"),
         ("app", "bundle.js", "console.log('app')"),
-        ("app", "platform_dashboard.wasm", "\0asm-dashboard"),
+        ("app", "nested/deep/dashboard.wasm", "\0asm-dashboard"),
         ("app-hello", "index.html", "<html>hello v0.1.0</html>"),
-        ("app-hello", "hello.js", "console.log('hello')"),
     ] {
         let bytes = manager
             .read_app_file(app, file)
-            .unwrap_or_else(|e| panic!("{app}/{file} must resolve through the APK base: {e}"));
+            .unwrap_or_else(|e| panic!("{app}/{file} must resolve through the bundle: {e}"));
         assert_eq!(String::from_utf8_lossy(&bytes), expected, "{app}/{file}");
     }
 }
 
 #[test]
 #[traced_test]
-fn android_app_root_is_the_versioned_delta_directory() {
-    let manager = android_launch("0.1.0");
+fn the_bundled_key_is_the_vfs_path_with_nothing_in_between() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
+
+    // Same bytes reachable by the raw VFS path and by the app-relative one:
+    // proof there is no translation step that could disagree between them.
+    assert_eq!(
+        manager.read("/app/v0.1.0/index.html").expect("raw VFS path"),
+        manager.read_app_file("app", "index.html").expect("app-relative"),
+    );
+}
+
+#[test]
+#[traced_test]
+fn a_version_the_bundle_does_not_carry_is_not_served_from_it() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
+
+    assert!(
+        manager.read("/app/v9.9.9/index.html").is_err(),
+        "only the version actually bundled may be served — otherwise a \
+         rollback to an OTA'd version would show the shipped bytes instead"
+    );
+}
+
+#[test]
+#[traced_test]
+fn android_app_root_is_the_versioned_directory() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
 
     assert_eq!(
         manager.app_root("app"),
@@ -842,35 +728,38 @@ fn android_app_root_is_the_versioned_delta_directory() {
 
 #[test]
 #[traced_test]
-fn android_startup_creates_a_delta_directory_per_app_and_nothing_else() {
-    let manager = android_launch("0.1.0");
+fn the_bundles_own_version_is_listed_without_anything_synthesising_it() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
 
-    assert_eq!(
-        manager.list_apps(),
-        vec!["app", "app-hello"],
-        "the app list comes from the APK base, which is how the delta \
-         directories get created at all"
-    );
+    assert_eq!(manager.list_apps(), vec!["app", "app-hello"]);
     for app in ["app", "app-hello"] {
         assert_eq!(
             manager.list_versions(app),
             vec!["0.1.0"],
-            "{app}: the version directory must exist after startup"
-        );
-        assert!(
-            !manager
-                .exists(&format!("/{app}/v0.1.0/index.html"))
-                .expect("exists")
-                || manager.read_app_file(app, "index.html").is_ok(),
-            "{app}: the delta holds no extracted copy — reads fall through to the APK"
+            "{app}: the version directory is a real directory in the bundle, \
+             so listing it needs no special case"
         );
     }
 }
 
 #[test]
 #[traced_test]
-fn android_ota_writes_a_new_version_that_shadows_the_apk_for_one_app_only() {
-    let manager = android_launch("0.1.0");
+fn every_bundled_version_directory_carries_its_manifest() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
+
+    assert!(
+        manager
+            .exists("/app/v0.1.0/.ewe_manifest.json")
+            .expect("exists"),
+        "build.rs writes the manifest inside the version directory, so it is \
+         bundled with the files it describes"
+    );
+}
+
+#[test]
+#[traced_test]
+fn android_ota_writes_a_new_version_that_shadows_the_bundle_for_one_app_only() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
 
     // An OTA ships v0.1.1 of "app" alone.
     manager
@@ -889,14 +778,36 @@ fn android_ota_writes_a_new_version_that_shadows_the_apk_for_one_app_only() {
     assert_eq!(
         String::from_utf8_lossy(&manager.read_app_file("app-hello", "index.html").expect("read")),
         "<html>hello v0.1.0</html>",
-        "the other app keeps serving its APK copy at its own version"
+        "the other app keeps serving its bundled copy at its own version"
+    );
+    assert_eq!(
+        manager.list_versions("app"),
+        vec!["0.1.0", "0.1.1"],
+        "the bundled version and the OTA'd one coexist — that is what makes \
+         rollback instant"
     );
 }
 
 #[test]
 #[traced_test]
-fn android_rollback_returns_to_the_apk_version_instantly() {
-    let manager = android_launch("0.1.0");
+fn an_ota_write_over_the_bundled_version_shadows_it() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
+
+    manager
+        .write("/app/v0.1.0/index.html", b"<html>patched</html>")
+        .expect("in-place OTA");
+
+    assert_eq!(
+        String::from_utf8_lossy(&manager.read_app_file("app", "index.html").expect("read")),
+        "<html>patched</html>",
+        "the delta must win over the bundled copy"
+    );
+}
+
+#[test]
+#[traced_test]
+fn android_rollback_returns_to_the_bundled_version_instantly() {
+    let manager = android_launch("0.1.0", REAL_APK_KEYS);
     manager
         .write("/app/v0.1.1/index.html", b"<html>bad release</html>")
         .expect("OTA write");
@@ -907,17 +818,19 @@ fn android_rollback_returns_to_the_apk_version_instantly() {
     assert_eq!(
         String::from_utf8_lossy(&manager.read_app_file("app", "index.html").expect("read")),
         "<html>app v0.1.0</html>",
-        "rolling back to the APK version needs no download — the bytes never \
-         left the bundle"
+        "rolling back to the shipped version needs no download — the bytes \
+         never left the bundle"
     );
 }
 
 #[test]
 #[traced_test]
-fn an_apk_upgrade_serves_the_new_version_from_the_bundle() {
-    // The same delta is carried across, but the binary now declares 0.2.0
-    // and its bundle contains 0.2.0's files.
-    let upgraded = android_launch("0.2.0");
+fn an_apk_upgrade_serves_the_new_version_from_the_new_bundle() {
+    // A newer binary ships a bundle whose keys carry the new version.
+    let upgraded = android_launch(
+        "0.2.0",
+        &[("app/v0.2.0/index.html", "<html>app v0.2.0</html>")],
+    );
 
     assert_eq!(
         upgraded.app_root("app"),
@@ -925,13 +838,11 @@ fn an_apk_upgrade_serves_the_new_version_from_the_bundle() {
     );
     assert_eq!(
         String::from_utf8_lossy(&upgraded.read_app_file("app", "index.html").expect("read")),
-        "<html>app v0.1.0</html>",
-        "the fixture's bytes are unchanged; what matters is that elision now \
-         tracks v0.2.0, so the new bundle is reachable at the new version"
+        "<html>app v0.2.0</html>",
     );
     assert!(
         upgraded.read("/app/v0.1.0/index.html").is_err(),
-        "the previous version must no longer be served from the bundle — only \
-         from a delta directory, if one survived"
+        "the previous version is no longer in the bundle; it can only come \
+         from a delta directory that survived the upgrade"
     );
 }

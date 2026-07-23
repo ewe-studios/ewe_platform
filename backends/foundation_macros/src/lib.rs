@@ -900,6 +900,21 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_modes::wasm_service(attr.into(), item.into()).into()
 }
 
+/// `#[wasm_app]` — Surface 3 wasmtime entrypoint (F33, F40).
+///
+/// Compile-time marker. The build pipeline (`scan_for_annotations`) discovers
+/// crates carrying this attribute, compiles them to `wasm32-wasip1`, and
+/// bundles the `.wasm` in `public/{app_id}/v{version}/` alongside every other
+/// app — so the same `bundle.resources` + overlay VFS path serves both
+/// surfaces, and an OTA can replace either without a native rebuild.
+///
+/// Accepts the same keys as `#[wasm_bin]` (F10): `extern`, `desc`, `js`, etc.
+/// The marker is what the scanner reads; the keys are for future use.
+#[proc_macro_attribute]
+pub fn wasm_app(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_modes::wasm_app(attr.into(), item.into()).into()
+}
+
 // ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
 
 /// `#[service]` — code-first `ConnectRPC` (Decision 10 Mode 3).
