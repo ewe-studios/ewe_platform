@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.1"
+version = "0.1.0"
 
 [dependencies]
 base85rs = "0.1"
@@ -22,7 +22,7 @@ version = "0.0.3"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
@@ -72,7 +72,7 @@ workspace = true
 [package]
 description = "Hetzner Cloud API v1 client — VPS provisioning and SSH keys"
 name = "foundation_deployment_hetzner"
-version = "0.1.1"
+version = "0.1.2"
 
 [package.authors]
 workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_platform"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version.workspace = true
 license.workspace = true
@@ -19,10 +19,10 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
 # injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1", optional = true, default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.2", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.0", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.1", features = ["docker"] }
 
 # Async utilities
 futures-lite = "2"
@@ -58,7 +58,7 @@ which = { version = "7", optional = true }
 base64 = "0.22"
 portpicker = { version = "0.1", optional = true }
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", optional = true }
+foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.1", optional = true }
 
 [features]
 default = ["docker", "wireguard"]

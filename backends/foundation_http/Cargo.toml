@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -55,7 +55,7 @@ web-sys = { version = "0.3", features = [
 foundation_db = { path = "../foundation_db", version = "0.0.3", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.2" }
 foundation_testing = { path = "../foundation_testing", version = "0.0.2" }
 # `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }

@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.1"
+version = "0.1.0"
 
 [dependencies]
 base85rs = "0.1"
@@ -21,7 +21,7 @@ version = "0.0.5"
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies.foundation_errstacks]
 path = "../foundation_errstacks"
@@ -215,7 +215,7 @@ workspace = true
 [package]
 description = "Cloudflare API v4 client — DNS records, zones, certificates"
 name = "foundation_deployment_cloudflare"
-version = "0.1.1"
+version = "0.1.2"
 
 [package.authors]
 workspace = true

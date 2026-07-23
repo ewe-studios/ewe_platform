@@ -13,7 +13,7 @@ keywords.workspace = true
 foundation_core = { path = "../foundation_core", version = "0.0.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.3", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.3", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.2", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)

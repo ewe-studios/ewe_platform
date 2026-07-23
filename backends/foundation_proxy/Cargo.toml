@@ -1,6 +1,6 @@
 [package]
 name = "foundation_proxy"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,13 +11,13 @@ description = "Reverse proxy — SSL termination, zero-downtime deploys, health-
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["multi"] }
-foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.2", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.3", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.2", features = ["fd"] }
 foundation_db = { path = "../foundation_db", version = "0.0.3" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
-foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.1", optional = true }
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.2", optional = true }
 
 serde.workspace = true
 serde_json.workspace = true
@@ -39,7 +39,7 @@ rcgen = { version = "0.13", default-features = false, features = ["ring", "pem",
 futures-lite = "2"
 
 [dev-dependencies]
-foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.1" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.

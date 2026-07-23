@@ -4546,13 +4546,13 @@ dependencies = [
 
 [[package]]
 name = "foreign-types-macros"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a5c6c585bc94aaf2c7b51dd4c2ba22680844aba4c687be581871a6f518c5742"
+checksum = "ea5190182e6915eb873ddbc16e23b711b6eb1f9c00a0d0a3a91b5f6228475225"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.3",
 ]
 
 [[package]]
@@ -4683,7 +4683,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth_ui"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "foundation_signals",
@@ -4696,7 +4696,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -4719,7 +4719,7 @@ version = "0.0.1"
 
 [[package]]
 name = "foundation_cedar"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "cedar-policy",
  "derive_more",
@@ -4803,7 +4803,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -4873,7 +4873,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cronjobs"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "async-trait",
  "chrono",
@@ -4918,7 +4918,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base85rs",
  "chrono",
@@ -4944,7 +4944,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_cloudflare"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base85rs",
  "chrono",
@@ -4967,7 +4967,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_digitalocean"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base85rs",
  "chrono",
@@ -4987,7 +4987,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_docker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "buffa",
@@ -5020,7 +5020,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_hetzner"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base85rs",
  "chrono",
@@ -5064,7 +5064,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_platform"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5115,7 +5115,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_html"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "anyhow",
  "criterion",
@@ -5138,7 +5138,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5198,7 +5198,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "age",
  "base32",
@@ -5393,7 +5393,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_packager"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "cargo_toml 0.20.5",
  "derive_more",
@@ -5432,7 +5432,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_proxy"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -5491,7 +5491,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_shell"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -5510,7 +5510,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "foundation_ui_traits",
@@ -5521,7 +5521,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_sshkit"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -5537,7 +5537,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testbed"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "clap",
@@ -5606,7 +5606,7 @@ version = "0.0.2"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "concurrent-queue",
  "derive_more",
@@ -5712,7 +5712,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wireguard"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",
@@ -8199,9 +8199,9 @@ dependencies = [
 
 [[package]]
 name = "libgit2-sys"
-version = "0.18.5+1.9.4"
+version = "0.18.7+1.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "005d6ae6eac1912906073e069f7db60b1fa98e052a68227824afe3e3a1c59ca2"
+checksum = "23c7391e4b9f4ffab1a624223cc1d7385ff9a678f490768add717de7ea2f4d89"
 dependencies = [
  "cc",
  "libc",

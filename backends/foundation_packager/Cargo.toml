@@ -1,6 +1,6 @@
 [package]
 name = "foundation_packager"
-version = "0.1.1"
+version = "0.1.2"
 description = "File generation and templating stack — creates projects from embedded templates with minijinja/tinytemplate support"
 edition.workspace = true
 rust-version.workspace = true

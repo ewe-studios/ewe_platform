@@ -21,7 +21,7 @@ foundation_wasm = { path = "../foundation_wasm", version = "0.0.4", features = [
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
 # The reactive layer this runtime bridges to the DOM (decision 012 diagram:
 # foundation_wasm_ui depends on BOTH signals and wasm).
-foundation_signals = { path = "../foundation_signals", version = "0.0.1" }
+foundation_signals = { path = "../foundation_signals", version = "0.0.2" }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }

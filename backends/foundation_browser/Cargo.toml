@@ -1,6 +1,6 @@
 [package]
 name = "foundation_browser"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,7 +17,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.5", features = [
 foundation_netio = { path = "../foundation_netio", version = "0.0.3", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.
-foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["ssl-rustls-ring"] }
+foundation_http = { path = "../foundation_http", version = "0.0.2", features = ["ssl-rustls-ring"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we

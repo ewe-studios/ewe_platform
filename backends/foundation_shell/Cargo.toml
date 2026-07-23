@@ -1,6 +1,6 @@
 [package]
 name = "foundation_shell"
-version = "0.0.1"
+version = "0.0.2"
 description = "A nushell integrated library for integrating nushell as a library in any project"
 edition.workspace = true
 rust-version.workspace = true

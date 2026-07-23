@@ -9,7 +9,7 @@ repository.workspace = true
 keywords = ["cloudflare", "wasm", "login", "example"]
 
 [dependencies]
-foundation_db = { path = "../../backends/foundation_db", version = "0.0.1", default-features = false, features = ["wasm", "wasm-bindgen-storage", "workers-rs"] }
+foundation_db = { path = "../../backends/foundation_db", version = "0.0.3", default-features = false, features = ["wasm", "wasm-bindgen-storage", "workers-rs"] }
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.5", features = ["js-wasmbindgen"] }
 foundation_auth = { path = "../../backends/foundation_auth", version = "0.0.2", default-features = false, features = ["wasm", "wasm-bindgen-session"] }
 
