@@ -10,6 +10,45 @@ use crate::injector::{InjectedScript, ScriptInjector, ScriptInjectorPlugin};
 use crate::route_handler::RouteResponder;
 use crate::session::PlatformSession;
 
+/// On Android, Tauri's `resource_dir()` returns `asset://localhost/` — a content
+/// URI, not a real filesystem path. `std::fs::read()` can't use it. We extract
+/// `bundle.resources` from the APK into AppData so `MobileDirectory` responders
+/// can serve files via `std::fs::read()` as they do on desktop.
+///
+/// Returns the `resource_root` that should be used — on desktop it's the original
+/// `resource_dir()`, on Android it's the AppData directory with extracted files.
+fn resolve_resource_root<R: Runtime>(app: &App<R>) -> PathBuf {
+    let resource_root = app
+        .path()
+        .resource_dir()
+        .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
+
+    // Desktop / dev: resource_dir is a real filesystem path.
+    if resource_root.exists() && resource_root.is_dir() {
+        return resource_root;
+    }
+
+    // Mobile: resource_dir is a content URI — extract assets to AppData.
+    let app_data = app
+        .path()
+        .app_data_dir()
+        .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
+
+    let resolver = app.asset_resolver();
+    for asset_entry in resolver.iter() {
+        let asset_key: String = (*asset_entry.0).to_string();
+        let dest = app_data.join(&asset_key);
+        if let Some(parent) = dest.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Some(asset) = resolver.get(asset_key) {
+            let _ = std::fs::write(&dest, &asset.bytes);
+        }
+    }
+
+    app_data
+}
+
 struct RouteEntry {
     pattern: String,
     decision: foundation_ui_traits::RouteDecision,
@@ -128,10 +167,7 @@ impl<R: Runtime> PlatformBuilder<R> {
         let script_injector = std::mem::take(&mut self.script_injector);
 
         self.inner = self.inner.setup(move |app| {
-            let resource_root = app
-                .path()
-                .resource_dir()
-                .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
+            let resource_root = resolve_resource_root(app);
 
             // Use resolved resource root if none set explicitly
             let injector = if script_injector.resource_root == PathBuf::new() {
