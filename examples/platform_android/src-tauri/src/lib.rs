@@ -345,25 +345,20 @@ impl RouteResponder for PresentationDemoPage {
 <p>Stack: <b>{depth}</b> slots · Active: <b>{active}</b></p>
 <p>Session: <b>{session_id}</b></p>
 <h2>All 6 Presentation Modes</h2>
-<button onclick="nav('push','/nav_push')">Push — new slot + screenshot old</button>
-<button onclick="nav('modal','/nav_modal')">Modal — new slot like Push</button>
-<button onclick="nav('morph','/nav_morph')">Morph — in-place DOM swap</button>
-<button onclick="nav('replace','/nav_replace')">Replace — swap current slot</button>
-<button onclick="nav('root','/nav_root')">Root — clear stack + new root</button>
-<button onclick="nav('external','https://github.com')">External — system browser</button>
+<a href="ewe://localhost/nav_push">Push — new slot + screenshot old</a>
+<a href="ewe://localhost/nav_modal">Modal — new slot like Push</a>
+<a href="ewe://localhost/nav_morph">Morph — in-place DOM swap</a>
+<a href="ewe://localhost/nav_replace">Replace — swap current slot</a>
+<a href="ewe://localhost/nav_root">Root — clear stack + new root</a>
+<a href="https://github.com">External — system browser</a>
 <h2>Navigation Tests</h2>
-<button onclick="nav('push','/app/')">Push: WASM App</button>
-<button onclick="nav('push','/app-hello/')">Push: Hello App</button>
-<button onclick="nav('push','/api/invoke')">Push: IPC Invoke</button>
+<a href="ewe://localhost/app/">Push: WASM App</a>
+<a href="ewe://localhost/app-hello/">Push: Hello App</a>
+<a href="ewe://localhost/api/invoke">Push: IPC Invoke</a>
 <button onclick="history.back()">← Back (pop)</button>
 <h2>Stack State</h2>
 <pre id="stack" style="font-size:11px">Loading...</pre>
 <script>
-function nav(mode,url) {{
-    var ewe = 'ewe://localhost' + (url.startsWith('http') ? '' : '') + url;
-    if (url.startsWith('http')) ewe = url;
-    location.href = ewe;
-}}
 setInterval(function(){{
     document.getElementById('stack').textContent =
         'Depth: <stack_depth>' + ' · Mode: <last_mode>';
