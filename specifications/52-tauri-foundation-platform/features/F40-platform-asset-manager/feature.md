@@ -1075,9 +1075,10 @@ test harness.
 
 | File | Tests |
 |------|-------|
-| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — `PlatformAssetManager` initialization, extraction idempotency, version listing, activation, pruning, desktop path resolution |
-| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — `OtaManifest` deserialization with `rollback_to`/`delete_after`, domain rejection, version directory writes, in-place vs new-version OTA paths |
-| `backends/foundation_nostd/tests/mobile_directory_suite.rs` | **NEW** — `MobileDirectory` trait methods, derive macro output validation |
+| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — 30+ tests using `MemoryFs`: overlay semantics, version management, concurrency |
+| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — 30+ tests: manifest signing, domain validation, replay detection, rollback, VFS writes |
+| `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — 20+ tests: path traversal, version sanitization, manifest security, audit events |
+| `backends/foundation_platform/tests/manifest_suite.rs` | **NEW** — 15+ tests: key generation, manifest generation, sha256 hashing, signing, verification, build.rs integration |
 
 #### assets_suite.rs test matrix
 
@@ -1152,10 +1153,6 @@ manifest_unsigned_when_no_key_baked_is_accepted
 manifest_source_apk_accepted_without_signature
 manifest_source_ota_rejected_without_signature_when_key_baked
 manifest_signature_key_derived_from_environment_seed
-codegen_generates_manifest_per_app
-codegen_manifest_contains_sha256_per_file
-codegen_manifest_source_is_apk
-codegen_manifest_sequence_is_zero
 manifest_sequence_equal_to_stored_is_rejected_as_replay
 manifest_sequence_less_than_stored_is_rejected_as_replay
 manifest_sequence_greater_than_stored_is_accepted
@@ -1216,6 +1213,59 @@ audit_fs_emits_exists_event
 audit_fs_no_overhead_when_feature_disabled
 ```
 
+#### manifest_suite.rs test matrix (NEW)
+
+```
+// ── Key generation ──
+ensure_keys_creates_public_key_on_first_call
+ensure_keys_creates_private_key_on_first_call
+ensure_keys_creates_gitignore_on_first_call
+ensure_keys_is_idempotent_does_not_regenerate
+ensure_keys_reads_existing_keys_without_modification
+ensure_keys_prints_warning_when_private_key_missing
+ensure_keys_loads_private_key_from_env_var
+ensure_keys_env_var_overrides_file
+
+// ── Manifest generation ──
+generate_app_manifest_scans_all_files_recursively
+generate_app_manifest_computes_sha256_for_each_file
+generate_app_manifest_computes_size_for_each_file
+generate_app_manifest_writes_dot_ewe_manifest_json
+generate_app_manifest_skips_dot_files_except_manifest
+generate_app_manifest_sets_source_to_apk
+generate_app_manifest_sets_sequence_to_zero
+generate_app_manifest_signs_when_private_key_available
+generate_app_manifest_skips_signature_when_no_private_key
+generate_all_manifests_processes_every_app_subdirectory
+generate_all_manifests_skips_directories_without_index_html
+
+// ── Signing ──
+sign_manifest_produces_valid_ed25519_signature
+verify_manifest_accepts_valid_signature
+verify_manifest_rejects_invalid_signature
+verify_manifest_rejects_tampered_json
+verify_manifest_rejects_wrong_public_key
+sign_then_verify_roundtrip
+
+// ── File hash verification ──
+verify_file_hash_matches_declared_sha256
+verify_file_hash_rejects_mismatched_bytes
+verify_file_hash_returns_false_for_unknown_file
+verify_file_hash_returns_false_for_unknown_app
+
+// ── build.rs integration ──
+build_rs_calls_ensure_keys_before_manifest_generation
+build_rs_calls_generate_all_manifests_with_correct_params
+build_rs_uses_cargo_pkg_version_from_env
+build_rs_uses_ewe_manifest_domain_from_env_or_default
+
+// ── CLI (integration) ──
+cli_init_keys_idempotent
+cli_generate_manifests_creates_manifest_files
+cli_sign_manifest_outputs_valid_signature
+cli_verify_manifest_reports_valid_or_invalid
+```
+
 
 ### 6. Android example cleanup
 - Remove `embedded_apps.rs` if it exists
@@ -1232,14 +1282,117 @@ audit_fs_no_overhead_when_feature_disabled
 - `initialize()` on desktop is a no-op
 - All existing behavior preserved
 
-### 11. Key directory and auto-generation
+### 11. Manifest machinery: library API, CLI wrapper, and build.rs integration
 
-Every ewe workspace has a canonical key directory: **`keys/`** at the
-workspace root (alongside `Cargo.toml`). The codegen auto-generates the
-key pair on first use so the developer doesn't need to find or generate
-one manually.
+The manifest generation, signing, and key management functions live as a
+**library API** in `foundation_platform` behind `#[cfg(not(wasm32))]`. Both
+the CLI and every project's `build.rs` call the same API — the CLI is just a
+thin wrapper. This means `cargo build` automatically generates manifests,
+hashes, and key pairs without any manual steps.
 
-#### Directory layout
+#### Library API (`backends/foundation_platform/src/manifest.rs`)
+
+```rust
+/// Target-gated: available in build scripts and CLI, not in wasm32 or mobile.
+#[cfg(not(wasm32))]
+pub mod manifest {
+    use std::path::Path;
+
+    /// Ensure the OTA key pair exists at `keys/`. If the public key is missing,
+    /// generate a fresh Ed25519 key pair, write both files, create .gitignore.
+    /// If the public key exists, read it and derive the private key (if present).
+    ///
+    /// Prints a warning if no private key is found (CI/CD should set the env var).
+    pub fn ensure_keys(workspace_root: &Path) -> Result<KeyPair, ManifestError>;
+
+    /// Generate a manifest for an app directory. Scans all files recursively,
+    /// computes sha256 and size for each, builds the manifest JSON, and writes
+    /// it as `{app_dir}/.ewe_manifest.json`.
+    ///
+    /// If a private key is available (from file or EWE_OTA_PRIVATE_KEY env var),
+    /// the manifest is signed. Otherwise, signature is null.
+    pub fn generate_app_manifest(
+        app_dir: &Path,
+        app_id: &str,
+        bundle_version: &str,
+        manifest_domain: &str,
+        keypair: Option<&KeyPair>,
+    ) -> Result<Manifest, ManifestError>;
+
+    /// Generate manifests for ALL apps in `public/` (one per subdirectory).
+    /// Calls `generate_app_manifest` for each directory that contains an
+    /// index.html. This is what build.rs calls before the Tauri build.
+    pub fn generate_all_manifests(
+        public_dir: &Path,
+        bundle_version: &str,
+        manifest_domain: &str,
+        keypair: Option<&KeyPair>,
+    ) -> Result<Vec<Manifest>, ManifestError>;
+
+    /// Verify a manifest's Ed25519 signature against a public key.
+    pub fn verify_manifest(
+        manifest_json: &str,
+        public_key: &[u8; 32],
+    ) -> Result<Manifest, ManifestError>;
+
+    /// Sign a manifest JSON string with an Ed25519 private key seed.
+    /// Returns the signature as a base64 string.
+    pub fn sign_manifest(
+        manifest_json: &str,
+        private_key_seed: &[u8; 32],
+    ) -> String;
+
+    /// Verify a single file's sha256 against the manifest's declared hash.
+    pub fn verify_file_hash(manifest: &Manifest, app_id: &str, path: &str, bytes: &[u8]) -> bool;
+}
+```
+
+#### `build.rs` integration — automatic, zero-config
+
+Every ewe project's `build.rs` calls the API as a build-dependency:
+
+```rust
+// In the project's build.rs (generated by codegen template):
+fn main() {
+    // 1. Ensure key pair exists (auto-generates on first build).
+    let keypair = foundation_platform::manifest::ensure_keys(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    ).ok();
+
+    // 2. Generate manifests for all apps in public/.
+    let version = env!("CARGO_PKG_VERSION");
+    let domain = option_env!("EWE_MANIFEST_DOMAIN").unwrap_or("cdn.ewe.studio");
+    foundation_platform::manifest::generate_all_manifests(
+        std::path::Path::new("public"),
+        version,
+        domain,
+        keypair.as_ref(),
+    ).expect("failed to generate app manifests");
+
+    // 3. Continue with Tauri build.
+    tauri_build::build();
+}
+```
+
+The `build.rs` runs before every `cargo tauri build`. On first build:
+keys are generated if missing, manifests are computed with sha256 hashes,
+and `.ewe_manifest.json` files are written into each app's `public/`
+directory. On subsequent builds: manifests are regenerated (hashes may
+change if files changed), keys are not regenerated (already exist).
+
+The `build.rs` template is generated by `codegen.rs` (F11/F19) and lives
+in every ewe project. Projects that customize it can add extra steps
+before or after the manifest generation call.
+
+#### Variables
+
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `EWE_MANIFEST_DOMAIN` | env (build time) | CDN domain; defaults to `"cdn.ewe.studio"` |
+| `EWE_OTA_PRIVATE_KEY` | env (CI/CD or local) | Overrides `keys/ota_private.key` |
+| `CARGO_PKG_VERSION` | Cargo built-in | Bundle version (from `Cargo.toml`) |
+
+#### Key directory layout
 
 ```
 keys/
@@ -1249,117 +1402,55 @@ keys/
 ```
 
 `ota_public.key` is **committed to git** — it's baked into every APK build.
-`ota_private.key` is **never committed** — the codegen adds it to `.gitignore`.
-In CI/CD, the private key comes from secrets (`EWE_OTA_PRIVATE_KEY` env var).
+`ota_private.key` is **never committed** — auto-added to `.gitignore`.
+In CI/CD, the private key comes from `EWE_OTA_PRIVATE_KEY` env var.
 
-#### Auto-generation (codegen)
+#### CLI: thin wrapper around the library API
 
-When `cargo tauri build` runs the codegen step:
-
-1. Check if `keys/ota_public.key` exists
-2. If it does → read it, bake into the binary
-3. If it doesn't → generate a new Ed25519 key pair:
-   - Generate 32 random bytes via `getrandom`
-   - Derive the public key (ed25519-dalek)
-   - Write `keys/ota_public.key` (base64-encoded public key)
-   - Write `keys/ota_private.key` (base64-encoded seed)
-   - Create `keys/.gitignore` with `ota_private.key`
-   - Print: `[ewe] Generated OTA key pair in keys/. Replace ota_private.key with your production key before deploying.`
-4. The public key is included via `include_str!("../../keys/ota_public.key")` in the generated app code
-
-The developer replaces the auto-generated `ota_private.key` with their
-production key when they're ready to deploy. The public key rotates
-automatically — just replace both files and rebuild.
-
-#### CLI: `cargo run -p foundation_platform -- init-keys`
-
-A CLI binary in `foundation_platform` (behind `#[cfg(not(wasm32))]`) that
-scaffolds the key directory and the workspace structure for new ewe projects:
+A small CLI binary in `foundation_platform` (target-gated `#[cfg(not(wasm32))]`)
+wraps the same library functions. Useful for manual operations and debugging:
 
 ```
-$ cargo run -p foundation_platform -- init-keys [--workspace /path/to/project]
+$ cargo run -p foundation_platform -- init-keys
+  [ewe] keys/ota_public.key — OK (exists)
+  [ewe] keys/ota_private.key — OK (exists)
+  [ewe] Keys are ready.
 
-  [ewe] Checking keys/ ...
-  [ewe] Generating Ed25519 key pair ...
-  [ewe] Created: keys/ota_public.key
-  [ewe] Created: keys/ota_private.key
-  [ewe] Created: keys/.gitignore
-  [ewe] Done. Replace keys/ota_private.key with your production key before deploying.
-```
-
-Also provides subcommands:
-
-```
 $ cargo run -p foundation_platform -- key-info
-  Public key:  abc123... (32 bytes)
-  Derived from private key: yes
-  Private key location: keys/ota_private.key
+  Public key:  abc123... (32 bytes, base64)
+  Private key: keys/ota_private.key (present)
 
-$ cargo run -p foundation_platform -- sign-manifest keys/ota_private.key manifest.json
+$ cargo run -p foundation_platform -- sign-manifest manifest.json
   Signature: iG18bBqR... (base64)
+  (uses keys/ota_private.key or EWE_OTA_PRIVATE_KEY env var)
 
-$ cargo run -p foundation_platform -- verify-manifest keys/ota_public.key manifest.json
+$ cargo run -p foundation_platform -- verify-manifest manifest.json
   Signature: VALID
-  Manifest sequence: 42
+  Public key: keys/ota_public.key
+  Sequence: 42
   Domain: cdn.ewe.studio
+
+$ cargo run -p foundation_platform -- generate-manifests public/ --version 0.1.0
+  [ewe] app/.ewe_manifest.json — 4 files, signed
+  [ewe] app-hello/.ewe_manifest.json — 3 files, signed
 ```
 
-This CLI lives in `backends/foundation_platform/src/cli.rs`, target-gated
-with `#[cfg(not(wasm32))]`. The `main()` is in `src/main.rs` (also gated).
+The CLI lives in `backends/foundation_platform/src/cli.rs`. Entrypoint in
+`src/main.rs`. Both gated `#[cfg(not(wasm32))]`.
 
-#### PlatformBuilder API
+#### PlatformBuilder: bakes the public key at compile time
 
 ```rust
-// In codegen output (not hand-written):
+// Generated by codegen in the app's lib.rs:
 platform_run!(PlatformBuilder::new()
     .inject_platform_runtimes()
     .ota_manifest_domain("cdn.ewe.studio")
     .ota_manifest_key_from_file(concat!(env!("CARGO_MANIFEST_DIR"), "/keys/ota_public.key"))
-    //     ↑ reads the file at compile time, bakes the bytes
+    //     ↑ reads the file at compile time, bakes the 32 bytes.
     .setup(setup_routes));
 ```
 
-`ota_manifest_key_from_file(path)` is a `const fn`-compatible builder method
-that uses `include_str!` internally to bake the key at compile time.
-
-### 12. Manifest key: public key in keys/, private key in CI/CD secrets
-
-The private key lives in CI/CD, not the source tree:
-
-```
-CI/CD pipeline:
-  1. Loads EWE_OTA_PRIVATE_KEY from secrets (base64-encoded 32-byte seed)
-  2. Derives public key from seed
-  3. Passes public key to PlatformBuilder::ota_manifest_key(pubkey)
-     → baked into the binary, immutable after APK build
-  4. Signs manifests with the private key during CDN deployment
-     → app verifies with the baked public key
-```
-
-The private key **never** ships in the APK. The public key comes from
-`keys/ota_public.key` (committed, or overridden by CI). In local dev,
-the codegen auto-generated private key works — manifests signed with it
-will verify against the matching auto-generated public key.
-
-When moving to production:
-1. Replace `keys/ota_public.key` with the production public key
-2. Set `EWE_OTA_PRIVATE_KEY` in CI/CD secrets with the production private key
-3. All APK builds from that point embed the production public key
-4. All CDN manifests are signed with the production private key
-
-### 13. Codegen manifest generation (APK-bundled .ewe_manifest.json)
-- The build pipeline (`cargo tauri build`) generates a `.ewe_manifest.json` per
-  app as part of the codegen step (F11/F19)
-- Computes `sha256` + `size` for every file in `public/{app}/`
-- Writes manifest to `public/{app}/.ewe_manifest.json`
-- `source: "apk"`, `sequence: 0`, `signature: null`
-- Included in `bundle.resources` in `tauri.conf.json` (or picked up by the
-  glob automatically)
-- Extracted alongside the app files by `initialize()` into the version directory
-- Enables `initialize()` to verify APK bundle integrity (compare manifest
-  hashes against extracted files)
-
-### 14. Version lifecycle
+### 12. Version lifecycle
 - APK version = bundle version (from `tauri.conf.json` → `app.package_info().version`)
 - New APK → new version dir extracted, old versions pruned (keep 2)
 - OTA same version → writes to existing dir, no new directory
@@ -1462,8 +1553,9 @@ adb shell "ls /data/data/com.ewe.platform/ | grep '^v'"
 | `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — 30+ tests: manifest signing, domain validation, replay detection, rollback, VFS writes |
 | `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — 20+ tests: path traversal, version sanitization, manifest security, audit events |
 | `examples/platform_android/src-tauri/src/lib.rs` | Remove `embedded_apps.rs` workarounds, restore standard setup |
-| `backends/foundation_platform/src/codegen.rs` | Generate `.ewe_manifest.json` per app during build pipeline; generate key pair if missing |
-| `backends/foundation_platform/src/cli.rs` | **NEW** — `init-keys`, `key-info`, `sign-manifest`, `verify-manifest` (target-gated `#[cfg(not(wasm32))]`) |
+| `backends/foundation_platform/src/manifest.rs` | **NEW** — library API: `ensure_keys`, `generate_app_manifest`, `generate_all_manifests`, `verify_manifest`, `sign_manifest`, `verify_file_hash` (target-gated) |
+| `backends/foundation_platform/src/codegen.rs` | Generate `.ewe_manifest.json` per app via `manifest::generate_all_manifests()`; generate `build.rs` template calling manifest API |
+| `backends/foundation_platform/src/cli.rs` | **NEW** — thin CLI wrapper around `manifest` library API: `init-keys`, `key-info`, `sign-manifest`, `verify-manifest`, `generate-manifests` |
 | `backends/foundation_platform/src/main.rs` | **NEW** — CLI entrypoint (target-gated) |
 | `keys/ota_public.key` | **NEW** — auto-generated Ed25519 public key (committed to git) |
 | `keys/ota_private.key` | **NEW** — auto-generated Ed25519 private key seed (.gitignore'd) |
