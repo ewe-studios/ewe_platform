@@ -26,15 +26,26 @@ use foundation_core::valtron::{
 };
 use std::sync::Arc;
 
-pub type DrivenBodyStream<R> = DrivenStreamIterator<
-    SplitCollectorMapContinuation<SendRequestTask<R>, (ResponseIntro, SimpleHeaders)>,
->;
+pub type DrivenBodyStream<R> =
+    DrivenStreamIterator<SplitCollectorMapContinuation<SendRequestTask<R>, RequestIntroResult>>;
 
 pub type MappedDrivenBodyStream<R> =
     MapDone<DrivenBodyStream<R>, Result<(HttpClientConnection, SendSafeBody), HttpClientError>>;
 
-pub type RequestIntroStream =
-    SplitCollectorMapObserver<(ResponseIntro, SimpleHeaders), HttpRequestPending>;
+/// The response intro, or the transport failure that prevented one.
+///
+/// The error arm exists so a consumer can tell "the request failed, here is
+/// why" from "no intro ever arrived". Previously `RequestIntro::Failed` was
+/// mapped to *no item at all*, so both cases reached the caller as an empty
+/// stream and the only report possible was a generic "no response intro
+/// received" — which is precisely the information that does not help.
+///
+/// The payload is the formatted error rather than `HttpClientError` because the
+/// split-collector observer requires `Clone` and `HttpClientError` wraps
+/// non-`Clone` sources such as `std::io::Error`.
+pub type RequestIntroResult = Result<(ResponseIntro, SimpleHeaders), String>;
+
+pub type RequestIntroStream = SplitCollectorMapObserver<RequestIntroResult, HttpRequestPending>;
 
 /// Internal state for progressive request reading.
 ///
@@ -370,7 +381,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         // If no intro data, check body stream for errors (e.g., TooManyRedirects)
-        let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
+        let mut intro_data: Option<RequestIntroResult> = None;
 
         for intro_element in intro_stream {
             if let Stream::Next(value) = intro_element {
@@ -389,7 +400,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         // Build complete response
-        let (intro, headers) = intro_data.expect("should have intro");
+        let (intro, headers) = intro_data
+            .expect("should have intro")
+            .map_err(|e| HttpClientError::FailedWith(e.into()))?;
         let (conn, body) = response_body.expect("should have body");
         let response = SimpleResponse::new(intro.status, headers, body);
 
@@ -451,11 +464,15 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             } => {
                 tracing::debug!("RequestIntro::Success received response: intro={:?}", intro);
                 let response_intro: ResponseIntro = intro.clone().into();
-                (true, Some((response_intro, headers.clone())))
+                (true, Some(Ok((response_intro, headers.clone()))))
             }
             RequestIntro::Failed(err) => {
                 tracing::debug!("RequestIntro::Failed during execution: {err:?}");
-                (false, None)
+                // Deliver the failure instead of dropping it. Returning
+                // `(false, None)` here emitted no item, so the consumer saw an
+                // empty stream and could not distinguish a transport error from
+                // a message that never arrived.
+                (true, Some(Err(format!("{err:?}"))))
             }
         });
 
@@ -539,7 +556,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             .into_ready_future()
             .await
             .ok_or(HttpClientError::InvalidRequestState)?;
-        let (intro, headers) = intro_result.0;
+        let (intro, headers) = intro_result
+            .0
+            .map_err(|e| HttpClientError::FailedWith(e.into()))?;
 
         let response = SimpleResponse::new(intro.status, headers, body);
 

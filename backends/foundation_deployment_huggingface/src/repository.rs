@@ -15,7 +15,7 @@ use crate::types::{
 };
 use foundation_core::synca::RunOnDrop;
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::http::{HttpClientConnection, RequestIntro};
+use foundation_netio::http::{HttpClientConnection, RequestIntro, RequestIntroResult};
 use foundation_netio::shared::client::{
     body_reader::{self, collect_bytes_into, collect_strings_from_send_safe},
     ResponseIntro,
@@ -462,7 +462,7 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
     // Get intro (status + headers)
-    let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
+    let mut intro_data: Option<RequestIntroResult> = None;
     for intro_element in intro_stream {
         if let Stream::Next(value) = intro_element {
             intro_data = Some(value);
@@ -470,8 +470,23 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         }
     }
 
-    let (intro, _headers) =
-        intro_data.ok_or_else(|| HuggingFaceError::Backend("No response intro received".into()))?;
+    // Three distinct outcomes, three distinct messages. Collapsing the transport
+    // failure into "no response intro received" is what made an unrelated bug
+    // look like a network problem for an entire investigation.
+    let (intro, headers) = match intro_data {
+        Some(Ok(pair)) => pair,
+        Some(Err(transport_error)) => {
+            return Err(HuggingFaceError::Backend(format!(
+                "request to {url} failed before a response: {transport_error}"
+            )))
+        }
+        None => {
+            return Err(HuggingFaceError::Backend(format!(
+                "no response intro received for {url} — the request produced neither \
+                 a response nor an error"
+            )))
+        }
+    };
 
     let status = &intro.status;
     let status_num = status_code(status);
@@ -535,7 +550,26 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         ));
     };
 
+    // Only pool a connection that is actually reusable.
+    //
+    // This used to return every connection unconditionally, ignoring both the
+    // response's `Connection: close` and any unread body left in the socket. A
+    // peer that said it was closing had its socket handed to the next request,
+    // which then failed on a dead connection; an undrained one handed over the
+    // tail of the previous response as the next response's first bytes.
+    // `FinalizedResponse::drop` (foundation_netio http/api.rs) is the reference
+    // for this — mirror it rather than inventing a second policy.
+    let connection_close = headers
+        .get(&SimpleHeader::CONNECTION)
+        .is_some_and(|vals| vals.iter().any(|v| v.eq_ignore_ascii_case("close")));
+
     let _guard = RunOnDrop::new(move || {
+        let mut conn = conn;
+        if connection_close {
+            tracing::debug!("[pool] Connection: close on download response — dropping connection");
+            return;
+        }
+        conn.drain_stream();
         pool.return_to_pool(conn);
     });
 

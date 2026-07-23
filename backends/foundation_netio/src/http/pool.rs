@@ -69,7 +69,18 @@ impl std::fmt::Debug for ConnectionPool {
 }
 
 const MAX_PER_HOST: usize = 10;
-const MAX_IDLE_TIME: Duration = Duration::from_secs(300);
+
+/// How long a connection may sit idle in the pool before it is discarded.
+///
+/// This is the ONLY reuse check `checkout` performs — there is no liveness
+/// probe (see the note there) — so it has to be short enough that the socket is
+/// still very likely open. 300s was far past every common server keep-alive
+/// timeout (nginx 75s, Apache 5s, most CDNs 60-120s), which meant the pool
+/// routinely handed out sockets the peer had closed minutes earlier; the
+/// request then failed on a dead connection with no indication why.
+///
+/// 30s sits below all of those.
+const MAX_IDLE_TIME: Duration = Duration::from_secs(30);
 
 impl Default for ConnectionPool {
     fn default() -> Self {
@@ -101,6 +112,26 @@ impl ConnectionPool {
     ///
     /// Removes and returns the most-recently-added valid connection if one
     /// exists and is not stale. Otherwise returns `None`.
+    ///
+    /// # Known limitation: no liveness probe
+    ///
+    /// "Valid" here means *only* "idle for less than [`MAX_IDLE_TIME`]". The
+    /// connection is not probed, so a peer that closed the socket earlier than
+    /// that — a server-side timeout shorter than ours, a restart, an idle-cull
+    /// by a load balancer — still yields a dead connection, and the caller
+    /// discovers it only when the request fails.
+    ///
+    /// Probing alone would not close this: the peer can close between the probe
+    /// and the write, so a probe is an optimisation, not a guarantee. The
+    /// complete fix is to retry once on a fresh connection when a request that
+    /// used a *pooled* connection fails before any response bytes arrive, which
+    /// is what mature HTTP clients do. That needs a `from_pool` marker on
+    /// [`HttpClientConnection`] and a retry arm in the send-request state
+    /// machine, plus a reader accessor in `foundation_core`'s
+    /// `ByteBufferPointer` to reach the socket at all.
+    ///
+    /// Until then [`MAX_IDLE_TIME`] is deliberately shorter than common server
+    /// keep-alive windows so the window for handing out a dead socket is small.
     #[must_use]
     pub fn checkout(&self, host: &str, port: u16) -> Option<SharedByteBufferStream<RawStream>> {
         let key = format!("{host}:{port}");
