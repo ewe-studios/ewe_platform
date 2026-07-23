@@ -22,7 +22,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.2", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.1", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.2", features = ["docker"] }
 
 # Async utilities
 futures-lite = "2"
