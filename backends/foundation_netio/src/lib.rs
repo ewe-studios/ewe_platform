@@ -26,7 +26,7 @@ pub use shared::client::request_builder::PreparedRequestBuilder;
 /// Canonical replacement for the removed `simple_http::client::default_http_client`.
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub use crate::http::default_http_client;
-#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+#[cfg(target_family = "wasm")]
 pub use crate::wasm::client::default_http_client;
 
 /// Unified HTTP client module (F51 Stage 4 canonical path).

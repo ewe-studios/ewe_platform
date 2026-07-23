@@ -364,7 +364,7 @@ impl HttpClientBuilder {
             }
             Arc::new(client)
         }
-        #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+        #[cfg(target_family = "wasm")]
         {
             Arc::new(crate::wasm::client::FetchHttpClient::with_config(
                 self.config,
@@ -372,7 +372,7 @@ impl HttpClientBuilder {
         }
         #[cfg(not(any(
             all(feature = "multi", not(target_family = "wasm")),
-            all(target_family = "wasm", feature = "wasm-fetch")
+            target_family = "wasm"
         )))]
         {
             let _ = self;

@@ -51,11 +51,24 @@ zeroize = { version = "1" }
 flate2 = { version = "1.0", optional = true }
 brotli = { version = "6.0", optional = true }
 
-# JS event loop yield (wasm-bindgen backend)
-wasm-bindgen = { version = "0.2", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", optional = true, features = [
+# JS interop deps live under the wasm target and are NOT optional.
+#
+# The code that uses them (`src/wasm/`, `src/websocket/wasm/`) is selected by
+# `cfg(target_family = "wasm")` — by TARGET. Gating the dependencies behind an
+# opt-in feature therefore created a build that compiles the code with the
+# crates unlinked, and left `HttpClientBuilder::build()` falling through to
+# `unimplemented!("no HTTP client backend available")` at RUNTIME for any wasm
+# consumer that forgot the feature. `foundation_db` is exactly that consumer:
+# its manifest says "netio stays available on every target (it has a wasm
+# `fetch` client)" while pulling netio without `wasm-fetch`.
+#
+# On wasm these are not a choice — there is no other way to reach the network —
+# so they are unconditional and the feature is gone as a gate.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2" }
+wasm-bindgen-futures = { version = "0.4" }
+js-sys = { version = "0.3" }
+web-sys = { version = "0.3", features = [
     "Window", "DedicatedWorkerGlobalScope", "ServiceWorkerGlobalScope", "console",
     "Request", "RequestInit", "RequestMode",
     "Response", "Headers",
@@ -63,6 +76,8 @@ web-sys = { version = "0.3", optional = true, features = [
     # WebSocket (F51 — unified cross-platform WebSocket client)
     "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
 ] }
+# valtron's JS ReadableStream bridge, needed by the fetch client.
+foundation_core = { path = "../foundation_core", version = "0.0.5", features = ["js-wasmbindgen"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # SSL/TLS backends — not available on wasm32 (require C compilation or OS APIs)
@@ -144,12 +159,15 @@ alloc = ["futures-core/alloc"]
 multi = ["std", "foundation_core/multi"]  # Multi-threaded executor requires foundation_core multi
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-event-loop = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
+# Retained as no-op aliases — the JS deps they used to gate are now
+# unconditional on wasm (see the wasm target dependency block above), because
+# the code needing them is target-selected and cannot opt out.
+js-event-loop = []
 js-foundation-wasm = []
 
 # wasm fetch HTTP client — outbound fetch() for browser + CF Workers.
 # Enables foundation_core/js-wasmbindgen for valtron's JS ReadableStream bridge.
-wasm-fetch = ["js-event-loop", "dep:wasm-bindgen-futures", "foundation_core/js-wasmbindgen"]
+wasm-fetch = ["js-event-loop"]
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
 default = ["standard", "std", "ssl", "compression", "wire-native", "multi"]
