@@ -53,7 +53,7 @@ pub use backend::http::HttpBackend;
 pub use backend::ipc_dispatch::{dispatch_ipc, SessionTransport};
 pub use builder::PlatformBuilder;
 pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
-pub use capability::{CapabilityRegistry, PlatformCapability};
+pub use capability::{PlatformIpc, PlatformIpcRegistry};
 pub use multi_app::{AppConfig, AppIsolation};
 pub use mutation::{MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError, ReplayResult};
 pub use manifest::{Manifest, ManifestApp, ManifestFile, ManifestSource, KeyPair};

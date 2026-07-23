@@ -1,83 +1,77 @@
-//! Platform capability security layer. Wraps `foundation_wasm::WasmCapability`
-//! with the 5-layer defense: profile gate → registration → per-route allowlist
-//! → OS permission → stale-page guard.
+//! Platform IPC security layer (F41 — was F05/F23 capability registry).
 //!
-//! The wire types live in `foundation_wasm::capability` (F23). This module
-//! provides the platform-specific security checks and registry.
+//! Wraps the unified `foundation_wasm::ipc::Ipc` trait with platform-specific
+//! security checks. The old `PlatformCapability` trait extended `WasmCapability`;
+//! now it extends `Ipc<Vec<u8>, Vec<u8>>` directly and adds the 5-layer defense.
+//!
+//! 5-layer defense: profile gate → registration → per-route allowlist →
+//! OS permission → stale-page guard.
 
 use std::collections::HashMap;
 use std::sync::RwLock;
 
 use foundation_ui_traits::{CapabilityId, PageIdentity, Profile, RouteDecision};
-use foundation_wasm::{
-    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse,
-};
+use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 
 use crate::profiles::{Access, ProfileGate, Service};
 use crate::session::PlatformSession;
 
-// ── PlatformCapability trait ────────────────────────────────────────────
+// ── PlatformIpc trait (was PlatformCapability) ──────────────────────────
 
-/// A platform-native capability. Extends `foundation_wasm::WasmCapability`.
+/// A platform-native IPC handler. Extends `foundation_wasm::ipc::Ipc`.
 ///
-/// The registry calls `invoke_with_session()` — which receives both the
-/// wire-format request AND a `&PlatformSession`. This lets handlers look up
-/// IPCs, check online state, or access other registries at runtime.
+/// Replaces the old `PlatformCapability` (F23) which extended `WasmCapability`.
+/// Now extends `Ipc<Vec<u8>, Vec<u8>>` directly. The 5-layer defense is
+/// applied by `PlatformIpcRegistry::invoke()`.
 ///
-/// Implement this for platform-specific capabilities (camera, clipboard,
-/// biometrics). The base trait handles wire-format invocation for non-platform
-/// contexts; the `invoke_with_session` method adds session access.
-pub trait PlatformCapability: foundation_wasm::WasmCapability {
-    /// The platform capability ID (e.g. "camera", "`biometric_auth`").
+/// Handlers that need OS-level access (camera, biometrics) additionally
+/// implement `AndroidIpc` or `IosIpc` (see `handle.rs`).
+pub trait PlatformIpc: Ipc<Vec<u8>, Vec<u8>> {
+    /// The platform capability ID (e.g. "camera", "biometric_auth").
     fn capability_id(&self) -> &CapabilityId;
 
-    /// Minimum `WebView` profile required to invoke this capability.
+    /// Minimum WebView profile required to invoke this handler.
     fn min_profile(&self) -> Profile;
 
-    /// Invoke the capability with session access.
-    ///
-    /// The session provides access to other registries (IPC, state), online
-    /// state, page identity, etc. The platform security checks complete
-    /// before this is called.
-    /// The registry passes session to the handler AFTER security checks.
-    /// Override to access IPCs, state, or other registries at invoke time.
+    /// Invoke with session context. The security checks complete before this
+    /// is called. Override to access IPCs, state, or other registries.
     fn invoke_with_session(
         &self,
         session: &PlatformSession,
-        request: &CapabilityRequest<Vec<u8>>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-        let _ = session; // unused by default — override to access session
-        self.invoke_capability(request)
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        let _ = session;
+        Ipc::invoke(self, request)
     }
 }
 
-// ── Registry ────────────────────────────────────────────────────────────
+// ── PlatformIpcRegistry (was CapabilityRegistry) ────────────────────────
 
-/// Registry of platform capabilities with the full 5-layer defense chain.
+/// Registry of platform IPC handlers with the full 5-layer defense chain.
 ///
-/// Each registered capability implements both `WasmCapability` (wire format)
-/// and `PlatformCapability` (security metadata).
-pub struct CapabilityRegistry {
-    handlers: RwLock<HashMap<String, Box<dyn PlatformCapability>>>,
+/// Each registered handler implements both `Ipc<Vec<u8>, Vec<u8>>` (wire format)
+/// and `PlatformIpc` (security metadata). Replaces the old `CapabilityRegistry`.
+pub struct PlatformIpcRegistry {
+    handlers: RwLock<HashMap<String, Box<dyn PlatformIpc>>>,
 }
 
-impl CapabilityRegistry {
+impl PlatformIpcRegistry {
     #[must_use]
     pub fn new() -> Self {
         Self { handlers: RwLock::new(HashMap::new()) }
     }
 
-    /// Register a platform capability.
+    /// Register a platform IPC handler.
     ///
     /// # Panics
     ///
     /// Panics if the internal `RwLock` is poisoned.
-    pub fn register(&self, cap: impl PlatformCapability + 'static) {
+    pub fn register(&self, cap: impl PlatformIpc + 'static) {
         let name = cap.capability_id().0.clone();
         self.handlers.write().unwrap().insert(name, Box::new(cap));
     }
 
-    /// Invoke a capability through the full five-layer defense chain.
+    /// Invoke a handler through the full five-layer defense chain.
     ///
     /// # Panics
     ///
@@ -85,23 +79,23 @@ impl CapabilityRegistry {
     pub fn invoke(
         &self,
         session: &PlatformSession,
-        request: &CapabilityRequest<Vec<u8>>,
+        request: &IpcRequest<Vec<u8>>,
         page_identity: &PageIdentity,
         current_route: Option<&RouteDecision>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         // Layer 1: Stale-page guard
         if !session.is_active_page(page_identity) {
-            return Err(CapabilityError::PermissionDenied(
+            return Err(IpcError::PermissionDenied(
                 "stale page — request from navigated-away page".into(),
             ));
         }
 
         let guard = self.handlers.read().unwrap();
 
-        // Layer 2: Look up the capability handler
+        // Layer 2: Look up the handler
         let handler = guard
-            .get(&request.capability)
-            .ok_or_else(|| CapabilityError::UnknownCapability(request.capability.clone()))?;
+            .get(&request.ipc)
+            .ok_or_else(|| IpcError::UnknownIpc(request.ipc.clone()))?;
 
         // Layer 3: Profile-level gate
         let profile = current_route
@@ -109,11 +103,11 @@ impl CapabilityRegistry {
             .unwrap_or(Profile::UntrustedRemote);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
-            return Err(CapabilityError::PermissionDenied(e.to_string()));
+            return Err(IpcError::PermissionDenied(e.to_string()));
         }
         if !profile_satisfies(profile, handler.min_profile()) {
-            return Err(CapabilityError::PermissionDenied(format!(
-                "profile {profile:?} too low for capability '{}' (requires {:?})",
+            return Err(IpcError::PermissionDenied(format!(
+                "profile {profile:?} too low for '{}' (requires {:?})",
                 handler.capability_id().0,
                 handler.min_profile()
             )));
@@ -124,49 +118,49 @@ impl CapabilityRegistry {
             if !route.capabilities.is_empty()
                 && !route.capabilities.iter().any(|c| c == handler.capability_id())
             {
-                return Err(CapabilityError::PermissionDenied(format!(
-                    "capability '{}' not allowed on this route",
+                return Err(IpcError::PermissionDenied(format!(
+                    "'{}' not allowed on this route",
                     handler.capability_id().0
                 )));
             }
         }
 
-        // Layer 5: Execute — delegate to the WasmCapability trait impl
-        handler.invoke_capability(request)
+        // Layer 5: Execute — delegate to the handler
+        handler.invoke_with_session(session, request)
     }
 
-    /// Invoke a capability through the security layer with a JSON payload.
-    /// Convenience method that serializes JSON → wire bytes → invoke → deserialize.
+    /// Invoke through the security layer with a JSON payload.
     pub fn invoke_json(
         &self,
         session: &PlatformSession,
-        capability: &str,
+        ipc_name: &str,
         action: &str,
         payload: &serde_json::Value,
         page_identity: &PageIdentity,
         current_route: Option<&RouteDecision>,
-    ) -> Result<serde_json::Value, CapabilityError> {
+    ) -> Result<serde_json::Value, IpcError> {
         let payload_bytes = serde_json::to_vec(payload)
-            .map_err(|e| CapabilityError::InvalidPayload(e.to_string()))?;
+            .map_err(|e| IpcError::InvalidPayload(e.to_string()))?;
 
-        let request = CapabilityRequest {
-            capability: capability.to_string(),
+        let request = IpcRequest {
+            ipc: ipc_name.to_string(),
             action: action.to_string(),
             payload: payload_bytes,
-            content_type: CapabilityContentType::Json,
+            content_type: IpcContentType::Json,
+            target: None,
         };
 
         let response = self.invoke(session, &request, page_identity, current_route)?;
 
         serde_json::from_slice(&response.payload)
-            .map_err(|e| CapabilityError::InvalidPayload(e.to_string()))
+            .map_err(|e| IpcError::InvalidPayload(e.to_string()))
     }
 
-    /// Look up a capability by name.
+    /// Look up a handler by name.
     #[must_use]
-    pub fn get(&self, name: &str) -> Option<&dyn PlatformCapability> {
+    pub fn get(&self, name: &str) -> Option<&dyn PlatformIpc> {
         let guard = self.handlers.read().unwrap();
-        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
+        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformIpc) })
     }
 
     #[must_use]
@@ -175,7 +169,7 @@ impl CapabilityRegistry {
     }
 }
 
-impl Default for CapabilityRegistry {
+impl Default for PlatformIpcRegistry {
     fn default() -> Self { Self::new() }
 }
 
@@ -201,38 +195,37 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
 
 // ── Test helpers ───────────────────────────────────────────────────────
 
-/// Test capability for integration tests.
-pub struct TestPlatformCap {
+/// Test IPC handler for integration tests.
+pub struct TestPlatformIpc {
     pub id: CapabilityId,
     pub min_profile: Profile,
 }
 
-impl foundation_wasm::WasmCapability for TestPlatformCap {
+impl Ipc<Vec<u8>, Vec<u8>> for TestPlatformIpc {
     fn name(&self) -> &str { &self.id.0 }
+    fn kind(&self) -> IpcKind { IpcKind::Capability }
 
-    fn invoke_capability(
+    fn invoke(
         &self,
-        request: &CapabilityRequest<Vec<u8>>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-        Ok(CapabilityResponse {
-            capability: request.capability.clone(),
-            action: request.action.clone(),
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
         })
     }
 }
 
-impl PlatformCapability for TestPlatformCap {
+impl PlatformIpc for TestPlatformIpc {
     fn capability_id(&self) -> &CapabilityId { &self.id }
     fn min_profile(&self) -> Profile { self.min_profile }
 }
 
-/// Create a test registry with a camera capability registered.
+/// Create a test registry with a camera handler registered.
 #[must_use]
-pub fn test_registry() -> CapabilityRegistry {
-    let reg = CapabilityRegistry::new();
-    reg.register(TestPlatformCap {
+pub fn test_registry() -> PlatformIpcRegistry {
+    let reg = PlatformIpcRegistry::new();
+    reg.register(TestPlatformIpc {
         id: CapabilityId("camera".into()),
         min_profile: Profile::TrustedRemote,
     });

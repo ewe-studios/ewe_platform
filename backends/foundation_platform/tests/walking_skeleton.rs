@@ -120,31 +120,29 @@ fn cache_is_profile_scoped() {
 
 #[test]
 fn capability_invocation_through_registry() {
-    use foundation_platform::capability::PlatformCapability;
-    use foundation_wasm::{
-        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
-    };
+    use foundation_platform::capability::PlatformIpc;
+    use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
+    use foundation_ui_traits::{CapabilityId, Profile};
 
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     struct GreetCap;
-    impl WasmCapability for GreetCap {
+    impl Ipc<Vec<u8>, Vec<u8>> for GreetCap {
         fn name(&self) -> &str { "greet" }
-        fn invoke_capability(
+        fn kind(&self) -> IpcKind { IpcKind::Capability }
+        fn invoke(
             &self,
-            request: &CapabilityRequest<Vec<u8>>,
-        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+            request: &IpcRequest<Vec<u8>>,
+        ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
             let action = &request.action;
             let payload = format!("hello, {action}");
-            Ok(CapabilityResponse {
-                capability: request.capability.clone(),
-                action: request.action.clone(),
+            Ok(IpcResponse {
                 payload: payload.into_bytes(),
                 content_type: request.content_type,
             })
         }
     }
-    impl PlatformCapability for GreetCap {
+    impl PlatformIpc for GreetCap {
         fn capability_id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("greet".into())))
         }
@@ -160,11 +158,12 @@ fn capability_invocation_through_registry() {
     session.record_navigation("/app");
     let page = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
-        capability: "greet".into(),
+    let request = IpcRequest {
+        ipc: "greet".into(),
         action: "world".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+        target: None,
     };
 
     let result = session.capabilities().invoke(&session, &request, &page, Some(&route));

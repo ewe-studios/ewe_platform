@@ -1,51 +1,45 @@
-//! WHY: F23 — `WasmCapability` trait + `CapabilityRegistry` must work on native
-//! and carry the correct payloads through register → invoke → response.
+//! F41 — unified IPC tests (was F23 capability tests).
 //!
-//! WHAT: registry registration, lookup, invoke (ok + error), name validation.
-//!
-//! HOW: mock capability that echoes the request action in its response.
+//! Tests the `Ipc` trait, `IpcRegistry`, `IpcRequest`/`IpcResponse`, and
+//! name validation — all through the new unified API.
 
-use foundation_wasm::{
-    CapabilityContentType, CapabilityError, CapabilityRegistry, CapabilityRequest,
-    CapabilityResponse, WasmCapability, is_valid_capability_name,
+use foundation_wasm::ipc::{
+    Ipc, IpcContentType, IpcError, IpcKind, IpcRegistry, IpcRequest, IpcResponse,
+    is_valid_ipc_name,
 };
 
-// ── Mock capability ─────────────────────────────────────────────────────
+// ── Mock IPCs ───────────────────────────────────────────────────────────
 
-struct EchoCapability {
+struct EchoIpc {
     name: &'static str,
 }
 
-impl WasmCapability for EchoCapability {
-    fn name(&self) -> &'static str {
-        self.name
-    }
+impl Ipc<Vec<u8>, Vec<u8>> for EchoIpc {
+    fn name(&self) -> &str { self.name }
+    fn kind(&self) -> IpcKind { IpcKind::Query }
 
-    fn invoke_capability(
+    fn invoke(
         &self,
-        request: &CapabilityRequest,
-    ) -> Result<CapabilityResponse, CapabilityError> {
-        Ok(CapabilityResponse {
-            capability: request.capability.clone(),
-            action: request.action.clone(),
+        request: &IpcRequest,
+    ) -> Result<IpcResponse, IpcError> {
+        Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
         })
     }
 }
 
-struct FailingCapability;
+struct FailingIpc;
 
-impl WasmCapability for FailingCapability {
-    fn name(&self) -> &'static str {
-        "fail"
-    }
+impl Ipc<Vec<u8>, Vec<u8>> for FailingIpc {
+    fn name(&self) -> &str { "fail" }
+    fn kind(&self) -> IpcKind { IpcKind::Query }
 
-    fn invoke_capability(
+    fn invoke(
         &self,
-        _request: &CapabilityRequest,
-    ) -> Result<CapabilityResponse, CapabilityError> {
-        Err(CapabilityError::ExecutionFailed("intentional failure".into()))
+        _request: &IpcRequest,
+    ) -> Result<IpcResponse, IpcError> {
+        Err(IpcError::ExecutionFailed("intentional failure".into()))
     }
 }
 
@@ -53,61 +47,62 @@ impl WasmCapability for FailingCapability {
 
 #[test]
 fn registry_register_and_invoke() {
-    let reg = CapabilityRegistry::new();
-    reg.register(EchoCapability { name: "echo" });
+    let reg = IpcRegistry::new();
+    reg.register(EchoIpc { name: "echo" });
 
-    let req = CapabilityRequest {
-        capability: "echo".into(),
+    let req = IpcRequest {
+        ipc: "echo".into(),
         action: "ping".into(),
         payload: b"hello".to_vec(),
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+        target: None,
     };
 
     let resp = reg.invoke(&req).unwrap();
-    assert_eq!(resp.capability, "echo");
-    assert_eq!(resp.action, "ping");
     assert_eq!(resp.payload, b"hello");
 }
 
 #[test]
-fn registry_unknown_capability() {
-    let reg = CapabilityRegistry::new();
-    let req = CapabilityRequest {
-        capability: "nonexistent".into(),
+fn registry_unknown_ipc() {
+    let reg = IpcRegistry::new();
+    let req = IpcRequest {
+        ipc: "nonexistent".into(),
         action: "do".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+        target: None,
     };
 
     match reg.invoke(&req) {
-        Err(CapabilityError::UnknownCapability(name)) => assert_eq!(name, "nonexistent"),
-        other => panic!("expected UnknownCapability, got {other:?}"),
+        Err(IpcError::UnknownIpc(name)) => assert_eq!(name, "nonexistent"),
+        other => panic!("expected UnknownIpc, got {other:?}"),
     }
 }
 
 #[test]
 fn registry_execution_error() {
-    let reg = CapabilityRegistry::new();
-    reg.register(FailingCapability);
+    let reg = IpcRegistry::new();
+    reg.register(FailingIpc);
 
-    let req = CapabilityRequest {
-        capability: "fail".into(),
+    let req = IpcRequest {
+        ipc: "fail".into(),
         action: "boom".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+        target: None,
     };
 
     match reg.invoke(&req) {
-        Err(CapabilityError::ExecutionFailed(msg)) => assert!(msg.contains("intentional")),
+        Err(IpcError::ExecutionFailed(msg)) => assert!(msg.contains("intentional")),
         other => panic!("expected ExecutionFailed, got {other:?}"),
     }
 }
 
 #[test]
 fn registry_get_and_names() {
-    let reg = CapabilityRegistry::new();
-    reg.register(EchoCapability { name: "echo" });
-    reg.register(FailingCapability);
+    let reg = IpcRegistry::new();
+    reg.register(EchoIpc { name: "echo" });
+    reg.register(FailingIpc);
 
     assert!(reg.get("echo").is_some());
     assert!(reg.get("fail").is_some());
@@ -120,43 +115,52 @@ fn registry_get_and_names() {
 
 #[test]
 fn registry_replacement() {
-    let reg = CapabilityRegistry::new();
-    let old = reg.register(EchoCapability { name: "dup" });
+    let reg = IpcRegistry::new();
+    let old = reg.register(EchoIpc { name: "dup" });
     assert!(old.is_none());
 
-    let old = reg.register(EchoCapability { name: "dup" });
+    let old = reg.register(EchoIpc { name: "dup" });
     assert!(old.is_some());
 }
 
 // ── Name validation ─────────────────────────────────────────────────────
 
 #[test]
-fn valid_capability_names() {
-    assert!(is_valid_capability_name("camera"));
-    assert!(is_valid_capability_name("biometric_auth"));
-    assert!(is_valid_capability_name("file-system"));
-    assert!(is_valid_capability_name("a"));  // single char
-    assert!(is_valid_capability_name(&"x".repeat(64)));  // max length
+fn valid_ipc_names() {
+    assert!(is_valid_ipc_name("camera"));
+    assert!(is_valid_ipc_name("biometric_auth"));
+    assert!(is_valid_ipc_name("file-system"));
+    assert!(is_valid_ipc_name("a"));
+    assert!(is_valid_ipc_name(&"x".repeat(64)));
 }
 
 #[test]
-fn invalid_capability_names() {
-    assert!(!is_valid_capability_name(""));   // empty
-    assert!(!is_valid_capability_name(&"x".repeat(65)));  // too long
-    assert!(!is_valid_capability_name("has spaces"));
-    assert!(!is_valid_capability_name("has/slash"));
-    assert!(!is_valid_capability_name("has.dot"));
+fn invalid_ipc_names() {
+    assert!(!is_valid_ipc_name(""));
+    assert!(!is_valid_ipc_name(&"x".repeat(65)));
+    assert!(!is_valid_ipc_name("has spaces"));
+    assert!(!is_valid_ipc_name("has/slash"));
+    assert!(!is_valid_ipc_name("has.dot"));
 }
 
 // ── Content type roundtrip ──────────────────────────────────────────────
 
 #[test]
 fn content_type_roundtrip() {
-    // CapabilityContentType is Copy + Eq
-    let json = CapabilityContentType::Json;
-    let arrow = CapabilityContentType::Arrow;
+    let json = IpcContentType::Json;
+    let arrow = IpcContentType::Arrow;
 
     assert_eq!(json, json.clone());
     assert_ne!(json, arrow);
     assert_eq!(format!("{json:?}"), "Json");
+}
+
+// ── IpcKind::Capability tag ─────────────────────────────────────────────
+
+#[test]
+fn ipc_kind_capability_tag() {
+    let cap = IpcKind::Capability;
+    assert_ne!(cap, IpcKind::Query);
+    assert_ne!(cap, IpcKind::Emit);
+    assert_eq!(cap, IpcKind::Capability);
 }

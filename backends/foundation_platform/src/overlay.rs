@@ -12,10 +12,10 @@
 //! `OverlayCapability` provides a programmatic API for route handlers to
 //! show/hide/configure the toolbar without calling `window.eval()` directly.
 
-use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
+use foundation_wasm::ipc::{IpcError, IpcRequest, IpcResponse};
 use foundation_ui_traits::{CapabilityId, Profile};
 
-use crate::capability::PlatformCapability;
+use crate::capability::PlatformIpc as PlatformCapability;
 
 // ── Overlay config ───────────────────────────────────────────────────────
 
@@ -120,15 +120,19 @@ impl OverlayCapability {
     }
 }
 
-impl WasmCapability for OverlayCapability {
+impl foundation_wasm::ipc::Ipc<Vec<u8>, Vec<u8>> for OverlayCapability {
     fn name(&self) -> &str {
         Self::NAME
     }
 
-    fn invoke_capability(
+    fn kind(&self) -> foundation_wasm::ipc::IpcKind {
+        foundation_wasm::ipc::IpcKind::Capability
+    }
+
+    fn invoke(
         &self,
-        request: &CapabilityRequest<Vec<u8>>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         let action = request.action.as_str();
         let payload_str = String::from_utf8_lossy(&request.payload);
 
@@ -137,7 +141,6 @@ impl WasmCapability for OverlayCapability {
             "hide" => Self::hide_js(),
             "set_title" => Self::title_js(&payload_str),
             "configure" => {
-                // Payload is JSON: {"position":"bottom","visible":true,...}
                 if let Ok(config) = serde_json::from_str::<serde_json::Value>(&payload_str) {
                     let oc = OverlayConfig {
                         position: if config
@@ -177,21 +180,19 @@ impl WasmCapability for OverlayCapability {
                     };
                     oc.to_js()
                 } else {
-                    return Err(CapabilityError::InvalidPayload(
+                    return Err(IpcError::InvalidPayload(
                         "overlay configure requires JSON payload".into(),
                     ));
                 }
             }
             _ => {
-                return Err(CapabilityError::ExecutionFailed(format!(
+                return Err(IpcError::ExecutionFailed(format!(
                     "overlay: unknown action '{action}'"
                 )))
             }
         };
 
-        Ok(CapabilityResponse {
-            capability: "overlay".into(),
-            action: action.to_string(),
+        Ok(IpcResponse {
             payload: js.into_bytes(),
             content_type: request.content_type,
         })
@@ -216,6 +217,7 @@ impl PlatformCapability for OverlayCapability {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use foundation_wasm::ipc::{Ipc, IpcContentType};
 
     #[test]
     fn overlay_config_default_to_js() {
@@ -248,13 +250,14 @@ mod tests {
     #[test]
     fn overlay_capability_show_action() {
         let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
+        let req = IpcRequest {
+            ipc: "overlay".into(),
             action: "show".into(),
             payload: vec![],
-            content_type: foundation_wasm::CapabilityContentType::Json,
+            content_type: IpcContentType::Json,
+            target: None,
         };
-        let resp = cap.invoke_capability(&req).unwrap();
+        let resp = cap.invoke(&req).unwrap();
         let js = String::from_utf8(resp.payload).unwrap();
         assert!(js.contains("__eweNav.show()"));
     }
@@ -262,13 +265,14 @@ mod tests {
     #[test]
     fn overlay_capability_hide_action() {
         let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
+        let req = IpcRequest {
+            ipc: "overlay".into(),
             action: "hide".into(),
             payload: vec![],
-            content_type: foundation_wasm::CapabilityContentType::Json,
+            content_type: IpcContentType::Json,
+            target: None,
         };
-        let resp = cap.invoke_capability(&req).unwrap();
+        let resp = cap.invoke(&req).unwrap();
         let js = String::from_utf8(resp.payload).unwrap();
         assert!(js.contains("__eweNav.hide()"));
     }
@@ -276,13 +280,14 @@ mod tests {
     #[test]
     fn overlay_capability_set_title() {
         let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
+        let req = IpcRequest {
+            ipc: "overlay".into(),
             action: "set_title".into(),
             payload: b"Home".to_vec(),
-            content_type: foundation_wasm::CapabilityContentType::Json,
+            content_type: IpcContentType::Json,
+            target: None,
         };
-        let resp = cap.invoke_capability(&req).unwrap();
+        let resp = cap.invoke(&req).unwrap();
         let js = String::from_utf8(resp.payload).unwrap();
         assert!(js.contains("Home"));
     }

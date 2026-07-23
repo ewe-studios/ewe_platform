@@ -1,11 +1,10 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use foundation_core::valtron::valtron;
-use foundation_platform::capability::PlatformCapability;
+use foundation_platform::capability::PlatformIpc;
 use foundation_platform::*;
 use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile, RouteDecision};
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
-use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
 // Public: the generated modules are part of this crate's surface. `build_at`
 // is the unmounted escape hatch for embeddings with no PlatformAssetManager,
@@ -147,23 +146,24 @@ impl foundation_platform::ipc::PlatformIpc for TickerIpc {
 // ── Capability handler ───────────────────────────────────────────────
 
 struct EchoCap;
-impl WasmCapability for EchoCap {
+impl Ipc<Vec<u8>, Vec<u8>> for EchoCap {
     fn name(&self) -> &str {
         "echo_cap"
     }
-    fn invoke_capability(
+    fn kind(&self) -> IpcKind {
+        IpcKind::Capability
+    }
+    fn invoke(
         &self,
-        request: &CapabilityRequest<Vec<u8>>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-        Ok(CapabilityResponse {
-            capability: request.capability.clone(),
-            action: request.action.clone(),
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
         })
     }
 }
-impl PlatformCapability for EchoCap {
+impl PlatformIpc for EchoCap {
     fn capability_id(&self) -> &CapabilityId {
         Box::leak(Box::new(CapabilityId("echo".into())))
     }

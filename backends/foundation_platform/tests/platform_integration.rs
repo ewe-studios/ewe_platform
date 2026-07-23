@@ -115,29 +115,27 @@ fn offline_mutation_replay_on_reconnect() {
 
 #[test]
 fn capability_invocation_with_profile_gating() {
-    use foundation_platform::capability::PlatformCapability;
-    use foundation_wasm::{
-        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
-    };
+    use foundation_platform::capability::PlatformIpc;
+    use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
+    use foundation_ui_traits::{CapabilityId, Profile};
 
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     struct Cam;
-    impl WasmCapability for Cam {
+    impl Ipc<Vec<u8>, Vec<u8>> for Cam {
         fn name(&self) -> &str { "camera" }
-        fn invoke_capability(
-            &self, request: &CapabilityRequest<Vec<u8>>,
-        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        fn kind(&self) -> IpcKind { IpcKind::Capability }
+        fn invoke(
+            &self, request: &IpcRequest<Vec<u8>>,
+        ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
             let action = &request.action;
-            Ok(CapabilityResponse {
-                capability: request.capability.clone(),
-                action: request.action.clone(),
+            Ok(IpcResponse {
                 payload: format!("shot-{action}").into_bytes(),
                 content_type: request.content_type,
             })
         }
     }
-    impl PlatformCapability for Cam {
+    impl PlatformIpc for Cam {
         fn capability_id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("camera".into())))
         }
@@ -153,9 +151,10 @@ fn capability_invocation_with_profile_gating() {
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
 
-    let req = CapabilityRequest {
-        capability: "camera".into(), action: "capture".into(),
-        payload: vec![], content_type: CapabilityContentType::Json,
+    let req = IpcRequest {
+        ipc: "camera".into(), action: "capture".into(),
+        payload: vec![], content_type: IpcContentType::Json,
+        target: None,
     };
     assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_ok());
 

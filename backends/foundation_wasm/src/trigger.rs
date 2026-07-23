@@ -1,13 +1,12 @@
-//! Host→WASM trigger registry (F27).
+//! Host→WASM trigger registry (F27, updated F41).
 //!
 //! WHY: F23 (capabilities) and F25 (IPC) implement the wasm→host direction.
-//! The reverse — host delivering capability/IPC requests INTO the WASM module
-//! — needs a registered handler on the WASM side.
+//! The reverse — host delivering IPC requests INTO the WASM module — needs a
+//! registered handler on the WASM side.
 //!
-//! WHAT: `TriggerRegistry` with `set_capability_handler()` and
-//! `set_ipc_handler()`. Single-handler model — the WASM app registers one
-//! handler for each trigger type. The JS runtime calls the registry's
-//! `dispatch_*()` methods when the host delivers a trigger.
+//! WHAT: `TriggerRegistry` with `set_ipc_handler()`. Single-handler model —
+//! the WASM app registers one handler. The JS runtime calls `dispatch_ipc()`
+//! when the host delivers a trigger.
 //!
 //! HOW: Plain struct, no interior mutability. The owner wraps it however
 //! they need (`static Mutex<TriggerRegistry>`, `Arc<RwLock<...>>`, or
@@ -17,15 +16,9 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-use crate::capability::{CapabilityError, CapabilityRequest, CapabilityResponse};
 use crate::ipc::{IpcError, IpcRequest, IpcResponse};
 
 // ── Internal handler types ─────────────────────────────────────────────
-
-#[cfg(not(target_family = "wasm"))]
-type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + Send + Sync + 'static>;
-#[cfg(target_family = "wasm")]
-type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + 'static>;
 
 #[cfg(not(target_family = "wasm"))]
 type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static>;
@@ -40,7 +33,6 @@ type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u
 /// (`static Mutex<TriggerRegistry>`, `Arc<RwLock<...>>`, or plain
 /// stack ownership on wasm32).
 pub struct TriggerRegistry {
-    capability: Option<CapHandler>,
     ipc: Option<IpcHandlerBox>,
 }
 
@@ -48,26 +40,7 @@ impl TriggerRegistry {
     /// Create an empty registry. No handlers registered initially.
     #[must_use]
     pub const fn new() -> Self {
-        Self { capability: None, ipc: None }
-    }
-
-    /// Register the capability trigger handler. Replaces any previous handler.
-    #[cfg(not(target_family = "wasm"))]
-    pub fn set_capability_handler(
-        &mut self,
-        handler: impl Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>
-            + Send + Sync + 'static,
-    ) {
-        self.capability = Some(Box::new(handler));
-    }
-
-    #[cfg(target_family = "wasm")]
-    pub fn set_capability_handler(
-        &mut self,
-        handler: impl Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>
-            + 'static,
-    ) {
-        self.capability = Some(Box::new(handler));
+        Self { ipc: None }
     }
 
     /// Register the IPC trigger handler. Replaces any previous handler.
@@ -87,22 +60,6 @@ impl TriggerRegistry {
             + 'static,
     ) {
         self.ipc = Some(Box::new(handler));
-    }
-
-    /// Dispatch a capability trigger. Returns an error if no handler is registered.
-    /// # Errors
-    ///
-    /// Returns [`CapabilityError::ExecutionFailed`] if no handler is registered.
-    pub fn dispatch_capability(
-        &self,
-        request: CapabilityRequest<Vec<u8>>,
-    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-        match self.capability.as_ref() {
-            Some(handler) => handler(request),
-            None => Err(CapabilityError::ExecutionFailed(
-                "no capability trigger handler registered".into(),
-            )),
-        }
     }
 
     /// Dispatch an IPC trigger. Returns an error if no handler is registered.

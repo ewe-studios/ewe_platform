@@ -48,8 +48,8 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
-    /// Platform capability registry (WasmCapability + 5-layer defense).
-    capability_registry: crate::capability::CapabilityRegistry,
+    /// Platform IPC registry (Ipc + 5-layer defense, was CapabilityRegistry).
+    capability_registry: crate::capability::PlatformIpcRegistry,
 
     /// Cache manager.
     cache: crate::cache::CacheManager,
@@ -150,7 +150,7 @@ impl PlatformSession {
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
-            capability_registry: crate::capability::CapabilityRegistry::new(),
+            capability_registry: crate::capability::PlatformIpcRegistry::new(),
             cache: crate::cache::CacheManager::in_memory(),
             mutation_queue: crate::mutation::MutationQueue::in_memory(),
             session_id,
@@ -545,17 +545,17 @@ impl PlatformSession {
         &self.cache
     }
 
-    /// Access the F05 capability registry for invoking native capabilities.
-    /// Access the F05 native capability registry.
-    pub fn capabilities(&self) -> &crate::capability::CapabilityRegistry {
+    /// Access the F41 platform IPC registry for invoking native capabilities.
+    /// Access the F41 platform IPC registry.
+    pub fn capabilities(&self) -> &crate::capability::PlatformIpcRegistry {
         &self.capability_registry
     }
 
-    pub fn register_capability<C: crate::capability::PlatformCapability + 'static>(&self, cap: C) {
+    pub fn register_capability<C: crate::capability::PlatformIpc + 'static>(&self, cap: C) {
         self.capability_registry.register(cap);
     }
 
-    pub fn get_capability(&self, name: &str) -> Option<&dyn crate::capability::PlatformCapability> {
+    pub fn get_capability(&self, name: &str) -> Option<&dyn crate::capability::PlatformIpc> {
         self.capability_registry.get(name)
     }
 

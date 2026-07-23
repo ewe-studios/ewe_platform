@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
-use foundation_platform::capability::{test_registry, TestPlatformCap};
+use foundation_platform::capability::{test_registry, TestPlatformIpc};
 use foundation_platform::*;
-use foundation_wasm::{CapabilityContentType, CapabilityRequest};
+use foundation_wasm::ipc::{Ipc, IpcContentType, IpcRequest};
 
 #[test]
 fn invoke_unknown_capability_returns_error() {
@@ -13,16 +13,17 @@ fn invoke_unknown_capability_returns_error() {
     session.record_navigation("/app");
     let active = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
-        capability: "unknown".into(),
+    let request = IpcRequest {
+        ipc: "unknown".into(),
         action: "test".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+            target: None,
     };
 
     let result = reg.invoke(&session, &request, &active, None);
     assert!(result.is_err());
-    assert!(format!("{result:?}").contains("UnknownCapability"));
+    assert!(format!("{result:?}").contains("UnknownIpc"));
 }
 
 #[test]
@@ -36,11 +37,12 @@ fn invoke_with_correct_capability_succeeds() {
     session.record_navigation("/camera");
     let active = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
-        capability: "camera".into(),
+    let request = IpcRequest {
+        ipc: "camera".into(),
         action: "capture".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+            target: None,
     };
 
     assert!(reg.invoke(&session, &request, &active, Some(&route)).is_ok());
@@ -55,11 +57,12 @@ fn profile_too_low_denies_capability() {
     session.record_navigation("/app");
     let active = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
-        capability: "camera".into(),
+    let request = IpcRequest {
+        ipc: "camera".into(),
         action: "capture".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+            target: None,
     };
 
     let result = reg.invoke(&session, &request, &active, Some(&route));
@@ -77,11 +80,12 @@ fn per_route_allowlist_blocks_unlisted_capability() {
     session.record_navigation("/chat");
     let active = session.active_page_identity().unwrap();
 
-    let request = CapabilityRequest {
-        capability: "camera".into(),
+    let request = IpcRequest {
+        ipc: "camera".into(),
         action: "capture".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+            target: None,
     };
 
     let result = reg.invoke(&session, &request, &active, Some(&route));
@@ -97,11 +101,12 @@ fn stale_page_guard_rejects_old_request() {
     let old_page = session.record_navigation("/app/old");
     session.record_navigation("/app/new");
 
-    let request = CapabilityRequest {
-        capability: "camera".into(),
+    let request = IpcRequest {
+        ipc: "camera".into(),
         action: "capture".into(),
         payload: vec![],
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+            target: None,
     };
 
     let result = reg.invoke(&session, &request, &old_page, None);

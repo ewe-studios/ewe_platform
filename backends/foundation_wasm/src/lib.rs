@@ -24,7 +24,6 @@ pub mod cli;
 extern crate alloc;
 
 mod base;
-mod capability;
 mod error;
 mod frames;
 mod host_runtime;
@@ -39,6 +38,9 @@ mod wrapped;
 
 pub mod ipc;
 pub mod stream;
+
+// F41 backward compat: re-exports old capability names from ipc.
+mod capability;
 
 #[cfg(feature = "web")]
 pub mod testing;

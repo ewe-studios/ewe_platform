@@ -2,12 +2,12 @@
   "schema": 1,
   "source": "apk",
   "manifest_domain": "cdn.ewe.studio",
-  "created_at": "2026-07-23T12:45:20Z",
+  "created_at": "2026-07-23T17:43:24Z",
   "sequence": 0,
   "base_url": "https://cdn.ewe.studio/bundles",
   "rollback_to": null,
   "delete_after": null,
-  "signature": "KIteruUycWMCSzxuDtCQ7c/aa1LNcVkZuM3f7kM4mlZIATo0pKRQydIAYDbHmw4R5TN/tle5dqzLLvuAVLsnAQ==",
+  "signature": "3eNctEvdG9gQqoNSivsJCN9B999l9ADCindiuio9nVX9qowY+lIrTWUvoM2MJ8ALv1jOhO4UTDEyBzyig8NWCA==",
   "apps": [
     {
       "app_id": "app",
@@ -30,8 +30,8 @@
         },
         {
           "path": "platform_dashboard.wasm",
-          "sha256": "db64baf1439996f9ba5a22d66afe48bd4e928143fa784079df0bcda7a6ef0889",
-          "size": 361705
+          "sha256": "622fa73783c10ee61933c87426a47e84f9f2f2cd2e0d3334c77aa609b593be3b",
+          "size": 361896
         }
       ]
     }

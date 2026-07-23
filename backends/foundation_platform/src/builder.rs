@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_wasm::{CapabilityContentType, CapabilityRequest};
+use foundation_wasm::ipc::{IpcContentType, IpcRequest};
 use tauri::{App, Context, Manager, Runtime};
 
 use crate::ewe;
@@ -283,10 +283,10 @@ impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::n
 
 // ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
 
-/// The Tauri command bridge for capability invocations (F23).
+/// The Tauri command bridge for capability/IPC invocations (F41 — was F23 __ewe_capabilities).
 ///
 /// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`.
-/// Looks up the capability in the `CapabilityRegistry` and delegates to the handler.
+/// Looks up the handler in the `PlatformIpcRegistry` and delegates.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 fn __ewe_capabilities(
@@ -295,17 +295,17 @@ fn __ewe_capabilities(
     action: String,
     payload: String,
 ) -> Result<String, String> {
-    let request = CapabilityRequest {
-        capability,
+    let request = IpcRequest {
+        ipc: capability,
         action,
         payload: payload.into_bytes(),
-        content_type: CapabilityContentType::Json,
+        content_type: IpcContentType::Json,
+        target: None,
     };
 
-    // Look up the handler in the platform registry and invoke with session access.
     let handler = session
-        .get_capability(&request.capability)
-        .ok_or_else(|| format!("unknown capability: {}", request.capability))?;
+        .get_capability(&request.ipc)
+        .ok_or_else(|| format!("unknown capability: {}", request.ipc))?;
 
     let response = handler
         .invoke_with_session(&session, &request)
