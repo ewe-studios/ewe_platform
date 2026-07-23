@@ -1637,7 +1637,14 @@ where
             Err(concurrent_queue::PopError::Empty) => {
                 // Queue is empty, check if source is done (queue closed)
                 if self.queue.is_closed() {
-                    None
+                    // Re-pop before believing it: `pop()` and `is_closed()` are two
+                    // separate reads, so a producer can push AND close in the gap
+                    // between them. Trusting the stale `Empty` there silently drops a
+                    // delivered item and reports end-of-stream. `PopError::Closed` is
+                    // the authoritative drained-and-closed signal — `concurrent_queue`
+                    // returns it only when the slot is empty AND closed, and pops
+                    // values out of a closed queue happily.
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
                     Some(Stream::Wait)
@@ -1939,7 +1946,14 @@ where
             Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    None
+                    // Re-pop before believing it: `pop()` and `is_closed()` are two
+                    // separate reads, so a producer can push AND close in the gap
+                    // between them. Trusting the stale `Empty` there silently drops a
+                    // delivered item and reports end-of-stream. `PopError::Closed` is
+                    // the authoritative drained-and-closed signal — `concurrent_queue`
+                    // returns it only when the slot is empty AND closed, and pops
+                    // values out of a closed queue happily.
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
                     Some(Stream::Wait)
@@ -2085,7 +2099,14 @@ where
             Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    None
+                    // Re-pop before believing it: `pop()` and `is_closed()` are two
+                    // separate reads, so a producer can push AND close in the gap
+                    // between them. Trusting the stale `Empty` there silently drops a
+                    // delivered item and reports end-of-stream. `PopError::Closed` is
+                    // the authoritative drained-and-closed signal — `concurrent_queue`
+                    // returns it only when the slot is empty AND closed, and pops
+                    // values out of a closed queue happily.
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
                     Some(Stream::Wait)
