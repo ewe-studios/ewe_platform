@@ -4,13 +4,27 @@
 //! capability registry, cache manager, transport lanes, and `WebView` stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
+pub mod assets;
 pub mod backend;
 mod builder;
 mod cache;
 pub mod capability;
+/// `ewe-manifest` CLI implementation (F40).
+///
+/// Native-only: it is a thin wrapper over [`manifest`], which has no meaning
+/// on wasm32.
+#[cfg(not(target_family = "wasm"))]
+pub mod cli;
 pub mod codegen;
 mod injector;
 pub mod ipc;
+/// Manifest generation, signing, and verification (F40).
+///
+/// Native-only: build scripts and the `ewe-manifest` CLI call this to mint
+/// keys and describe bundles. It has no meaning on wasm32, where there is no
+/// filesystem to scan and no key material to hold.
+#[cfg(not(target_family = "wasm"))]
+pub mod manifest;
 pub mod multi_app;
 mod mutation;
 pub mod ota;
@@ -30,6 +44,10 @@ mod wasmtime_responder;
 
 pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
+pub use assets::{
+    parse_semver, AssetLayout, AssetResolverFs, AssetSource, OtaDownload, OtaPlan,
+    PlatformAssetManager, ReadOnlyVfsDirectory, ReadOnlyVfsFile, ReadOnlyVfsSeekableFile,
+};
 pub use backend::{query_backend, BackendTransport, ClosureTransport, DefaultTransport};
 pub use backend::http::HttpBackend;
 pub use backend::ipc_dispatch::{dispatch_ipc, SessionTransport};
@@ -38,7 +56,8 @@ pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
 pub use capability::{CapabilityRegistry, PlatformCapability};
 pub use multi_app::{AppConfig, AppIsolation};
 pub use mutation::{MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError, ReplayResult};
-pub use ota::{LocalVersion, OtaAppEntry, OtaFileEntry, OtaManifest, PackageDirectorate};
+pub use manifest::{Manifest, ManifestApp, ManifestFile, ManifestSource, KeyPair};
+pub use ota::{OtaAppEntry, OtaFileEntry, OtaManifest, PackageDirectorate, RollbackState};
 pub use stack::{PooledWebView, PreloadEntry, SlotState, StackConfig, WebViewOps, WebViewPool, WebViewSlot, WebViewStack, WebViewState};
 pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use overlay::{OverlayCapability, OverlayConfig, OverlayPosition};

@@ -3813,6 +3813,7 @@ version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53"
 dependencies = [
+ "pkcs8 0.10.2",
  "signature 2.2.0",
 ]
 
@@ -3834,8 +3835,11 @@ checksum = "4a3daa8e81a3963a60642bcc1f90a670680bd4a77535faa384e9d1c79d620871"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
+ "rand_core 0.6.4",
+ "serde",
  "sha2 0.10.9",
  "subtle",
+ "zeroize",
 ]
 
 [[package]]
@@ -5421,18 +5425,26 @@ dependencies = [
 name = "foundation_platform"
 version = "0.0.1"
 dependencies = [
+ "base64 0.22.1",
  "concurrent-queue",
+ "derive_more",
+ "ed25519-dalek",
+ "foundation_errstacks",
+ "foundation_nativeapis",
  "foundation_netio",
  "foundation_nostd",
  "foundation_ui_traits",
  "foundation_wasm",
  "foundation_wasm_ui",
  "foundation_wasmtime",
+ "rand_core 0.6.4",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "tauri",
  "tauri-build",
  "tracing",
+ "tracing-test",
 ]
 
 [[package]]

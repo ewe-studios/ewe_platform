@@ -165,3 +165,110 @@ fn memory_registers_as_one_multicommand_tool() {
         Tool::SingleCommand(_) => panic!("memory should be a MultiCommands tool"),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Joined-name dispatch (`memory_add` -> memory tool, command=add)
+// ---------------------------------------------------------------------------
+
+/// Run one tool call through the manager and return the result.
+async fn call(
+    mgr: &foundation_ai::agentic::tool_impl::ToolCallManager,
+    name: &str,
+    args: &[(&str, &str)],
+) -> Result<foundation_ai::agentic::tool_impl::ToolCallResult, ToolError> {
+    use foundation_ai::agentic::tool_impl::ToolCallRequest;
+    let mut arguments = HashMap::new();
+    for (k, v) in args {
+        arguments.insert((*k).to_string(), ArgType::Text((*v).to_string()));
+    }
+    mgr.execute_one(&ToolCallRequest {
+        id: "call-1".to_string(),
+        name: name.to_string(),
+        arguments,
+        depends_on: Vec::new(),
+    })
+    .await
+}
+
+#[valtron_test]
+fn the_canonical_group_plus_command_call_works() {
+    use foundation_ai::agentic::tool_impl::ToolCallManager;
+    let mgr = ToolCallManager::new(SessionId::new());
+    register_memory_tool(&mgr, setup());
+
+    let out = futures_lite::future::block_on(call(
+        &mgr,
+        "memory",
+        &[("command", "add"), ("fact", "the user prefers tabs")],
+    ));
+    assert!(out.is_ok(), "the canonical call shape must work: {out:?}");
+}
+
+#[valtron_test]
+fn a_joined_name_call_resolves_to_the_group_and_command() {
+    // Multi-command tools render as ONE function named for the group (`memory`)
+    // with a `command` argument. Models do not reliably call them that way —
+    // many have been trained on flattened tool names and emit `memory_add` with
+    // no `command` at all. That used to be UnknownTool and fail the turn, even
+    // though the request was unambiguous.
+    use foundation_ai::agentic::tool_impl::ToolCallManager;
+    let mgr = ToolCallManager::new(SessionId::new());
+    register_memory_tool(&mgr, setup());
+
+    let out = futures_lite::future::block_on(call(
+        &mgr,
+        "memory_add",
+        &[("fact", "the user prefers spaces")],
+    ));
+    assert!(
+        out.is_ok(),
+        "`memory_add` must resolve to the memory tool with command=add: {out:?}"
+    );
+}
+
+#[valtron_test]
+fn an_explicit_command_argument_beats_the_joined_name() {
+    // The fallback fills in what the model left out; it must never overwrite an
+    // argument the model actually supplied.
+    use foundation_ai::agentic::tool_impl::ToolCallManager;
+    let hierarchy = setup();
+    let mgr = ToolCallManager::new(SessionId::new());
+    register_memory_tool(&mgr, hierarchy.clone());
+
+    futures_lite::future::block_on(call(
+        &mgr,
+        "memory",
+        &[("command", "add"), ("fact", "keep me")],
+    ))
+    .expect("seed");
+
+    // Name says `remove`, explicit argument says `add` — the argument wins.
+    let out = futures_lite::future::block_on(call(
+        &mgr,
+        "memory_remove",
+        &[("command", "add"), ("fact", "added not removed")],
+    ));
+    assert!(out.is_ok(), "explicit command must be honoured: {out:?}");
+    let facts = hierarchy.working_memory_facts();
+    assert!(
+        facts.iter().any(|f| f.contains("added not removed")),
+        "the explicit `add` must have run, not the name's `remove`: {facts:?}"
+    );
+}
+
+#[valtron_test]
+fn an_unknown_joined_name_is_still_an_error() {
+    // The fallback must not turn every typo into a silent success. A name whose
+    // remainder is not one of the tool's commands stays UnknownTool.
+    use foundation_ai::agentic::tool_impl::ToolCallManager;
+    let mgr = ToolCallManager::new(SessionId::new());
+    register_memory_tool(&mgr, setup());
+
+    for bogus in ["memory_frobnicate", "memoryadd", "notmemory_add", "add"] {
+        let out = futures_lite::future::block_on(call(&mgr, bogus, &[("fact", "x")]));
+        assert!(
+            matches!(out, Err(ToolError::UnknownTool(_))),
+            "`{bogus}` must stay an unknown tool, got {out:?}"
+        );
+    }
+}

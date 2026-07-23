@@ -327,6 +327,60 @@ impl ToolCallManager {
         (shed, tools)
     }
 
+    /// Resolve a `group_command` style name onto a `MultiCommands` tool.
+    ///
+    /// A multi-command tool is rendered to the model as ONE function named for
+    /// the group (`memory`) whose `command` argument selects the sub-command
+    /// (`add`, `remove`, `replace`). Models do not always call it that way —
+    /// many have been trained on flattened tool names and emit `memory_add` as
+    /// the function name, with no `command` argument at all. Left alone that is
+    /// an `UnknownTool` error and the turn fails, even though the request was
+    /// unambiguous and the tool was right there.
+    ///
+    /// So: when an exact lookup misses, check every registered `MultiCommands`
+    /// tool for one whose group name prefixes the request and whose remainder is
+    /// one of its commands, then dispatch to the group with `command` filled in.
+    /// Matching is done against the registered command list rather than by
+    /// splitting on the last `_`, so a command containing an underscore resolves
+    /// correctly and an unrelated tool never matches by accident.
+    ///
+    /// An explicit `command` argument always wins — this only fills in what the
+    /// model left out.
+    fn resolve_joined_command(
+        &self,
+        request: &ToolCallRequest,
+    ) -> Result<(Arc<dyn ToolImpl>, HashMap<String, ArgType>), ToolError> {
+        let defs = self.inner.defs.read().unwrap();
+        for (group, def) in defs.iter() {
+            let Tool::MultiCommands(_, commands) = def else {
+                continue;
+            };
+            let Some(rest) = request.name.strip_prefix(group.as_str()) else {
+                continue;
+            };
+            let Some(command) = rest.strip_prefix('_') else {
+                continue;
+            };
+            if !commands.iter().any(|c| c.name == command) {
+                continue;
+            }
+
+            let Some(tool) = self.inner.tools.read().unwrap().get(group).cloned() else {
+                continue;
+            };
+            tracing::debug!(
+                "tool call `{}` resolved to the `{group}` tool with command `{command}`",
+                request.name
+            );
+            let mut arguments = request.arguments.clone();
+            arguments
+                .entry("command".to_string())
+                .or_insert_with(|| ArgType::Text(command.to_string()));
+            return Ok((tool, arguments));
+        }
+        Err(ToolError::UnknownTool(request.name.clone()))
+    }
+
     /// Validate arguments against the tool's JSON-Schema, then execute.
     /// # Errors
     /// Returns [`ToolError`] if validation fails.
@@ -334,9 +388,11 @@ impl ToolCallManager {
         &self,
         request: &ToolCallRequest,
     ) -> Result<ToolCallResult, ToolError> {
-        let tool = self
-            .get(&request.name)
-            .ok_or_else(|| ToolError::UnknownTool(request.name.clone()))?;
+        // Exact match first; then the joined-name fallback below.
+        let (tool, arguments) = match self.get(&request.name) {
+            Some(tool) => (tool, request.arguments.clone()),
+            None => self.resolve_joined_command(request)?,
+        };
 
         // Validate arguments against the tool's Args schema.
         // Schema validation is delegated to the tool implementer — we just
@@ -349,7 +405,7 @@ impl ToolCallManager {
         // ToolError::Execution the loop handles like any other tool failure.
         use futures_lite::FutureExt;
         let name = request.name.clone();
-        match std::panic::AssertUnwindSafe(tool.execute(request.arguments.clone()))
+        match std::panic::AssertUnwindSafe(tool.execute(arguments))
             .catch_unwind()
             .await
         {

@@ -1,4 +1,3 @@
-use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -9,45 +8,6 @@ use crate::ewe;
 use crate::injector::{InjectedScript, ScriptInjector, ScriptInjectorPlugin};
 use crate::route_handler::RouteResponder;
 use crate::session::PlatformSession;
-
-/// On Android, Tauri's `resource_dir()` returns `asset://localhost/` — a content
-/// URI, not a real filesystem path. `std::fs::read()` can't use it. We extract
-/// `bundle.resources` from the APK into AppData so `MobileDirectory` responders
-/// can serve files via `std::fs::read()` as they do on desktop.
-///
-/// Returns the `resource_root` that should be used — on desktop it's the original
-/// `resource_dir()`, on Android it's the AppData directory with extracted files.
-fn resolve_resource_root<R: Runtime>(app: &App<R>) -> PathBuf {
-    let resource_root = app
-        .path()
-        .resource_dir()
-        .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
-
-    // Desktop / dev: resource_dir is a real filesystem path.
-    if resource_root.exists() && resource_root.is_dir() {
-        return resource_root;
-    }
-
-    // Mobile: resource_dir is a content URI — extract assets to AppData.
-    let app_data = app
-        .path()
-        .app_data_dir()
-        .unwrap_or_else(|_| env::current_dir().unwrap_or_default());
-
-    let resolver = app.asset_resolver();
-    for asset_entry in resolver.iter() {
-        let asset_key: String = (*asset_entry.0).to_string();
-        let dest = app_data.join(&asset_key);
-        if let Some(parent) = dest.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        if let Some(asset) = resolver.get(asset_key) {
-            let _ = std::fs::write(&dest, &asset.bytes);
-        }
-    }
-
-    app_data
-}
 
 struct RouteEntry {
     pattern: String,
@@ -66,6 +26,11 @@ pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     script_injector: ScriptInjector,
     /// Whether platform runtimes have been auto-registered.
     runtimes_injected: bool,
+    /// The only CDN domain OTA manifests may be fetched from (F40).
+    /// Baked here at compile time so no runtime input can redirect updates.
+    ota_manifest_domain: Option<String>,
+    /// Ed25519 public key that authenticates OTA manifests (F40).
+    ota_manifest_key: Option<[u8; 32]>,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
@@ -78,7 +43,60 @@ impl<R: Runtime> PlatformBuilder<R> {
             index_url: None,
             script_injector: ScriptInjector::new(PathBuf::new()),
             runtimes_injected: false,
+            ota_manifest_domain: None,
+            ota_manifest_key: None,
         }
+    }
+
+    /// Bake the CDN domain OTA manifests must come from (F40).
+    ///
+    /// WHY: the manifest URL is derived as `https://{domain}/ewe-manifest.json`
+    /// and never taken from user input, IPC, or the manifest itself. A
+    /// compromised route handler therefore cannot aim the updater at an
+    /// attacker's host, and the value is visible in the shipped binary rather
+    /// than being configurable on-device. Changing it takes a new release.
+    ///
+    /// This is a routing guard, not a trust anchor — content authenticity
+    /// comes from [`Self::ota_manifest_key`].
+    #[must_use]
+    pub fn ota_manifest_domain(mut self, domain: &str) -> Self {
+        self.ota_manifest_domain = Some(domain.to_string());
+        self
+    }
+
+    /// Bake the Ed25519 public key that authenticates OTA manifests (F40).
+    ///
+    /// WHY: this key is the trust anchor for the whole update path. It proves
+    /// *we* declared the SHA-256 hashes in a manifest; those hashes then prove
+    /// the downloaded bytes match that declaration. Without it, a compromised
+    /// CDN can serve any bundle it likes with hashes it computed itself.
+    ///
+    /// Only the public half ships. The private seed lives in CI secrets.
+    #[must_use]
+    pub fn ota_manifest_key(mut self, key: [u8; 32]) -> Self {
+        self.ota_manifest_key = Some(key);
+        self
+    }
+
+    /// Bake the OTA public key from a base64 key file read at compile time.
+    ///
+    /// Pair with `concat!(env!("CARGO_MANIFEST_DIR"), "/keys/ota_public.key")`
+    /// so the bytes come from the repository rather than the device.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `contents` is not exactly 32 base64-decoded bytes. This is a
+    /// build-configuration error — a malformed key would silently disable
+    /// signature verification, so failing at startup is the safe outcome.
+    #[must_use]
+    pub fn ota_manifest_key_from_str(self, contents: &str) -> Self {
+        use base64::Engine as _;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(contents.trim())
+            .expect("OTA public key is not valid base64");
+        let key = <[u8; 32]>::try_from(bytes.as_slice())
+            .expect("OTA public key must be exactly 32 bytes");
+        self.ota_manifest_key(key)
     }
 
     #[must_use]
@@ -165,9 +183,22 @@ impl<R: Runtime> PlatformBuilder<R> {
         let setups = std::mem::take(&mut self.setups);
         let _index_url = self.index_url.clone();
         let script_injector = std::mem::take(&mut self.script_injector);
+        let ota_manifest_domain = self.ota_manifest_domain.clone();
+        let ota_manifest_key = self.ota_manifest_key;
 
         self.inner = self.inner.setup(move |app| {
-            let resource_root = resolve_resource_root(app);
+            // The bundle version is already baked into every Tauri build:
+            // tauri.conf.json → PackageInfo::version → APK versionName.
+            // Tauri's schema guarantees it is semver.
+            let bundle_version = app.package_info().version.to_string();
+
+            let manager = Arc::new(crate::assets::PlatformAssetManager::initialize(
+                app,
+                &bundle_version,
+                ota_manifest_domain.clone(),
+                ota_manifest_key,
+            ));
+            let resource_root = manager.base_root().to_path_buf();
 
             // Use resolved resource root if none set explicitly
             let injector = if script_injector.resource_root == PathBuf::new() {
@@ -177,6 +208,9 @@ impl<R: Runtime> PlatformBuilder<R> {
             };
 
             let session = PlatformSession::new(resource_root, injector);
+            // Installed before the setup callbacks run so `session.app_root()`
+            // resolves version directories while routes are being registered.
+            session.set_asset_manager(manager);
 
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();

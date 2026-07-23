@@ -27,10 +27,28 @@ foundation_wasm = { path = "../foundation_wasm" }
 # Lock-free queue for streaming IPC chunks (F26)
 concurrent-queue = { workspace = true }
 
+# VFS stack (F40) — NativeFs / OverlayFileSystem / DirectoryDelta / ObservableFs.
+# `default-features = false`: the platform only needs the virtual filesystem
+# layer, not the poll reactor / signal handling that `default` drags in.
+foundation_nativeapis = { path = "../foundation_nativeapis", default-features = false, features = ["vfs-native"] }
+
+# `VfsResult<T> = Result<T, ErrorTrace<VfsError>>` — needed to construct and
+# match on VFS errors at the PlatformAssetManager boundary.
+foundation_errstacks = { path = "../foundation_errstacks" }
+
 # Standard deps
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
+derive_more = { workspace = true }
+
+# OTA manifest chain of trust (F40): Ed25519 authenticates the manifest,
+# SHA-256 ties downloaded bytes to the signed declaration, base64 is the
+# wire encoding for both keys and signatures.
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+sha2 = "0.10"
+base64 = "0.22"
 
 # HTTP client for remote fetch (F29 Stage 2)
 # Uses rustls-tls for cross-platform TLS — no native openssl dependency.
@@ -46,8 +64,20 @@ foundation_wasmtime = { path = "../foundation_wasmtime" }
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }
 
+[features]
+default = []
+
+# Wrap the asset manager's VFS in `ObservableFs` so every read/write/exists
+# emits a `VfsEvent`. Off in release builds — zero overhead when disabled.
+vfs-audit = []
+
 [dev-dependencies]
 tauri = { version = "2.11.5", features = [] }
+tracing-test = { workspace = true }
+
+[[bin]]
+name = "ewe-manifest"
+path = "src/main.rs"
 
 [lints]
 workspace = true

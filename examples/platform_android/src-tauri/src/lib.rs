@@ -407,9 +407,12 @@ impl RouteResponder for ModeReportPage {
 // ── Setup ────────────────────────────────────────────────────────────
 
 fn setup_routes(session: &PlatformSession) {
-    let root = session.bundle_root();
-    let app_responder = generated::app::AppAssets::build(root.clone());
-    let hello_responder = generated::app_hello::AppAssets::build(root.clone());
+    // Each responder mounts at its own app's active version directory and
+    // reads through the session's asset manager (F40). On Android that is
+    // the only path that reaches APK-bundled assets — they are never
+    // extracted to disk, so a plain std::fs read would serve nothing.
+    let app_responder = generated::app::AppAssets::build(session);
+    let hello_responder = generated::app_hello::AppAssets::build(session);
 
     session.register_route_with(
         "/app/*",
@@ -505,5 +508,15 @@ fn setup_routes(session: &PlatformSession) {
 pub fn run() {
     platform_run!(PlatformBuilder::new()
         .inject_platform_runtimes()
+        // Baked at compile time (F40): the only origin OTA manifests and
+        // bundles may come from. No IPC, script, or manifest field can
+        // change it — that takes a new binary.
+        .ota_manifest_domain("cdn.ewe.studio")
+        // The trust anchor. `keys/ota_public.key` is written by build.rs on
+        // the first build and committed; the private seed stays in CI.
+        .ota_manifest_key_from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/keys/ota_public.key"
+        )))
         .setup(setup_routes));
 }

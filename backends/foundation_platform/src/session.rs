@@ -121,6 +121,14 @@ pub struct PlatformSession {
     /// Wasmtime shell registry (F33). Named WASM modules that run in-process
     /// via wasmtime (Surface 3). Registered at setup time, built on first request.
     pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
+
+    /// Bundle asset manager (F40). Installed by `PlatformBuilder` at setup.
+    ///
+    /// `None` in tests and in any embedding that constructs a session
+    /// directly — callers fall back to `resource_root` and plain `std::fs`,
+    /// which is correct everywhere except Android, where APK-bundled assets
+    /// are not on disk and only the manager's VFS can reach them.
+    asset_manager: RwLock<Option<Arc<crate::assets::PlatformAssetManager>>>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -163,6 +171,7 @@ impl PlatformSession {
             workers_: crate::worker::WorkerRegistry::new(),
             window_manager: crate::window::WindowManager::new(),
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
+            asset_manager: RwLock::new(None),
         })
     }
 }
@@ -608,8 +617,45 @@ impl PlatformSession {
     /// responders — they never need to know the dev vs. prod layout.
     #[must_use]
     pub fn bundle_root(&self) -> PathBuf {
+        // The asset manager already resolved the dev-vs-bundled question when
+        // it picked its mount point; re-deriving it here would second-guess it.
+        if let Some(manager) = self.asset_manager() {
+            return manager.base_root().to_path_buf();
+        }
         let dev = self.resource_root.join("public");
         if dev.exists() { dev } else { self.resource_root.clone() }
+    }
+
+    /// The bundle asset manager (F40), if one was installed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    #[must_use]
+    pub fn asset_manager(&self) -> Option<Arc<crate::assets::PlatformAssetManager>> {
+        self.asset_manager.read().unwrap().clone()
+    }
+
+    /// Install the bundle asset manager. Called once by `PlatformBuilder`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    pub fn set_asset_manager(&self, manager: Arc<crate::assets::PlatformAssetManager>) {
+        *self.asset_manager.write().unwrap() = Some(manager);
+    }
+
+    /// The directory an app's assets are served from (F40).
+    ///
+    /// Delegates to the asset manager when one is installed, so per-app
+    /// version directories are resolved. Without a manager this is just
+    /// `bundle_root()/{app_id}`, which is what every pre-F40 caller assumed.
+    #[must_use]
+    pub fn app_root(&self, app_id: &str) -> PathBuf {
+        match self.asset_manager() {
+            Some(manager) => manager.app_root(app_id),
+            None => self.bundle_root().join(app_id),
+        }
     }
 
     /// Access the WebView stack for navigation tracking (F29 Stage 3).

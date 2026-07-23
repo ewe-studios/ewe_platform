@@ -57,7 +57,7 @@ fn multi() -> Tool {
         "memory".to_string(),
         vec![
             ToolDefinition {
-                name: "memory_add".to_string(),
+                name: "add".to_string(),
                 category: "memory".to_string(),
                 description: "Add a memory".to_string(),
                 arguments: args(
@@ -67,14 +67,14 @@ fn multi() -> Tool {
                 returns: None,
             },
             ToolDefinition {
-                name: "memory_remove".to_string(),
+                name: "remove".to_string(),
                 category: "memory".to_string(),
                 description: "Remove a memory".to_string(),
                 arguments: args(serde_json::json!({ "id": { "type": "string" } }), &["id"]),
                 returns: None,
             },
             ToolDefinition {
-                name: "memory_replace".to_string(),
+                name: "replace".to_string(),
                 category: "memory".to_string(),
                 description: "Replace a memory".to_string(),
                 arguments: args(
@@ -128,8 +128,8 @@ fn commands_offered(schema: &serde_json::Value) -> Vec<String> {
 #[test]
 fn a_multi_command_tool_is_one_entry_for_every_provider() {
     // The regression this guards: rendering a MultiCommands tool as one entry
-    // PER COMMAND. The model would then see `memory_add`/`memory_remove`/
-    // `memory_replace` as three unrelated tools, which is precisely the
+    // PER COMMAND. The model would then see `memory.add`/`memory.remove`/
+    // `memory.replace` as three unrelated tools, which is precisely the
     // flattened world F19 removed.
     let formatters: [(&str, Box<dyn ToolFormatter>); 3] = [
         ("openai", Box::new(OpenAIFormatter)),
@@ -170,7 +170,7 @@ fn openai_renders_a_multi_command_tool_as_one_discriminated_function() {
     offered.sort();
     assert_eq!(
         offered,
-        vec!["memory_add", "memory_remove", "memory_replace"],
+        vec!["add", "remove", "replace"],
         "every sub-command must be selectable via `command`: {params:#}"
     );
 }
@@ -212,7 +212,7 @@ fn anthropic_renders_a_multi_command_tool_under_input_schema() {
     offered.sort();
     assert_eq!(
         offered,
-        vec!["memory_add", "memory_remove", "memory_replace"],
+        vec!["add", "remove", "replace"],
         "sub-commands must be selectable inside input_schema: {schema:#}"
     );
 }
@@ -229,7 +229,7 @@ fn the_text_formatter_names_every_sub_command() {
     let rendered = render(&TextBasedFormatter, &[multi()]);
     let blob = serde_json::to_string(&rendered[0]).expect("serialisable");
 
-    for command in ["memory_add", "memory_remove", "memory_replace"] {
+    for command in ["add", "remove", "replace"] {
         assert!(
             blob.contains(command),
             "the text payload must name `{command}` so the model can select it: {blob}"

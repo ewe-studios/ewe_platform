@@ -48,12 +48,21 @@ pub fn generate_platform_code() {
         }
     }
 
+    // Unconditionally, and before anything that might fail: projects bake the
+    // public key with `include_str!("keys/ota_public.key")`, so the file has
+    // to exist by the time the crate itself compiles — whether or not this
+    // project happens to have any WASM apps.
+    let keypair = ensure_ota_keys(&manifest_dir);
+
     if !apps.is_empty() {
         let public_dir = manifest_dir.join("public");
         build_all_wasm_apps(&apps, &public_dir);
         let generated_dir = manifest_dir.join("src").join("generated");
         std::fs::create_dir_all(&generated_dir).ok();
         generate_app_modules(&apps, &generated_dir);
+        // After the bundles exist and before Tauri packages them — the
+        // manifest describes exactly the bytes that ship (F40).
+        generate_app_manifests(&public_dir, keypair.as_ref());
     }
 
     // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
@@ -233,21 +242,28 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     for app in apps {
         let module_name = app.name.replace('-', "_");
         let content = format!(
-            "// Generated \u{2014} AppAssets for \"{name}\" (F22)\n\
+            "// Generated \u{2014} AppAssets for \"{name}\" (F22, mounted per F40)\n\
              // Route prefix: {route_prefix}\n\
              //\n\
-             // MobileDirectory: assets served from disk at runtime via `build(root)`.\n\
-             // The resolved resource dir comes from `PlatformSession.resource_root`.\n\
-             // On Android this is the Tauri-extracted resource path; on desktop\n\
-             // it is the app bundle resource dir.\n\n\
+             // `build(session)` mounts the responder at this app's active version\n\
+             // directory and lets it read through the session's asset manager.\n\
+             // That indirection is what makes Android work: APK-bundled assets are\n\
+             // never on disk, so only the VFS overlay can reach them.\n\
+             //\n\
+             // `build_at(root)` is the unmounted form \u{2014} a plain disk root, for\n\
+             // embeddings that have no PlatformAssetManager.\n\n\
              use foundation_macros::MobileDirectory;\n\
-             use foundation_platform::MobileApp;\n\
+             use foundation_platform::{{MobileApp, PlatformSession}};\n\
              use std::path::PathBuf;\n\n\
+             pub const APP_ID: &str = \"{name}\";\n\n\
              #[derive(MobileDirectory)]\n\
              #[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
              pub struct AppAssets {{\n    pub root: PathBuf\n}}\n\n\
              impl AppAssets {{\n\
-             \x20   pub fn build(root: PathBuf) -> MobileApp<AppAssets> {{ MobileApp::new(AppAssets {{ root }}) }}\n\
+             \x20   pub fn build(session: &PlatformSession) -> MobileApp<AppAssets> {{\n\
+             \x20       MobileApp::mounted_at(AppAssets {{ root: session.app_root(APP_ID) }}, APP_ID)\n\
+             \x20   }}\n\n\
+             \x20   pub fn build_at(root: PathBuf) -> MobileApp<AppAssets> {{ MobileApp::new(AppAssets {{ root }}) }}\n\
              }}\n",
             name = app.name, route_prefix = app.route_prefix, public_subdir = app.name,
         );
@@ -256,6 +272,54 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
     }
     std::fs::write(generated_dir.join("mod.rs"), &mod_lines).ok();
     println!("cargo:warning=generated {} app modules", apps.len());
+}
+
+/// Create `keys/ota_public.key` (and the private seed) if absent (F40).
+///
+/// Idempotent: an existing public key is read, never regenerated —
+/// regenerating would invalidate every already-shipped binary that baked the
+/// old one. Only the public half is meant to be committed; a `keys/.gitignore`
+/// is written so the private seed cannot be added by accident. In CI the seed
+/// comes from `EWE_OTA_PRIVATE_KEY` and never touches the working tree.
+fn ensure_ota_keys(manifest_dir: &Path) -> Option<crate::manifest::KeyPair> {
+    println!("cargo:rerun-if-env-changed={}", crate::manifest::PRIVATE_KEY_ENV);
+    match crate::manifest::ensure_keys(manifest_dir) {
+        Ok(keypair) => Some(keypair),
+        Err(e) => {
+            // Not fatal: unsigned manifests still carry the hashes, and a
+            // build should not die because a key directory is unwritable.
+            println!("cargo:warning=could not prepare OTA keys: {e}");
+            None
+        }
+    }
+}
+
+/// Write `.ewe_manifest.json` into every app directory under `public/` (F40).
+///
+/// WHY: a version directory without a manifest is a directory nothing can
+/// verify, roll back to, or reason about. Generating them here — rather than
+/// asking every project to add a `build.rs` step — means the guarantee
+/// "every version directory has a manifest" holds without anyone opting in.
+///
+/// Without a private key the manifests are generated unsigned, which is
+/// correct for a local build: the binary is the trust root there, and CI
+/// supplies the seed for real releases.
+fn generate_app_manifests(public_dir: &Path, keypair: Option<&crate::manifest::KeyPair>) {
+    println!("cargo:rerun-if-env-changed={}", crate::manifest::MANIFEST_DOMAIN_ENV);
+
+    let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".to_string());
+    let domain = crate::manifest::manifest_domain_from_env();
+
+    match crate::manifest::generate_all_manifests(public_dir, &version, &domain, keypair) {
+        Ok(manifests) => {
+            let signed = manifests.iter().filter(|m| m.signature.is_some()).count();
+            println!(
+                "cargo:warning=generated {} app manifests ({signed} signed) for v{version}",
+                manifests.len()
+            );
+        }
+        Err(e) => println!("cargo:warning=manifest generation failed: {e}"),
+    }
 }
 
 /// Generate per-app Rust modules for wasmtime shell apps (F33).

@@ -215,6 +215,9 @@ trait DynFsOps: Send + Sync {
     fn mkdir(&self, path: &str) -> VfsResult<()>;
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>>;
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()>;
+    fn copy(&self, from: &str, to: &str) -> VfsResult<()>;
+    fn remove_all(&self, path: &str) -> VfsResult<()>;
+    fn mkdir_all(&self, path: &str) -> VfsResult<()>;
     fn inode(&self, path: &str) -> VfsResult<u64>;
     fn path_by_inode(&self, ino: u64) -> VfsResult<String>;
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata>;
@@ -262,6 +265,13 @@ impl DynFs {
     pub fn mkdir(&self, path: &str) -> VfsResult<()> { self.inner.mkdir(path) }
     pub fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> { self.inner.read_file(path) }
     pub fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> { self.inner.write_file(path, data) }
+    pub fn copy(&self, from: &str, to: &str) -> VfsResult<()> { self.inner.copy(from, to) }
+    /// Recursive delete — the erased counterpart of
+    /// [`VfsFileSystem::remove_all`], which `remove` alone cannot express.
+    pub fn remove_all(&self, path: &str) -> VfsResult<()> { self.inner.remove_all(path) }
+    /// Recursive create — the erased counterpart of
+    /// [`VfsFileSystem::mkdir_all`], which `mkdir` alone cannot express.
+    pub fn mkdir_all(&self, path: &str) -> VfsResult<()> { self.inner.mkdir_all(path) }
     pub fn inode(&self, path: &str) -> VfsResult<u64> { self.inner.inode(path) }
     pub fn path_by_inode(&self, ino: u64) -> VfsResult<String> { self.inner.path_by_inode(ino) }
     pub fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> { self.inner.stat_by_inode(ino) }
@@ -298,6 +308,9 @@ where
     fn mkdir(&self, path: &str) -> VfsResult<()> { self.0.mkdir(path) }
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> { self.0.read_file(path) }
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> { self.0.write_file(path, data) }
+    fn copy(&self, from: &str, to: &str) -> VfsResult<()> { self.0.copy(from, to) }
+    fn remove_all(&self, path: &str) -> VfsResult<()> { self.0.remove_all(path) }
+    fn mkdir_all(&self, path: &str) -> VfsResult<()> { self.0.mkdir_all(path) }
     fn inode(&self, path: &str) -> VfsResult<u64> { self.0.inode(path) }
     fn path_by_inode(&self, ino: u64) -> VfsResult<String> { self.0.path_by_inode(ino) }
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> { self.0.stat_by_inode(ino) }
