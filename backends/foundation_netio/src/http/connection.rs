@@ -12,7 +12,7 @@ use std::sync::Arc;
 use crate::netcap::{Connection, RawStream};
 use crate::shared::client::dns::DnsResolver;
 use crate::shared::http::HttpClientError;
-use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
@@ -59,6 +59,31 @@ impl HttpClientConnection {
     pub fn drain_stream(&mut self) {
         tracing::trace!("drain_stream: starting to drain connection");
 
+        // Bound the drain with a very short read timeout, then restore whatever
+        // was set before.
+        //
+        // The loop below reads until EOF or an error, and it cannot know how
+        // much is left — so on a live keep-alive connection with nothing left to
+        // read it simply blocks until the PEER does something. That is not the
+        // client's read timeout: measured against a test server, the wall-clock
+        // cost tracked the server's idle timeout exactly (5s idle -> 15.4s for
+        // three requests, 1s idle -> 3.1s). Against a real server this is far
+        // worse — nginx's default keep-alive is 75s, so returning one connection
+        // to the pool would block the caller for over a minute, on every request
+        // whose response carried a body.
+        //
+        // A short bound is correct rather than merely cheap: anything genuinely
+        // left over is already sitting in the local socket buffer and arrives at
+        // once. Waiting longer only waits for bytes that are never coming.
+        const DRAIN_TIMEOUT: Duration = Duration::from_millis(20);
+
+        let previous_timeout = self.stream.get_current_read_timeout().ok().flatten();
+        if let Err(e) = self.stream.set_read_timeout_as(DRAIN_TIMEOUT) {
+            // Not fatal: without the bound the drain still works, it is just
+            // slow. Better to drain than to skip it and pool a dirty socket.
+            tracing::debug!("drain_stream: could not bound the drain timeout: {e:?}");
+        }
+
         // Read any remaining buffered data into a small buffer
         // This ensures the HTTP response reader state machine is fully consumed
         let mut drain_buf = [0u8; 1024];
@@ -95,6 +120,14 @@ impl HttpClientConnection {
                     );
                     break; // Read error - stop draining to avoid blocking
                 }
+            }
+        }
+
+        // Restore the caller's timeout so the next request on this connection is
+        // not stuck with the drain's 20ms.
+        if let Some(previous) = previous_timeout {
+            if let Err(e) = self.stream.set_read_timeout_as(previous) {
+                tracing::debug!("drain_stream: could not restore the read timeout: {e:?}");
             }
         }
 

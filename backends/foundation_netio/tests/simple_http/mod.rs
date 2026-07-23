@@ -20,6 +20,7 @@ mod client_tests;
 mod compliance_tests;
 mod compression_tests;
 mod connection_tests;
+mod pool_body_drain_tests;
 mod pool_retry_tests;
 mod cookie_tests;
 mod redacted_headers_tests;
