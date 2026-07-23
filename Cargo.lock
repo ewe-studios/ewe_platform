@@ -5170,7 +5170,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_iogate"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_nativeapis",
  "foundation_netio",
