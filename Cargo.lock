@@ -5481,7 +5481,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_runtimes"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "brotli 8.0.4",
  "flate2",

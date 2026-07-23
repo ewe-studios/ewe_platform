@@ -22,7 +22,7 @@ foundation_toolings = { path = "../../backends/foundation_toolings", version = "
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.5", features = ["multi"] }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.3", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.1" }
-foundation_runtimes = { path = "../../backends/foundation_runtimes", version = "0.0.3" }
+foundation_runtimes = { path = "../../backends/foundation_runtimes", version = "0.0.4" }
 foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.5" }
 foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.5" }
 foundation_deployment = { path = "../../backends/foundation_deployment", version = "0.0.2" }
