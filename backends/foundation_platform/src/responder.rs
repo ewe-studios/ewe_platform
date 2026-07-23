@@ -95,12 +95,19 @@ impl<A: MobileDisk> AssetReader<'_, A> {
     }
 
     /// Strip the app segment when this responder is mounted at one.
+    ///
+    /// Only a whole leading segment counts: a bare `strip_prefix("app")` would
+    /// also fire on `app-hello/index.html` and hand that app's request to
+    /// this one as `-hello/index.html`.
     fn strip(&self, path: &str) -> String {
         let Some(app_id) = self.mount else {
             return path.to_string();
         };
-        path.strip_prefix(app_id)
-            .map_or_else(|| path.to_string(), |rest| rest.trim_start_matches('/').to_string())
+        match path.strip_prefix(app_id) {
+            Some("") => String::new(),
+            Some(rest) if rest.starts_with('/') => rest.trim_start_matches('/').to_string(),
+            _ => path.to_string(),
+        }
     }
 }
 

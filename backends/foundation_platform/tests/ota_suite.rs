@@ -13,6 +13,7 @@ use foundation_nativeapis::shared::vfs::dynfs::DynFs;
 use foundation_nativeapis::shared::vfs::memory_fs::MemoryFs;
 use foundation_platform::assets::{AssetLayout, PlatformAssetManager, MAX_OTA_FILES};
 use foundation_platform::manifest::{self, KeyPair, MANIFEST_FILENAME};
+use foundation_platform::PackageDirectorate;
 use tracing_test::traced_test;
 
 // ── Fixtures ────────────────────────────────────────────────────────────
@@ -611,5 +612,361 @@ fn reading_a_manifest_from_a_version_that_has_none_returns_nothing() {
     assert!(
         manager.read_version_manifest("app", "0.1.0").is_none(),
         "absence must be reported, not faked"
+    );
+}
+
+// ── Install: verification and atomicity ─────────────────────────────────
+//
+// `PackageDirectorate` derives download URLs as `https://{baked_domain}/…`,
+// so driving `apply_update` end to end would need TLS plus a DNS override,
+// or a base-URL seam — and that seam is the exact redirection vector the
+// baked domain exists to close. `install_verified` takes the bytes directly,
+// so everything that touches disk is exercised with a real VFS, real
+// hashing, and a real atomic rename.
+
+fn directorate(manager: Arc<PlatformAssetManager>) -> PackageDirectorate {
+    PackageDirectorate::new(manager).expect("a baked domain must yield a directorate")
+}
+
+fn plan_for(manager: &PlatformAssetManager, pair: &KeyPair) -> foundation_platform::assets::OtaPlan {
+    manager
+        .process_manifest(&ManifestBuilder::default().signed(pair))
+        .expect("accept")
+}
+
+#[test]
+#[traced_test]
+fn install_writes_the_file_when_the_hash_matches() {
+    let pair = signing_keypair("install_ok");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    ota.install_verified(&plan.downloads[0], b"<html>ota</html>")
+        .expect("matching bytes must install");
+
+    assert_eq!(
+        manager.read("/app/v0.1.1/index.html").expect("read"),
+        b"<html>ota</html>".to_vec()
+    );
+}
+
+#[test]
+#[traced_test]
+fn install_refuses_bytes_whose_hash_does_not_match() {
+    let pair = signing_keypair("install_hash");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    // Byte-for-byte the same length as the declared body, so the size check
+    // cannot fire and the hash is genuinely what rejects this.
+    const SWAPPED: &[u8] = b"<html>ot4</html>";
+    assert_eq!(SWAPPED.len(), b"<html>ota</html>".len());
+
+    let err = ota
+        .install_verified(&plan.downloads[0], SWAPPED)
+        .expect_err("a signed hash that does not match the bytes must stop the install");
+    assert!(err.contains("sha256 mismatch"), "got {err:?}");
+
+    assert!(
+        !manager.exists("/app/v0.1.1/index.html").expect("exists"),
+        "nothing may be installed when verification fails"
+    );
+}
+
+#[test]
+#[traced_test]
+fn install_refuses_bytes_of_the_wrong_length() {
+    let pair = signing_keypair("install_size");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    let err = ota
+        .install_verified(&plan.downloads[0], b"short")
+        .expect_err("a truncated body must be refused");
+    assert!(err.contains("size mismatch"), "got {err:?}");
+}
+
+#[test]
+#[traced_test]
+fn a_failed_install_leaves_no_staging_file_to_be_mistaken_for_content() {
+    let pair = signing_keypair("install_no_part");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    let _ = ota.install_verified(&plan.downloads[0], b"<html>ot4</html>");
+
+    assert!(
+        !manager.exists("/app/v0.1.1/index.html.part").expect("exists"),
+        "verification happens before staging, so a rejected body must never \
+         reach the filesystem at all"
+    );
+}
+
+#[test]
+#[traced_test]
+fn a_successful_install_renames_its_staging_file_away() {
+    let pair = signing_keypair("install_renames");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    ota.install_verified(&plan.downloads[0], b"<html>ota</html>")
+        .expect("install");
+
+    assert!(
+        !manager.exists("/app/v0.1.1/index.html.part").expect("exists"),
+        "a leftover .part beside the real file is how a partial download gets \
+         mistaken for a complete one"
+    );
+}
+
+#[test]
+#[traced_test]
+fn install_overwrites_a_stale_staging_file_from_an_interrupted_run() {
+    let pair = signing_keypair("install_stale_part");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    let plan = plan_for(&manager, &pair);
+    let ota = directorate(Arc::clone(&manager));
+
+    // A previous run died between staging and rename.
+    manager
+        .write("/app/v0.1.1/index.html.part", b"garbage from last time")
+        .expect("seed stale part");
+
+    ota.install_verified(&plan.downloads[0], b"<html>ota</html>")
+        .expect("a stale .part must not block a retry");
+
+    assert_eq!(
+        manager.read("/app/v0.1.1/index.html").expect("read"),
+        b"<html>ota</html>".to_vec()
+    );
+}
+
+// ── Directives: rollback and the loop breaker ───────────────────────────
+
+#[test]
+#[traced_test]
+fn rollback_to_activates_the_named_version() {
+    let pair = signing_keypair("rollback_activates");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    manager.write("/app/v0.1.0/index.html", b"old").expect("seed");
+    manager.write("/app/v0.1.1/index.html", b"new").expect("seed");
+    manager.activate("app", "0.1.1").expect("activate new");
+
+    let plan = manager
+        .process_manifest(&ManifestBuilder::default().rollback_to("0.1.0").signed(&pair))
+        .expect("accept");
+    directorate(Arc::clone(&manager))
+        .apply_directives(&plan.manifest)
+        .expect("directives");
+
+    assert_eq!(
+        manager.active_version("app"),
+        "0.1.0",
+        "a rollback is instant because the files were never deleted"
+    );
+}
+
+#[test]
+#[traced_test]
+fn rollback_to_a_version_we_never_shipped_leaves_the_update_intact() {
+    let pair = signing_keypair("rollback_missing");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    manager.write("/app/v0.1.1/index.html", b"new").expect("seed");
+    manager.activate("app", "0.1.1").expect("activate");
+
+    let plan = manager
+        .process_manifest(&ManifestBuilder::default().rollback_to("9.9.9").signed(&pair))
+        .expect("accept");
+    directorate(Arc::clone(&manager))
+        .apply_directives(&plan.manifest)
+        .expect("a bad directive must not abort what already installed");
+
+    assert_eq!(manager.active_version("app"), "0.1.1");
+}
+
+#[test]
+#[traced_test]
+fn delete_after_removes_the_bad_release_but_never_the_rollback_target() {
+    let pair = signing_keypair("delete_after");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    for v in ["0.1.0", "0.1.1", "0.1.2"] {
+        manager
+            .write(&format!("/app/v{v}/index.html"), b"x")
+            .expect("seed");
+    }
+    manager.activate("app", "0.1.2").expect("activate");
+
+    let plan = manager
+        .process_manifest(
+            &ManifestBuilder::default()
+                .rollback_to("0.1.0")
+                .delete_after("0.1.1")
+                .signed(&pair),
+        )
+        .expect("accept");
+    directorate(Arc::clone(&manager))
+        .apply_directives(&plan.manifest)
+        .expect("directives");
+
+    let remaining = manager.list_versions("app");
+    assert!(
+        !remaining.contains(&"0.1.1".to_string()),
+        "the bad release must be gone; got {remaining:?}"
+    );
+    assert!(
+        remaining.contains(&"0.1.0".to_string()),
+        "the rollback target must survive; got {remaining:?}"
+    );
+}
+
+#[test]
+#[traced_test]
+fn delete_after_naming_the_rollback_target_is_refused_without_failing_the_update() {
+    let pair = signing_keypair("delete_after_target");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    for v in ["0.1.0", "0.1.1"] {
+        manager
+            .write(&format!("/app/v{v}/index.html"), b"x")
+            .expect("seed");
+    }
+    manager.activate("app", "0.1.1").expect("activate");
+
+    let plan = manager
+        .process_manifest(
+            &ManifestBuilder::default()
+                .rollback_to("0.1.0")
+                .delete_after("0.1.0")
+                .signed(&pair),
+        )
+        .expect("accept");
+    directorate(Arc::clone(&manager))
+        .apply_directives(&plan.manifest)
+        .expect("a refused deletion is a warning, not a failed update");
+
+    assert!(
+        manager.list_versions("app").contains(&"0.1.0".to_string()),
+        "deleting the version we just rolled back to would brick the app"
+    );
+}
+
+#[test]
+#[traced_test]
+fn three_rollbacks_without_a_healthy_launch_lock_the_version() {
+    let pair = signing_keypair("loop_breaker");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    for v in ["0.1.0", "0.1.1"] {
+        manager
+            .write(&format!("/app/v{v}/index.html"), b"x")
+            .expect("seed");
+    }
+
+    let plan = manager
+        .process_manifest(&ManifestBuilder::default().rollback_to("0.1.0").signed(&pair))
+        .expect("accept");
+    let ota = directorate(Arc::clone(&manager));
+
+    // Three strikes: a server stuck sending rollback_to, or a version that
+    // dies before it can report health.
+    for _ in 0..3 {
+        ota.apply_directives(&plan.manifest).expect("directives");
+    }
+    manager.activate("app", "0.1.1").expect("move off the rollback target");
+
+    ota.apply_directives(&plan.manifest).expect("directives");
+
+    assert_eq!(
+        manager.active_version("app"),
+        "0.1.1",
+        "past the limit the directive must be ignored — otherwise the device \
+         ping-pongs between versions forever"
+    );
+}
+
+#[test]
+#[traced_test]
+fn marking_a_launch_healthy_clears_the_strike_count() {
+    let pair = signing_keypair("loop_breaker_clear");
+    let manager = Arc::new(manager_with(Some(pair.public), Some(DOMAIN)));
+    for v in ["0.1.0", "0.1.1"] {
+        manager
+            .write(&format!("/app/v{v}/index.html"), b"x")
+            .expect("seed");
+    }
+
+    let plan = manager
+        .process_manifest(&ManifestBuilder::default().rollback_to("0.1.0").signed(&pair))
+        .expect("accept");
+    let ota = directorate(Arc::clone(&manager));
+
+    for _ in 0..3 {
+        ota.apply_directives(&plan.manifest).expect("directives");
+    }
+    // A genuinely good release landed and stayed up.
+    ota.mark_launch_healthy();
+
+    manager.activate("app", "0.1.1").expect("move off the target");
+    ota.apply_directives(&plan.manifest).expect("directives");
+
+    assert_eq!(
+        manager.active_version("app"),
+        "0.1.0",
+        "after a healthy launch the breaker must re-arm, or one bad streak \
+         would disable rollback for the life of the install"
+    );
+}
+
+#[test]
+#[traced_test]
+fn the_rollback_strike_count_survives_a_restart() {
+    let pair = signing_keypair("loop_breaker_persist");
+    let fs = DynFs::new(Arc::new(MemoryFs::new()));
+
+    let build = || {
+        Arc::new(PlatformAssetManager::from_vfs(
+            fs.clone(),
+            PathBuf::from("/base"),
+            "0.1.0",
+            AssetLayout::Versioned,
+            Some(DOMAIN.to_string()),
+            Some(pair.public),
+        ))
+    };
+
+    let first = build();
+    for v in ["0.1.0", "0.1.1"] {
+        first
+            .write(&format!("/app/v{v}/index.html"), b"x")
+            .expect("seed");
+    }
+    let plan = first
+        .process_manifest(&ManifestBuilder::default().rollback_to("0.1.0").signed(&pair))
+        .expect("accept");
+
+    // Each iteration is a separate launch — which is the only way a crash
+    // loop actually presents itself.
+    for _ in 0..3 {
+        directorate(build())
+            .apply_directives(&plan.manifest)
+            .expect("directives");
+    }
+
+    let after_restart = build();
+    after_restart
+        .activate("app", "0.1.1")
+        .expect("move off the target");
+    directorate(Arc::clone(&after_restart))
+        .apply_directives(&plan.manifest)
+        .expect("directives");
+
+    assert_eq!(
+        after_restart.active_version("app"),
+        "0.1.1",
+        "counting strikes only within one session would never reach the limit, \
+         because every crash starts a new session"
     );
 }

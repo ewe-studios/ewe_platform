@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F40-platform-asset-manager"
 this_file: "specifications/52-tauri-foundation-platform/features/F40-platform-asset-manager/feature.md"
 
-status: in-progress
+status: completed
 priority: critical
 created: 2026-07-23
 updated: 2026-07-23
@@ -15,10 +15,10 @@ depends_on:
   - "F21-multi-app-distribution-and-webview"
 
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 # F40 — Platform Asset Manager: cross-platform bundle resource I/O
 
@@ -906,9 +906,9 @@ in the delta layer.
 
 ### 1. `PlatformAssetManager` struct (NEW)
 - File: `backends/foundation_platform/src/assets.rs`
-- Fields: `fs: RwLock<DynFs>`, `rebuild: VfsFactory`, `base_root`, `bundle_version`,
-  `active: RwLock<HashMap<String, String>>`, `layout`, `manifest_key`,
-  `last_manifest_seq`, `ops_lock`
+- Fields: `fs: DynFs`, `base_root`, `bundle_version`,
+  `active: RwLock<HashMap<String, String>>`, `layout`, `manifest_domain`,
+  `manifest_key`, `last_manifest_seq`, `ops_lock`
 - `initialize(app, bundle_version, manifest_key) -> Self`: builds platform VFS backend
   - Desktop/iOS: `NativeFs::new(resource_dir())`, `AssetLayout::Flat`
   - Android: `OverlayFileSystem::new(AssetResolverFs::new(app.asset_resolver()), DirectoryDelta::new(app_data))`, `AssetLayout::Versioned`
@@ -948,12 +948,20 @@ in the delta layer.
   existing `new_test(root)` suites keep working
 - `asset_manager() -> Option<Arc<PlatformAssetManager>>` accessor
 
-### 4. `builder.rs` 
-- Replace `resolve_resource_root()` with `PlatformAssetManager::initialize(&app, &bundle_version, manifest_key)`
+### 4. `builder.rs`
+- **Delete** `resolve_resource_root()` — the APK-extraction loop it contained
+  is what F40 replaces. Call
+  `PlatformAssetManager::initialize(app, &bundle_version, domain, key)` instead
 - `bundle_version` from `app.package_info().version.to_string()`
 - Add `ota_manifest_domain(domain) -> Self` (compile-time constant, immutable in APK)
 - Add `ota_manifest_key(key: [u8; 32]) -> Self` (Ed25519 public key)
-- Store manager on session
+- Add `ota_manifest_key_from_str(contents) -> Self` — base64-decodes an
+  `include_str!`'d key file; panics on anything that is not 32 bytes, because
+  a malformed key would leave the binary with no trust anchor and OTA
+  silently off
+- `session.set_asset_manager(manager)` runs **before** the setup callbacks, so
+  `session.app_root(id)` already resolves version directories while routes
+  are being registered
 
 ### 5. `responder.rs` — one additive change, `MobileDirectory`/`MobileDisk` untouched
 
@@ -993,20 +1001,46 @@ plumbing is needed:
 not modified — the VFS path is added alongside them, not in place of them.
 
 ### 6. `ota.rs` — manifest security + version-aware writes
+
+`OtaManifest` / `OtaAppEntry` / `OtaFileEntry` become aliases of the
+`manifest` module's types. One schema describes a bundle; two that could
+drift apart is one too many. `LocalVersion` / `.ewe_version.json` is deleted
+— `.ewe_manifest.json` supersedes it and says strictly more.
+
+`PackageDirectorate::new(assets)` takes the asset manager and reads the baked
+domain off it. The domain is deliberately **not** a parameter: a runtime
+argument is precisely the redirection vector that baking it exists to prevent.
+
 - OTA writes through `PlatformAssetManager::write()` (VFS-backed)
 - Manifest requires `sha256`, `sequence`, `created_at`, `signature` (Ed25519)
-- `base_url` validated against baked domain
-- All `path`/`app_id` validated by VFS (path traversal rejected by overlay)
-- Anti-replay via `sequence` > stored
+- `base_url` validated against the baked domain; file URLs derived, never read
+- `path` / `app_id` / `bundle_version` validated before any fetch
+- Anti-replay via `sequence` > stored, and the store is on disk
 - Per-file max 50 MB, per-manifest max 500 files
 - `rollback_to` + `delete_after` with validation
-- Rollback loop breaker: 3 failures without 30s uptime → lock version
-- **Manifest provenance**: the signed manifest JSON is stored as `.ewe_manifest.json`
-  in the version directory after successful OTA download + verification
-  - Written atomically (`.tmp` → rename) as the final OTA step
-  - APK-bundled versions have no manifest file (the APK IS the manifest)
-  - Versions without a manifest = APK-bundled; versions with one = OTA-created
-  - Pruned alongside the version directory — no orphans
+- Rollback loop breaker: 3 rollbacks without 30s uptime → lock the version,
+  state persisted to `.ewe_rollback_state`; `mark_launch_healthy()` clears it
+
+**Ordering in `apply_update`** — not incidental:
+
+1. Every file is fetched, size- and hash-checked, staged as `.part`, then
+   renamed. A file that fails verification is never renamed, so a version
+   directory never holds bytes we did not authenticate.
+2. Each app's `.ewe_manifest.json` is written only after all of that app's
+   files landed — the manifest is a claim about a *complete* directory.
+3. The sequence watermark is committed **last**. A run that dies partway
+   leaves the manifest replayable, so a transient network error does not
+   permanently block an update.
+4. `rollback_to` / `delete_after` run after installation, so a rollback can
+   target a version this very run staged.
+5. Pruning runs last and its failure is logged, not fatal — a failed prune
+   wastes disk; it does not invalidate an update that is already live.
+
+**Manifest provenance**: the signed manifest JSON is stored as
+`.ewe_manifest.json` in the version directory, staged `.tmp` → rename.
+Every version directory has one, APK-bundled included (requirement 12
+generates those at build time), and it is removed with its version directory
+— no orphans.
 
 ### 7. Android example cleanup
 - `embedded_apps.rs` removed (already done — commit `eea842a16`)
@@ -1077,7 +1111,7 @@ The corresponding public key (32 bytes) is baked into the APK at compile
 time. Only the public key ships — the private key lives in CI/CD secrets
 and never touches a device.
 
-See requirement 11 for key management details.
+See requirement 12 for key management details.
 
 ## Red team findings — 26 issues, resolved
 
@@ -1261,9 +1295,9 @@ test harness.
 
 | File | Tests |
 |------|-------|
-| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — 30+ tests using `MemoryFs`: overlay semantics, version management, concurrency |
-| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — 30+ tests: manifest signing, domain validation, replay detection, rollback, VFS writes |
-| `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — 20+ tests: path traversal, version sanitization, manifest security, audit events |
+| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — layout selection, VFS I/O, overlay semantics over `AssetResolverFs` + `MemoryDelta`, per-app version management, pruning, concurrency |
+| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — manifest signing, domain validation, replay detection, entry validation, provenance, install verification + atomicity, rollback directives + loop breaker |
+| `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — path traversal through every entry point, version/app-id sanitization, read-only base integrity, audit events under the feature flag |
 | `backends/foundation_platform/tests/manifest_suite.rs` | **NEW** — 15+ tests: key generation, manifest generation, sha256 hashing, signing, verification, build.rs integration |
 
 #### assets_suite.rs test matrix
@@ -1356,24 +1390,32 @@ manifest_with_path_traversal_in_file_path_rejected
 manifest_with_path_traversal_in_app_id_rejected
 manifest_file_count_exceeds_max_is_rejected
 manifest_file_size_exceeds_max_is_rejected
-ota_writes_to_version_directory_not_flat
-ota_stores_manifest_in_version_dir
-ota_manifest_written_atomically_with_tmp_rename
-ota_manifest_missing_for_apk_bundled_version
-ota_manifest_present_for_ota_created_version
-ota_prune_deletes_manifest_alongside_version_dir
-ota_in_place_writes_to_new_otaN_staging_dir
-ota_sha256_mismatch_rejects_file
-ota_sha256_match_accepts_file
-ota_writes_to_dot_part_then_atomically_renames
-ota_rollback_to_activates_target_version
-ota_delete_after_removes_specified_version
-ota_delete_after_active_version_is_rejected
-ota_delete_after_rollback_target_is_rejected
-ota_delete_after_only_version_is_rejected
-ota_delete_after_nonexistent_version_is_noop
-ota_rollback_to_nonexistent_version_is_error
-ota_rollback_loop_three_failures_locks_version
+download_urls_are_derived_never_taken_from_the_manifest
+a_version_directory_keeps_the_manifest_that_produced_it
+the_stored_manifest_still_verifies_against_the_baked_key
+no_staging_file_survives_writing_a_manifest
+reading_a_manifest_from_a_version_that_has_none_returns_nothing
+
+// ── Install: verification and atomicity ──
+// PackageDirectorate derives https://{baked_domain}/… URLs, so an
+// end-to-end apply_update would need TLS + a DNS override, or a base-URL
+// seam — the exact redirection vector the baked domain closes. Everything
+// that touches disk is driven through install_verified() instead.
+install_writes_the_file_when_the_hash_matches
+install_refuses_bytes_whose_hash_does_not_match
+install_refuses_bytes_of_the_wrong_length
+a_failed_install_leaves_no_staging_file_to_be_mistaken_for_content
+a_successful_install_renames_its_staging_file_away
+install_overwrites_a_stale_staging_file_from_an_interrupted_run
+
+// ── Directives: rollback and the loop breaker ──
+rollback_to_activates_the_named_version
+rollback_to_a_version_we_never_shipped_leaves_the_update_intact
+delete_after_removes_the_bad_release_but_never_the_rollback_target
+delete_after_naming_the_rollback_target_is_refused_without_failing_the_update
+three_rollbacks_without_a_healthy_launch_lock_the_version
+marking_a_launch_healthy_clears_the_strike_count
+the_rollback_strike_count_survives_a_restart
 package_directorate_manifest_url_is_https
 ```
 
@@ -1566,9 +1608,18 @@ fn main() {
 `EWE_OTA_PRIVATE_KEY`, both of which change manifest contents.
 
 On first build: keys are minted, manifests computed. On subsequent builds:
-manifests are regenerated (hashes change when files do); keys are read, never
-regenerated — regenerating would invalidate every binary that already baked
-the old public key.
+keys are read, never regenerated — regenerating would invalidate every binary
+that already baked the old public key.
+
+**Manifest generation is content-idempotent.** `generate_app_manifest` reads
+any existing `.ewe_manifest.json` first and leaves it untouched when the file
+list, hashes, sizes, app id, version, and domain all match. Manifests are
+committed next to the bundle they describe, and `created_at` is wall-clock —
+rewriting unconditionally would mint a new timestamp and therefore a new
+signature on every build, so an unchanged bundle would still show up as a
+diff. Idempotence keys off content only: change one byte of one file and the
+manifest is regenerated, because a stale manifest declares hashes that no
+longer match and every device would reject the bundle.
 
 #### Variables
 
@@ -1756,10 +1807,11 @@ adb shell "ls /data/data/com.ewe.platform/files/app/"
 | `backends/foundation_platform/src/responder.rs` | Add `MobileApp::mounted_at(assets, app_id)`; route reads through the session's asset manager when present |
 | `backends/foundation_platform/src/builder.rs` | Replace `resolve_resource_root()` with `PlatformAssetManager::initialize()` + `ota_manifest_domain()` + `ota_manifest_key()` |
 | `backends/foundation_platform/src/ota.rs` | Add `rollback_to`/`delete_after`/`signature`/`sequence`/`sha256` fields; VFS-backed writes; domain-locked init |
-| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — 30+ tests using `MemoryFs`, covering overlay semantics, version management, concurrency |
-| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — 30+ tests: manifest signing, domain validation, replay detection, rollback, VFS writes |
-| `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — 20+ tests: path traversal, version sanitization, manifest security, audit events |
-| `backends/foundation_platform/tests/manifest_suite.rs` | **NEW** — 15+ tests: key generation, manifest generation, sha256 hashing, signing, verification |
+| `backends/foundation_platform/tests/assets_suite.rs` | **NEW** — layout selection, VFS I/O, overlay semantics over `AssetResolverFs` + `MemoryDelta`, per-app version management, pruning, concurrency |
+| `backends/foundation_platform/tests/ota_suite.rs` | **NEW** — manifest signing, domain validation, replay detection, entry validation, provenance, install verification + atomicity, rollback directives + loop breaker |
+| `backends/foundation_platform/tests/assets_security_suite.rs` | **NEW** — path traversal through every entry point, version/app-id sanitization, read-only base integrity, audit events under the feature flag |
+| `backends/foundation_platform/tests/manifest_suite.rs` | **NEW** — key generation, manifest generation + idempotence, sha256 hashing, signing, verification |
+| `backends/foundation_platform/tests/responder_mount_suite.rs` | **NEW** — `MobileApp::mounted_at` path resolution: segment stripping, SPA fallback, sibling-prefix confusion, content types, version tracking |
 | `examples/platform_android/src-tauri/src/lib.rs` | Mount responders at `asset_manager().app_root(id)` via `MobileApp::mounted_at` |
 | `examples/platform_android/src-tauri/src/generated/*.rs` | Regenerated by codegen to emit the mounted form |
 | `backends/foundation_platform/src/manifest.rs` | **NEW** — library API: `ensure_keys`, `generate_app_manifest`, `generate_all_manifests`, `verify_manifest`, `sign_manifest`, `verify_file_hash` (target-gated) |

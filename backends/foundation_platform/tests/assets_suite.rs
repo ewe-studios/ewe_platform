@@ -629,3 +629,122 @@ fn concurrent_reads_and_mutations_stay_consistent() {
 
     assert_eq!(manager.list_versions("app"), vec!["0.1.3", "0.1.4"]);
 }
+
+// ── Bundle version elision ──────────────────────────────────────────────
+//
+// The bundle ships flat: tauri.conf.json maps `public/app/*` to `app/`, so
+// its keys are `app/index.html`. The VFS above asks for
+// `/app/v0.1.0/index.html`, because the version segment is the asset
+// manager's construct and not the bundle's. Without elision every
+// APK-bundled asset resolves to NotFound — which is exactly the bug F40
+// exists to fix, so it gets its own tests.
+
+/// The Android arrangement with a *flat* bundle, as a real APK provides.
+fn flat_bundle_manager(version: &str, bundle: &[(&str, &str)]) -> PlatformAssetManager {
+    let base = AssetResolverFs::versioned(BundledAssets::new(bundle), version);
+    let overlay = OverlayFileSystem::new(base, MemoryDelta::new());
+    PlatformAssetManager::from_vfs(
+        DynFs::new(Arc::new(overlay)),
+        std::path::PathBuf::from("/data/app"),
+        version,
+        AssetLayout::Versioned,
+        None,
+        None,
+    )
+}
+
+#[test]
+#[traced_test]
+fn a_flat_bundle_key_is_reachable_through_the_version_directory() {
+    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
+
+    assert_eq!(
+        manager.read_app_file("app", "index.html").expect("read"),
+        b"<html>apk</html>".to_vec(),
+        "the APK has no v0.1.0/ segment; without eliding it, nothing bundled \
+         is ever found and every page 404s on a fresh install"
+    );
+}
+
+#[test]
+#[traced_test]
+fn elision_reaches_nested_bundle_paths() {
+    let manager = flat_bundle_manager(
+        "0.1.0",
+        &[("app/nested/deep/dashboard.wasm", "\0asm-bytes")],
+    );
+
+    assert_eq!(
+        manager
+            .read_app_file("app", "nested/deep/dashboard.wasm")
+            .expect("read"),
+        b"\0asm-bytes".to_vec()
+    );
+}
+
+#[test]
+#[traced_test]
+fn elision_applies_only_to_this_bundles_own_version() {
+    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
+
+    assert!(
+        manager.read("/app/v9.9.9/index.html").is_err(),
+        "an OTA'd version directory must never be silently served from the \
+         bundle — that would make a rollback serve the wrong bytes"
+    );
+    assert!(
+        manager.read("/app/v0.2.0/index.html").is_err(),
+        "only the version the bundle actually shipped may be elided"
+    );
+}
+
+#[test]
+#[traced_test]
+fn an_ota_write_still_shadows_the_elided_bundle_copy() {
+    let manager = flat_bundle_manager("0.1.0", &[("app/index.html", "<html>apk</html>")]);
+
+    manager
+        .write("/app/v0.1.0/index.html", b"<html>ota</html>")
+        .expect("write to delta");
+
+    assert_eq!(
+        manager.read_app_file("app", "index.html").expect("read"),
+        b"<html>ota</html>".to_vec(),
+        "elision must not bypass the delta layer"
+    );
+}
+
+#[test]
+#[traced_test]
+fn a_flat_bundle_still_lists_its_apps() {
+    let manager = flat_bundle_manager(
+        "0.1.0",
+        &[
+            ("app/index.html", "a"),
+            ("app-hello/index.html", "b"),
+            ("app-settings/index.html", "c"),
+        ],
+    );
+
+    assert_eq!(
+        manager.list_apps(),
+        vec!["app", "app-hello", "app-settings"],
+        "initialize() creates each app's version directory from this list, so \
+         a bundle whose apps are invisible gets no delta directories at all"
+    );
+}
+
+#[test]
+#[traced_test]
+fn a_bundle_file_is_not_mistaken_for_a_version_directory() {
+    let manager = flat_bundle_manager(
+        "0.1.0",
+        &[("app/index.html", "a"), ("app/vendor.js", "b")],
+    );
+
+    assert!(
+        manager.list_versions("app").is_empty(),
+        "`vendor.js` starts with `v` but is neither a directory nor semver; \
+         treating it as a version would put a file on the prune list"
+    );
+}

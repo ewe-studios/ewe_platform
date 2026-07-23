@@ -33,7 +33,7 @@ use derive_more::{Display, Error};
 use ed25519_dalek::{Signature, Signer as _, SigningKey, Verifier as _, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 /// Manifest schema version understood by this build.
 pub const MANIFEST_SCHEMA: u32 = 1;
@@ -638,6 +638,42 @@ pub fn generate_app_manifest(
         });
     }
 
+    let app = ManifestApp {
+        app_id: app_id.to_string(),
+        bundle_version: bundle_version.to_string(),
+        files,
+    };
+
+    let path = app_dir.join(MANIFEST_FILENAME);
+
+    // WHY: manifests are committed alongside the bundle they describe, and
+    // `created_at` is wall-clock. Rewriting unconditionally would produce a
+    // fresh timestamp and therefore a fresh signature on every single build,
+    // so an unchanged bundle would still show up as a diff. Reuse the
+    // existing timestamp when nothing about the content changed — the
+    // manifest then depends only on the bytes it describes.
+    let previous = std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|json| serde_json::from_str::<Manifest>(&json).ok());
+
+    let unchanged = previous.as_ref().is_some_and(|p| {
+        p.schema == MANIFEST_SCHEMA
+            && p.source == ManifestSource::Apk
+            && p.manifest_domain == manifest_domain
+            && p.signature.is_some()
+            && p.apps.len() == 1
+            && p.apps[0] == app
+    });
+
+    if let Some(previous) = previous.filter(|_| unchanged) {
+        debug!(
+            app = app_id,
+            version = bundle_version,
+            "{MANIFEST_FILENAME} is already current — leaving it untouched"
+        );
+        return Ok(previous);
+    }
+
     let mut manifest = Manifest {
         schema: MANIFEST_SCHEMA,
         source: ManifestSource::Apk,
@@ -648,17 +684,12 @@ pub fn generate_app_manifest(
         rollback_to: None,
         delete_after: None,
         signature: None,
-        apps: vec![ManifestApp {
-            app_id: app_id.to_string(),
-            bundle_version: bundle_version.to_string(),
-            files,
-        }],
+        apps: vec![app],
     };
 
     let unsigned = manifest.to_json()?;
     manifest.signature = Some(sign_manifest(&unsigned, &seed)?);
 
-    let path = app_dir.join(MANIFEST_FILENAME);
     std::fs::write(&path, manifest.to_json()?).map_err(|e| io_err(&path, e))?;
 
     info!(

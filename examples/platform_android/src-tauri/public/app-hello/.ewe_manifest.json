@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "source": "apk",
+  "manifest_domain": "cdn.ewe.studio",
+  "created_at": "2026-07-23T09:04:39Z",
+  "sequence": 0,
+  "base_url": "https://cdn.ewe.studio/bundles",
+  "rollback_to": null,
+  "delete_after": null,
+  "signature": "QRHWTm+ys6iMuJ8rJg8vSrDhwK8RHMjsGXGErm2IBXvivkFSOF/xY2X2+l9YZrV8URQ64aourVkykIDqiR4uAw==",
+  "apps": [
+    {
+      "app_id": "app-hello",
+      "bundle_version": "0.1.0",
+      "files": [
+        {
+          "path": "bundle.js",
+          "sha256": "850ae01ee82b4c06cb808195dfce51621e7ac7ed651e4726f4fec8cd572ff03f",
+          "size": 193484
+        },
+        {
+          "path": "hello_dashboard.js",
+          "sha256": "ef6d10f825fe08781df4aa7fc4c89b3979558c2966b40aa2c7e7172b458b8b87",
+          "size": 621
+        },
+        {
+          "path": "hello_dashboard.wasm",
+          "sha256": "820d9f326070e0424639af65a1916438518af2c187bcd6773e48392857d57f08",
+          "size": 361727
+        },
+        {
+          "path": "index.html",
+          "sha256": "a26ba0f5eabad6503c0901b51f3dc99c022027a74ad5702a57dbd37bcc208dbb",
+          "size": 699
+        }
+      ]
+    }
+  ]
+}

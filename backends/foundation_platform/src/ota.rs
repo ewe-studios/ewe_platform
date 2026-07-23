@@ -231,7 +231,22 @@ impl PackageDirectorate {
             .http
             .fetch(&download.url)
             .map_err(|e| format!("fetch {}: {e}", download.url))?;
+        self.install_verified(download, &data)
+    }
 
+    /// Verify downloaded bytes against the manifest and install them.
+    ///
+    /// Split out from the fetch so it can be driven directly: the URL is
+    /// derived as `https://{baked_domain}/…` on purpose, so an end-to-end
+    /// test would need either TLS with a DNS override or a base-URL seam —
+    /// and that seam is exactly the redirection vector the baked domain
+    /// exists to close. Everything that touches disk is here instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the size or hash does not match what the
+    /// signed manifest declared, or if staging or the rename fails.
+    pub fn install_verified(&self, download: &OtaDownload, data: &[u8]) -> Result<(), String> {
         // Size first: a body far larger than declared is rejected before we
         // spend time hashing it.
         if data.len() as u64 != download.file.size {
@@ -243,7 +258,7 @@ impl PackageDirectorate {
             ));
         }
 
-        let actual = sha256_hex(&data);
+        let actual = sha256_hex(data);
         if actual != download.file.sha256 {
             return Err(format!(
                 "sha256 mismatch for {}: declared {}, got {actual}",
@@ -255,7 +270,7 @@ impl PackageDirectorate {
         // next run overwrites, never a half-written file that looks whole.
         let staged = format!("{}{PART_SUFFIX}", download.vfs_path);
         self.assets
-            .write(&staged, &data)
+            .write(&staged, data)
             .map_err(|e| format!("staging {staged}: {e}"))?;
         self.assets
             .rename(&staged, &download.vfs_path)
@@ -266,7 +281,16 @@ impl PackageDirectorate {
     }
 
     /// Apply `rollback_to` and `delete_after`, honouring the loop breaker.
-    fn apply_directives(&self, manifest: &Manifest) -> Result<(), String> {
+    ///
+    /// Public so the strike-counting behaviour can be driven directly — a
+    /// loop breaker that only ever runs behind a network fetch is a loop
+    /// breaker nothing has checked.
+    ///
+    /// # Errors
+    ///
+    /// Currently infallible; returns `Result` so a future directive that
+    /// must abort an update can do so without changing every caller.
+    pub fn apply_directives(&self, manifest: &Manifest) -> Result<(), String> {
         let Some(target) = manifest.rollback_to.as_deref() else {
             return Ok(());
         };

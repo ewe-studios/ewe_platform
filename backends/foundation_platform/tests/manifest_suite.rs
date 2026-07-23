@@ -315,6 +315,81 @@ fn generate_app_manifest_refuses_to_run_without_a_private_key() {
 #[test]
 #[traced_test]
 #[serial_test::parallel(ewe_ota_private_key)]
+fn regenerating_an_unchanged_bundle_produces_a_byte_identical_manifest() {
+    let root = scratch("gen_idempotent");
+    let public = app_tree(&root);
+    let pair = signing_keypair("gen_idempotent");
+    let app_dir = public.join("app");
+
+    manifest::generate_app_manifest(&app_dir, "app", "0.1.0", "cdn.test", &pair).expect("first");
+    let first = fs::read(app_dir.join(MANIFEST_FILENAME)).expect("read first");
+
+    manifest::generate_app_manifest(&app_dir, "app", "0.1.0", "cdn.test", &pair).expect("second");
+    let second = fs::read(app_dir.join(MANIFEST_FILENAME)).expect("read second");
+
+    assert_eq!(
+        first, second,
+        "manifests are committed next to the bundle they describe; a wall-clock \
+         created_at would make every build a diff even when nothing changed"
+    );
+}
+
+#[test]
+#[traced_test]
+#[serial_test::parallel(ewe_ota_private_key)]
+fn changing_a_single_byte_of_the_bundle_changes_the_manifest() {
+    let root = scratch("gen_not_stale");
+    let public = app_tree(&root);
+    let pair = signing_keypair("gen_not_stale");
+    let app_dir = public.join("app");
+
+    manifest::generate_app_manifest(&app_dir, "app", "0.1.0", "cdn.test", &pair).expect("first");
+    let first = fs::read(app_dir.join(MANIFEST_FILENAME)).expect("read first");
+
+    fs::write(app_dir.join("bundle.js"), "console.log('changed')").expect("edit bundle");
+    let regenerated =
+        manifest::generate_app_manifest(&app_dir, "app", "0.1.0", "cdn.test", &pair).expect("second");
+    let second = fs::read(app_dir.join(MANIFEST_FILENAME)).expect("read second");
+
+    assert_ne!(
+        first, second,
+        "idempotence must key off content — a stale manifest would declare hashes \
+         that no longer match the files, and every device would reject the bundle"
+    );
+    assert_eq!(
+        regenerated.apps[0]
+            .files
+            .iter()
+            .find(|f| f.path == "bundle.js")
+            .expect("bundle.js entry")
+            .sha256,
+        manifest::sha256_hex(b"console.log('changed')")
+    );
+}
+
+#[test]
+#[traced_test]
+#[serial_test::parallel(ewe_ota_private_key)]
+fn bumping_the_version_regenerates_the_manifest() {
+    let root = scratch("gen_version_bump");
+    let public = app_tree(&root);
+    let pair = signing_keypair("gen_version_bump");
+    let app_dir = public.join("app");
+
+    manifest::generate_app_manifest(&app_dir, "app", "0.1.0", "cdn.test", &pair).expect("first");
+    let bumped =
+        manifest::generate_app_manifest(&app_dir, "app", "0.2.0", "cdn.test", &pair).expect("second");
+
+    assert_eq!(
+        bumped.apps[0].bundle_version, "0.2.0",
+        "the version is part of what the manifest declares, so it must not be \
+         treated as unchanged content"
+    );
+}
+
+#[test]
+#[traced_test]
+#[serial_test::parallel(ewe_ota_private_key)]
 fn generate_all_manifests_covers_every_app_and_skips_non_apps() {
     let root = scratch("gen_all");
     let public = app_tree(&root);

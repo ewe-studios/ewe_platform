@@ -7,7 +7,10 @@ use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile, RouteDecisio
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
-mod generated;
+// Public: the generated modules are part of this crate's surface. `build_at`
+// is the unmounted escape hatch for embeddings with no PlatformAssetManager,
+// and it is real API even though this example only uses `build`.
+pub mod generated;
 
 // ── HTML helpers ──────────────────────────────────────────────────────
 
