@@ -259,31 +259,25 @@ pub fn encode_request(req: &IpcRequest<Vec<u8>>) -> Vec<u8> {
     buf
 }
 
-/// Encode an `IpcResponse<Vec<u8>>` into wire bytes.
+/// Encode an `IpcResponse<Vec<u8>>` into wire bytes (compact format).
+///   1 byte:  content_type (0=Json, 1=Arrow, 2=Binary)
+///   4 bytes LE u32: payload length
+///   N bytes: payload
 pub fn encode_response(resp: &IpcResponse<Vec<u8>>) -> Vec<u8> {
-    let mut buf = Vec::new();
-    write_str(&mut buf, "");     // echoed ipc name (host fills on send)
-    write_str(&mut buf, "");     // echoed action
+    let mut buf = Vec::with_capacity(5 + resp.payload.len());
     buf.push(ct_byte(resp.content_type));
-    write_str(&mut buf, "");     // echoed target
     buf.extend_from_slice(&(resp.payload.len() as u32).to_le_bytes());
     buf.extend_from_slice(&resp.payload);
     buf
 }
 
-/// Decode an `IpcResponse<Vec<u8>>` from wire bytes.
+/// Decode an `IpcResponse<Vec<u8>>` from wire bytes (compact format).
 pub fn decode_response(data: &[u8]) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-    let mut off = 0;
-    let _ipc = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("ipc: {e:?}")))?;
-    let _action = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("action: {e:?}")))?;
-    let ct = ct_from_byte(data.get(off).copied().unwrap_or(0)).map_err(|e| IpcError::InvalidPayload(alloc::format!("ct: {e:?}")))?;
-    off += 1;
-    let _target = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("target: {e:?}")))?;
-    if off + 4 > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
-    let plen = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-    off += 4;
-    if off + plen > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
-    Ok(IpcResponse { payload: data[off..off+plen].to_vec(), content_type: ct })
+    if data.len() < 5 { return Err(IpcError::InvalidPayload("response too short".into())); }
+    let ct = ct_from_byte(data[0]).map_err(|e| IpcError::InvalidPayload(alloc::format!("ct: {e:?}")))?;
+    let plen = u32::from_le_bytes([data[1], data[2], data[3], data[4]]) as usize;
+    if data.len() < 5 + plen { return Err(IpcError::InvalidPayload("truncated".into())); }
+    Ok(IpcResponse { payload: data[5..5+plen].to_vec(), content_type: ct })
 }
 
 /// Decode an `IpcRequest<Vec<u8>>` from wire bytes.

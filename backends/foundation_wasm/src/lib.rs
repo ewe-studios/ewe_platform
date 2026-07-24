@@ -27,6 +27,8 @@ mod base;
 mod error;
 mod frames;
 mod host_runtime;
+// F41: host_runtime::ipc is pub so integration modules can access host_ipc_invoke etc.
+pub use host_runtime::ipc as host_ipc;
 mod intervals;
 mod mem;
 mod ops;
@@ -53,6 +55,7 @@ pub use base::*;
 pub use error::*;
 pub use frames::*;
 pub use host_runtime::*;
+pub use host_runtime::ipc as ipc_host;
 pub use intervals::*;
 pub use mem::*;
 pub use ops::*;

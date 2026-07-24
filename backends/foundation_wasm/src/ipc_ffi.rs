@@ -52,11 +52,7 @@ pub fn ipc_dispatch<T: WirePayload, U: WirePayload>(
     let resp_alloc_id = unsafe {
         crate::host_runtime::ipc::host_ipc_invoke(ptr, len as u32)
     };
-    if resp_alloc_id == 0 {
-        return Err(IpcError::ExecutionFailed(alloc::format!("host_ipc_invoke returned 0 for '{name}'")));
-    }
-
-    // 4. Extract + dispose
+    // 4. Extract + dispose (0 is a valid first allocation)
     let resp_bytes = internal_api::extract_vec_from_memory(resp_alloc_id);
     crate::host_runtime::exposed_runtime::dispose_allocation(resp_alloc_id);
 
@@ -69,10 +65,23 @@ pub fn ipc_dispatch<T: WirePayload, U: WirePayload>(
 
 // ── Global trigger for host → WASM events ──────────────────────────────
 
+#[cfg(not(target_family = "wasm"))]
 pub static IPC_TRIGGER: Mutex<TriggerRegistry> = Mutex::new(TriggerRegistry::new());
 
+#[cfg(target_family = "wasm")]
+static IPC_TRIGGER: Mutex<TriggerRegistry> = Mutex::new(TriggerRegistry::new());
+
+#[cfg(not(target_family = "wasm"))]
 pub fn set_event_handler(
     handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static,
+) {
+    #[allow(clippy::unwrap_used)]
+    IPC_TRIGGER.lock().unwrap().set_ipc_handler(handler);
+}
+
+#[cfg(target_family = "wasm")]
+pub fn set_event_handler(
+    handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static,
 ) {
     #[allow(clippy::unwrap_used)]
     IPC_TRIGGER.lock().unwrap().set_ipc_handler(handler);

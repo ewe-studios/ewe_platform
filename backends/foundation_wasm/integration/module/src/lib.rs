@@ -478,3 +478,60 @@ pub extern "C" fn e2e_invoke_ipc() -> i32 {
     }
 }
 
+// ── F41: IPC FFI e2e (binary wire format, host_ipc_invoke) ────────────────
+
+use foundation_wasm::ipc::{encode_request, decode_response, IpcRequest, IpcContentType};
+
+/// WASM calls host_ipc_invoke with an echo request.
+/// The JS handler must echo the payload back. Returns 1 on success.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_invoke_echo() -> i32 {
+    let req = IpcRequest {
+        ipc: "echo".into(),
+        action: "ping".into(),
+        payload: b"hello".to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    // allocation 0 is valid first slot
+
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(resp) => {
+            if resp.payload == b"hello" { 1 } else { -2 }
+        }
+        Err(_) => -3,
+    }
+}
+
+/// WASM calls host_ipc_invoke with a camera:open request.
+/// Returns 1 on success, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_invoke_camera_open() -> i32 {
+    let req = IpcRequest {
+        ipc: "camera".into(),
+        action: "open".into(),
+        payload: br#"{"facing":"back"}"#.to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    // allocation 0 is valid first slot
+
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(_) => 1,
+        Err(_) => -2,
+    }
+}

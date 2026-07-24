@@ -154,15 +154,15 @@ impl ScriptInjector {
             ],
         });
 
-        // 4. Capability bridge (F23)
+        // 4. IPC bridge (F41 — replaces capability-bridge.js)
         injector.register(InjectedScript {
-            id: "capability_bridge".into(),
+            id: "ipc_bridge".into(),
             sources: vec![
                 ScriptSource::Disk {
-                    relative_path: PathBuf::from("public/runtimes/capability-bridge.js"),
+                    relative_path: PathBuf::from("public/runtimes/ipc-bridge.js"),
                 },
                 ScriptSource::Static {
-                    source: foundation_wasm_ui::embedded::CAPABILITY_BRIDGE_JS,
+                    source: foundation_wasm_ui::embedded::IPC_BRIDGE_JS,
                 },
             ],
         });

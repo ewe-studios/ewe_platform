@@ -84,3 +84,12 @@ impl Default for TriggerRegistry {
         Self::new()
     }
 }
+
+// wasm32 is single-threaded — the compiler doesn't know this,
+// so we assert Send + Sync here so the static Mutex<TriggerRegistry>
+// in ipc_ffi.rs compiles.
+#[cfg(target_family = "wasm")]
+unsafe impl Send for TriggerRegistry {}
+
+#[cfg(target_family = "wasm")]
+unsafe impl Sync for TriggerRegistry {}
