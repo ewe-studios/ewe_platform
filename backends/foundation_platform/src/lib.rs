@@ -21,6 +21,11 @@ pub mod capability;
 #[cfg(not(target_family = "wasm"))]
 pub mod cli;
 pub mod codegen;
+/// Native module injection pipeline (F42) — Kotlin/Swift code, Gradle deps,
+/// Android permissions for platform IPC handlers that need native code.
+/// Re-exported alongside [`codegen`] so build.rs scripts only need one import.
+#[cfg(not(target_family = "wasm"))]
+pub mod codegen_native;
 mod injector;
 pub mod ipc;
 /// Manifest generation, signing, and verification (F40).

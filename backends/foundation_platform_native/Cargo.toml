@@ -1,0 +1,18 @@
+[package]
+name = "foundation_platform_native"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+foundation_platform = { path = "../foundation_platform" }
+foundation_wasm = { path = "../foundation_wasm" }
+foundation_ui_traits = { path = "../foundation_ui_traits" }
+
+[features]
+default = []
+modal = []
+camera = []
+biometric = []
+chrome = []
+filesystem = []

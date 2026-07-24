@@ -18,11 +18,18 @@
 use std::path::PathBuf;
 
 use foundation_platform::codegen;
+use foundation_platform::codegen_native::PlatformCodegen;
 
 fn main() {
     let root = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let src_tauri = root.join("src-tauri");
     let public_dir = src_tauri.join("public");
+
+    // ── F42: Inject native modules ──────────────────────────────────────
+    let mut native = PlatformCodegen::new();
+    // Register native modules here — IPC handlers that need Kotlin/Swift code.
+    // Example: native.register_native_module(MyCameraModule);
+    native.inject_native_code(&src_tauri);
 
     // ── Surface 2: WebView WASM apps (compiled inline, no cargo nesting) ──
     for app_id in ["app", "app-hello"] {
