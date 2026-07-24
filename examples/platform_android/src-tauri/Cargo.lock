@@ -1260,6 +1260,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe-platform-native"
+version = "0.0.1"
+dependencies = [
+ "foundation_platform",
+ "foundation_ui_traits",
+ "foundation_wasm",
+ "serde",
+ "serde_json",
+ "tauri-plugin",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3222,6 +3234,7 @@ checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
 name = "platform_android"
 version = "0.1.0"
 dependencies = [
+ "ewe-platform-native",
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",
@@ -4393,6 +4406,22 @@ dependencies = [
  "syn 2.0.119",
  "tauri-codegen",
  "tauri-utils",
+]
+
+[[package]]
+name = "tauri-plugin"
+version = "2.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74be5dd4bed9afbd145e5716b5fa2ec28cbc29c34ffa61c258c9273d896c8020"
+dependencies = [
+ "anyhow",
+ "glob",
+ "plist",
+ "schemars 0.8.22",
+ "serde",
+ "serde_json",
+ "tauri-utils",
+ "walkdir",
 ]
 
 [[package]]

@@ -21,6 +21,7 @@ tauri-plugin = { version = "2", features = ["build"] }
 [features]
 default = []
 modal = []
+dialog = []
 camera = []
 biometric = []
 chrome = []

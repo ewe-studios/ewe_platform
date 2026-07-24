@@ -450,6 +450,9 @@ fn setup_routes(session: &PlatformSession) {
         hello_responder,
     );
 
+    // F42: Register native IPC handlers from foundation_platform_native.
+    foundation_platform_native::modal::register(session);
+
     // Register IPC handlers on the session.
     session.register_ipc(EchoIpc);
     session.register_ipc(SystemInfoIpc);

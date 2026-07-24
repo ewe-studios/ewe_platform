@@ -19,6 +19,8 @@
 
 #[cfg(feature = "modal")]
 pub mod modal;
+#[cfg(feature = "dialog")]
+pub mod dialog;
 // #[cfg(feature = "camera")]    pub mod camera;
 // #[cfg(feature = "biometric")] pub mod biometric;
 // #[cfg(feature = "chrome")]    pub mod chrome;

@@ -16,6 +16,7 @@ foundation_wasm = { path = "../../../backends/foundation_wasm" }
 foundation_macros = { path = "../../../backends/foundation_macros" }
 foundation_nostd = { path = "../../../backends/foundation_nostd" }
 foundation_wasm_ui = { path = "../../../backends/foundation_wasm_ui" }
+ewe-platform-native = { path = "../../../backends/foundation_platform_native", features = ["modal"] }
 tauri = { version = "2.11.5", features = [] }
 serde = "1"
 serde_json = "1"
