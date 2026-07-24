@@ -70,18 +70,66 @@ Key facts:
 
 ## Solution
 
-A `NativeModule` trait + builder API in `foundation_platform::codegen` that
-runs during `build.rs` and injects native code into the `gen/` directories.
+A new crate `foundation_platform_native` (`backends/foundation_platform_native/`)
+that users add as a build dependency. It contains:
 
-### Part A — `NativeModule` trait
+1. The `NativeModule` trait + codegen pipeline
+2. Individual native modules (camera, modal, biometric, chrome, filesystem),
+   each feature-gated so users only compile what they need
+3. Each module owns its complete stack: Kotlin/Swift sources (via `include_str!`),
+   Rust IPC handler (impl `Ipc` + `AndroidIpc`), and WASM wrapper extension
+
+### Crate layout
+
+```
+backends/foundation_platform_native/
+├── Cargo.toml          ← features = ["camera", "modal", "biometric", "chrome", "filesystem"]
+├── src/
+│   ├── lib.rs           ← re-exports trait + modules
+│   ├── native_module.rs ← NativeModule trait, *Config types, *Source enums
+│   ├── pipeline.rs      ← PlatformCodegen: register + inject
+│   ├── modal/
+│   │   ├── mod.rs       ← feature-gated, re-exports
+│   │   ├── native.rs    ← impl NativeModule (manifest + sources)
+│   │   ├── handler.rs   ← impl Ipc + AndroidIpc
+│   │   └── wasm.rs      ← WASM wrapper extension
+│   └── camera/
+│       ├── mod.rs
+│       ├── native.rs
+│       ├── handler.rs
+│       └── wasm.rs
+```
+
+### User's build.rs
 
 ```rust
-// foundation_platform/src/codegen.rs (or a new native.rs module)
+// Cargo.toml:
+//   [build-dependencies]
+//   foundation_platform_native = { path = "...", features = ["modal", "camera"] }
 
-/// A native module that provides platform-specific code, permissions,
-/// and dependencies. Implementations register with the codegen pipeline.
+use foundation_platform_native::{PlatformCodegen, modal, camera};
+
+fn main() {
+    let mut codegen = PlatformCodegen::new();
+    codegen.register(modal::module());
+    codegen.register(camera::module());
+    codegen.inject_native_code(&src_tauri);
+
+    foundation_platform::codegen::generate_platform_code();
+}
+```
+
+Each module exposes a `fn module() -> impl NativeModule` that carries its
+Kotlin/Swift sources via `include_str!` — read at build time, injected into
+the Tauri gen/ directory. No separate crate needed per module.
+
+### Part A — `NativeModule` trait (in `foundation_platform_native`)
+
+```rust
+// foundation_platform_native/src/native_module.rs
+
 pub trait NativeModule: Send + Sync + 'static {
-    /// Unique module name (e.g. "camera", "biometric", "modal").
+    /// Unique module name (e.g. "camera", "modal").
     fn name(&self) -> &str;
 
     /// Android-specific configuration.
@@ -127,26 +175,20 @@ pub struct IosModuleConfig {
 }
 ```
 
-### Part B — Codegen pipeline
+### Part B — Codegen pipeline (in `foundation_platform_native`)
 
 ```rust
-// In build.rs:
-fn main() {
-    let mut codegen = foundation_platform::codegen::PlatformCodegen::new();
+// foundation_platform_native/src/pipeline.rs
 
-    // Register IPC handlers with native modules
-    codegen.register_native_module(NativeCameraModule);
-    codegen.register_native_module(NativeBiometricModule);
-    codegen.register_native_module(NativeModalModule);
-
-    // Build phase: copies Kotlin/Swift files, patches manifests,
-    // adds Gradle deps. Runs BEFORE tauri_build::build().
-    codegen.inject_native_code(&src_tauri);
-
-    // Standard platform codegen
-    foundation_platform::codegen::generate_platform_code();
+pub struct PlatformCodegen {
+    modules: Vec<Box<dyn NativeModule>>,
 }
-```
+
+impl PlatformCodegen {
+    pub fn new() -> Self { Self { modules: vec![] } }
+    pub fn register(&mut self, module: impl NativeModule) { self.modules.push(Box::new(module)); }
+    pub fn inject_native_code(&self, src_tauri: &Path);
+}
 
 `inject_native_code()` does:
 
@@ -364,9 +406,16 @@ cargo check --manifest-path examples/platform_android/src-tauri/Cargo.toml
 
 | File | Action |
 |---|---|
-| `backends/foundation_platform/src/codegen/native.rs` | **NEW** — NativeModule trait + injection pipeline |
-| `backends/foundation_platform/src/codegen.rs` | Add `pub mod native;` |
-| `backends/foundation_platform/src/lib.rs` | Re-export native module types |
-| `backends/foundation_platform/tests/native_modules.rs` | **NEW** — injection tests |
-| `examples/platform_android/build.rs` | Add `inject_native_code()` call |
-| `examples/platform_android/CUSTOM_NATIVE_MODULES.md` | **NEW** — example docs |
+| `backends/foundation_platform_native/Cargo.toml` | **NEW** — crate with features per module |
+| `backends/foundation_platform_native/src/native_module.rs` | **NEW** — `NativeModule` trait, `*Config` structs, `*Source` enums |
+| `backends/foundation_platform_native/src/pipeline.rs` | **NEW** — `PlatformCodegen::register()` + `inject_native_code()` |
+| `backends/foundation_platform_native/src/modal/native.rs` | **NEW** — modal `NativeModule` impl (Kotlin sources via `include_str!`) |
+| `backends/foundation_platform_native/src/modal/handler.rs` | **NEW** — `ModalIpc` — impl `Ipc` + `AndroidIpc` |
+| `backends/foundation_platform_native/src/modal/wasm.rs` | **NEW** — `Chrome::present_modal()` / `dismiss_modal()` |
+| `backends/foundation_platform_native/src/camera/native.rs` | **NEW** — camera `NativeModule` impl |
+| `backends/foundation_platform_native/src/camera/handler.rs` | **NEW** — `CameraIpc` |
+| `backends/foundation_platform_native/src/camera/wasm.rs` | **NEW** — WASM wrapper extension |
+| `backends/foundation_platform_native/tests/injection_tests.rs` | **NEW** — codegen injection tests |
+| `backends/foundation_platform/src/codegen_native.rs` | **DELETE** — moved to `foundation_platform_native` |
+| `examples/platform_android/Cargo.toml` | Add `[build-dependencies] foundation_platform_native` |
+| `examples/platform_android/build.rs` | Import from `foundation_platform_native`, register modules |
