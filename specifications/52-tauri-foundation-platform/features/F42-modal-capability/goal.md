@@ -69,3 +69,5 @@ with research, implementation, testing, and "what done looks like."
 | JS→WASM E2E | Integration tests | `node --test` (existing F41 tests) |
 | Kotlin plugin | Android emulator | `foundation_testbed` + QEMU / physical device |
 | Headful UI | Manual test page | Interactive HTML page in `platform_android` app |
+
+Done means its works, we've proven it, we dont start another native capability without first finishing the first end to end. Test + Actual App showing it works.

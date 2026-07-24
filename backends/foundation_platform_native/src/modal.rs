@@ -1,10 +1,9 @@
 //! Modal IPC handler (F42 modal capability).
 //!
-//! Feature-gated behind `#[cfg(feature = "modal")]`.
 //! Registers a "chrome" IPC handler that wraps WebViewStack + WindowManager
 //! operations behind `present_modal` / `dismiss_modal`.
 
-use foundation_platform::PlatformSession;
+use foundation_platform::{PlatformSession, SlotState, WebViewSlot, WebViewState};
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 
 /// Register the modal IPC handler on the session.
@@ -31,30 +30,45 @@ impl foundation_platform::ipc::PlatformIpc for ModalIpc {
         match req.action.as_str() {
             "present_modal" => Self::present(session, req),
             "dismiss_modal" => Self::dismiss(session, req),
-            _ => Err(IpcError::ExecutionFailed(format!("chrome: unknown '{}'", req.action))),
+            _ => Err(IpcError::ExecutionFailed(format!("unknown action '{}'", req.action))),
         }
     }
 }
 
 impl ModalIpc {
     fn present(
-        _session: &PlatformSession,
+        session: &PlatformSession,
         req: &IpcRequest<Vec<u8>>,
     ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         let args: serde_json::Value = serde_json::from_slice(&req.payload)
             .map_err(|e| IpcError::InvalidPayload(format!("json: {e}")))?;
         let route = args["route"].as_str().unwrap_or("/");
-        let style = args["style"].as_str().unwrap_or("dialog");
+        let _style = args["style"].as_str().unwrap_or("dialog");
         let _title = args["title"].as_str().unwrap_or("");
 
-        // TODO: create Tauri WebView window via WindowManager, push modal slot.
-        // For now: stub that returns metadata.
-        let modal_id = format!("modal_{route}", route = route.replace('/', "_"));
-        let _ = style;
+        let depth = session.webview_stack().depth();
+        let modal_label = format!("modal_{depth}");
+
+        // Push a modal slot and ensure the WebView window exists.
+        // Same code path as record_presentation() in session.rs.
+        let mut stack = session.webview_stack_mut();
+        if stack.depth() == 0 {
+            stack.init(route);
+        }
+        if let Some(mut pool) = stack.pool_mut() {
+            let win_mgr = session.window_manager();
+            win_mgr.ensure(&mut pool, &modal_label, route);
+            pool.set_state(&modal_label, WebViewState::Active);
+            pool.set_route(&modal_label, route);
+        }
+        let mut slot = WebViewSlot::new_modal(route);
+        slot.state = SlotState::Active;
+        stack.push_slot(slot);
+        drop(stack);
 
         let resp = serde_json::json!({
-            "modal_id": modal_id,
-            "webview_label": modal_id,
+            "modal_id": modal_label,
+            "webview_label": modal_label,
         });
         Ok(IpcResponse {
             payload: serde_json::to_vec(&resp).unwrap(),
@@ -103,7 +117,7 @@ pub mod wasm {
     impl Modal {
         pub fn present(args: PresentArgs) -> Result<PresentResult, IpcError> {
             let payload = serde_json::to_vec(&args)
-                .map_err(|e| IpcError::InvalidPayload(format!("serialize: {e}")))?;
+                .map_err(|e| IpcError::InvalidPayload(alloc::format!("serialize: {e}")))?;
             ipc_dispatch("chrome", IpcRequest {
                 ipc: "chrome".into(), action: "present_modal".into(),
                 payload, content_type: IpcContentType::Json, target: None,
@@ -112,7 +126,7 @@ pub mod wasm {
 
         pub fn dismiss(args: DismissArgs) -> Result<(), IpcError> {
             let payload = serde_json::to_vec(&args)
-                .map_err(|e| IpcError::InvalidPayload(format!("serialize: {e}")))?;
+                .map_err(|e| IpcError::InvalidPayload(alloc::format!("serialize: {e}")))?;
             let _: serde_json::Value = ipc_dispatch("chrome", IpcRequest {
                 ipc: "chrome".into(), action: "dismiss_modal".into(),
                 payload, content_type: IpcContentType::Json, target: None,

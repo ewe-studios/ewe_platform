@@ -1,8 +1,9 @@
 //! Dialog IPC handler (F42 dialog capability).
 //!
 //! Feature-gated behind `#[cfg(feature = "dialog")]`.
-//! Registers a "chrome" IPC handler for native AlertDialog/DialogFragment.
+//! Registers a "dialog" IPC handler for native AlertDialog/DialogFragment.
 
+use std::sync::atomic::{AtomicU64, Ordering};
 use foundation_platform::PlatformSession;
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 
@@ -49,8 +50,6 @@ impl DialogIpc {
         let _negative = args["negative_button"].as_str().unwrap_or("");
         let _route = args["route"].as_str(); // optional WebView URL
 
-        // TODO: create native Dialog via WindowManager + AndroidIpc
-        use std::sync::atomic::{AtomicU64, Ordering};
         static COUNTER: AtomicU64 = AtomicU64::new(0);
         let dialog_id = format!("dialog_{}", COUNTER.fetch_add(1, Ordering::Relaxed));
 

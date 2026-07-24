@@ -58,6 +58,7 @@ Every capability is tested in `platform_android`:
 2. Interactive test page with buttons for each presentation mode
 3. Verify native behavior (dialog appears, bottom sheet slides, stack nav works)
 4. Verify WASM round-trip (WASM app calls capability, gets response, receives events)
+5. Done means its works, we've proven it, we dont start another native capability without first finishing the first end to end. Test + Actual App showing it works.
 
 ## Documentation
 
@@ -68,3 +69,5 @@ Each crate gets `docs/` directories:
 - `foundation_platform_native/docs/` — adding native capabilities, Kotlin/Swift helpers, connecting WASM
 
 Each has a `getting_started/`, `deep-dives/`, `adding_native_capabilities/`, and `connecting_to_wasm/` directory, linked from the crate's `README.md`.
+
+Done means its works, we've proven it, we dont start another native capability without first finishing the first end to end. Test + Actual App showing it works.
