@@ -333,9 +333,9 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
         false,
         &[
             ("foundation-wasm.js", wasm_js.as_path()),
+            ("ipc-bridge.js", ipc_bridge.as_path()),
             ("foundation-wasm-ui.js", wasm_ui_js.as_path()),
             ("platform-scheme-interceptor.js", interceptor.as_path()),
-            ("ipc-bridge.js", ipc_bridge.as_path()),
         ],
     );
 }

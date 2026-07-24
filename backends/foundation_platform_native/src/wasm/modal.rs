@@ -1,7 +1,10 @@
 //! Modal typed WASM wrapper — `Modal::present()` / `Modal::dismiss()`.
 //!
-//! Compiles only on wasm32. Passes concrete types through the IPC FFI —
-//! serialization lives in `shared/modal_types.rs` (WirePayload impls).
+//! Compiles only on wasm32. Uses `ipc_dispatch` (sync) for the WASM import path.
+//! On Tauri, this path does NOT work yet (sync import can't bridge async invoke).
+//! Use the JS bridge (`invokeIpc("chrome", "present_modal", args)`) for E2E proof.
+//!
+//! F43 will fix this — `ipc_dispatch_async` + event loop.
 
 use crate::shared::modal_types::{DismissArgs, PresentArgs, PresentResult};
 use foundation_wasm::ipc::{IpcContentType, IpcError, IpcRequest, IpcResponse};

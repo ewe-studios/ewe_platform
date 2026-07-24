@@ -1858,6 +1858,8 @@ export class FoundationWasm {
     this._nextStreamId = 1;
     // F41: IPC handler (set via registerIpcHandler by ipc-bridge.js)
     this._ipcHandler = null;
+    // F43: async IPC handler (set via registerIpcAsyncHandler)
+    this._ipcAsyncHandler = null;
     this._ipcStreamHandler = null;
     this._ipcStreamRegistry = {};
   }
@@ -1964,6 +1966,35 @@ export class FoundationWasm {
     } catch(_) { return 0n; }
   }
 
+  // ── F43: WASM→host IPC dispatch (async) ────────────────────────────────
+
+  /**
+   * Called by host_ipc_invoke_async(ptr, len, token). Decodes request,
+   * dispatches through the async handler (returns a Promise), then calls
+   * ipc_resolve(token, allocId) when the Promise settles.
+   */
+  _dispatchIpcInvokeAsync(ptr, len, token) {
+    try {
+      var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+      var req = FoundationWasm._ipcDecodeRequest(bytes);
+      if (!req) return;
+      if (!this._ipcAsyncHandler) return;
+      var self = this;
+      var inst = this.bridge.instance;
+      Promise.resolve(this._ipcAsyncHandler(req)).then(function(resp) {
+        if (!resp) return;
+        var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
+        var allocId = self.memory.create(respBytes.length);
+        self.memory.write(allocId, respBytes);
+        inst.exports.ipc_resolve(token, allocId);
+      }, function(_err) {
+        // Error: resolve with empty response (0-length allocation)
+        var allocId = self.memory.create(0);
+        inst.exports.ipc_resolve(token, allocId);
+      });
+    } catch(_) { /* discard */ }
+  }
+
   // ── F41: Host→WASM stream dispatch ─────────────────────────────────────
 
   _dispatchIpcStreamOpen(ptr, len) {
@@ -2007,12 +2038,21 @@ export class FoundationWasm {
   }
 
   /**
-   * Register the WASM→host IPC handler. Called by ipc-bridge.js.
+   * Register the WASM→host IPC handler (sync). Called by ipc-bridge.js.
    * @param {{ onIpc: Function, onIpcStream: Function }} handlers
    */
   registerIpcHandler(handlers) {
     if (handlers.onIpc) this._ipcHandler = handlers.onIpc;
     if (handlers.onIpcStream) this._ipcStreamHandler = handlers.onIpcStream;
+  }
+
+  /**
+   * F43: Register the WASM→host IPC handler (async). Called by ipc-bridge.js.
+   * The handler must return a Promise<{content_type, payload}>.
+   * @param {Function} handler  async function(req) → Promise<response>
+   */
+  registerIpcAsyncHandler(handler) {
+    this._ipcAsyncHandler = handler;
   }
 
   /**
@@ -2279,6 +2319,12 @@ export class FoundationWasm {
       //   Returns 0 on error.
       host_ipc_invoke(ptr, len) {
         return self._dispatchIpcInvoke(ptr, len);
+      },
+      // F43: host_ipc_invoke_async(ptr, len, token): WASM sends an IPC request
+      //   without blocking. The host dispatches it asynchronously and calls
+      //   ipc_resolve(token, allocId) when the response is ready.
+      host_ipc_invoke_async(ptr, len, token) {
+        self._dispatchIpcInvokeAsync(ptr, len, token);
       },
       // host_ipc_stream_open(ptr, len) → stream_id: WASM requests a host→WASM
       //   stream. The host creates a queue, returns an ID. WASM polls chunks.

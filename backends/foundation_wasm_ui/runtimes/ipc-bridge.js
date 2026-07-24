@@ -124,7 +124,6 @@
     rt.registerIpcHandler({
       onIpc: function (req) {
         if (isTauri()) {
-          // Tauri: encode as JSON, send via __ewe_ipc
           var payload = new TextDecoder().decode(req.payload || new Uint8Array());
           try { payload = JSON.parse(payload); } catch (_) {}
           return tauriInvokeIpc(req.ipc, req.action, payload);
@@ -136,6 +135,20 @@
         }
         return null;
       },
+    });
+
+    // F43: Register async IPC handler for host_ipc_invoke_async.
+    // On Tauri, invokeIpc is async and returns a Promise — the async
+    // dispatch path resolves it through ipc_resolve(token, allocId).
+    rt.registerIpcAsyncHandler(async function (req) {
+      var payload = new TextDecoder().decode(req.payload || new Uint8Array());
+      try { payload = JSON.parse(payload); } catch (_) {}
+      var result = await invokeIpc(req.ipc, req.action, payload);
+      // invokeIpc returns { content_type, payload } or just the payload bytes
+      if (result && result.content_type !== undefined) {
+        return result;
+      }
+      return { content_type: 0, payload: result };
     });
 
     // Register trigger handlers for protocol bytes 3 and 4 (host→WASM via host_apply)

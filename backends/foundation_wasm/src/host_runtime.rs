@@ -1973,9 +1973,13 @@ pub mod ipc {
     #[cfg(target_family = "wasm")]
     #[link(wasm_import_module = "abi")]
     extern "C" {
-        /// Invoke a named IPC handler on the host.
-        /// Returns allocation ID (0 = error).
+        /// Invoke a named IPC handler on the host (sync). Returns allocation ID (0 = error).
         pub fn host_ipc_invoke(request_ptr: *const u8, request_len: u32) -> u64;
+
+        /// Invoke a named IPC handler on the host (async). Returns immediately; the host
+        /// calls `ipc_resolve(token, resp_ptr, resp_len)` when the response is ready.
+        /// `token` is an opaque u64 that identifies the pending callback.
+        pub fn host_ipc_invoke_async(request_ptr: *const u8, request_len: u32, token: u64);
 
         /// Open a host→WASM stream. Returns stream ID (0 = error).
         pub fn host_ipc_stream_open(request_ptr: *const u8, request_len: u32) -> u64;
@@ -1991,6 +1995,7 @@ pub mod ipc {
     #[cfg(not(target_family = "wasm"))]
     mod stubs {
         pub fn host_ipc_invoke(_ptr: *const u8, _len: u32) -> u64 { 0 }
+        pub fn host_ipc_invoke_async(_ptr: *const u8, _len: u32, _token: u64) {}
         pub fn host_ipc_stream_open(_ptr: *const u8, _len: u32) -> u64 { 0 }
         pub fn host_ipc_stream_read(_id: u64) -> u64 { 0 }
         pub fn host_ipc_stream_close(_id: u64) {}

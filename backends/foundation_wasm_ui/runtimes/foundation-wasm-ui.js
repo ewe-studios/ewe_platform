@@ -2447,6 +2447,12 @@ export function registerWasmApp(runtime, opts = {}) {
   runtime.dispatcher.setHandler(1, columnarHandler(applicator));
   // Initial scan + observer: wires primal:on* attrs that exist on page load.
   initEventRuntime(dispatcher, doc);
+
+  // F43: Wire IPC bridge — host_ipc_invoke_async routes to invokeIpc
+  // (Tauri/Deno/browser), which resolves via ipc_resolve(token, allocId).
+  if (typeof globalThis !== 'undefined' && globalThis.registerIpcTriggers) {
+    globalThis.registerIpcTriggers(runtime);
+  }
 }
 
 /**
