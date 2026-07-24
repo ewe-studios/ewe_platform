@@ -523,21 +523,72 @@ fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
     let conf_path = manifest_dir.join("tauri.conf.json");
     let Ok(content) = std::fs::read_to_string(&conf_path) else { return };
-    let Ok(mut val) = serde_json::from_str::<serde_json::Value>(&content) else { return };
-    let target_url = format!("ewe://localhost{route_prefix}");
-    if let Some(windows) = val
-        .get_mut("app")
-        .and_then(|a| a.get_mut("windows"))
-        .and_then(|w| w.as_array_mut())
-        .and_then(|arr| arr.first_mut())
-    {
-        windows["url"] = serde_json::Value::String(target_url);
-    }
-    if let Ok(patched) = serde_json::to_string_pretty(&val) {
-        if patched != content {
-            std::fs::write(&conf_path, &patched).ok();
-            println!("cargo:warning=patched tauri.conf.json url");
+
+    // Tauri's multi-platform config: JSON objects concatenated with newlines.
+    // The first is the base; subsequent ones are per-platform overrides
+    // (e.g. {"platforms": ["android"], "bundle": {...}}).
+    // Patch EVERY object so the base AND all platform overrides get the fix.
+    let mut patched_any = false;
+    let mut out = String::with_capacity(content.len());
+    for segment in content.split("\n\n") {
+        let segment = segment.trim();
+        if segment.is_empty() {
+            continue;
         }
+        let Ok(mut val) = serde_json::from_str::<serde_json::Value>(segment) else {
+            continue;
+        };
+
+        // 1. Route through ewe:// — the custom protocol handler.
+        let target_url = format!("ewe://localhost{route_prefix}");
+        if let Some(windows) = val
+            .get_mut("app")
+            .and_then(|a| a.get_mut("windows"))
+            .and_then(|w| w.as_array_mut())
+            .and_then(|arr| arr.first_mut())
+        {
+            if windows.get("url").and_then(|u| u.as_str()) != Some(&target_url) {
+                windows["url"] = serde_json::Value::String(target_url.clone());
+                patched_any = true;
+            }
+        }
+
+        // 2. Force asset embedding — Android has no dev server.
+        //    Tauri in dev mode with devUrl set generates an empty EmbeddedAssets
+        //    phf map (tauri-codegen context.rs:178-179). Dropping devUrl and
+        //    enabling the bundle forces Tauri to embed all frontendDist files
+        //    into the binary so AssetResolver::get() finds them.
+        if val.get("build").and_then(|b| b.get("devUrl")).is_some() {
+            if let Some(build) = val.get_mut("build").and_then(|b| b.as_object_mut()) {
+                build.remove("devUrl");
+                patched_any = true;
+            }
+        }
+        if val
+            .get("bundle")
+            .and_then(|b| b.get("active"))
+            .and_then(|a| a.as_bool())
+            != Some(true)
+        {
+            let obj = val.as_object_mut().expect("tauri.conf must be object");
+            let bundle = obj
+                .entry("bundle".to_string())
+                .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
+            if let Some(b) = bundle.as_object_mut() {
+                b.insert("active".to_string(), serde_json::Value::Bool(true));
+                patched_any = true;
+            }
+        }
+
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&serde_json::to_string(&val).unwrap_or_else(|_| segment.to_string()));
+    }
+
+    if patched_any && out != content {
+        std::fs::write(&conf_path, out).ok();
+        println!("cargo:warning=patched tauri.conf.json (ewe URL, devUrl removed, bundle.active=true)");
     }
 }
 

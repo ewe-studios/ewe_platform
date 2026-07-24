@@ -326,10 +326,17 @@ pub trait AssetSource: Send + Sync {
 
     /// Whether `path` names a file or a directory prefix in the bundle.
     fn exists(&self, path: &str) -> bool {
+        // `keys()` can be empty even when `get()` works — the Tauri
+        // AssetResolver iterator may not enumerate APK assets on Android.
+        // `fetch()` is the definitive check.
+        if self.fetch(path).is_ok() {
+            return true;
+        }
         let normalized = normalize(path);
+        // Also check as a directory prefix for stat / children.
         self.keys()
             .iter()
-            .any(|k| *k == normalized || k.starts_with(&format!("{normalized}/")))
+            .any(|k| k.starts_with(&format!("{normalized}/")))
     }
 
     /// Metadata for a bundle entry.
@@ -450,16 +457,24 @@ struct TauriAssetSource<R: Runtime> {
 
 impl<R: Runtime> AssetSource for TauriAssetSource<R> {
     fn keys(&self) -> Vec<String> {
-        self.resolver
+        let v: Vec<_> = self.resolver
             .iter()
             .map(|(key, _)| normalize(&key))
-            .collect()
+            .collect();
+        // Debug: dump ALL keys the resolver exposes
+        if v.is_empty() {
+            tracing::trace!("[TauriAssetSource] keys() returned EMPTY — Tauri AssetResolver has no keys!");
+        } else {
+            tracing::trace!("[TauriAssetSource] keys() returned {} keys. First 5:", v.len());
+            for k in v.iter().take(5) { tracing::trace!("[TauriAssetSource]   key: '{k}'"); }
+        }
+        v
     }
 
     fn fetch(&self, path: &str) -> VfsResult<Vec<u8>> {
         let normalized = normalize(path);
-        // Tauri keys assets without a leading slash; the VFS always has one.
         let key = normalized.trim_start_matches('/').to_string();
+        tracing::trace!("[TauriAssetSource] fetch key='{key}'");
         self.resolver
             .get(key)
             .map(|asset| asset.bytes)
@@ -987,7 +1002,14 @@ impl PlatformAssetManager {
     /// Propagates any [`VfsError`] from the backend, including
     /// [`VfsError::InvalidPath`] for a traversal attempt.
     pub fn read(&self, path: &str) -> VfsResult<Vec<u8>> {
-        self.fs.read_file(&normalize_checked(path)?)
+        let normalized = normalize_checked(path)?;
+        // Debug: does the VFS even know about this path?
+        let exists = self.fs.exists(&normalized).unwrap_or(false);
+        let stat = self.fs.stat(&normalized).ok();
+        tracing::trace!(
+            "[AssetMgr] read path='{path}' normalized='{normalized}' exists={exists} stat={stat:?}"
+        );
+        self.fs.read_file(&normalized)
     }
 
     /// Read a file belonging to one app, resolved against its active version.
@@ -997,7 +1019,18 @@ impl PlatformAssetManager {
     /// Propagates any [`VfsError`] from the backend.
     pub fn read_app_file(&self, app_id: &str, relative: &str) -> VfsResult<Vec<u8>> {
         let root = self.app_vfs_root(app_id);
-        self.read(&format!("{root}/{relative}"))
+        let full_path = format!("{root}/{relative}");
+        tracing::trace!("[AssetMgr] read_app_file({app_id}, {relative}) -> vfs_path={full_path}");
+        match self.read(&full_path) {
+            Ok(b) => {
+                tracing::trace!("[AssetMgr] read ok: {} bytes", b.len());
+                Ok(b)
+            }
+            Err(e) => {
+                tracing::trace!("[AssetMgr] read FAILED: {e:?}");
+                Err(e)
+            }
+        }
     }
 
     /// Write a file. `path` is relative to `base_root`. Parent directories

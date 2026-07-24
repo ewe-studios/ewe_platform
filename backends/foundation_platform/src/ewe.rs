@@ -32,6 +32,7 @@ fn ewe_handler<R: tauri::Runtime>(
     request: Request<Vec<u8>>,
 ) -> Response<Vec<u8>> {
     let uri = request.uri().to_string();
+    tracing::trace!("[ewe_handler] request: {uri}");
 
     // 1. Validate URI is a well-formed ewe:// URL
     let ewe_url = match EweUrl::parse(&uri) {
@@ -64,7 +65,15 @@ fn ewe_handler<R: tauri::Runtime>(
 
     // 3-9. Execute the full contract — the handler returns a Response.
     // Pass it straight to the WebView, no wrapping.
-    session.execute_decision(&decision, &intent)
+    let response = session.execute_decision(&decision, &intent);
+    tracing::trace!(
+        "[ewe_handler] response: {} status={} content_type={:?} len={}",
+        ewe_url.path,
+        response.status(),
+        response.headers().get("content-type").map(|v| v.to_str().unwrap_or("?")),
+        response.body().len()
+    );
+    response
 }
 
 // ── Asset serving ──────────────────────────────────────────────────────

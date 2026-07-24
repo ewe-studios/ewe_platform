@@ -42,18 +42,18 @@ impl<B: VfsFileSystem + 'static, D: DeltaStore + 'static> OverlayFileSystem<B, D
     }
 
     fn is_visible(&self, path: &str) -> VfsResult<bool> {
-        // Delta entry at exact path always wins — the overlay only creates delta
-        // entries after handling whiteouts, so existence in delta means "created
-        // after any deletion that produced the whiteout."
-        if self.delta.exists(path)? {
+        let in_delta = self.delta.exists(path)?;
+        if in_delta {
+            tracing::trace!("[OverlayVfs] is_visible({path}) = true (delta)");
             return Ok(true);
         }
-        // No delta entry — check whiteouts
         if self.delta.is_whiteout(path)?.is_some() {
+            tracing::trace!("[OverlayVfs] is_visible({path}) = false (whiteout)");
             return Ok(false);
         }
-        // Not in delta, not whiteout'd — check base
-        self.base.exists(path)
+        let base_exists = self.base.exists(path)?;
+        tracing::trace!("[OverlayVfs] is_visible({path}) -> base_exists={base_exists}");
+        Ok(base_exists)
     }
 
     fn cow_to_delta(&self, path: &str) -> VfsResult<()> {

@@ -532,7 +532,7 @@ fn setup_routes(session: &PlatformSession) {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-#[valtron]
+#[valtron(tracing = "trace")]
 pub fn run() {
     platform_run!(PlatformBuilder::new()
         .inject_platform_runtimes()
