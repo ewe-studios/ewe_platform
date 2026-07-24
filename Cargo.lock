@@ -4099,6 +4099,7 @@ dependencies = [
  "foundation_wasm",
  "serde",
  "serde_json",
+ "tauri",
  "tauri-plugin",
 ]
 
