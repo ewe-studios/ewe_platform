@@ -1953,22 +1953,13 @@ export class FoundationWasm {
     try {
       var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
       var req = FoundationWasm._ipcDecodeRequest(bytes);
-      if (!req) return this._ipcErrorAlloc();
-      if (!this._ipcHandler) return this._ipcErrorAlloc();
+      if (!req) return 0n;
+      if (!this._ipcHandler) return 0n;
       var resp = this._ipcHandler(req);
-      if (!resp) return this._ipcErrorAlloc();
+      if (!resp) return 0n;
       var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
       var allocId = this.memory.create(respBytes.length);
       this.memory.write(allocId, respBytes);
-      return allocId;
-    } catch(_) { return this._ipcErrorAlloc(); }
-  }
-
-  /** @private — allocate a 1-byte error slot so WASM never gets 0n. */
-  _ipcErrorAlloc() {
-    try {
-      var allocId = this.memory.create(1);
-      this.memory.write(allocId, new Uint8Array([0xFF]));
       return allocId;
     } catch(_) { return 0n; }
   }
@@ -1996,8 +1987,11 @@ export class FoundationWasm {
   _dispatchIpcStreamRead(streamId) {
     try {
       var s = this._ipcStreamRegistry[Number(streamId)];
-      if (!s) return 0n;
-      if (s.queue.length === 0) return s.closed ? 0n : 0n;
+      if (!s) return this._ipcErrorAlloc();
+      if (s.queue.length === 0) {
+        if (s.closed) { delete this._ipcStreamRegistry[Number(streamId)]; return 0n; }
+        return 0n; // empty but not yet closed — caller polls
+      }
       var chunk = s.queue.shift();
       var data = chunk.payload || chunk;
       var ct = chunk.content_type !== undefined ? chunk.content_type : 0;

@@ -497,7 +497,8 @@ pub extern "C" fn e2e_ipc_invoke_echo() -> i32 {
     let alloc_id = unsafe {
         foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
     };
-    // allocation 0 is valid first slot
+    // 0 means host returned error (no handler registered)
+    if alloc_id == 0 { return -3; }
 
     let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
     foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
@@ -525,7 +526,7 @@ pub extern "C" fn e2e_ipc_invoke_camera_open() -> i32 {
     let alloc_id = unsafe {
         foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
     };
-    // allocation 0 is valid first slot
+    if alloc_id == 0 { return -2; }
 
     let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
     foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
@@ -534,4 +535,155 @@ pub extern "C" fn e2e_ipc_invoke_camera_open() -> i32 {
         Ok(_) => 1,
         Err(_) => -2,
     }
+}
+
+// ── F41: IPC Stream exports (WASM calls host_ipc_stream_open/read/close) ──
+
+/// Call host_ipc_stream_open from WASM with a camera:snap request.
+/// Returns the stream ID on success, 0 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_stream_open() -> u64 {
+    let req = IpcRequest {
+        ipc: "camera".into(),
+        action: "snap".into(),
+        payload: br#"{"format":"jpeg"}"#.to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    unsafe {
+        foundation_wasm::host_ipc::host_ipc_stream_open(encoded.as_ptr(), encoded.len() as u32)
+    }
+}
+
+/// Read the next chunk from a host-created IPC stream.
+/// Returns the allocation ID (0 = closed/error). Caller must dispose.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_stream_read(stream_id: u64) -> u64 {
+    unsafe { foundation_wasm::host_ipc::host_ipc_stream_read(stream_id) }
+}
+
+/// Close a host-created IPC stream.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_stream_close(stream_id: u64) {
+    unsafe { foundation_wasm::host_ipc::host_ipc_stream_close(stream_id) };
+}
+
+/// Full stream round-trip: open → read 3 chunks → close.
+/// Returns 1 if all chunks received correctly, -1 on any error.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_stream_roundtrip() -> i32 {
+    let req = IpcRequest {
+        ipc: "camera".into(),
+        action: "snap".into(),
+        payload: br#"{"format":"jpeg"}"#.to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+
+    let stream_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_stream_open(encoded.as_ptr(), encoded.len() as u32)
+    };
+    if stream_id == 0 { return -1; }
+
+    let mut chunks = 0;
+    loop {
+        let alloc_id = unsafe { foundation_wasm::host_ipc::host_ipc_stream_read(stream_id) };
+        // 0 is the EOS sentinel — stream closed after last chunk consumed
+        if alloc_id == 0 { break; }
+
+        let chunk_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+        foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+        // Try to decode — failures mean error/malformed
+        if decode_response(&chunk_bytes).is_err() { return -2; }
+        chunks += 1;
+    }
+
+    unsafe { foundation_wasm::host_ipc::host_ipc_stream_close(stream_id) };
+
+    if chunks == 3 { 1 } else { -3 }
+}
+
+// ── F41: Content-type round-trip exports ────────────────────────────────
+
+/// Send an Arrow payload via host_ipc_invoke, verify it round-trips.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_invoke_arrow() -> i32 {
+    let req = IpcRequest {
+        ipc: "arrow_handler".into(),
+        action: "query".into(),
+        payload: vec![0x00, 0x01, 0x02, 0x03],
+        content_type: IpcContentType::Arrow,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    if alloc_id == 0 { return -3; }
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(resp) => {
+            if resp.content_type == IpcContentType::Arrow
+                && resp.payload == vec![0x03, 0x02, 0x01, 0x00] { 1 } else { -2 }
+        }
+        Err(_) => -3,
+    }
+}
+
+/// Send a Binary payload via host_ipc_invoke, verify it round-trips.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_invoke_binary() -> i32 {
+    let req = IpcRequest {
+        ipc: "binary_handler".into(),
+        action: "upload".into(),
+        payload: vec![0xDE, 0xAD, 0xBE, 0xEF],
+        content_type: IpcContentType::Binary,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    if alloc_id == 0 { return -3; }
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(resp) => {
+            if resp.content_type == IpcContentType::Binary
+                && resp.payload == vec![0xCA, 0xFE] { 1 } else { -2 }
+        }
+        Err(_) => -3,
+    }
+}
+
+/// Diagnostic: return the number of chunks read (0-255) or negative on error.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_stream_debug() -> i32 {
+    let req = IpcRequest {
+        ipc: "camera".into(), action: "snap".into(),
+        payload: br#"{"format":"jpeg"}"#.to_vec(),
+        content_type: IpcContentType::Json, target: None,
+    };
+    let encoded = encode_request(&req);
+    let stream_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_stream_open(encoded.as_ptr(), encoded.len() as u32)
+    };
+    if stream_id == 0 { return -10; }
+    let mut chunks = 0i32;
+    loop {
+        let alloc_id = unsafe { foundation_wasm::host_ipc::host_ipc_stream_read(stream_id) };
+        if alloc_id == 0 { break; }
+        let chunk_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+        foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+        if decode_response(&chunk_bytes).is_err() { return -20; }
+        chunks += 1;
+        if chunks > 100 { break; } // safety
+    }
+    chunks
 }

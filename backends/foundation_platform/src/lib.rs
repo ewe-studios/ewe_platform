@@ -5,7 +5,7 @@
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 pub mod assets;
-mod handle;
+pub mod handle;
 pub mod backend;
 /// Typed WASM wrappers for platform IPC handlers (F41 Part D).
 /// `#[cfg(target_family = "wasm")]` — uses `ipc_ffi::ipc_dispatch` + serde.

@@ -500,21 +500,21 @@ pub mod internal_api {
         let allocations = ALLOCATIONS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-        let mem = allocations
-            .get(allocation_id.into())
-            .expect("Allocation should be initialized");
-        mem.clone_memory().expect("should clone memory")
+        // Return empty vec for invalid allocation ids (0 = uninitialized).
+        match allocations.get(allocation_id.into()) {
+            Ok(mem) => mem.clone_memory().unwrap_or_default(),
+            Err(_) => Vec::new(),
+        }
     }
 
     pub fn extract_string_from_memory(allocation_id: u64) -> String {
         let allocations = ALLOCATIONS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-        let mem = allocations
-            .get(allocation_id.into())
-            .expect("Allocation should be initialized");
-        mem.string_from_memory()
-            .expect("should convert into String")
+        match allocations.get(allocation_id.into()) {
+            Ok(mem) => mem.string_from_memory().unwrap_or_default(),
+            Err(_) => String::new(),
+        }
     }
 }
 
@@ -527,12 +527,13 @@ pub mod exposed_runtime {
 
     #[no_mangle]
     pub extern "C" fn create_allocation(size: u64) -> u64 {
-        let mem_id = ALLOCATIONS
+        let mut arena = ALLOCATIONS
             .lock()
-            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .allocate(size)
-            .expect("should create requested allocation");
-        mem_id.as_u64()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        arena.seed(); // idempotent — ensures slot 0 is consumed, first real id is 1
+        arena.allocate(size)
+            .expect("should create requested allocation")
+            .as_u64()
     }
 
     #[no_mangle]
@@ -564,9 +565,8 @@ pub mod exposed_runtime {
         let mut allocations = ALLOCATIONS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-        allocations
-            .deallocate(allocation_id.into())
-            .expect("Allocation should be initialized");
+        // Silently ignore invalid / already-freed allocation ids.
+        let _ = allocations.deallocate(allocation_id.into());
     }
 
     #[no_mangle]

@@ -191,3 +191,147 @@ test("F41: host_ipc_stream_open/read/close — basic lifecycle", { skip }, () =>
   const closedId = rt._dispatchIpcStreamRead(Number(allocId));
   assert.equal(closedId, 0n, "stream should be closed");
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+// WASM E2E stream round-trip (WASM→host→stream→WASM reads chunks)
+// ═══════════════════════════════════════════════════════════════════════
+
+test("F41: WASM stream E2E — open/write 3 chunks/read all/close via exports", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  rt.registerIpcHandler({
+    onIpcStream(req, stream) {
+      stream.write({ content_type: 0, payload: new TextEncoder().encode(JSON.stringify({ frame: 1 })) });
+      stream.write({ content_type: 0, payload: new TextEncoder().encode(JSON.stringify({ frame: 2 })) });
+      stream.write({ content_type: 0, payload: new TextEncoder().encode(JSON.stringify({ frame: 3 })) });
+      stream.end();
+    },
+  });
+
+  const result = instance.exports.e2e_ipc_stream_roundtrip();
+  assert.equal(result, 1, "stream roundtrip should read 3 chunks");
+});
+
+test("F41: WASM stream — open returns non-zero ID", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  rt.registerIpcHandler({
+    onIpcStream(req, stream) {
+      stream.write({ content_type: 0, payload: new Uint8Array([1]) });
+      stream.end();
+    },
+  });
+
+  const streamId = instance.exports.e2e_ipc_stream_open();
+  assert.ok(streamId !== 0n && streamId !== 0, "stream ID should be non-zero: " + streamId);
+});
+
+test("F41: WASM stream — read returns 0 when no handler", { skip }, () => {
+  const { instance } = bootE2E();
+  // No handler registered — host_ipc_stream_open returns 0
+  const streamId = instance.exports.e2e_ipc_stream_open();
+  assert.equal(streamId, 0n, "stream should fail without handler");
+});
+
+test("F41: WASM stream — close is idempotent", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  rt.registerIpcHandler({
+    onIpcStream(req, stream) {
+      stream.write({ content_type: 0, payload: new TextEncoder().encode("data") });
+      stream.end();
+    },
+  });
+
+  const streamId = instance.exports.e2e_ipc_stream_open();
+  assert.ok(streamId !== 0n, "open should return non-zero stream ID");
+
+  // Read once — alloc_id could be 0 (first valid allocation)
+  const cid = instance.exports.e2e_ipc_stream_read(streamId);
+  const ptr = instance.exports.allocation_start_pointer(cid);
+  const len = instance.exports.allocation_length(cid);
+  const bytes = new Uint8Array(instance.exports.memory.buffer, Number(ptr), Number(len));
+  const decoded = FoundationWasm._ipcDecodeResponse(bytes);
+  assert.ok(decoded !== null, "first chunk should be valid");
+  assert.equal(new TextDecoder().decode(decoded.payload), "data");
+  instance.exports.dispose_allocation(cid);
+
+  instance.exports.e2e_ipc_stream_close(streamId);
+  // Close again — should not crash
+  instance.exports.e2e_ipc_stream_close(streamId);
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// Content-type round-trips: Json / Arrow / Binary through full host_ipc_invoke
+// ═══════════════════════════════════════════════════════════════════════
+
+test("F41: content_type — JS wire format round-trip Arrow (ct=1)", () => {
+  const req = {
+    ipc: "analytics", action: "query",
+    content_type: 1, // Arrow
+    target: null,
+    payload: new Uint8Array([0, 1, 2, 3]),
+  };
+  const enc = FoundationWasm._ipcEncodeRequest(req);
+  const dec = FoundationWasm._ipcDecodeRequest(enc);
+  assert.ok(dec !== null);
+  assert.equal(dec.content_type, 1);
+  assert.equal(dec.payload.length, 4);
+  assert.equal(dec.payload[0], 0);
+});
+
+test("F41: content_type — decode_response handles all content types", () => {
+  for (let ct = 0; ct <= 2; ct++) {
+    const respBytes = FoundationWasm._ipcEncodeResponse(ct, new Uint8Array([1, 2, 3]));
+    const decoded = FoundationWasm._ipcDecodeResponse(respBytes);
+    assert.ok(decoded !== null, "should decode content_type " + ct);
+    assert.equal(decoded.content_type, ct);
+    assert.equal(decoded.payload.length, 3);
+  }
+});
+
+test("F41: WASM E2E — Arrow content_type round-trip", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  rt.registerIpcHandler({
+    onIpc(req) {
+      // Echo with same content_type but reversed payload
+      return { content_type: req.content_type, payload: new Uint8Array([3, 2, 1, 0]) };
+    },
+  });
+
+  const result = instance.exports.e2e_ipc_invoke_arrow();
+  assert.equal(result, 1, "Arrow round-trip should succeed");
+});
+
+test("F41: WASM E2E — Binary content_type round-trip", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  rt.registerIpcHandler({
+    onIpc(req) {
+      // Echo with same content_type but different payload
+      return { content_type: req.content_type, payload: new Uint8Array([0xCA, 0xFE]) };
+    },
+  });
+
+  const result = instance.exports.e2e_ipc_invoke_binary();
+  assert.equal(result, 1, "Binary round-trip should succeed");
+});
+
+test("F41: content_type — dispatch is content_type agnostic", { skip }, () => {
+  const { rt, instance } = bootE2E();
+
+  // Handler echoes same content_type but reverses payload — matching WASM expectation
+  rt.registerIpcHandler({
+    onIpc(req) {
+      // Reverse the payload bytes for the Arrow test
+      var reversed = new Uint8Array(req.payload.length);
+      for (var i = 0; i < req.payload.length; i++) reversed[i] = req.payload[req.payload.length - 1 - i];
+      return { content_type: req.content_type, payload: reversed };
+    },
+  });
+
+  // Arrow E2E: WASM sends [0,1,2,3], expects reversed [3,2,1,0]
+  const result = instance.exports.e2e_ipc_invoke_arrow();
+  assert.equal(result, 1, "Arrow round-trip with reversed payload should succeed");
+});

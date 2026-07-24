@@ -379,9 +379,15 @@ impl MemoryAllocations {
     }
 
     pub fn new() -> Self {
-        Self {
-            allocs: Vec::new(),
-            free: Vec::new(),
+        Self::create()
+    }
+
+    /// Consume slot 0 so the first real allocation gets id 1.
+    /// Idempotent — safe to call multiple times.
+    pub fn seed(&mut self) {
+        if self.allocs.is_empty() {
+            let dummy = MemoryAllocation::new(alloc::vec![0u8; 1]);
+            self.allocs.push((0, dummy));
         }
     }
 

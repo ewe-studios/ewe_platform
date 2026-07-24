@@ -126,3 +126,59 @@ fn name_validation() {
     assert!(!is_valid_ipc_name("has spaces"));
     assert!(!is_valid_ipc_name("has/slash"));
 }
+
+#[test]
+fn content_type_request_round_trip_all_variants() {
+    // Json request
+    let req = IpcRequest {
+        ipc: "test".into(), action: "do".into(),
+        payload: b"{}".to_vec(), content_type: IpcContentType::Json, target: None,
+    };
+    let enc = encode_request(&req);
+    let dec = decode_request(&enc).unwrap();
+    assert_eq!(dec.content_type, IpcContentType::Json);
+
+    // Arrow request
+    let req = IpcRequest {
+        ipc: "analytics".into(), action: "query".into(),
+        payload: vec![0x00, 0x01, 0x02, 0x03],
+        content_type: IpcContentType::Arrow, target: Some("db".into()),
+    };
+    let enc = encode_request(&req);
+    let dec = decode_request(&enc).unwrap();
+    assert_eq!(dec.content_type, IpcContentType::Arrow);
+    assert_eq!(dec.payload, vec![0, 1, 2, 3]);
+
+    // Binary request
+    let req = IpcRequest {
+        ipc: "file".into(), action: "write".into(),
+        payload: vec![0xFF, 0xFE, 0xFD],
+        content_type: IpcContentType::Binary, target: None,
+    };
+    let enc = encode_request(&req);
+    let dec = decode_request(&enc).unwrap();
+    assert_eq!(dec.content_type, IpcContentType::Binary);
+    assert_eq!(dec.payload, vec![0xFF, 0xFE, 0xFD]);
+}
+
+#[test]
+fn content_type_byte_values_match_ipc_spec() {
+    // The wire format contract: 0=Json, 1=Arrow, 2=Binary
+    // encode_request writes these bytes; decode_request reads them
+    for (ct, expected_byte) in [
+        (IpcContentType::Json, 0u8),
+        (IpcContentType::Arrow, 1u8),
+        (IpcContentType::Binary, 2u8),
+    ] {
+        let req = IpcRequest {
+            ipc: "t".into(), action: "a".into(),
+            payload: vec![0xAB], content_type: ct, target: None,
+        };
+        let enc = encode_request(&req);
+        // The content_type byte is at a fixed position: after ipc+action before target
+        // Skip: 4(ipc_len) + 1(ipc="t") + 4(action_len) + 1(action="a") = 10
+        let ct_byte_offset = 4 + 1 + 4 + 1;
+        assert_eq!(enc[ct_byte_offset], expected_byte,
+            "content_type {:?} should encode as byte {}", ct, expected_byte);
+    }
+}

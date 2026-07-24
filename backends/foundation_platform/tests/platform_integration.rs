@@ -723,3 +723,73 @@ fn record_presentation_directly_works_for_all_modes() {
     assert_eq!(session.webview_stack().active_route(), Some("/login"));
     assert_eq!(session.webview_stack().active(), 0);
 }
+
+// ── F41: IPC stream integration tests ───────────────────────────────────
+
+#[test]
+fn host_stream_registry_create_write_read_close() {
+    let reg = foundation_platform::handle::HostStreamRegistry::new();
+    let (id, _queue) = reg.create();
+
+    assert!(id > 0, "stream ID should be non-zero");
+    assert!(reg.write(id, Ok(b"chunk1".to_vec())));
+    assert!(reg.write(id, Ok(b"chunk2".to_vec())));
+
+    let c1 = reg.read(id).unwrap().unwrap();
+    assert_eq!(c1, b"chunk1");
+    let c2 = reg.read(id).unwrap().unwrap();
+    assert_eq!(c2, b"chunk2");
+    assert!(reg.read(id).is_none()); // empty
+
+    assert!(reg.close(id));
+    assert!(!reg.close(id)); // already removed
+    assert!(reg.read(999).is_none()); // nonexistent
+}
+
+#[test]
+fn host_stream_registry_multiple_streams_independent() {
+    let reg = foundation_platform::handle::HostStreamRegistry::new();
+    let (s1, _q1) = reg.create();
+    let (s2, _q2) = reg.create();
+
+    assert_ne!(s1, s2);
+    reg.write(s1, Ok(b"stream-one".to_vec()));
+    reg.write(s2, Ok(b"stream-two".to_vec()));
+
+    assert_eq!(reg.read(s1).unwrap().unwrap(), b"stream-one");
+    assert_eq!(reg.read(s2).unwrap().unwrap(), b"stream-two");
+    assert!(reg.read(s1).is_none());
+    assert!(reg.read(s2).is_none());
+}
+
+#[test]
+fn host_stream_registry_error_propagation() {
+    let reg = foundation_platform::handle::HostStreamRegistry::new();
+    let (id, _q) = reg.create();
+
+    reg.write(id, Err(foundation_wasm::ipc::IpcError::ExecutionFailed("fail".into())));
+    match reg.read(id).unwrap() {
+        Err(foundation_wasm::ipc::IpcError::ExecutionFailed(msg)) => assert_eq!(msg, "fail"),
+        other => panic!("expected ExecutionFailed, got {other:?}"),
+    }
+}
+
+#[test]
+fn capability_handle_registry_round_trip() {
+    let reg = foundation_platform::handle::CapabilityHandleRegistry::new();
+    let token = reg.insert("camera_session".to_string());
+
+    let result = reg.with::<String, _>(token, |s| {
+        assert_eq!(s, "camera_session");
+        s.push_str("-modified");
+        42u32
+    });
+    assert_eq!(result, Some(42u32));
+
+    let readback = reg.with::<String, _>(token, |s| s.clone());
+    assert_eq!(readback, Some("camera_session-modified".to_string()));
+
+    let removed = reg.remove(token);
+    assert!(removed.is_some());
+    assert!(reg.with::<String, ()>(token, |_| ()).is_none());
+}
