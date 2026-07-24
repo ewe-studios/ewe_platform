@@ -457,6 +457,7 @@ fn setup_routes(session: Arc<PlatformSession>) {
 
     // F42: Register native IPC handlers from foundation_platform_native.
     foundation_platform_native::native::modal::register(Arc::clone(&session));
+    foundation_platform_native::native::dialog::register(Arc::clone(&session));
 
     // Register IPC handlers on the session.
     session.register_ipc(EchoIpc);
@@ -541,15 +542,11 @@ fn setup_routes(session: Arc<PlatformSession>) {
 pub fn run() {
     platform_run!(PlatformBuilder::new()
         .inject_platform_runtimes()
-        // Baked at compile time (F40): the only origin OTA manifests and
-        // bundles may come from. No IPC, script, or manifest field can
-        // change it — that takes a new binary.
         .ota_manifest_domain("cdn.ewe.studio")
-        // The trust anchor. `keys/ota_public.key` is written by build.rs on
-        // the first build and committed; the private seed stays in CI.
         .ota_manifest_key_from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/keys/ota_public.key"
         )))
+        .plugin(foundation_platform_native::native::plugin::plugin())
         .setup(setup_routes));
 }

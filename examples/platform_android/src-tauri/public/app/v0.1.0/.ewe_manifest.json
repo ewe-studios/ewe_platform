@@ -2,12 +2,12 @@
   "schema": 1,
   "source": "apk",
   "manifest_domain": "cdn.ewe.studio",
-  "created_at": "2026-07-24T09:43:46Z",
+  "created_at": "2026-07-24T15:24:11Z",
   "sequence": 0,
   "base_url": "https://cdn.ewe.studio/bundles",
   "rollback_to": null,
   "delete_after": null,
-  "signature": "UDm/sNxigTKWTPSZZAXZ3g5JQaFPTFwWefjj47LKzb0xi2FNTBfUG5uyel5XZeYtdYqL8Y5pbBpwYSLgXA5fAQ==",
+  "signature": "nj4YIzBGPM07uAZIp/OxH3vzc+krdbotPkXSy+92Ca82sl1WZ1HoSXwJFmIp2c7xf0JTyeTq5hLHKg8f1HnEBA==",
   "apps": [
     {
       "app_id": "app",
@@ -15,23 +15,23 @@
       "files": [
         {
           "path": "bundle.js",
-          "sha256": "16f0ef0d5267ff475ac3d8c5bb057a537f5e995e45aba15d22464e43c38f9907",
-          "size": 211524
+          "sha256": "0e828079c06c23fe0e03117766c50c3f324c06b164b40146285adb9572831e68",
+          "size": 211344
         },
         {
           "path": "index.html",
-          "sha256": "d9a8e0ff1c8d51c44e8ea2ffb03b73058b8b9125d1ea00cf58b5bed8179f6be8",
-          "size": 1299
+          "sha256": "0ff00fcbe09c7f91245d733e687c900fb68a472d93f94cc1d61636493ef79491",
+          "size": 1149
         },
         {
           "path": "platform_dashboard.js",
-          "sha256": "458b65910cc2209705db7a4ea56d722070fcd9af4c38760827101919377d46d3",
-          "size": 694
+          "sha256": "8c79715ee5716f5bc666d7f4e99eaadede1714337836e757490d83d45a71ae02",
+          "size": 716
         },
         {
           "path": "platform_dashboard.wasm",
-          "sha256": "a37d2587384b33b65e9998068a4b5fe460b14bbe302594b8750908117de8d1fd",
-          "size": 463517
+          "sha256": "f9ab40ced929abe6ca9881e41e34f1a31aa0463000818f14f626f3c6a7f561e4",
+          "size": 440914
         }
       ]
     }

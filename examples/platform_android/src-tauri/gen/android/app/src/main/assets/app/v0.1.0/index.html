@@ -13,6 +13,13 @@
     }
   </style>
   <script src="bundle.js"></script>
+  <script>
+    if (typeof globalThis !== 'undefined' && globalThis.FoundationWasmRuntime) {
+      console.error('[DIAG] bundle.js OK — FoundationWasmRuntime present');
+    } else {
+      console.error('[DIAG] bundle.js FAILED — FoundationWasmRuntime: ' + typeof globalThis.FoundationWasmRuntime);
+    }
+  </script>
 </head>
 <body>
   <script>

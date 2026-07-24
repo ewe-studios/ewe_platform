@@ -3,6 +3,8 @@
 //! Compiles on wasm32. Uses `ipc_invoke_typed` (callback-based).
 //! WASM does not care whether the host resolves sync or async.
 
+extern crate alloc;
+
 use crate::shared::modal_types::{DismissArgs, PresentArgs, PresentResult};
 use foundation_wasm::ipc::{IpcContentType, IpcError, IpcRequest};
 use foundation_wasm::ipc_ffi::ipc_invoke_typed;

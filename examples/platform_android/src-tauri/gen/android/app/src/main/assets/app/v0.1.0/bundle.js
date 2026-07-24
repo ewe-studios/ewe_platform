@@ -1860,6 +1860,8 @@ class FoundationWasm {
     this._nextStreamId = 1;
     // F41: IPC handler (set via registerIpcHandler by ipc-bridge.js)
     this._ipcHandler = null;
+    // F43: async IPC handler (set via registerIpcAsyncHandler)
+    this._ipcAsyncHandler = null;
     this._ipcStreamHandler = null;
     this._ipcStreamRegistry = {};
   }
@@ -1966,6 +1968,38 @@ class FoundationWasm {
     } catch(_) { return 0n; }
   }
 
+  // ── F43: WASM→host IPC dispatch (async) ────────────────────────────────
+
+  /**
+   * Called by host_ipc_invoke_async(ptr, len, token). Decodes request,
+   * dispatches through the async handler (returns a Promise), then calls
+   * ipc_resolve(token, allocId) when the Promise settles.
+   */
+  _dispatchIpcInvokeAsync(ptr, len, token) {
+    try {
+      var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+      var req = FoundationWasm._ipcDecodeRequest(bytes);
+      if (!req) return;
+      if (!this._ipcAsyncHandler) return;
+      var self = this;
+      var inst = this.bridge.instance;
+      Promise.resolve(this._ipcAsyncHandler(req)).then(function(resp) {
+        if (!resp) return;
+        var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
+        var allocId = self.memory.create(respBytes.length);
+        self.memory.write(allocId, respBytes);
+        inst.exports.ipc_resolve(token, allocId);
+      }, function(err) {
+        console.error('[WASM-IPC] handler rejected:', err);
+        // Encode IpcError::ExecutionFailed (6442) using ReplyEncoder
+        var errBytes = self.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
+        var allocId = self.memory.create(errBytes.length);
+        self.memory.write(allocId, errBytes);
+        inst.exports.ipc_resolve(token, allocId);
+      });
+    } catch(_) { /* discard */ }
+  }
+
   // ── F41: Host→WASM stream dispatch ─────────────────────────────────────
 
   _dispatchIpcStreamOpen(ptr, len) {
@@ -2009,12 +2043,21 @@ class FoundationWasm {
   }
 
   /**
-   * Register the WASM→host IPC handler. Called by ipc-bridge.js.
+   * Register the WASM→host IPC handler (sync). Called by ipc-bridge.js.
    * @param {{ onIpc: Function, onIpcStream: Function }} handlers
    */
   registerIpcHandler(handlers) {
     if (handlers.onIpc) this._ipcHandler = handlers.onIpc;
     if (handlers.onIpcStream) this._ipcStreamHandler = handlers.onIpcStream;
+  }
+
+  /**
+   * F43: Register the WASM→host IPC handler (async). Called by ipc-bridge.js.
+   * The handler must return a Promise<{content_type, payload}>.
+   * @param {Function} handler  async function(req) → Promise<response>
+   */
+  registerIpcAsyncHandler(handler) {
+    this._ipcAsyncHandler = handler;
   }
 
   /**
@@ -2274,13 +2317,13 @@ class FoundationWasm {
         WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
       },
 
-      // ── F41: IPC host imports (wasm → host) ────────────────────────────
+      // ── F43: IPC host import (wasm → host) ─────────────────────────────
       //
-      // host_ipc_invoke(ptr, len) → allocation_id: WASM serialized an IpcRequest,
-      //   the host dispatches it and writes the response into a new allocation.
-      //   Returns 0 on error.
-      host_ipc_invoke(ptr, len) {
-        return self._dispatchIpcInvoke(ptr, len);
+      // WASM calls host_ipc_invoke(ptr, len, callback_id) with a registered
+      // callback. The host dispatches asynchronously and calls
+      // ipc_resolve(callback_id, allocId) when the response is ready.
+      host_ipc_invoke(ptr, len, callback_id) {
+        self._dispatchIpcInvokeAsync(ptr, len, callback_id);
       },
       // host_ipc_stream_open(ptr, len) → stream_id: WASM requests a host→WASM
       //   stream. The host creates a queue, returns an ID. WASM polls chunks.
@@ -2308,6 +2351,7 @@ class FoundationWasm {
     const instance = moduleOrInstance.instance ?? moduleOrInstance;
     this.bridge.exports = instance.exports;
     this.bridge.memory = instance.exports.memory;
+    this.bridge.instance = instance;
     return this;
   }
 
@@ -2465,6 +2509,187 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   WasmStreamReceiver,
   WasmStreamSender,
 });
+
+/* ═════════ ipc-bridge.js ═════════ */
+// ipc-bridge.js — unified IPC bridge for WASM apps (F41, replaces capability-bridge.js).
+//
+// WHY: IPC and capabilities are unified under Ipc<Input, Output>. One bridge
+// handles WASM→host invoke and host→WASM events across all hosts.
+//
+// WHAT: global `invokeIpc(name, action, payload)` function. Host detection:
+//   - Tauri:   routes through __TAURI_INTERNALS__.invoke('__ewe_ipc', ...)
+//   - Deno:    Deno.core.opAsync('op_ipc_invoke', ...)
+//   - Browser: direct host_ipc_invoke WASM import (FoundationWasm handles it)
+//
+// Also registers trigger handlers so the host can push events back to WASM.
+//
+// HOW: exported as ESM and globalThis.invokeIpc for classic <script>.
+
+;(function () {
+  'use strict';
+
+  function isTauri() {
+    return typeof window !== 'undefined'
+      && window.__TAURI_INTERNALS__
+      && typeof window.__TAURI_INTERNALS__.invoke === 'function';
+  }
+
+  function isDeno() {
+    return typeof Deno !== 'undefined' && Deno.core && typeof Deno.core.opAsync === 'function';
+  }
+
+  // ── Tauri transport ────────────────────────────────────────────────────
+
+  async function tauriInvokeIpc(name, action, payload) {
+    var jsonPayload = JSON.stringify(payload !== undefined ? payload : {});
+    var result = await window.__TAURI_INTERNALS__.invoke('__ewe_ipc', {
+      ipc: name,
+      action: action,
+      payload: Array.from(new TextEncoder().encode(jsonPayload)),
+      content_type: 'application/json',
+    });
+    try { return JSON.parse(new TextDecoder().decode(new Uint8Array(result))); }
+    catch (_) { return { content_type: 0, payload: result }; }
+  }
+
+  // ── Deno transport ─────────────────────────────────────────────────────
+
+  async function denoInvokeIpc(name, action, payload) {
+    try {
+      var jsonPayload = JSON.stringify(payload !== undefined ? payload : {});
+      var result = await Deno.core.opAsync('op_ipc_invoke', {
+        ipc: name,
+        action: action,
+        payload: Array.from(new TextEncoder().encode(jsonPayload)),
+        content_type: 0,
+      });
+      if (typeof result === 'string') return JSON.parse(result);
+      return { content_type: 0, payload: result };
+    } catch (e) {
+      throw new Error('denoInvokeIpc: ' + (e.message || e));
+    }
+  }
+
+  // ── Browser transport ──────────────────────────────────────────────────
+
+  function browserInvokeIpc(name, action, payload) {
+    var FoundationWasm = globalThis.FoundationWasm;
+    if (!FoundationWasm || !FoundationWasm._ipcEncodeRequest) {
+      throw new Error('invokeIpc: FoundationWasm runtime not loaded.');
+    }
+    var jsonPayload = JSON.stringify(payload !== undefined ? payload : {});
+    var req = {
+      ipc: name,
+      action: action,
+      content_type: 0,
+      target: null,
+      payload: new TextEncoder().encode(jsonPayload),
+    };
+    var encoded = FoundationWasm._ipcEncodeRequest(req);
+    // FoundationWasm handles host_ipc_invoke internally via the WASM import
+    // For browser, we call directly through FoundationWasm's handler if set
+    var rt = FoundationWasm._instance;
+    if (!rt || !rt._ipcHandler) {
+      throw new Error('invokeIpc: no IPC handler registered for browser transport.');
+    }
+    var result = rt._ipcHandler(req);
+    if (!result) throw new Error('invokeIpc: handler returned null');
+    if (result.content_type === 0 && result.payload) {
+      try { return JSON.parse(new TextDecoder().decode(result.payload)); }
+      catch (_) { return result; }
+    }
+    return result;
+  }
+
+  // ── Public API ─────────────────────────────────────────────────────────
+
+  /**
+   * Invoke an IPC handler by name. Returns the deserialized result.
+   *
+   * @param {string} name   — IPC handler name (e.g. "camera", "echo", "filesystem")
+   * @param {string} action — action (e.g. "open", "capture", "pick")
+   * @param {object} [payload] — JSON-serializable payload
+   * @returns {Promise<any>} the IPC response
+   */
+  async function invokeIpc(name, action, payload) {
+    if (!name || typeof name !== 'string') {
+      throw new Error('invokeIpc: name must be a non-empty string');
+    }
+    if (!action || typeof action !== 'string') {
+      throw new Error('invokeIpc: action must be a non-empty string');
+    }
+    if (isTauri()) return await tauriInvokeIpc(name, action, payload);
+    if (isDeno()) return await denoInvokeIpc(name, action, payload);
+    // Browser fallback: try FoundationWasm
+    return browserInvokeIpc(name, action, payload);
+  }
+
+  // ── Trigger handler registration (host→WASM) ──────────────────────────
+
+  /**
+   * Register handlers so the host can push events back to WASM.
+   * Called after FoundationWasm.init() when trigger handlers are ready.
+   *
+   * @param {object} rt — FoundationWasm runtime instance
+   */
+  function registerIpcTriggers(rt) {
+    // Host→WASM IPC events (toolbar taps, notification responses, etc.)
+    rt.registerIpcHandler({
+      onIpc: function (req) {
+        if (isTauri()) {
+          var payload = new TextDecoder().decode(req.payload || new Uint8Array());
+          try { payload = JSON.parse(payload); } catch (_) {}
+          return tauriInvokeIpc(req.ipc, req.action, payload);
+        }
+        if (isDeno()) {
+          var payload = new TextDecoder().decode(req.payload || new Uint8Array());
+          try { payload = JSON.parse(payload); } catch (_) {}
+          return denoInvokeIpc(req.ipc, req.action, payload);
+        }
+        return null;
+      },
+    });
+
+    // F43: Register async IPC handler for host_ipc_invoke_async.
+    // On Tauri, invokeIpc is async and returns a Promise — the async
+    // dispatch path resolves it through ipc_resolve(token, allocId).
+    rt.registerIpcAsyncHandler(async function (req) {
+      var payload = new TextDecoder().decode(req.payload || new Uint8Array());
+      try { payload = JSON.parse(payload); } catch (_) {}
+      var result = await invokeIpc(req.ipc, req.action, payload);
+      // invokeIpc returns { content_type, payload } or just the payload bytes
+      if (result && result.content_type !== undefined) {
+        return result;
+      }
+      return { content_type: 0, payload: result };
+    });
+
+    // Register trigger handlers for protocol bytes 3 and 4 (host→WASM via host_apply)
+    rt.registerTriggerHandlers({
+      onCapability: function (req) {
+        // Forward old capability trigger to unified IPC
+        if (req.capability && req.action) {
+          invokeIpc(req.capability, req.action, req.payload || {});
+        }
+      },
+      onIpc: function (req) {
+        // Forward old IPC trigger to unified IPC
+        if (req.ipc && req.action) {
+          invokeIpc(req.ipc, req.action, req.payload || {});
+        }
+      },
+    });
+  }
+
+  // ── Exports ────────────────────────────────────────────────────────────
+
+  if (typeof globalThis !== 'undefined') {
+    globalThis.invokeIpc = invokeIpc;
+    globalThis.registerIpcTriggers = registerIpcTriggers;
+  }
+
+  return { invokeIpc, registerIpcTriggers };
+})();
 
 /* ═════════ foundation-wasm-ui.js ═════════ */
 // foundation-wasm-ui.js — DOM layer of the runtime (built on foundation-wasm.js).
@@ -3613,13 +3838,12 @@ function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
  * @param {{exports:object, memory:()=>WebAssembly.Memory}} bridge
  * @param {(eventData:object)=>Uint8Array} [encode]
  */
-function signalDeliver(bridge, encode = jsonEncodeEventData) {
+function signalDeliver(rt, encode = jsonEncodeEventData) {
   return (setterId, eventData) => {
     const bytes = encode(eventData);
-    const memId = bridge.exports.create_allocation(BigInt(bytes.length));
-    const ptr = Number(bridge.exports.allocation_start_pointer(memId));
-    new Uint8Array(bridge.memory().buffer, ptr, bytes.length).set(bytes);
-    bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
+    const memId = rt.memory.create(bytes.length);
+    rt.memory.write(memId, bytes);
+    rt.bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
   };
 }
 
@@ -4904,7 +5128,7 @@ function registerWasmApp(runtime, opts = {}) {
   }
   const registry = new NodeRegistry().seedDocument(doc);
   const dispatcher = new EventDispatcher(
-    (_id, _data) => {}, // registry callback delivery handled by signalDeliver below
+    signalDeliver(runtime, jsonEncodeEventData), // callback ids from html! macro
     { deliverSignal: signalDeliver(runtime, jsonEncodeEventData) },
   );
   const applicator = new DomOpApplicator(registry, doc, (eventName, nodeId, event, el) => {
@@ -4916,6 +5140,12 @@ function registerWasmApp(runtime, opts = {}) {
   runtime.dispatcher.setHandler(1, columnarHandler(applicator));
   // Initial scan + observer: wires primal:on* attrs that exist on page load.
   initEventRuntime(dispatcher, doc);
+
+  // F43: Wire IPC bridge — host_ipc_invoke_async routes to invokeIpc
+  // (Tauri/Deno/browser), which resolves via ipc_resolve(token, allocId).
+  if (typeof globalThis !== 'undefined' && globalThis.registerIpcTriggers) {
+    globalThis.registerIpcTriggers(runtime);
+  }
 }
 
 /**

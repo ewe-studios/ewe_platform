@@ -97,30 +97,24 @@ impl PlatformIpcRegistry {
     {
         // Layer 1: Stale-page guard
         if !session.is_active_page(page_identity) {
-            return Err(IpcError::PermissionDenied(
-                "stale page — request from navigated-away page".into(),
-            ));
+            return Err(IpcError::PermissionDenied);
         }
 
         let guard = self.handlers.read().unwrap();
 
         let handler = guard
             .get(&request.ipc)
-            .ok_or_else(|| IpcError::UnknownIpc(request.ipc.clone()))?;
+            .ok_or(IpcError::UnknownIpc)?;
 
         let profile = current_route
             .map(|r| r.profile)
             .unwrap_or(Profile::UntrustedRemote);
         let gate = ProfileGate::new(profile);
-        if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
-            return Err(IpcError::PermissionDenied(e.to_string()));
+        if let Err(_e) = gate.check(Service::NativeApi, Access::Execute) {
+            return Err(IpcError::PermissionDenied);
         }
         if !profile_satisfies(profile, handler.min_profile()) {
-            return Err(IpcError::PermissionDenied(format!(
-                "profile {profile:?} too low for '{}' (requires {:?})",
-                handler.capability_id().0,
-                handler.min_profile()
-            )));
+            return Err(IpcError::PermissionDenied);
         }
 
         if let Some(route) = current_route {
@@ -130,10 +124,7 @@ impl PlatformIpcRegistry {
                     .iter()
                     .any(|c| c == handler.capability_id())
             {
-                return Err(IpcError::PermissionDenied(format!(
-                    "'{}' not allowed on this route",
-                    handler.capability_id().0
-                )));
+                return Err(IpcError::PermissionDenied);
             }
         }
 
@@ -153,7 +144,7 @@ impl PlatformIpcRegistry {
         current_route: Option<&RouteDecision>,
     ) -> Result<serde_json::Value, IpcError> {
         let payload_bytes =
-            serde_json::to_vec(payload).map_err(|e| IpcError::InvalidPayload(e.to_string()))?;
+            serde_json::to_vec(payload).map_err(|_| IpcError::InvalidPayload)?;
 
         let request = IpcRequest {
             ipc: ipc_name.to_string(),
@@ -169,9 +160,9 @@ impl PlatformIpcRegistry {
         })?;
         let response = rx
             .recv()
-            .map_err(|_| IpcError::ExecutionFailed("invoke_json callback dropped".into()))??;
+            .map_err(|_| IpcError::ExecutionFailed)??;
         serde_json::from_slice(&response.payload)
-            .map_err(|e| IpcError::InvalidPayload(e.to_string()))
+            .map_err(|_| IpcError::InvalidPayload)
     }
 
     /// Look up a handler by name.

@@ -1987,9 +1987,12 @@ export class FoundationWasm {
         var allocId = self.memory.create(respBytes.length);
         self.memory.write(allocId, respBytes);
         inst.exports.ipc_resolve(token, allocId);
-      }, function(_err) {
-        // Error: resolve with empty response (0-length allocation)
-        var allocId = self.memory.create(0);
+      }, function(err) {
+        console.error('[WASM-IPC] handler rejected:', err);
+        // Encode IpcError::ExecutionFailed (6442) using ReplyEncoder
+        var errBytes = self.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
+        var allocId = self.memory.create(errBytes.length);
+        self.memory.write(allocId, errBytes);
         inst.exports.ipc_resolve(token, allocId);
       });
     } catch(_) { /* discard */ }
@@ -2312,19 +2315,13 @@ export class FoundationWasm {
         WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
       },
 
-      // ── F41: IPC host imports (wasm → host) ────────────────────────────
+      // ── F43: IPC host import (wasm → host) ─────────────────────────────
       //
-      // host_ipc_invoke(ptr, len) → allocation_id: WASM serialized an IpcRequest,
-      //   the host dispatches it and writes the response into a new allocation.
-      //   Returns 0 on error.
-      host_ipc_invoke(ptr, len) {
-        return self._dispatchIpcInvoke(ptr, len);
-      },
-      // F43: host_ipc_invoke_async(ptr, len, token): WASM sends an IPC request
-      //   without blocking. The host dispatches it asynchronously and calls
-      //   ipc_resolve(token, allocId) when the response is ready.
-      host_ipc_invoke_async(ptr, len, token) {
-        self._dispatchIpcInvokeAsync(ptr, len, token);
+      // WASM calls host_ipc_invoke(ptr, len, callback_id) with a registered
+      // callback. The host dispatches asynchronously and calls
+      // ipc_resolve(callback_id, allocId) when the response is ready.
+      host_ipc_invoke(ptr, len, callback_id) {
+        self._dispatchIpcInvokeAsync(ptr, len, callback_id);
       },
       // host_ipc_stream_open(ptr, len) → stream_id: WASM requests a host→WASM
       //   stream. The host creates a queue, returns an ID. WASM polls chunks.
@@ -2352,6 +2349,7 @@ export class FoundationWasm {
     const instance = moduleOrInstance.instance ?? moduleOrInstance;
     this.bridge.exports = instance.exports;
     this.bridge.memory = instance.exports.memory;
+    this.bridge.instance = instance;
     return this;
   }
 

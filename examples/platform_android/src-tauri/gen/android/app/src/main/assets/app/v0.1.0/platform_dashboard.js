@@ -6,11 +6,11 @@ const WASM_URL = './platform_dashboard.wasm';
 export async function init(importOverrides = {}) {
   // __EWE_WASM_LOAD__
   const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();
-  const rt = new FoundationWasmRuntime.FoundationWasm();
+  const rt = new globalThis.FoundationWasmRuntime.FoundationWasm();
   const imports = { abi: { ...rt.web_abi, ...importOverrides } };
   const { instance } = await WebAssembly.instantiate(wasmBytes, imports);
   rt.init(instance);
-  FoundationWasmUiRuntime.registerWasmApp(rt);
+  globalThis.FoundationWasmUiRuntime.registerWasmApp(rt);
   instance.exports.platform_dashboard();
   return { runtime: rt, instance };
 }

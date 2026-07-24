@@ -36,7 +36,6 @@ use foundation_ui_traits::RouteDecision;
 use foundation_wasm::ipc::{IpcError, IpcRequest, IpcResponse};
 
 use crate::route_handler::RouteResponder;
-use crate::session::PlatformSession;
 
 pub mod streaming;
 
@@ -104,7 +103,7 @@ impl IpcRegistry {
     {
         match self.get(&request.ipc) {
             Some(ipc) => ipc.invoke_with_session(request, Box::new(callback)),
-            None => Err(IpcError::UnknownIpc(request.ipc.clone())),
+            None => Err(IpcError::UnknownIpc),
         }
     }
 

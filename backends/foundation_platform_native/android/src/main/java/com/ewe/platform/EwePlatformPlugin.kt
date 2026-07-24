@@ -25,10 +25,20 @@ class DismissModalArgs {
     lateinit var modalId: String
 }
 
+@InvokeArg
+class ShowDialogArgs {
+    lateinit var title: String
+    var message: String? = null
+    var positiveButton: String? = null
+    var negativeButton: String? = null
+    var route: String? = null
+}
+
 @TauriPlugin
 class EwePlatformPlugin(activity: Activity) : Plugin(activity) {
     private val modalHelper = ModalHelper(activity)
     private val activeModals = mutableMapOf<String, ModalHandle>()
+    private val activeDialogs = mutableMapOf<String, ModalHandle>()
 
     @Command
     fun presentModal(invoke: Invoke) {
@@ -68,6 +78,36 @@ class EwePlatformPlugin(activity: Activity) : Plugin(activity) {
             invoke.resolve()
         } catch (ex: Exception) {
             invoke.reject("dismissAllModals failed: ${ex.message}")
+        }
+    }
+
+    @Command
+    fun showDialog(invoke: Invoke) {
+        try {
+            val args = invoke.parseArgs(ShowDialogArgs::class.java)
+            val handle = modalHelper.presentTextDialog(
+                title = args.title,
+                message = args.message ?: "",
+                positiveButton = args.positiveButton,
+                negativeButton = args.negativeButton
+            )
+            activeDialogs[handle.id] = handle
+            val response = JSObject()
+            response.put("dialog_id", handle.id)
+            invoke.resolve(response)
+        } catch (ex: Exception) {
+            invoke.reject("showDialog failed: ${ex.message}")
+        }
+    }
+
+    @Command
+    fun dismissDialog(invoke: Invoke) {
+        try {
+            val args = invoke.parseArgs(DismissModalArgs::class.java)
+            activeDialogs.remove(args.modalId)?.dismiss()
+            invoke.resolve()
+        } catch (ex: Exception) {
+            invoke.reject("dismissDialog failed: ${ex.message}")
         }
     }
 }

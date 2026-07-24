@@ -19,6 +19,7 @@ serde_json = "1"
 # Gated so WASM apps can depend on this crate for typed IPC wrappers.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_platform = { path = "../foundation_platform" }
+tracing = "0.1"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies.tauri]
 version = "2"

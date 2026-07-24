@@ -12,8 +12,11 @@
     "withGlobalTauri": false
   },
   "build": {
-    "devUrl": "http://localhost:1420",
     "frontendDist": "./public"
+  },
+  "bundle": {
+    "active": true,
+    "resources": {}
   },
   "identifier": "com.ewe.platform-demo",
   "productName": "Platform Demo",

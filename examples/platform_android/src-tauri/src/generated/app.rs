@@ -12,6 +12,7 @@
 use foundation_macros::MobileDirectory;
 use foundation_platform::{MobileApp, PlatformSession};
 use std::path::PathBuf;
+use std::sync::Arc;
 
 pub const APP_ID: &str = "app";
 
@@ -22,7 +23,7 @@ pub struct AppAssets {
 }
 
 impl AppAssets {
-    pub fn build(session: std::sync::Arc<PlatformSession>) -> MobileApp<AppAssets> {
+    pub fn build(session: Arc<PlatformSession>) -> MobileApp<AppAssets> {
         MobileApp::mounted_at(AppAssets { root: session.app_root(APP_ID) }, APP_ID)
     }
 

@@ -6,6 +6,7 @@ use foundation_wasm::ipc::{IpcContentType, WireError, WirePayload};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct PresentArgs {
+    #[serde(rename = "url", alias = "route")]
     pub route: String,
     #[serde(default)]
     pub style: Option<String>,
@@ -19,7 +20,7 @@ impl WirePayload for PresentArgs {
         (bytes, IpcContentType::Json)
     }
     fn from_wire_bytes(data: &[u8], _ct: IpcContentType) -> Result<Self, WireError> {
-        serde_json::from_slice(data).map_err(|e| WireError::DecodeFailed(format!("{e}")))
+        serde_json::from_slice(data).map_err(|_| WireError::DecodeFailed)
     }
 }
 
@@ -36,7 +37,7 @@ impl WirePayload for PresentResult {
         (bytes, IpcContentType::Json)
     }
     fn from_wire_bytes(data: &[u8], _ct: IpcContentType) -> Result<Self, WireError> {
-        serde_json::from_slice(data).map_err(|e| WireError::DecodeFailed(format!("{e}")))
+        serde_json::from_slice(data).map_err(|_| WireError::DecodeFailed)
     }
 }
 
@@ -51,6 +52,6 @@ impl WirePayload for DismissArgs {
         (bytes, IpcContentType::Json)
     }
     fn from_wire_bytes(data: &[u8], _ct: IpcContentType) -> Result<Self, WireError> {
-        serde_json::from_slice(data).map_err(|e| WireError::DecodeFailed(format!("{e}")))
+        serde_json::from_slice(data).map_err(|_| WireError::DecodeFailed)
     }
 }

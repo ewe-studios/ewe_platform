@@ -1144,13 +1144,12 @@ export function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) 
  * @param {{exports:object, memory:()=>WebAssembly.Memory}} bridge
  * @param {(eventData:object)=>Uint8Array} [encode]
  */
-export function signalDeliver(bridge, encode = jsonEncodeEventData) {
+export function signalDeliver(rt, encode = jsonEncodeEventData) {
   return (setterId, eventData) => {
     const bytes = encode(eventData);
-    const memId = bridge.exports.create_allocation(BigInt(bytes.length));
-    const ptr = Number(bridge.exports.allocation_start_pointer(memId));
-    new Uint8Array(bridge.memory().buffer, ptr, bytes.length).set(bytes);
-    bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
+    const memId = rt.memory.create(bytes.length);
+    rt.memory.write(memId, bytes);
+    rt.bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
   };
 }
 
@@ -2435,7 +2434,7 @@ export function registerWasmApp(runtime, opts = {}) {
   }
   const registry = new NodeRegistry().seedDocument(doc);
   const dispatcher = new EventDispatcher(
-    (_id, _data) => {}, // registry callback delivery handled by signalDeliver below
+    signalDeliver(runtime, jsonEncodeEventData), // callback ids from html! macro
     { deliverSignal: signalDeliver(runtime, jsonEncodeEventData) },
   );
   const applicator = new DomOpApplicator(registry, doc, (eventName, nodeId, event, el) => {

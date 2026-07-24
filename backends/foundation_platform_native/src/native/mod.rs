@@ -6,6 +6,8 @@
 //! - An `Ipc` + `PlatformIpc` impl that drives the native platform
 //!   (WebViewStack, WindowManager, Kotlin/Swift bridge).
 
+pub mod plugin;
+
 #[cfg(feature = "modal")]
 pub mod modal;
 #[cfg(feature = "dialog")]

@@ -946,9 +946,7 @@ fn host_stream_registry_error_propagation() {
 
     reg.write(
         id,
-        Err(foundation_wasm::ipc::IpcError::ExecutionFailed(
-            "fail".into(),
-        )),
+        Err(foundation_wasm::ipc::IpcError::ExecutionFailed),
     );
     match reg.read(id).unwrap() {
         Err(foundation_wasm::ipc::IpcError::ExecutionFailed) => {}

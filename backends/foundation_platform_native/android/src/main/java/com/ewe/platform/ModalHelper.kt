@@ -12,13 +12,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
  * Called by the Tauri plugin bridge when Rust sends `presentModal` /
  * `dismissModal` commands. Does NOT navigate the main WebView — the
  * dialog overlays on top of the existing Activity.
- *
- * Usage from EwePlatformPlugin.kt:
- *   @Command fun presentModal(invoke: Invoke) {
- *       val args = invoke.parseArgs(PresentModalArgs::class.java)
- *       val handle = ModalHelper(activity).present(args)
- *       invoke.resolve(mapOf("modal_id" to handle.id))
- *   }
  */
 class ModalHelper(private val activity: Activity) {
 
@@ -32,12 +25,28 @@ class ModalHelper(private val activity: Activity) {
         }
     }
 
+    /** Present a native AlertDialog (text-only, no WebView) — for simple confirm dialogs. */
+    fun presentTextDialog(
+        title: String,
+        message: String,
+        positiveButton: String?,
+        negativeButton: String?
+    ): ModalHandle {
+        val builder = android.app.AlertDialog.Builder(activity)
+            .setTitle(title)
+        if (message.isNotEmpty()) builder.setMessage(message)
+        if (positiveButton != null) builder.setPositiveButton(positiveButton) { d, _ -> d.dismiss() }
+        if (negativeButton != null) builder.setNegativeButton(negativeButton) { d, _ -> d.dismiss() }
+        val dialog = builder.create()
+        dialog.show()
+        return ModalHandle(dialog.hashCode().toString()) { dialog.dismiss() }
+    }
+
     private fun presentBottomSheet(url: String, title: String): ModalHandle {
         val webView = createWebView(url)
         val dialog = BottomSheetDialog(activity)
         dialog.setContentView(webView)
         dialog.setOnShowListener {
-            // Optionally set peek height
             dialog.behavior.peekHeight = (activity.resources.displayMetrics.heightPixels * 0.6).toInt()
             dialog.behavior.isDraggable = true
         }

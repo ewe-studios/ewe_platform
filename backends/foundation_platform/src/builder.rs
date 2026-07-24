@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 use std::sync::Arc;
-
-use foundation_wasm::ipc::{IpcContentType, IpcRequest};
 use tauri::{App, Context, Manager, Runtime};
 
 use crate::ewe;
@@ -211,6 +209,8 @@ impl<R: Runtime> PlatformBuilder<R> {
             // Installed before the setup callbacks run so `session.app_root()`
             // resolves version directories while routes are being registered.
             session.set_asset_manager(manager);
+            // Store AppHandle so setup callbacks can register mobile plugins.
+            session.set_handle(app.handle().clone());
 
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();
@@ -261,6 +261,13 @@ impl<R: Runtime> PlatformBuilder<R> {
     { self.inner = self.inner.invoke_handler(handler); self }
 
     pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> { &mut self.inner }
+
+    /// Register a Tauri plugin. Delegates to [`tauri::Builder::plugin`].
+    #[must_use]
+    pub fn plugin<P: tauri::plugin::Plugin<R> + 'static>(mut self, plugin: P) -> Self {
+        self.inner = self.inner.plugin(plugin);
+        self
+    }
 }
 
 impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::new() } }

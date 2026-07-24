@@ -25,11 +25,8 @@ use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use foundation_ui_traits::PageIdentity;
-use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
-
-use crate::session::PlatformSession;
-
-// ── Platform handles ──────────────────────────────────────────────────────
+use foundation_wasm::ipc::{Ipc, IpcError, IpcRequest, IpcResponse};
+use crate::PlatformSession;
 
 /// Android-specific OS handle. Injected by PlatformBuilder at startup.
 /// Only exists when compiling for Android — `#[cfg(target_os = "android")]`.
@@ -379,7 +376,7 @@ mod tests {
         queue
             .lock()
             .unwrap()
-            .push_back(Err(IpcError::ExecutionFailed("fail".into())));
+            .push_back(Err(IpcError::ExecutionFailed));
 
         match reg.read(id).unwrap() {
             Err(IpcError::ExecutionFailed) => {}

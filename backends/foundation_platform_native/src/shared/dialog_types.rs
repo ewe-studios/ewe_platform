@@ -22,7 +22,7 @@ impl WirePayload for ShowArgs {
         (bytes, IpcContentType::Json)
     }
     fn from_wire_bytes(data: &[u8], _ct: IpcContentType) -> Result<Self, WireError> {
-        serde_json::from_slice(data).map_err(|e| WireError::DecodeFailed(format!("{e}")))
+        serde_json::from_slice(data).map_err(|_| WireError::DecodeFailed)
     }
 }
 
@@ -37,6 +37,6 @@ impl WirePayload for ShowResult {
         (bytes, IpcContentType::Json)
     }
     fn from_wire_bytes(data: &[u8], _ct: IpcContentType) -> Result<Self, WireError> {
-        serde_json::from_slice(data).map_err(|e| WireError::DecodeFailed(format!("{e}")))
+        serde_json::from_slice(data).map_err(|_| WireError::DecodeFailed)
     }
 }

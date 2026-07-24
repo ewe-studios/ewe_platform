@@ -174,7 +174,7 @@ mod tests {
         fn name(&self) -> &str { "test_stream" }
         fn kind(&self) -> IpcKind { IpcKind::Query }
         fn invoke(&self, _: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-            Err(IpcError::ExecutionFailed("use stream()".into()))
+            Err(IpcError::ExecutionFailed)
         }
     }
 

@@ -1,17 +1,19 @@
 //! Dialog IPC handler — native side (F42 dialog capability).
 //!
-//! F43: callback-based invoke — returns `Ok(())` on dispatch, fires callback.
+//! On Android: bridges WASM IPC → PluginHandle → Kotlin `EwePlatformPlugin`
+//! (creates native `AlertDialog`). F43: callback-based invoke.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::shared::dialog_types::{ShowArgs, ShowResult};
 use foundation_platform::ipc::{IpcCallback, PlatformIpc};
 use foundation_platform::PlatformSession;
 use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 
-pub fn register(session: &Arc<PlatformSession>) {
-    session.register_ipc(DialogIpc { session: Arc::clone(session) });
+use crate::shared::dialog_types::{ShowArgs, ShowResult};
+
+/// Register the dialog IPC handler.
+pub fn register(session: Arc<PlatformSession>) {
+    session.register_ipc(DialogIpc { session: Arc::clone(&session) });
 }
 
 struct DialogIpc {
@@ -22,7 +24,7 @@ impl Ipc<Vec<u8>, Vec<u8>> for DialogIpc {
     fn name(&self) -> &str { "dialog" }
     fn kind(&self) -> IpcKind { IpcKind::Capability }
     fn invoke(&self, _req: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        Err(IpcError::ExecutionFailed("use invoke_with_session".into()))
+        Err(IpcError::ExecutionFailed)
     }
 }
 
@@ -33,9 +35,9 @@ impl PlatformIpc for DialogIpc {
         callback: IpcCallback,
     ) -> Result<(), IpcError> {
         let result = match req.action.as_str() {
-            "show" => Self::show(req),
-            "dismiss" => Self::dismiss(req),
-            _ => Err(IpcError::ExecutionFailed(format!("dialog: unknown '{}'", req.action))),
+            "show" => Self::show(&self.session, req),
+            "dismiss" => Self::dismiss(&self.session, req),
+            _ => Err(IpcError::ExecutionFailed),
         };
         callback(result);
         Ok(())
@@ -43,23 +45,85 @@ impl PlatformIpc for DialogIpc {
 }
 
 impl DialogIpc {
-    fn show(req: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        let _args: ShowArgs = serde_json::from_slice(&req.payload)
-            .map_err(|e| IpcError::InvalidPayload(format!("json: {e}")))?;
+    #[cfg(target_os = "android")]
+    fn show(
+        session: &PlatformSession,
+        req: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        use tauri::Manager;
 
-        static COUNTER: AtomicU64 = AtomicU64::new(0);
-        let resp = ShowResult {
-            dialog_id: format!("dialog_{}", COUNTER.fetch_add(1, Ordering::Relaxed)),
-        };
+        let typed: IpcRequest<ShowArgs> =
+            req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
+
+        let app_handle = session
+            .handles::<tauri::AppHandle<tauri::Wry>>()
+            .ok_or(IpcError::ExecutionFailed)?;
+
+        let handles = app_handle.state::<super::plugin::EweNativeHandles>();
+        let response: serde_json::Value = handles
+            .modal
+            .run_mobile_plugin("showDialog", &typed.payload)
+            .map_err(|e| {
+                tracing::warn!("showDialog failed: {e:?}");
+                IpcError::ExecutionFailed
+            })?;
+
+        let payload = serde_json::to_vec(&response).unwrap_or_default();
         Ok(IpcResponse {
-            payload: serde_json::to_vec(&resp).unwrap(),
+            payload,
             content_type: IpcContentType::Json,
         })
     }
 
-    fn dismiss(req: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        let _args: serde_json::Value = serde_json::from_slice(&req.payload)
-            .map_err(|e| IpcError::InvalidPayload(format!("json: {e}")))?;
+    #[cfg(target_os = "android")]
+    fn dismiss(
+        session: &PlatformSession,
+        req: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        use tauri::Manager;
+
+        let app_handle = session
+            .handles::<tauri::AppHandle<tauri::Wry>>()
+            .ok_or(IpcError::ExecutionFailed)?;
+
+        let handles = app_handle.state::<super::plugin::EweNativeHandles>();
+        let args: serde_json::Value =
+            serde_json::from_slice(&req.payload).map_err(|_| IpcError::InvalidPayload)?;
+        let _: serde_json::Value = handles
+            .modal
+            .run_mobile_plugin("dismissDialog", &args)
+            .map_err(|e| {
+                tracing::warn!("dismissDialog failed: {e:?}");
+                IpcError::ExecutionFailed
+            })?;
+
+        Ok(IpcResponse {
+            payload: br#"{"ok":true}"#.to_vec(),
+            content_type: IpcContentType::Json,
+        })
+    }
+
+    // Desktop stubs
+    #[cfg(not(target_os = "android"))]
+    fn show(
+        _session: &PlatformSession,
+        req: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        let _typed: IpcRequest<ShowArgs> =
+            req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
+        tracing::info!("showDialog: not on android — stub");
+        Ok(IpcResponse {
+            payload: br#"{"dialog_id":"stub"}"#.to_vec(),
+            content_type: IpcContentType::Json,
+        })
+    }
+
+    #[cfg(not(target_os = "android"))]
+    fn dismiss(
+        _session: &PlatformSession,
+        _req: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        tracing::info!("dismissDialog: not on android — stub");
         Ok(IpcResponse {
             payload: br#"{"ok":true}"#.to_vec(),
             content_type: IpcContentType::Json,

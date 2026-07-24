@@ -25,6 +25,8 @@
 //! consistent serialization between WASM and native. The gap is the
 //! transport layer under `ipc_dispatch`, not the API design.
 
+use std::sync::{Arc, Mutex};
+
 use foundation_macros::wasm_bin;
 use foundation_wasm_ui::html;
 use foundation_wasm_ui::App;
@@ -42,26 +44,50 @@ fn platform_dashboard() {
     install_event_bridge(app.signals().clone());
     let (ctx, rcv) = app.context();
 
-    let on_present_modal = ctx.callback(move |_event| {
-        let _ = Modal::present(PresentArgs {
-            route: "/nav_modal".into(),
-            style: Some("bottom_sheet".into()),
-            title: Some("Native Modal".into()),
-        });
-    });
+    // Track the active modal_id so dismiss can target it.
+    let modal_id: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
 
-    let on_dismiss_modal = ctx.callback(move |_event| {
-        let _ = Modal::dismiss(DismissArgs { modal_id: String::new() });
-    });
+    let on_present_modal = {
+        let modal_id = Arc::clone(&modal_id);
+        ctx.callback(move |_event| {
+            let mid = Arc::clone(&modal_id);
+            let _ = Modal::present(
+                PresentArgs {
+                    route: "/nav_modal".into(),
+                    style: Some("bottom_sheet".into()),
+                    title: Some("Native Modal".into()),
+                },
+                move |r| {
+                    if let Ok(result) = r {
+                        *mid.lock().unwrap() = Some(result.modal_id);
+                    }
+                },
+            );
+        })
+    };
+
+    let on_dismiss_modal = {
+        let modal_id = Arc::clone(&modal_id);
+        ctx.callback(move |_event| {
+            let mid = modal_id.lock().unwrap().clone().unwrap_or_default();
+            let _ = Modal::dismiss(
+                DismissArgs { modal_id: mid },
+                |_r| {},
+            );
+        })
+    };
 
     let on_show_dialog = ctx.callback(move |_event| {
-        let _ = Dialog::show(ShowArgs {
-            title: "WASM Dialog".into(),
-            message: Some("This dialog was triggered from WASM via IPC".into()),
-            positive_button: Some("OK".into()),
-            negative_button: Some("Cancel".into()),
-            route: None,
-        });
+        let _ = Dialog::show(
+            ShowArgs {
+                title: "WASM Dialog".into(),
+                message: Some("This dialog was triggered from WASM via IPC".into()),
+                positive_button: Some("OK".into()),
+                negative_button: Some("Cancel".into()),
+                route: None,
+            },
+            |_r| {},
+        );
     });
 
     let dashboard = html! { ctx, rcv,

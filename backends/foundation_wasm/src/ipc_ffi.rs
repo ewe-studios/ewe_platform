@@ -38,7 +38,7 @@ pub fn ipc_invoke(
     let alloc = MemoryAllocation::new(serialized);
     let (ptr, len) = alloc.as_address().map_err(|_| IpcError::ExecutionFailed)?;
 
-    crate::host_runtime::ipc::host_ipc_invoke(ptr, len as u32, callback_token.into());
+    unsafe { crate::host_runtime::ipc::host_ipc_invoke(ptr, len as u32, callback_token.into()) };
     Ok(())
 }
 

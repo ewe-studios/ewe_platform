@@ -180,15 +180,11 @@ impl foundation_wasm::ipc::Ipc<Vec<u8>, Vec<u8>> for OverlayCapability {
                     };
                     oc.to_js()
                 } else {
-                    return Err(IpcError::InvalidPayload(
-                        "overlay configure requires JSON payload".into(),
-                    ));
+                    return Err(IpcError::InvalidPayload);
                 }
             }
             _ => {
-                return Err(IpcError::ExecutionFailed(format!(
-                    "overlay: unknown action '{action}'"
-                )))
+                return Err(IpcError::ExecutionFailed);
             }
         };
 

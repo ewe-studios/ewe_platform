@@ -328,7 +328,7 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     let ipc_bridge =
         repo_root.join("backends/foundation_wasm_ui/runtimes/ipc-bridge.js");
     std::fs::create_dir_all(out_dir).ok();
-    let _ = gen.execute(
+    match gen.execute(
         false,
         false,
         &[
@@ -337,7 +337,10 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
             ("foundation-wasm-ui.js", wasm_ui_js.as_path()),
             ("platform-scheme-interceptor.js", interceptor.as_path()),
         ],
-    );
+    ) {
+        Ok(written) => println!("cargo:warning=WasmBundleGenerator wrote {} files: {:?}", written.len(), written.iter().map(|p| p.path.file_name().unwrap().to_string_lossy().to_string()).collect::<Vec<_>>()),
+        Err(e) => println!("cargo:warning=WasmBundleGenerator execute failed: {e}"),
+    }
 }
 
 /// Generate per-app Rust module files inside `generated/`.
@@ -367,13 +370,14 @@ fn generate_app_modules(apps: &[AppDistribution], generated_dir: &Path) {
              // embeddings that have no PlatformAssetManager.\n\n\
              use foundation_macros::MobileDirectory;\n\
              use foundation_platform::{{MobileApp, PlatformSession}};\n\
-             use std::path::PathBuf;\n\n\
+             use std::path::PathBuf;\n\
+             use std::sync::Arc;\n\n\
              pub const APP_ID: &str = \"{name}\";\n\n\
              #[derive(MobileDirectory)]\n\
              #[source = \"$CARGO_MANIFEST_DIR/public/{public_subdir}\"]\n\
              pub struct AppAssets {{\n    pub root: PathBuf\n}}\n\n\
              impl AppAssets {{\n\
-             \x20   pub fn build(session: &PlatformSession) -> MobileApp<AppAssets> {{\n\
+             \x20   pub fn build(session: Arc<PlatformSession>) -> MobileApp<AppAssets> {{\n\
              \x20       MobileApp::mounted_at(AppAssets {{ root: session.app_root(APP_ID) }}, APP_ID)\n\
              \x20   }}\n\n\
              \x20   pub fn build_at(root: PathBuf) -> MobileApp<AppAssets> {{ MobileApp::new(AppAssets {{ root }}) }}\n\

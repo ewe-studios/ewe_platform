@@ -660,7 +660,7 @@ impl PlatformSession {
         } else {
             self.ipc_registry.invoke(request, move |r| { let _ = tx.send(r); })?;
         }
-        rx.recv().map_err(|_| foundation_wasm::ipc::IpcError::ExecutionFailed("ipc callback dropped".into()))?
+        rx.recv().map_err(|_| foundation_wasm::ipc::IpcError::ExecutionFailed)?
     }
 
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
