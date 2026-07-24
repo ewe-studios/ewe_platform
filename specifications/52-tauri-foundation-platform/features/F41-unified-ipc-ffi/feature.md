@@ -4,7 +4,7 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F41-unified-ipc-ffi"
 this_file: "specifications/52-tauri-foundation-platform/features/F41-unified-ipc-ffi/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-24
 updated: 2026-07-24
@@ -15,10 +15,10 @@ depends_on:
   - "F28-wasm-stream-registry"
 
 tasks:
-  completed: 0
-  uncompleted: 6
-  total: 6
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 3
+  total: 9
+  completion_percentage: 67%
 ---
 # F41 — Unified IPC: merge Capability, add FFI, platform handles, typed WASM API
 
@@ -667,32 +667,168 @@ Camera::close(cam.handle)?;
 - Example app updated: `EchoCap` → `IpcKind::Capability`
 - `foundation_wasm::WasmCapability` deleted — WASM uses `Ipc` + typed wrappers
 
+## Part E — JS runtime: IPC bridge in foundation-wasm.js
+
+### E1 — foundation-wasm.js Web ABI additions
+
+`foundation-wasm.js` already has protocol bytes 3 (capability trigger) and 4
+(IPC trigger) for host→WASM dispatch. The WASM→host direction needs new host
+imports that the WASM module calls via the FFI in `ipc_ffi.rs`.
+
+Add to the `web_abi` object (the object passed as `{ abi: ... }` to
+`WebAssembly.instantiate`):
+
+```javascript
+// foundation-wasm.js — additions to FoundationWasm.prototype._buildAbi()
+
+web_abi = {
+  // ... existing imports (memory, host_apply, schedule_timeout, etc.) ...
+
+  // F41: IPC host invocation
+  host_ipc_invoke: (ptr, len) => {
+    return this._dispatchIpcInvoke(ptr, len);
+  },
+  host_ipc_stream_open: (ptr, len) => {
+    return this._dispatchIpcStreamOpen(ptr, len);
+  },
+  host_ipc_stream_read: (streamId) => {
+    return this._dispatchIpcStreamRead(streamId);
+  },
+  host_ipc_stream_close: (streamId) => {
+    return this._dispatchIpcStreamClose(streamId);
+  },
+};
+```
+
+`_dispatchIpcInvoke(ptr, len)`:
+1. Read the serialized `IpcRequest<Vec<u8>>` bytes from WASM linear memory
+2. Deserialize via `ipcDecodeRequest(bytes)` — the JS mirror of
+   `ipc::encode_request()` / `ipc::decode_response()`
+3. Call `this._ipcInvokeHandler(request)` — if registered, returns a response
+4. Allocate response bytes in WASM arena via `this.memory.allocate(len)`
+5. Write encoded response, return allocation ID
+6. If no handler, return 0
+
+`_dispatchIpcStreamOpen(ptr, len)`:
+1. Decode the request from memory
+2. Create a `HostStream` — an internal queue + stream ID
+3. Call handler to start producing chunks
+4. Return stream ID (0 = error)
+
+`_dispatchIpcStreamRead(streamId)`:
+1. Pop next chunk from the stream's queue
+2. Allocate in WASM arena, write chunk, return allocation ID
+3. If closed: return 0
+
+The **`_ipcInvokeHandler`** is set by the host (Tauri, browser bridge, Deno) —
+NOT by the WASM module. It's how the JS side connects to the platform's IPC
+registry. For Tauri this is the `__ewe_ipc` Tauri command. For browser this
+calls the WASM module's `invoke_ipc` export directly.
+
+### E2 — Binary wire format: JS mirror
+
+Same encode/decode as Rust `ipc.rs`. JS functions:
+
+```javascript
+function ipcEncodeRequest(req) {
+  // ipc name + action + ct + target + payload → Uint8Array
+  var buf = new Uint8Array(4 + enc(req.ipc).length + ...);
+  // ... length-delimited encoding matching Rust's encode_request()
+  return buf;
+}
+
+function ipcDecodeResponse(data) {
+  // Parse Uint8Array → { content_type, payload }
+  var ct = data[0];
+  var plen = new DataView(data.buffer).getUint32(1, true);
+  return { content_type: ct, payload: data.slice(5, 5 + plen) };
+}
+```
+
+### E3 — Remove capability-bridge.js
+
+The old `capability-bridge.js` is replaced. Protocol byte 3 (capability) and 4
+(IPC) are now unified. A new `ipc-bridge.js` registers trigger handlers by
+calling `FoundationWasm.registerTriggerHandlers()`. The host detection (Tauri,
+Deno, browser) stays but routes through the unified IPC channel.
+
+### E4 — Embedded JS constant
+
+```rust
+// foundation_wasm_ui/src/embedded.rs
+pub const IPC_BRIDGE_JS: &str = include_str!("../runtimes/ipc-bridge.js");
+```
+
+And in `ScriptInjector::with_platform_runtimes()`, capability_bridge →
+ipc_bridge.
+
+## Part F — Tauri integration: __ewe_ipc wired to HostStreamRegistry
+
+`__ewe_ipc` in `builder.rs` is updated to:
+1. Capture `IpcInvokeContext` from the Tauri window
+2. Call `session.invoke_ipc(&ctx, &request)` — two-tier dispatch
+3. For streaming requests: create a `HostStreamRegistry` entry, spawn a
+   background task, return the stream ID immediately
+4. For events: the handler can call `session.emit_to_page(page, ...)`
+
+## Part G — Integration tests
+
+### G1 — `ipc` binary codec round-trip test (foundation_wasm)
+
+`encode_request` → bytes → `decode_request` → assert identical. Same for
+response. No wasm target needed — pure Rust, the binary codec is portable.
+
+### G2 — FFI dispatch test (foundation_wasm, `#[cfg(not(target_family = "wasm"))]`)
+
+Register a mock Ipc handler in a local `IpcRegistry`, test that
+`ipc_dispatch()` serializes, calls through the stub path, and gets the
+correct response back. The non-wasm stub path uses the registry directly
+instead of the FFI import.
+
+### G3 — Full IPC round-trip (foundation_platform)
+
+Register an IPC handler with the platform registry, invoke through
+`PlatformSession::invoke_ipc()`, verify the response. Already partially
+covered by `capability_suite.rs` and `platform_integration.rs`.
+
+### G4 — JS bridge wire format test (foundation_wasm, `#[cfg(feature = "web")]`)
+
+A Deno test that:
+1. Loads `foundation-wasm.js` runtime + `ipc-bridge.js`
+2. Instantiates a test WASM module that calls `ipc_dispatch()`
+3. Verifies the JS `host_ipc_invoke` handler receives the correct binary payload
+4. Verifies the WASM module receives and decodes the response
+
 ## Verification
 
 ```bash
-cargo test -p foundation_wasm -- ipc              # unified IPC + FFI types
+cargo test -p foundation_wasm -- ipc              # unified IPC types + binary codec
+cargo test -p foundation_wasm -- ipc              # wire encode/decode round-trip
 cargo test -p foundation_platform -- ipc           # two-tier registry + dispatch
 cargo test -p foundation_platform -- handle        # handle registry + host streams
 cargo test -p foundation_platform -- wasm          # typed WASM wrappers (wasm32 target)
-cargo test -p platform_android -- ipc              # example app still works
+
+# JS runtime
+deno test --allow-read backends/foundation_wasm/runtime/tests/ipc-bridge.test.js
 ```
 
 ## Files
 
 | File | Action |
 |---|---|
-| `backends/foundation_wasm/src/ipc.rs` | **REWRITE** — generic `Ipc<Input, Output>`, `IpcKind::Capability`, FFI imports/exports, `host_ipc_dispatch()`, `host_ipc_stream_read()` |
-| `backends/foundation_wasm/src/capability.rs` | **DELETE** |
-| `backends/foundation_wasm/src/lib.rs` | Remove `pub mod capability` |
-| `backends/foundation_platform/src/handle.rs` | **NEW** — all handles, traits, registries (Parts C1–C5) |
-| `backends/foundation_platform/src/capability.rs` | **REWRITE** — security layer only (`check_ipc_security`), no more PlatformCapability |
-| `backends/foundation_platform/src/session.rs` | Add `IpcInvokeContext`, two-tier registry, `invoke_ipc()`, platform handles, `HostStreamRegistry` |
-| `backends/foundation_platform/src/builder.rs` | Remove `__ewe_capabilities`, capture `window.label()` in `__ewe_ipc`, build `IpcInvokeContext` |
-| `backends/foundation_platform/src/wasm/mod.rs` | **NEW** — `#[cfg(target_family = "wasm")]`, re-exports |
-| `backends/foundation_platform/src/wasm/camera.rs` | **NEW** — `Camera` struct |
-| `backends/foundation_platform/src/wasm/filesystem.rs` | **NEW** — `FilePicker` struct |
-| `backends/foundation_platform/src/wasm/biometric.rs` | **NEW** — `BiometricAuth` struct |
-| `backends/foundation_platform/src/wasm/chrome.rs` | **NEW** — `Chrome` struct (toolbar, tab bar) |
+| `backends/foundation_wasm/src/ipc.rs` | **DONE** — types, trait, registry, binary encode/decode |
+| `backends/foundation_wasm/src/ipc_ffi.rs` | **DONE** — ipc_dispatch(), ipc_handle_event(), IPC_TRIGGER |
+| `backends/foundation_wasm/src/host_runtime.rs` | **DONE** — `pub mod ipc` with host imports |
+| `backends/foundation_wasm/src/capability.rs` | **DELETED** |
+| `backends/foundation_platform/src/handle.rs` | **DONE** — handles, traits, registries |
+| `backends/foundation_platform/src/capability.rs` | **DONE** — PlatformIpc, PlatformIpcRegistry |
+| `backends/foundation_platform/src/wasm/*.rs` | **DONE** — typed WASM wrappers |
+| `backends/foundation_wasm/runtime/foundation-wasm.js` | **UPDATE** — host_ipc_invoke, host_ipc_stream_* in web_abi |
 | `backends/foundation_wasm_ui/runtimes/capability-bridge.js` | **DELETE** |
-| `backends/foundation_wasm_ui/runtimes/ipc-bridge.js` | **NEW** — unified JS bridge, detects host |
-| `examples/platform_android/src-tauri/src/lib.rs` | Update to new IPC API |
+| `backends/foundation_wasm_ui/runtimes/ipc-bridge.js` | **NEW** — unified JS bridge, detects host, registers triggers |
+| `backends/foundation_wasm_ui/src/embedded.rs` | Add IPC_BRIDGE_JS constant |
+| `backends/foundation_platform/src/injector.rs` | Replace capability_bridge → ipc_bridge |
+| `backends/foundation_platform/src/builder.rs` | Wire host_ipc_invoke to session.invoke_ipc() |
+| `backends/foundation_wasm/tests/ipc_wire_tests.rs` | **NEW** — binary encode/decode round-trip tests |
+| `backends/foundation_wasm/tests/ipc_dispatch_tests.rs` | **NEW** — FFI dispatch tests |
+| `backends/foundation_wasm/runtime/tests/ipc-bridge.test.js` | **NEW** — Deno JS bridge test |
