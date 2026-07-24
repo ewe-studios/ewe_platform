@@ -24,8 +24,8 @@ use std::any::Any;
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
-use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 use foundation_ui_traits::PageIdentity;
+use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcKind, IpcRequest, IpcResponse};
 
 use crate::session::PlatformSession;
 
@@ -53,7 +53,11 @@ impl AndroidHandle {
         activity: *mut std::ffi::c_void,
         webview: *mut std::ffi::c_void,
     ) -> Self {
-        Self { jni_env, activity, webview }
+        Self {
+            jni_env,
+            activity,
+            webview,
+        }
     }
 }
 
@@ -79,7 +83,11 @@ impl IosHandle {
         window: *mut std::ffi::c_void,
         webview: *mut std::ffi::c_void,
     ) -> Self {
-        Self { view_controller, window, webview }
+        Self {
+            view_controller,
+            window,
+            webview,
+        }
     }
 }
 
@@ -94,7 +102,9 @@ pub struct DesktopHandle {
 impl DesktopHandle {
     #[must_use]
     pub fn new(window_label: &str) -> Self {
-        Self { window_label: window_label.to_string() }
+        Self {
+            window_label: window_label.to_string(),
+        }
     }
 }
 
@@ -181,11 +191,7 @@ impl CapabilityHandleRegistry {
     ///
     /// This avoids the `MutexGuard` lifetime problem — the resource is
     /// temporarily removed, operated on, and re-inserted.
-    pub fn with<T: Send + 'static, R>(
-        &self,
-        id: u64,
-        f: impl FnOnce(&mut T) -> R,
-    ) -> Option<R> {
+    pub fn with<T: Send + 'static, R>(&self, id: u64, f: impl FnOnce(&mut T) -> R) -> Option<R> {
         let mut guard = self.handles.lock().unwrap();
         let mut resource = guard.remove(&id)?;
         let result = resource.downcast_mut::<T>().map(f);
@@ -205,7 +211,9 @@ impl CapabilityHandleRegistry {
 }
 
 impl Default for CapabilityHandleRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── HostStreamRegistry ────────────────────────────────────────────────────
@@ -225,7 +233,8 @@ pub struct HostStreamRegistry {
 
 /// A queue of chunks from the host to WASM.
 /// Handler writes chunks; WASM polls and drains.
-pub type HostStreamQueue = std::sync::Arc<Mutex<std::collections::VecDeque<Result<Vec<u8>, IpcError>>>>;
+pub type HostStreamQueue =
+    std::sync::Arc<Mutex<std::collections::VecDeque<Result<Vec<u8>, IpcError>>>>;
 
 impl HostStreamRegistry {
     /// Create an empty registry.
@@ -288,7 +297,9 @@ impl HostStreamRegistry {
 }
 
 impl Default for HostStreamRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────
@@ -365,10 +376,13 @@ mod tests {
         let reg = HostStreamRegistry::new();
         let (id, queue) = reg.create();
 
-        queue.lock().unwrap().push_back(Err(IpcError::ExecutionFailed("fail".into())));
+        queue
+            .lock()
+            .unwrap()
+            .push_back(Err(IpcError::ExecutionFailed("fail".into())));
 
         match reg.read(id).unwrap() {
-            Err(IpcError::ExecutionFailed(msg)) => assert_eq!(msg, "fail"),
+            Err(IpcError::ExecutionFailed) => {}
             other => panic!("expected ExecutionFailed, got {other:?}"),
         }
     }

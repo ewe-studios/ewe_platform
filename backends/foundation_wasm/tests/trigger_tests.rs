@@ -41,9 +41,7 @@ fn ipc_trigger_errors_when_no_handler() {
     };
 
     match reg.dispatch_ipc(req) {
-        Err(IpcError::ExecutionFailed(msg)) => {
-            assert!(msg.contains("no IPC trigger handler"));
-        }
+        Err(IpcError::ExecutionFailed) => {}
         other => panic!("expected ExecutionFailed, got {other:?}"),
     }
 }

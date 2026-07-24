@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
 use foundation_core::valtron::valtron;
 use foundation_platform::capability::PlatformIpc;
@@ -446,8 +447,7 @@ fn setup_routes(session: Arc<PlatformSession>) {
     // reads through the session's asset manager (F40). On Android that is
     // the only path that reaches APK-bundled assets — they are never
     // extracted to disk, so a plain std::fs read would serve nothing.
-    let app_responder = generated::app::AppAssets::build(session);
-    let hello_responder = generated::app_hello::AppAssets::build(session);
+    let app_responder = generated::app::AppAssets::build(Arc::clone(&session));
 
     session.register_route_with(
         "/app/*",

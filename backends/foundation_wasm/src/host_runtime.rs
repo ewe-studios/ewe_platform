@@ -487,9 +487,9 @@ pub mod internal_api {
                         .call(addr, Err(code))
                         .expect("should have called callback");
                 }
-                _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
-                ),
+                _ => {
+                    panic!("Runtime memory bug, please investigate, this should not fail: {err:?}")
+                }
             },
         }
     }
@@ -531,7 +531,8 @@ pub mod exposed_runtime {
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
         arena.seed(); // idempotent — ensures slot 0 is consumed, first real id is 1
-        arena.allocate(size)
+        arena
+            .allocate(size)
             .expect("should create requested allocation")
             .as_u64()
     }
@@ -1139,8 +1140,16 @@ pub mod abi {
 
             // ── F28: Stream FFI ────────────────────────────────────────
 
-            pub fn host_stream_create() -> u64 { 0 }
-            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_stream_create() -> u64 {
+                0
+            }
+            pub fn host_sender_send(
+                _stream_id: u64,
+                _data_start: *const u8,
+                _data_len: u32,
+                _seq: u64,
+            ) {
+            }
             pub fn host_sender_end(_stream_id: u64) {}
         }
 
@@ -1973,13 +1982,10 @@ pub mod ipc {
     #[cfg(target_family = "wasm")]
     #[link(wasm_import_module = "abi")]
     extern "C" {
-        /// Invoke a named IPC handler on the host (sync). Returns allocation ID (0 = error).
-        pub fn host_ipc_invoke(request_ptr: *const u8, request_len: u32) -> u64;
-
-        /// Invoke a named IPC handler on the host (async). Returns immediately; the host
-        /// calls `ipc_resolve(token, resp_ptr, resp_len)` when the response is ready.
-        /// `token` is an opaque u64 that identifies the pending callback.
-        pub fn host_ipc_invoke_async(request_ptr: *const u8, request_len: u32, token: u64);
+        /// Dispatch an IPC request. `callback_id` identifies the callback in
+        /// the WASM-side registry. The host MUST call `ipc_resolve(callback_id,
+        /// alloc_id)` with the response — synchronously or asynchronously.
+        pub fn host_ipc_invoke(request_ptr: *const u8, request_len: u32, callback_id: u64);
 
         /// Open a host→WASM stream. Returns stream ID (0 = error).
         pub fn host_ipc_stream_open(request_ptr: *const u8, request_len: u32) -> u64;
@@ -1994,22 +2000,17 @@ pub mod ipc {
     /// Stubs for non-wasm targets — never called, only for compilation.
     #[cfg(not(target_family = "wasm"))]
     mod stubs {
-        pub fn host_ipc_invoke(_ptr: *const u8, _len: u32) -> u64 { 0 }
-        pub fn host_ipc_invoke_async(_ptr: *const u8, _len: u32, _token: u64) {}
-        pub fn host_ipc_stream_open(_ptr: *const u8, _len: u32) -> u64 { 0 }
-        pub fn host_ipc_stream_read(_id: u64) -> u64 { 0 }
+        pub fn host_ipc_invoke(_ptr: *const u8, _len: u32, _cb: u64) {}
+        pub fn host_ipc_stream_open(_ptr: *const u8, _len: u32) -> u64 {
+            0
+        }
+        pub fn host_ipc_stream_read(_id: u64) -> u64 {
+            0
+        }
         pub fn host_ipc_stream_close(_id: u64) {}
     }
 
     #[cfg(not(target_family = "wasm"))]
     pub use stubs::*;
 
-    // ── Export: host → WASM event push ────────────────────────────────
-
-    /// The host calls this to push an event to WASM
-    /// (toolbar tap, notification, deep link, capability reverse event).
-    #[no_mangle]
-    pub extern "C" fn ipc_handle_event(event_ptr: *const u8, event_len: u32) -> u64 {
-        crate::ipc_ffi::handle_event(event_ptr, event_len)
-    }
 }

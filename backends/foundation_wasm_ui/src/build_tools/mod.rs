@@ -449,6 +449,15 @@ impl WasmBundleGenerator {
     }}
   </style>
   <script src="bundle.js"></script>
+  <script>
+    // F43 E2E: prove JS bridge → Tauri __ewe_ipc → ModalIpc works.
+    setTimeout(function() {{
+      if (typeof invokeIpc !== 'function') {{ console.warn('[E2E] invokeIpc not ready'); return; }}
+      invokeIpc('chrome', 'present_modal', {{route:'/nav_modal',style:'bottom_sheet',title:'E2E Boot'}})
+        .then(function(r) {{ console.log('[E2E] IPC OK', r); }})
+        .catch(function(e) {{ console.error('[E2E] IPC FAIL', e); }});
+    }}, 500);
+  </script>
 </head>
 <body>
 {init_blocks}

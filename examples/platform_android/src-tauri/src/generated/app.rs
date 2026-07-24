@@ -22,7 +22,7 @@ pub struct AppAssets {
 }
 
 impl AppAssets {
-    pub fn build(session: &PlatformSession) -> MobileApp<AppAssets> {
+    pub fn build(session: std::sync::Arc<PlatformSession>) -> MobileApp<AppAssets> {
         MobileApp::mounted_at(AppAssets { root: session.app_root(APP_ID) }, APP_ID)
     }
 

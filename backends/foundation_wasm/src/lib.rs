@@ -41,6 +41,7 @@ mod wrapped;
 
 pub mod ipc;
 pub mod ipc_ffi;
+pub mod reply_encoder;
 pub mod stream;
 
 #[cfg(feature = "web")]
@@ -55,8 +56,8 @@ pub mod embedded;
 pub use base::*;
 pub use error::*;
 pub use frames::*;
-pub use host_runtime::*;
 pub use host_runtime::ipc as ipc_host;
+pub use host_runtime::*;
 pub use intervals::*;
 pub use mem::*;
 pub use ops::*;

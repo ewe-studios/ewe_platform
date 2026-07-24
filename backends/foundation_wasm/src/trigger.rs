@@ -21,9 +21,12 @@ use crate::ipc::{IpcError, IpcRequest, IpcResponse};
 // ── Internal handler types ─────────────────────────────────────────────
 
 #[cfg(not(target_family = "wasm"))]
-type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static>;
+type IpcHandlerBox = Box<
+    dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static,
+>;
 #[cfg(target_family = "wasm")]
-type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>;
+type IpcHandlerBox =
+    Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>;
 
 // ── TriggerRegistry ─────────────────────────────────────────────────────
 
@@ -48,7 +51,9 @@ impl TriggerRegistry {
     pub fn set_ipc_handler(
         &mut self,
         handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>
-            + Send + Sync + 'static,
+            + Send
+            + Sync
+            + 'static,
     ) {
         self.ipc = Some(Box::new(handler));
     }
@@ -56,8 +61,7 @@ impl TriggerRegistry {
     #[cfg(target_family = "wasm")]
     pub fn set_ipc_handler(
         &mut self,
-        handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>
-            + 'static,
+        handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static,
     ) {
         self.ipc = Some(Box::new(handler));
     }
@@ -72,9 +76,7 @@ impl TriggerRegistry {
     ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         match self.ipc.as_ref() {
             Some(handler) => handler(request),
-            None => Err(IpcError::ExecutionFailed(
-                "no IPC trigger handler registered".into(),
-            )),
+            None => Err(IpcError::ExecutionFailed),
         }
     }
 }

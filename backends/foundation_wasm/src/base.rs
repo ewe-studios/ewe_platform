@@ -1246,6 +1246,12 @@ impl CachedText {
 #[derive(Clone, Copy, PartialOrd, Ord, Hash, Eq, PartialEq, Debug)]
 pub struct InternalPointer(u64);
 
+impl Into<u64> for InternalPointer {
+    fn into(self) -> u64 {
+        self.0
+    }
+}
+
 impl From<u64> for InternalPointer {
     fn from(value: u64) -> Self {
         Self(value)
@@ -1282,6 +1288,12 @@ impl InternalPointer {
 /// that is to be used across wasm boundaries.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ExternalPointer(u64);
+
+impl Into<u64> for ExternalPointer {
+    fn into(self) -> u64 {
+        self.0
+    }
+}
 
 impl From<u64> for ExternalPointer {
     fn from(value: u64) -> Self {

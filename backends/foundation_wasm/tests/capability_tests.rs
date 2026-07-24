@@ -4,8 +4,7 @@
 //! name validation — all through the new unified API.
 
 use foundation_wasm::ipc::{
-    Ipc, IpcContentType, IpcError, IpcKind, IpcRegistry, IpcRequest, IpcResponse,
-    is_valid_ipc_name,
+    is_valid_ipc_name, Ipc, IpcContentType, IpcError, IpcKind, IpcRegistry, IpcRequest, IpcResponse,
 };
 
 // ── Mock IPCs ───────────────────────────────────────────────────────────
@@ -15,13 +14,14 @@ struct EchoIpc {
 }
 
 impl Ipc<Vec<u8>, Vec<u8>> for EchoIpc {
-    fn name(&self) -> &str { self.name }
-    fn kind(&self) -> IpcKind { IpcKind::Query }
+    fn name(&self) -> &str {
+        self.name
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Query
+    }
 
-    fn invoke(
-        &self,
-        request: &IpcRequest,
-    ) -> Result<IpcResponse, IpcError> {
+    fn invoke(&self, request: &IpcRequest) -> Result<IpcResponse, IpcError> {
         Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
@@ -32,14 +32,15 @@ impl Ipc<Vec<u8>, Vec<u8>> for EchoIpc {
 struct FailingIpc;
 
 impl Ipc<Vec<u8>, Vec<u8>> for FailingIpc {
-    fn name(&self) -> &str { "fail" }
-    fn kind(&self) -> IpcKind { IpcKind::Query }
+    fn name(&self) -> &str {
+        "fail"
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Query
+    }
 
-    fn invoke(
-        &self,
-        _request: &IpcRequest,
-    ) -> Result<IpcResponse, IpcError> {
-        Err(IpcError::ExecutionFailed("intentional failure".into()))
+    fn invoke(&self, _request: &IpcRequest) -> Result<IpcResponse, IpcError> {
+        Err(IpcError::ExecutionFailed)
     }
 }
 
@@ -74,7 +75,7 @@ fn registry_unknown_ipc() {
     };
 
     match reg.invoke(&req) {
-        Err(IpcError::UnknownIpc(name)) => assert_eq!(name, "nonexistent"),
+        Err(IpcError::UnknownIpc) => assert!(true),
         other => panic!("expected UnknownIpc, got {other:?}"),
     }
 }
@@ -93,7 +94,7 @@ fn registry_execution_error() {
     };
 
     match reg.invoke(&req) {
-        Err(IpcError::ExecutionFailed(msg)) => assert!(msg.contains("intentional")),
+        Err(IpcError::ExecutionFailed) => {}
         other => panic!("expected ExecutionFailed, got {other:?}"),
     }
 }

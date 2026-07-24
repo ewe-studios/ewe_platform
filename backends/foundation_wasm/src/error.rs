@@ -28,6 +28,10 @@ impl TaskErrorCode {
     pub fn new(code: u16) -> Self {
         Self(code)
     }
+
+    pub fn take(self) -> u16 {
+        self.0
+    }
 }
 
 impl From<u16> for TaskErrorCode {
