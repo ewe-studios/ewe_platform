@@ -1959,3 +1959,52 @@ pub mod abi {
         }
     }
 }
+
+// ── F41: IPC ABI module ───────────────────────────────────────────────────
+///
+/// Every host (Tauri, Deno, browser, WASI) implements these imports.
+/// Same memory-arena pattern as `abi::web::batch()` — allocate, pass
+/// (ptr, len) to host, host reads/writes via `exposed_runtime`.
+
+pub mod ipc {
+    use super::{MemoryAllocation, ALLOCATIONS};
+
+    /// WASM imports — host implements these.
+    #[cfg(target_family = "wasm")]
+    #[link(wasm_import_module = "abi")]
+    extern "C" {
+        /// Invoke a named IPC handler on the host.
+        /// Returns allocation ID (0 = error).
+        pub fn host_ipc_invoke(request_ptr: *const u8, request_len: u32) -> u64;
+
+        /// Open a host→WASM stream. Returns stream ID (0 = error).
+        pub fn host_ipc_stream_open(request_ptr: *const u8, request_len: u32) -> u64;
+
+        /// Read next chunk from host-created stream. Returns allocation ID (0 = closed/error).
+        pub fn host_ipc_stream_read(stream_id: u64) -> u64;
+
+        /// Close a host→WASM stream.
+        pub fn host_ipc_stream_close(stream_id: u64);
+    }
+
+    /// Stubs for non-wasm targets — never called, only for compilation.
+    #[cfg(not(target_family = "wasm"))]
+    mod stubs {
+        pub fn host_ipc_invoke(_ptr: *const u8, _len: u32) -> u64 { 0 }
+        pub fn host_ipc_stream_open(_ptr: *const u8, _len: u32) -> u64 { 0 }
+        pub fn host_ipc_stream_read(_id: u64) -> u64 { 0 }
+        pub fn host_ipc_stream_close(_id: u64) {}
+    }
+
+    #[cfg(not(target_family = "wasm"))]
+    pub use stubs::*;
+
+    // ── Export: host → WASM event push ────────────────────────────────
+
+    /// The host calls this to push an event to WASM
+    /// (toolbar tap, notification, deep link, capability reverse event).
+    #[no_mangle]
+    pub extern "C" fn ipc_handle_event(event_ptr: *const u8, event_len: u32) -> u64 {
+        crate::ipc_ffi::handle_event(event_ptr, event_len)
+    }
+}

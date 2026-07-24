@@ -5,6 +5,7 @@
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
 pub mod assets;
+mod handle;
 pub mod backend;
 mod builder;
 mod cache;
@@ -68,7 +69,7 @@ pub use worker::{WorkerChannel, WorkerReceiver, WorkerRegistry};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler, RouteResponder};
 pub use session::{PlatformSession, SessionEvent};
-pub use foundation_wasm::{CapabilityRequest, CapabilityResponse};
+pub use foundation_wasm::ipc::{IpcRequest, IpcResponse};
 
 // Re-export all platform types from foundation_ui_traits so consumers
 // only need one `use foundation_platform::*` import.

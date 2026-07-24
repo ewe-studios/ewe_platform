@@ -37,10 +37,8 @@ mod trigger;
 mod wrapped;
 
 pub mod ipc;
+pub mod ipc_ffi;
 pub mod stream;
-
-// F41 backward compat: re-exports old capability names from ipc.
-mod capability;
 
 #[cfg(feature = "web")]
 pub mod testing;
@@ -52,7 +50,6 @@ pub mod wasi_host;
 pub mod embedded;
 
 pub use base::*;
-pub use capability::*;
 pub use error::*;
 pub use frames::*;
 pub use host_runtime::*;
