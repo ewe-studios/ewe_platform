@@ -37,14 +37,10 @@ pub const PLATFORM_SCHEME_INTERCEPTOR_JS: &str =
 /// The core ABI runtime, re-exported so consumers embed the set from one place.
 pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;
 
-/// Portable capability invocation bridge (`runtimes/capability-bridge.js`, F23).
-/// @deprecated — replaced by [`IPC_BRIDGE_JS`] (F41). IPC and capabilities are unified.
-pub const CAPABILITY_BRIDGE_JS: &str = include_str!("../runtimes/capability-bridge.js");
-
 /// Unified IPC bridge (`runtimes/ipc-bridge.js`, F41):
-/// provides `window.invokeIpc(name, action, payload)` that replaces
-/// both invokeCapability and invokeIpc. Routes through Tauri (`__ewe_ipc`),
-/// Deno, or browser. Injected by F24 ScriptInjector.
+/// provides `window.invokeIpc(name, action, payload)`. Routes through
+/// Tauri (`__ewe_ipc`), Deno, or browser. Injected by F24 ScriptInjector.
+/// Replaces capability-bridge.js (F23).
 pub const IPC_BRIDGE_JS: &str = include_str!("../runtimes/ipc-bridge.js");
 
 /// Floating navigation toolbar (`runtimes/floating-nav.js`, F29 Stage 4):

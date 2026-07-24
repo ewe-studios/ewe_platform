@@ -4,7 +4,7 @@
 //! way to render navigation bars, slide panels, and modal overlays on top
 //! of WebView content — without native bridge overhead.
 //!
-//! WHAT: `OverlayCapability` is a `PlatformCapability` that injects the
+//! WHAT: `OverlayCapability` is a `PlatformIpc` that injects the
 //! `floating-nav.js` toolbar into the WebView. `OverlayConfig` lets route
 //! handlers customize position, visibility, and toolbar buttons.
 //!
@@ -15,7 +15,7 @@
 use foundation_wasm::ipc::{IpcError, IpcRequest, IpcResponse};
 use foundation_ui_traits::{CapabilityId, Profile};
 
-use crate::capability::PlatformIpc as PlatformCapability;
+use crate::capability::PlatformIpc;
 
 // ── Overlay config ───────────────────────────────────────────────────────
 
@@ -84,7 +84,7 @@ impl OverlayConfig {
 
 // ── Overlay capability ───────────────────────────────────────────────────
 
-/// A `PlatformCapability` that lets route handlers control the floating
+/// A `PlatformIpc` that lets route handlers control the floating
 /// navigation toolbar overlay.
 ///
 /// Registered on the session like any other capability. Route handlers
@@ -199,7 +199,7 @@ impl foundation_wasm::ipc::Ipc<Vec<u8>, Vec<u8>> for OverlayCapability {
     }
 }
 
-impl PlatformCapability for OverlayCapability {
+impl PlatformIpc for OverlayCapability {
     fn capability_id(&self) -> &CapabilityId {
         // Leak is intentional — static lifetime for capability IDs.
         Box::leak(Box::new(CapabilityId("overlay".into())))

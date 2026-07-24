@@ -1858,6 +1858,163 @@ class FoundationWasm {
     // (JS binds callbacks later).
     this._streamRegistry = {};
     this._nextStreamId = 1;
+    // F41: IPC handler (set via registerIpcHandler by ipc-bridge.js)
+    this._ipcHandler = null;
+    this._ipcStreamHandler = null;
+    this._ipcStreamRegistry = {};
+  }
+
+  // ── F41: IPC binary wire format encode/decode (static helpers) ──────────
+  //
+  // Mirrors Rust `ipc::encode_request` / `encode_response` / `decode_request` /
+  // `decode_response`. Wire layout (little-endian):
+  //   4 bytes LE u32: ipc name length + N bytes ipc name (UTF-8)
+  //   4 bytes LE u32: action length + N bytes action (UTF-8)
+  //   1 byte:         content_type (0=Json, 1=Arrow, 2=Binary)
+  //   4 bytes LE u32: target length + N bytes target (UTF-8, 0 len = None)
+  //   4 bytes LE u32: payload length + N bytes payload
+
+  /** @private — write a length-prefixed UTF-8 string into an array */
+  static _ipcWriteStr(arr, str) {
+    var enc = new TextEncoder().encode(str);
+    var len = enc.length;
+    arr.push(len & 0xff, (len >> 8) & 0xff, (len >> 16) & 0xff, (len >> 24) & 0xff);
+    for (var i = 0; i < enc.length; i++) arr.push(enc[i]);
+  }
+
+  /** @private — encode an IpcRequest to binary wire bytes (Uint8Array) */
+  static _ipcEncodeRequest(req) {
+    var parts = [];
+    FoundationWasm._ipcWriteStr(parts, req.ipc || "");
+    FoundationWasm._ipcWriteStr(parts, req.action || "");
+    parts.push(req.content_type !== undefined ? req.content_type : 0);
+    FoundationWasm._ipcWriteStr(parts, req.target || "");
+    var payload = req.payload;
+    if (typeof payload === "string") payload = new TextEncoder().encode(payload);
+    else if (!(payload instanceof Uint8Array)) payload = new Uint8Array(payload || []);
+    // Write payload length (4 bytes LE) + payload bytes directly (no _ipcWriteStr)
+    parts.push(payload.length & 0xff, (payload.length >> 8) & 0xff, (payload.length >> 16) & 0xff, (payload.length >> 24) & 0xff);
+    for (var i = 0; i < payload.length; i++) parts.push(payload[i]);
+    return new Uint8Array(parts);
+  }
+
+  /** @private — encode an IpcResponse to binary wire bytes (value-only: ct + payload len + payload) */
+  static _ipcEncodeResponse(ct, payload) {
+    if (typeof payload === "string") payload = new TextEncoder().encode(payload);
+    else if (!(payload instanceof Uint8Array)) payload = new Uint8Array(payload || []);
+    var out = new Uint8Array(5 + payload.length);
+    out[0] = ct !== undefined ? ct : 0;
+    out[1] = payload.length & 0xff;
+    out[2] = (payload.length >> 8) & 0xff;
+    out[3] = (payload.length >> 16) & 0xff;
+    out[4] = (payload.length >> 24) & 0xff;
+    out.set(payload, 5);
+    return out;
+  }
+
+  /** @private — decode binary wire bytes into an IpcResponse { content_type, payload: Uint8Array } */
+  static _ipcDecodeResponse(bytes) {
+    if (bytes.length < 5) return null;
+    var ct = bytes[0];
+    var plen = bytes[1] | (bytes[2] << 8) | (bytes[3] << 16) | (bytes[4] << 24);
+    if (bytes.length < 5 + plen) return null;
+    return { content_type: ct, payload: bytes.slice(5, 5 + plen) };
+  }
+
+  /** @private — decode binary wire bytes into an IpcRequest with payload as Uint8Array */
+  static _ipcDecodeRequest(bytes) {
+    var off = 0;
+    function readStr() {
+      if (off + 4 > bytes.length) return null;
+      var len = bytes[off] | (bytes[off+1] << 8) | (bytes[off+2] << 16) | (bytes[off+3] << 24);
+      off += 4;
+      if (off + len > bytes.length) return null;
+      var s = new TextDecoder().decode(bytes.slice(off, off + len));
+      off += len;
+      return s;
+    }
+    var ipc = readStr(); if (ipc === null) return null;
+    var action = readStr(); if (action === null) return null;
+    if (off >= bytes.length) return null;
+    var ct = bytes[off]; off++;
+    var target = readStr(); if (target === null) return null;
+    if (off + 4 > bytes.length) return null;
+    var plen = bytes[off] | (bytes[off+1] << 8) | (bytes[off+2] << 16) | (bytes[off+3] << 24);
+    off += 4;
+    if (off + plen > bytes.length) return null;
+    return { ipc: ipc, action: action, content_type: ct, target: target || null, payload: bytes.slice(off, off + plen) };
+  }
+
+  // ── F41: WASM→host IPC dispatch ────────────────────────────────────────
+
+  /**
+   * Called by host_ipc_invoke(ptr, len). Decodes binary request, dispatches
+   * to registered handler, encodes response, returns allocation ID or 0n.
+   */
+  _dispatchIpcInvoke(ptr, len) {
+    try {
+      var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+      var req = FoundationWasm._ipcDecodeRequest(bytes);
+      if (!req) return 0n;
+      if (!this._ipcHandler) return 0n;
+      var resp = this._ipcHandler(req);
+      if (!resp) return 0n;
+      var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
+      var allocId = this.memory.create(respBytes.length);
+      this.memory.write(allocId, respBytes);
+      return allocId;
+    } catch(_) { return 0n; }
+  }
+
+  // ── F41: Host→WASM stream dispatch ─────────────────────────────────────
+
+  _dispatchIpcStreamOpen(ptr, len) {
+    try {
+      var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+      var req = FoundationWasm._ipcDecodeRequest(bytes);
+      if (!req || !this._ipcStreamHandler) return 0n;
+      var streamId = this._nextStreamId++;
+      var queue = [];
+      var closed = false;
+      var self = this;
+      this._ipcStreamRegistry[streamId] = { queue: queue, closed: false };
+      this._ipcStreamHandler(req, {
+        write: function(data) { self._ipcStreamRegistry[streamId].queue.push(data); },
+        end: function() { self._ipcStreamRegistry[streamId].closed = true; },
+      });
+      return BigInt(streamId);
+    } catch(_) { return 0n; }
+  }
+
+  _dispatchIpcStreamRead(streamId) {
+    try {
+      var s = this._ipcStreamRegistry[Number(streamId)];
+      if (!s) return this._ipcErrorAlloc();
+      if (s.queue.length === 0) {
+        if (s.closed) { delete this._ipcStreamRegistry[Number(streamId)]; return 0n; }
+        return 0n; // empty but not yet closed — caller polls
+      }
+      var chunk = s.queue.shift();
+      var data = chunk.payload || chunk;
+      var ct = chunk.content_type !== undefined ? chunk.content_type : 0;
+      var respBytes = FoundationWasm._ipcEncodeResponse(ct, data);
+      var allocId = this.memory.create(respBytes.length);
+      this.memory.write(allocId, respBytes);
+      return allocId;
+    } catch(_) { return 0n; }
+  }
+
+  _dispatchIpcStreamClose(streamId) {
+    delete this._ipcStreamRegistry[Number(streamId)];
+  }
+
+  /**
+   * Register the WASM→host IPC handler. Called by ipc-bridge.js.
+   * @param {{ onIpc: Function, onIpcStream: Function }} handlers
+   */
+  registerIpcHandler(handlers) {
+    if (handlers.onIpc) this._ipcHandler = handlers.onIpc;
+    if (handlers.onIpcStream) this._ipcStreamHandler = handlers.onIpcStream;
   }
 
   /**
@@ -2115,6 +2272,29 @@ class FoundationWasm {
       host_receiver_push(receiverId, dataPtr, dataLen, seq, isLast) {
         var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
         WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
+      },
+
+      // ── F41: IPC host imports (wasm → host) ────────────────────────────
+      //
+      // host_ipc_invoke(ptr, len) → allocation_id: WASM serialized an IpcRequest,
+      //   the host dispatches it and writes the response into a new allocation.
+      //   Returns 0 on error.
+      host_ipc_invoke(ptr, len) {
+        return self._dispatchIpcInvoke(ptr, len);
+      },
+      // host_ipc_stream_open(ptr, len) → stream_id: WASM requests a host→WASM
+      //   stream. The host creates a queue, returns an ID. WASM polls chunks.
+      host_ipc_stream_open(ptr, len) {
+        return self._dispatchIpcStreamOpen(ptr, len);
+      },
+      // host_ipc_stream_read(streamId) → allocation_id: WASM polls next chunk
+      //   from a host-created stream. Returns 0 when closed/done.
+      host_ipc_stream_read(streamId) {
+        return self._dispatchIpcStreamRead(streamId);
+      },
+      // host_ipc_stream_close(streamId): WASM closes a host-created stream.
+      host_ipc_stream_close(streamId) {
+        self._dispatchIpcStreamClose(streamId);
       },
     };
   }

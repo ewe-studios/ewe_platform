@@ -559,6 +559,33 @@ impl PlatformSession {
         self.capability_registry.get(name)
     }
 
+    /// F41: dispatch an IPC through two-tier resolution.
+    /// Tries the platform-gated registry first, falls back to pure IPC handlers.
+    ///
+    /// The platform-gated registry applies its own 5-layer defense using
+    /// the page identity from `IpcInvokeContext`. Pure handlers skip security.
+    pub fn invoke_ipc(
+        &self,
+        ctx: &crate::handle::IpcInvokeContext,
+        request: &foundation_wasm::ipc::IpcRequest<Vec<u8>>,
+    ) -> Result<foundation_wasm::ipc::IpcResponse<Vec<u8>>, foundation_wasm::ipc::IpcError> {
+        // 1. Try platform-gated (security + profile) first
+        if self.capability_registry.get(&request.ipc).is_some() {
+            let current_route = self.active_page_identity();
+            let route_decision = current_route.as_ref().map(|_page| {
+                // Use the active page's profile; the capability registry
+                // checks per-route allowlists + profile gates internally.
+                crate::route::webview_app()
+                    .with_profile(foundation_ui_traits::Profile::App)
+            });
+            return self.capability_registry.invoke(
+                self, request, &ctx.page, route_decision.as_ref(),
+            );
+        }
+        // 2. Fall back to pure IPC handlers
+        self.ipc_registry.invoke(self, request)
+    }
+
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {
         &self.script_injector
     }

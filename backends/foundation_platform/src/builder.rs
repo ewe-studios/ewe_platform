@@ -262,7 +262,6 @@ impl<R: Runtime> PlatformBuilder<R> {
         });
 
         self.inner = self.inner.invoke_handler(tauri::generate_handler![
-            __ewe_capabilities,
             __ewe_ipc,
             __ewe_ipc_stream
         ]);
@@ -281,46 +280,15 @@ impl<R: Runtime> PlatformBuilder<R> {
 
 impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::new() } }
 
-// ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
+// ── F41 unified Tauri command: __ewe_ipc ─────────────────────────────────
 
-/// The Tauri command bridge for capability/IPC invocations (F41 — was F23 __ewe_capabilities).
+/// The unified Tauri command for IPC + capability invocations (F41).
 ///
-/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_capabilities', { capability, action, payload })`.
-/// Looks up the handler in the `PlatformIpcRegistry` and delegates.
-#[tauri::command]
-#[allow(clippy::needless_pass_by_value)]
-fn __ewe_capabilities(
-    session: tauri::State<'_, Arc<PlatformSession>>,
-    capability: String,
-    action: String,
-    payload: String,
-) -> Result<String, String> {
-    let request = IpcRequest {
-        ipc: capability,
-        action,
-        payload: payload.into_bytes(),
-        content_type: IpcContentType::Json,
-        target: None,
-    };
-
-    let handler = session
-        .get_capability(&request.ipc)
-        .ok_or_else(|| format!("unknown capability: {}", request.ipc))?;
-
-    let response = handler
-        .invoke_with_session(&session, &request)
-        .map_err(|e| format!("capability error: {e:?}"))?;
-
-    String::from_utf8(response.payload).map_err(|e| format!("invalid UTF-8 response: {e}"))
-}
-
-// ── F25 Tauri command: __ewe_ipc ────────────────────────────────────────
-
-/// The Tauri command bridge for IPC invocations (F25).
+/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_ipc', { ipc, action, payload })`.
+/// The command builds an `IpcInvokeContext` from the Tauri window, dispatches
+/// through `session.invoke_ipc()`, and returns the response bytes.
 ///
-/// JS calls `window.__TAURI_INTERNALS__.invoke('__ewe_ipc', { ipc, action, payload })`
-/// which lands here. The command looks up the IPC in the `IpcRegistry`
-/// and delegates to the handler.
+/// Replaces both `__ewe_ipc` (F25) and `__ewe_capabilities` (F23).
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 fn __ewe_ipc(
@@ -330,6 +298,8 @@ fn __ewe_ipc(
     payload: Option<Vec<u8>>,
     content_type: Option<String>,
 ) -> Result<Vec<u8>, String> {
+    use crate::handle::IpcInvokeContext;
+
     let ct = match content_type.as_deref() {
         Some("arrow" | "application/vnd.apache.arrow.batch") => {
             foundation_wasm::ipc::IpcContentType::Arrow
@@ -348,9 +318,17 @@ fn __ewe_ipc(
         target: None,
     };
 
+    let ctx = IpcInvokeContext {
+        page: session.active_page_identity().unwrap_or(foundation_ui_traits::PageIdentity {
+            session_id: foundation_ui_traits::SessionId(0),
+            route: String::new(),
+            visit_id: 0,
+        }),
+        webview_label: "main".to_string(),
+    };
+
     let response = session
-        .ipc_registry()
-        .invoke(&session, &request)
+        .invoke_ipc(&ctx, &request)
         .map_err(|e| format!("ipc error: {e:?}"))?;
 
     Ok(response.payload)
