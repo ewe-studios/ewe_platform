@@ -111,13 +111,15 @@ impl BackendTransport for SessionTransport {
             target: target.map(String::from),
         };
 
-        match self.session.ipc_registry().invoke(&self.session, &request) {
-            Ok(response) => response.payload,
-            Err(e) => {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let _ = self.session.ipc_registry().invoke(&request, move |r| { let _ = tx.send(r); });
+        match rx.recv() {
+            Ok(Ok(response)) => response.payload,
+            _ => {
                 serde_json::json!({
                     "error": "ipc_dispatch_failed",
                     "ipc": ipc_name,
-                    "detail": format!("{e:?}")
+                    "detail": "callback dropped or errored"
                 })
                 .to_string()
                 .into_bytes()
@@ -179,9 +181,13 @@ pub fn dispatch_ipc(
         target: None,
     };
 
+    let (tx, rx) = std::sync::mpsc::channel();
     session
         .ipc_registry()
-        .invoke(session, &request)
+        .invoke(&request, move |r| { let _ = tx.send(r); })
+        .map_err(|e| format!("IPC dispatch failed for '{ipc_name}': {e:?}"))?;
+    rx.recv()
+        .map_err(|_| format!("IPC callback dropped for '{ipc_name}'"))?
         .map(|r| r.payload)
         .map_err(|e| format!("IPC dispatch failed for '{ipc_name}': {e:?}"))
 }
@@ -228,7 +234,7 @@ mod tests {
     #[test]
     fn session_transport_dispatch_ipc_real_registry() {
         use foundation_wasm::ipc::{Ipc, IpcError, IpcKind, IpcRequest, IpcResponse};
-        use crate::ipc::PlatformIpc;
+        use crate::ipc::{IpcCallback, PlatformIpc};
 
         struct EchoIpc;
         impl Ipc for EchoIpc {
@@ -239,8 +245,9 @@ mod tests {
             }
         }
         impl PlatformIpc for EchoIpc {
-            fn invoke_with_session(&self, _: &PlatformSession, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-                Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type })
+            fn invoke_with_session(&self, request: &IpcRequest<Vec<u8>>, callback: IpcCallback) -> Result<(), IpcError> {
+                callback(Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type }));
+                Ok(())
             }
         }
 

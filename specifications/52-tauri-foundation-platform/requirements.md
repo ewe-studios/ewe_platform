@@ -14,8 +14,30 @@ This specification defines the creation of a new `foundation_platform` crate to 
 - Leverage learnings from Basecamp's Hotwire Native approach for server-rendered app integration.
 - Ensure seamless integration with WASM UI.
 
+## North Star (2026-07-24)
+
+Platform presentation modules should truly work: **modal creates a native bottom sheet**,
+**dialog creates native AlertDialog** with embedded WebView support, and all
+presentation modes (Push, Replace, Morph, Root, External) work correctly on Android.
+
+`foundation_platform_native` owns the full stack:
+- **Native implementation** — Kotlin/Swift helpers registered via Tauri plugin bridge
+- **IPC handler** — `PlatformIpc` impls that drive `WindowManager` + native dialogs
+- **WASM wrappers** — typed structs imported by WASM apps, dispatched through
+  the IPC FFI bridge
+- **Trigger registry** — host→WASM events for dialog results / modal dismiss
+
+Each crate ships **docs/** with `getting_started/`, `deep-dives/`,
+`adding_native_capabilities/`, `connecting_to_wasm/` linked from README.md.
+
+Validation: `platform_android` exercises every capability headfully on the emulator.
+No capability is "done" without end-to-end proof — WASM → IPC → native → screenshot.
+
 ## Status
-**Phase: Implementation-ready.** Architecture resolved across 14 decisions. Four foundation documents capture the research. Skeleton crate exists (`backends/foundation_platform/`). Implementation begins.
+**Phase: Implementation.** Architecture resolved across 14 decisions. F42 (native
+modules + modal/dialog capabilities) is the active workstream. Foundation crates
+(`foundation_platform`, `foundation_platform_native`, `foundation_wasm`,
+`foundation_wasm_ui`) compile and ship on all targets.
 
 ## Decisions (all resolved, 2026-07-04, updated 2026-07-17)
 1. **[Platform architecture and crate boundaries](decisions/01-platform-and-crates.md)** — `foundation_platform` owns Tauri integration; shared types in `foundation_ui_traits`.

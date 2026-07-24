@@ -4,7 +4,39 @@ use std::sync::Arc;
 
 use foundation_platform::capability::{test_registry, TestPlatformIpc};
 use foundation_platform::*;
-use foundation_wasm::ipc::{Ipc, IpcContentType, IpcRequest};
+use foundation_wasm::ipc::{Ipc, IpcContentType, IpcError, IpcRequest, IpcResponse};
+
+/// Wrap callback-based invoke into a sync result.
+fn invoke_sync(
+    reg: &foundation_platform::capability::PlatformIpcRegistry,
+    session: &PlatformSession,
+    request: &IpcRequest<Vec<u8>>,
+    page: &foundation_ui_traits::PageIdentity,
+    route: Option<&foundation_ui_traits::RouteDecision>,
+) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    let result: Arc<std::sync::Mutex<Option<Result<IpcResponse<Vec<u8>>, IpcError>>>> = Arc::new(std::sync::Mutex::new(None));
+    let r2 = Arc::clone(&result);
+    match reg.invoke(session, request, page, route, move |r| {
+        *r2.lock().unwrap() = Some(r);
+    }) {
+        Ok(()) => {}
+        Err(e) => { *result.lock().unwrap() = Some(Err(e)); }
+    }
+    // Drop lock guard before returning
+    let v = result.lock().unwrap().take().unwrap();
+    v
+}
+
+/// Check if an invoke errors (no response needed).
+fn invoke_is_ok(
+    reg: &foundation_platform::capability::PlatformIpcRegistry,
+    session: &PlatformSession,
+    request: &IpcRequest<Vec<u8>>,
+    page: &foundation_ui_traits::PageIdentity,
+    route: Option<&foundation_ui_traits::RouteDecision>,
+) -> bool {
+    invoke_sync(reg, session, request, page, route).is_ok()
+}
 
 #[test]
 fn invoke_unknown_capability_returns_error() {
@@ -21,7 +53,7 @@ fn invoke_unknown_capability_returns_error() {
             target: None,
     };
 
-    let result = reg.invoke(&session, &request, &active, None);
+    let result = invoke_sync(&reg, &session, &request, &active, None);
     assert!(result.is_err());
     assert!(format!("{result:?}").contains("UnknownIpc"));
 }
@@ -45,7 +77,7 @@ fn invoke_with_correct_capability_succeeds() {
             target: None,
     };
 
-    assert!(reg.invoke(&session, &request, &active, Some(&route)).is_ok());
+    assert!(invoke_is_ok(&reg, &session, &request, &active, Some(&route)));
 }
 
 #[test]
@@ -65,7 +97,7 @@ fn profile_too_low_denies_capability() {
             target: None,
     };
 
-    let result = reg.invoke(&session, &request, &active, Some(&route));
+    let result = invoke_sync(&reg, &session, &request, &active, Some(&route));
     assert!(result.is_err());
     assert!(format!("{result:?}").contains("profile"));
 }
@@ -88,7 +120,7 @@ fn per_route_allowlist_blocks_unlisted_capability() {
             target: None,
     };
 
-    let result = reg.invoke(&session, &request, &active, Some(&route));
+    let result = invoke_sync(&reg, &session, &request, &active, Some(&route));
     assert!(result.is_err());
     assert!(format!("{result:?}").contains("not allowed"));
 }
@@ -109,7 +141,7 @@ fn stale_page_guard_rejects_old_request() {
             target: None,
     };
 
-    let result = reg.invoke(&session, &request, &old_page, None);
+    let result = invoke_sync(&reg, &session, &request, &old_page, None);
     assert!(result.is_err());
     assert!(format!("{result:?}").contains("stale page"));
 }

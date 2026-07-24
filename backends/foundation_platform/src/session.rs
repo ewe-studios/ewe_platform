@@ -9,6 +9,7 @@
 //! clone. Internally, `RwLock` + `Atomic` fields keep things lock-free
 //! where possible.
 
+use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -133,6 +134,16 @@ pub struct PlatformSession {
     /// The Tauri WebView label of the main window. Set by `PlatformBuilder`
     /// at setup. Used by `__ewe_ipc` to scope IPC context. Defaults to "main".
     main_webview_label: RwLock<String>,
+
+    /// Type-erased handle store. Plugins and subsystems stash handles here
+    /// by type so IPC handlers can retrieve them without knowing the concrete
+    /// Tauri Runtime parameter.
+    ///
+    /// ```ignore
+    /// session.set_handle(plugin_handle);
+    /// let h: &PluginHandle = session.handles::<PluginHandle>().unwrap();
+    /// ```
+    handle_store: RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -177,6 +188,7 @@ impl PlatformSession {
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
             asset_manager: RwLock::new(None),
             main_webview_label: RwLock::new("main".to_string()),
+            handle_store: RwLock::new(HashMap::new()),
         })
     }
 }
@@ -187,6 +199,68 @@ impl PlatformSession {
     #[must_use]
     pub fn new_test(resource_root: PathBuf) -> Arc<Self> {
         Self::new(resource_root, crate::injector::ScriptInjector::new(PathBuf::from(".")))
+    }
+}
+
+// ── Handle store ──────────────────────────────────────────────────────
+
+impl PlatformSession {
+    /// Store a type-erased handle. Later retrievable by type via [`handles`].
+    ///
+    /// Replaces any previous handle of the same type.
+    ///
+    /// [`handles`]: Self::handles
+    pub fn set_handle<T: Send + Sync + 'static>(&self, handle: T) {
+        self.handle_store
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(TypeId::of::<T>(), Box::new(handle));
+    }
+
+    /// Remove a handle by type. Returns `true` if a handle was removed.
+    #[must_use]
+    pub fn drop_handle<T: Send + Sync + 'static>(&self) -> bool {
+        self.handle_store
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(&TypeId::of::<T>())
+            .is_some()
+    }
+
+    /// Retrieve a handle by type. Returns `None` if no handle of type `T`
+    /// was stored.
+    ///
+    /// ```ignore
+    /// let h: &PluginHandle = session.handles::<PluginHandle>().unwrap();
+    /// ```
+    #[must_use]
+    pub fn handles<T: Send + Sync + 'static>(&self) -> Option<impl std::ops::Deref<Target = T> + '_> {
+        struct HandleRef<'a, T> {
+            inner: std::sync::RwLockReadGuard<'a, HashMap<TypeId, Box<dyn Any + Send + Sync>>>,
+            _marker: std::marker::PhantomData<T>,
+        }
+        impl<T: 'static> std::ops::Deref for HandleRef<'_, T> {
+            type Target = T;
+            fn deref(&self) -> &T {
+                self.inner
+                    .get(&TypeId::of::<T>())
+                    .and_then(|b| b.downcast_ref::<T>())
+                    .expect("handle type-checked at construction")
+            }
+        }
+
+        let guard = self
+            .handle_store
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
+        if guard.contains_key(&TypeId::of::<T>()) {
+            Some(HandleRef {
+                inner: guard,
+                _marker: std::marker::PhantomData,
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -564,31 +638,29 @@ impl PlatformSession {
         self.capability_registry.get(name)
     }
 
-    /// F41: dispatch an IPC through two-tier resolution.
-    /// Tries the platform-gated registry first, falls back to pure IPC handlers.
-    ///
-    /// The platform-gated registry applies its own 5-layer defense using
-    /// the page identity from `IpcInvokeContext`. Pure handlers skip security.
+    /// F41/F43: dispatch an IPC through two-tier resolution, blocking on a
+    /// channel so the Tauri command (already async) gets a sync result.
     pub fn invoke_ipc(
         &self,
-        ctx: &crate::handle::IpcInvokeContext,
+        _ctx: &crate::handle::IpcInvokeContext,
         request: &foundation_wasm::ipc::IpcRequest<Vec<u8>>,
     ) -> Result<foundation_wasm::ipc::IpcResponse<Vec<u8>>, foundation_wasm::ipc::IpcError> {
-        // 1. Try platform-gated (security + profile) first
+        let (tx, rx) = std::sync::mpsc::channel();
+        // Try platform-gated first, fall back to pure IPC.
         if self.capability_registry.get(&request.ipc).is_some() {
             let current_route = self.active_page_identity();
             let route_decision = current_route.as_ref().map(|_page| {
-                // Use the active page's profile; the capability registry
-                // checks per-route allowlists + profile gates internally.
                 crate::route::webview_app()
                     .with_profile(foundation_ui_traits::Profile::App)
             });
-            return self.capability_registry.invoke(
-                self, request, &ctx.page, route_decision.as_ref(),
-            );
+            self.capability_registry.invoke(
+                self, request, &_ctx.page, route_decision.as_ref(),
+                Box::new(move |r| { let _ = tx.send(r); }),
+            )?;
+        } else {
+            self.ipc_registry.invoke(request, move |r| { let _ = tx.send(r); })?;
         }
-        // 2. Fall back to pure IPC handlers
-        self.ipc_registry.invoke(self, request)
+        rx.recv().map_err(|_| foundation_wasm::ipc::IpcError::ExecutionFailed("ipc callback dropped".into()))?
     }
 
     pub fn script_injector(&self) -> &crate::injector::ScriptInjector {

@@ -71,13 +71,14 @@ impl foundation_wasm::ipc::Ipc for EchoIpc {
 impl foundation_platform::ipc::PlatformIpc for EchoIpc {
     fn invoke_with_session(
         &self,
-        _: &PlatformSession,
         request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        Ok(IpcResponse {
+        callback: foundation_platform::ipc::IpcCallback,
+    ) -> Result<(), IpcError> {
+        callback(Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
-        })
+        }));
+        Ok(())
     }
 }
 
@@ -105,10 +106,11 @@ impl foundation_wasm::ipc::Ipc for SystemInfoIpc {
 impl foundation_platform::ipc::PlatformIpc for SystemInfoIpc {
     fn invoke_with_session(
         &self,
-        _session: &PlatformSession,
         request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        self.invoke(request)
+        callback: foundation_platform::ipc::IpcCallback,
+    ) -> Result<(), IpcError> {
+        callback(self.invoke(request));
+        Ok(())
     }
 }
 
@@ -136,10 +138,11 @@ impl foundation_wasm::ipc::Ipc for TickerIpc {
 impl foundation_platform::ipc::PlatformIpc for TickerIpc {
     fn invoke_with_session(
         &self,
-        _session: &PlatformSession,
         request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        self.invoke(request)
+        callback: foundation_platform::ipc::IpcCallback,
+    ) -> Result<(), IpcError> {
+        callback(self.invoke(request));
+        Ok(())
     }
 }
 
@@ -153,10 +156,7 @@ impl Ipc<Vec<u8>, Vec<u8>> for EchoCap {
     fn kind(&self) -> IpcKind {
         IpcKind::Capability
     }
-    fn invoke(
-        &self,
-        request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
@@ -365,7 +365,12 @@ setInterval(function(){{
 }}, 500);
 </script>"##,
         );
-        let html = page_html("Presentation Tests", &body, &nav_buttons("/presentation/"), "");
+        let html = page_html(
+            "Presentation Tests",
+            &body,
+            &nav_buttons("/presentation/"),
+            "",
+        );
         html_response(html)
     }
 }
@@ -424,14 +429,19 @@ impl RouteResponder for ModeReportPage {
   <a href="ewe://localhost/presentation/">← Back to Demo Index</a>
 </div>"##,
         );
-        let html = page_html(&format!("{emoji} {mode_name}"), &body, &nav_buttons(&route), "");
+        let html = page_html(
+            &format!("{emoji} {mode_name}"),
+            &body,
+            &nav_buttons(&route),
+            "",
+        );
         html_response(html)
     }
 }
 
 // ── Setup ────────────────────────────────────────────────────────────
 
-fn setup_routes(session: &PlatformSession) {
+fn setup_routes(session: Arc<PlatformSession>) {
     // Each responder mounts at its own app's active version directory and
     // reads through the session's asset manager (F40). On Android that is
     // the only path that reaches APK-bundled assets — they are never
@@ -444,14 +454,9 @@ fn setup_routes(session: &PlatformSession) {
         webview_app().with_profile(Profile::App),
         app_responder,
     );
-    session.register_route_with(
-        "/app-hello/*",
-        webview_app().with_profile(Profile::App),
-        hello_responder,
-    );
 
     // F42: Register native IPC handlers from foundation_platform_native.
-    foundation_platform_native::modal::register(session);
+    foundation_platform_native::native::modal::register(Arc::clone(&session));
 
     // Register IPC handlers on the session.
     session.register_ipc(EchoIpc);

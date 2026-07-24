@@ -16,6 +16,7 @@ foundation_wasm = { path = "../../../backends/foundation_wasm", features = ["web
 foundation_wasm_ui = { path = "../../../backends/foundation_wasm_ui" }
 foundation_ui_traits = { path = "../../../backends/foundation_ui_traits" }
 foundation_macros = { path = "../../../backends/foundation_macros" }
+ewe-platform-native = { path = "../../../backends/foundation_platform_native", features = ["modal", "dialog"] }
 
 [profile.uat]
 inherits = "release"

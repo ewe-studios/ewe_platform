@@ -166,7 +166,9 @@ fn capability_invocation_through_registry() {
         target: None,
     };
 
-    let result = session.capabilities().invoke(&session, &request, &page, Some(&route));
+    let (tx, rx) = std::sync::mpsc::channel();
+    session.capabilities().invoke(&session, &request, &page, Some(&route), move |r| { let _ = tx.send(r); }).unwrap();
+    let result: Result<_, _> = rx.recv().unwrap();
     assert!(result.is_ok());
     let resp = result.unwrap();
     assert_eq!(resp.payload, b"hello, world");

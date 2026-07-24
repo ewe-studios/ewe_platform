@@ -1,26 +1,60 @@
 //! Tauri plugin crate for native platform capabilities (F42).
 //!
-//! Each feature-gated module provides:
-//!   - An IPC handler (Ipc + PlatformIpc) that the app registers at startup
-//!   - A WASM wrapper (on wasm32) for typed IPC calls from WASM apps
-//!   - Kotlin/Swift sources in `android/` and `ios/` (auto-injected by
-//!     tauri_plugin::Builder at build time)
+//! ## Structure
 //!
-//! Usage:
+//! ```text
+//! foundation_platform_native/
+//! ├── src/
+//! │   ├── shared/           ← wire-format types (ALL targets)
+//! │   │   ├── modal_types.rs
+//! │   │   └── dialog_types.rs
+//! │   ├── native/           ← IPC handlers (non-WASM only)
+//! │   │   ├── modal.rs      ←   ModalIpc: WebViewStack + WindowManager
+//! │   │   └── dialog.rs     ←   DialogIpc: native AlertDialog
+//! │   └── wasm/             ← typed WASM wrappers (wasm32 only)
+//! │       ├── modal.rs      ←   Modal::present() / dismiss()
+//! │       └── dialog.rs     ←   Dialog::show()
+//! ├── android/              ← Kotlin plugin sources
+//! ├── ios/                  ← Swift plugin sources
+//! └── permissions/          ← ACL permissions
+//! ```
+//!
+//! ## Usage
+//!
+//! ### Native side (desktop / mobile binary):
+//!
 //! ```toml
 //! [dependencies]
 //! foundation_platform_native = { features = ["modal"] }
 //! ```
 //!
 //! ```rust,ignore
-//! // In src-tauri/src/lib.rs setup:
-//! foundation_platform_native::modal::register(&session);
+//! foundation_platform_native::native::modal::register(&session);
+//! ```
+//!
+//! ### WASM side (compiled to wasm32):
+//!
+//! ```toml
+//! [dependencies]
+//! foundation_platform_native = { features = ["modal"] }
+//! ```
+//!
+//! ```rust,ignore
+//! use foundation_platform_native::shared::modal_types::PresentArgs;
+//! use foundation_platform_native::wasm::modal::Modal;
+//!
+//! let result = Modal::present(PresentArgs {
+//!     route: "/app/settings".into(),
+//!     style: Some("bottom_sheet".into()),
+//!     title: Some("Settings".into()),
+//! })?;
 //! ```
 
-#[cfg(feature = "modal")]
-pub mod modal;
-#[cfg(feature = "dialog")]
-pub mod dialog;
-// #[cfg(feature = "camera")]    pub mod camera;
-// #[cfg(feature = "biometric")] pub mod biometric;
-// #[cfg(feature = "chrome")]    pub mod chrome;
+// Shared wire-format types — always available, all targets.
+pub mod shared;
+
+// Target-gated: native IPC handlers OR typed WASM wrappers.
+#[cfg(not(target_family = "wasm"))]
+pub mod native;
+#[cfg(target_family = "wasm")]
+pub mod wasm;

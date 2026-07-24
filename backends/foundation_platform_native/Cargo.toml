@@ -9,13 +9,18 @@ links = "ewe-platform-native"
 name = "foundation_platform_native"
 
 [dependencies]
-foundation_platform = { path = "../foundation_platform" }
+# Shared — available on all targets including wasm32.
 foundation_wasm = { path = "../foundation_wasm" }
 foundation_ui_traits = { path = "../foundation_ui_traits" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-[dependencies.tauri]
+# Native-only — IPC handlers that drive WebViewStack / WindowManager.
+# Gated so WASM apps can depend on this crate for typed IPC wrappers.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_platform = { path = "../foundation_platform" }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies.tauri]
 version = "2"
 default-features = false
 

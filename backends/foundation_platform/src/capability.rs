@@ -33,15 +33,25 @@ pub trait PlatformIpc: Ipc<Vec<u8>, Vec<u8>> {
     /// Minimum WebView profile required to invoke this handler.
     fn min_profile(&self) -> Profile;
 
-    /// Invoke with session context. The security checks complete before this
-    /// is called. Override to access IPCs, state, or other registries.
+    /// Invoke with session context (F43: callback-based).
     fn invoke_with_session(
+        &self,
+        _session: &PlatformSession,
+        request: &IpcRequest<Vec<u8>>,
+    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        let _ = _session;
+        Ipc::invoke(self, request)
+    }
+
+    /// Callback variant — default routes through the sync invoke.
+    fn invoke_with_session_cb(
         &self,
         session: &PlatformSession,
         request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        let _ = session;
-        Ipc::invoke(self, request)
+        callback: Box<dyn FnOnce(Result<IpcResponse<Vec<u8>>, IpcError>) + Send>,
+    ) {
+        let result = self.invoke_with_session(session, request);
+        callback(result);
     }
 }
 
@@ -58,7 +68,9 @@ pub struct PlatformIpcRegistry {
 impl PlatformIpcRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self { handlers: RwLock::new(HashMap::new()) }
+        Self {
+            handlers: RwLock::new(HashMap::new()),
+        }
     }
 
     /// Register a platform IPC handler.
@@ -71,18 +83,18 @@ impl PlatformIpcRegistry {
         self.handlers.write().unwrap().insert(name, Box::new(cap));
     }
 
-    /// Invoke a handler through the full five-layer defense chain.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the internal `RwLock` is poisoned.
-    pub fn invoke(
+    /// Invoke through the 5-layer defense chain. Callback fires with result.
+    pub fn invoke<F>(
         &self,
         session: &PlatformSession,
         request: &IpcRequest<Vec<u8>>,
         page_identity: &PageIdentity,
         current_route: Option<&RouteDecision>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+        callback: F,
+    ) -> Result<(), IpcError>
+    where
+        F: FnOnce(Result<IpcResponse<Vec<u8>>, IpcError>) + Send + 'static,
+    {
         // Layer 1: Stale-page guard
         if !session.is_active_page(page_identity) {
             return Err(IpcError::PermissionDenied(
@@ -92,12 +104,10 @@ impl PlatformIpcRegistry {
 
         let guard = self.handlers.read().unwrap();
 
-        // Layer 2: Look up the handler
         let handler = guard
             .get(&request.ipc)
             .ok_or_else(|| IpcError::UnknownIpc(request.ipc.clone()))?;
 
-        // Layer 3: Profile-level gate
         let profile = current_route
             .map(|r| r.profile)
             .unwrap_or(Profile::UntrustedRemote);
@@ -113,10 +123,12 @@ impl PlatformIpcRegistry {
             )));
         }
 
-        // Layer 4: Per-route allowlist gate
         if let Some(route) = current_route {
             if !route.capabilities.is_empty()
-                && !route.capabilities.iter().any(|c| c == handler.capability_id())
+                && !route
+                    .capabilities
+                    .iter()
+                    .any(|c| c == handler.capability_id())
             {
                 return Err(IpcError::PermissionDenied(format!(
                     "'{}' not allowed on this route",
@@ -125,11 +137,12 @@ impl PlatformIpcRegistry {
             }
         }
 
-        // Layer 5: Execute — delegate to the handler
-        handler.invoke_with_session(session, request)
+        handler.invoke_with_session_cb(session, request, Box::new(callback));
+        Ok(())
     }
 
-    /// Invoke through the security layer with a JSON payload.
+    /// Invoke through the security layer with a JSON payload. Blocks on
+    /// a channel internally (sync shim over the callback-based invoke).
     pub fn invoke_json(
         &self,
         session: &PlatformSession,
@@ -139,8 +152,8 @@ impl PlatformIpcRegistry {
         page_identity: &PageIdentity,
         current_route: Option<&RouteDecision>,
     ) -> Result<serde_json::Value, IpcError> {
-        let payload_bytes = serde_json::to_vec(payload)
-            .map_err(|e| IpcError::InvalidPayload(e.to_string()))?;
+        let payload_bytes =
+            serde_json::to_vec(payload).map_err(|e| IpcError::InvalidPayload(e.to_string()))?;
 
         let request = IpcRequest {
             ipc: ipc_name.to_string(),
@@ -150,8 +163,13 @@ impl PlatformIpcRegistry {
             target: None,
         };
 
-        let response = self.invoke(session, &request, page_identity, current_route)?;
-
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.invoke(session, &request, page_identity, current_route, move |r| {
+            let _ = tx.send(r);
+        })?;
+        let response = rx
+            .recv()
+            .map_err(|_| IpcError::ExecutionFailed("invoke_json callback dropped".into()))??;
         serde_json::from_slice(&response.payload)
             .map_err(|e| IpcError::InvalidPayload(e.to_string()))
     }
@@ -160,7 +178,9 @@ impl PlatformIpcRegistry {
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn PlatformIpc> {
         let guard = self.handlers.read().unwrap();
-        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformIpc) })
+        guard
+            .get(name)
+            .map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformIpc) })
     }
 
     #[must_use]
@@ -170,7 +190,9 @@ impl PlatformIpcRegistry {
 }
 
 impl Default for PlatformIpcRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Check if a profile meets or exceeds a minimum required profile.
@@ -187,8 +209,7 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
     if matches!(actual, Profile::Auth | Profile::Devtools)
         || matches!(required, Profile::Auth | Profile::Devtools)
     {
-        return actual == required
-            || (actual == Profile::Devtools && cfg!(debug_assertions));
+        return actual == required || (actual == Profile::Devtools && cfg!(debug_assertions));
     }
     rank(actual) >= rank(required)
 }
@@ -202,13 +223,14 @@ pub struct TestPlatformIpc {
 }
 
 impl Ipc<Vec<u8>, Vec<u8>> for TestPlatformIpc {
-    fn name(&self) -> &str { &self.id.0 }
-    fn kind(&self) -> IpcKind { IpcKind::Capability }
+    fn name(&self) -> &str {
+        &self.id.0
+    }
+    fn kind(&self) -> IpcKind {
+        IpcKind::Capability
+    }
 
-    fn invoke(
-        &self,
-        request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         Ok(IpcResponse {
             payload: request.payload.clone(),
             content_type: request.content_type,
@@ -217,8 +239,12 @@ impl Ipc<Vec<u8>, Vec<u8>> for TestPlatformIpc {
 }
 
 impl PlatformIpc for TestPlatformIpc {
-    fn capability_id(&self) -> &CapabilityId { &self.id }
-    fn min_profile(&self) -> Profile { self.min_profile }
+    fn capability_id(&self) -> &CapabilityId {
+        &self.id
+    }
+    fn min_profile(&self) -> Profile {
+        self.min_profile
+    }
 }
 
 /// Create a test registry with a camera handler registered.

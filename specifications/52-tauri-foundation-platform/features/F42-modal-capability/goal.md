@@ -12,8 +12,8 @@ with research, implementation, testing, and "what done looks like."
 
 | Feature | Native behavior | IPC name | Status |
 |---|---|---|---|
-| Modal | BottomSheetDialogFragment + WebView | `chrome/present_modal` | Stub |
-| Dialog | AlertDialog / DialogFragment + optional WebView | `dialog/show` | Stub |
+| Modal | BottomSheetDialogFragment + WebView | `chrome/present_modal` | **IPC handler done** (7 tests), Kotlin stub |
+| Dialog | AlertDialog / DialogFragment + optional WebView | `dialog/show` | **IPC handler done**, Kotlin stub |
 | Push | New WebViewWindow, native back | Route handler (existing) | Done |
 | Replace | In-place navigate | Route handler (existing) | Done |
 | Root | Clear stack, new root | Route handler (existing) | Done |

@@ -16,7 +16,6 @@
   "bundle": {
     "active": true,
     "resources": {
-      "public/app-hello/v0.1.0/**/*": "app-hello/v0.1.0/",
       "public/app/v0.1.0/**/*": "app/v0.1.0/"
     }
   },

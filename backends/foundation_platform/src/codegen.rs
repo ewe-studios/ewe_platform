@@ -325,6 +325,8 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     let wasm_ui_js = repo_root.join("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js");
     let interceptor =
         repo_root.join("backends/foundation_wasm_ui/runtimes/platform-scheme-interceptor.js");
+    let ipc_bridge =
+        repo_root.join("backends/foundation_wasm_ui/runtimes/ipc-bridge.js");
     std::fs::create_dir_all(out_dir).ok();
     let _ = gen.execute(
         false,
@@ -333,6 +335,7 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
             ("foundation-wasm.js", wasm_js.as_path()),
             ("foundation-wasm-ui.js", wasm_ui_js.as_path()),
             ("platform-scheme-interceptor.js", interceptor.as_path()),
+            ("ipc-bridge.js", ipc_bridge.as_path()),
         ],
     );
 }

@@ -23,7 +23,7 @@ fn main() {
     // codegen.inject_native_code(&src_tauri);
 
     // ── Surface 2: WebView WASM apps (compiled inline, no cargo nesting) ──
-    for app_id in ["app", "app-hello"] {
+    for app_id in ["app"] {
         let app_dir = root.join(app_id);
         if app_dir.join("Cargo.toml").exists() {
             let version = codegen::crate_version(&app_dir);

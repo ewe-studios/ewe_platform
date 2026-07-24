@@ -156,19 +156,25 @@ fn capability_invocation_with_profile_gating() {
         payload: vec![], content_type: IpcContentType::Json,
         target: None,
     };
-    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_ok());
+    let (tx, rx) = std::sync::mpsc::channel();
+    session.capabilities().invoke(&session, &req, &page, Some(&route), move |r| { let _ = tx.send(r); }).unwrap();
+    assert!(rx.recv().unwrap().is_ok());
 
-    // UntrustedRemote profile → denied
+    // UntrustedRemote profile → denied (security reject — invoke returns Err)
     let bad_route = remote_fetch()
         .with_profile(Profile::UntrustedRemote)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
     session.record_navigation("/bad");
     let page2 = session.active_page_identity().unwrap();
-    assert!(session.capabilities().invoke(&session, &req, &page2, Some(&bad_route)).is_err());
+    assert!(
+        session.capabilities().invoke(&session, &req, &page2, Some(&bad_route), |_| {}).is_err()
+    );
 
-    // Stale page → denied
+    // Stale page → denied (security reject — invoke returns Err)
     session.record_navigation("/other");
-    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_err());
+    assert!(
+        session.capabilities().invoke(&session, &req, &page, Some(&route), |_| {}).is_err()
+    );
 }
 
 // ── WebView stack navigation ─────────────────────────────────────────

@@ -4,10 +4,23 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F42-native-modules"
 this_file: "specifications/52-tauri-foundation-platform/features/F42-native-modules/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-25
 updated: 2026-07-25
+
+progress:
+  completed: 5
+  uncompleted: 2
+  total: 7
+  completion_percentage: 71%
+
+learnings:
+  - "Tauri AssetResolver.iter() returns EMPTY on Android APK — keys() fallback needed"
+  - "bundle.active must be true + devUrl removed for Tauri to embed assets in debug APK"
+  - "Crate structure: shared/ (WirePayload types), native/ (handlers), wasm/ (typed wrappers)"
+  - "WirePayload trait on shared types eliminates manual serialize/deserialize duplication"
+  - "ModalIpc takes session directly via PlatformIpc trait — no PluginHandle needed yet"
 
 depends_on:
   - "F41-unified-ipc-ffi"

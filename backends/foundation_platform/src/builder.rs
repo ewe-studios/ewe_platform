@@ -15,7 +15,7 @@ struct RouteEntry {
     responder: Option<Box<dyn RouteResponder>>,
 }
 
-type SetupCallback = Box<dyn Fn(&PlatformSession) + Send + Sync + 'static>;
+type SetupCallback = Box<dyn Fn(Arc<PlatformSession>) + Send + Sync + 'static>;
 
 pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     inner: tauri::Builder<R>,
@@ -122,7 +122,7 @@ impl<R: Runtime> PlatformBuilder<R> {
     }
 
     #[must_use]
-    pub fn setup<F: Fn(&PlatformSession) + Send + Sync + 'static>(mut self, f: F) -> Self {
+    pub fn setup<F: Fn(Arc<PlatformSession>) + Send + Sync + 'static>(mut self, f: F) -> Self {
         self.setups.push(Box::new(f));
         self
     }
@@ -228,7 +228,7 @@ impl<R: Runtime> PlatformBuilder<R> {
                 }
             }
 
-            for setup in &setups { setup(&session); }
+            for setup in &setups { setup(Arc::clone(&session)); }
 
             // F35: Inject Tauri window manager into the session.
             // The pool tracks labels; the manager creates real Tauri windows.
