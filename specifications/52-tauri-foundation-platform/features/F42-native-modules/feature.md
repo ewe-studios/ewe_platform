@@ -19,328 +19,186 @@ tasks:
   total: 7
   completion_percentage: 0%
 ---
-# F42 — Native Modules: user Kotlin/Swift code injection
+# F42 — Native Modules: Tauri plugin crate with Kotlin/Swift + IPC handlers
 
 ## Problem
 
-IPC handlers like camera, biometrics, modal presentation need platform-native
-code — Android `Activity` intents, `DialogFragment`, iOS `UIViewController`
-presentation, Face ID prompts. Currently there's no way to add custom
-Kotlin/Swift files to the Tauri project and have IPC handlers reference them.
+IPC handlers (camera, modal, biometric, chrome) need platform-native code —
+Kotlin on Android, Swift on iOS. Tauri already has a plugin system for this:
+`tauri::plugin::Plugin` trait, `tauri_plugin::Builder` for build-time code
+injection, `Plugin::extend_api` for Tauri commands, and the mobile bridge
+(`PluginManager` on Android, `register_ios_plugin` on iOS).
 
-Tauri already manages `gen/android/` and `gen/apple/`. This feature provides
-a `foundation_platform_native` crate where each native module (camera, modal,
-biometric) lives as a feature-gated sub-directory containing ALL the code for
-that module: Kotlin sources, Swift sources, Rust IPC handler, and WASM wrapper.
+Currently we have `foundation_platform::injector` with `window.eval()` and
+a custom codegen pipeline — reinventing what Tauri plugins already solve.
 
 ## Solution
 
-A new crate `backends/foundation_platform_native/`. Users add it as a Cargo
-build dependency and enable features for the modules they want:
-
-```toml
-[build-dependencies]
-foundation_platform_native = { path = "../../backends/foundation_platform_native", features = ["modal", "camera"] }
-```
-
-### Directory-per-module layout
-
-Each module is one directory with three layers:
+A `foundation_platform_native` crate that IS a proper Tauri plugin, using
+the established conventions:
 
 ```
 foundation_platform_native/
-├── Cargo.toml               ← features = ["modal", "camera", "biometric", "chrome"]
-├── src/
-│   ├── lib.rs                ← re-exports trait + feature-gated module::register()
-│   ├── native_module.rs      ← NativeModule trait, *Config types, *Source enums
-│   ├── pipeline.rs           ← PlatformCodegen::register() + inject_native_code()
-│   └── modal/
-│       ├── mod.rs            ← pub fn module() -> impl NativeModule + register fns
-│       ├── android/           ← Kotlin sources (injected into gen/android/)
-│       │   └── ModalHelper.kt
-│       ├── ios/               ← Swift sources (injected into gen/apple/)
-│       │   └── ModalHelper.swift
-│       ├── handler.rs         ← IPC handler + AndroidIpc impl
-│       └── wasm.rs            ← WASM wrapper extension
-│
-├── camera/
-│   ├── mod.rs
-│   ├── android/
-│   │   └── CameraHelper.kt
-│   ├── ios/
-│   │   └── CameraHelper.swift
-│   ├── handler.rs
-│   └── wasm.rs
-│
-├── biometric/
-│   └── ...
-└── chrome/
-    └── ...
+├── Cargo.toml
+├── build.rs              ← tauri_plugin::Builder::new("ewe-platform-native")
+│                           .android_path("android/")
+│                           .build()
+├── permissions/           ← auto-generated ACL permissions
+│   └── default.toml
+├── android/               ← Kotlin sources (auto-copied by tauri_plugin build)
+│   └── src/main/java/com/ewe/platform/
+│       ├── ModalHelper.kt
+│       ├── CameraHelper.kt
+│       └── BiometricHelper.kt
+├── ios/                   ← Swift sources (auto-copied by tauri_plugin build)
+│   └── Sources/
+│       ├── ModalHelper.swift
+│       ├── CameraHelper.swift
+│       └── BiometricHelper.swift
+├── guest-js/              ← JS API injected into WebView (optional)
+│   └── index.js
+└── src/
+    ├── lib.rs             ← tauri::plugin::Builder init + feature-gated modules
+    ├── modal.rs           ← modal IPC handler + WASM wrapper
+    ├── camera.rs          ← camera IPC handler + WASM wrapper
+    ├── biometric.rs       ← biometric IPC handler + WASM wrapper
+    └── chrome.rs          ← chrome IPC handler + WASM wrapper
 ```
 
-## Part A — `NativeModule` trait (in `foundation_platform_native`)
+### How Tauri plugins handle native code
 
-```rust
-// foundation_platform_native/src/native_module.rs
+**Build time** — `tauri_plugin::Builder` runs during `build.rs`:
+1. Copies `android/` directory into the app's Gradle project as a library module
+2. Copies `ios/` directory into the Xcode project as a framework
+3. Generates ACL permission files
+4. The Kotlin/Swift code IS the plugin — it extends `app.tauri.plugin.Plugin`
+   and communicates with Rust via `PluginManager.runCommand()`
 
-pub trait NativeModule: Send + Sync + 'static {
-    fn name(&self) -> &str;
-    fn android(&self) -> Option<AndroidModuleConfig> { None }
-    fn ios(&self) -> Option<IosModuleConfig> { None }
-}
+**Runtime** — `tauri::plugin::Builder` registers:
+1. A `setup` hook that runs when the app starts — register IPC handlers here
+2. Tauri commands via `invoke_handler` — optional, commingled with app commands
+3. JS init scripts via `js_init_script` — injected into WebView
 
-pub struct AndroidModuleConfig {
-    pub kotlin_sources: Vec<KotlinSource>,
-    pub gradle_dependencies: Vec<String>,
-    pub permissions: Vec<String>,
-}
+**Mobile bridge** — Kotlin plugin calls `PluginManager.runCommand(id, name, command, data)`:
+1. The command name maps to a Tauri command registered on the Rust side
+2. JSON payload crosses JNI / FFI boundary
+3. Response returns as JSON back to Kotlin
 
-pub struct IosModuleConfig {
-    pub swift_sources: Vec<SwiftSource>,
-    pub swift_dependencies: Vec<String>,
-    pub info_plist_entries: Vec<(String, String)>,
-    pub frameworks: Vec<String>,
-}
+### How we use this for IPC handlers
 
-pub enum KotlinSource {
-    File(PathBuf),
-    Inline { filename: String, source: &'static str },
-}
+Instead of our own `NativeModule` trait and `PlatformCodegen`, we use the
+Tauri plugin as the delivery vehicle. The plugin's `setup()` hook registers
+IPC handlers on the `PlatformSession`.
 
-pub enum SwiftSource {
-    File(PathBuf),
-    Inline { filename: String, source: &'static str },
-}
-```
-
-## Part B — Codegen pipeline (in `foundation_platform_native`)
-
-```rust
-// foundation_platform_native/src/pipeline.rs
-
-pub struct PlatformCodegen {
-    modules: Vec<Box<dyn NativeModule>>,
-}
-
-impl PlatformCodegen {
-    pub fn new() -> Self;
-    pub fn register(&mut self, module: impl NativeModule);
-    pub fn inject_native_code(&self, src_tauri: &Path);
-}
-```
-
-`inject_native_code()` does:
-
-**Android:**
-1. Resolves package path from `gen/android/app/src/main/java/{pkg}/`
-2. Creates `native/{module_name}/` under the package directory
-3. Copies each module's `kotlin_sources` there
-4. Writes `native_modules.gradle` with all dependency `implementation()` lines
-5. Patches `app/build.gradle.kts` to `apply(from = "native_modules.gradle")`
-6. Patches `AndroidManifest.xml` with requested permissions
-
-**iOS:**
-1. Copies `swift_sources` into `gen/apple/Sources/NativeModules/{module_name}/`
-2. Appends `info_plist_entries` to `Info.plist`
-
-## Part C — Module `mod.rs` (the public entry point)
-
-Each module exposes a single function that returns its config:
-
-```rust
-// foundation_platform_native/src/modal/mod.rs
-
-use crate::native_module::{NativeModule, AndroidModuleConfig, KotlinSource};
-use crate::pipeline::PlatformCodegen;
-
-/// Register this module with the codegen pipeline.
-pub fn register(pipeline: &mut PlatformCodegen) {
-    pipeline.register(Module);
-}
-
-struct Module;
-
-impl NativeModule for Module {
-    fn name(&self) -> &str { "modal" }
-    fn android(&self) -> Option<AndroidModuleConfig> {
-        Some(AndroidModuleConfig {
-            kotlin_sources: vec![
-                KotlinSource::Inline {
-                    filename: "ModalHelper.kt".into(),
-                    source: include_str!("android/ModalHelper.kt"),
-                },
-            ],
-            gradle_dependencies: vec![
-                "com.google.android.material:material:1.12.0".into(),
-            ],
-            permissions: vec![],
-        })
-    }
-}
-```
-
-Kotlin/Swift sources are embedded at compile time via `include_str!` — they
-live alongside the Rust code in `android/` and `ios/` subdirectories.
-
-## Part D — IPC handler + WASM wrapper (in the same module directory)
-
-Each module also provides its `Ipc` + `AndroidIpc` handler and WASM wrapper
-extension. These are compiled into the user's binary (NOT build.rs — they're
-runtime code in `[dependencies]`, not `[build-dependencies]`).
-
-```rust
-// foundation_platform_native/src/modal/handler.rs
-// Compiled as part of the user's binary (runtime dependency).
-
-use foundation_wasm::ipc::{Ipc, IpcKind, IpcRequest, IpcResponse, IpcError, IpcContentType};
-use foundation_platform::handle::AndroidIpc;
-use foundation_platform::PlatformSession;
-
-pub struct ModalIpc;
-
-impl Ipc<Vec<u8>, Vec<u8>> for ModalIpc {
-    fn name(&self) -> &str { "chrome" }
-    fn kind(&self) -> IpcKind { IpcKind::Capability }
-    fn invoke(&self, req: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        // Typically delegates to session — real work in invoke_with_session
-        Err(IpcError::ExecutionFailed("use invoke_with_session".into()))
-    }
-}
-
-impl foundation_platform::ipc::PlatformIpc for ModalIpc {
-    fn invoke_with_session(
-        &self,
-        session: &PlatformSession,
-        req: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        match req.action.as_str() {
-            "present_modal" => present(session, req),
-            "dismiss_modal" => dismiss(session, req),
-            _ => Err(IpcError::ExecutionFailed(format!("unknown: {}", req.action))),
-        }
-    }
-}
-```
-
-And the WASM wrapper:
-
-```rust
-// foundation_platform_native/src/modal/wasm.rs
-// #[cfg(target_family = "wasm")]
-
-use crate::modal::dispatch_json;
-
-pub struct Modal;
-
-impl Modal {
-    pub fn present(args: PresentModalArgs) -> Result<PresentModalResult, IpcError> { ... }
-    pub fn dismiss(modal_id: &str) -> Result<(), IpcError> { ... }
-}
-```
-
-## Part E — How the user wires it all together
-
-### 1. Cargo.toml
+### User's Cargo.toml
 
 ```toml
 [dependencies]
-foundation_platform_native = { path = "../../backends/foundation_platform_native", features = ["modal"] }
-
-[build-dependencies]
-foundation_platform_native = { path = "../../backends/foundation_platform_native", features = ["modal"] }
+foundation_platform_native = { features = ["modal", "camera"] }
 ```
 
-### 2. build.rs — inject native code
+No separate build-dependency needed — the plugin crate's own `build.rs`
+handles the codegen.
+
+### User's src-tauri/src/lib.rs
 
 ```rust
-use foundation_platform_native::pipeline::PlatformCodegen;
-use foundation_platform_native::modal;
+use foundation_platform::PlatformBuilder;
+use foundation_platform_native;
 
 fn main() {
-    let mut codegen = PlatformCodegen::new();
-    modal::register(&mut codegen);    // copies ModalHelper.kt into gen/android/
-    codegen.inject_native_code(&src_tauri);
+    platform_run!(PlatformBuilder::new()
+        .inject_platform_runtimes()
+        .setup(|session| {
+            // Each feature-gated module registers its IPC handler
+            foundation_platform_native::modal::register(session);
+            foundation_platform_native::camera::register(session);
 
+            // App-specific setup...
+            setup_routes(session);
+        })
+    );
+}
+```
+
+### User's build.rs
+
+```rust
+fn main() {
+    // No native code registration needed — the plugin crate's own build.rs
+    // handles it automatically. Just run the normal platform codegen.
     foundation_platform::codegen::generate_platform_code();
 }
 ```
 
-### 3. src/lib.rs — register IPC handler at runtime
+### Module structure (feature-gated)
+
+Each module in `src/` is `#[cfg(feature = "modal")]` and provides:
 
 ```rust
-use foundation_platform_native::modal::handler::ModalIpc;
+// foundation_platform_native/src/modal.rs
 
-fn setup_routes(session: &PlatformSession) {
+use foundation_platform::PlatformSession;
+
+/// Register the modal IPC handler on the session.
+/// Called during PlatformBuilder::setup().
+pub fn register(session: &PlatformSession) {
     session.register_ipc(ModalIpc);
-    // ... rest of setup
 }
-```
 
-### 4. WASM app — typed wrapper
+// IPC handler
+struct ModalIpc;
 
-```rust
-// In the WASM app (compiled with foundation_platform_native):
-use foundation_platform_native::modal::wasm::Modal;
+impl foundation_wasm::ipc::Ipc<Vec<u8>, Vec<u8>> for ModalIpc { ... }
+impl foundation_platform::ipc::PlatformIpc for ModalIpc { ... }
 
-let result = Modal::present(PresentModalArgs {
-    route: "/app/settings".into(),
-    style: "bottom_sheet".into(),
-})?;
-```
-
-## Part F — modal::register() is the single entry point
-
-Users call one function. The module does the rest:
-
-```
-modal::register(&mut pipeline)  →  injects ModalHelper.kt into gen/android/
-                                →  injects ModalHelper.swift into gen/apple/
-
-session.register_ipc(ModalIpc)  →  registers "chrome" IPC handler at runtime
-
-Modal::present(args)             →  typed WASM wrapper calling chrome/present_modal
+// WASM wrapper (only on wasm32)
+#[cfg(target_family = "wasm")]
+pub mod wasm {
+    // typed Modal::present() / Modal::dismiss()
+}
 ```
 
 ## Requirements
 
-### R1. `NativeModule` trait — `foundation_platform_native/src/native_module.rs`
-- `name()`, `android()`, `ios()` methods
-- `AndroidModuleConfig`, `IosModuleConfig`, `KotlinSource`, `SwiftSource`
+### R1. Plugin build.rs — `foundation_platform_native/build.rs`
+- Use `tauri_plugin::Builder::new("ewe-platform-native")` 
+- `.android_path("android/")` — copies Kotlin sources
+- `.ios_path("ios/")` — copies Swift sources
+- No custom codegen — Tauri handles it
 
-### R2. Codegen pipeline — `foundation_platform_native/src/pipeline.rs`
-- `PlatformCodegen::register(impl NativeModule)`
-- `PlatformCodegen::inject_native_code(src_tauri: &Path)`
-- Copies Kotlin/Swift files, patches permissions and Gradle deps
+### R2. Kotlin plugin class — `android/.../EwePlatformPlugin.kt`
+- Extends `app.tauri.plugin.Plugin`
+- Overrides `load(webView, config)` — receives plugin config from Rust
+- Provides extension functions called by IPC handlers (e.g. `presentModal()`)
 
-### R3. Module structure — per-module directory
-- `{module}/mod.rs` — `pub fn register(pipeline)` + `NativeModule` impl
-- `{module}/android/*.kt` — Kotlin sources (included via `include_str!`)
-- `{module}/ios/*.swift` — Swift sources
-- `{module}/handler.rs` — IPC handler + platform traits
-- `{module}/wasm.rs` — WASM wrapper extension
+### R3. Feature-gated modules — `src/lib.rs`
+- `#[cfg(feature = "modal")] pub mod modal;`
+- `#[cfg(feature = "camera")] pub mod camera;`
+- `#[cfg(feature = "biometric")] pub mod biometric;`
+- `#[cfg(feature = "chrome")] pub mod chrome;`
 
-### R4. Feature gating — `Cargo.toml`
-- `modal`, `camera`, `biometric`, `chrome`, `filesystem` features
-- Each feature enables the corresponding `pub mod` and `register()` fn
+### R4. IPC registration — via PlatformBuilder::setup()
+- Each module's `register(session)` adds its IPC handler to the session
+- No separate registry step — one function call
 
-### R5. Example app integration — `platform_android`
-- `[build-dependencies] foundation_platform_native = { features = ["modal"] }`
-- `build.rs` calls `modal::register(&mut pipeline)`
-- `src-tauri/src/lib.rs` registers `ModalIpc` on the session
+### R5. Typed WASM wrappers — `#[cfg(target_family = "wasm")]` in each module
+- Uses `ipc_ffi::ipc_dispatch` — already works for E2E
+- Each module exposes a typed struct: `Modal`, `Camera`, `Biometric`, `Chrome`
 
-### R6. Test — `foundation_platform_native/tests/injection_tests.rs`
-- Register a module via `modal::register()`
-- Call `inject_native_code()` into a temp directory
-- Verify Kotlin files, Gradle deps, and manifest patches are written correctly
+### R6. Example app integration — `platform_android`
+- Add `foundation_platform_native` as a dependency with `features = ["modal"]`
+- Call `foundation_platform_native::modal::register(session)` in setup
+- No build.rs changes needed
 
-### R7. Test — `foundation_platform_native/tests/modal_handler.rs`
-- Instantiate `ModalIpc`, invoke with `present_modal` / `dismiss_modal`
-- Verify stack operations (WebViewStack + WindowManager)
+### R7. Test — IPC handler unit tests
+- ModalIpc: present, dismiss, dismiss_all with mock session
 
 ## Verification
 
 ```bash
 cargo test -p foundation_platform_native
+cargo check -p foundation_platform_native --features modal
 cargo check --manifest-path examples/platform_android/src-tauri/Cargo.toml
 ```
 
@@ -348,16 +206,17 @@ cargo check --manifest-path examples/platform_android/src-tauri/Cargo.toml
 
 | File | Action |
 |---|---|
-| `backends/foundation_platform_native/Cargo.toml` | **NEW** — features per module |
-| `backends/foundation_platform_native/src/lib.rs` | **NEW** — feature-gated re-exports |
-| `backends/foundation_platform_native/src/native_module.rs` | **NEW** — trait + configs |
-| `backends/foundation_platform_native/src/pipeline.rs` | **NEW** — PlatformCodegen |
-| `backends/foundation_platform_native/src/modal/mod.rs` | **NEW** — modal `register()` + NativeModule |
-| `backends/foundation_platform_native/src/modal/android/ModalHelper.kt` | **NEW** — Kotlin helper |
-| `backends/foundation_platform_native/src/modal/ios/ModalHelper.swift` | **NEW** — Swift helper |
-| `backends/foundation_platform_native/src/modal/handler.rs` | **NEW** — ModalIpc |
-| `backends/foundation_platform_native/src/modal/wasm.rs` | **NEW** — WASM wrapper |
-| `backends/foundation_platform_native/tests/injection_tests.rs` | **NEW** |
-| `backends/foundation_platform/src/codegen_native.rs` | **DELETE** — moved to foundation_platform_native |
-| `examples/platform_android/Cargo.toml` | Add build + runtime deps |
-| `examples/platform_android/build.rs` | Add modal::register() |
+| `backends/foundation_platform_native/Cargo.toml` | **UPDATE** — features, tauri-plugin dep, build-dependencies |
+| `backends/foundation_platform_native/build.rs` | **NEW** — tauri_plugin::Builder |
+| `backends/foundation_platform_native/permissions/default.toml` | **NEW** — ACL permissions |
+| `backends/foundation_platform_native/android/src/main/java/com/ewe/platform/EwePlatformPlugin.kt` | **NEW** — Tauri plugin class |
+| `backends/foundation_platform_native/android/src/main/java/com/ewe/platform/ModalHelper.kt` | **NEW** |
+| `backends/foundation_platform_native/ios/Sources/EwePlatformPlugin.swift` | **NEW** — Tauri plugin class |
+| `backends/foundation_platform_native/ios/Sources/ModalHelper.swift` | **NEW** |
+| `backends/foundation_platform_native/src/lib.rs` | **UPDATE** — feature-gated modules, no native_module trait |
+| `backends/foundation_platform_native/src/modal.rs` | **NEW** — ModalIpc handler + WASM wrapper |
+| `backends/foundation_platform_native/src/camera.rs` | **NEW** — CameraIpc handler + WASM wrapper |
+| `backends/foundation_platform_native/src/native_module.rs` | **DELETE** — not needed, Tauri Plugin trait replaces it |
+| `backends/foundation_platform_native/src/pipeline.rs` | **DELETE** — not needed, tauri_plugin::Builder replaces it |
+| `examples/platform_android/Cargo.toml` | Add foundation_platform_native dep |
+| `examples/platform_android/src-tauri/src/lib.rs` | Call modal::register(session) in setup |

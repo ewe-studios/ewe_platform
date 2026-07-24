@@ -4,32 +4,23 @@
 //! a nested `cargo build`, which deadlocks on the workspace lock the outer
 //! cargo holds while build scripts run. Build them BEFORE running this build:
 //!
-//! ```sh
-//! # Build all apps first, then the platform:
-//! cargo build --manifest-path app-shell/Cargo.toml \
-//!     --target wasm32-wasip1 --release
-//! codegen::build_shells_to_public();  # or equivalent copy step
-//! cargo build  # runs this build.rs -> bundles everything
-//! ```
-//!
 //! Every app lands in `src-tauri/public/{app_id}/v{version}/`. That is the
 //! layout Tauri bundles, the asset manager serves from, and OTA writes into.
 
 use std::path::PathBuf;
 
 use foundation_platform::codegen;
-use foundation_platform::codegen_native::PlatformCodegen;
 
 fn main() {
     let root = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let src_tauri = root.join("src-tauri");
     let public_dir = src_tauri.join("public");
 
-    // ── F42: Inject native modules ──────────────────────────────────────
-    let mut native = PlatformCodegen::new();
-    // Register native modules here — IPC handlers that need Kotlin/Swift code.
-    // Example: native.register_native_module(MyCameraModule);
-    native.inject_native_code(&src_tauri);
+    // ── F42: Native module injection (when foundation_platform_native is added) ──
+    // use foundation_platform_native::{PlatformCodegen, modal};
+    // let mut codegen = PlatformCodegen::new();
+    // modal::register(&mut codegen);
+    // codegen.inject_native_code(&src_tauri);
 
     // ── Surface 2: WebView WASM apps (compiled inline, no cargo nesting) ──
     for app_id in ["app", "app-hello"] {

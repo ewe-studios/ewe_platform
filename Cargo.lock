@@ -5449,6 +5449,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_platform_native"
+version = "0.0.1"
+dependencies = [
+ "foundation_platform",
+ "foundation_ui_traits",
+ "foundation_wasm",
+]
+
+[[package]]
 name = "foundation_proxy"
 version = "0.1.1"
 dependencies = [

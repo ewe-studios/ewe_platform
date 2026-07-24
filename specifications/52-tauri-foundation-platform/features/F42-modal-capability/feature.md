@@ -73,9 +73,29 @@ Response:
 }
 ```
 
-### Implementation
+### Implementation (via F42-native-modules plugin)
 
-**foundation_platform_native/src/modal/** — the complete module:
+**foundation_platform_native/src/modal.rs** — IPC handler + WASM wrapper:
+
+```rust
+// feature-gated: #[cfg(feature = "modal")]
+pub fn register(session: &PlatformSession) { session.register_ipc(ModalIpc); }
+
+struct ModalIpc;
+impl Ipc for ModalIpc { ... }
+impl PlatformIpc for ModalIpc { ... }
+
+#[cfg(target_family = "wasm")]
+pub mod wasm { pub struct Modal; impl Modal { ... } }
+```
+
+**Kotlin plugin** (auto-injected by `tauri_plugin::Builder`):
+
+```
+android/src/main/java/com/ewe/platform/
+├── EwePlatformPlugin.kt    ← extends app.tauri.plugin.Plugin
+└── ModalHelper.kt          ← BottomSheetDialogFragment / AlertDialog with WebView
+```
 
 ```
 modal/

@@ -1,0 +1,274 @@
+//! Codegen pipeline — injects native code into Tauri's gen/ directory.
+//!
+//! Users call `PlatformCodegen::new().register(modal::module()).inject_native_code()`.
+
+use std::path::{Path, PathBuf};
+
+use crate::native_module::NativeModule;
+
+pub struct PlatformCodegen {
+    modules: Vec<Box<dyn NativeModule>>,
+}
+
+impl PlatformCodegen {
+    #[must_use]
+    pub fn new() -> Self { Self { modules: vec![] } }
+
+    pub fn register(&mut self, module: impl NativeModule) {
+        self.modules.push(Box::new(module));
+    }
+
+    pub fn inject_native_code(&self, src_tauri: &Path) {
+        let android_gen = src_tauri.join("gen/android");
+        if android_gen.join("app/build.gradle.kts").exists() {
+            self.inject_android(&android_gen);
+        }
+        let apple_gen = src_tauri.join("gen/apple");
+        if apple_gen.is_dir() {
+            self.inject_ios(&apple_gen);
+        }
+    }
+
+    fn inject_android(&self, android_dir: &Path) {
+        let pkg_path = resolve_android_package_path(android_dir);
+        let native_base = pkg_path.join("native");
+        std::fs::create_dir_all(&native_base).ok();
+
+        let mut all_deps: Vec<String> = Vec::new();
+        let mut all_perms: Vec<String> = Vec::new();
+
+        for module in &self.modules {
+            if let Some(cfg) = module.android() {
+                let module_dir = native_base.join(module.name());
+                std::fs::create_dir_all(&module_dir).ok();
+                for src in &cfg.kotlin_sources {
+                    match src {
+                        crate::native_module::KotlinSource::File(path) => {
+                            let dest = module_dir.join(
+                                path.file_name().unwrap_or_default(),
+                            );
+                            if let Ok(existing) = std::fs::read_to_string(&dest) {
+                                if let Ok(src_content) = std::fs::read_to_string(path) {
+                                    if existing == src_content { continue; }
+                                }
+                            }
+                            std::fs::copy(path, &dest).unwrap_or_else(|e| {
+                                panic!(
+                                    "F42: failed to copy {} → {}: {e}",
+                                    path.display(),
+                                    dest.display(),
+                                )
+                            });
+                            println!(
+                                "cargo:warning=F42: injected native Kotlin: {}",
+                                dest.display(),
+                            );
+                        }
+                        crate::native_module::KotlinSource::Inline {
+                            filename,
+                            source,
+                        } => {
+                            let dest = module_dir.join(filename);
+                            std::fs::write(&dest, source).unwrap_or_else(|e| {
+                                panic!("F42: failed to write {}", dest.display())
+                            });
+                            println!(
+                                "cargo:warning=F42: injected inline Kotlin: {}",
+                                dest.display(),
+                            );
+                        }
+                    }
+                }
+                all_deps.extend(cfg.gradle_dependencies);
+                all_perms.extend(cfg.permissions);
+            }
+        }
+
+        if !all_deps.is_empty() {
+            write_gradle_deps(android_dir, &all_deps);
+        }
+        if !all_perms.is_empty() {
+            patch_android_manifest(&pkg_path, &all_perms);
+        }
+    }
+
+    fn inject_ios(&self, _apple_dir: &Path) {
+        // iOS injection — implemented when the Apple target is active.
+    }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+fn resolve_android_package_path(android_dir: &Path) -> PathBuf {
+    let java_src = android_dir.join("app/src/main/java");
+    if !java_src.exists() {
+        return java_src;
+    }
+    fn find_pkg(dir: &Path) -> Option<PathBuf> {
+        for entry in std::fs::read_dir(dir).ok()?.flatten() {
+            if entry.path().is_dir() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name == "generated" { continue; }
+                if entry.path().join("MainActivity.kt").exists() {
+                    return Some(entry.path());
+                }
+                if let Some(found) = find_pkg(&entry.path()) {
+                    return Some(found);
+                }
+            }
+        }
+        None
+    }
+    find_pkg(&java_src).unwrap_or_else(|| java_src.join("com/ewe/platform"))
+}
+
+fn write_gradle_deps(android_dir: &Path, deps: &[String]) {
+    let gradle_file = android_dir.join("app/native_modules.gradle");
+    let mut content = String::from(
+        "// Auto-generated by F42 native module pipeline. DO NOT EDIT.\n",
+    );
+    content.push_str("dependencies {\n");
+    for dep in deps {
+        content.push_str(&format!("    implementation(\"{dep}\")\n"));
+    }
+    content.push_str("}\n");
+    std::fs::write(&gradle_file, &content)
+        .unwrap_or_else(|e| panic!("F42: failed to write native_modules.gradle: {e}"));
+    println!(
+        "cargo:warning=F42: wrote native_modules.gradle ({} deps)",
+        deps.len(),
+    );
+
+    let build_gradle = android_dir.join("app/build.gradle.kts");
+    if build_gradle.exists() {
+        let existing = std::fs::read_to_string(&build_gradle).unwrap_or_default();
+        let marker = "// F42: native_modules.gradle";
+        if !existing.contains(marker) {
+            let patched = format!(
+                "{existing}\n{marker}\napply(from = \"native_modules.gradle\")\n"
+            );
+            std::fs::write(&build_gradle, &patched)
+                .unwrap_or_else(|e| panic!("F42: failed to patch build.gradle.kts: {e}"));
+            println!(
+                "cargo:warning=F42: patched build.gradle.kts for native_modules.gradle",
+            );
+        }
+    }
+}
+
+fn patch_android_manifest(pkg_path: &Path, permissions: &[String]) {
+    // Try app/src/main/AndroidManifest.xml first
+    let manifest_path = pkg_path
+        .parent()
+        .map(|p| p.join("AndroidManifest.xml"))
+        .filter(|p| p.exists())
+        .unwrap_or_else(|| pkg_path.join("AndroidManifest.xml"));
+
+    if !manifest_path.exists() {
+        return;
+    }
+    let existing = std::fs::read_to_string(&manifest_path).unwrap_or_default();
+    let mut patched = existing.clone();
+    for perm in permissions {
+        let perm_xml = format!("    <uses-permission android:name=\"{perm}\" />\n");
+        if !existing.contains(&perm_xml.trim()[4..]) {
+            if let Some(pos) = patched.find("<application") {
+                patched.insert_str(pos, &perm_xml);
+            } else if let Some(pos) = patched.find("</manifest>") {
+                patched.insert_str(pos, &perm_xml);
+            }
+        }
+    }
+    if patched != existing {
+        std::fs::write(&manifest_path, &patched).unwrap_or_else(|e| {
+            panic!("F42: failed to patch AndroidManifest.xml: {e}");
+        });
+        println!(
+            "cargo:warning=F42: patched AndroidManifest.xml ({} permissions)",
+            permissions.len(),
+        );
+    }
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::native_module::{AndroidModuleConfig, KotlinSource, NativeModule};
+
+    struct TestModule {
+        name: &'static str,
+        deps: Vec<String>,
+        perms: Vec<String>,
+    }
+
+    impl NativeModule for TestModule {
+        fn name(&self) -> &str { self.name }
+        fn android(&self) -> Option<AndroidModuleConfig> {
+            Some(AndroidModuleConfig {
+                kotlin_sources: vec![KotlinSource::Inline {
+                    filename: "TestHelper.kt".into(),
+                    source: "package com.ewe.platform.native.test\n\nclass TestHelper",
+                }],
+                gradle_dependencies: self.deps.clone(),
+                permissions: self.perms.clone(),
+            })
+        }
+    }
+
+    #[test]
+    fn pipeline_injects_kotlin_sources() {
+        let tmp = std::env::temp_dir().join("f42_test_inject");
+        let _ = std::fs::remove_dir_all(&tmp);
+        let android_dir = tmp.join("gen/android");
+        let pkg_dir = android_dir.join("app/src/main/java/com/ewe/platform");
+        std::fs::create_dir_all(&pkg_dir).unwrap();
+        std::fs::write(pkg_dir.join("MainActivity.kt"), "class MainActivity").unwrap();
+        std::fs::write(android_dir.join("app/build.gradle.kts"), "// existing").unwrap();
+
+        let mut pipeline = PlatformCodegen::new();
+        pipeline.register(TestModule {
+            name: "test",
+            deps: vec!["androidx.core:core:1.12.0".into()],
+            perms: vec!["android.permission.CAMERA".into()],
+        });
+        pipeline.inject_native_code(&tmp);
+
+        assert!(pkg_dir.join("native/test/TestHelper.kt").exists());
+        let gradle = android_dir.join("app/native_modules.gradle");
+        assert!(gradle.exists());
+        let content = std::fs::read_to_string(&gradle).unwrap();
+        assert!(content.contains("androidx.core:core:1.12.0"));
+
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn pipeline_idempotent_across_runs() {
+        let tmp = std::env::temp_dir().join("f42_test_idem");
+        let _ = std::fs::remove_dir_all(&tmp);
+        let android_dir = tmp.join("gen/android");
+        let pkg_dir = android_dir.join("app/src/main/java/com/ewe/platform");
+        std::fs::create_dir_all(&pkg_dir).unwrap();
+        std::fs::write(pkg_dir.join("MainActivity.kt"), "class MainActivity").unwrap();
+        std::fs::write(android_dir.join("app/build.gradle.kts"), "// existing").unwrap();
+
+        let mut pipeline = PlatformCodegen::new();
+        pipeline.register(TestModule {
+            name: "idem",
+            deps: vec![],
+            perms: vec![],
+        });
+
+        pipeline.inject_native_code(&tmp);
+        let first =
+            std::fs::read_to_string(android_dir.join("app/build.gradle.kts")).unwrap();
+        pipeline.inject_native_code(&tmp);
+        let second =
+            std::fs::read_to_string(android_dir.join("app/build.gradle.kts")).unwrap();
+        assert_eq!(first, second, "idempotent");
+
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+}
