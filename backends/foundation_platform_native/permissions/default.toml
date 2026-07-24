@@ -1,0 +1,11 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for the ewe-platform-native plugin. Grants access to all native IPC capabilities registered by this plugin (modal, camera, biometric, chrome, filesystem)."
+permissions = [
+  "allow-all",
+]
+
+[allow-all]
+description = "Allow all native platform IPC invocations."
+permissions = []
