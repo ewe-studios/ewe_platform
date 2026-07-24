@@ -108,14 +108,16 @@ impl ScriptInjector {
             .collect()
     }
 
-    /// Create a `ScriptInjector` pre-loaded with the four standard platform
+    /// Create a `ScriptInjector` pre-loaded with the four core platform
     /// runtime scripts: scheme interceptor, foundation-wasm, foundation-wasm-ui,
-    /// and capability bridge. Each has a disk → static fallback chain.
+    /// and ipc-bridge. Each has a disk → static fallback chain.
+    ///
+    /// Apps add their own scripts (floating-nav, stack-viewport, etc.) via
+    /// the codegen HTML or [`PlatformBuilder::inject_script`].
     #[must_use]
     pub fn with_platform_runtimes(resource_root: PathBuf) -> Self {
         let mut injector = Self::new(resource_root);
 
-        // 1. Platform scheme interceptor
         injector.register(InjectedScript {
             id: "scheme_interceptor".into(),
             sources: vec![
@@ -128,7 +130,6 @@ impl ScriptInjector {
             ],
         });
 
-        // 2. Foundation WASM core runtime
         injector.register(InjectedScript {
             id: "foundation_wasm".into(),
             sources: vec![
@@ -141,7 +142,6 @@ impl ScriptInjector {
             ],
         });
 
-        // 3. Foundation WASM UI runtime
         injector.register(InjectedScript {
             id: "foundation_wasm_ui".into(),
             sources: vec![
@@ -154,7 +154,6 @@ impl ScriptInjector {
             ],
         });
 
-        // 4. IPC bridge (F41 — replaces capability-bridge.js)
         injector.register(InjectedScript {
             id: "ipc_bridge".into(),
             sources: vec![
@@ -163,32 +162,6 @@ impl ScriptInjector {
                 },
                 ScriptSource::Static {
                     source: foundation_wasm_ui::embedded::IPC_BRIDGE_JS,
-                },
-            ],
-        });
-
-        // 5. Stack viewport — screenshot-swap overlay (F35)
-        injector.register(InjectedScript {
-            id: "stack_viewport".into(),
-            sources: vec![
-                ScriptSource::Disk {
-                    relative_path: PathBuf::from("public/runtimes/stack-viewport.js"),
-                },
-                ScriptSource::Static {
-                    source: foundation_wasm_ui::embedded::STACK_VIEWPORT_JS,
-                },
-            ],
-        });
-
-        // 6. Floating navigation toolbar (F29 Stage 4)
-        injector.register(InjectedScript {
-            id: "floating_nav".into(),
-            sources: vec![
-                ScriptSource::Disk {
-                    relative_path: PathBuf::from("public/runtimes/floating-nav.js"),
-                },
-                ScriptSource::Static {
-                    source: foundation_wasm_ui::embedded::FLOATING_NAV_JS,
                 },
             ],
         });
