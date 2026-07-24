@@ -207,7 +207,7 @@ impl Default for IpcRegistry { fn default() -> Self { Self::new() } }
 
 // ── Binary encoding (ToBinary / FromBinary for IpcRequest / IpcResponse) ──
 
-use crate::{BinaryReaderResult, ToBinary, FromBinary, BinaryReadError};
+use crate::{BinaryReadError, FromBinary, ToBinary};
 
 /// Wire format: length-delimited binary (same pattern as Params).
 ///   4 bytes LE u32: ipc name length + ipc name bytes
@@ -242,67 +242,85 @@ fn ct_from_byte(b: u8) -> Result<IpcContentType, BinaryReadError> {
     }
 }
 
+// ── Module-level encode/decode (primary FFI API) ────────────────────────
+
+/// Encode an `IpcRequest<Vec<u8>>` into wire bytes.
+pub fn encode_request(req: &IpcRequest<Vec<u8>>) -> Vec<u8> {
+    let mut buf = Vec::new();
+    write_str(&mut buf, &req.ipc);
+    write_str(&mut buf, &req.action);
+    buf.push(ct_byte(req.content_type));
+    let target = req.target.as_deref().unwrap_or("");
+    write_str(&mut buf, target);
+    buf.extend_from_slice(&(req.payload.len() as u32).to_le_bytes());
+    buf.extend_from_slice(&req.payload);
+    buf
+}
+
+/// Encode an `IpcResponse<Vec<u8>>` into wire bytes.
+pub fn encode_response(resp: &IpcResponse<Vec<u8>>) -> Vec<u8> {
+    let mut buf = Vec::new();
+    write_str(&mut buf, "");     // echoed ipc name (host fills on send)
+    write_str(&mut buf, "");     // echoed action
+    buf.push(ct_byte(resp.content_type));
+    write_str(&mut buf, "");     // echoed target
+    buf.extend_from_slice(&(resp.payload.len() as u32).to_le_bytes());
+    buf.extend_from_slice(&resp.payload);
+    buf
+}
+
+/// Decode an `IpcResponse<Vec<u8>>` from wire bytes.
+pub fn decode_response(data: &[u8]) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    let mut off = 0;
+    let _ipc = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("ipc: {e:?}")))?;
+    let _action = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("action: {e:?}")))?;
+    let ct = ct_from_byte(data.get(off).copied().unwrap_or(0)).map_err(|e| IpcError::InvalidPayload(alloc::format!("ct: {e:?}")))?;
+    off += 1;
+    let _target = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("target: {e:?}")))?;
+    if off + 4 > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
+    let plen = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
+    off += 4;
+    if off + plen > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
+    Ok(IpcResponse { payload: data[off..off+plen].to_vec(), content_type: ct })
+}
+
+/// Decode an `IpcRequest<Vec<u8>>` from wire bytes.
+pub fn decode_request(data: &[u8]) -> Result<IpcRequest<Vec<u8>>, IpcError> {
+    let mut off = 0;
+    let ipc = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("ipc: {e:?}")))?;
+    let action = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("action: {e:?}")))?;
+    let ct = ct_from_byte(data.get(off).copied().unwrap_or(0)).map_err(|e| IpcError::InvalidPayload(alloc::format!("ct: {e:?}")))?;
+    off += 1;
+    let target_s = read_str(data, &mut off).map_err(|e| IpcError::InvalidPayload(alloc::format!("target: {e:?}")))?;
+    let target = if target_s.is_empty() { None } else { Some(target_s) };
+    if off + 4 > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
+    let plen = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
+    off += 4;
+    if off + plen > data.len() { return Err(IpcError::InvalidPayload("truncated".into())); }
+    Ok(IpcRequest { ipc, action, payload: data[off..off+plen].to_vec(), content_type: ct, target })
+}
+
+// ── ToBinary / FromBinary impls (delegate to module functions) ──────────
+
 impl ToBinary for IpcRequest<Vec<u8>> {
-    fn to_binary(&self) -> Vec<u8> {
-        let mut buf = Vec::new();
-        write_str(&mut buf, &self.ipc);
-        write_str(&mut buf, &self.action);
-        buf.push(ct_byte(self.content_type));
-        let target = self.target.as_deref().unwrap_or("");
-        write_str(&mut buf, target);
-        buf.extend_from_slice(&(self.payload.len() as u32).to_le_bytes());
-        buf.extend_from_slice(&self.payload);
-        buf
-    }
+    fn to_binary(&self) -> Vec<u8> { encode_request(self) }
+}
+
+impl ToBinary for IpcResponse<Vec<u8>> {
+    fn to_binary(&self) -> Vec<u8> { encode_response(self) }
 }
 
 impl FromBinary for IpcRequest<Vec<u8>> {
     type T = IpcRequest<Vec<u8>>;
-
-    fn from_binary(self, data: &[u8]) -> BinaryReaderResult<Self::T> {
-        let mut off = 0;
-        let ipc = read_str(data, &mut off)?;
-        let action = read_str(data, &mut off)?;
-        let ct = ct_from_byte(data.get(off).copied().unwrap_or(0))?; off += 1;
-        let target_s = read_str(data, &mut off)?;
-        let target = if target_s.is_empty() { None } else { Some(target_s) };
-        if off + 4 > data.len() { return Err(BinaryReadError::MemoryError("truncated".into())); }
-        let plen = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-        off += 4;
-        if off + plen > data.len() { return Err(BinaryReadError::MemoryError("truncated".into())); }
-        let payload = data[off..off+plen].to_vec();
-        Ok(IpcRequest { ipc, action, payload, content_type: ct, target })
-    }
-}
-
-impl ToBinary for IpcResponse<Vec<u8>> {
-    fn to_binary(&self) -> Vec<u8> {
-        let mut buf = Vec::new();
-        write_str(&mut buf, "");     // echoed ipc (host fills)
-        write_str(&mut buf, "");     // echoed action (host fills)
-        buf.push(ct_byte(self.content_type));
-        write_str(&mut buf, "");     // echoed target (host fills)
-        buf.extend_from_slice(&(self.payload.len() as u32).to_le_bytes());
-        buf.extend_from_slice(&self.payload);
-        buf
+    fn from_binary(self, data: &[u8]) -> crate::BinaryReaderResult<Self::T> {
+        decode_request(data).map_err(|e| BinaryReadError::MemoryError(alloc::format!("{e:?}")))
     }
 }
 
 impl FromBinary for IpcResponse<Vec<u8>> {
     type T = IpcResponse<Vec<u8>>;
-
-    fn from_binary(self, data: &[u8]) -> BinaryReaderResult<Self::T> {
-        let mut off = 0;
-        let _ipc = read_str(data, &mut off)?;
-        let _action = read_str(data, &mut off)?;
-        let ct = ct_from_byte(data.get(off).copied().unwrap_or(0))?; off += 1;
-        let _target = read_str(data, &mut off)?;
-        if off + 4 > data.len() { return Err(BinaryReadError::MemoryError("truncated".into())); }
-        let plen = u32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]) as usize;
-        off += 4;
-        if off + plen > data.len() { return Err(BinaryReadError::MemoryError("truncated".into())); }
-        let payload = data[off..off+plen].to_vec();
-        Ok(IpcResponse { payload, content_type: ct })
+    fn from_binary(self, data: &[u8]) -> crate::BinaryReaderResult<Self::T> {
+        decode_response(data).map_err(|e| BinaryReadError::MemoryError(alloc::format!("{e:?}")))
     }
 }
 
