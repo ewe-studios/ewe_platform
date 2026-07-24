@@ -241,18 +241,20 @@ impl<R: Runtime> PlatformBuilder<R> {
             // classic script — the `export` keyword causes a SyntaxError. We strip
             // `export` statements on mobile so the `globalThis.FoundationWasmRuntime`
             // mirror path works (the scripts are designed for both ESM and IIFE).
+            let main_label = app.get_webview_window("main")
+                .map(|w| w.label().to_string())
+                .unwrap_or_else(|| "main".to_string());
+            session.set_main_webview_label(&main_label);
+
+            // F24: resolve and eval all platform runtime scripts.
+            // Scripts are ESM-compatible — the build tooling must produce
+            // scripts that work as classic scripts (no bare `export` at top
+            // level). WebView.eval() evaluates as a classic script.
             let scripts = session.script_injector().resolve_all();
             if let Some(window) = app.get_webview_window("main") {
-                let is_mobile = cfg!(target_os = "android") || cfg!(target_os = "ios");
                 for script in &scripts {
-                    let to_eval = if is_mobile {
-                        // Strip top-level `export` so classic-script eval works on WebView.
-                        script.replace("export ", "// export ")
-                    } else {
-                        script.clone()
-                    };
-                    if !to_eval.is_empty() {
-                        let _ = window.eval(&to_eval);
+                    if !script.is_empty() {
+                        let _ = window.eval(script);
                     }
                 }
             }
@@ -324,7 +326,7 @@ fn __ewe_ipc(
             route: String::new(),
             visit_id: 0,
         }),
-        webview_label: "main".to_string(),
+        webview_label: session.main_webview_label(),
     };
 
     let response = session

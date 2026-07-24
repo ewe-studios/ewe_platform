@@ -129,6 +129,10 @@ pub struct PlatformSession {
     /// which is correct everywhere except Android, where APK-bundled assets
     /// are not on disk and only the manager's VFS can reach them.
     asset_manager: RwLock<Option<Arc<crate::assets::PlatformAssetManager>>>,
+
+    /// The Tauri WebView label of the main window. Set by `PlatformBuilder`
+    /// at setup. Used by `__ewe_ipc` to scope IPC context. Defaults to "main".
+    main_webview_label: RwLock<String>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -172,6 +176,7 @@ impl PlatformSession {
             window_manager: crate::window::WindowManager::new(),
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
             asset_manager: RwLock::new(None),
+            main_webview_label: RwLock::new("main".to_string()),
         })
     }
 }
@@ -648,6 +653,24 @@ impl PlatformSession {
     /// Panics if the internal `RwLock` is poisoned.
     pub fn set_asset_manager(&self, manager: Arc<crate::assets::PlatformAssetManager>) {
         *self.asset_manager.write().unwrap() = Some(manager);
+    }
+
+    /// Set the main WebView label. Called by `PlatformBuilder` at setup.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    pub fn set_main_webview_label(&self, label: &str) {
+        *self.main_webview_label.write().unwrap() = label.to_string();
+    }
+
+    /// The main WebView label for IPC context scoping.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
+    pub fn main_webview_label(&self) -> String {
+        self.main_webview_label.read().unwrap().clone()
     }
 
     /// The directory an app's assets are served from (F40).
