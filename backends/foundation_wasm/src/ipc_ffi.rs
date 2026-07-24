@@ -69,7 +69,7 @@ pub fn ipc_dispatch<T: WirePayload, U: WirePayload>(
 pub static IPC_TRIGGER: Mutex<TriggerRegistry> = Mutex::new(TriggerRegistry::new());
 
 #[cfg(target_family = "wasm")]
-static IPC_TRIGGER: Mutex<TriggerRegistry> = Mutex::new(TriggerRegistry::new());
+pub static IPC_TRIGGER: Mutex<TriggerRegistry> = Mutex::new(TriggerRegistry::new());
 
 #[cfg(not(target_family = "wasm"))]
 pub fn set_event_handler(

@@ -67,3 +67,111 @@ pub extern "C" fn emit_columnar_dom_ops() {
     let _ = receiver.flush();
 }
 
+
+// ── F41: Unified IPC e2e exports (WASM→host + host→WASM) ────────────────
+
+use foundation_wasm::ipc::{encode_request, decode_response, IpcContentType, IpcRequest};
+use foundation_wasm::{TriggerRegistry, MemoryAllocation};
+use foundation_wasm::ipc_ffi::IPC_TRIGGER;
+
+/// Register a mock IPC handler in the global trigger registry.
+/// The JS test calls this, then triggers host→WASM events.
+#[no_mangle]
+pub extern "C" fn e2e_ipc_register_handler(action: u32) -> i32 {
+    #[cfg(target_family = "wasm")]
+    {
+        let mut trigger = IPC_TRIGGER.lock().unwrap();
+        trigger.set_ipc_handler(move |req: IpcRequest<Vec<u8>>| {
+            use foundation_wasm::ipc::IpcResponse;
+            Ok(IpcResponse {
+                payload: format!("handled-{action}-{}", req.action).into_bytes(),
+                content_type: IpcContentType::Json,
+            })
+        });
+    }
+    #[cfg(not(target_family = "wasm"))]
+    { let _ = action; }
+    1
+}
+
+/// Call host_ipc_invoke from WASM with a binary-encoded echo request.
+/// Returns 1 if the host echoes the payload back, -1 on failure.
+#[no_mangle]
+pub extern "C" fn e2e_ui_ipc_echo() -> i32 {
+    let req = IpcRequest {
+        ipc: "echo_ui".into(),
+        action: "ping".into(),
+        payload: b"hello-ui".to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(resp) => if resp.payload == b"hello-ui" { 1 } else { -2 },
+        Err(_) => -3,
+    }
+}
+
+/// Call host_ipc_invoke for a "chrome:set_title" capability.
+#[no_mangle]
+pub extern "C" fn e2e_ui_chrome_set_title() -> i32 {
+    let req = IpcRequest {
+        ipc: "chrome".into(),
+        action: "set_title".into(),
+        payload: br#"{"title":"Test Page"}"#.to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+    let alloc_id = unsafe {
+        foundation_wasm::host_ipc::host_ipc_invoke(encoded.as_ptr(), encoded.len() as u32)
+    };
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(alloc_id);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(_) => 1,
+        Err(_) => -2,
+    }
+}
+
+/// Trigger a host→WASM event by encoding a request and writing it
+/// to memory, then calling ipc_handle_event export (the entrypoint the
+/// JS host calls). Returns the allocation ID for JS to inspect.
+#[no_mangle]
+pub extern "C" fn e2e_ui_trigger_event() -> i32 {
+    let req = IpcRequest {
+        ipc: "chrome".into(),
+        action: "toolbar_tap".into(),
+        payload: br#"{"button_id":"save"}"#.to_vec(),
+        content_type: IpcContentType::Json,
+        target: None,
+    };
+    let encoded = encode_request(&req);
+
+    // Write event bytes into memory and call ipc_handle_event
+    let alloc_id = foundation_wasm::exposed_runtime::create_allocation(encoded.len() as u64);
+    let ptr = foundation_wasm::exposed_runtime::allocation_start_pointer(alloc_id);
+    unsafe { core::ptr::copy_nonoverlapping(encoded.as_ptr(), ptr as *mut u8, encoded.len()); }
+
+    let result_alloc = foundation_wasm::host_ipc::ipc_handle_event(ptr, encoded.len() as u32);
+    if result_alloc == 0 { return -1; }
+
+    let resp_bytes = foundation_wasm::internal_api::extract_vec_from_memory(result_alloc);
+    foundation_wasm::exposed_runtime::dispose_allocation(result_alloc);
+    foundation_wasm::exposed_runtime::dispose_allocation(alloc_id);
+
+    match decode_response(&resp_bytes) {
+        Ok(resp) => {
+            let s = core::str::from_utf8(&resp.payload).unwrap_or("invalid");
+            if s.contains("handled") { 1 } else { -2 }
+        }
+        Err(_) => -3,
+    }
+}

@@ -162,5 +162,5 @@
     globalThis.registerIpcTriggers = registerIpcTriggers;
   }
 
-  export { invokeIpc, registerIpcTriggers };
+  return { invokeIpc, registerIpcTriggers };
 })();

@@ -27,7 +27,8 @@ mod base;
 mod error;
 mod frames;
 mod host_runtime;
-// F41: host_runtime::ipc is pub so integration modules can access host_ipc_invoke etc.
+// F41: host_runtime::ipc re-exported so integration modules can access
+// host_ipc_invoke / ipc_handle_event.
 pub use host_runtime::ipc as host_ipc;
 mod intervals;
 mod mem;
