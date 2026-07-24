@@ -148,8 +148,10 @@ type DynIpc = Box<dyn Ipc<Vec<u8>, Vec<u8>> + 'static>;
 type DynIpc = Box<dyn Ipc<Vec<u8>, Vec<u8>> + Send + Sync + 'static>;
 
 pub struct IpcRegistry {
-    #[cfg(not(target_family = "wasm"))] inner: Mutex<BTreeMap<String, DynIpc>>,
-    #[cfg(target_family = "wasm")]     inner: BTreeMap<String, DynIpc>,
+    #[cfg(not(target_family = "wasm"))]
+    inner: Mutex<BTreeMap<String, DynIpc>>,
+    #[cfg(target_family = "wasm")]
+    inner: BTreeMap<String, DynIpc>,
 }
 
 impl IpcRegistry {
