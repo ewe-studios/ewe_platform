@@ -3714,6 +3714,8 @@ class EventDispatcher {
    * (the island custom element owns its own lifecycle, F06).
    */
   handleMutations(mutations) {
+    var dbg = document.getElementById('ewe-dbg');
+    if (dbg) dbg.textContent = 'MUT=' + mutations.length;
     for (const mutation of mutations) {
       if (mutation.type !== "childList") continue;
       for (const node of mutation.addedNodes) {
@@ -3840,6 +3842,8 @@ function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
  */
 function signalDeliver(rt, encode = jsonEncodeEventData) {
   return (setterId, eventData) => {
+    var dbg = document.getElementById('ewe-dbg');
+    if (dbg) dbg.textContent = 'SIG-DELIVER id=' + setterId;
     const bytes = encode(eventData);
     const memId = rt.memory.create(bytes.length);
     rt.memory.write(memId, bytes);

@@ -13,15 +13,9 @@
     }
   </style>
   <script src="bundle.js"></script>
-  <script>
-    if (typeof globalThis !== 'undefined' && globalThis.FoundationWasmRuntime) {
-      console.error('[DIAG] bundle.js OK — FoundationWasmRuntime present');
-    } else {
-      console.error('[DIAG] bundle.js FAILED — FoundationWasmRuntime: ' + typeof globalThis.FoundationWasmRuntime);
-    }
-  </script>
 </head>
 <body>
+<div id="ewe-dbg" style="position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font:10px monospace;padding:4px;z-index:9999;">...</div>
   <script>
     // ── platform_dashboard ── (dynamic import — static <script type="module">
     //  fails on Android WebView through custom protocols)

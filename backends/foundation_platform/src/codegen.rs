@@ -328,7 +328,7 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
     let ipc_bridge =
         repo_root.join("backends/foundation_wasm_ui/runtimes/ipc-bridge.js");
     std::fs::create_dir_all(out_dir).ok();
-    match gen.execute(
+    let _ = gen.execute(
         false,
         false,
         &[
@@ -337,10 +337,7 @@ pub fn build_wasm_app(app_dir: &Path, out_dir: &Path) {
             ("foundation-wasm-ui.js", wasm_ui_js.as_path()),
             ("platform-scheme-interceptor.js", interceptor.as_path()),
         ],
-    ) {
-        Ok(written) => println!("cargo:warning=WasmBundleGenerator wrote {} files: {:?}", written.len(), written.iter().map(|p| p.path.file_name().unwrap().to_string_lossy().to_string()).collect::<Vec<_>>()),
-        Err(e) => println!("cargo:warning=WasmBundleGenerator execute failed: {e}"),
-    }
+    );
 }
 
 /// Generate per-app Rust module files inside `generated/`.
