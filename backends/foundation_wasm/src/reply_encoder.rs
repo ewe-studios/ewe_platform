@@ -19,7 +19,7 @@ use crate::host_runtime::exposed_runtime;
 use crate::ReturnValues;
 
 const BEGIN: u8 = 100;
-const END: u8   = 101;
+const END: u8 = 101;
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -72,38 +72,75 @@ pub fn callback_failure(code: u16) -> u64 {
 fn encode_value(buf: &mut Vec<u8>, v: &ReturnValues) {
     match v {
         ReturnValues::None => {}
-        ReturnValues::Bool(b)       => buf.push(if *b { 1 } else { 0 }),
-        ReturnValues::Int8(n)       => buf.push(*n as u8),
-        ReturnValues::Uint8(n)      => buf.push(*n),
-        ReturnValues::Int16(n)      => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Uint16(n)     => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::ErrorCode(c)  => buf.extend_from_slice(&c.to_le_bytes()),
-        ReturnValues::Int32(n)      => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Uint32(n)     => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Float32(n)    => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Int64(n)      => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Uint64(n)     => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Float64(n)    => buf.extend_from_slice(&n.to_le_bytes()),
-        ReturnValues::Int128(n)     => { let b = n.to_le_bytes(); buf.extend_from_slice(&b); }
-        ReturnValues::Uint128(n)    => { let b = n.to_le_bytes(); buf.extend_from_slice(&b); }
-        ReturnValues::ExternalReference(ep) => buf.extend_from_slice(&ep.into_inner().to_le_bytes()),
-        ReturnValues::InternalReference(ip) => buf.extend_from_slice(&ip.into_inner().to_le_bytes()),
-        ReturnValues::Object(ep)    => buf.extend_from_slice(&ep.into_inner().to_le_bytes()),
+        ReturnValues::Bool(b) => buf.push(if *b { 1 } else { 0 }),
+        ReturnValues::Int8(n) => buf.push(*n as u8),
+        ReturnValues::Uint8(n) => buf.push(*n),
+        ReturnValues::Int16(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Uint16(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::ErrorCode(c) => buf.extend_from_slice(&c.to_le_bytes()),
+        ReturnValues::Int32(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Uint32(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Float32(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Int64(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Uint64(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Float64(n) => buf.extend_from_slice(&n.to_le_bytes()),
+        ReturnValues::Int128(n) => {
+            let b = n.to_le_bytes();
+            buf.extend_from_slice(&b);
+        }
+        ReturnValues::Uint128(n) => {
+            let b = n.to_le_bytes();
+            buf.extend_from_slice(&b);
+        }
+        ReturnValues::ExternalReference(ep) => {
+            buf.extend_from_slice(&ep.into_inner().to_le_bytes())
+        }
+        ReturnValues::InternalReference(ip) => {
+            buf.extend_from_slice(&ip.into_inner().to_le_bytes())
+        }
+        ReturnValues::Object(ep) => buf.extend_from_slice(&ep.into_inner().to_le_bytes()),
         ReturnValues::DOMObject(ip) => buf.extend_from_slice(&ip.into_inner().to_le_bytes()),
         ReturnValues::MemorySlice(mid) => buf.extend_from_slice(&mid.as_u64().to_le_bytes()),
 
         // Nested: payload in global-arena slot, slot id goes inline.
-        ReturnValues::Text8(s)         => buf.extend_from_slice(&nest(s.as_bytes()).to_le_bytes()),
-        ReturnValues::Uint8Array(a)    => buf.extend_from_slice(&nest(a).to_le_bytes()),
-        ReturnValues::Int8Array(a)     => { let b: Vec<u8> = a.iter().map(|n| *n as u8).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Int16Array(a)    => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Int32Array(a)    => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Int64Array(a)    => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Uint16Array(a)   => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Uint32Array(a)   => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Uint64Array(a)   => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Float32Array(a)  => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_bits().to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
-        ReturnValues::Float64Array(a)  => { let b: Vec<u8> = a.iter().flat_map(|n| n.to_bits().to_le_bytes()).collect(); buf.extend_from_slice(&nest(&b).to_le_bytes()); }
+        ReturnValues::Text8(s) => buf.extend_from_slice(&nest(s.as_bytes()).to_le_bytes()),
+        ReturnValues::Uint8Array(a) => buf.extend_from_slice(&nest(a).to_le_bytes()),
+        ReturnValues::Int8Array(a) => {
+            let b: Vec<u8> = a.iter().map(|n| *n as u8).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Int16Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Int32Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Int64Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Uint16Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Uint32Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Uint64Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Float32Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_bits().to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
+        ReturnValues::Float64Array(a) => {
+            let b: Vec<u8> = a.iter().flat_map(|n| n.to_bits().to_le_bytes()).collect();
+            buf.extend_from_slice(&nest(&b).to_le_bytes());
+        }
         ReturnValues::TypedArraySlice(ts, ml) => {
             buf.push(*ts as u8);
             buf.extend_from_slice(&(ml.0 as u64).to_le_bytes());
