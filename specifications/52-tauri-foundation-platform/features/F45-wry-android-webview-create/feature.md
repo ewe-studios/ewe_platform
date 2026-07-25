@@ -173,28 +173,39 @@ extras that the consuming app's Manifest supports.
 
 ## Requirements
 
-### R1. `AndroidWebViewWindowType` enum
+### R1. `AndroidWebViewWindowType` enum (simplified — see F44 R2a)
 ```rust
 pub enum AndroidWebViewWindowType {
-    /// Default — full Activity with setContentView (current behavior)
+    /// Default — standard WryActivity (full-screen)
     FullScreen,
-    /// Dialog-themed Activity — appears as overlay, can be partial-height
-    Dialog { theme_res_id: Option<u32> },
-    /// Bottom sheet — Dialog theme + Gravity.BOTTOM + FLAG_DIM_BEHIND
-    BottomSheet { theme_res_id: Option<u32>, peek_height_fraction: f32 },
+    /// Dialog-themed — uses DialogWryActivity (future Kotlin class)
+    Dialog,
+    /// Bottom sheet — uses SheetWryActivity (F44 R2a)
+    BottomSheet,
 }
 ```
+The enum maps to `activity_name` values on the tao side (F44 R3):
+`FullScreen` → `"WryActivity"`, `Dialog` → `"DialogWryActivity"`,
+`BottomSheet` → `"SheetWryActivity"`.
+
+The enum carries NO layout parameters. Theme, gravity, dim, flags, and
+partial-height sizing are owned by the dedicated Kotlin class (F44 R2a).
+Rust sends at most one Intent extra: `height_fraction` (F44 R1).
+
 - File: `wry/src/android/mod.rs` (new type)
 
 ### R2. `CreateWebViewAttributes` — add `window_type` field
 - `pub window_type: AndroidWebViewWindowType` — defaults to `FullScreen`
-- Serialized as Intent extras when creating the Activity
+- Maps to `activity_name` in tao's `PlatformSpecificWindowBuilderAttributes`
+  (routes the window to the correct Kotlin Activity class, F44 R3)
+- `height_fraction` Intent extra added only for `BottomSheet` and `Dialog` types
 - File: `wry/src/android/main_pipe.rs`
 
-### R3. Conditional `setContentView` in `CreateWebView` handler
+### R3. Conditional `setContentView` in `CreateWebView` handler (minimal change)
 - `FullScreen` → `activity.setContentView(webview)` (unchanged)
-- `Dialog` → `activity.setContentView(webview)` + apply theme/dim/gravity via JNI
-- `BottomSheet` → same as Dialog + set layout height to peek_height_fraction
+- `Dialog` / `BottomSheet` → `activity.setContentView(webview)` (unchanged —
+  the Activity class itself handles theme + layout via F44 R2a.
+  The wry handler does NOT apply theme/dim/gravity via JNI.)
 - File: `wry/src/android/main_pipe.rs`
 
 ### R4. `WebViewBuilderExtAndroid` — add builder method
@@ -203,22 +214,25 @@ fn with_android_window_type(self, window_type: AndroidWebViewWindowType) -> Self
 ```
 - Stores window type in `PlatformSpecificWebViewAttributes`
 - Propagates through `InnerWebView::new()` → `CreateWebViewAttributes`
+- Maps to `platform_specific.activity_name` on the tao side (F44 R3)
 - File: `wry/src/lib.rs`
 
-### R5. WryActivity.kt — apply theme and layout from Intent extras
-- Read `window_type`, `theme_res_id`, `peek_height_fraction` from Intent
-- `setTheme(themeResId)` before `super.onCreate()` when provided
-- Apply `Window.setLayout()`, `setGravity()`, `addFlags()` after `setContentView`
-- File: `wry/src/android/kotlin/WryActivity.kt`
+### R5. `SheetWryActivity.kt` — dedicated class (see F44 R2a for full spec)
+- Extends `WryActivity`. Overrides `onCreate`: sets dialog theme, reads
+  `height_fraction` Intent extra, configures `Window.setLayout/setGravity/dim`
+- `WryActivity.kt` itself needs NO changes for theme/layout handling
+- File: `wry/src/android/kotlin/SheetWryActivity.kt` (new)
 
 ## Implementation Sequence
 
-1. **wry (Rust):** Add `AndroidWebViewWindowType` enum
-2. **wry (Rust):** Add field to `CreateWebViewAttributes`, `PlatformSpecificWebViewAttributes`
-3. **wry (Rust):** Add builder method on `WebViewBuilderExtAndroid`
-4. **wry (Rust):** Modify `CreateWebView` handler to apply type-specific layout
-5. **wry (Kotlin):** Update `WryActivity.kt` to read and apply layout extras
-6. **Test:** Create dialog-windowed WebView from Rust, verify in emulator
+1. **wry (Kotlin):** Create `SheetWryActivity.kt` (F44 R2a) — extends `WryActivity`
+2. **wry (Rust):** Add `AndroidWebViewWindowType` enum (R1)
+3. **wry (Rust):** Add `window_type` field to `CreateWebViewAttributes` and
+   `PlatformSpecificWebViewAttributes` (R2)
+4. **wry (Rust):** Add `with_android_window_type()` to `WebViewBuilderExtAndroid` (R4)
+5. **tao (Rust):** Map `window_type` → `activity_name` for window routing (F44 R3)
+6. **Test:** `window_type = BottomSheet` → verify `SheetWryActivity` is launched
+   with partial height on emulator
 
 ## Verification
 
@@ -236,7 +250,7 @@ cargo tauri android build --target x86_64 --debug
 
 | File | Action | Description |
 |---|---|---|
-| `wry/src/android/mod.rs` | **MODIFY** | Add `AndroidWebViewWindowType`, add field to `PlatformSpecificWebViewAttributes` |
-| `wry/src/android/main_pipe.rs` | **MODIFY** | Add `window_type` to `CreateWebViewAttributes`, conditional layout in handler |
+| `wry/src/android/mod.rs` | **MODIFY** | Add `AndroidWebViewWindowType`, add to `PlatformSpecificWebViewAttributes` |
+| `wry/src/android/main_pipe.rs` | **MODIFY** | Add `window_type` to `CreateWebViewAttributes` |
 | `wry/src/lib.rs` | **MODIFY** | Add `with_android_window_type()` to `WebViewBuilderExtAndroid` |
-| `wry/src/android/kotlin/WryActivity.kt` | **MODIFY** | Read layout data from Intent, apply theme and Window attributes |
+| `wry/src/android/kotlin/SheetWryActivity.kt` | **NEW** | Dedicated sheet class (F44 R2a) |
