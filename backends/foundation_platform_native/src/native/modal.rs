@@ -63,21 +63,48 @@ impl ModalIpc {
 
         let typed: IpcRequest<PresentArgs> =
             req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
+        let args = typed.payload;
+
+        let depth = session.webview_stack().depth();
+        let modal_label = format!("modal_{depth}");
 
         let app_handle = session
             .handles::<tauri::AppHandle<tauri::Wry>>()
             .ok_or(IpcError::ExecutionFailed)?;
 
-        let handles = app_handle.state::<super::plugin::EweNativeHandles>();
-        let response: serde_json::Value = handles
-            .modal
-            .run_mobile_plugin("presentModal", &typed.payload)
-            .map_err(|e| {
-                tracing::warn!("presentModal failed: {e:?}");
-                IpcError::ExecutionFailed
-            })?;
+        // F44: decorations(false) + inner_size on Android auto-routes to
+        // SheetWryActivity (partial-height overlay via CustomWryActivity).
+        // On desktop: frameless centered window.
+        let builder = tauri::WebviewWindowBuilder::new(
+            &app_handle,
+            &modal_label,
+            tauri::WebviewUrl::App(args.route.clone().into()),
+        )
+        .visible(false)
+        .decorations(false)
+        .title(args.title.unwrap_or_else(|| format!("ewe — {modal_label}")));
 
-        let payload = serde_json::to_vec(&response).unwrap_or_default();
+        builder.build().map_err(|e| {
+            tracing::warn!("presentModal build failed: {e:?}");
+            IpcError::ExecutionFailed
+        })?;
+
+        // Update the WebView pool so dismiss works
+        let mut stack = session.webview_stack_mut();
+        if let Some(mut pool) = stack.pool_mut() {
+            pool.get_or_create(&modal_label);
+            pool.set_route(&modal_label, &args.route);
+        }
+
+        // Push a modal slot so dismiss_all knows about it
+        let slot = foundation_platform::WebViewSlot::new_modal(&args.route);
+        stack.push_slot(slot);
+
+        let resp = crate::shared::modal_types::PresentResult {
+            modal_id: modal_label.clone(),
+            webview_label: Some(modal_label),
+        };
+        let payload = serde_json::to_vec(&resp).unwrap_or_default();
         Ok(IpcResponse { payload, content_type: IpcContentType::Json })
     }
 
@@ -86,23 +113,24 @@ impl ModalIpc {
         session: &PlatformSession,
         req: &IpcRequest<Vec<u8>>,
     ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        use tauri::Manager;
-
         let typed: IpcRequest<DismissArgs> =
             req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
 
-        let app_handle = session
-            .handles::<tauri::AppHandle<tauri::Wry>>()
-            .ok_or(IpcError::ExecutionFailed)?;
+        // Close the sheet window via WindowManager
+        let label = if typed.payload.modal_id.is_empty() {
+            let stack = session.webview_stack();
+            let depth = stack.depth();
+            if depth <= 1 { return Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json }); }
+            format!("modal_{}", depth - 1)
+        } else {
+            typed.payload.modal_id.clone()
+        };
 
-        let handles = app_handle.state::<super::plugin::EweNativeHandles>();
-        let _: serde_json::Value = handles
-            .modal
-            .run_mobile_plugin("dismissModal", &typed.payload)
-            .map_err(|e| {
-                tracing::warn!("dismissModal failed: {e:?}");
-                IpcError::ExecutionFailed
-            })?;
+        let mut stack = session.webview_stack_mut();
+        if let Some(mut pool) = stack.pool_mut() {
+            session.window_manager().destroy(&mut pool, &label);
+        }
+        stack.pop_with(|_, _| {});
 
         Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json })
     }

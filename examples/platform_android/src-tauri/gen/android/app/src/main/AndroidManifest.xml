@@ -24,6 +24,14 @@
             </intent-filter>
         </activity>
 
+        <!-- F44: Partial-height bottom sheet Activity (SheetWryActivity extends CustomWryActivity) -->
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:name=".SheetWryActivity"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog"
+            android:excludeFromRecents="true"
+            android:launchMode="standard" />
+
         <provider
           android:name="androidx.core.content.FileProvider"
           android:authorities="${applicationId}.fileprovider"

@@ -395,6 +395,27 @@ impl WebViewStack {
     /// Returns `None` when the stack has only the root slot — back should
     /// exit the app or do nothing at that point.
     pub fn pop(&mut self, webview: &dyn WebViewOps) -> Option<String> {
+        self.pop_with(|prev_route, prev| {
+            // For FullScreen: screenshot check + navigate + reload if stale
+            webview.eval("showScreenshot()");
+            webview.navigate(prev_route);
+            if prev.is_content_stale {
+                webview.reload();
+                prev.is_content_stale = false;
+            }
+        })
+    }
+
+    /// Pop the top screen with a custom cleanup callback.
+    ///
+    /// The closure receives the previous slot's route and a mutable reference
+    /// to the previous slot (now the active one after pop). It fires AFTER the
+    /// top slot is removed and the previous slot is reactivated. For Modal
+    /// slots, only the reactivation happens — the closure is NOT called
+    /// (the underlying WebView is still at its content).
+    ///
+    /// Returns `None` when the stack has only the root slot.
+    pub fn pop_with(&mut self, on_pop: impl FnOnce(&str, &mut WebViewSlot)) -> Option<String> {
         if self.slots.len() <= 1 {
             return None;
         }
@@ -412,26 +433,14 @@ impl WebViewStack {
         let prev = &mut self.slots[self.active_index];
 
         if top_kind == SlotKind::Modal {
-            // Underlying slot was just hidden, not frozen. Reactivate
-            // without navigating — it's still at its content.
             prev.state = SlotState::Active;
             prev.clear_screenshot();
             return Some(format!("dismissed modal → {}", prev.route));
         }
 
-        if prev.screenshot.is_some() {
-            webview.eval("showScreenshot()");
-        }
-
         let route = prev.route.clone();
-        webview.navigate(&route);
-
-        if prev.is_content_stale {
-            webview.reload();
-            prev.is_content_stale = false;
-        }
-
         prev.state = SlotState::Active;
+        on_pop(&route, prev);
         Some(route)
     }
 

@@ -65,11 +65,9 @@ mod tauri_impl {
     impl<R: tauri::Runtime> WindowOps for TauriWindowOps<R> {
         fn create(&self, label: &str, url: &str) {
             if let Some(window) = self.app_handle.get_webview_window(label) {
-                // Window already exists — navigate + return
                 let _ = window.eval(&format!("location.href = '{url}'"));
                 return;
             }
-            // Create a new window
             let builder = tauri::WebviewWindowBuilder::new(
                 &self.app_handle,
                 label,
@@ -79,7 +77,6 @@ mod tauri_impl {
             .title(format!("ewe — {label}"));
 
             if let Ok(window) = builder.build() {
-                // Wait briefly then show
                 std::thread::spawn(move || {
                     std::thread::sleep(std::time::Duration::from_millis(300));
                     let _ = window.show();
