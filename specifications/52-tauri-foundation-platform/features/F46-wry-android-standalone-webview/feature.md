@@ -45,36 +45,47 @@ Activity's view hierarchy — not as the content view via `setContentView`.
 
 ```mermaid
 sequenceDiagram
-    participant R as Rust (WebviewWindowBuilder)
-    participant W as wry MainPipe
-    participant K as Kotlin Activity
-    participant M as ModalHelper.kt
+    participant R as Rust (ModalIpc::present)
+    participant WM as WindowManager (shared)
+    participant MP as MainPipe (existing ActivityId)
+    participant KT as Kotlin WryActivity
+    participant MH as ModalHelper.kt
 
-    Note over R,M: TODAY — setContentView path
-    R->>W: CreateWebView(attrs)
-    W->>K: new RustWebView(ctx, scripts, id)
-    W->>K: setWebView(webview)
-    W->>K: setContentView(webview) ← WebView owns entire Activity
-    Note over R,M: Content cannot be reparented without destroying layout
+    Note over R,MH: TODAY — new WebviewWindowBuilder = new Activity = new event loop = 2x memory
+    R->>WM: WebviewWindowBuilder.build()
+    WM->>MP: create_activity(class) → NEW WryActivity
+    MP->>KT: new WryActivity.onCreate()
+    KT->>KT: Rust.create() ← SECOND event loop!
 
-    Note over R,M: PROPOSED — addView path
-    R->>W: CreateWebView(attrs, attach_mode=AddToRoot)
-    W->>K: new RustWebView(ctx, scripts, id)
-    W->>K: setWebView(webview)
-    W->>K: decorView.addView(webview, 0, MATCH_PARENT) ← WebView is a child view
-    Note over R,M: Can be found, detached, embedded in dialog, reattached
+    Note over R,MH: F46 — AddToRoot reuses existing Activity
+    R->>WM: WindowManager.create_child(label, url)
+    WM->>MP: CreateWebView(attrs, attach_mode=AddToRoot) → EXISTING ActivityId
+    MP->>KT: new RustWebView(ctx, scripts, "modal_0")
+    MP->>KT: setWebView(webview)  ← back-press wiring
+    MP->>KT: addJavascriptInterface(Ipc(webview), "ipc") ← IPC wired
+    MP->>KT: decorView.addView(webview, 1, MATCH_PARENT)  ← NOT setContentView
+    Note over R,MH: Same Activity, same event loop, shared session, shared IPC
+
+    R->>MH: run_mobile_plugin("presentModal", {webview_label:"modal_0"})
+    MH->>MH: findWebViewInstance("modal_0") → detach
+    MH->>MH: BottomSheetDialog.setContentView(webview) → show
+    Note over MH: Dismiss → reattach to decorView at index 1
 ```
 
 ## Solution
 
-Add an `attach_mode` field to `CreateWebViewAttributes` with three variants:
-1. **`ContentView`** — current behavior, `setContentView(webview)`
-2. **`AddToRoot`** — `decorView.addView(webview)` as the first child, full-screen
-3. **`NoAttach`** — skip both, return WebView handle to caller for manual placement
+Add an `attach_mode` field to `CreateWebViewAttributes` with two variants:
+1. **`ContentView`** — current behavior, `activity.setContentView(webview)` (default)
+2. **`AddToRoot`** — skip `tao::Window::new()` and `create_activity()` entirely.
+   Instead, send `CreateWebView` to the **existing** Activity's `MainPipe`, then
+   call `decorView.addView(webview)` as a sibling of the main WebView.
 
-The `WryActivity.setWebView()` call remains for ALL modes — it wires the
-`OnBackPressedCallback` and stores the reference. Only the final attachment
-step changes.
+`AddToRoot` does NOT create a new `WryActivity`, NOT a new event loop, NOT a new
+Rust process. The WebView is a sibling widget in the existing Activity hierarchy —
+sharing the same `AppHandle`, `PlatformSession`, IPC handlers, and managed state.
+
+The `WryActivity.setWebView()` call still fires for back-press wiring. Only the
+final attachment step changes from `setContentView` to `addView`.
 
 ### What currently exists (relevant wry internals)
 
@@ -131,6 +142,54 @@ wired, but it has no Activity lifecycle management. If the Activity is destroyed
 while a detached WebView exists, JNI calls to it will crash.
 
 ## ARCHITECTURE RESEARCH
+
+### Process Model: One Activity, One Event Loop, Multiple WebViews
+
+The core insight of `AddToRoot` mode: **no second `WryActivity` is created.** The modal
+WebView is a child widget in the SAME Activity that hosts the main WebView.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Android Process: com.ewe.platform                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ WryActivity (single instance)                       │ │
+│ │ ┌───────────────────────────────────────────────┐   │ │
+│ │ │ Rust Process (single event loop)              │   │ │
+│ │ │ ┌─────────┐  ┌──────────┐  ┌──────────────┐  │   │ │
+│ │ │ │ AppHandle│  │ Platform │  │ EweNative     │  │   │ │
+│ │ │ │         │  │ Session  │  │ Handles       │  │   │ │
+│ │ │ └─────────┘  └──────────┘  └──────────────┘  │   │ │
+│ │ └───────────────────────────────────────────────┘   │ │
+│ │                                                      │ │
+│ │ decorView (FrameLayout)                               │ │
+│ │  ├── RustWebView(id="main")  ← setContentView        │ │
+│ │  │     __TAURI_INTERNALS__ ✓                          │ │
+│ │  │     window.ipc ✓                                   │ │
+│ │  │     initScripts ✓                                  │ │
+│ │  ├── RustWebView(id="modal_0")  ← addView at index 1 │ │
+│ │  │     __TAURI_INTERNALS__ ✓                          │ │
+│ │  │     window.ipc ✓                                   │ │
+│ │  │     initScripts ✓                                  │ │
+│ │  └── ...                                              │ │
+│ └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+Key facts about this architecture:
+
+1. **No second `WryActivity`** — `AddToRoot` skips `tao::Window::new()` + `create_activity()` entirely. The modal WebView is created via wry's `MainPipe::CreateWebView` targeting the **existing** `ActivityId`.
+
+2. **No duplicate event loop** — `WryLifecycleObserver.onCreate()` calls `Rust.create()` and `Rust.wryCreate()` exactly once, when the process starts. `AddToRoot` does NOT create a new `WryActivity`, so `onCreate` never fires again.
+
+3. **Shared Rust state** — `AppHandle` is cloned per-window in Tauri, but `app_handle.state::<PlatformSession>()` returns the SAME `Arc<PlatformSession>` from any window. `EweNativeHandles`, IPC registry, all managed state is shared. Memory: one Rust process, one set of managed state.
+
+4. **Same session** — Both WebViews use the same `PlatformSession`, same IPC handler registry, same `WindowManager`, same `WebViewStack`. The modal WebView's IPC calls go through the same `ModalIpc` handler as the main WebView's.
+
+5. **Kotlin can find and reparent** — Because the modal WebView is a regular child of `decorView`, Kotlin's `findWebViewInstance(id)` can locate it by its `RustWebView.id` field, detach it via `parent.removeView()`, embed it in a `BottomSheetDialog`, and reattach it on dismiss. The main WebView stays visible behind.
+
+This is fundamentally different from `WebviewWindowBuilder::build()`:
+- `WebviewWindowBuilder` → new `WryActivity` → new event loop → new Rust process state → separate everything
+- `AddToRoot` → existing `WryActivity` → same event loop → shared Rust state → sibling in decorView
 
 ### What `setContentView` vs `addView` means for the WebView lifecycle
 
@@ -207,12 +266,25 @@ pub enum AndroidWebViewAttachMode {
 - Read in `CreateWebView` handler to decide final attachment step
 - File: `wry/src/android/main_pipe.rs`
 
-### R3. Conditional attachment in `CreateWebView` handler
+### R3. Conditional + same-Activity attachment in `CreateWebView` handler
 - `ContentView` → `activity.setContentView(webview)` (unchanged)
-- `AddToRoot` → JNI call to `activity.window.decorView.addView(webview, index, lp)`
-  where `lp` = `FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)`
-- IPC, clients, devtools, background color — all applied BEFORE attachment
-- File: `wry/src/android/main_pipe.rs`
+- `AddToRoot` → **reuse existing `ActivityId`** (no `create_activity()` call).
+  JNI call to `activity.window.decorView.addView(webview, index, lp)`
+  where `lp` = `FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)`.
+  WebView is a sibling of the main WebView in the decor view hierarchy.
+- IPC, init scripts, clients, devtools, background color — all applied
+  BEFORE attachment, identical to `ContentView` mode.
+- The `ACTIVITY_PROXY` stores this WebView using a compound key
+  `(activity_id, webview_label)` alongside the existing single WebView slot
+  (or a Vec of GlobalRefs per ActivityProxy).
+- File: `wry/src/android/main_pipe.rs`, `wry/src/android/mod.rs`
+
+### R3a. `WindowManager::create_child(label, url)` — Rust API
+- Calls directly into wry's `CreateWebView` with `attach_mode=AddToRoot`
+  targeting the **existing** ActivityId (from the main window's `JniHandle`)
+- Does NOT call `tao::Window::new()`, does NOT spawn a new Activity
+- Returns the WebView label for Kotlin lookup
+- File: `foundation_platform/src/window.rs` (new method on `WindowManager`)
 
 ### R4. `WebViewBuilderExtAndroid` — add builder method
 ```rust
