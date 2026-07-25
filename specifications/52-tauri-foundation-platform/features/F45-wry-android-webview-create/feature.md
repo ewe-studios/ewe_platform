@@ -245,56 +245,175 @@ this template. Custom subclasses (like `SheetWryActivity.kt`) can be:
   `activity.setContentView(webview)?` call at `main_pipe.rs:317`
 - `onWebViewReady` fires AFTER IPC, init scripts, WebViewClient, and
   WebChromeClient are all wired. The WebView is fully functional.
-- Custom subclasses override this method to apply their own layout,
-  theme, window attributes, or composite views.
 - File: `wry/src/android/kotlin/WryActivity.kt` (modified template)
 
 ### R2. Rust JNI handler — call `onWebViewReady` instead of `setContentView`
 - Replace `activity.setContentView(webview)?` at `main_pipe.rs:317` with
   `activity.onWebViewReady(webview)?` — a JNI call to the open method
-- The `activity_name` already routes to the correct subclass via tao's
-  `PlatformSpecificWindowBuilderAttributes.activity_name` (no change)
-- Intent extras (e.g., `height_fraction`) are passed through the existing
-  `create_activity()` JNI call; custom subclasses read them in `onCreate`
-  or `onWebViewReady`
 - File: `wry/src/android/main_pipe.rs`
 
-### R3. `SheetWryActivity.kt` — example consumer (F44 R2a)
-- Extends `WryActivity`. Overrides `onWebViewReady`:
-  - Sets dialog theme via `setTheme()`
-  - Reads `height_fraction` Intent extra
-  - Configures `Window.setLayout/setGravity/addFlags/setDimAmount`
-  - Calls `setContentView(webView)`
-- Lives in wry fork as a library-provided class. The consuming app declares
-  it in `AndroidManifest.xml` with `<activity android:name=".SheetWryActivity" .../>`.
-- Rationale: `BottomSheetDialog` is just one consumer of the extensibility
-  provided by R1+R2. Any app can write its own subclass without changing wry.
+### R3. `CustomWryActivity` — reusable parent for all non-fullscreen Activity classes
+
+Handles the plumbing that EVERY custom layout needs — reading Intent extras,
+computing pixel dimensions, and applying Window attributes. Subclasses only
+set their theme, gravity, flags, and default fraction.
+
+```kotlin
+/**
+ * Base class for ALL non-fullscreen Tauri Activity types.
+ * Handles the common plumbing: read height_fraction → compute pixels → apply Window params.
+ * Subclasses override [windowConfig] to set theme, gravity, flags, and default fraction.
+ */
+abstract class CustomWryActivity : WryActivity() {
+
+    override fun onWebViewReady(webView: RustWebView) {
+        applyWindowConfig()
+        onCustomWebViewReady(webView)
+    }
+
+    /** Subclasses define their window behavior here. */
+    abstract fun windowConfig(): CustomWindowConfig
+
+    /** Subclasses do their layout here (after Window params are applied). */
+    open fun onCustomWebViewReady(webView: RustWebView) {
+        setContentView(webView)
+    }
+
+    private fun applyWindowConfig() {
+        val cfg = windowConfig()
+        if (cfg.themeResId != 0) setTheme(cfg.themeResId)
+
+        val heightFrac = intent.getFloatExtra("height_fraction", cfg.defaultHeightFraction)
+        if (heightFrac < 1.0f) {
+            val pxHeight = (resources.displayMetrics.heightPixels * heightFrac).toInt()
+            window.setLayout(
+                if (cfg.fullWidth) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT,
+                pxHeight
+            )
+            window.setGravity(cfg.gravity)
+            if (cfg.flags != 0) window.addFlags(cfg.flags)
+            if (cfg.dimAmount > 0f) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                window.setDimAmount(cfg.dimAmount)
+            }
+        }
+    }
+}
+
+/** Configuration owned by each subclass — no JNI, no Rust, pure Kotlin. */
+data class CustomWindowConfig(
+    /** Android theme resource ID. 0 = use manifest default. */
+    val themeResId: Int = 0,
+    /** Window gravity. Default: CENTER (dialog). */
+    val gravity: Int = Gravity.CENTER,
+    /** Window flags bitmask. */
+    val flags: Int = 0,
+    /** Background dim amount (0.0–1.0). */
+    val dimAmount: Float = 0f,
+    /** Whether the window fills screen width. */
+    val fullWidth: Boolean = true,
+    /** Default height fraction when Intent extra is absent. 1.0 = full-screen. */
+    val defaultHeightFraction: Float = 1.0f,
+)
+```
+
+Now `SheetWryActivity` is trivial — it only defines config:
+
+```kotlin
+/** Partial-height bottom sheet. Inherits all layout logic from CustomWryActivity. */
+open class SheetWryActivity : CustomWryActivity() {
+    override fun windowConfig() = CustomWindowConfig(
+        themeResId = R.style.Theme_AppCompat_Dialog,
+        gravity = Gravity.BOTTOM,
+        flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND,
+        dimAmount = 0.5f,
+        defaultHeightFraction = 0.6f,
+    )
+}
+```
+
+`DialogWryActivity` is equally trivial:
+
+```kotlin
+/** Centered dialog with optional dim. */
+open class DialogWryActivity : CustomWryActivity() {
+    override fun windowConfig() = CustomWindowConfig(
+        themeResId = R.style.Theme_AppCompat_Dialog,
+        gravity = Gravity.CENTER,
+        dimAmount = 0.3f,
+        fullWidth = false,
+        defaultHeightFraction = 0.8f,
+    )
+}
+```
+
+And a `ChromeWryActivity` that adds a native toolbar:
+
+```kotlin
+/** Full-width window with native toolbar above the WebView. */
+open class ChromeWryActivity : CustomWryActivity() {
+    override fun windowConfig() = CustomWindowConfig() // full-screen, no dialog theme
+
+    override fun onCustomWebViewReady(webView: RustWebView) {
+        val toolbar = Toolbar(this).apply {
+            // Native button → evaluateJavascript in WebView via Tauri IPC
+            setNavigationIcon(R.drawable.ic_close)
+            setNavigationOnClickListener { finish() }
+        }
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(toolbar, LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            addView(webView, LayoutParams(MATCH_PARENT, 0, 1f))
+        }
+        setContentView(root)
+    }
+}
+```
+
+#### Why `CustomWryActivity` (not putting layout logic in each subclass)
+
+| Without `CustomWryActivity` | With `CustomWryActivity` |
+|---|---|
+| `SheetWryActivity` reads Intent, computes px, sets layout | `SheetWryActivity`: 4 lines of config |
+| `DialogWryActivity` duplicates same code | `DialogWryActivity`: 4 lines of config |
+| `ChromeWryActivity` duplicates again | `ChromeWryActivity`: defines toolbar in `onCustomWebViewReady` |
+| Intent extra format coupled to each class | Intent format owned by `CustomWryActivity` |
+| New window type = copy-paste 30 lines | New window type = data class with 6 fields |
+
+**The pattern:** `CustomWryActivity` handles HOW to apply window layout.
+Subclasses declare WHAT layout they want via `windowConfig()`.
+No JNI, no Rust, no Intent format knowledge in subclasses.
+
+- File: `wry/src/android/kotlin/CustomWryActivity.kt` (new)
 - File: `wry/src/android/kotlin/SheetWryActivity.kt` (new)
+- File: `wry/src/android/kotlin/DialogWryActivity.kt` (new, example)
 
 ### R4. `WebViewBuilderExtAndroid` — add `on_webview_ready` callback (Rust side)
 ```rust
 fn on_android_webview_ready<F>(self, f: F) -> Self
 where F: Fn(JNIEnv, JObject, JObject) + Send + Sync + 'static;
 ```
-- Allows Rust code to execute JNI operations inside `onWebViewReady`
-  (between theme/layout setup and `setContentView`). Useful for
-  runtime configuration that can't be done in Kotlin alone.
-- Stored in `PlatformSpecificWebViewAttributes`. Existing `on_webview_created`
-  (line 324-333) fires AFTER `setContentView` — too late for pre-layout work.
+- Allows Rust code to execute JNI operations before `setContentView`.
+  Example: set a custom JS interface before the page loads.
+- Stored in `PlatformSpecificWebViewAttributes`.
+- Existing `on_webview_created` fires AFTER `setContentView` — too late
+  for pre-layout work. `on_webview_ready` is the correct hook.
 - File: `wry/src/lib.rs`
 
 ### R5. Android manifest — consumer declares activity classes
-- The consuming app's `AndroidManifest.xml` declares each custom subclass:
+- The consuming app's `AndroidManifest.xml` declares each subclass:
   ```xml
   <activity android:name=".SheetWryActivity"
+            android:theme="@style/Theme.AppCompat.Dialog" />
+  <activity android:name=".DialogWryActivity"
             android:theme="@style/Theme.AppCompat.Dialog" />
   <activity android:name=".ChromeWryActivity"
             android:theme="@style/Theme.AppCompat" />
   ```
-- `activity_name` in Rust selects which class to launch (already supported)
-- wry provides the template; the app provides the class and manifest entry.
-  No manifest changes needed in wry itself.
-- Guide: `docs/adding_native_capabilities/custom-activity.md` (foundation_platform_native)
+- `activity_name` in Rust selects which class to launch (already supported
+  via tao's `PlatformSpecificWindowBuilderAttributes`)
+- Custom subclasses outside wry (app-specific) follow the same pattern
+- File: consuming app's `AndroidManifest.xml`
 
 ## Same-Activity Mode (multi-WebView, no new Activity)
 
