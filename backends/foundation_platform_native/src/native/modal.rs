@@ -70,19 +70,26 @@ impl ModalIpc {
 
         let app_handle = session
             .handles::<tauri::AppHandle<tauri::Wry>>()
-            .ok_or(IpcError::ExecutionFailed)?;
+            .ok_or(IpcError::ExecutionFailed)?
+            .clone();
 
-        // F44: decorations(false) + inner_size on Android auto-routes to
-        // SheetWryActivity (partial-height overlay via CustomWryActivity).
-        // On desktop: frameless centered window.
-        let builder = tauri::WebviewWindowBuilder::new(
-            &app_handle,
-            &modal_label,
-            tauri::WebviewUrl::App(args.route.clone().into()),
-        )
-        .visible(false)
-        .decorations(false)
-        .title(args.title.unwrap_or_else(|| format!("ewe — {modal_label}")));
+        // F44: Route to SheetWryActivity for partial-height bottom sheet.
+        // On desktop, use window builder defaults (full window).
+        let builder = {
+            let mut b = tauri::WebviewWindowBuilder::new(
+                &app_handle,
+                &modal_label,
+                tauri::WebviewUrl::App(args.route.clone().into()),
+            )
+            .title(args.title.unwrap_or_else(|| format!("ewe — {modal_label}")));
+
+            #[cfg(target_os = "android")]
+            {
+                let sheet_class: String = String::from("SheetWryActivity");
+            b = b.activity_name(sheet_class);
+            }
+            b
+        };
 
         builder.build().map_err(|e| {
             tracing::warn!("presentModal build failed: {e:?}");

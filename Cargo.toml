@@ -117,5 +117,3 @@ strip = "debuginfo"
 [patch.crates-io]
 tao = { path = "infrastructure/tao" }
 wry = { path = "infrastructure/wry" }
-tauri = { path = "infrastructure/tauri/crates/tauri" }
-tauri-runtime-wry = { path = "infrastructure/tauri/crates/tauri-runtime-wry" }

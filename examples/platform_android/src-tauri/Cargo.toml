@@ -25,5 +25,13 @@ serde_json = "1"
 foundation_platform = { path = "../../../backends/foundation_platform" }
 tauri-build = { version = "2", features = [] }
 
+# F44+F45+F46: patch tao/wry with our forks.
+# tauri-runtime-wry (in our tauri fork) already points tao/wry at the
+# infrastructure copies via path deps. This [patch] redirects tauri's
+# published deps to our forks so the path deps resolve.
+[patch.crates-io]
+tao = { path = "../../../infrastructure/tao" }
+wry = { path = "../../../infrastructure/wry" }
+
 # Opt out of parent workspace — Tauri v2 nested crate for mobile builds
 [workspace]
