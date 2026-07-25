@@ -112,3 +112,10 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+
+# F44+F45: Use forked tao/wry for Android layout + WebView hosting
+[patch.crates-io]
+tao = { path = "infrastructure/tao" }
+wry = { path = "infrastructure/wry" }
+tauri = { path = "infrastructure/tauri/crates/tauri" }
+tauri-runtime-wry = { path = "infrastructure/tauri/crates/tauri-runtime-wry" }
