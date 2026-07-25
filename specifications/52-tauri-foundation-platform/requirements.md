@@ -122,8 +122,7 @@ modules + modal/dialog capabilities) is the active workstream. Foundation crates
 | F42 | Native modal capability: BottomSheet + Dialog | Critical | F41, F40 |
 | F43 | Async IPC callback: ipc_resolve + ReplyEncoder | Critical | F41 |
 | F44 | **tao fork**: Android Window Layout Properties | Critical | — |
-| F45 | **wry fork**: Custom Window Types for WebView Creation | Critical | F44 |
-| F46 | **wry fork**: Standalone WebView (AddToRoot, reparentable) | High | F45 |
+| F45 | **wry fork**: Extensible WebView Hosting (onWebViewReady + MultiWryActivity) | Critical | F44 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
