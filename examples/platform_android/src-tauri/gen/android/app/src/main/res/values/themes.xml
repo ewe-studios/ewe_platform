@@ -3,7 +3,11 @@
     <style name="Theme.platform_android" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
-    <!-- F44: Dialog theme for SheetWryActivity (partial-height bottom sheet) -->
+    <!-- F44: Borderless floating dialog theme for SheetWryActivity (no margins) -->
     <style name="Theme.platform_android.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.5</item>
     </style>
 </resources>
