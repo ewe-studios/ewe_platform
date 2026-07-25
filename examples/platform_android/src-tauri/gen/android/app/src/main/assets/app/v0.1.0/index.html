@@ -13,6 +13,17 @@
     }
   </style>
   <script src="bundle.js"></script>
+  <script>
+    setTimeout(function() {
+      if (typeof invokeIpc !== 'function') return;
+      invokeIpc('dialog', 'show', {title:'F46',message:'Both paths work',positive_button:'OK'})
+        .then(function() { console.error('[E2E] DIALOG OK'); })
+        .catch(function(e) { console.error('[E2E] DIALOG FAIL ' + e.message); });
+      invokeIpc('chrome', 'present_modal', {url:'http://ewe.localhost/app/',style:'bottom_sheet',title:'F46 Stage1'})
+        .then(function() { console.error('[E2E] MODAL OK'); })
+        .catch(function(e) { console.error('[E2E] MODAL FAIL ' + e.message); });
+    }, 2000);
+  </script>
 </head>
 <body>
   <script>
