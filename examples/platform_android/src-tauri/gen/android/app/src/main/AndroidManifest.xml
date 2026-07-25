@@ -29,7 +29,7 @@
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name=".SheetWryActivity"
-            android:theme="@style/Theme.AppCompat.Dialog"
+            android:theme="@style/Theme.platform_android.Dialog"
             android:excludeFromRecents="true"
             android:launchMode="standard" />
 

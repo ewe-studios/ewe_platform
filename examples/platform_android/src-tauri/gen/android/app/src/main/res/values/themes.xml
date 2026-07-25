@@ -3,4 +3,7 @@
     <style name="Theme.platform_android" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
+    <!-- F44: Dialog theme for SheetWryActivity (partial-height bottom sheet) -->
+    <style name="Theme.platform_android.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+    </style>
 </resources>
