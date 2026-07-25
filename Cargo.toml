@@ -17,6 +17,8 @@ members = [
 exclude = [
   "artefacts/*",
   "templates/*",
+  # foundations/* are external crates used via [patch] — not workspace members
+  "foundations/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # examples are self-contained crates — build individually as needed
@@ -115,5 +117,5 @@ strip = "debuginfo"
 
 # F44+F45: Use forked tao/wry for Android layout + WebView hosting
 [patch.crates-io]
-tao = { path = "infrastructure/tao" }
-wry = { path = "infrastructure/wry" }
+tao = { path = "foundations/tao" }
+wry = { path = "foundations/wry" }

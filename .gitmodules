@@ -20,18 +20,18 @@
 [submodule "artefacts/models/whisper.cpp"]
 	path = artefacts/models/whisper.cpp
 	url = https://huggingface.co/ggerganov/whisper.cpp
-[submodule "infrastructure/tauri"]
-	path = infrastructure/tauri
+[submodule "foundations/tauri"]
+	path = foundations/tauri
 	url = git@github.com:rstkit/tauri.git
-[submodule "infrastructure/tao"]
-	path = infrastructure/tao
+[submodule "foundations/tao"]
+	path = foundations/tao
 	url = git@github.com:rstkit/tao.git
+[submodule "foundations/wry"]
+	path = foundations/wry
+	url = git@github.com:rstkit/wry.git
 [submodule "infrastructure/tauri-bindgen"]
 	path = infrastructure/tauri-bindgen
 	url = git@github.com:rstkit/tauri-bindgen.git
-[submodule "infrastructure/wry"]
-	path = infrastructure/wry
-	url = git@github.com:rstkit/wry.git
 [submodule "infrastructure/tauri-docs"]
 	path = infrastructure/tauri-docs
 	url = git@github.com:tauri-apps/tauri-docs.git

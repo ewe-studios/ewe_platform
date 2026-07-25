@@ -25,13 +25,21 @@ serde_json = "1"
 foundation_platform = { path = "../../../backends/foundation_platform" }
 tauri-build = { version = "2", features = [] }
 
-# F44+F45+F46: patch tao/wry with our forks.
-# tauri-runtime-wry (in our tauri fork) already points tao/wry at the
-# infrastructure copies via path deps. This [patch] redirects tauri's
-# published deps to our forks so the path deps resolve.
+# F44+F45+F46: Use our infrastructure forks of tao, wry, and tauri.
+# tauri-runtime-wry (in our tauri fork) already points tao/wry at
+# the infrastructure copies via path deps. The [patch] extends the
+# replacement to tauri itself so we own all three layers.
 [patch.crates-io]
-tao = { path = "../../../infrastructure/tao" }
-wry = { path = "../../../infrastructure/wry" }
+tao = { path = "../../../foundations/tao" }
+wry = { path = "../../../foundations/wry" }
+tauri = { path = "../../../foundations/tauri/crates/tauri" }
+tauri-build = { path = "../../../foundations/tauri/crates/tauri-build" }
+tauri-runtime-wry = { path = "../../../foundations/tauri/crates/tauri-runtime-wry" }
+tauri-runtime = { path = "../../../foundations/tauri/crates/tauri-runtime" }
+tauri-macros = { path = "../../../foundations/tauri/crates/tauri-macros" }
+tauri-codegen = { path = "../../../foundations/tauri/crates/tauri-codegen" }
+tauri-plugin = { path = "../../../foundations/tauri/crates/tauri-plugin" }
+tauri-utils = { path = "../../../foundations/tauri/crates/tauri-utils" }
 
 # Opt out of parent workspace — Tauri v2 nested crate for mobile builds
 [workspace]
