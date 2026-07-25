@@ -113,6 +113,17 @@ modules + modal/dialog capabilities) is the active workstream. Foundation crates
 | F33 | Wasmtime shell: `#[wasm_app]` + `foundation_wasmtime` crate | High | F19 |
 | F34 | Background workers: `#[platform_worker]` + typed channels | High | F01, F25 |
 | F35 | Multi-WebView desktop: Tauri window lifecycle + screenshot-swap | High | F29, F06 |
+| F36 | Android Tauri tests: emulator + CI pipeline | High | F14, F30 |
+| F37 | Surface 2: native library crate for Tauri mobile | Critical | F13, F29 |
+| F38 | E2E presentation tests: 6 modes, 3 platforms | Critical | F35, F29 |
+| F39 | Android QEMU image: emulator + CI automation | High | F36, F14 |
+| F40 | Platform Asset Manager: VFS APK assets + OTA | Critical | F22, F37 |
+| F41 | Unified IPC FFI: single host_ipc_invoke + callback | Critical | F25, F27 |
+| F42 | Native modal capability: BottomSheet + Dialog | Critical | F41, F40 |
+| F43 | Async IPC callback: ipc_resolve + ReplyEncoder | Critical | F41 |
+| F44 | **tao fork**: Android Window Layout Properties | Critical | — |
+| F45 | **wry fork**: Custom Window Types for WebView Creation | Critical | F44 |
+| F46 | **wry fork**: Standalone WebView (AddToRoot, reparentable) | High | F45 |
 
 **Post-MVP features** (deferred from decisions):
 - Native view support (SwiftUI/Jetpack Compose)
