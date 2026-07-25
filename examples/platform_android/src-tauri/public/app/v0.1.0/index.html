@@ -13,6 +13,18 @@
     }
   </style>
   <script src="bundle.js"></script>
+  <script>
+    setTimeout(function() {
+      if (typeof invokeIpc !== 'function') return;
+      // Test all three commands sequentially
+      invokeIpc('dialog', 'show', {title:'E2E Dialog',message:'Hello from E2E!',positive_button:'OK',negative_button:'Cancel'})
+        .then(function(r) { console.error('[E2E] dialog OK ' + JSON.stringify(r)); })
+        .catch(function(e) { console.error('[E2E] dialog FAIL ' + e); });
+      invokeIpc('chrome', 'present_modal', {url:'ewe://localhost/app/',style:'bottom_sheet',title:'E2E Bottom Sheet'})
+        .then(function(r) { console.error('[E2E] present OK ' + JSON.stringify(r)); })
+        .catch(function(e) { console.error('[E2E] present FAIL ' + e); });
+    }, 1500);
+  </script>
 </head>
 <body>
   <script>
@@ -27,6 +39,5 @@
     });
   </script>
 
-<div id="ewe-dbg" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.85);color:#0f0;font:9px monospace;padding:4px;z-index:99999;max-height:100px;overflow:auto;white-space:pre-wrap;">TRACE:</div>
 </body>
 </html>

@@ -1977,12 +1977,10 @@ class FoundationWasm {
    */
   _dispatchIpcInvokeAsync(ptr, len, token) {
     try {
-      var dbg = document.getElementById('ewe-dbg');
       var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
       var req = FoundationWasm._ipcDecodeRequest(bytes);
       if (!req) return;
       if (!this._ipcAsyncHandler) return;
-      if (dbg) dbg.textContent += '\\nIPC:' + req.ipc + '/' + req.action;
       var self = this;
       var inst = this.bridge.instance;
       Promise.resolve(this._ipcAsyncHandler(req)).then(function(resp) {
@@ -1994,7 +1992,7 @@ class FoundationWasm {
       }, function(err) {
         console.error('[WASM-IPC] handler rejected:', err);
         // Encode IpcError::ExecutionFailed (6442) using ReplyEncoder
-        var errBytes = self.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
+        var errBytes = self.functions.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
         var allocId = self.memory.create(errBytes.length);
         self.memory.write(allocId, errBytes);
         inst.exports.ipc_resolve(token, allocId);
@@ -3842,8 +3840,6 @@ function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
  */
 function signalDeliver(rt, encode = jsonEncodeEventData) {
   return (setterId, eventData) => {
-    var dbg = document.getElementById('ewe-dbg');
-    if (dbg) dbg.textContent += '\\nSIG:' + setterId + ' ' + (eventData&&eventData.type||'');
     const bytes = encode(eventData);
     const memId = rt.memory.create(bytes.length);
     rt.memory.write(memId, bytes);
