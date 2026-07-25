@@ -296,6 +296,139 @@ where F: Fn(JNIEnv, JObject, JObject) + Send + Sync + 'static;
   No manifest changes needed in wry itself.
 - Guide: `docs/adding_native_capabilities/custom-activity.md` (foundation_platform_native)
 
+## Same-Activity Mode (multi-WebView, no new Activity)
+
+The `onWebViewReady` hook also enables creating additional WebViews **without**
+spawning a new Activity. `MultiWryActivity` manages multiple WebViews in a
+single Activity hierarchy, avoiding all the problems of `WebviewWindowBuilder`:
+duplicate event loops, duplicate `AppHandle` state, 2x Kotlin memory, and
+lack of shared session state.
+
+### R6. `MultiWryActivity` — same-Activity multi-WebView host
+
+A subclass of `WryActivity` that replaces single `mWebView` with a map:
+
+```kotlin
+open class MultiWryActivity : WryActivity() {
+    // Map of WebView id → RustWebView (replaces single mWebView)
+    private val mWebViews = LinkedHashMap<String, RustWebView>()
+    private var primaryWebViewId: String? = null
+
+    override fun onWebViewReady(webView: RustWebView) {
+        val id = webView.id
+        mWebViews[id] = webView
+
+        if (mWebViews.size == 1) {
+            // First WebView = primary (backward compatible with setContentView)
+            primaryWebViewId = id
+            setContentView(webView)
+        } else {
+            // Additional WebViews = add as decorView siblings
+            decorView.addView(webView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        }
+    }
+
+    fun getWebView(id: String): RustWebView? = mWebViews[id]
+    fun removeWebView(id: String): RustWebView? {
+        val wv = mWebViews.remove(id) ?: return null
+        (wv.parent as? ViewGroup)?.removeView(wv)
+        return wv
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mWebViews.values.forEach { it.onPause() }
+    }
+    override fun onResume() {
+        super.onResume()
+        mWebViews.values.forEach { it.onResume() }
+    }
+    override fun onDestroy() {
+        // Notify Rust about each WebView destruction
+        mWebViews.keys.forEach { id -> Rust.onWebviewDestroy(this, id) }
+        super.onDestroy()
+    }
+}
+```
+
+Key differences from default `WryActivity`:
+
+| Aspect | `WryActivity` (today) | `MultiWryActivity` (F45 R6) |
+|---|---|---|
+| WebView storage | `private lateinit var mWebView` — single | `LinkedHashMap<String, RustWebView>` — many |
+| `onWebViewReady` | Default: `setContentView(webView)` | First: `setContentView`, rest: `decorView.addView` |
+| `onPause/onResume` | Pauses single mWebView | Iterates all registered WebViews |
+| `onDestroy` | `Rust.onWebviewDestroy(this, mWebView.id)` | `Rust.onWebviewDestroy(this, id)` for each |
+| Back press | Single `OnBackPressedCallback` | Primary WebView handles back; modal WebViews handled by their parent dialog |
+| Process model | 1:1 Activity:WebView | 1:N Activity:WebView |
+| Event loop | Per-process (once) | Same — NO duplicate `Rust.create()` |
+| Session/AppHandle | Shared via `app_handle.state()` | Same shared state — NO duplicate managed state |
+
+### Rust-side: `CreateWebView` on existing ActivityId
+
+The existing `MainPipe::send(activity_id, WebViewMessage::CreateWebView(attrs))`
+already routes to a specific Activity by `ActivityId`. For `MultiWryActivity`,
+the Rust side sends additional `CreateWebView` messages targeting the **same**
+`ActivityId` — no `tao::Window::new()`, no `create_activity()` call.
+
+Changes on the Rust wry side to support this:
+
+1. **`ACTIVITY_PROXY`** — change `webview: Option<GlobalRef>` to
+   `webviews: BTreeMap<String, GlobalRef>` keyed by WebView `id`. The primary
+   webview is `webviews["main"]`; additional ones are `webviews["modal_0"]` etc.
+
+2. **`onWebviewDestroy`** — remove webview by `id` from the map rather than
+   clearing a single slot. Only destroy the Activity when the **primary**
+   WebView is destroyed.
+
+3. **No changes needed in `MainPipe`** — `CreateWebView` handler is the same
+   regardless of whether the Activity is `WryActivity` or `MultiWryActivity`.
+   The Activity subclass owns the difference via `onWebViewReady`.
+
+### R7. Foundation platform integration: `WindowManager.create_child()`
+
+On the `foundation_platform` side, a new method creates a child WebView
+without going through tao's window creation:
+
+```rust
+impl WindowManager {
+    pub fn create_child(&self, label: &str, url: &str) -> Result<(), IpcError> {
+        // Uses wry's CreateWebView directly, targeting the existing ActivityId.
+        // Does NOT call tao::Window::new(). Does NOT spawn a new Activity.
+        // The WebView lands in MultiWryActivity via onWebViewReady → addView.
+    }
+}
+```
+
+This is the Rust API `ModalIpc::present()` calls to create the WebView
+BEFORE telling Kotlin to embed it in a BottomSheetDialog.
+
+### R8. Rust `ACTIVITY_PROXY` — multi-WebView storage
+
+```rust
+struct ActivityProxy {
+    activity: GlobalRef,
+    webviews: BTreeMap<String, GlobalRef>,  // ← was Option<GlobalRef>
+    webchrome_client: GlobalRef,
+}
+```
+
+- `CreateWebView` inserts the new GlobalRef keyed by `attrs.id`
+- `onWebviewDestroy` removes by `id`. Activity is only torn down when no
+  webviews remain (or when the primary webview is destroyed).
+- `JniHandle::exec()` receives the correct WebView JObject for the given id
+- Backward compatible: `WryActivity` stores "main" as the single entry —
+  no migration needed for existing apps
+
+### Summary: when to use each mode
+
+| Use case | Activity | WebView creation | Rust API |
+|---|---|---|---|
+| Full-screen app (today) | `WryActivity` (default) | `tao::Window::new()` → `create_activity()` → `CreateWebView` | `WebviewWindowBuilder::build()` |
+| Bottom sheet dialog | `SheetWryActivity` (F44 R2a) | Same as above, but `activity_name` routes to sheet class | `WebviewWindowBuilder.activity_name("SheetWryActivity")` |
+| Custom layout (toolbar + WebView) | Any `WryActivity` subclass | Same — `activity_name` selects class | Same + Kotlin class in consuming app |
+| Same-Activity extra WebView (modal, no new Activity) | `MultiWryActivity` | `CreateWebView` on existing `ActivityId` — no `tao::Window::new()` | `WindowManager.create_child(label, url)` |
+
 ## Implementation Sequence
 
 1. **wry (Kotlin):** Add `onWebViewReady(webView)` open method to `WryActivity.kt` template
