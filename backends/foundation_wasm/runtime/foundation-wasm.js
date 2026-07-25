@@ -1990,7 +1990,7 @@ export class FoundationWasm {
       }, function(err) {
         console.error('[WASM-IPC] handler rejected:', err);
         // Encode IpcError::ExecutionFailed (6442) using ReplyEncoder
-        var errBytes = self.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
+        var errBytes = self.functions.reply.encode([{ type: 31, value: 6442 }]); // ReturnType.ErrorCode
         var allocId = self.memory.create(errBytes.length);
         self.memory.write(allocId, errBytes);
         inst.exports.ipc_resolve(token, allocId);

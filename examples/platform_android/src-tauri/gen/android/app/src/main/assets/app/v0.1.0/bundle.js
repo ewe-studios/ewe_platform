@@ -1977,10 +1977,12 @@ class FoundationWasm {
    */
   _dispatchIpcInvokeAsync(ptr, len, token) {
     try {
+      var dbg = document.getElementById('ewe-dbg');
       var bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
       var req = FoundationWasm._ipcDecodeRequest(bytes);
       if (!req) return;
       if (!this._ipcAsyncHandler) return;
+      if (dbg) dbg.textContent += '\\nIPC:' + req.ipc + '/' + req.action;
       var self = this;
       var inst = this.bridge.instance;
       Promise.resolve(this._ipcAsyncHandler(req)).then(function(resp) {
@@ -3714,8 +3716,6 @@ class EventDispatcher {
    * (the island custom element owns its own lifecycle, F06).
    */
   handleMutations(mutations) {
-    var dbg = document.getElementById('ewe-dbg');
-    if (dbg) dbg.textContent = 'MUT=' + mutations.length;
     for (const mutation of mutations) {
       if (mutation.type !== "childList") continue;
       for (const node of mutation.addedNodes) {
@@ -3843,7 +3843,7 @@ function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
 function signalDeliver(rt, encode = jsonEncodeEventData) {
   return (setterId, eventData) => {
     var dbg = document.getElementById('ewe-dbg');
-    if (dbg) dbg.textContent = 'SIG-DELIVER id=' + setterId;
+    if (dbg) dbg.textContent += '\\nSIG:' + setterId + ' ' + (eventData&&eventData.type||'');
     const bytes = encode(eventData);
     const memId = rt.memory.create(bytes.length);
     rt.memory.write(memId, bytes);

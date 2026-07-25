@@ -15,7 +15,6 @@
   <script src="bundle.js"></script>
 </head>
 <body>
-<div id="ewe-dbg" style="position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font:10px monospace;padding:4px;z-index:9999;">...</div>
   <script>
     // ── platform_dashboard ── (dynamic import — static <script type="module">
     //  fails on Android WebView through custom protocols)
@@ -28,5 +27,6 @@
     });
   </script>
 
+<div id="ewe-dbg" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.85);color:#0f0;font:9px monospace;padding:4px;z-index:99999;max-height:100px;overflow:auto;white-space:pre-wrap;">TRACE:</div>
 </body>
 </html>
