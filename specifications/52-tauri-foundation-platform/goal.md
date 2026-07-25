@@ -2,6 +2,36 @@
 
 **Status:** In Progress
 **Created:** 2026-07-25
+**Last updated:** 2026-07-25
+
+## Current status (2026-07-25)
+
+### Modal — working (JS bridge path)
+- F43 ReplyEncoder: IPC responses use `[100:Begin][18:Uint8ArrayBuffer][slot_id:u64][101:End]` format ✓
+- EventDispatcher.deliver: wired to `signalDeliver` (was empty noop) ✓
+- Kotlin: `EwePlatformPlugin.presentModal()` → `ModalHelper.present()` → `BottomSheetDialog` ✓
+- JS bridge: `invokeIpc('chrome','present_modal',...)` → PluginHandle → BottomSheet ✓
+- WASM button callback path: ctx.callback → signalDeliver → invoke_signal_callback — ready but need viewport fix for button taps
+
+### Dialog — working (JS bridge path)
+- Kotlin: `EwePlatformPlugin.showDialog()` → `ModalHelper.presentTextDialog()` → `AlertDialog` ✓
+- JS bridge: `invokeIpc('dialog','show',...)` → PluginHandle → AlertDialog ✓
+- WebView-content dialog variant: needs Kotlin implementation
+
+### Dismiss — working (JS bridge path)
+- `invokeIpc('chrome','dismiss_modal',...)` / `dismissAllModals` → Kotlin dismiss ✓
+
+### Other presentation modes — not started
+- Push, Replace, Root, External: zero implementation
+
+### WebView integration
+- Plain `android.webkit.WebView` in modals — no `__TAURI_INTERNALS__`
+- `WebviewBuilder::add_child` is `#[cfg(desktop)]` — not available on Android
+- `findWebViewInstance()` utility available in ModalHelper.kt for future use
+- Track Wry #495 (expose native handles) — when available, detach/reattach Tauri WebView into dialogs
+
+### Documentation
+- Not started — need `docs/{getting_started/, deep-dives/, adding_native_capabilities/, connecting_to_wasm/}` for all 4 crates
 
 ## Target
 
