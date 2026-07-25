@@ -13,18 +13,6 @@
     }
   </style>
   <script src="bundle.js"></script>
-  <script>
-    setTimeout(function() {
-      if (typeof invokeIpc !== 'function') return;
-      // Test all three commands sequentially
-      invokeIpc('dialog', 'show', {title:'E2E Dialog',message:'Hello from E2E!',positive_button:'OK',negative_button:'Cancel'})
-        .then(function(r) { console.error('[E2E] dialog OK ' + JSON.stringify(r)); })
-        .catch(function(e) { console.error('[E2E] dialog FAIL ' + e); });
-      invokeIpc('chrome', 'present_modal', {url:'ewe://localhost/app/',style:'bottom_sheet',title:'E2E Bottom Sheet'})
-        .then(function(r) { console.error('[E2E] present OK ' + JSON.stringify(r)); })
-        .catch(function(e) { console.error('[E2E] present FAIL ' + e); });
-    }, 1500);
-  </script>
 </head>
 <body>
   <script>

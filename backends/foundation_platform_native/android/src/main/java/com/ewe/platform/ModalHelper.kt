@@ -9,23 +9,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 /**
  * F42: Native modal helper — BottomSheet + AlertDialog with embedded WebView.
  *
- * Called by the Tauri plugin bridge when Rust sends `presentModal` /
- * `dismissModal` commands. Does NOT navigate the main WebView — the
- * dialog overlays on top of the existing Activity.
+ * TODO: Use `RustWebView` once the generated class is accessible from the
+ * plugin module (currently lives in :app generated/). Until then, the plain
+ * WebView loads pages via `ewe://` protocol but lacks `__TAURI_INTERNALS__`
+ * and the Tauri IPC bridge.
  */
 class ModalHelper(private val activity: Activity) {
 
-    /** Present a modal dialog with an embedded WebView loading the given URL. */
     fun present(url: String, title: String, style: String): ModalHandle {
         return when (style) {
             "bottom_sheet" -> presentBottomSheet(url, title)
             "dialog" -> presentDialog(url, title)
-            "fullscreen" -> presentDialog(url, title) // TODO: new Activity
+            "fullscreen" -> presentDialog(url, title)
             else -> presentDialog(url, title)
         }
     }
 
-    /** Present a native AlertDialog (text-only, no WebView) — for simple confirm dialogs. */
     fun presentTextDialog(
         title: String,
         message: String,
@@ -34,7 +33,7 @@ class ModalHelper(private val activity: Activity) {
     ): ModalHandle {
         val builder = android.app.AlertDialog.Builder(activity)
             .setTitle(title)
-        if (message.isNotEmpty()) builder.setMessage(message)
+        if (!message.isNullOrEmpty()) builder.setMessage(message)
         if (positiveButton != null) builder.setPositiveButton(positiveButton) { d, _ -> d.dismiss() }
         if (negativeButton != null) builder.setNegativeButton(negativeButton) { d, _ -> d.dismiss() }
         val dialog = builder.create()
@@ -65,7 +64,6 @@ class ModalHelper(private val activity: Activity) {
         return ModalHandle(dialog.hashCode().toString()) { dialog.dismiss() }
     }
 
-    /** Create a WebView suitable for embedding in a dialog. */
     private fun createWebView(url: String): WebView {
         val webView = WebView(activity)
         webView.settings.javaScriptEnabled = true

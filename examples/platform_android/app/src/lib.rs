@@ -45,7 +45,7 @@ fn platform_dashboard() {
     let on_present_modal = ctx.callback(move |_event| {
         let _ = Modal::present(
             PresentArgs {
-                route: "/nav_modal".into(),
+                route: "http://ewe.localhost/app/".into(),
                 style: Some("bottom_sheet".into()),
                 title: Some("Native Modal".into()),
             },
