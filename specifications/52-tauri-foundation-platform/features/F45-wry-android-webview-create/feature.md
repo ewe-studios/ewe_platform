@@ -351,6 +351,42 @@ open class MultiWryActivity : WryActivity() {
 }
 ```
 
+#### WebView naming contract (user-provided, enforced)
+
+Each WebView in `MultiWryActivity` is keyed by its `id` string — the same value
+passed as `attrs.id` in `CreateWebViewAttributes` (which is the Tauri `label`
+from `WebviewWindowBuilder::new(label, url)` or `WindowManager.create_child(label, ...)`).
+
+Rules enforced by `MultiWryActivity`:
+1. **Every WebView MUST have a unique `id`.** Duplicate `id` causes
+   `onWebViewReady` to throw `IllegalStateException("Duplicate webview id: $id")`.
+2. **The `id` is user-provided, never auto-generated.** The caller in Rust
+   chooses a meaningful name — `"main"`, `"settings_modal"`, `"profile_dialog"`.
+3. **The `id` is the lookup key.** Kotlin's `getWebView(id)` and
+   `removeWebView(id)` use it. Foundation's `ModalHelper` uses it to find
+   and detach the right WebView.
+4. **`id` survives detach/reattach.** The WebView can be removed from `decorView`,
+   embedded in a `BottomSheetDialog`, and reattached — it stays in `mWebViews`
+   keyed by the same `id` the entire time.
+5. **Rust `ACTIVITY_PROXY` mirrors the same key.** The GlobalRef map uses
+   the same `id` string as its key, keeping Rust and Kotlin in sync.
+
+Example flow:
+```
+Rust: create_child("profile_modal", "http://ewe.localhost/app/settings")
+  → CreateWebView { id: "profile_modal", ... }
+  → JNI: new RustWebView(ctx, scripts, "profile_modal")
+  → Kotlin: mWebViews["profile_modal"] = webView
+  → Kotlin: decorView.addView(webView)
+
+Kotlin (ModalHelper): findWebViewInstance("profile_modal") → detach
+  → BottomSheetDialog.setContentView(webView)
+  → Dismiss → reattach to decorView
+
+Rust: dismiss → remove_child("profile_modal")
+  → Kotlin: removeWebView("profile_modal") → detach + Rust.onWebviewDestroy
+```
+
 Key differences from default `WryActivity`:
 
 | Aspect | `WryActivity` (today) | `MultiWryActivity` (F45 R6) |
