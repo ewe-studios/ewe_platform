@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(JAVA_HOME=/usr/lib/jvm/java-17-openjdk cargo tauri android build --target x86_64 --debug)"
+    ]
+  }
+}

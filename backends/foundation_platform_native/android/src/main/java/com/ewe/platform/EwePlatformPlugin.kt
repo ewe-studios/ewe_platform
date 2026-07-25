@@ -11,6 +11,12 @@ import app.tauri.plugin.Plugin
 
 /**
  * F42: Tauri plugin for foundation_platform native capabilities.
+ *
+ * Commands are called by Rust via `PluginHandle::run_mobile_plugin()`.
+ * For `presentModal`, Rust creates a child Tauri WebView via
+ * `Window::add_child(WebviewBuilder)`, then passes the label here so
+ * Kotlin can find the WebView in the Activity hierarchy and embed it
+ * in a BottomSheetDialog or AlertDialog.
  */
 
 @InvokeArg

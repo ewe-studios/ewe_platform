@@ -1,9 +1,12 @@
 //! Modal IPC handler — native side (F42 modal capability).
 //!
-//! On Android: bridges WASM IPC → PluginHandle → Kotlin `EwePlatformPlugin`
-//! (creates real `BottomSheetDialog` / `AlertDialog` with embedded `WebView`).
+//! Calls Kotlin `EwePlatformPlugin.presentModal()` via `PluginHandle`.
+//! Kotlin finds the Tauri `RustWebView` in the Activity view hierarchy,
+//! detaches it from the decor view, embeds it in a `BottomSheetDialog`,
+//! and re-attaches on dismiss. This preserves `__TAURI_INTERNALS__`,
+//! init scripts, and the Rust IPC bridge.
 //!
-//! On desktop: stub — no native dialog stack; returns synthetic success.
+//! F43: callback-based `invoke_with_session`.
 
 use std::sync::Arc;
 
@@ -15,9 +18,10 @@ use crate::shared::modal_types::{DismissArgs, PresentArgs};
 
 /// Register the modal IPC handler.
 pub fn register(session: Arc<PlatformSession>) {
-    session.register_ipc(ModalIpc {
+    let ipc = ModalIpc {
         session: Arc::clone(&session),
-    });
+    };
+    session.register_ipc(ipc);
 }
 
 struct ModalIpc {
@@ -39,9 +43,9 @@ impl PlatformIpc for ModalIpc {
         callback: IpcCallback,
     ) -> Result<(), IpcError> {
         let result = match req.action.as_str() {
-            "present_modal" => Self::handle(&self.session, req),
-            "dismiss_modal" => Self::handle(&self.session, req),
-            "dismiss_all_modals" => Self::handle(&self.session, req),
+            "present_modal" => Self::present(&self.session, req),
+            "dismiss_modal" => Self::dismiss(&self.session, req),
+            "dismiss_all_modals" => Self::dismiss_all(&self.session),
             _ => Err(IpcError::ExecutionFailed),
         };
         callback(result);
@@ -50,18 +54,6 @@ impl PlatformIpc for ModalIpc {
 }
 
 impl ModalIpc {
-    fn handle(
-        session: &PlatformSession,
-        req: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-        match req.action.as_str() {
-            "present_modal" => Self::present(session, req),
-            "dismiss_modal" => Self::dismiss(session, req),
-            "dismiss_all_modals" => Self::dismiss_all(session),
-            _ => Err(IpcError::ExecutionFailed),
-        }
-    }
-
     #[cfg(target_os = "android")]
     fn present(
         session: &PlatformSession,
@@ -86,10 +78,7 @@ impl ModalIpc {
             })?;
 
         let payload = serde_json::to_vec(&response).unwrap_or_default();
-        Ok(IpcResponse {
-            payload,
-            content_type: IpcContentType::Json,
-        })
+        Ok(IpcResponse { payload, content_type: IpcContentType::Json })
     }
 
     #[cfg(target_os = "android")]
@@ -115,16 +104,11 @@ impl ModalIpc {
                 IpcError::ExecutionFailed
             })?;
 
-        Ok(IpcResponse {
-            payload: br#"{"ok":true}"#.to_vec(),
-            content_type: IpcContentType::Json,
-        })
+        Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json })
     }
 
     #[cfg(target_os = "android")]
-    fn dismiss_all(
-        session: &PlatformSession,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+    fn dismiss_all(session: &PlatformSession) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         use tauri::Manager;
 
         let app_handle = session
@@ -134,16 +118,13 @@ impl ModalIpc {
         let handles = app_handle.state::<super::plugin::EweNativeHandles>();
         let _: serde_json::Value = handles
             .modal
-            .run_mobile_plugin("dismissAllModals", ())
+            .run_mobile_plugin::<serde_json::Value>("dismissAllModals", ())
             .map_err(|e| {
                 tracing::warn!("dismissAllModals failed: {e:?}");
                 IpcError::ExecutionFailed
             })?;
 
-        Ok(IpcResponse {
-            payload: br#"{"ok":true}"#.to_vec(),
-            content_type: IpcContentType::Json,
-        })
+        Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json })
     }
 
     // Desktop stubs
@@ -169,18 +150,12 @@ impl ModalIpc {
         let _typed: IpcRequest<DismissArgs> =
             req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
         tracing::info!("dismissModal: not on android — stub");
-        Ok(IpcResponse {
-            payload: br#"{"ok":true}"#.to_vec(),
-            content_type: IpcContentType::Json,
-        })
+        Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json })
     }
 
     #[cfg(not(target_os = "android"))]
     fn dismiss_all(_session: &PlatformSession) -> Result<IpcResponse<Vec<u8>>, IpcError> {
         tracing::info!("dismissAllModals: not on android — stub");
-        Ok(IpcResponse {
-            payload: br#"{"ok":true}"#.to_vec(),
-            content_type: IpcContentType::Json,
-        })
+        Ok(IpcResponse { payload: br#"{"ok":true}"#.to_vec(), content_type: IpcContentType::Json })
     }
 }

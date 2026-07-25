@@ -1961,9 +1961,17 @@ class FoundationWasm {
       if (!this._ipcHandler) return 0n;
       var resp = this._ipcHandler(req);
       if (!resp) return 0n;
+      // Encode as ReplyEncoder [100][18][slot_id_u64][101] (same as async path)
       var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
-      var allocId = this.memory.create(respBytes.length);
-      this.memory.write(allocId, respBytes);
+      var slotId = this.memory.create(respBytes.length);
+      this.memory.write(slotId, respBytes);
+      var frame = new Uint8Array(11);
+      frame[0] = 100; frame[1] = 18;
+      var sid = BigInt(slotId);
+      for (var i = 0; i < 8; i++) frame[2 + i] = Number((sid >> BigInt(8 * i)) & 0xFFn);
+      frame[10] = 101;
+      var allocId = this.memory.create(11);
+      this.memory.write(allocId, frame);
       return allocId;
     } catch(_) { return 0n; }
   }
@@ -1985,14 +1993,23 @@ class FoundationWasm {
       var inst = this.bridge.instance;
       Promise.resolve(this._ipcAsyncHandler(req)).then(function(resp) {
         if (!resp) return;
+        // Encode IPC response as ReplyEncoder [100][18][slot_id_u64][101]
+        // Type 18 = ReturnTypeId::Uint8ArrayBuffer (Rust reads slot, returns bytes to callback)
         var respBytes = FoundationWasm._ipcEncodeResponse(resp.content_type, resp.payload);
-        var allocId = self.memory.create(respBytes.length);
-        self.memory.write(allocId, respBytes);
+        var slotId = self.memory.create(respBytes.length);
+        self.memory.write(slotId, respBytes);
+        var frame = new Uint8Array(11);
+        frame[0] = 100; // ReturnValueMarker::Begin
+        frame[1] = 18;  // ReturnTypeId::Uint8ArrayBuffer
+        var sid = BigInt(slotId);
+        for (var i = 0; i < 8; i++) frame[2 + i] = Number((sid >> BigInt(8 * i)) & 0xFFn);
+        frame[10] = 101; // ReturnValueMarker::End
+        var allocId = self.memory.create(11);
+        self.memory.write(allocId, frame);
         inst.exports.ipc_resolve(token, allocId);
       }, function(err) {
         console.error('[WASM-IPC] handler rejected:', err);
-        var errCode = errorCodeOf(self.functions.asReplyError(6442)); // IpcError::ExecutionFailed
-        var errBytes = self.functions.reply.encode([{ type: ReturnType.ErrorCode, value: errCode }]);
+        var errBytes = self.functions.reply.encode([{ type: 31, value: errorCodeOf(err) || 6442 }]); // ErrorCode
         var allocId = self.memory.create(errBytes.length);
         self.memory.write(allocId, errBytes);
         inst.exports.ipc_resolve(token, allocId);

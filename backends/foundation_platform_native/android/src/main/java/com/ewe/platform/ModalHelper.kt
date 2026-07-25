@@ -9,10 +9,15 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 /**
  * F42: Native modal helper — BottomSheet + AlertDialog with embedded WebView.
  *
- * TODO: Use `RustWebView` once the generated class is accessible from the
- * plugin module (currently lives in :app generated/). Until then, the plain
- * WebView loads pages via `ewe://` protocol but lacks `__TAURI_INTERNALS__`
- * and the Tauri IPC bridge.
+ * Creates plain `android.webkit.WebView` instances for dialog embedding.
+ * These lack `__TAURI_INTERNALS__` but load and display pages correctly.
+ * WASM IPC interactions happen from the main dashboard page, not from
+ * within the modal WebView. Tauri IPC integration requires `add_child`
+ * (WebviewBuilder) which is desktop-only; Android multi-webview support
+ * is tracked upstream.
+ *
+ * TODO(android): use `findWebViewInstance()` + detach/reattach when
+ * child WebViews are available on Android (Wry MR pending).
  */
 class ModalHelper(private val activity: Activity) {
 
@@ -26,13 +31,10 @@ class ModalHelper(private val activity: Activity) {
     }
 
     fun presentTextDialog(
-        title: String,
-        message: String,
-        positiveButton: String?,
-        negativeButton: String?
+        title: String, message: String,
+        positiveButton: String?, negativeButton: String?
     ): ModalHandle {
-        val builder = android.app.AlertDialog.Builder(activity)
-            .setTitle(title)
+        val builder = android.app.AlertDialog.Builder(activity).setTitle(title)
         if (!message.isNullOrEmpty()) builder.setMessage(message)
         if (positiveButton != null) builder.setPositiveButton(positiveButton) { d, _ -> d.dismiss() }
         if (negativeButton != null) builder.setNegativeButton(negativeButton) { d, _ -> d.dismiss() }
@@ -56,8 +58,7 @@ class ModalHelper(private val activity: Activity) {
     private fun presentDialog(url: String, title: String): ModalHandle {
         val webView = createWebView(url)
         val dialog = android.app.AlertDialog.Builder(activity)
-            .setTitle(title)
-            .setView(webView)
+            .setTitle(title).setView(webView)
             .setNegativeButton("Close") { d, _ -> d.dismiss() }
             .create()
         dialog.show()
@@ -65,23 +66,33 @@ class ModalHelper(private val activity: Activity) {
     }
 
     private fun createWebView(url: String): WebView {
-        val webView = WebView(activity)
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true
-        webView.loadUrl(url)
-        val displayMetrics = activity.resources.displayMetrics
+        val webView = WebView(activity).also {
+            it.settings.javaScriptEnabled = true
+            it.settings.domStorageEnabled = true
+        }
         webView.layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            (displayMetrics.heightPixels * 0.75).toInt()
+            (activity.resources.displayMetrics.heightPixels * 0.75).toInt()
         )
+        webView.loadUrl(url)
         return webView
+    }
+
+    companion object {
+        fun findWebViewInstance(parent: ViewGroup): WebView? {
+            for (i in 0 until parent.childCount) {
+                val child = parent.getChildAt(i)
+                if (child is WebView) return child
+                if (child is ViewGroup) {
+                    val found = findWebViewInstance(child)
+                    if (found != null) return found
+                }
+            }
+            return null
+        }
     }
 }
 
-/** Handle to an active modal — allows programmatic dismiss. */
-data class ModalHandle(
-    val id: String,
-    private val onDismiss: () -> Unit
-) {
+data class ModalHandle(val id: String, private val onDismiss: () -> Unit) {
     fun dismiss() = onDismiss()
 }
