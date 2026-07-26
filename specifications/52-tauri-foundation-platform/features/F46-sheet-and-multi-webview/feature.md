@@ -15,11 +15,10 @@ depends_on:
   - "F42-modal-capability"
 
 tasks:
-  completed: 3
-  uncompleted: 3
+  completed: 5
+  uncompleted: 1
   total: 6
-  completion_percentage: 50%
-  completion_percentage: 0%
+  completion_percentage: 83%
 ---
 # F46 — SheetWryActivity → MultiWryActivity (staged modal WebView)
 
@@ -179,25 +178,38 @@ is only in the `WindowBuilderExtAndroid` call.
 
 ### Stage 1 Verification
 
-```bash
-# 1. Build APK
-cd examples/platform_android/src-tauri
-cargo tauri android build --target x86_64 --debug
+**✓ VERIFIED 2026-07-26 on x86_64 emulator (1080x2160)**
 
-# 2. Install + launch
-adb install -r gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
-adb shell am start -n com.ewe.platform/.MainActivity
-
-# 3. Verify dashboard loads
-adb logcat | grep "WASM active"
-
-# 4. Trigger E2E proof (injected into HTML)
-# Should see: Tauri/Plugin: pluginId: ewe-platform-native, command: presentModal
-# SheetWryActivity should appear as partial-height overlay
-
-# 5. Take screenshot
-adb exec-out screencap -p > /tmp/f46-stage1-sheet.png
+Log evidence:
 ```
+WASM active                      ← dashboard loads via VFS overlay
+[TEST] firing present_modal...   ← E2E proof script fires
+ModalIpc::invoke_with_session    ← IPC handler receives request
+setting activity_name=SheetWryActivity
+calling builder.build()...       ← WebviewWindowBuilder invoked
+Displayed .SheetWryActivity +45ms ← Activity created, NO errors
+```
+
+Key findings:
+- `WebviewWindowBuilder::new().activity_name("SheetWryActivity").build()` succeeds
+- SheetWryActivity extends TauriActivity — `getPluginManager()` works without crash
+- The WebView in the sheet loads `ewe://localhost/app/` through the VFS overlay
+- Full Tauri IPC bridge is available in the sheet WebView
+- Dashboard stays alive behind the sheet (dimmed)
+- 25MB release APK, 452MB debug APK
+
+Screenshot: `/tmp/f46-modal-working.png` shows the bottom sheet overlay working.
+
+### Prior build artifact note
+
+The 452MB debug APK from the initial build is the one that ran. The release APK
+(25MB) needs signing (`apksigner`) which requires build-tools. Next build cycle
+should install build-tools via sdkmanager.
+
+### Remaining: R2 (dismiss) verification
+
+The E2E proof script only tests present_modal. Back-press or programmatic dismiss
+needs a follow-up tap test or an additional proof script for `dismiss_modal`.
 
 ### Stage 1 Files
 
