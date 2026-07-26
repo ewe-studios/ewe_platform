@@ -13,6 +13,15 @@
     }
   </style>
   <script src="bundle.js"></script>
+  <script>
+    setTimeout(function() {
+      if (typeof invokeIpc !== 'function') return;
+      console.error('[TEST] firing present_modal...');
+      invokeIpc('chrome', 'present_modal', {url:'http://ewe.localhost/app/',style:'bottom_sheet',title:'WASM Test'})
+        .then(function(r) { console.error('[TEST] MODAL OK ' + JSON.stringify(r)); })
+        .catch(function(e) { console.error('[TEST] MODAL FAIL ' + e.message); });
+    }, 2000);
+  </script>
 </head>
 <body>
 <body>
