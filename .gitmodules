@@ -32,6 +32,6 @@
 [submodule "infrastructure/tauri-bindgen"]
 	path = infrastructure/tauri-bindgen
 	url = git@github.com:rstkit/tauri-bindgen.git
-[submodule "infrastructure/tauri-docs"]
-	path = infrastructure/tauri-docs
+[submodule "foundations/tauri-docs"]
+	path = foundations/tauri-docs
 	url = git@github.com:tauri-apps/tauri-docs.git

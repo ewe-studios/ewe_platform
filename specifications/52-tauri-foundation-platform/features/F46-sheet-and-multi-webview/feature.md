@@ -4,10 +4,10 @@ spec_directory: "specifications/52-tauri-foundation-platform"
 feature_directory: "specifications/52-tauri-foundation-platform/features/F46-sheet-and-multi-webview"
 this_file: "specifications/52-tauri-foundation-platform/features/F46-sheet-and-multi-webview/feature.md"
 
-status: pending
+status: in-progress
 priority: critical
 created: 2026-07-25
-updated: 2026-07-25
+updated: 2026-07-26
 
 depends_on:
   - "F44-tao-android-layout"
@@ -15,9 +15,10 @@ depends_on:
   - "F42-modal-capability"
 
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 3
+  uncompleted: 3
   total: 6
+  completion_percentage: 50%
   completion_percentage: 0%
 ---
 # F46 — SheetWryActivity → MultiWryActivity (staged modal WebView)
@@ -217,3 +218,38 @@ Stage 2 replaces the separate `SheetWryActivity` window with a same-Activity
 WebView embedded in a Kotlin `BottomSheetDialog`. The full spec is in F45
 R6-R8. Do NOT implement Stage 2 until Stage 1 is proven working on the
 emulator with screenshots.
+
+### Stage 2 Implementation (2026-07-26 — plumbing done, pending Stage 1 verification)
+
+Per user request, the Rust/Kotlin plumbing for MultiWryActivity has been
+implemented in parallel with Stage 1 debugging. Key changes:
+
+**Kotlin:**
+- `MultiWryActivity.kt` — extends `TauriActivity`, manages a `FrameLayout`-based
+  WebView stack with slide-up/down animations, dim overlay, and back-press
+  dismissal. Uses virtual activity IDs from the Rust side.
+
+**Rust (tao):**
+- `Window` struct gains `is_virtual: bool` and `source_activity_id: ActivityId`
+- `Window::new()` detects `activity_name == "MultiWryActivity"` and clones
+  the existing context under a new virtual `activity_id` instead of calling
+  `create_activity()` (no new Android Activity)
+- `AndroidContext::clone_as_virtual()` registers the cloned context in `CONTEXTS`
+- `register_window_manager()` clones the `WINDOW_MANAGER` entry
+- `WindowExtAndroid::is_virtual_activity()`, `activity_id()`, `source_activity_id()`
+
+**Rust (wry):**
+- `register_virtual_activity_proxy(source_id, virtual_id)` — clones the
+  ActivityProxy entry under a new virtual ID
+- `activity_id_for_window_manager()` iterates `ACTIVITY_PROXY` in REVERSE
+  so the most-recently-registered virtual slot is found first
+- Re-exported at crate level for tauri-runtime-wry
+
+**Rust (tauri-runtime-wry):**
+- After `tao::Window::new()`, checks `is_virtual_activity()` and calls
+  `wry::register_virtual_activity_proxy()` to register in `ACTIVITY_PROXY`
+
+**Config:**
+- `MultiWryActivity` added to `AndroidManifest.xml`
+- ProGuard keep rules added for `MultiWryActivity`, `SheetWryActivity`,
+  `onWebViewReady`, and `startActivityWithHeightFraction`

@@ -21,6 +21,10 @@ exclude = [
   "foundations/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
+  # foundations/tauri-docs is a submodule (Astro docs site), not a Rust crate
+  "foundations/tauri-docs",
+  # infrastructure/tauri-bindgen has its own workspace
+  "infrastructure/tauri-bindgen",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
