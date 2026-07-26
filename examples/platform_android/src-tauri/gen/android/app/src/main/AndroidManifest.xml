@@ -33,6 +33,14 @@
             android:excludeFromRecents="true"
             android:launchMode="standard" />
 
+        <!-- F46: Centered dialog Activity (DialogWryActivity extends TauriActivity extends WryActivity) -->
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:name=".DialogWryActivity"
+            android:theme="@style/Theme.platform_android.Dialog"
+            android:excludeFromRecents="true"
+            android:launchMode="standard" />
+
         <provider
           android:name="androidx.core.content.FileProvider"
           android:authorities="${applicationId}.fileprovider"

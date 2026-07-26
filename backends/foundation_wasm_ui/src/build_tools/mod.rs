@@ -449,6 +449,7 @@ impl WasmBundleGenerator {
     }}
   </style>
   <script src="bundle.js"></script>
+	  <script src="e2e.js"></script>
 </head>
 <body>
 <body>
@@ -460,6 +461,14 @@ impl WasmBundleGenerator {
             let dest = self.output_dir.join("index.html");
             std::fs::write(&dest, &html).map_err(|e| io_err(&dest, e))?;
             written.push(PlannedFile { path: dest, kind: "index.html" });
+
+            // Copy generated e2e test script from public/ into the output bundle.
+            let e2e_src = self.crate_dir.join("public/e2e.js");
+            if e2e_src.exists() {
+                let e2e_dest = self.output_dir.join("e2e.js");
+                std::fs::copy(&e2e_src, &e2e_dest).map_err(|e| io_err(&e2e_dest, e))?;
+                written.push(PlannedFile { path: e2e_dest, kind: "e2e.js" });
+            }
         }
 
         Ok(written)

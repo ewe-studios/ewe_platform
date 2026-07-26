@@ -30,8 +30,8 @@ tauri-build = { version = "2", features = [] }
 # infrastructure copies via path deps. This [patch] redirects tauri's
 # published deps to our forks so the path deps resolve.
 [patch.crates-io]
-tao = { path = "../../../infrastructure/tao" }
-wry = { path = "../../../infrastructure/wry" }
+tao = { path = "../../../foundations/tao" }
+wry = { path = "../../../foundations/wry" }
 
 # Opt out of parent workspace — Tauri v2 nested crate for mobile builds
 [workspace]

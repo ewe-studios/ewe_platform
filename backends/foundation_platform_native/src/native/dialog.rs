@@ -55,24 +55,68 @@ impl DialogIpc {
         let typed: IpcRequest<ShowArgs> =
             req.clone().into_typed().map_err(|_| IpcError::InvalidPayload)?;
 
-        let app_handle = session
-            .handles::<tauri::AppHandle<tauri::Wry>>()
-            .ok_or(IpcError::ExecutionFailed)?;
+        // When a route is provided, create a Tauri WebView dialog (DialogWryActivity).
+        // When no route, fall back to native text-only AlertDialog via PluginHandle.
+        if let Some(ref route) = typed.payload.route {
+            let depth = session.webview_stack().depth();
+            let dialog_label = format!("dialog_{depth}");
 
-        let handles = app_handle.state::<super::plugin::EweNativeHandles>();
-        let response: serde_json::Value = handles
-            .modal
-            .run_mobile_plugin("showDialog", &typed.payload)
-            .map_err(|e| {
-                tracing::warn!("showDialog failed: {e:?}");
+            let app_handle = session
+                .handles::<tauri::AppHandle<tauri::Wry>>()
+                .ok_or(IpcError::ExecutionFailed)?
+                .clone();
+
+            let mut builder = tauri::WebviewWindowBuilder::new(
+                &app_handle,
+                &dialog_label,
+                tauri::WebviewUrl::App(route.clone().into()),
+            )
+            .title(typed.payload.title.clone());
+
+            #[cfg(target_os = "android")]
+            {
+                let dialog_class = String::from("DialogWryActivity");
+                builder = builder.activity_name(dialog_class);
+            }
+
+            let _window = builder.build().map_err(|e| {
+                tracing::warn!("showDialog build failed: {e:?}");
                 IpcError::ExecutionFailed
             })?;
 
-        let payload = serde_json::to_vec(&response).unwrap_or_default();
-        Ok(IpcResponse {
-            payload,
-            content_type: IpcContentType::Json,
-        })
+            let mut stack = session.webview_stack_mut();
+            if let Some(mut pool) = stack.pool_mut() {
+                pool.get_or_create(&dialog_label);
+                pool.set_route(&dialog_label, route);
+            }
+            stack.push_slot(foundation_platform::WebViewSlot::new_modal(route));
+
+            let resp = serde_json::json!({"dialog_id": dialog_label});
+            Ok(IpcResponse {
+                payload: serde_json::to_vec(&resp).unwrap_or_default(),
+                content_type: IpcContentType::Json,
+            })
+        } else {
+            // Text-only AlertDialog via Kotlin PluginHandle
+            let app_handle = session
+                .handles::<tauri::AppHandle<tauri::Wry>>()
+                .ok_or(IpcError::ExecutionFailed)?;
+
+            let handles = app_handle.state::<super::plugin::EweNativeHandles>();
+            let response: serde_json::Value = handles
+                .modal
+                .run_mobile_plugin("showDialog", &typed.payload)
+                .map_err(|e| {
+                    tracing::warn!("showDialog failed: {e:?}");
+                    IpcError::ExecutionFailed
+                })?;
+
+            let payload = serde_json::to_vec(&response).unwrap_or_default();
+            Ok(IpcResponse {
+                payload,
+                content_type: IpcContentType::Json,
+            })
+        }
     }
 
     #[cfg(target_os = "android")]

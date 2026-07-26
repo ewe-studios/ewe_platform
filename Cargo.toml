@@ -5,7 +5,7 @@ members = [
   "bin/*",
   # "crates/*",
   "backends/*",
-  "infrastructure/*",
+  # "infrastructure/*",
   "examples/platform_demo",
   "apps/answerme-agent",
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
@@ -115,5 +115,5 @@ strip = "debuginfo"
 
 # F44+F45: Use forked tao/wry for Android layout + WebView hosting
 [patch.crates-io]
-tao = { path = "infrastructure/tao" }
-wry = { path = "infrastructure/wry" }
+tao = { path = "foundations/tao" }
+wry = { path = "foundations/wry" }
