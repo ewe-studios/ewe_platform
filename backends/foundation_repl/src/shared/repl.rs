@@ -12,8 +12,24 @@ use crate::shared::activity::Activity;
 use crate::shared::commands::{CommandRegistry, CommandResult};
 use crate::shared::config::ReplConfig;
 use crate::shared::history::ReplHistory;
-use crate::shared::theme::ReplTheme;
+use crate::shared::theme::{ReplColor, ReplTheme};
 use crate::shared::traits::{BoxedDisplay, ReplInput, SharedDisplay};
+
+/// A callback that generates the primary prompt string just before each read.
+///
+/// WHY: some sessions want a prompt that reflects live state — a message
+/// counter, a timestamp, the current working context — rather than a fixed
+/// string.
+///
+/// WHAT: `Fn(&Repl) -> String`, given the REPL so it can read config/state, and
+/// returning the prompt to draw. It is not `Clone`/`Debug`, so it lives on the
+/// [`Repl`] (and [`ReplBuilder`]) rather than in [`ReplConfig`], which stays a
+/// plain data value.
+///
+/// HOW: set one with [`ReplBuilder::dynamic_prompt`]; when present it replaces
+/// the static [`ReplConfig::prompt`] for the primary prompt only — the
+/// continuation prompt stays static.
+pub type PromptFn = Box<dyn Fn(&Repl) -> String>;
 
 /// Main REPL handle.
 ///
@@ -31,6 +47,8 @@ pub struct Repl {
     commands: RefCell<CommandRegistry>,
     history: RefCell<ReplHistory>,
     exited: Cell<bool>,
+    /// Optional callback that overrides the static prompt each read (F03 Part C).
+    dynamic_prompt: Option<PromptFn>,
 }
 
 impl Repl {
@@ -51,6 +69,7 @@ impl Repl {
             commands: RefCell::new(CommandRegistry::new()),
             history: RefCell::new(ReplHistory::new(1000)),
             exited: Cell::new(false),
+            dynamic_prompt: None,
         }
     }
 
@@ -155,6 +174,27 @@ impl Repl {
         &self.config
     }
 
+    /// The primary prompt string to draw for the next read.
+    ///
+    /// WHY: the input loop needs the effective prompt, and callers/renderers may
+    /// want to know what it currently is.
+    ///
+    /// WHAT: the result of the dynamic prompt callback if one was set, otherwise
+    /// the static [`ReplConfig::prompt`].
+    ///
+    /// HOW: invokes the callback with `self`; a stateful callback (via interior
+    /// mutability) can therefore return a different string on each call.
+    ///
+    /// # Panics
+    /// Never panics (a panicking user callback propagates as its own panic).
+    #[must_use]
+    pub fn current_prompt(&self) -> String {
+        match &self.dynamic_prompt {
+            Some(make) => make(self),
+            None => self.config.prompt.clone(),
+        }
+    }
+
     /// Lock the display, recovering it even if a previous holder panicked.
     fn display(&self) -> MutexGuard<'_, BoxedDisplay> {
         self.display
@@ -219,13 +259,17 @@ impl Iterator for ReplMessageIter<'_> {
                 return None;
             }
 
+            // Compute the effective prompt before borrowing input/display, so a
+            // dynamic-prompt callback sees a fully-available `&Repl`.
+            let prompt = self.repl.current_prompt();
+
             let result = {
                 let mut input = self.repl.input.borrow_mut();
                 let mut display = self.repl.display();
                 let mut history = self.repl.history.borrow_mut();
 
                 input.read_message(
-                    &self.repl.config.prompt,
+                    &prompt,
                     &self.repl.config.continuation_prompt,
                     &mut **display,
                     self.repl.config.max_input_length,
@@ -273,9 +317,23 @@ impl Iterator for ReplMessageIter<'_> {
 }
 
 /// Builder for customizing a REPL.
-#[derive(Debug, Default)]
+///
+/// Holds the config plus an optional dynamic-prompt callback (which cannot live
+/// in [`ReplConfig`], since that type is `Clone`/`Debug`/`Eq` and a closure is
+/// none of those).
+#[derive(Default)]
 pub struct ReplBuilder {
     config: ReplConfig,
+    dynamic_prompt: Option<PromptFn>,
+}
+
+impl core::fmt::Debug for ReplBuilder {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("ReplBuilder")
+            .field("config", &self.config)
+            .field("dynamic_prompt", &self.dynamic_prompt.is_some())
+            .finish()
+    }
 }
 
 impl ReplBuilder {
@@ -321,9 +379,43 @@ impl ReplBuilder {
         self
     }
 
+    /// Shorthand: set just the prompt (and continuation prompt) colour on the
+    /// current theme.
+    ///
+    /// WHY: recolouring the prompt is the most common single-colour tweak, and
+    /// otherwise means constructing a whole [`ReplTheme`].
+    ///
+    /// WHAT: sets `theme.prompt_foreground` to `color`.
+    ///
+    /// HOW: colours use the backend-neutral [`ReplColor`]; e.g.
+    /// `prompt_color(ReplColor::ansi(6))` for cyan.
+    #[must_use]
+    pub fn prompt_color(mut self, color: ReplColor) -> Self {
+        self.config.theme.prompt_foreground = color;
+        self
+    }
+
+    /// Set a callback that generates the primary prompt before each read.
+    ///
+    /// WHY: a session may want a prompt that reflects live state (a counter, the
+    /// time, the current context) instead of a fixed string.
+    ///
+    /// WHAT: `f` is invoked with `&Repl` just before each read; its return value
+    /// replaces the static prompt for the primary prompt only.
+    ///
+    /// HOW: stored on the [`Repl`] (not in [`ReplConfig`]); a stateful `f` (via
+    /// interior mutability) can return a different string each iteration.
+    #[must_use]
+    pub fn dynamic_prompt(mut self, f: impl Fn(&Repl) -> String + 'static) -> Self {
+        self.dynamic_prompt = Some(Box::new(f));
+        self
+    }
+
     /// Build the REPL.
     #[must_use]
     pub fn build(self) -> Repl {
-        Repl::with_config(self.config)
+        let mut repl = Repl::with_config(self.config);
+        repl.dynamic_prompt = self.dynamic_prompt;
+        repl
     }
 }

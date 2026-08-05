@@ -4,9 +4,10 @@ spec_directory: "specifications/59-foundation-shell-repl"
 feature_directory: "specifications/59-foundation-shell-repl/features/F01-core-repl"
 this_file: "specifications/59-foundation-shell-repl/features/F01-core-repl/feature.md"
 
-status: planned
+status: complete
 priority: high
 created: 2026-07-20
+completed: 2026-07-31
 
 depends_on: []
 
@@ -16,6 +17,12 @@ tasks:
   total: 8
   completion_percentage: 100%
 ---
+
+> **Delivered as `foundation_repl`** on a ratatui inline viewport (crossterm host
+> native, ratzilla host browser) with the `ReplTheme` colour system and a richer
+> `ReplDisplay` (render_input/finish_input/render_activity/stream_push). The
+> shipped shape exceeds this sketch; see spec.md "Decisions (delivered)". wasm
+> compiles. Covered by tests/{layout,rendering,wrapping}.rs + lib unit tests.
 
 # F01 — Core REPL: shared traits + native input/display + wasm stubs + REPL loop
 

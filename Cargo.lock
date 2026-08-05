@@ -5361,6 +5361,7 @@ dependencies = [
  "smoltcp",
  "tempfile",
  "thiserror 2.0.19",
+ "toml 0.9.6",
  "tracing",
  "tracing-subscriber",
  "tracing-test",

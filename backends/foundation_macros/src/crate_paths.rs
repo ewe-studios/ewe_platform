@@ -58,3 +58,7 @@ pub fn foundation_theme_path() -> proc_macro2::TokenStream {
 pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_deployment_platform")
 }
+
+pub fn foundation_nativeapis_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_nativeapis")
+}

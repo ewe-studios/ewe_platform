@@ -5,6 +5,7 @@ mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
 mod docker_container;
+mod daemon_process;
 mod proxy;
 mod embedders;
 mod mobile_directory;
@@ -769,6 +770,69 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
+}
+
+/// `daemons! { ... }` — build a `Vec<DaemonDef>` inline (spec-58 F01).
+///
+/// Same `{ name = "...", run = [...], readiness_port = N, ... }` block syntax as
+/// `#[daemon_process]`, usable anywhere a `Vec<DaemonDef>` is wanted (tests,
+/// dynamic startup, merging with TOML-loaded defs).
+///
+/// ```ignore
+/// let defs = daemons! {
+///     { name = "db", run = ["postgres"], readiness_port = 5432 },
+///     { name = "api", run = ["./api"], depends = ["db"],
+///       readiness_http = "http://localhost:3000/health" },
+/// };
+/// let group = foundation_nativeapis::daemon::DaemonGroup::boot(defs)?;
+/// ```
+#[proc_macro]
+pub fn daemons(input: TokenStream) -> TokenStream {
+    daemon_process::daemons(input)
+}
+
+/// `#[daemon_process({ ... }, { ... })]` — boot a set of daemons around a fn.
+///
+/// Declares every daemon in one invocation (one `{ ... }` block each), boots
+/// them in dependency order before the body, hands the body a `&DaemonGroup`,
+/// and drops the group (stopping all daemons in reverse order) after.
+///
+/// The fn **must** take exactly one parameter (`group: &DaemonGroup` or
+/// `_: &DaemonGroup`); stacking the attribute is a compile error; duplicate
+/// `name`s are a compile error. Assumes the valtron pool is already initialised —
+/// pair with `#[valtron_test]` or use `#[daemon_main]`.
+///
+/// ```ignore
+/// #[daemon_process(
+///     { name = "db", run = ["postgres"], readiness_port = 5432 },
+///     { name = "api", run = ["./api"], depends = ["db"],
+///       readiness_http = "http://localhost:3000/health" },
+/// )]
+/// #[valtron_test]
+/// fn test_stack(group: &DaemonGroup) {
+///     assert!(group.daemon("db").unwrap().pid().is_some());
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn daemon_process(attr: TokenStream, item: TokenStream) -> TokenStream {
+    daemon_process::daemon_process(attr, item)
+}
+
+/// `#[daemon_main]` — daemon supervisor entry point (spec-58 F01).
+///
+/// Initialises the valtron pool, loads `daemon.toml` from the cwd (or
+/// `config = "path.toml"`), boots all daemons, hands the body a `&DaemonGroup`,
+/// then tears everything down on return.
+///
+/// ```ignore
+/// #[daemon_main]
+/// fn main(group: &DaemonGroup) {
+///     println!("api pid: {:?}", group.daemon("api").unwrap().pid());
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn daemon_main(attr: TokenStream, item: TokenStream) -> TokenStream {
+    daemon_process::daemon_main(attr, item)
 }
 
 /// `wireguard!` — compile-time `WireGuard` mesh configuration (spec-55, feature 09).

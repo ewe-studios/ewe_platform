@@ -4,9 +4,10 @@ spec_directory: "specifications/59-foundation-shell-repl"
 feature_directory: "specifications/59-foundation-shell-repl/features/F02-command-history"
 this_file: "specifications/59-foundation-shell-repl/features/F02-command-history/feature.md"
 
-status: planned
+status: complete
 priority: medium
 created: 2026-07-20
+completed: 2026-07-31
 
 depends_on: ["F01-core-repl"]
 
@@ -16,6 +17,11 @@ tasks:
   total: 4
   completion_percentage: 100%
 ---
+
+> **Delivered** in `foundation_repl::ReplHistory` (ring buffer + up/down + dedup +
+> empty-skip; disk persistence via the `history-file` feature,
+> `load_from_file`/`save_to_file`, JSON). AC #5 (survives restart) is covered by
+> `tests/history_file.rs::history_survives_save_and_reload`.
 
 # F02 — Command history: ring buffer + up/down navigation + disk persistence
 

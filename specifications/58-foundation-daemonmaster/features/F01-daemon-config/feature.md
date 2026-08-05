@@ -4,17 +4,18 @@ spec_directory: "specifications/58-foundation-daemonmaster"
 feature_directory: "specifications/58-foundation-daemonmaster/features/F01-daemon-config"
 this_file: "specifications/58-foundation-daemonmaster/features/F01-daemon-config/feature.md"
 
-status: planned
+status: complete
 priority: high
 created: 2026-07-18
+completed: 2026-07-31
 
 depends_on: []
 
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F01 — Daemon config system: TOML + macro + builder + DaemonGroup
@@ -28,6 +29,51 @@ connected to itself. Inspired by pitchfork's config system + the `#[docker_conta
 tri-config pattern (macro/builder/static).
 
 [spec](../spec.md).
+
+---
+
+## Delivered design (authoritative — reconciles the sketch below)
+
+The sections that follow are the original design exploration. The shipped
+implementation (`foundation_nativeapis::daemon`, `foundation` `daemon` feature)
+deviates from that sketch in the following ways; **these decisions win**:
+
+1. **Synchronous public API, not async.** `DaemonGroup::boot`, `DaemonHandle::{restart,stop}`
+   and every `Supervisor` method are **synchronous**. There is no real async I/O
+   here — readiness detection and process monitoring run on the valtron pool
+   (readiness via `execute` + `collect_one`, which blocks *efficiently* on a
+   CondVar; monitoring/backoff via the background job pool). Async signatures
+   would be ceremonial and could deadlock a single-threaded driver, so honest
+   blocking that cooperates with the pool is used instead. The `#[daemon_process]`
+   / `#[daemon_main]` expansions are correspondingly non-async.
+
+2. **`DaemonDef` is *not* `Deserialize`.** It carries a compiled `regex::Regex`
+   and a `Duration`, neither of which deserialize cleanly. TOML instead
+   deserializes into `DaemonSpec` / `ReadinessSpec` (TOML-friendly primitives),
+   which convert via `DaemonSpec::into_daemon_def` / `DaemonConfig::into_daemon_defs`.
+   Builder-built defs bypass serde entirely.
+
+3. **`daemons!` is a function-like proc macro**, not a `macro_rules!` — a
+   proc-macro crate (`foundation_macros`) cannot export `macro_rules!`. It lives
+   in `foundation_macros` per house law (all macros there, no companion crate).
+
+4. **`DaemonHandle` live-queries the supervisor** (`pid()`/`status()` reflect
+   current reality) instead of holding stale snapshot fields.
+
+5. **`DaemonGroup::Drop` performs a synchronous reverse-order shutdown** (the
+   original sketch spawned an empty thread and leaked children — that was wrong).
+
+6. **`#[daemon_process]` assumes the valtron pool is already initialised**
+   (pairs with `#[valtron_test]` or `#[daemon_main]`), exactly like
+   `#[docker_container]`. `#[daemon_main]` is the one that initialises the pool.
+
+7. **`ReadinessConfig` gained helper constructors** `delay_secs(u64)` and
+   `output(&str)` so macro-generated code needs neither `Duration` nor `regex`
+   in scope.
+
+Verification: `cargo test -p foundation_nativeapis --features daemon --test daemon`
+(26 tests: config/builder, TOML load+layering+root, dependency topo-sort+cycles,
+readiness strategies, real-process lifecycle, and macro expansion).
 
 ---
 

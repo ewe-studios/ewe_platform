@@ -4,18 +4,19 @@ spec_directory: "specifications/58-foundation-daemonmaster"
 feature_directory: "specifications/58-foundation-daemonmaster/features/F02-process-lifecycle"
 this_file: "specifications/58-foundation-daemonmaster/features/F02-process-lifecycle/feature.md"
 
-status: planned
+status: complete
 priority: high
 created: 2026-07-18
+completed: 2026-07-31
 
 depends_on:
   - "F01-daemon-config"
 
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # F02 — Supervisor + daemon start/stop/monitor + readiness detection + graceful kill
@@ -27,6 +28,50 @@ readiness, monitor health, restart on failure, and perform graceful two-phase ki
 Builds on F01's config and dependency graph.
 
 [spec](../spec.md).
+
+---
+
+## Delivered design (authoritative — reconciles the sketch below)
+
+Shipped in `foundation_nativeapis::daemon::{supervisor,process,platform}`. The
+sketch below is the design exploration; the following decisions **win** where
+they differ:
+
+1. **Synchronous supervisor** (see F01 Delivered design #1). Readiness is driven
+   by `execute` + `collect_one`; there is no async surface.
+
+2. **No `bg_jobs` field.** Background work uses the global
+   `foundation_core::valtron::run_background_job` accessor (requires
+   `initialize_pool`), not a per-supervisor `Arc<BackgroundJobRegistry>`.
+
+3. **Readiness tasks use `Spawner = BoxedSendExecutionAction`, never `NoAction`**
+   (house law: valtron tasks always use `BoxedExecutionAction`/`BoxedSendExecutionAction`).
+
+4. **Readiness reuses F01's `ReadinessConfig`** — there is no separate
+   `ReadinessStrategy` enum.
+
+5. **HTTP readiness is a dependency-free `TcpStream` GET probe**, not
+   `foundation_netio` (which would risk a crate cycle with `foundation_nativeapis`).
+
+6. **`DaemonExitEvent` carries the exited pid.** The monitor ignores a stale exit
+   from a previous instance (old process dying just after a restart spawned a new
+   one) by comparing the event pid against the daemon's current pid — without
+   this, a restart could trigger a spurious second restart.
+
+7. **The stop path never holds the daemon mutex across the kill/poll waits** (the
+   sketch held the lock across `sleep`); locks are released before polling
+   liveness and re-acquired to record `Stopped`.
+
+8. **Process-group signalling is isolated in `daemon::platform`** (`process_alive`,
+   `terminate`, `kill`): unix via `nix::killpg` on the child's own process group
+   (`process_group(0)`), Windows via `TerminateProcess`/`GetExitCodeProcess`.
+
+9. **A background monitor loop** (started by `start_all`) drains the exit queue and
+   drives restart-with-backoff (`min(2^n, 30)s`), suppressed while shutting down.
+
+Verification: `cargo test -p foundation_nativeapis --features daemon --test daemon`
+(readiness + real-process lifecycle tests, including stop-kills-process,
+restart-replaces-pid, and drop-tears-down-all-children).
 
 ---
 
@@ -163,9 +208,13 @@ to park — never `Delayed` or sleep. Time-based strategies use `TimerReadiness`
 (a `BoolSignal` that fires after a duration). Output-based strategies use
 `QueueReadiness`.
 
+> **House law (delivered):** `Spawner = BoxedSendExecutionAction`, never
+> `NoAction`. The snippet below predates that rule; the shipped `ReadinessTask`
+> uses `BoxedSendExecutionAction`.
+
 ```rust
 use foundation_core::valtron::{
-    TaskIterator, TaskStatus, NoAction, EventReadiness, BoolSignal,
+    TaskIterator, TaskStatus, BoxedSendExecutionAction, EventReadiness, BoolSignal,
 };
 
 /// Timer readiness — BoolSignal that fires after a duration.
@@ -241,7 +290,7 @@ impl ReadinessTask {
 impl TaskIterator for ReadinessTask {
     type Ready = Result<(), ReadinessTimeout>;
     type Pending = ();
-    type Spawner = NoAction;
+    type Spawner = BoxedSendExecutionAction; // house law — never NoAction
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.done { return None; }

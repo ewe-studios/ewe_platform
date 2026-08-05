@@ -26,6 +26,11 @@ pub mod ipc;
 #[cfg(feature = "signal")]
 pub mod signal;
 
+/// DaemonMaster process supervisor (spec-58).
+/// Feature-gated: requires the `daemon` feature.
+#[cfg(feature = "daemon")]
+pub mod daemon;
+
 // ---------------------------------------------------------------------------
 // Crate-root re-exports (backward-compatible API)
 // ---------------------------------------------------------------------------

@@ -42,6 +42,7 @@ blake3 = { version = "1", optional = true }
 async-trait = "0.1"
 regex = { version = "1.10", optional = true }
 fff-search = { version = "0.9.3", optional = true }
+toml = { workspace = true, optional = true }
 
 # Userspace TCP/IP netstack for the WireGuard overlay data plane (spec-55, feature 00).
 # no_std / alloc only — the "phy" is us (the Tunn plaintext side), so no std/phy-* features.
@@ -62,6 +63,10 @@ libc = "0.2"
 [target.'cfg(target_os = "linux")'.dependencies]
 fuser = { workspace = true, optional = true }
 nix = { version = "0.29", optional = true, features = ["ptrace", "process", "signal", "fs"] }
+
+# macOS/iOS: nix for signal + process-group control used by the daemon supervisor.
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+nix = { version = "0.29", optional = true, features = ["process", "signal"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -87,6 +92,8 @@ tracing-subscriber.workspace = true
 serial_test = "3.3"
 ntest = "0.9"
 uuid = { version = "1", features = ["v4"] }
+concurrent-queue = { workspace = true }
+toml = { workspace = true }
 
 [target.'cfg(unix)'.dev-dependencies]
 nix = { version = "0.29", features = ["fs", "poll"] }
@@ -388,6 +395,18 @@ netstack = ["dep:smoltcp"]
 # because the `DataPlane` trait and overlay socket handle types live with the netstack.
 tun = ["netstack", "poll", "fd"]
 
+# ---------------------------------------------------------------------------
+# DaemonMaster (spec-58): process supervisor + ConnectRPC control.
+# ---------------------------------------------------------------------------
+# `daemon` — core supervisor: config, dependency graph, lifecycle, readiness.
+# Implies signal (SIGTERM/SIGINT handling), poll + fd (readiness plumbing).
+# On unix, pulls in `nix` for process-group signalling; regex powers output
+# readiness; toml powers config-file loading.
+daemon = ["signal", "poll", "fd", "dep:regex", "dep:toml", "dep:nix"]
+
+# `daemon-boot` — boot-time auto-registration (systemd/LaunchAgent/Windows Run).
+daemon-boot = ["daemon"]
+
 # Full feature set for current platform
 native = ["poll", "fd"]
 native-linux = ["native", "watcher-linux", "uring"]
@@ -426,3 +445,8 @@ required-features = ["vfs-fjall"]
 name = "nfs_vfs"
 path = "tests/nfs_vfs/mod.rs"
 required-features = ["vfs-native", "vfs-nfs"]
+
+[[test]]
+name = "daemon"
+path = "tests/daemon/mod.rs"
+required-features = ["daemon"]

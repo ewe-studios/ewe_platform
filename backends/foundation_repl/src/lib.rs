@@ -209,7 +209,7 @@ pub use shared::layout::{
     layout_input, split_committed, visible_window, wrap_text, InputLayout, InputRow, InputView,
 };
 #[cfg(any(feature = "native", feature = "wasm"))]
-pub use shared::repl::{Repl, ReplBuilder, ReplMessageIter};
+pub use shared::repl::{PromptFn, Repl, ReplBuilder, ReplMessageIter};
 pub use shared::theme::{ActivityStyle, BorderKind, ReplColor, ReplPadding, ReplTheme};
 #[cfg(any(feature = "native", feature = "ratzilla"))]
 pub use shared::host::{ReplHost, ViewportMode};

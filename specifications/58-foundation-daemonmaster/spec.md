@@ -29,8 +29,8 @@ See `fundamental/` for the pitchfork and ecdysis exploration files that inform t
 
 | ID | Title | Status |
 |----|-------|--------|
-| [F01-daemon-config](features/F01-daemon-config/feature.md) | DaemonDef + DaemonGroup + proc macro (`#[daemon_process]`, `#[daemon_main]`) + TOML + builder | planned |
-| [F02-process-lifecycle](features/F02-process-lifecycle/feature.md) | Supervisor + daemon start/stop/monitor + readiness detection + graceful kill | planned |
+| [F01-daemon-config](features/F01-daemon-config/feature.md) | DaemonDef + DaemonGroup + proc macro (`#[daemon_process]`, `#[daemon_main]`) + TOML + builder | complete |
+| [F02-process-lifecycle](features/F02-process-lifecycle/feature.md) | Supervisor + daemon start/stop/monitor + readiness detection + graceful kill | complete |
 | [F03-connectrpc-control](features/F03-connectrpc-control/feature.md) | ConnectRPC service over Unix socket — CLI + streaming status/events | planned |
 | [F04-pid1-mode](features/F04-pid1-mode/feature.md) | Container init: zombie reaping + signal forwarding | planned |
 | [F05-graceful-restart](features/F05-graceful-restart/feature.md) | Socket inheritance, FD registry, ready-notifier pipe, ecdysis-style upgrade | planned |

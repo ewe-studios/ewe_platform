@@ -4,9 +4,10 @@ spec_directory: "specifications/59-foundation-shell-repl"
 feature_directory: "specifications/59-foundation-shell-repl/features/F04-builtin-commands"
 this_file: "specifications/59-foundation-shell-repl/features/F04-builtin-commands/feature.md"
 
-status: planned
+status: complete
 priority: medium
 created: 2026-07-20
+completed: 2026-07-31
 
 depends_on: ["F01-core-repl"]
 
@@ -16,6 +17,11 @@ tasks:
   total: 3
   completion_percentage: 100%
 ---
+
+> **Delivered** in `foundation_repl::CommandRegistry` (`/help /clear /exit
+> /version` + `register` + `try_handle`), 11 integration tests. Two acceptance
+> criteria were deliberately changed and are reconciled below (AC #4 version
+> string, AC #5 unknown-command handling).
 
 # F04 — Builtin commands: help, clear, exit, version — caller-extensible command registration
 
@@ -181,12 +187,21 @@ impl Repl {
 
 ## Acceptance criteria
 
-1. Typing `/help` prints the available commands list.
-2. Typing `/clear` clears the terminal screen.
-3. Typing `/exit` ends the REPL session.
-4. Typing `/version` prints `foundation_shell_repl 0.1.0`.
-5. Typing `/unknown` prints "Unknown command: unknown".
+1. Typing `/help` prints the available commands list. ✅
+2. Typing `/clear` clears the terminal screen. ✅
+3. Typing `/exit` ends the REPL session. ✅
+4. Typing `/version` prints the crate name + version.
+   **Delivered:** `foundation_repl 0.2.1` (the crate shipped as `foundation_repl`,
+   and `/version` reports the real `CARGO_PKG_*`, not a hardcoded `0.1.0`). ✅
+5. **Delivered (reconciled):** an unregistered `/unknown` returns
+   `CommandResult::Unknown`, which the message loop hands to the caller rather
+   than printing "Unknown command". This is deliberate: the registry says
+   "nobody claimed this" and the application decides what it means (it may have
+   its own slash syntax); reporting an error here would print for a line the app
+   then goes on to answer. ✅
+   (`tests/integration.rs::unregistered_command_is_reported_as_unknown_not_answered`)
 6. `repl.register_command("greet", |cmd| { format!("Hello, {}!", cmd.strip_prefix("/greet ").unwrap_or("world")) })`
-   makes `/greet Alice` print `Hello, Alice!`.
+   makes `/greet Alice` print `Hello, Alice!`. ✅
 7. Commands do NOT reach the `messages()` iterator consumer (except `/exit`
-   which ends it).
+   which ends it, and an unregistered `/name` which is handed to the caller
+   per #5). ✅
