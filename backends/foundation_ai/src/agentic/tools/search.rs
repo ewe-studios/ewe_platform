@@ -14,10 +14,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
-use crate::agentic::tool_impl::{arg_usize, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
 use crate::types::Tool;
-use crate::types::{ArgType, Args, TextContent, UserModelContent};
+use crate::types::{ArgType, Args};
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
@@ -199,23 +199,14 @@ impl ToolImpl for SearchContextTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let query = match arguments.get("query") {
-            Some(ArgType::Text(s)) => s.clone(),
-            _ => {
-                return Err(ToolError::InvalidArguments {
-                    tool: "search_context".into(),
-                    reason: "missing or invalid 'query' argument".into(),
-                })
-            }
+        let args = ToolArgs::new("search_context", &arguments);
+        let query = args.str("query")?.to_string();
+        let mode = match args.opt_str("mode")? {
+            Some(mode) => parse_search_mode(mode)?,
+            None => SearchMode::Hybrid,
         };
-
-        let mode = match arguments.get("mode") {
-            Some(ArgType::Text(s)) => parse_search_mode(s)?,
-            _ => SearchMode::Hybrid,
-        };
-
-        // A negative `k` used to wrap to a huge `usize`; it now falls back to 10.
-        let k = arg_usize(&arguments, "k").unwrap_or(10);
+        // A negative or non-numeric `k` is an argument error, not a huge usize.
+        let k = args.opt_usize("k")?.unwrap_or(10);
 
         let hits = self.context.search(&query, mode, k).await;
         let json = serde_json::to_string(&hits).map_err(|e| ToolError::Execution {
@@ -223,13 +214,7 @@ impl ToolImpl for SearchContextTool {
             reason: format!("serializing the hits failed: {e}"),
         })?;
 
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent {
-                content: json,
-                signature: None,
-            }),
-            error_detail: None,
-        })
+        Ok(ToolCallResult::text(json))
     }
 }
 
@@ -326,40 +311,31 @@ impl ToolImpl for SearchFileTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let query = match arguments.get("query") {
-            Some(ArgType::Text(s)) => s.clone(),
-            _ => {
-                return Err(ToolError::InvalidArguments {
-                    tool: "search_file".into(),
-                    reason: "missing or invalid 'query' argument".into(),
-                })
-            }
+        let args = ToolArgs::new("search_file", &arguments);
+        let query = args.str("query")?.to_string();
+        let kind = match args.opt_str("kind")? {
+            Some(kind) => parse_file_search_kind(kind)?,
+            None => FileSearchKind::Grep,
         };
-
-        let kind = match arguments.get("kind") {
-            Some(ArgType::Text(s)) => parse_file_search_kind(s)?,
-            _ => FileSearchKind::Grep,
-        };
-
-        let paths: Option<Vec<String>> = arguments.get("paths").and_then(|v| match v {
-            ArgType::JSON(json_str) => serde_json::from_str(json_str).ok(),
-            _ => None,
-        });
+        let paths: Option<Vec<String>> = args
+            .opt_value("paths")
+            .map(serde_json::from_value)
+            .transpose()
+            .map_err(|e| ToolError::InvalidArguments {
+                tool: "search_file".into(),
+                reason: format!("`paths` must be a list of strings: {e}"),
+            })?;
 
         let matches = self
             .backend
             .search(&query, kind, paths.as_deref())?;
 
-        let json =
-            serde_json::to_string(&matches).unwrap_or_else(|_| "[]".into());
+        let json = serde_json::to_string(&matches).map_err(|e| ToolError::Execution {
+            tool: "search_file".into(),
+            reason: format!("serializing the matches failed: {e}"),
+        })?;
 
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent {
-                content: json,
-                signature: None,
-            }),
-            error_detail: None,
-        })
+        Ok(ToolCallResult::text(json))
     }
 }
 

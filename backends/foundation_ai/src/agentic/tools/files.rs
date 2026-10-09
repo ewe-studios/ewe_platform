@@ -18,33 +18,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
-use crate::agentic::tool_impl::{
-    arg_bool, arg_usize, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
-};
-use crate::types::Tool;
-use crate::types::{ArgType, TextContent, UserModelContent};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::types::base_types::Args;
-
-/// Pull a required text argument or return a clean `InvalidArguments` error.
-fn text_arg(args: &HashMap<String, ArgType>, key: &str, tool: &str) -> Result<String, ToolError> {
-    match args.get(key) {
-        Some(ArgType::Text(s)) => Ok(s.clone()),
-        _ => Err(ToolError::InvalidArguments {
-            tool: tool.into(),
-            reason: format!("missing or invalid '{key}' argument"),
-        }),
-    }
-}
-
-fn text_result(content: String) -> ToolCallResult {
-    ToolCallResult {
-        content: UserModelContent::Text(TextContent {
-            content,
-            signature: None,
-        }),
-        error_detail: None,
-    }
-}
+use crate::types::ArgType;
+use crate::types::Tool;
 
 fn exec_err(tool: &str, reason: impl Into<String>) -> ToolError {
     ToolError::Execution {
@@ -94,7 +71,10 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let path = text_arg(&arguments, "path", "read")?;
+        let args = ToolArgs::new("read", &arguments);
+        let path = args.str("path")?.to_string();
+        let offset = args.opt_usize("offset")?;
+        let limit = args.opt_usize("limit")?;
         let bytes = self
             .fs
             .read_file_async(path.clone())
@@ -103,10 +83,8 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
         let text = String::from_utf8(bytes)
             .map_err(|_| exec_err("read", format!("'{path}' is not valid UTF-8 text")))?;
 
-        let offset = arg_usize(&arguments, "offset");
-        let limit = arg_usize(&arguments, "limit");
         if offset.is_none() && limit.is_none() {
-            return Ok(text_result(text));
+            return Ok(ToolCallResult::text(text));
         }
 
         // 1-indexed offset; default whole file from the start.
@@ -117,7 +95,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
             .take(limit.unwrap_or(usize::MAX))
             .collect::<Vec<_>>()
             .join("\n");
-        Ok(text_result(selected))
+        Ok(ToolCallResult::text(selected))
     }
 }
 
@@ -160,19 +138,41 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let path = text_arg(&arguments, "path", "write")?;
-        let content = text_arg(&arguments, "content", "write")?;
+        let args = ToolArgs::new("write", &arguments);
+        let path = args.str("path")?.to_string();
+        let content = args.str("content")?.to_string();
         let n = content.len();
         self.fs
             .write_file_async(path.clone(), content.into_bytes())
             .await
             .map_err(|e| exec_err("write", format!("cannot write '{path}': {e}")))?;
-        Ok(text_result(format!("wrote {n} bytes to {path}")))
+        Ok(ToolCallResult::text(format!("wrote {n} bytes to {path}")))
     }
 }
 
 // ---------------------------------------------------------------------------
 // EditTool (F07)
+
+/// `edit`'s arguments. `replace_all` accepts a JSON boolean or `"true"`.
+#[derive(serde::Deserialize)]
+struct EditArgs {
+    path: String,
+    old_string: String,
+    new_string: String,
+    #[serde(default, deserialize_with = "bool_or_text")]
+    replace_all: bool,
+}
+
+/// A boolean that some models send as the text `"true"` / `"false"`.
+fn bool_or_text<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
+    use serde::de::{Deserialize, Error};
+    match serde_json::Value::deserialize(deserializer)? {
+        serde_json::Value::Bool(b) => Ok(b),
+        serde_json::Value::String(s) if s == "true" => Ok(true),
+        serde_json::Value::String(s) if s == "false" => Ok(false),
+        other => Err(D::Error::custom(format!("expected a boolean, got {other}"))),
+    }
+}
 // ---------------------------------------------------------------------------
 
 /// Replace an exact string in a file via the VFS. `old_string` must be unique
@@ -214,10 +214,12 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let path = text_arg(&arguments, "path", "edit")?;
-        let old = text_arg(&arguments, "old_string", "edit")?;
-        let new = text_arg(&arguments, "new_string", "edit")?;
-        let replace_all = arg_bool(&arguments, "replace_all").unwrap_or(false);
+        let EditArgs {
+            path,
+            old_string: old,
+            new_string: new,
+            replace_all,
+        } = ToolArgs::new("edit", &arguments).parse()?;
 
         let bytes = self
             .fs
@@ -249,7 +251,9 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
             .write_file_async(path.clone(), updated.into_bytes())
             .await
             .map_err(|e| exec_err("edit", format!("cannot write '{path}': {e}")))?;
-        Ok(text_result(format!("replaced {replaced} occurrence(s) in {path}")))
+        Ok(ToolCallResult::text(format!(
+            "replaced {replaced} occurrence(s) in {path}"
+        )))
     }
 }
 
@@ -311,11 +315,9 @@ impl ToolImpl for BashTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let command = text_arg(&arguments, "command", "bash")?;
-        let cwd = match arguments.get("cwd") {
-            Some(ArgType::Text(s)) => Some(s.clone()),
-            _ => None,
-        };
+        let args = ToolArgs::new("bash", &arguments);
+        let command = args.str("command")?.to_string();
+        let cwd = args.opt_str("cwd")?.map(str::to_owned);
         let timeout = self.timeout;
 
         // Blocking process spawn on a background thread; bounded by `timeout`.
@@ -343,7 +345,7 @@ impl ToolImpl for BashTool {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
         let code = output.status.code().unwrap_or(-1);
-        Ok(text_result(format!(
+        Ok(ToolCallResult::text(format!(
             "exit_code: {code}\nstdout:\n{stdout}\nstderr:\n{stderr}"
         )))
     }

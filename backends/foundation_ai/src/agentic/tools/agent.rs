@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::errors::UserId;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::session::AgentSession;
-use crate::agentic::tool_impl::{arg_bool, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::agentic::toolshed::ToolShed;
 use crate::types::agentic::{SessionId, SessionRecord};
 use crate::types::base_types::{ArgType, Args, MessageRole, Messages, ModelId, Tool};
@@ -169,7 +169,8 @@ where
             });
         }
 
-        let task = text_arg(args, "task")?;
+        let args = ToolArgs::new(TOOL, args);
+        let task = args.str("task")?.to_string();
         if task.trim().is_empty() {
             return Err(ToolError::InvalidArguments {
                 tool: TOOL.into(),
@@ -177,50 +178,23 @@ where
             });
         }
 
-        let model: ModelId = match args.get("model") {
-            Some(ArgType::Text(s)) if !s.is_empty() => ModelId::Name(s.clone(), None),
+        let model: ModelId = match args.opt_str("model")? {
+            Some(name) if !name.is_empty() => ModelId::from(name),
             _ => self.default_model.clone(),
         };
 
-        let system: Option<String> = match args.get("system") {
-            Some(ArgType::Text(s)) if !s.is_empty() => Some(s.clone()),
-            _ => None,
-        };
+        let system: Option<String> = args
+            .opt_str("system")?
+            .filter(|s| !s.is_empty())
+            .map(str::to_owned);
 
-        let keep_session = arg_bool(args, "keep_session").unwrap_or(false);
+        let keep_session = args.opt_bool("keep_session")?.unwrap_or(false);
 
         // Runaway guard. Models emit integers inconsistently (u64 / i64 /
-        // stringified), so accept all three spellings. `0` is rejected rather
-        // than silently creating a sub-agent that can never take a step.
-        //
-        // Converted with `try_from` rather than `as`: on a 32-bit target an
-        // `as` cast silently wraps, so a caller asking for a huge cap could be
-        // handed a tiny one and the sub-agent would stop early for no visible
-        // reason. An out-of-range value is rejected instead.
-        let too_large = || ToolError::InvalidArguments {
-            tool: TOOL.into(),
-            reason: "'max_iterations' is larger than this platform supports".into(),
-        };
-        let max_iterations: Option<usize> = match args.get("max_iterations") {
-            Some(ArgType::U64(n)) => Some(usize::try_from(*n).map_err(|_| too_large())?),
-            Some(ArgType::I64(n)) if *n > 0 => Some(usize::try_from(*n).map_err(|_| too_large())?),
-            Some(ArgType::I64(_)) => {
-                return Err(ToolError::InvalidArguments {
-                    tool: TOOL.into(),
-                    reason: "'max_iterations' must be a positive integer".into(),
-                })
-            }
-            Some(ArgType::Text(s)) => match s.parse::<usize>() {
-                Ok(n) => Some(n),
-                Err(_) => {
-                    return Err(ToolError::InvalidArguments {
-                        tool: TOOL.into(),
-                        reason: format!("'max_iterations' is not a valid integer: {s:?}"),
-                    })
-                }
-            },
-            _ => None,
-        };
+        // stringified); ToolArgs accepts every spelling and rejects negative,
+        // unparseable or out-of-range values. `0` is rejected below rather than
+        // silently creating a sub-agent that can never take a step.
+        let max_iterations = args.opt_usize("max_iterations")?;
         if max_iterations == Some(0) {
             return Err(ToolError::InvalidArguments {
                 tool: TOOL.into(),
@@ -323,7 +297,7 @@ where
 
     /// `check` — non-blocking drain: report latest status.
     fn check(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let id = text_arg(args, "id")?;
+        let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let mut runs = self.runs.lock().unwrap();
         let run = runs
             .get_mut(&id)
@@ -350,7 +324,7 @@ where
     /// `result` — when done, return location + summary; clean up unless
     /// `keep_session`.
     fn result(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let id = text_arg(args, "id")?;
+        let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
 
         // Drain and extract under one mutable borrow.
         let (status, keep_session) = {
@@ -402,7 +376,7 @@ where
 
     /// `pause` — set the suspend flag.
     fn pause(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let id = text_arg(args, "id")?;
+        let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
         run.pause.store(true, Ordering::SeqCst);
@@ -418,7 +392,7 @@ where
 
     /// `resume` — clear the suspend flag.
     fn resume(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let id = text_arg(args, "id")?;
+        let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
         run.pause.store(false, Ordering::SeqCst);
@@ -434,7 +408,7 @@ where
 
     /// `stop` — set the abort flag + abort the child session.
     fn stop(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let id = text_arg(args, "id")?;
+        let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let mut runs = self.runs.lock().unwrap();
         let run = runs.get_mut(&id).ok_or_else(|| unknown_id(&id))?;
 
@@ -620,8 +594,8 @@ where
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let command = text_arg(&arguments, "command")?;
-        match command.as_str() {
+        let command = ToolArgs::new(TOOL, &arguments).str("command")?;
+        match command {
             "start" => self.start(&arguments),
             "check" => self.check(&arguments),
             "result" => self.result(&arguments),
@@ -655,16 +629,6 @@ fn id_schema(command_name: &str) -> foundation_jsonschema::ValidationOptions {
         },
         "required": ["command", "id"]
     }))
-}
-
-fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolError> {
-    match args.get(key) {
-        Some(ArgType::Text(s)) => Ok(s.clone()),
-        _ => Err(ToolError::InvalidArguments {
-            tool: TOOL.into(),
-            reason: format!("missing or invalid '{key}' argument"),
-        }),
-    }
 }
 
 fn unknown_id(id: &str) -> ToolError {
@@ -907,7 +871,10 @@ mod tests {
             let err = test_tool().execute(cmd("start", &[])).await.unwrap_err();
             match err {
                 ToolError::InvalidArguments { reason, .. } => {
-                    assert!(reason.contains("'task'"));
+                    assert!(
+                        reason.contains("missing required argument `task`"),
+                        "{reason}"
+                    );
                 }
                 other => panic!("expected InvalidArguments, got {other:?}"),
             }

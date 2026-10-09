@@ -1676,8 +1676,8 @@ const TOOL_CALL_CLOSE: &str = "</ToolCall>";
 ///
 /// Needed because `ArgType` is externally tagged and can't be deserialized
 /// from plain JSON values. Strings become `Text`, integers `I64`, other numbers
-/// `Float64`; booleans, `null`, arrays and objects keep their JSON text in
-/// `JSON(..)` so a tool can parse them losslessly.
+/// `Float64`, objects a recursive `JSONMap`; booleans, `null` and arrays keep
+/// their JSON text in `JSON(..)`. Tools read any of these with `ToolArgs`.
 ///
 /// WHY one function: the cloud backends and the text-protocol parser used to
 /// carry their own copies that disagreed (a boolean was `JSON("true")` from
@@ -1696,6 +1696,12 @@ pub fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
                 ArgType::Text(n.to_string())
             }
         }
+        serde_json::Value::Object(map) => ArgType::JSONMap(
+            map.iter()
+                .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                .collect(),
+        ),
+        // bool, null, array: one rule everywhere.
         other => ArgType::JSON(other.to_string()),
     }
 }
