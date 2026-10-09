@@ -19,7 +19,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
+use foundation_core::valtron::execute;
 use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
@@ -36,6 +36,7 @@ use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::ToolCallManager;
 use crate::agentic::toolshed::{SessionParts, ToolShed};
+use crate::agentic::turn::{Answer, Turn, TurnStream};
 use crate::agentic::ErrorPolicy;
 use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord};
 
@@ -556,17 +557,19 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         &self.inner.context_provider
     }
 
-    /// Stream each `SessionRecord` as produced — the primary API.
+    /// Stream the turn as it runs — the primary API.
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
     /// schedules it via `execute()` (cfg-selects sendables vs `non_sendables`
-    /// based on the `multi` feature), and returns the driven stream iterator.
+    /// based on the `multi` feature), and returns a [`TurnStream`]: iterate it
+    /// for the raw `Stream<SessionRecord, AgentProgress>` items, or call
+    /// [`TurnStream::events`] for [`TurnEvent`](crate::agentic::TurnEvent)s.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if the loop cannot be scheduled.
     pub fn run_turn_stream(
         &self,
         prompt: impl Into<Messages>,
-    ) -> Result<DrivenStreamIterator<AgentLoop<D, M>>, ErrorTrace<AgenticError>> {
+    ) -> Result<TurnStream<D, M>, ErrorTrace<AgenticError>> {
         self.inner.queues.push_follow_up(prompt.into());
         tracing::trace!(
             follow_up_len = self.inner.queues.follow_up.len(),
@@ -591,66 +594,37 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         )
         .with_access(Arc::clone(&self.inner.access), self.inner.user.clone());
 
-        execute(agent_loop, None).map_err(|e| {
+        execute(agent_loop, None).map(TurnStream::new).map_err(|e| {
             ErrorTrace::new(AgenticError::Session(format!(
                 "failed to schedule agent loop: {e}"
             )))
         })
     }
 
-    /// Convenience wrapper: drains `run_turn_stream` into a `Vec`.
+    /// Run a turn to the end and collect its records into a [`Turn`].
     ///
-    /// A terminal `FailedAction` surfaces as `Err`; otherwise returns all
-    /// collected `SessionRecord`s. Prefer `run_turn_stream` for streaming.
+    /// Partial output first, then the error: a turn that a `FailedAction`
+    /// ends part-way is still `Ok` — the [`Turn`] keeps the records produced
+    /// before it and [`Turn::failure`] reports the error. Output the loop
+    /// withdrew (`Retracted`) is dropped. `Turn` derefs to
+    /// `Vec<SessionRecord>`.
     /// # Errors
-    /// Returns [`ErrorTrace<AgenticError>`] if the loop fails.
-    pub fn run_turn(
-        &self,
-        prompt: impl Into<Messages>,
-    ) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>> {
-        let stream = self.run_turn_stream(prompt)?;
-        let mut records = Vec::new();
+    /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start.
+    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Turn, ErrorTrace<AgenticError>> {
+        Ok(Turn::collect(self.run_turn_stream(prompt)?))
+    }
 
-        for item in stream {
-            match item {
-                Stream::Next(record) => {
-                    if let SessionRecord::FailedAction { ref error, .. } = record {
-                        return Err(ErrorTrace::new(error.clone()));
-                    }
-                    // The loop withdrew the turn it had already streamed. Drop
-                    // the assistant messages collected so far and keep whatever
-                    // the retry produces; user turns and tool results stand.
-                    if let SessionRecord::Retracted { ref reason, .. } = record {
-                        tracing::debug!(%reason, "run_turn: dropping a withdrawn turn");
-                        records.retain(|kept| {
-                            !matches!(
-                                kept,
-                                SessionRecord::Conversation {
-                                    message: Messages::Assistant { .. }
-                                }
-                            )
-                        });
-                        continue;
-                    }
-                    records.push(record);
-                }
-                Stream::Pending(_)
-                | Stream::Init
-                | Stream::Ignore
-                | Stream::Wait
-                | Stream::Delayed(_) => {}
-                Stream::Spread(items) => {
-                    use foundation_core::valtron::StreamSpread;
-                    for s in items {
-                        if let StreamSpread::Done(rec) = s {
-                            records.push(rec);
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(records)
+    /// Run a turn and return just its assistant text.
+    ///
+    /// A turn that fails part-way is not an `Err`: it comes back as
+    /// [`Answer::Failed`] carrying the text produced before the failure.
+    /// [`Answer::into_result`] turns that into an `Err` for callers that only
+    /// want success.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start
+    /// (preflight, access, the stream failing to start).
+    pub fn ask(&self, prompt: impl Into<Messages>) -> Result<Answer, ErrorTrace<AgenticError>> {
+        Ok(Answer::collect(self.run_turn_stream(prompt)?))
     }
 
     /// Inject a high-priority steering message — interrupts current work.

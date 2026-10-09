@@ -22,7 +22,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use foundation_core::valtron::{DrivenStreamIterator, Stream};
+use foundation_core::valtron::Stream;
 use foundation_db::traits::DocumentStore;
 use serde::{Deserialize, Serialize};
 
@@ -79,7 +79,7 @@ where
     /// Where the sub-agent writes its result (local path or remote key).
     output_location: String,
     /// Observation handle — drained by `check` / `result` to observe progress.
-    stream: DrivenStreamIterator<crate::agentic::agent_loop::AgentLoop<D, M>>,
+    stream: crate::agentic::turn::TurnStream<D, M>,
     /// Abort flag: set by `stop`, checked at each drain step.
     stop: Arc<AtomicBool>,
     /// Suspend flag: set by `pause`, cleared by `resume`.
