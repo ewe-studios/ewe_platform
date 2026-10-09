@@ -12,8 +12,8 @@
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelSpec, TextContent, ToolShed, UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
+    TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_ai::types::ModelState;
 use foundation_core::valtron::{valtron_test, Stream};
@@ -56,7 +56,7 @@ fn interaction() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -113,7 +113,7 @@ fn agent_session_run_turn_through_gguf() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
-    use foundation_ai::types::{PreloadedProvider, SessionId, SessionRecord};
+    use foundation_ai::types::{PreloadedProvider, SessionRecord};
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     let model = load(); // concrete LlamaModels (Clone via Arc)
@@ -121,7 +121,7 @@ fn agent_session_run_turn_through_gguf() {
     let router = PreloadedProvider::new(model, model_id.clone()).into_router();
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(SessionId::new(), router)
+        AgentSession::builder(router)
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
             .with_config(AgentConfig {
@@ -236,7 +236,7 @@ fn system_only_interaction() -> ModelInteraction {
         system_prompt: Some("Continue this text:".to_string()),
         soul: None,
         messages: Vec::new(),
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -263,7 +263,7 @@ fn generate_with_no_messages_and_no_system_prompt_is_still_valid() {
         system_prompt: None,
         soul: None,
         messages: Vec::new(),
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

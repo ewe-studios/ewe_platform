@@ -148,7 +148,7 @@ fn memory_registers_as_one_multicommand_tool() {
     let mgr = ToolCallManager::new(SessionId::new());
     register_memory_tool(&mgr, setup());
 
-    let shed = mgr.build_toolshed();
+    let shed = mgr.all_declarations();
     let memory = shed
         .tools
         .iter()

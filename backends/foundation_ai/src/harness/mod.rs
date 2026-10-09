@@ -13,9 +13,7 @@
 //! use foundation_ai::harness;
 //!
 //! // GLM 5.2 for chat + a small Gemma 4 for memory, ready to customise.
-//! let agent = harness::glm52_gemma_session::<MyDocStore, MyMemStore>(
-//!         session_id, None, None,
-//!     )?
+//! let agent = harness::glm52_gemma_session(session_id, None, None)?
 //!     .with_system_prompt("You are a helpful assistant.")
 //!     .build()?;
 //! ```
@@ -28,7 +26,11 @@
 //!
 //! // A ready-made mix...
 //! let preset = harness::claude_router(api_key)?;
-//! let builder = preset.into_agent_builder::<MyDocStore, MyMemStore>(session_id);
+//! let builder = preset
+//!     .into_agent_builder()
+//!     .with_session_id(session_id)
+//!     .with_doc_store(my_doc_store)
+//!     .with_memory_store(my_memory_store);
 //!
 //! // ...or a fully custom mix:
 //! let preset = RouterMix::new()

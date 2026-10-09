@@ -11,19 +11,15 @@ Source: `src/agentic/session.rs`.
 ## Quick start
 
 ```rust
-use foundation_ai::agentic::{AgentSession, KvMemoryStore};
+use foundation_ai::agentic::AgentSession;
 use foundation_ai::backends::anthropic_messages_provider::{AnthropicConfig, AnthropicMessagesProvider};
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter,
-    RoutableProviderBox, SessionId, SessionRecord, TextContent, UserModelContent,
+    RoutableProviderBox, SessionRecord, TextContent, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,8 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     let router = ProviderRouter::single(Box::new(RoutableProviderBox::new(provider)));
 
-    // 2. A session. D and M pick the storage backends.
-    let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+    // 2. A session (in-memory stores and a fresh SessionId by default).
+    let agent = AgentSession::builder(router)
         .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
         .with_system_prompt("Answer concisely.")
         .build()?;
@@ -83,19 +79,29 @@ empty name, which only resolves in a single-provider router.
 
 ## 2. The builder
 
-Two entry points, then chain `with_*` → `build()`:
+`AgentSession::builder(router)` starts a builder over the in-memory stores
+(`MemoryDocumentStore` + `KvMemoryStore<MemoryStorage>`) and a fresh
+`SessionId`; chain `with_*` → `build()`. The stores are part of the builder's
+type: `with_doc_store` / `with_memory_store` swap one and change the type, so
+any store works — including ones with no `Default` (Cloudflare D1 / R2) —
+and in-memory sessions need no type parameters at all:
 
-- `AgentSession::<D, M>::builder(session_id, router)` — any store you don't
-  set with `with_doc_store` / `with_memory_store` is `Default`-constructed
-  (needs `D: Default`, `M: Default`). The in-memory, Turso, libsql, JSON-file
-  and Fjall stores implement `Default`; Turso and libsql default to an
-  in-memory database, `JsonFileStorage` to `.ewe/storage.json`.
-- `AgentSession::builder_with_stores(session_id, router, doc_store,
-  memory_store)` — no `Default` bound; use it for stores that have no
-  `Default` (Cloudflare D1 / R2) or when you open the store yourself.
+```rust
+fn handle(agent: &AgentSession) { /* … */ }   // AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>
+
+let agent = AgentSession::builder(router)
+    .with_doc_store(SqlDocumentStore::new(turso.clone()))   // → AgentSessionBuilder<SqlDocumentStore<_>, _>
+    .with_memory_store(KvMemoryStore::new(turso))
+    .build()?;                                              // no Default bound
+```
 
 | Method | Default | Notes |
 |---|---|---|
+| `with_session_id(SessionId)` | `SessionId::new()` | Create-or-continue (§5 Resume) |
+| `resume(SessionId)` | — | Like `with_session_id`, but `build()` fails with `SessionNotFound` if the stores hold nothing for it |
+| `with_doc_store(D2)` | `MemoryDocumentStore` | Message history (and the memory audit log); changes the builder's type |
+| `with_memory_store(M2)` | `KvMemoryStore<MemoryStorage>` | Memory tiers; changes the builder's type |
+| `with_toolshed(ToolShed)` | empty | The session's tools — the only tool entry point (§3) |
 | `with_model(ModelId)` | empty name | Primary model |
 | `with_fallback_models(Vec<ModelId>)` | `[]` | Circuit-breaker fallbacks |
 | `with_memory_model(ModelId)` | `None` | Stored in `AgentConfig::memory_model`; nothing generates memory yet (Doc 11) |
@@ -104,41 +110,42 @@ Two entry points, then chain `with_*` → `build()`:
 | `with_context_config(ContextConfig)` | 20 recent messages | |
 | `with_memory_config(MemoryConfig)` | 30k / 40k token triggers | |
 | `with_error_policy(ErrorPolicy)` | `ErrorPolicy::new()` | Doc 01 §6 |
-| `with_embedder(Arc<dyn EmbeddingProvider>, model)` | none | Semantic recall (Doc 07) |
+| `with_embedder(Arc<dyn EmbeddingProvider>, model)` | none | Semantic recall (Doc 07) and embedding search for `shed` |
 | `with_access(Arc<dyn SessionAccessProvider>)` | `AllowAllAccess` | §6 |
 | `with_user(UserId)` | `UserId("local")` | |
-| `with_doc_store(D)` | `D::default()` | Message history (and the memory audit log) |
-| `with_memory_store(M)` | `M::default()` | Memory tiers |
-| `with_tool(Arc<dyn ToolImpl>)`, `with_tools(..)` | none | Registered before preflight (§3) |
-| `with_toolshed(ToolShed)` | `ToolShed::default()` | Tools `build()` must find registered — rarely needed |
 
 All components share the one document store and one memory store: the
 message log, context assembly and the memory hierarchy see the same data.
 
-`build()` runs preflight before returning: every tool in the toolshed must be
-registered with the session's `ToolCallManager`, and the access provider must
-allow the session and the primary model. The user's `token_budget` becomes
-the ledger's budget.
+`build()` constructs the toolshed's tools (§3), then runs preflight: the
+access provider must allow the session and the primary model. The user's
+`token_budget` becomes the ledger's budget.
+
+The old two-argument `AgentSession::<D, M>::builder_for(session_id, router)`
+(default-constructed stores) and `builder_with_stores(..)` remain, deprecated.
 
 ## 3. Tools
 
-Give the builder tools, or register them on the session's manager later:
+Tools go in a `ToolShed`, given to the builder — the session builder has no
+per-tool methods:
 
 ```rust
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
-let agent = AgentSession::<Doc, Mem>::builder(id, router)
-    .with_tool(Arc::new(MyTool))
-    .with_tools((ToolPreset::files(Arc::clone(&fs)) + ToolPreset::shell()).as_child_tools())
+let agent = AgentSession::builder(router)
+    .with_toolshed(
+        ToolShed::new()
+            .tool(MyTool)
+            .tools(ToolPreset::files(Arc::clone(&fs)) + ToolPreset::shell())
+            .tools(ToolPreset::session_memory()),   // built from the session's memory
+    )
     .build()?;
-
-// Later, e.g. tools that need the session itself:
-ToolPreset::memory(Arc::new(agent.memory_hierarchy().clone()))
-    .register_all(agent.tool_manager());
 ```
 
-The loop rebuilds the `ToolShed` from the manager before every generation.
-`with_toolshed` only declares tools `build()` must find registered.
+The model is offered only the built-in `shed` meta-tool at first; the tools
+`shed` returns become active and are declared on later requests. A name added
+twice fails `build()` with `ToolShedError::DuplicateTool`. Details: Doc 04 §2–3.
 
 Writing tools: Doc 10. Presets and sub-agents:
 `getting-started/03-tools-and-presets.md`.
@@ -206,31 +213,34 @@ clone away. Details: Doc 05.
 
 ### Resume
 
-```rust
-let agent = AgentSession::<Doc, Mem>::resume(
-    session_id,
-    router,
-    AgentConfig { primary_model: model_id, ..AgentConfig::default() },
-    None,                        // Option<ErrorPolicy>
-)?;
-```
-
 A session's history and memory live in its stores, keyed by `SessionId`, and
-every turn's context is read from them. So resuming is just building again
-with the same id over the same stores:
+every turn's context is read from them. So resuming is building again with the
+same id over the same stores — with the same prompt, tools and embedder, which
+are configuration, not data:
 
 ```rust
-let agent = AgentSession::builder_with_stores(session_id, router, doc_store, memory_store)
+// Explicit: "resume exactly this session" — Err(SessionNotFound(id)) when the
+// stores hold no records for it, so a typo or a wrong store can't silently
+// start an empty session.
+let agent = AgentSession::builder(router)
+    .resume(session_id)
+    .with_doc_store(SqlDocumentStore::new(turso.clone()))
+    .with_memory_store(KvMemoryStore::new(turso))
     .with_model(model_id)
-    .with_system_prompt("…")       // not persisted — pass it again
-    .with_tool(Arc::new(MyTool))   // the tool registry starts empty
+    .with_system_prompt("…")
+    .with_toolshed(ToolShed::new().tool(MyTool))
+    .build()?;                       // preflight runs as for a new session
+
+// Implicit: "this id" — continue if it exists, otherwise start it.
+let agent = AgentSession::builder(router)
+    .with_session_id(session_id)
+    /* …same stores and settings… */
     .build()?;
 ```
 
-`AgentSession::resume_with_stores(id, router, config, policy, doc, mem)` is a
-shorthand for that. `AgentSession::resume(id, router, config, policy)` does
-the same over `D::default()` / `M::default()`, so it only finds earlier data
-when default-constructed stores reach the same storage.
+`AgentSession::resume(id, router, config, policy)` and
+`resume_with_stores(..)` are deprecated: they can't take a system prompt,
+tools or an embedder, and `resume` opens default-constructed stores.
 
 ### Extension handles
 

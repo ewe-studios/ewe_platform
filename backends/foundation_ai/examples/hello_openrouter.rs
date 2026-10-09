@@ -12,20 +12,13 @@
 //!   --example hello_openrouter --features agentic
 //! ```
 
-use foundation_ai::agentic::KvMemoryStore;
+use foundation_ai::agentic::AgentConfig;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
-use foundation_ai::agentic::AgentConfig;
-use foundation_ai::types::{
-    MessageRole, Messages, ModelId, SessionId, TextContent, UserModelContent,
-};
+use foundation_ai::types::{MessageRole, Messages, ModelId, TextContent, UserModelContent};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 /// Build a router preset that talks to OpenRouter with the given model as primary.
 fn openrouter_router(
@@ -67,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Bridge into an AgentSessionBuilder.
     let builder = preset
-        .into_agent_builder::<Doc, Mem>(SessionId::new())
+        .into_agent_builder()
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()

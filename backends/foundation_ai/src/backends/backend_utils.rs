@@ -1,13 +1,13 @@
-use crate::types::base_types::{CostStatus, ModelId, ToolShed, UsageCosting, UsageReport};
+use crate::types::base_types::{CostStatus, ModelId, ToolDeclarations, UsageCosting, UsageReport};
 use crate::types::Tool;
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
-/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
+/// Flatten a `ToolDeclarations` into a flat Vec<Tool> for provider APIs.
 #[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
+pub fn flatten_tools(shed: &ToolDeclarations) -> Vec<Tool> {
     shed.all_tools()
 }
 

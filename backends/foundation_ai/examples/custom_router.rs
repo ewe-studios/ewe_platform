@@ -13,19 +13,11 @@
 //!   --example custom_router --features agentic
 //! ```
 
-use foundation_ai::agentic::{AgentConfig, KvMemoryStore};
-use foundation_ai::harness::{
-    CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O,
-};
-use foundation_ai::types::{
-    MessageRole, Messages, ModelId, SessionId, TextContent, UserModelContent,
-};
+use foundation_ai::agentic::AgentConfig;
+use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O};
+use foundation_ai::types::{MessageRole, Messages, ModelId, TextContent, UserModelContent};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -57,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Bridge into an agent builder and finish customizing.
     let agent = preset
-        .into_agent_builder::<Doc, Mem>(SessionId::new())
+        .into_agent_builder()
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()

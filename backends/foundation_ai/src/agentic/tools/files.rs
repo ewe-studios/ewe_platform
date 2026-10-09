@@ -1,6 +1,6 @@
 //! Standard file tools — `read`, `write`, `edit` — over the VFS (spec-60 F05–F07).
 //!
-//! WHY: the `ToolShed` declares `read`/`edit`/`write` slots but shipped no
+//! WHY: the `ToolDeclarations` declares `read`/`edit`/`write` slots but shipped no
 //! implementations, so the agent could not touch the filesystem. These are the
 //! implementations.
 //!
@@ -358,12 +358,12 @@ impl ToolImpl for BashTool {
 }
 
 // ---------------------------------------------------------------------------
-// Registration helper (F09) — fill the ToolShed slots from a VFS
+// Registration helper (F09) — fill the ToolDeclarations slots from a VFS
 // ---------------------------------------------------------------------------
 
 /// Register the standard filesystem tools (`read`/`write`/`edit`) — all backed
 /// by the supplied VFS — onto a [`ToolCallManager`]. The manager's
-/// [`ToolCallManager::build_toolshed`] then populates the matching `ToolShed`
+/// [`ToolCallManager::build_toolshed`] then populates the matching `ToolDeclarations`
 /// slots automatically (the tools carry `read`/`write`/`edit` categories).
 ///
 /// WHY a VFS parameter: the FS base is swappable — pass a real FS in production,
@@ -377,7 +377,7 @@ pub fn register_file_tools<F: AsyncVfsFileSystem + 'static>(
     manager.register(Arc::new(EditTool::new(fs)));
 }
 
-/// Register the native shell tool (`bash`). Fills the `shell` `ToolShed` slot.
+/// Register the native shell tool (`bash`). Fills the `shell` `ToolDeclarations` slot.
 /// Native only — on wasm the tool exists but returns an "unsupported" error.
 pub fn register_shell_tool(manager: &crate::agentic::tool_impl::ToolCallManager) {
     manager.register(Arc::new(BashTool::new()));

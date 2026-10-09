@@ -81,29 +81,24 @@ per-turn context assembly does not use the embedder; it takes the most recent
 messages.)
 
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(id, router.clone())
+let agent = AgentSession::builder(router.clone())
     .with_embedder(Arc::new(CachedEmbeddingProvider::with_defaults(router)), "text-embedding-3-small")
+    // search_context, built inside build() from the session's own context
+    // provider — so it uses the session's stores and embedder:
+    .with_toolshed(ToolShed::new().tools(ToolPreset::search_context()))
     .build()?;
-```
-
-Register the recall tool from the session's own context provider so it uses
-the session's stores and embedder:
-
-```rust
-use foundation_ai::agentic::SearchContextTool;
-
-agent.tool_manager().register(Arc::new(SearchContextTool::new(
-    agent.context_provider().clone(),
-)));
 ```
 
 Without an embedder, `search_context` falls back to keyword matching.
 `SearchMode::Graph` has no session knowledge graph to search, so it logs a
 warning and falls back to hybrid recall.
 
-**Tool discovery.** `ToolDiscovery::new(vector_store, embedder, model)`
-embeds tool descriptions into a `foundation_vectors::VectorStore`; the `shed`
-tool searches it.
+**Tool discovery.** With an embedder on the session, `build()` indexes every
+tool in the session's `ToolShed` with `ToolDiscovery::in_memory(embedder,
+model)`, and the built-in `shed` meta-tool searches by embedding (filling up
+with name/description matches). `ToolDiscovery::new(vector_store, embedder,
+model)` uses a vector store you provide; `ToolCallManager::enable_discovery`
+attaches one to a manager.
 
 ## 5. Storing vectors yourself
 

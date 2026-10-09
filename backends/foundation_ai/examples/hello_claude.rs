@@ -6,15 +6,10 @@
 //!   --example hello_claude --features agentic
 //! ```
 
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness;
 use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("ANTHROPIC_API_KEY must be set");
 
     // One-call: Claude Opus (main) + Claude Sonnet (memory) wired for you.
-    let builder = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?;
+    let builder = harness::claude_session(SessionId::new(), &api_key)?;
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

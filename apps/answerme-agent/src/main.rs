@@ -10,22 +10,19 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use foundation_ai::agentic::{
-    AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
-};
+use foundation_ai::agentic::{AgentConfig, AgentSession, ContextConfig, ErrorPolicy, MemoryConfig};
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::harness::RouterMix;
-use foundation_ai::types::{Messages, ModelId, SessionId, SessionRecord};
+use foundation_ai::types::{Messages, ModelId, SessionRecord};
 use foundation_ai::types::{ModelOutput, TextContent};
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_repl::{Repl, ReplTheme};
 
-/// The concrete session type — spelled once so both commands share it.
-type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
+/// The concrete session type — the in-memory stores, so no type parameters.
+type Session = AgentSession;
 
 #[derive(Parser)]
 #[command(name = "answerme-agent", about = "Local Gemma agent over llama.cpp")]
@@ -92,8 +89,6 @@ fn main() {
 
 /// Build the llama.cpp-backed agent session shared by both commands.
 fn build_session() -> Session {
-    let session_id = SessionId::new();
-
     // Configure the local llama.cpp backend.
     let llama_config = LlamaBackendConfig::builder()
         .n_gpu_layers(0) // CPU-only; bump for GPU
@@ -118,7 +113,7 @@ fn build_session() -> Session {
     let preset = RouterMix::new().primary(provider, model_id.clone()).build();
 
     preset
-        .into_agent_builder(session_id)
+        .into_agent_builder()
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .with_model(model_id.clone())
         .with_config(AgentConfig {

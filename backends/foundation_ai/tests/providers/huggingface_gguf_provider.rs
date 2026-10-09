@@ -174,7 +174,7 @@ fn gguf_provider_describes_itself() {
 mod live {
     use super::*;
     use foundation_ai::types::{
-        MessageRole, Messages, ModelInteraction, ModelParams, TextContent, ToolShed,
+        MessageRole, Messages, ModelInteraction, ModelParams, TextContent, ToolDeclarations,
         UserModelContent,
     };
 
@@ -266,7 +266,7 @@ mod live {
                 }),
                 signature: None,
             }],
-            tools_shed: ToolShed::default(),
+            tools_shed: ToolDeclarations::default(),
             chat_template: None,
             tool_choice: None,
         };

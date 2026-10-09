@@ -22,8 +22,8 @@
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec, ToolShed,
-    UserModelContent, MessageRole, TextContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
+    TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
@@ -116,7 +116,7 @@ fn the_tiny_gguf_generates_with_offload() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed {
+        tools_shed: ToolDeclarations {
             shed: None,
             tools: Vec::new(),
         },

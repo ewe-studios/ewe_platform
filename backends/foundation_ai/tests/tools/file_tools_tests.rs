@@ -186,7 +186,7 @@ fn edit_replace_all() {
     });
 }
 
-/// The tool `definition()` exposes the right name + category (fills its ToolShed slot).
+/// The tool `definition()` exposes the right name + category (fills its `ToolDeclarations` slot).
 #[test]
 fn tool_definitions_expose_names_and_categories() {
     let fs = Arc::new(MemoryFs::new());
@@ -259,7 +259,7 @@ mod bash {
 }
 
 // ---------------------------------------------------------------------------
-// F09 — registering the tools fills the ToolShed slots
+// F09 — registering the tools fills the ToolDeclarations slots
 
 #[test]
 fn registering_file_tools_fills_shed_slots() {
@@ -271,7 +271,7 @@ fn registering_file_tools_fills_shed_slots() {
     register_file_tools(&mgr, Arc::new(MemoryFs::new()));
     register_shell_tool(&mgr);
 
-    let shed = mgr.build_toolshed();
+    let shed = mgr.all_declarations();
     // Under F19 every tool is collected into `tools` (no named slots).
     let has = |n: &str| shed.tools.iter().any(|t| t.name() == n);
     assert!(has("read"), "read tool present");

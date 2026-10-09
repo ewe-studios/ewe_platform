@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use foundation_ai::agentic::testing::*;
 use foundation_ai::types::{
     ArgType, CostStatus, ModelInteraction, ModelOutput, Messages, StopReason, TextContent,
-    ToolShed, UsageCosting, UsageReport, UserModelContent,
+    ToolDeclarations, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_ai::agentic::tool_impl::ToolImpl;
 
@@ -16,7 +16,7 @@ fn mock_provider_returns_scripted_reply() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![mock_user("hi")],
         chat_template: None,
         tool_choice: None,
@@ -43,7 +43,7 @@ fn mock_provider_nth_call_matching() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![mock_user("test")],
         chat_template: None,
         tool_choice: None,
@@ -73,7 +73,7 @@ fn mock_provider_failure_injection() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![mock_user("hi")],
         chat_template: None,
         tool_choice: None,
@@ -90,7 +90,7 @@ fn mock_provider_no_match_errors() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![],
         chat_template: None,
         tool_choice: None,
@@ -108,7 +108,7 @@ fn mock_provider_call_count() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![],
         chat_template: None,
         tool_choice: None,
@@ -126,7 +126,7 @@ fn last_user_contains_matcher() {
     let mi = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![mock_user("fix the bug")],
         chat_template: None,
         tool_choice: None,
@@ -141,7 +141,7 @@ fn system_prompt_contains_matcher() {
     let mi = ModelInteraction {
         system_prompt: Some("You are a coding assistant.".into()),
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         messages: vec![],
         chat_template: None,
         tool_choice: None,
@@ -300,7 +300,7 @@ fn tool_definition_has_correct_name() {
     let def = tool.definition();
     assert_eq!(def.name(), "my_tool");
     // Default category is a RECOGNIZED slot ("shell") so the mock tool actually
-    // populates the ToolShed handed to the model; override via with_category.
+    // populates the ToolDeclarations handed to the model; override via with_category.
     assert_eq!(def.category().unwrap(), "shell");
     assert_eq!(
         MockTool::returning("t", "r").with_category("search").definition().category().unwrap(),

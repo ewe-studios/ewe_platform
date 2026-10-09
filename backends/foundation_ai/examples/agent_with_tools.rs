@@ -2,8 +2,8 @@
 //!
 //! Demonstrates:
 //!   - Building tools with ToolImpl (F19 unified tool model)
-//!   - Using ToolPreset for quick tool registration
-//!   - Wiring tools into an agent session
+//!   - Giving them to a session through a ToolShed
+//!   - What the model sees: the `shed` meta-tool, then the tools it activates
 //!
 //! Run with:
 //! ```bash
@@ -12,24 +12,17 @@
 //! ```
 
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{
-    ToolCallResult, ToolDefinition, ToolError, ToolImpl,
-};
-use foundation_ai::agentic::KvMemoryStore;
+use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness;
 use foundation_ai::types::{
     ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_jsonschema::scheme;
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 // ---------------------------------------------------------------------------
 // Custom tool: greet
@@ -89,27 +82,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // 1. Build the model preset (Claude Opus main + Sonnet memory)
-    let builder = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?;
+    let builder = harness::claude_session(SessionId::new(), &api_key)?;
 
-    // 2. Build the agent session — tools are registered on the session's
-    //    ToolCallManager after build().
+    // 2. Build the agent session with its tools. The ToolShed is the one list
+    //    of what the agent can call (add ToolPreset::files(fs) etc. the same way).
     let agent = builder
-        .with_system_prompt(
-            "You are a helpful assistant with a custom greeting tool.",
-        )
+        .with_system_prompt("You are a helpful assistant with a custom greeting tool.")
+        .with_toolshed(ToolShed::new().tool(GreetTool))
         .build()?;
 
-    // 3. Register tools (programmatically — or use ToolPreset for built-in tools)
-    agent.tool_manager().register(Arc::new(GreetTool));
-
-    // 4. Build the ToolShed (what the model sees)
-    let toolshed = agent.tool_manager().build_toolshed();
-    println!("ToolShed has {} tool(s):", toolshed.tools.len());
-    for tool in &toolshed.tools {
+    // 3. What the model can reach through `shed`, and what it is offered now
+    //    (just `shed` until `shed` returns a tool).
+    let all = agent.tool_manager().all_declarations();
+    println!("The session has {} tool(s):", all.tools.len());
+    for tool in &all.tools {
         println!("  - {} ({})", tool.name(), tool.arg_summary());
     }
+    let offered = agent.tool_manager().offered_tools();
+    println!(
+        "Offered on the first request: {:?}",
+        offered
+            .all_tools()
+            .iter()
+            .map(Tool::name)
+            .collect::<Vec<_>>()
+    );
 
-    // 5. Ask the agent to use the tool
+    // 4. Ask the agent to use the tool
     let prompt = Messages::User {
         id: new_scru128(),
         role: MessageRole::User,

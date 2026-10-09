@@ -72,11 +72,17 @@ over working-memory facts. Each command loads the latest working memory,
 edits the fact list and writes it back with a version bump.
 
 ```rust
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
-ToolPreset::memory(Arc::new(agent.memory_hierarchy().clone()))
-    .register_all(agent.tool_manager());
+// Over the session's own memory hierarchy, built inside build():
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tools(ToolPreset::session_memory()))
+    .build()?;
 ```
+
+`ToolPreset::memory(hierarchy)` builds the same tool over a hierarchy you
+pass in.
 
 ## 5. Storage
 
@@ -115,5 +121,6 @@ then the recent conversation (Doc 01 §4).
 ## 8. Resume
 
 Memory lives in the session's stores, keyed by `SessionId`. Building a
-session with the same id over the same stores (`builder_with_stores` or
-`resume_with_stores`) picks it up on the first turn. See Doc 08 §5.
+session with the same id over the same stores
+(`AgentSession::builder(router).resume(id).with_doc_store(..).with_memory_store(..)`)
+picks it up on the first turn. See Doc 08 §5.

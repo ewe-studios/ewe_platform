@@ -15,7 +15,7 @@
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
-    TextContent, ToolShed, UserModelContent,
+    TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 
@@ -64,7 +64,7 @@ fn greeting() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }

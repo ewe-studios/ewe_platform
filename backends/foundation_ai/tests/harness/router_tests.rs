@@ -245,7 +245,7 @@ fn preset_session_bridge_builds_offline() {
     // time-ordered timestamp — see SessionId docs), so mint the id ONCE and reuse
     // it on both sides. Comparing two independent `from_name` calls is racy.
     let sid = SessionId::from_name("harness-test");
-    let builder = gemma_session::<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>(
+    let builder = gemma_session(
         sid.clone(),
         Some(throwaway_gguf_config()),
         Some(throwaway_gguf_config()),
@@ -279,7 +279,7 @@ fn all_session_presets_build_offline() {
 
     // GGUF-backed presets (throwaway configs → no download at construction).
     built(
-        glm52_gemma_session::<D, M>(
+        glm52_gemma_session(
             SessionId::new(),
             Some(throwaway_gguf_config()),
             Some(throwaway_gguf_config()),
@@ -287,7 +287,7 @@ fn all_session_presets_build_offline() {
         .expect("glm52_gemma_session builds"),
     );
     built(
-        qwen36_gemma_session::<D, M>(
+        qwen36_gemma_session(
             SessionId::new(),
             Some(throwaway_gguf_config()),
             Some(throwaway_gguf_config()),
@@ -296,13 +296,10 @@ fn all_session_presets_build_offline() {
     );
 
     // Cloud presets (dummy key; no network at construction).
-    built(claude_session::<D, M>(SessionId::new(), "test-key").expect("claude_session builds"));
+    built(claude_session(SessionId::new(), "test-key").expect("claude_session builds"));
+    built(openai_chat_session(SessionId::new(), "test-key").expect("openai_chat_session builds"));
     built(
-        openai_chat_session::<D, M>(SessionId::new(), "test-key")
-            .expect("openai_chat_session builds"),
-    );
-    built(
-        openai_responses_session::<D, M>(SessionId::new(), "test-key")
+        openai_responses_session(SessionId::new(), "test-key")
             .expect("openai_responses_session builds"),
     );
 }
@@ -315,12 +312,8 @@ fn candle_llama_session_builds_offline() {
     use foundation_ai::types::SessionId;
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
-    let builder = candle_llama_session::<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>(
-        SessionId::new(),
-        "HuggingFaceTB/SmolLM2-135M",
-        None,
-    )
-    .expect("candle_llama_session builds");
+    let builder = candle_llama_session(SessionId::new(), "HuggingFaceTB/SmolLM2-135M", None)
+        .expect("candle_llama_session builds");
     let _session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         builder.build().expect("session builds");
 }

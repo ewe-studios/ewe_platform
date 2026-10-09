@@ -26,8 +26,7 @@ use foundation_ai::backends::huggingface_gguf_provider::{
 };
 use foundation_ai::harness::{Gemma4E2b, RouterMix};
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelOutput, SessionId, SessionRecord, TextContent,
-    UserModelContent,
+    MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -80,7 +79,7 @@ fn greeting_interaction() -> foundation_ai::types::ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".to_string()),
         soul: None,
         messages: vec![user_msg("Reply with a single short greeting.")],
-        tools_shed: foundation_ai::types::ToolShed::default(),
+        tools_shed: foundation_ai::types::ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -97,7 +96,7 @@ fn gemma_session() -> TestSession {
         .build();
 
     preset
-        .into_agent_builder(SessionId::new())
+        .into_agent_builder()
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .with_model(model_id.clone())
         .with_config(AgentConfig {

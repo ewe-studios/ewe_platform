@@ -8,7 +8,7 @@ to touch it. Doc 01 explains the loop itself.
 ## 1. Iteration limits
 
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(id, router)
+let agent = AgentSession::builder(router)
     .with_config(AgentConfig {
         max_inner_iterations: 10,   // default 25
         max_outer_iterations: 3,    // default 10

@@ -28,8 +28,8 @@ use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::ModelParams;
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelProvider, TextContent, ToolShed,
-    UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelProvider, TextContent,
+    ToolDeclarations, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
@@ -109,7 +109,7 @@ fn interaction() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -596,7 +596,7 @@ fn embedding_interaction(texts: &[&str]) -> ModelInteraction {
         system_prompt: None,
         soul: None,
         messages,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -740,7 +740,7 @@ fn interaction_with(system: Option<&str>, soul: Option<&str>) -> ModelInteractio
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }

@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{arg_usize, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::toolshed::ContextSearch;
 use crate::types::Tool;
 use crate::types::{ArgType, Args, TextContent, UserModelContent};
 use foundation_db::traits::DocumentStore;
@@ -138,19 +139,34 @@ impl FileSearch for VfsSearchBackend {
 
 /// Tool that searches knowledge surfaces (semantic/memory/graph) via
 /// `ContextProvider::search`. Category: `search`.
-pub struct SearchContextTool<D, M> {
-    context: ContextProvider<D, M>,
+///
+/// Holds the context behind [`ContextSearch`], so the tool type doesn't carry
+/// the session's store types.
+pub struct SearchContextTool {
+    context: Arc<dyn ContextSearch>,
 }
 
-impl<D, M> SearchContextTool<D, M> {
+impl SearchContextTool {
+    /// The tool over a `ContextProvider<D, M>` (by value) or an
+    /// `Arc<dyn ContextSearch>` (e.g. `SessionParts::context`).
     #[must_use]
-    pub fn new(context: ContextProvider<D, M>) -> Self {
-        Self { context }
+    pub fn new(context: impl Into<Arc<dyn ContextSearch>>) -> Self {
+        Self {
+            context: context.into(),
+        }
+    }
+}
+
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<D, M>>
+    for Arc<dyn ContextSearch>
+{
+    fn from(context: ContextProvider<D, M>) -> Self {
+        Arc::new(context)
     }
 }
 
 #[async_trait]
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchContextTool<D, M> {
+impl ToolImpl for SearchContextTool {
     fn definition(&self) -> Tool {
         Tool::SingleCommand(ToolDefinition {
             name: "search_context".into(),
@@ -202,8 +218,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchCo
         let k = arg_usize(&arguments, "k").unwrap_or(10);
 
         let hits = self.context.search(&query, mode, k).await;
-        let json =
-            serde_json::to_string(&hits).unwrap_or_else(|_| "[]".into());
+        let json = serde_json::to_string(&hits).map_err(|e| ToolError::Execution {
+            tool: "search_context".into(),
+            reason: format!("serializing the hits failed: {e}"),
+        })?;
 
         Ok(ToolCallResult {
             content: UserModelContent::Text(TextContent {

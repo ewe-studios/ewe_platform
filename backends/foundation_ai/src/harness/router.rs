@@ -179,22 +179,20 @@ pub struct RouterPreset {
 }
 
 impl RouterPreset {
-    /// Bridge into an [`AgentSessionBuilder`] for the given session, applying
-    /// the preset's primary/memory/fallback models. The caller picks the
-    /// document store `D` and memory store `M` and finishes the build; stores
-    /// not set with `with_doc_store` / `with_memory_store` are default-built.
+    /// Bridge into an [`AgentSessionBuilder`], applying the preset's
+    /// primary/memory/fallback models. The builder starts on the in-memory
+    /// stores and a fresh session id; continue with `with_session_id`,
+    /// `with_doc_store` / `with_memory_store`, and the other `with_*` methods.
     #[must_use]
-    pub fn into_agent_builder<D, M>(self, session_id: SessionId) -> AgentSessionBuilder<D, M>
-    where
-        D: DocumentStore + Default + 'static,
-        M: MemoryStore + Default + 'static,
-    {
-        let builder = AgentSession::<D, M>::builder(session_id, self.router.clone());
+    pub fn into_agent_builder(self) -> AgentSessionBuilder {
+        let builder = AgentSession::builder(self.router.clone());
         self.apply_models(builder)
     }
 
-    /// [`into_agent_builder`](Self::into_agent_builder) over explicit stores —
-    /// for persistent backends that can't be default-constructed.
+    /// [`into_agent_builder`](Self::into_agent_builder) over explicit stores.
+    #[deprecated(
+        note = "use into_agent_builder().with_session_id(id).with_doc_store(doc_store).with_memory_store(memory_store)"
+    )]
     #[must_use]
     pub fn into_agent_builder_with_stores<D, M>(
         self,
@@ -206,13 +204,10 @@ impl RouterPreset {
         D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
-        let builder = AgentSession::<D, M>::builder_with_stores(
-            session_id,
-            self.router.clone(),
-            doc_store,
-            memory_store,
-        );
-        self.apply_models(builder)
+        self.into_agent_builder()
+            .with_session_id(session_id)
+            .with_doc_store(doc_store)
+            .with_memory_store(memory_store)
     }
 
     fn apply_models<D, M>(self, builder: AgentSessionBuilder<D, M>) -> AgentSessionBuilder<D, M>

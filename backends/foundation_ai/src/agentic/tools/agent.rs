@@ -6,7 +6,7 @@
 //! pool; the handle supports pause, resume, and stop.
 //!
 //! WHAT: One `Tool::MultiCommands("agent", [start, stop, pause, resume, check,
-//! result])` in `ToolShed.tools`. `start` builds a child `AgentSession`, calls
+//! result])` in `ToolDeclarations.tools`. `start` builds a child `AgentSession`, calls
 //! `run_turn_stream(prompt)`, stores the `DrivenStreamIterator` + control flags,
 //! and returns at once. The sub-agent writes its result to a file via the
 //! standard `write` tool — output never accumulates in the delegator's memory.
@@ -30,6 +30,7 @@ use crate::agentic::errors::UserId;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::session::AgentSession;
 use crate::agentic::tool_impl::{arg_bool, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::toolshed::ToolShed;
 use crate::types::agentic::{SessionId, SessionRecord};
 use crate::types::base_types::{ArgType, Args, MessageRole, Messages, ModelId, Tool};
 use crate::types::routable_provider::ProviderRouter;
@@ -232,7 +233,15 @@ where
         let delegate_id = Self::new_id();
         let output_location = format!("{}/{}.json", self.output_base, delegate_id);
 
-        let mut builder = AgentSession::builder(child_session_id.clone(), self.router.clone())
+        let mut builder = AgentSession::builder(self.router.clone())
+            .with_session_id(child_session_id.clone())
+            .with_doc_store(D::default())
+            .with_memory_store(M::default())
+            // Provision the child session with the tools it needs to produce
+            // output (at minimum: write, read — supplied at construction).
+            .with_toolshed(
+                ToolShed::new().tools(self.child_tools.iter().map(|t| Arc::clone(t).into())),
+            )
             .with_user(self.user.clone())
             .with_model(model.clone());
 
@@ -260,12 +269,6 @@ where
             tool: TOOL.into(),
             reason: format!("failed to build child session: {e}"),
         })?;
-
-        // Provision the child session with the tools it needs to produce output
-        // (at minimum: write, read — supplied by the caller at construction).
-        for tool in &self.child_tools {
-            child_session.tool_manager().register(Arc::clone(tool));
-        }
 
         let prompt = Messages::User {
             id: foundation_compact::ids::new_scru128(),
@@ -1273,7 +1276,7 @@ mod tests {
             vec![],
         );
 
-        let shed = manager.build_toolshed();
+        let shed = manager.all_declarations();
         assert!(
             shed.tools.iter().any(|t| t.name() == "agent"),
             "toolshed should contain agent: {shed:?}"

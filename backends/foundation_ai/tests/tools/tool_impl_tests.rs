@@ -91,7 +91,7 @@ fn build_toolshed_populates_by_category() {
         let mgr = ToolCallManager::new(SessionId::new());
         mgr.register(Arc::new(EchoTool));
 
-        let shed = mgr.build_toolshed();
+        let shed = mgr.all_declarations();
         // One tool, collected into `tools` (no named slots under F19).
         assert_eq!(shed.tools.len(), 1);
         let echo = &shed.tools[0];
@@ -110,7 +110,7 @@ fn build_toolshed_empty_has_no_shed_meta_tool() {
     // small models (docs/fixes/007).
     futures_lite::future::block_on(async {
         let mgr = ToolCallManager::new(SessionId::new());
-        let shed = mgr.build_toolshed();
+        let shed = mgr.all_declarations();
         assert!(
             shed.shed.is_none(),
             "empty registry must not include the shed meta-tool"
@@ -125,7 +125,7 @@ fn build_toolshed_with_tools_includes_shed_meta_tool() {
     futures_lite::future::block_on(async {
         let mgr = ToolCallManager::new(SessionId::new());
         mgr.register(Arc::new(EchoTool));
-        let shed = mgr.build_toolshed();
+        let shed = mgr.all_declarations();
         assert_eq!(
             shed.shed.as_ref().unwrap().name(),
             "shed",

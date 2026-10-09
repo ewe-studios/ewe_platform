@@ -723,7 +723,7 @@ impl ResponsesModel {
             (None, None) => None,
         };
 
-        // Tools: flatten ToolShed into ResponseTool array
+        // Tools: flatten ToolDeclarations into ResponseTool array
         let tools = {
             let all = flatten_tools(&interaction.tools_shed);
             if all.is_empty() {

@@ -15,7 +15,7 @@ For provider configuration details, see **Doc 00-1** (Getting Started: Providers
 
 ## 1. The Agent System — What It Is
 
-An `AgentSession<D, M>` is the single public handle for a conversation. It
+An `AgentSession` is the single public handle for a conversation. It
 orchestrates:
 
 | Component | Role |
@@ -28,7 +28,8 @@ orchestrates:
 | `LoopDetector` | Detects repetition and escalates |
 | `SteeringQueues` | Inject priority and follow-up messages mid-turn |
 
-The session is generic over two types:
+It stores its data in two stores, which are type parameters with in-memory
+defaults (`AgentSession` = `AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>`):
 - **`D: DocumentStore`** — stores the message history (conversation log)
 - **`M: MemoryStore`** — caches the latest memory record per tier per session
 
@@ -40,21 +41,16 @@ The session is generic over two types:
 
 ```rust
 use foundation_ai::harness;
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::SessionId;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 // Anthropic: Claude Opus + Sonnet
-let builder = harness::claude_session::<Doc, Mem>(SessionId::new(), &anthropic_key)?;
+let builder = harness::claude_session(SessionId::new(), &anthropic_key)?;
 
 // OpenAI: GPT-4o + GPT-4o-mini (Chat Completions)
-let builder = harness::openai_chat_session::<Doc, Mem>(SessionId::new(), &openai_key)?;
+let builder = harness::openai_chat_session(SessionId::new(), &openai_key)?;
 
 // Llama.cpp (local): GLM 5.2 + Gemma 4 E2B
-let builder = harness::glm52_gemma_session::<Doc, Mem>(SessionId::new(), None, None)?;
+let builder = harness::glm52_gemma_session(SessionId::new(), None, None)?;
 ```
 
 Then customize and build:
@@ -85,7 +81,7 @@ let preset = RouterMix::new()
     .build();
 
 let agent = preset
-    .into_agent_builder::<Doc, Mem>(SessionId::new())
+    .into_agent_builder()                 // in-memory stores, fresh SessionId
     .with_system_prompt("Hybrid local+cloud agent.")
     .build()?;
 ```
@@ -161,13 +157,9 @@ let router = ProviderRouter::builder()
 #### Step 3: Build the session
 
 ```rust
-use foundation_ai::agentic::{AgentSession, AgentConfig, KvMemoryStore};
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
+use foundation_ai::agentic::{AgentSession, AgentConfig};
 
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
-
-let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+let agent = AgentSession::builder(router)
     .with_model(ModelId::Name("claude-opus-4-8".into(), None))
     .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
     .with_system_prompt("You are a helpful assistant.")
@@ -325,8 +317,9 @@ agent.follow_up(Messages::User {
 
 ### 5.2. Available Store Backends
 
-`AgentSession<D, M>` is generic over a `DocumentStore` (message history) and
-a `MemoryStore` (latest memory per tier via a `KeyValueStore`).
+`AgentSession<D, M>` keeps its data in a `DocumentStore` (message history) and
+a `MemoryStore` (latest memory per tier via a `KeyValueStore`); both default
+to the in-memory stores.
 
 **DocumentStore backends:**
 
@@ -355,30 +348,29 @@ and feature flag matrix for every backend.
 
 ```rust
 // Quick picks:
-// type Doc = SqlDocumentStore<TursoStorage>;       // embedded SQLite
-// type Doc = D1R2DocumentStore<D1Store, R2Store>; // Cloudflare edge
-// type Mem = KvMemoryStore<TursoStorage>;         // Turso memory cache
-// type Mem = KvMemoryStore<JsonFileStorage>;      // JSON file cache
+//   SqlDocumentStore<TursoStorage>        // embedded SQLite messages
+//   D1R2DocumentStore<D1Store, R2Store>   // Cloudflare edge
+//   KvMemoryStore<TursoStorage>           // Turso memory cache
+//   KvMemoryStore<JsonFileStorage>        // JSON file cache
 
-let agent = AgentSession::builder_with_stores(
-        session_id,
-        router,
-        doc_store,
-        KvMemoryStore::new(kv_store),
-    )
+let agent = AgentSession::builder(router)
+    .with_session_id(session_id)
+    .with_doc_store(doc_store)                      // changes the builder's type
+    .with_memory_store(KvMemoryStore::new(kv_store))
     .with_model(primary_model)
     .build()?;
 
 // From a harness preset:
 let agent = harness::claude_router(&key)?
-    .into_agent_builder_with_stores(session_id, doc_store, KvMemoryStore::new(kv_store))
+    .into_agent_builder()
+    .with_session_id(session_id)
+    .with_doc_store(doc_store)
+    .with_memory_store(KvMemoryStore::new(kv_store))
     .build()?;
 ```
 
-`builder(..)` / `into_agent_builder(..)` default-construct any store you don't
-set, which needs the store types to implement `Default` (the in-memory, Turso,
-libsql, JSON-file and Fjall stores do); the `_with_stores` variants take any
-store, including D1 / R2.
+The store setters take any store — including ones with no `Default`, like
+D1 / R2 — and `build()` has no `Default` bound.
 
 ---
 
@@ -389,28 +381,34 @@ store, including D1 / R2.
 > **[Getting Started: Tools & Presets](03-tools-and-presets.md)**. This section
 > is the quick version.
 
-### 6.1. Default ToolShed
+### 6.1. Adding Tools
 
-With no tools registered, the model is offered nothing — not even the `shed`
-discovery tool.
-
-### 6.2. Adding Tools
-
-Register `ToolImpl`s on the builder (`.with_tool(..)`, `.with_tools(..)`) or on
-the session's manager after `build()`:
+Tools go in a `ToolShed`, passed to `with_toolshed` — the only way to give a
+session tools:
 
 ```rust
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
-agent.tool_manager().register(Arc::new(MyTool));
-
-ToolPreset::files(Arc::clone(&fs))
-    .merge(ToolPreset::shell())
-    .register_all(agent.tool_manager());
+let agent = builder
+    .with_toolshed(
+        ToolShed::new()
+            .tool(MyTool)
+            .tools(ToolPreset::files(Arc::clone(&fs)))
+            .tools(ToolPreset::shell()),
+    )
+    .build()?;
 ```
 
 Each tool declares its own shape via `ToolImpl::definition()` (`Tool::SingleCommand` or
 `Tool::MultiCommands`); there are no fixed slots.
+
+### 6.2. What the Model Sees
+
+With no tools, the model is offered nothing. Otherwise it is offered only the
+built-in `shed` discovery tool; the tools `shed` returns become active and are
+declared on the following requests. Calling a tool before `shed` has returned
+it is a tool error that tells the model to look it up first.
 
 ---
 
@@ -449,20 +447,21 @@ agent.end()?;  // flush, drain, persist, reset
 
 ### 8.2. Resume
 
+History and memory live in the stores, so resuming is building again over the
+same stores with the same id:
+
 ```rust
-let agent = AgentSession::<Doc, Mem>::resume(
-    session_id,
-    router,       // rebuild the same ProviderRouter
-    AgentConfig::default(),
-    None,
-)?;
+let agent = AgentSession::builder(router)      // rebuild the same ProviderRouter
+    .resume(session_id)                        // Err(SessionNotFound) if the stores don't hold it
+    .with_doc_store(doc_store)
+    .with_memory_store(mem_store)
+    .with_system_prompt("…")                   // configuration isn't persisted: pass it again
+    .with_toolshed(tools)
+    .build()?;
 ```
 
-History and memory live in the stores, so resuming is rebuilding over the
-same stores with the same id — `resume_with_stores(id, router, config, None,
-doc_store, mem_store)` or `builder_with_stores(..)`. The system prompt and
-tools aren't persisted; pass them again. `resume(..)` without stores uses
-default-constructed ones. See Doc 08 §5.
+`.with_session_id(id)` instead of `.resume(id)` continues the session if it
+exists and starts it otherwise. See Doc 08 §5.
 
 ---
 
@@ -475,6 +474,7 @@ agent.router();             // routing table
 agent.steering_queues();    // low-level queue access
 agent.memory_hierarchy();   // memory system
 agent.tool_manager();       // tool registry
+agent.context_provider();   // history + memory recall
 ```
 
 ---

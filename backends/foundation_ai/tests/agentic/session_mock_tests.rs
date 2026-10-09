@@ -13,8 +13,7 @@ use foundation_ai::agentic::{
     AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelOutput, SessionId, SessionRecord, TextContent,
-    UserModelContent,
+    MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
@@ -39,7 +38,7 @@ fn user_msg(text: &str) -> Messages {
 /// A session whose router is the given mock, built the way the app builds one.
 fn session_with(mock: MockModelProvider) -> Session {
     let model_id = ModelId::Name("mock".into(), None);
-    AgentSession::builder(SessionId::new(), mock.into_router())
+    AgentSession::builder(mock.into_router())
         .with_system_prompt("You are a helpful assistant.")
         .with_model(model_id.clone())
         .with_config(AgentConfig {
@@ -240,7 +239,9 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
     let model_id = ModelId::Name("mock".into(), None);
-    let session: SqlSession = AgentSession::builder(SessionId::new(), mock.into_router())
+    let session: SqlSession = AgentSession::builder(mock.into_router())
+        .with_doc_store(SqlDocumentStore::<TursoStorage>::default())
+        .with_memory_store(KvMemoryStore::<TursoStorage>::default())
         .with_model(model_id.clone())
         .with_config(AgentConfig {
             primary_model: model_id,

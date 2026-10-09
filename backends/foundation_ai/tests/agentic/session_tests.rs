@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, KvMemoryStore, SessionAccessProvider, TokenBudget,
+    AgentConfig, AgentSession, AgenticError, KvMemoryStore, SessionAccessProvider, TokenBudget,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ProviderRouter, SessionId, TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
+    UserModelContent,
 };
+use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 use foundation_ai::agentic::errors::{AuthError, UserId};
@@ -42,7 +44,8 @@ fn empty_router() -> ProviderRouter {
 #[test]
 fn builder_creates_session_with_named_id() {
     let id = SessionId::from_name("test-defaults");
-    let session: TestSession = AgentSession::builder(id.clone(), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(id.clone())
         .build()
         .expect("build should succeed");
 
@@ -52,7 +55,8 @@ fn builder_creates_session_with_named_id() {
 #[test]
 fn builder_accepts_custom_session_id() {
     let custom_id = SessionId::from_name("test-session");
-    let session: TestSession = AgentSession::builder(custom_id.clone(), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(custom_id.clone())
         .build()
         .expect("build should succeed");
 
@@ -61,7 +65,8 @@ fn builder_accepts_custom_session_id() {
 
 #[test]
 fn builder_accepts_system_prompt() {
-    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .with_system_prompt("You are a coding assistant.")
         .build()
         .expect("build should succeed with system prompt");
@@ -69,7 +74,8 @@ fn builder_accepts_system_prompt() {
 
 #[test]
 fn builder_accepts_custom_model() {
-    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .with_model(ModelId::Name("gpt-4".into(), None))
         .build()
         .expect("build should succeed with custom model");
@@ -77,7 +83,8 @@ fn builder_accepts_custom_model() {
 
 #[test]
 fn builder_accepts_fallback_models() {
-    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .with_fallback_models(vec![
             ModelId::Name("gpt-4".into(), None),
             ModelId::Name("claude-3".into(), None),
@@ -88,7 +95,8 @@ fn builder_accepts_fallback_models() {
 
 #[test]
 fn session_is_clone() {
-    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
 
@@ -127,10 +135,10 @@ impl SessionAccessProvider for DenyModelAccess {
 
 #[test]
 fn preflight_denies_session_access() {
-    let result: Result<TestSession, _> =
-        AgentSession::builder(SessionId::from_name("test"), empty_router())
-            .with_access(Arc::new(DenySessionAccess))
-            .build();
+    let result: Result<TestSession, _> = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
+        .with_access(Arc::new(DenySessionAccess))
+        .build();
 
     match result {
         Ok(_) => panic!("expected preflight to deny session access"),
@@ -143,10 +151,10 @@ fn preflight_denies_session_access() {
 
 #[test]
 fn preflight_denies_model_access() {
-    let result: Result<TestSession, _> =
-        AgentSession::builder(SessionId::from_name("test"), empty_router())
-            .with_access(Arc::new(DenyModelAccess))
-            .build();
+    let result: Result<TestSession, _> = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
+        .with_access(Arc::new(DenyModelAccess))
+        .build();
 
     match result {
         Ok(_) => panic!("expected preflight to deny model access"),
@@ -162,7 +170,8 @@ fn preflight_denies_model_access() {
 
 #[test]
 fn steer_and_follow_up_inject_messages() {
-    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
 
@@ -175,7 +184,8 @@ fn steer_and_follow_up_inject_messages() {
 
 #[test]
 fn end_is_idempotent() {
-    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
 
@@ -187,34 +197,85 @@ fn end_is_idempotent() {
 // Resume
 
 #[test]
-fn resume_creates_session_with_given_id() {
-    let original_id = SessionId::from_name("resume-test");
+fn with_session_id_starts_a_new_session_when_none_exists() {
+    let id = SessionId::from_name("create-or-continue");
 
-    let resumed: TestSession = AgentSession::resume(
-        original_id.clone(),
-        empty_router(),
-        AgentConfig::default(),
-        None,
-    )
-    .expect("resume should succeed");
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(id.clone())
+        .build()
+        .expect("with_session_id builds even when the stores hold nothing for the id");
 
-    assert_eq!(*resumed.session_id(), original_id);
+    assert_eq!(*session.session_id(), id);
+    // end() on a fresh session with empty queues is a no-op.
+    session.end().expect("end should succeed");
 }
 
 #[test]
-fn resumed_session_has_empty_queues() {
-    let session: TestSession = AgentSession::resume(
-        SessionId::from_name("resume-empty"),
-        empty_router(),
-        AgentConfig::default(),
-        None,
-    )
-    .expect("resume should succeed");
+fn resume_fails_with_session_not_found_for_an_unknown_id() {
+    let id = SessionId::from_name("resume-missing");
 
-    // end() on a fresh resumed session with empty queues should be a no-op
-    session
-        .end()
-        .expect("end on resumed session should succeed");
+    let err = AgentSession::builder(empty_router())
+        .resume(id.clone())
+        .build()
+        .err()
+        .expect("resume(id) over empty stores must fail");
+
+    assert_eq!(*err.current_context(), AgenticError::SessionNotFound(id));
+}
+
+#[test]
+fn resume_continues_a_session_the_stores_hold() {
+    let id = SessionId::from_name("resume-existing");
+
+    // Earlier history for `id`, already in the document store.
+    let doc = MemoryDocumentStore::new();
+    let earlier = user_msg("from an earlier run");
+    doc.append_with_id(
+        &id.to_string(),
+        &earlier.id().to_string(),
+        SessionRecord::Conversation { message: earlier },
+    )
+    .expect("seed the store");
+
+    let session = AgentSession::builder(empty_router())
+        .resume(id.clone())
+        .with_doc_store(doc)
+        .build()
+        .expect("resume(id) builds when the stores hold the session");
+
+    assert_eq!(*session.session_id(), id);
+    let history = session.message_api().all().expect("history readable");
+    assert_eq!(
+        history.len(),
+        1,
+        "the earlier record is visible: {history:?}"
+    );
+}
+
+#[test]
+fn resume_looks_only_at_the_named_session() {
+    // Records under a different id don't make an unknown id resumable.
+    let doc = MemoryDocumentStore::new();
+    let other = SessionId::from_name("someone-else");
+    let msg = user_msg("not yours");
+    doc.append_with_id(
+        &other.to_string(),
+        &msg.id().to_string(),
+        SessionRecord::Conversation { message: msg },
+    )
+    .expect("seed the store");
+
+    let missing = SessionId::from_name("resume-other-missing");
+    let err = AgentSession::builder(empty_router())
+        .resume(missing.clone())
+        .with_doc_store(doc)
+        .build()
+        .err()
+        .expect("resume(id) must not pick up another session's records");
+    assert_eq!(
+        *err.current_context(),
+        AgenticError::SessionNotFound(missing)
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -226,7 +287,8 @@ fn builder_wires_config_overrides() {
     config.max_outer_iterations = 3;
     config.max_inner_iterations = 5;
 
-    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .with_config(config)
         .with_user(UserId("custom-user".into()))
         .build()
@@ -238,7 +300,8 @@ fn builder_wires_config_overrides() {
 
 #[test]
 fn extension_handles_are_accessible() {
-    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
 
@@ -251,10 +314,10 @@ fn extension_handles_are_accessible() {
 
 #[test]
 fn message_api_subscribe_receives_events() {
-    let session: TestSession =
-        AgentSession::builder(SessionId::from_name("test-subscribe"), empty_router())
-            .build()
-            .expect("build should succeed");
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_session_id(SessionId::from_name("test-subscribe"))
+        .build()
+        .expect("build should succeed");
 
     let rx = session.message_api().subscribe();
 

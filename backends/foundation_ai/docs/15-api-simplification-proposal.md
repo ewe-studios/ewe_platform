@@ -1,6 +1,7 @@
 # Proposal 15 — Simplifying the `foundation_ai` API surface
 
-**Status:** proposal for discussion. Nothing here is implemented. The bug fixes
+**Status:** approved; being implemented tier by tier — each item below is
+marked when it lands (Tier 1: [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63)). The bug fixes
 for the "Known limitations" in Doc 00 are handled separately; this doc is
 about making the everyday API smaller and harder to misuse.
 
@@ -530,6 +531,8 @@ through `with_toolshed`: the session builder has no per-tool methods.
 
 #### 1. The toolshed owns the tools (F2)
 
+✅ Implemented in [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63) (the provider-facing `types::ToolShed` became `ToolDeclarations`; `SessionParts` holds the context/memory `Arc`s behind object-safe traits — see the PR's deviations).
+
 The session builder keeps `with_toolshed(ToolShed)` and gets **no** per-tool
 methods. Instead a `ToolShed` is built with its own builder and holds the tool
 *implementations*, not just their definitions. `build()` registers the shed's
@@ -690,6 +693,8 @@ adding a tool to a running session, but it is no longer the normal path.
 
 #### 2. Typestate stores, no `Default` bound (F1)
 
+✅ Implemented in [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63).
+
 Today:
 
 ```rust
@@ -745,6 +750,8 @@ pub fn into_agent_builder(self) -> AgentSessionBuilder; // then .with_session_id
 
 #### 3. One store graph (F1, plus the memory bug)
 
+✅ Implemented in [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63).
+
 Today `build()` hands your stores to `MessageApi` and `ContextProvider` and
 gives the memory hierarchy its own:
 
@@ -768,6 +775,8 @@ let coordinator = MemoryCoordinator::from_shared(memory_store, doc_store);
 ```
 
 #### 4. Resume is just build (F7)
+
+✅ Implemented in [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63).
 
 Today: `AgentSession::<D, M>::resume(session_id, router, config, policy)` (see
 F7) and `AgentSession::<D, M>::builder(session_id, router)`.
@@ -827,6 +836,8 @@ Changing `builder`'s arguments is the one breaking edit in Tier 1;
 `builder_for` keeps old call sites compiling for a release.
 
 #### 5. Expose recall (F12)
+
+✅ Implemented in [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63).
 
 Today: no accessor; see the hand-built `ContextProvider` in F12.
 

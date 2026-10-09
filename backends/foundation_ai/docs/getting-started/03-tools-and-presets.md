@@ -1,9 +1,9 @@
 # Getting Started: Tools & Presets
 
 How to give an agent tools — the built-in **file tools** (`read`, `write`,
-`edit`) and **shell** (`bash`), the **`ToolPreset`** helpers that bundle them
-into one call, and how the same preset provisions a sub-agent for background
-delegation.
+`edit`) and **shell** (`bash`), the **`ToolPreset`** helpers that bundle them,
+the **`ToolShed`** that hands them to a session, and how the same presets
+provision a sub-agent for background delegation.
 
 For writing your *own* tools, see **Doc 10 — Building Custom Tools**. This guide
 is about wiring the ones that ship with the crate.
@@ -12,27 +12,31 @@ is about wiring the ones that ship with the crate.
 
 ## 1. The shape of a tool
 
-Every tool is an `Arc<dyn ToolImpl>`. Two things connect it to an agent:
+Every tool is a `ToolImpl`. Three things connect it to an agent:
 
-- The **`ToolCallManager`** on a session — where a tool is *registered* and later
-  *executed*.
-- The **`ToolShed`** — the declaration the model sees, built from the registered
-  tools via `tool_manager().build_toolshed()`.
-
-You register tools after building the session, then the model discovers them
-through the shed:
+- The **`ToolShed`** — the one explicit list of tools a session can call. You
+  build it and pass it to `with_toolshed(..)`; the session builder has no
+  per-tool methods.
+- The **`ToolCallManager`** on the session — the registry `build()` fills from
+  the shed, which executes the calls.
+- The **`shed` meta-tool** — the only tool the model is offered up front. The
+  model asks `shed` for what it needs; every tool `shed` returns becomes
+  *active* and is declared on later requests.
 
 ```rust
-let agent = builder.build()?;
+use foundation_ai::agentic::{AgentSession, ToolShed};
 
-// register → the manager can execute it
-agent.tool_manager().register(my_tool);
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tool(my_tool))
+    .build()?;
 
-// build_toolshed → what the model is told exists
-let shed = agent.tool_manager().build_toolshed();
+// What the next request declares: `shed` + the tools it has returned so far.
+let declared = agent.tool_manager().offered_tools();
+// Every tool the model can reach through `shed`:
+let all = agent.tool_manager().all_declarations();
 ```
 
-`ToolPreset` is the shortcut for registering several built-in tools at once.
+`ToolPreset` is the shortcut for several built-in tools at once.
 
 ---
 
@@ -70,26 +74,27 @@ let fs = Arc::new(NativeFs::new("/srv/agent-workspace")?);
 unless `replace_all` is set, otherwise it errors rather than guessing which
 occurrence you meant. Reading a non-UTF-8 file is a clean error, not a panic.
 
-### Register them
-
-Individually:
+### Give them to a session
 
 ```rust
-use foundation_ai::agentic::tools::files::register_file_tools;
+use foundation_ai::agentic::tools::files::{EditTool, ReadTool, WriteTool};
 
-register_file_tools(agent.tool_manager(), Arc::clone(&fs));
+let tools = ToolShed::new()
+    .tool(ReadTool::new(Arc::clone(&fs) as Arc<_>))
+    .tool(WriteTool::new(Arc::clone(&fs) as Arc<_>))
+    .tool(EditTool::new(Arc::clone(&fs)));
 ```
 
-…or, more commonly, through a preset (next section).
+…or, more commonly, through a preset (section 4).
 
 ---
 
 ## 3. The shell tool: `bash`
 
 ```rust
-use foundation_ai::agentic::tools::files::register_shell_tool;
+use foundation_ai::agentic::tools::files::BashTool;
 
-register_shell_tool(agent.tool_manager()); // adds `bash`
+let tools = ToolShed::new().tool(BashTool::new()); // adds `bash`
 ```
 
 `bash` runs a shell command and captures stdout/stderr/exit. It is **native
@@ -102,18 +107,17 @@ on a native host.
 
 ## 4. `ToolPreset` — bundle tools in one call
 
-Wiring each `register_*` by hand is boilerplate. A `ToolPreset` is a collection
-of tools built by named constructors, composed with `merge()` (or `+`), and
-stamped onto a manager with `register_all()`.
+A `ToolPreset` is a list of tool constructors built by named constructors and
+composed with `merge()` (or `+`). It is an iterator of constructors, so it goes
+straight into `ToolShed::tools(..)`.
 
 ```rust
 use foundation_ai::harness::ToolPreset;
 
 // read + write + edit + bash
-let preset = ToolPreset::files(Arc::clone(&fs))
-    .merge(ToolPreset::shell());
-
-preset.register_all(agent.tool_manager());
+let tools = ToolShed::new()
+    .tools(ToolPreset::files(Arc::clone(&fs)))
+    .tools(ToolPreset::shell());
 ```
 
 ### The constructors
@@ -122,27 +126,24 @@ preset.register_all(agent.tool_manager());
 |---|---|
 | `ToolPreset::files(fs)` | `read`, `write`, `edit` |
 | `ToolPreset::shell()` | `bash` |
-| `ToolPreset::memory(hierarchy)` | `memory add` / `remove` / `replace` |
-| `ToolPreset::shed(discovery)` | `shed` (tool discovery) |
+| `ToolPreset::memory(hierarchy)` | `memory add` / `remove` / `replace` over the hierarchy you pass |
+| `ToolPreset::session_memory()` | `memory`, over the session's own hierarchy (built inside `build()`) |
+| `ToolPreset::search_context()` | `search_context`, over the session's own stores and embedder (built inside `build()`) |
 | `ToolPreset::agent(...)` | `agent` (background sub-agent delegation) |
 | `ToolPreset::minimal_sub_agent(fs)` | `files` + `shell` |
-| `ToolPreset::standard(fs, hierarchy, discovery)` | `files` + `shell` + `memory` + `shed` |
+| `ToolPreset::standard(fs)` | `files` + `shell` + `session_memory` |
+
+`shed` is built into every session, so there is no preset for it; give the
+session an embedder (`with_embedder`) and `shed` searches by embedding.
 
 `standard` is the general-purpose set. It deliberately omits `agent` — add that
 explicitly only when you want delegation, so an agent never gains the ability to
 spawn sub-agents by accident.
 
 ```rust
-use foundation_ai::harness::ToolPreset;
-
-// The session's hierarchy is a cheap Arc handle; wrap a clone.
-let memory_hierarchy = Arc::new(agent.memory_hierarchy().clone());
-let preset = ToolPreset::standard(
-    Arc::clone(&fs),
-    Arc::clone(&memory_hierarchy),
-    Arc::clone(&tool_discovery),
-);
-preset.register_all(agent.tool_manager());
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tools(ToolPreset::standard(Arc::clone(&fs))))
+    .build()?;
 ```
 
 ### Composing
@@ -152,16 +153,22 @@ preset.register_all(agent.tool_manager());
 ```rust
 let preset = ToolPreset::files(Arc::clone(&fs))
     + ToolPreset::shell()
-    + ToolPreset::memory(Arc::clone(&hierarchy));
+    + ToolPreset::search_context();
 ```
 
-### Building a manager directly
+A name added twice — two presets that both carry `read`, say — fails
+`build()` with `ToolShedError::DuplicateTool("read")`.
 
-If you want a `ToolCallManager` populated from a preset without going through a
-session first:
+### Without a session
+
+Presets of ready-made tools also work on their own; a session-dependent tool
+(`search_context`, `session_memory`) makes these return
+`ToolShedError::NeedsSession`:
 
 ```rust
-let manager = ToolPreset::files(fs).into_manager(session_id);
+let manager = ToolPreset::files(Arc::clone(&fs)).into_manager(session_id)?; // fresh manager
+ToolPreset::shell().register_all(agent.tool_manager())?;                    // add to a running session
+let child_tools = ToolPreset::minimal_sub_agent(fs).as_child_tools()?;      // Vec<Arc<dyn ToolImpl>>
 ```
 
 ---
@@ -178,9 +185,11 @@ use foundation_ai::harness::ToolPreset;
 
 // Tools the sub-agent gets: read/write/edit/bash, but NO memory or agent tool —
 // which prevents an unbounded chain of sub-agents spawning sub-agents.
-let child_tools = ToolPreset::minimal_sub_agent(Arc::clone(&fs)).as_child_tools();
+let child_tools = ToolPreset::minimal_sub_agent(Arc::clone(&fs)).as_child_tools()?;
 
 // The agent tool itself, provisioned with those child tools.
+// Doc / Mem: the sub-agents\' store types, e.g. MemoryDocumentStore and
+// KvMemoryStore<MemoryStorage>.
 let delegation = ToolPreset::agent::<Doc, Mem>(
     router.clone(),      // same ProviderRouter the session uses
     0,                   // current depth
@@ -192,8 +201,9 @@ let delegation = ToolPreset::agent::<Doc, Mem>(
 );
 
 // Give the parent everything plus delegation.
-let preset = ToolPreset::standard(fs, hierarchy, discovery).merge(delegation);
-preset.register_all(agent.tool_manager());
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
+    .build()?;
 ```
 
 `max_depth` is the safety rail: a sub-agent at the cap cannot spawn further
@@ -205,37 +215,33 @@ sub-agents, so delegation chains are bounded no matter what the model requests.
 
 ```rust
 use std::sync::Arc;
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::{self, ToolPreset};
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::{
     MessageRole, Messages, SessionId, TextContent, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_nativeapis::shared::vfs::MemoryFs;
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 # fn demo() -> Result<(), Box<dyn std::error::Error>> {
 let api_key = std::env::var("ANTHROPIC_API_KEY")?;
 let fs = Arc::new(MemoryFs::new());
 
-// 1. Model preset → session.
-let agent = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?
+// 1. Model preset → session, with read/write/edit + bash.
+let agent = harness::claude_session(SessionId::new(), &api_key)?
     .with_system_prompt("You are a coding assistant. Use the file tools.")
+    .with_toolshed(
+        ToolShed::new()
+            .tools(ToolPreset::files(Arc::clone(&fs)))
+            .tools(ToolPreset::shell()),
+    )
     .build()?;
 
-// 2. Tools: read/write/edit + bash.
-ToolPreset::files(Arc::clone(&fs))
-    .merge(ToolPreset::shell())
-    .register_all(agent.tool_manager());
+// 2. Confirm what the model can reach through `shed`.
+let all = agent.tool_manager().all_declarations();
+println!("agent has {} tool(s)", all.tools.len());
 
-// 3. Confirm what the model will see.
-let shed = agent.tool_manager().build_toolshed();
-println!("agent has {} tool(s)", shed.tools.len());
-
-// 4. Run a turn.
+// 3. Run a turn.
 let prompt = Messages::User {
     id: new_scru128(),
     role: MessageRole::User,
@@ -261,6 +267,7 @@ Runnable version: `cargo run -p foundation_ai --example agent_with_tools
 
 ## See also
 
+- **Doc 04 — Tools** — `ToolShed`, `shed` and activation in detail.
 - **Doc 10 — Building Custom Tools** — write your own `ToolImpl`.
 - **Doc 12 — Harness Presets** — the model-side presets (providers + router).
 - **Doc 11 — Memory System** — the `memory` tool and `MemoryHierarchy`.

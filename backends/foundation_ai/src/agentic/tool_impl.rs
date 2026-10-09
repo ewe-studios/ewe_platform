@@ -9,10 +9,13 @@
 //! lookup + validation + execute + workflow), `ToolCallWorkflow` / `ToolCallStage` /
 //! `FailMode` (staged DAG execution), and `ToolRetryConfig` (non-blocking backoff).
 
-use crate::types::{ArgType, Args, ExecutionHint, Tool, ToolShed};
+use crate::agentic::tools::shed::{
+    shed_definition, ShedResult, ToolDiscovery, ToolSummary, DEFAULT_SHED_LIMIT, SHED_TOOL_NAME,
+};
+use crate::types::{ArgType, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -39,6 +42,9 @@ pub enum ToolError {
     Timeout { tool: String },
     /// Tool execution was cancelled via steering signal.
     Cancelled(String),
+    /// The tool is registered but `shed` hasn't returned it yet, so the model
+    /// may not call it.
+    NotActive(String),
 }
 
 impl std::fmt::Display for ToolError {
@@ -53,6 +59,11 @@ impl std::fmt::Display for ToolError {
             }
             ToolError::Timeout { tool } => write!(f, "timeout in {tool}"),
             ToolError::Cancelled(tool) => write!(f, "cancelled: {tool}"),
+            ToolError::NotActive(tool) => write!(
+                f,
+                "tool '{tool}' is not active yet: call `{SHED_TOOL_NAME}` with a description \
+                 of what you need to discover it first"
+            ),
         }
     }
 }
@@ -251,9 +262,9 @@ impl ToolError {
         match self {
             ToolError::Timeout { .. } => ToolErrorKind::Timeout,
             ToolError::Execution { .. } | ToolError::Cancelled(_) => ToolErrorKind::Execution,
-            ToolError::InvalidArguments { .. } | ToolError::UnknownTool(_) => {
-                ToolErrorKind::InvalidArguments
-            }
+            ToolError::InvalidArguments { .. }
+            | ToolError::UnknownTool(_)
+            | ToolError::NotActive(_) => ToolErrorKind::InvalidArguments,
         }
     }
 }
@@ -336,6 +347,10 @@ struct ToolCallManagerInner {
     defs: std::sync::RwLock<HashMap<String, Tool>>,
     /// Per-tool retry config overrides (F11).
     retry_configs: std::sync::RwLock<HashMap<String, ToolRetryConfig>>,
+    /// Tools `shed` has returned: declared to the model on every later request.
+    active: std::sync::RwLock<HashSet<String>>,
+    /// Embedding search for `shed`, when the session has an embedder.
+    discovery: std::sync::RwLock<Option<Arc<ToolDiscovery>>>,
     session_id: crate::types::SessionId,
 }
 
@@ -348,32 +363,259 @@ impl ToolCallManager {
                 tools: std::sync::RwLock::new(HashMap::new()),
                 defs: std::sync::RwLock::new(HashMap::new()),
                 retry_configs: std::sync::RwLock::new(HashMap::new()),
+                active: std::sync::RwLock::new(HashSet::new()),
+                discovery: std::sync::RwLock::new(None),
                 session_id,
             }),
         }
     }
 
     /// Register a tool (interior mutability — `&self`, no `Arc` mutation needed).
-    /// # Errors
-    /// Returns [`ToolError`] if the tool is not found.
+    ///
+    /// The tool is discoverable through `shed` straight away, but isn't
+    /// declared to the model until `shed` returns it (or it is
+    /// [`activate`](Self::activate)d). The name `shed` is reserved for the
+    /// built-in discovery tool: a tool registered under it is never offered or
+    /// run.
+    ///
+    /// When discovery is enabled the tool is also indexed for embedding search;
+    /// if that fails it is logged and the tool stays findable by name and
+    /// description.
     /// # Panics
-    /// Panics if the tool cannot be registered.
+    /// Panics if a registry lock is poisoned.
     pub fn register(&self, tool: Arc<dyn ToolImpl>) {
         let def = tool.definition();
+        let tool_name = def.name().to_string();
+        if tool_name == SHED_TOOL_NAME {
+            tracing::warn!(
+                "a tool named `{SHED_TOOL_NAME}` was registered; the name is reserved for the \
+                 built-in discovery tool, so it will never be offered or run"
+            );
+        }
+
+        let discovery = self.inner.discovery.read().unwrap().clone();
+        if let Some(discovery) = discovery {
+            if let Err(err) = discovery.index_tool(&def) {
+                tracing::warn!(
+                    tool = %tool_name,
+                    "indexing the tool for `{SHED_TOOL_NAME}` failed ({err}); it stays \
+                     findable by name and description"
+                );
+            }
+        }
+
         let mut tools = self.inner.tools.write().unwrap();
         let mut defs = self.inner.defs.write().unwrap();
-
-        let tool_name = def.name().to_string();
         defs.insert(tool_name.clone(), def);
         tools.insert(tool_name, tool);
     }
 
-    /// Deregister a tool by name.
-    /// # Errors
-    /// Returns [`ToolError`] if arguments are invalid.
+    /// Deregister a tool by name. It is also dropped from the active set and
+    /// from the discovery index.
+    /// # Panics
+    /// Panics if a registry lock is poisoned.
     pub fn deregister(&self, name: &str) {
         self.inner.tools.write().unwrap().remove(name);
         self.inner.defs.write().unwrap().remove(name);
+        self.inner.active.write().unwrap().remove(name);
+        let discovery = self.inner.discovery.read().unwrap().clone();
+        if let Some(discovery) = discovery {
+            if let Err(err) = discovery.remove(name) {
+                tracing::warn!(
+                    tool = %name,
+                    "removing the tool from the discovery index failed: {err}"
+                );
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // What the model sees: `shed`, plus the tools `shed` has activated.
+    // -----------------------------------------------------------------
+
+    /// The `shed` meta-tool's declaration — always offered while any tool is
+    /// registered.
+    #[must_use]
+    pub fn shed_definition(&self) -> Tool {
+        shed_definition()
+    }
+
+    /// Declarations of the active tools (those `shed` has returned), sorted by
+    /// name.
+    #[must_use]
+    pub fn active_definitions(&self) -> Vec<Tool> {
+        let active = self.inner.active.read().unwrap();
+        let defs = self.inner.defs.read().unwrap();
+        let mut tools: Vec<Tool> = active.iter().filter_map(|n| defs.get(n).cloned()).collect();
+        tools.sort_by(|a, b| a.name().cmp(b.name()));
+        tools
+    }
+
+    /// Mark registered tools as active, so they are declared on the following
+    /// requests and the model may call them. Called by `shed` with its hits;
+    /// public for custom loops and for hosts that want a tool callable from
+    /// the first request. Names that aren't registered are ignored.
+    pub fn activate(&self, names: &[String]) {
+        let defs = self.inner.defs.read().unwrap();
+        let mut active = self.inner.active.write().unwrap();
+        for name in names {
+            if name != SHED_TOOL_NAME && defs.contains_key(name) {
+                active.insert(name.clone());
+            }
+        }
+    }
+
+    /// True when `name` is registered and `shed` has activated it.
+    #[must_use]
+    pub fn is_active(&self, name: &str) -> bool {
+        self.inner.active.read().unwrap().contains(name)
+    }
+
+    /// The tools to declare on the next model request: `shed` plus the active
+    /// tools. With no tools registered nothing is declared — offering `shed` to
+    /// a tool-less agent only invites a pointless call (docs/fixes/007).
+    #[must_use]
+    pub fn offered_tools(&self) -> ToolDeclarations {
+        if self.inner.tools.read().unwrap().is_empty() {
+            return ToolDeclarations {
+                shed: None,
+                tools: Vec::new(),
+            };
+        }
+        ToolDeclarations {
+            shed: Some(self.shed_definition()),
+            tools: self.active_definitions(),
+        }
+    }
+
+    /// Whether the model may call `name` right now: `shed` always; any other
+    /// tool only once it is registered and active.
+    /// # Errors
+    /// [`ToolError::UnknownTool`] for an unregistered name,
+    /// [`ToolError::NotActive`] for a registered tool `shed` hasn't returned.
+    pub fn check_offered(&self, name: &str) -> Result<(), ToolError> {
+        if name == SHED_TOOL_NAME || self.is_active(name) {
+            return Ok(());
+        }
+        if self.inner.tools.read().unwrap().contains_key(name) {
+            Err(ToolError::NotActive(name.to_string()))
+        } else {
+            Err(ToolError::UnknownTool(name.to_string()))
+        }
+    }
+
+    /// Search the registered tools for `shed`.
+    ///
+    /// With discovery enabled the embedding hits come first; the rest of the
+    /// `limit` is filled by name/description match (which is the whole search
+    /// without discovery). Each query word that appears in a tool's name,
+    /// description or category scores a point; ties sort by name. An empty
+    /// description lists every tool.
+    /// # Errors
+    /// [`ToolError::Execution`] if the embedding search fails.
+    pub fn search_tools(
+        &self,
+        description: &str,
+        limit: usize,
+    ) -> Result<Vec<ToolSummary>, ToolError> {
+        let limit = limit.max(1);
+        let mut hits: Vec<ToolSummary> = Vec::new();
+
+        let discovery = self.inner.discovery.read().unwrap().clone();
+        if let Some(discovery) = discovery {
+            let found = discovery.search(description, limit)?;
+            let registered = self.inner.defs.read().unwrap();
+            hits.extend(
+                found
+                    .into_iter()
+                    .filter(|hit| registered.contains_key(&hit.name)),
+            );
+        }
+
+        if hits.len() < limit {
+            let words: Vec<String> = description
+                .split(|c: char| !c.is_alphanumeric() && c != '_')
+                .filter(|w| !w.is_empty())
+                .map(str::to_lowercase)
+                .collect();
+            let defs = self.inner.defs.read().unwrap();
+            let mut scored: Vec<(usize, ToolSummary)> = defs
+                .iter()
+                .filter(|(name, _)| name.as_str() != SHED_TOOL_NAME)
+                .map(|(_, def)| ToolSummary::of(def))
+                .filter(|s| !hits.iter().any(|h| h.name == s.name))
+                .filter_map(|s| {
+                    let haystack =
+                        format!("{} {} {}", s.name, s.description, s.category).to_lowercase();
+                    let score = words
+                        .iter()
+                        .filter(|w| haystack.contains(w.as_str()))
+                        .count();
+                    (words.is_empty() || score > 0).then_some((score, s))
+                })
+                .collect();
+            scored.sort_by(|(sa, a), (sb, b)| sb.cmp(sa).then_with(|| a.name.cmp(&b.name)));
+            let room = limit - hits.len();
+            hits.extend(scored.into_iter().map(|(_, s)| s).take(room));
+        }
+
+        hits.truncate(limit);
+        Ok(hits)
+    }
+
+    /// Search with an embedder from now on: index every registered tool (and,
+    /// via [`register`](Self::register), every later one) in `discovery`.
+    /// # Errors
+    /// [`ToolError::Execution`] if indexing a registered tool fails; discovery
+    /// is then left disabled.
+    pub fn enable_discovery(&self, discovery: Arc<ToolDiscovery>) -> Result<(), ToolError> {
+        let defs: Vec<Tool> = self
+            .inner
+            .defs
+            .read()
+            .unwrap()
+            .iter()
+            .filter(|(name, _)| name.as_str() != SHED_TOOL_NAME)
+            .map(|(_, def)| def.clone())
+            .collect();
+        for def in &defs {
+            discovery.index_tool(def)?;
+        }
+        *self.inner.discovery.write().unwrap() = Some(discovery);
+        Ok(())
+    }
+
+    /// Run the built-in `shed`: search, activate the hits, return them.
+    fn run_shed(&self, arguments: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+        validate_arguments(&shed_definition(), SHED_TOOL_NAME, arguments)?;
+        let description = match arguments.get("description") {
+            Some(ArgType::Text(s)) => s.clone(),
+            _ => {
+                return Err(ToolError::InvalidArguments {
+                    tool: SHED_TOOL_NAME.into(),
+                    reason: "missing required argument: description".into(),
+                })
+            }
+        };
+        let limit = arg_usize(arguments, "limit").unwrap_or(DEFAULT_SHED_LIMIT);
+
+        let hits = self.search_tools(&description, limit)?;
+        let names: Vec<String> = hits.iter().map(|h| h.name.clone()).collect();
+        self.activate(&names);
+
+        let json = serde_json::to_string(&ShedResult { tools: hits }).map_err(|e| {
+            ToolError::Execution {
+                tool: SHED_TOOL_NAME.into(),
+                reason: format!("serialization failed: {e}"),
+            }
+        })?;
+        Ok(ToolCallResult {
+            content: UserModelContent::Text(TextContent {
+                content: json,
+                signature: None,
+            }),
+            error_detail: None,
+        })
     }
 
     /// Look up a registered tool.
@@ -400,25 +642,17 @@ impl ToolCallManager {
         self.inner.tools.read().unwrap().keys().cloned().collect()
     }
 
-    /// Collect the registered tools' own `Tool` declarations, name-sorted for
-    /// determinism, with the `shed` meta-tool (registered as `SingleCommand`
-    /// named `shed`) pulled aside. Returns `(shed_tool, other_tools)`. No
-    /// grouping: each tool declares its own shape (single or multi command).
-    fn collected_tools(&self) -> (Option<Tool>, Vec<Tool>) {
+    /// The registered tools' own `Tool` declarations, name-sorted, leaving
+    /// out anything registered under the reserved `shed` name.
+    fn collected_tools(&self) -> Vec<Tool> {
         let defs = self.inner.defs.read().unwrap();
-        let mut all: Vec<Tool> = defs.values().cloned().collect();
-        all.sort_by(|a, b| a.name().cmp(b.name()));
-
-        let mut shed = None;
-        let mut tools = Vec::new();
-        for tool in all {
-            if tool.name() == "shed" {
-                shed = Some(tool);
-            } else {
-                tools.push(tool);
-            }
-        }
-        (shed, tools)
+        let mut tools: Vec<Tool> = defs
+            .iter()
+            .filter(|(name, _)| name.as_str() != SHED_TOOL_NAME)
+            .map(|(_, def)| def.clone())
+            .collect();
+        tools.sort_by(|a, b| a.name().cmp(b.name()));
+        tools
     }
 
     /// Validate arguments against the tool's JSON-Schema, then execute.
@@ -428,6 +662,10 @@ impl ToolCallManager {
         &self,
         request: &ToolCallRequest,
     ) -> Result<ToolCallResult, ToolError> {
+        if request.name == SHED_TOOL_NAME {
+            return self.run_shed(&request.arguments);
+        }
+
         let tool = self
             .get(&request.name)
             .ok_or_else(|| ToolError::UnknownTool(request.name.clone()))?;
@@ -454,46 +692,31 @@ impl ToolCallManager {
         }
     }
 
-    /// Build the `ToolShed` from the registered tools (F19): each tool's own
-    /// `Tool` declaration is collected into `tools` (no grouping). The `shed`
-    /// meta-tool is included only when there is at least one real tool to
-    /// discover — advertising it to a tool-less agent injected a phantom `shed()`
-    /// into every prompt (small models visibly wasted reasoning; see
-    /// docs/fixes/007).
+    /// Every registered tool's declaration, name-sorted, plus `shed` (when any
+    /// tool is registered). What the model *could* reach through `shed` — not
+    /// what a request declares; see [`offered_tools`](Self::offered_tools).
     #[must_use]
-    pub fn build_toolshed(&self) -> ToolShed {
-        let (shed_tool, tools) = self.collected_tools();
-
-        let shed = if tools.is_empty() {
-            None
-        } else {
-            shed_tool.or_else(|| {
-                Some(Tool::SingleCommand(ToolDefinition {
-                    name: "shed".into(),
-                    category: "shed".into(),
-                    description:
-                        "Search the tool registry for available tools by category or free-text query."
-                            .into(),
-                    arguments: Args::empty(),
-                    returns: None,
-                }))
-            })
-        };
-
-        ToolShed { shed, tools }
+    pub fn all_declarations(&self) -> ToolDeclarations {
+        let tools = self.collected_tools();
+        let shed = (!tools.is_empty()).then(shed_definition);
+        ToolDeclarations { shed, tools }
     }
 
-    /// Register the default tool set + the shed discovery tool.
-    /// `shed` is registered first and is always present.
+    /// Every registered tool's declaration plus `shed`.
+    #[deprecated(note = "use all_declarations(); a request declares offered_tools()")]
+    #[must_use]
+    pub fn build_toolshed(&self) -> ToolDeclarations {
+        self.all_declarations()
+    }
+
+    /// A manager whose `shed` searches through `discovery` (embedding search).
     #[must_use]
     pub fn with_defaults(
         session_id: crate::types::SessionId,
-        discovery: Arc<crate::agentic::tools::shed::ToolDiscovery>,
+        discovery: Arc<ToolDiscovery>,
     ) -> Self {
         let mgr = Self::new(session_id);
-        mgr.register(Arc::new(crate::agentic::tools::shed::ShedTool::new(
-            discovery,
-        )));
+        *mgr.inner.discovery.write().unwrap() = Some(discovery);
         mgr
     }
 

@@ -23,6 +23,7 @@ pub mod testing;
 pub mod token_ledger;
 pub mod tool_impl;
 pub mod tools;
+pub mod toolshed;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
@@ -56,6 +57,9 @@ pub use tool_impl::{
 pub use tools::search::{
     FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
 };
-pub use tools::shed::{ShedQuery, ShedResult, ShedTool, ToolDiscovery, ToolSummary};
+pub use tools::shed::{ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME};
+pub use toolshed::{
+    tool_fn, ContextSearch, MemoryAccess, SessionParts, ToolConstructor, ToolShed, ToolShedError,
+};
 #[cfg(not(target_family = "wasm"))]
 pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

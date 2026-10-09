@@ -1,18 +1,20 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use foundation_ai::agentic::tool_impl::{
+    ToolCallManager, ToolCallRequest, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+};
 use foundation_ai::agentic::{
-    CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, ShedTool, ToolDiscovery,
+    CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, ShedResult, ToolDiscovery,
     WholeTextChunker,
 };
-use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolDefinition, ToolImpl};
 use foundation_ai::types::{
-    ArgType, BoxModel, CostStatus, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox, ProviderRouter,
-    RoutableProvider, StopReason, ToolShed, UsageCosting, UsageReport,
+    ArgType, BoxModel, CostStatus, ExecutionHint, ModelId, ModelInteraction, ModelOutput,
+    ModelParams, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox,
+    ProviderRouter, RoutableProvider, StopReason, ToolDeclarations, UsageCosting, UsageReport,
 };
-use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};
 use foundation_vectors::metric::DistanceMetric;
+use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};
 
 fn zero_usage() -> UsageReport {
     UsageReport {
@@ -198,54 +200,159 @@ fn multiple_tools_indexed_and_found() {
 }
 
 // ---------------------------------------------------------------------------
-// ShedTool tests
+// The built-in `shed` (run by ToolCallManager)
 // ---------------------------------------------------------------------------
 
-#[tokio::test]
-async fn shed_tool_execute_returns_json() {
-    let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
-    discovery
-        .index(&sample_def("grep_tool", "Search for text patterns in files", "search"))
-        .unwrap();
+/// A tool with a fixed name/description that just answers "ok".
+struct NamedTool {
+    name: &'static str,
+    description: &'static str,
+}
 
-    let shed = ShedTool::new(discovery);
-    let mut args = HashMap::new();
-    args.insert("description".into(), ArgType::Text("search for patterns".into()));
+#[async_trait::async_trait]
+impl ToolImpl for NamedTool {
+    fn definition(&self) -> foundation_ai::types::Tool {
+        foundation_ai::types::Tool::SingleCommand(sample_def(self.name, self.description, "test"))
+    }
 
-    let result = shed.execute(args).await.unwrap();
+    async fn execute(
+        &self,
+        _arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        Ok(ToolCallResult {
+            content: foundation_ai::types::UserModelContent::Text(
+                foundation_ai::types::TextContent {
+                    content: "ok".into(),
+                    signature: None,
+                },
+            ),
+            error_detail: None,
+        })
+    }
+}
+
+fn manager_with(tools: &[(&'static str, &'static str)]) -> ToolCallManager {
+    let mgr = ToolCallManager::new(foundation_ai::types::SessionId::new());
+    for (name, description) in tools {
+        mgr.register(Arc::new(NamedTool { name, description }));
+    }
+    mgr
+}
+
+fn shed_request(args: HashMap<String, ArgType>) -> ToolCallRequest {
+    ToolCallRequest {
+        id: "call-1".into(),
+        name: "shed".into(),
+        arguments: args,
+        depends_on: Vec::new(),
+        execution_hint: ExecutionHint::default(),
+    }
+}
+
+fn returned_names(result: &ToolCallResult) -> Vec<String> {
     let content = match &result.content {
         foundation_ai::types::UserModelContent::Text(tc) => &tc.content,
         _ => panic!("expected text content"),
     };
-
-    let parsed: serde_json::Value = serde_json::from_str(content).unwrap();
-    let tools = parsed["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 1);
-    assert_eq!(tools[0]["name"], "grep_tool");
+    let parsed: ShedResult = serde_json::from_str(content).unwrap();
+    parsed.tools.into_iter().map(|t| t.name).collect()
 }
 
 #[tokio::test]
-async fn shed_tool_missing_description_errors() {
-    let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
-    let shed = ShedTool::new(discovery);
-    let args = HashMap::new();
+async fn shed_returns_matching_tools_as_json_and_activates_them() {
+    let mgr = manager_with(&[
+        ("grep_tool", "Search for text patterns in files"),
+        ("yaml_parser", "Parse YAML documents"),
+    ]);
+    assert_eq!(mgr.active_definitions().len(), 0);
 
-    let err = shed.execute(args).await.unwrap_err();
+    let args = HashMap::from([(
+        "description".to_string(),
+        ArgType::Text("search for patterns".into()),
+    )]);
+    let result = mgr.execute_one(&shed_request(args)).await.unwrap();
+
+    assert_eq!(returned_names(&result), vec!["grep_tool".to_string()]);
+    assert!(mgr.is_active("grep_tool"));
+    assert!(!mgr.is_active("yaml_parser"));
+    let offered = mgr.offered_tools();
+    assert_eq!(
+        offered.shed.as_ref().map(foundation_ai::types::Tool::name),
+        Some("shed")
+    );
+    assert_eq!(
+        offered
+            .tools
+            .iter()
+            .map(foundation_ai::types::Tool::name)
+            .collect::<Vec<_>>(),
+        vec!["grep_tool"]
+    );
+}
+
+#[tokio::test]
+async fn shed_respects_the_limit() {
+    let mgr = manager_with(&[
+        ("tool_a", "First tool"),
+        ("tool_b", "Second tool"),
+        ("tool_c", "Third tool"),
+    ]);
+    let args = HashMap::from([
+        ("description".to_string(), ArgType::Text("tool".into())),
+        ("limit".to_string(), ArgType::I64(2)),
+    ]);
+    let result = mgr.execute_one(&shed_request(args)).await.unwrap();
+    assert_eq!(returned_names(&result).len(), 2);
+}
+
+#[tokio::test]
+async fn shed_missing_description_errors() {
+    let mgr = manager_with(&[("tool_a", "First tool")]);
+    let err = mgr
+        .execute_one(&shed_request(HashMap::new()))
+        .await
+        .unwrap_err();
     match err {
-        foundation_ai::agentic::tool_impl::ToolError::InvalidArguments { tool, .. } => {
-            assert_eq!(tool, "shed");
-        }
-        _ => panic!("expected InvalidArguments"),
+        ToolError::InvalidArguments { tool, .. } => assert_eq!(tool, "shed"),
+        other => panic!("expected InvalidArguments, got {other:?}"),
     }
 }
 
 #[test]
-fn shed_tool_definition_has_correct_name() {
-    let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
-    let shed = ShedTool::new(discovery);
-    let def = shed.definition();
+fn shed_definition_has_correct_name() {
+    let mgr = manager_with(&[]);
+    let def = mgr.shed_definition();
     assert_eq!(def.name(), "shed");
     assert_eq!(def.category().unwrap(), "discovery");
+}
+
+#[test]
+fn check_offered_distinguishes_unknown_inactive_and_active_tools() {
+    let mgr = manager_with(&[("tool_a", "First tool")]);
+    assert_eq!(mgr.check_offered("shed"), Ok(()));
+    assert_eq!(
+        mgr.check_offered("tool_a"),
+        Err(ToolError::NotActive("tool_a".into()))
+    );
+    assert_eq!(
+        mgr.check_offered("nope"),
+        Err(ToolError::UnknownTool("nope".into()))
+    );
+    mgr.activate(&["tool_a".to_string(), "nope".to_string()]);
+    assert_eq!(mgr.check_offered("tool_a"), Ok(()));
+    assert!(
+        !mgr.is_active("nope"),
+        "unregistered names are not activated"
+    );
+}
+
+#[test]
+fn deregister_drops_a_tool_from_the_active_set() {
+    let mgr = manager_with(&[("tool_a", "First tool")]);
+    mgr.activate(&["tool_a".to_string()]);
+    mgr.deregister("tool_a");
+    assert!(!mgr.is_active("tool_a"));
+    assert_eq!(mgr.active_definitions().len(), 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -253,29 +360,42 @@ fn shed_tool_definition_has_correct_name() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn with_defaults_registers_shed() {
+fn with_defaults_searches_through_discovery() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let session_id = foundation_ai::types::SessionId::new();
     let mgr = ToolCallManager::with_defaults(session_id, discovery);
+    mgr.register(Arc::new(NamedTool {
+        name: "grep_tool",
+        description: "Search for text patterns in files",
+    }));
 
-    assert!(mgr.get("shed").is_some());
-    assert!(mgr.names().contains(&"shed".to_string()));
+    // The fixed-vector embedder ranks every tool equally, so only embedding
+    // search can return grep_tool for a query sharing no word with it.
+    let hits = mgr.search_tools("zzz", 5).unwrap();
+    assert_eq!(
+        hits.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        vec!["grep_tool"]
+    );
+    assert!(
+        mgr.get("shed").is_none(),
+        "shed is built in, not registered"
+    );
 }
 
 // ---------------------------------------------------------------------------
-// ToolShed::all_tools
+// ToolDeclarations::all_tools
 // ---------------------------------------------------------------------------
 
 #[test]
 fn toolshed_all_tools_includes_shed() {
-    let shed = ToolShed::default();
+    let shed = ToolDeclarations::default();
     let tools = shed.all_tools();
     assert!(tools.iter().any(|t| t.name() == "shed"));
 }
 
 #[test]
 fn toolshed_all_tools_empty_when_no_fields_set() {
-    let shed = ToolShed {
+    let shed = ToolDeclarations {
         shed: None,
         tools: Vec::new(),
         };
