@@ -70,40 +70,24 @@ fresh `AgentLoop` that shares them and schedules it on the Valtron executor.
 
 ## Known limitations
 
-These are true of the code today and are worth knowing before you build on it.
-Each one is also called out in the doc that covers the area.
+True of the code today, and worth knowing before you build on it:
 
-1. **Cloudflare D1 / R2 stores can't be used with `AgentSession::build()` or
-   `resume()`.** Both require `D: Default` and `M: Default`. The in-memory,
-   Turso, libsql, JSON-file and Fjall stores implement `Default` (Turso and
-   libsql default to an in-memory database, `JsonFileStorage` to
-   `.ewe/storage.json`), but `D1Store` and `R2Store` need credentials and
-   don't.
-2. **The memory hierarchy writes to a different store than context reads
-   from.** `build()` gives `MemoryHierarchy` a fresh `M::default()` /
-   `D::default()` pair, while `ContextProvider` reads the store you passed to
-   `with_memory_store`. With the in-memory stores, working memory written by
-   the `memory` tool never reaches the assembled context.
-3. **Observation and reflection are not generated automatically.** The loop
+1. **Observation and reflection are not generated automatically.** The loop
    checks the trigger thresholds and emits
-   `AgentProgress::ProcessingMemory`, but no code calls a memory model. The
+   `AgentProgress::ProcessingMemory`, but no code calls a memory model. Those
    tiers are filled only through `MemoryHierarchy::persist_observation` /
-   `persist_reflection` / `update_working_memory`.
-4. **`with_toolshed(...)` with any real tool fails `build()`.** Preflight
-   checks that every tool in the shed is registered with the session's
-   `ToolCallManager`, which is always empty at build time. Register tools on
-   `session.tool_manager()` after `build()` instead (Doc 04).
-5. **Tool arguments are not validated against the schema.** The schema goes to
-   the model; `ToolCallManager::execute_one` does not check it. Validate
-   inside `execute`.
-6. **`SessionAccessProvider::can_use_tool` / `can_spend` / `record_usage` are
-   never called.** Only `can_access_session`, `can_use_model` and
-   `token_budget` are enforced (at `build()`).
-7. **Recent messages reach the model newest-first.** `MessageApi::recent`
-   returns newest-first and `ContextProvider` appends them in that order; this
-   looks like a bug for multi-turn conversations and is not covered by a test.
+   `persist_reflection` (Doc 11). Working memory works, via the `memory` tool.
+2. **Streamed text chunks mean different things per backend.** The HTTP
+   backends send the whole text so far on every chunk; llama.cpp and Candle
+   send only the new piece. The loop copes (it persists one merged message per
+   turn), but a streaming consumer printing chunks must know which backend it
+   is talking to (Doc 02 §1).
+3. **The crate needs the `llamacpp` feature to compile.** `harness` imports
+   llama.cpp types without a feature gate, so `--no-default-features` builds
+   fail.
 
-Doc 15 proposes API changes that remove most of these traps.
+Doc 15 proposes API changes that make the rest of the surface harder to
+misuse.
 
 ## Where to go next
 

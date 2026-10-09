@@ -18,7 +18,9 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
-use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{
+    arg_bool, arg_usize, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+};
 use crate::types::Tool;
 use crate::types::{ArgType, TextContent, UserModelContent};
 use crate::types::base_types::Args;
@@ -31,18 +33,6 @@ fn text_arg(args: &HashMap<String, ArgType>, key: &str, tool: &str) -> Result<St
             tool: tool.into(),
             reason: format!("missing or invalid '{key}' argument"),
         }),
-    }
-}
-
-/// Optional unsigned integer argument (accepts any of the unsigned `ArgType`s).
-fn opt_usize(args: &HashMap<String, ArgType>, key: &str) -> Option<usize> {
-    match args.get(key)? {
-        ArgType::Usize(n) => Some(*n),
-        ArgType::U8(n) => Some(*n as usize),
-        ArgType::U16(n) => Some(*n as usize),
-        ArgType::U32(n) => Some(*n as usize),
-        ArgType::U64(n) => usize::try_from(*n).ok(),
-        _ => None,
     }
 }
 
@@ -113,8 +103,8 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
         let text = String::from_utf8(bytes)
             .map_err(|_| exec_err("read", format!("'{path}' is not valid UTF-8 text")))?;
 
-        let offset = opt_usize(&arguments, "offset");
-        let limit = opt_usize(&arguments, "limit");
+        let offset = arg_usize(&arguments, "offset");
+        let limit = arg_usize(&arguments, "limit");
         if offset.is_none() && limit.is_none() {
             return Ok(text_result(text));
         }
@@ -227,10 +217,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
         let path = text_arg(&arguments, "path", "edit")?;
         let old = text_arg(&arguments, "old_string", "edit")?;
         let new = text_arg(&arguments, "new_string", "edit")?;
-        let replace_all = matches!(
-            arguments.get("replace_all"),
-            Some(ArgType::Text(t)) if t == "true"
-        );
+        let replace_all = arg_bool(&arguments, "replace_all").unwrap_or(false);
 
         let bytes = self
             .fs

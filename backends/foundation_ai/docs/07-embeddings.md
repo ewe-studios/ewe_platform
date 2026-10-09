@@ -86,11 +86,16 @@ let agent = AgentSession::<Doc, Mem>::builder(id, router.clone())
     .build()?;
 ```
 
-> **Gap:** `AgentSession` doesn't expose its `ContextProvider`, and
-> `SearchContextTool::new` needs one, so there is currently no way to register
-> a `search_context` tool that uses the session's embedder. Today
-> `with_embedder` only pays off if you build the `ContextProvider` and tool
-> yourself (as `tests/tools/search_tests.rs` does). Doc 15 covers the fix.
+Register the recall tool from the session's own context provider so it uses
+the session's stores and embedder:
+
+```rust
+use foundation_ai::agentic::SearchContextTool;
+
+agent.tool_manager().register(Arc::new(SearchContextTool::new(
+    agent.context_provider().clone(),
+)));
+```
 
 Without an embedder, `search_context` falls back to keyword matching.
 `SearchMode::Graph` has no session knowledge graph to search, so it logs a

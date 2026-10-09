@@ -82,7 +82,7 @@ test helpers in `foundation_testing`).
 | `InnerAssemble` | Honours abort, folds in any priority messages, stops on an exhausted budget (`AgenticError::BudgetExhausted`), resolves the model, assembles context, starts `model.stream(...)`. |
 | `InnerGenerate { stream, collected }` | Pumps one stream item per step. A newly-arrived priority message discards the generation and re-assembles. When the stream ends, runs `on_generation_complete`. |
 | `InnerToolCalls { calls }` | Tool calls extracted from the assistant output. |
-| `InnerExecuting { .. }` | Runs each call through `ToolCallManager::execute_one`, wrapped in a `CancellableFutureTask`. A priority message cancels in-flight tools. |
+| `InnerExecuting { .. }` | Checks `SessionAccessProvider::can_use_tool` (a refusal becomes an error result), then runs the call through `ToolCallManager::execute_with_retry` — which validates the arguments against the tool's schema — wrapped in a `CancellableFutureTask`. A priority message cancels in-flight tools. |
 | `InnerEmitResults { .. }` | Emits each `Messages::ToolResult` as a record, persists it, returns to `InnerAssemble`. Enforces `max_inner_iterations`. |
 | `OutputProcessing` | Calls `MemoryHierarchy::check_triggers()`; emits `ProcessingMemory` when a threshold is crossed (see Doc 11 — generation itself is not wired). |
 | `Ending` | Emits `SessionRecord::Summary { message_count, usage }`. |
@@ -97,15 +97,11 @@ test helpers in `foundation_testing`).
 3. Observation — only when it is newer than the latest reflection
    (`ContextConfig::inject_newer_observations`)
 4. The last `ContextConfig::recent_message_count` (default 20) records from the
-   `MessageApi`
+   `MessageApi`, oldest first
 
 The system prompt rides separately on `ModelInteraction::system_prompt`. The
 tools come from `ToolCallManager::build_toolshed()` at every assemble, so tools
 registered mid-session show up on the next generation.
-
-> **Known issue.** `MessageApi::recent` returns records newest-first and the
-> context keeps that order, so the model sees recent messages in reverse. See
-> Doc 00, "Known limitations".
 
 Two budget-driven adjustments run before the request is sent. Both measure the
 context's estimated tokens against the **session token budget**
@@ -120,11 +116,18 @@ when there is no budget:
   prompt.
 
 `max_tokens` for the request is clamped to the budget's remaining tokens
-(`TokenLedger::effective_max_tokens`).
+(`TokenLedger::effective_max_tokens`), and the access provider's `can_spend`
+is asked for that many tokens; a refusal ends the turn with
+`AgenticError::Budget`.
 
 ## 5. After generation: checks and persistence
 
-When the stream finishes, `on_generation_complete`:
+When the stream finishes, text-protocol tool calls are recognised first: if
+the turn has no native tool call but its text contains
+`<ToolCall>{"name": .., "arguments": {..}}</ToolCall>` blocks (the format the
+local backends are prompted to use), they become real
+`ModelOutput::ToolCall`s and the surrounding prose is kept as text. Then
+`on_generation_complete`:
 
 1. Runs `LoopDetector::check` on every assistant output. On a loop it
    escalates:
@@ -141,9 +144,12 @@ When the stream finishes, `on_generation_complete`:
    the loop emits `SessionRecord::Retracted` and asks again. Out of retries,
    the weak answer is passed through rather than turned into an error.
 3. Resets the detector after a good turn.
-4. Persists the assistant messages to the `MessageApi`.
+4. Persists the assistant output to the `MessageApi` as one message per
+   output — streamed text chunks are merged first, whether the backend sent
+   deltas or running snapshots.
 5. Records the last assistant message's `UsageReport` in the `TokenLedger`
-   (streaming backends report cumulative usage, so only the last one counts).
+   (streaming backends report cumulative usage, so only the last one counts)
+   and reports its `total_tokens` to `SessionAccessProvider::record_usage`.
 6. Extracts tool calls; none → `OutputProcessing`.
 
 The detector is built with `LoopDetectorConfig::default()` (window 5,

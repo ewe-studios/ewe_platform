@@ -72,20 +72,23 @@ Provider mapping:
 
 ## 2. ToolCallManager — registration and execution
 
-Every `AgentSession` owns a `ToolCallManager`. Register tools on it **after**
-`build()`; the loop rebuilds the `ToolShed` from the registry before every
-generation, so registration takes effect on the next request.
+Every `AgentSession` owns a `ToolCallManager`. Give it tools on the builder,
+or register them on the session later; the loop rebuilds the `ToolShed` from
+the registry before every generation, so later registration takes effect on
+the next request.
 
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(session_id, router).build()?;
+let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
+    .with_tool(Arc::new(BashTool::new()))
+    .with_tools(ToolPreset::files(Arc::clone(&fs)).as_child_tools())
+    .build()?;
 
-agent.tool_manager().register(Arc::new(ReadTool::new(Arc::clone(&fs))));
-agent.tool_manager().register(Arc::new(BashTool::new()));
+// …or after build:
+agent.tool_manager().register(Arc::new(MyTool));
 ```
 
-> Do not pass a populated `ToolShed` to `AgentSessionBuilder::with_toolshed`.
-> `build()` checks that every shed tool is registered with the session's
-> manager, which is still empty at that point, so `build()` fails.
+`with_toolshed(..)` only declares tools that `build()` must find registered
+(a preflight check); the model is offered whatever is registered either way.
 
 A standalone manager (tests, custom loops):
 
@@ -103,10 +106,11 @@ let request = ToolCallRequest {
 let result = futures_lite::future::block_on(manager.execute_one(&request));
 ```
 
-`execute_one` looks the tool up, then runs it with panic containment: a
-panicking tool becomes `ToolError::Execution`. It does **not** validate the
-arguments against the tool's schema — the schema goes to the model, and the
-tool must check its own inputs.
+`execute_one` looks the tool up, validates the arguments against the tool's
+JSON Schema (`validate_arguments`; for a `MultiCommands` tool, against the
+schema of the command named by `command`), then runs it with panic
+containment: a panicking tool becomes `ToolError::Execution`. A schema
+violation is `ToolError::InvalidArguments` and the tool does not run.
 
 Other methods: `deregister`, `get`, `get_def`, `names`, `build_toolshed`,
 `build_workflow`, `execute_with_retry`, `set_retry_config` / `retry_config`.

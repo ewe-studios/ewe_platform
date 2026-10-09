@@ -58,7 +58,9 @@ impl MessageEvent {
 
 struct MessageInner<D> {
     session_id: SessionId,
-    doc_store: D,
+    /// Shared so the session can hand the same store to other components
+    /// (e.g. the memory coordinator's audit log) instead of a second copy.
+    doc_store: Arc<D>,
     write_buffer: ConcurrentQueue<SessionRecord>,
     broadcaster: TrackedBroadcaster<MessageEvent>,
     /// Maximum buffered records before flush is triggered (default: 50).
@@ -149,10 +151,30 @@ impl<D> MessageApi<D> {
         Self::with_config(session_id, doc_store, 50, 256)
     }
 
+    /// Create over a store that is shared with other components.
+    pub fn from_shared(session_id: SessionId, doc_store: Arc<D>) -> Self {
+        Self::shared_with_config(session_id, doc_store, 50, 256)
+    }
+
     /// Create with explicit buffer and subscriber-channel capacity.
     pub fn with_config(
         session_id: SessionId,
         doc_store: D,
+        flush_threshold: usize,
+        subscriber_capacity: usize,
+    ) -> Self {
+        Self::shared_with_config(
+            session_id,
+            Arc::new(doc_store),
+            flush_threshold,
+            subscriber_capacity,
+        )
+    }
+
+    /// [`with_config`](Self::with_config) over a shared store.
+    pub fn shared_with_config(
+        session_id: SessionId,
+        doc_store: Arc<D>,
         flush_threshold: usize,
         subscriber_capacity: usize,
     ) -> Self {

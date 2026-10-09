@@ -90,8 +90,8 @@ pub fn glm52_gemma_session<D, M>(
     memory: Option<HuggingFaceGGUFConfig>,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(glm52_gemma_router(main, memory)?.into_agent_builder(session_id))
 }
@@ -127,8 +127,8 @@ pub fn qwen36_gemma_session<D, M>(
     memory: Option<HuggingFaceGGUFConfig>,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(qwen36_gemma_router(main, memory)?.into_agent_builder(session_id))
 }
@@ -164,8 +164,8 @@ pub fn gemma_session<D, M>(
     memory: Option<HuggingFaceGGUFConfig>,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(gemma_router(main, memory)?.into_agent_builder(session_id))
 }
@@ -197,8 +197,8 @@ pub fn claude_session<D, M>(
     api_key: &str,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(claude_router(api_key)?.into_agent_builder(session_id))
 }
@@ -230,8 +230,8 @@ pub fn openai_chat_session<D, M>(
     api_key: &str,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(openai_chat_router(api_key)?.into_agent_builder(session_id))
 }
@@ -263,8 +263,8 @@ pub fn openai_responses_session<D, M>(
     api_key: &str,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(openai_responses_router(api_key)?.into_agent_builder(session_id))
 }
@@ -312,8 +312,8 @@ pub fn candle_llama_session<D, M>(
     config: Option<HuggingFaceCandleConfig>,
 ) -> Result<AgentSessionBuilder<D, M>, String>
 where
-    D: DocumentStore + 'static,
-    M: MemoryStore + 'static,
+    D: DocumentStore + Default + 'static,
+    M: MemoryStore + Default + 'static,
 {
     Ok(candle_llama_router(repo_id, config)?.into_agent_builder(session_id))
 }

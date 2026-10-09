@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::errors::UserId;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::session::AgentSession;
-use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{arg_bool, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::types::agentic::{SessionId, SessionRecord};
 use crate::types::base_types::{ArgType, Args, MessageRole, Messages, ModelId, Tool};
 use crate::types::routable_provider::ProviderRouter;
@@ -186,10 +186,7 @@ where
             _ => None,
         };
 
-        let keep_session: bool = match args.get("keep_session") {
-            Some(ArgType::Text(s)) => s == "true",
-            _ => false,
-        };
+        let keep_session = arg_bool(args, "keep_session").unwrap_or(false);
 
         // Runaway guard. Models emit integers inconsistently (u64 / i64 /
         // stringified), so accept all three spellings. `0` is rejected rather

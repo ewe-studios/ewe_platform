@@ -54,6 +54,7 @@ All three use the **session token budget** — the `remaining()` of
 | Setting | Default | Effect |
 |---|---|---|
 | Budget exhausted | — | Turn ends with `AgenticError::BudgetExhausted` |
+| `can_spend` refused | — | Turn ends with `AgenticError::Budget` (asked before every generation) |
 | `preflight_compression_threshold` | 0.85 | Before each request, drop the oldest context messages until the estimate is under `threshold × budget`. `0.0` disables. |
 | `context_pressure_threshold` | 0.70 | When the estimate passes `threshold × budget`, append a "be concise" note to the system prompt. `0.0` disables. |
 | `max_tokens` clamp | — | Each request's `max_tokens` is capped at the budget's remaining tokens |

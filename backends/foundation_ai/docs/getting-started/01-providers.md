@@ -473,12 +473,14 @@ let mem_store = KvMemoryStore::new(kv);
 // type Mem = KvMemoryStore<TursoStorage>;            // Turso memory cache
 // type Mem = KvMemoryStore<JsonFileStorage>;         // JSON file cache
 
-// NOTE: build() requires Doc: Default + Mem: Default. The Turso and JSON-file
-// types above implement it; D1R2DocumentStore doesn't, because D1 and R2 need
-// credentials (Doc 00, "Known limitations").
-let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
-    .with_doc_store(doc_store)         // your concrete DocumentStore
-    .with_memory_store(mem_store)      // KvMemoryStore wrapping a KeyValueStore
+// builder_with_stores takes the stores directly — no Default bound, so it
+// works with every persistent backend above.
+let agent = AgentSession::builder_with_stores(
+        session_id,
+        router,
+        doc_store,                     // your concrete DocumentStore
+        mem_store,                     // KvMemoryStore wrapping a KeyValueStore
+    )
     .with_model(primary_model_id)
     .with_system_prompt("You are a helpful assistant.")
     .build()?;
@@ -509,16 +511,26 @@ let agent = AgentSession::<Doc, Mem>::resume(
 )?;
 ```
 
-`resume` currently rebuilds the session over `Doc::default()` /
-`Mem::default()` (and needs both to implement `Default`), so it only sees
-earlier data when those defaults reach the same storage. See Doc 08 §5.
+A session's history and memory live in its stores, keyed by the
+`SessionId`, so resuming is building again with the same id over the same
+stores. `resume_with_stores` is the shorthand:
+
+```rust
+let agent = AgentSession::resume_with_stores(
+    session_id, router, config, None, doc_store, mem_store,
+)?;
+```
+
+`resume(..)` without stores uses `Doc::default()` / `Mem::default()`; it only
+sees earlier data when default-constructed stores reach the same storage. The
+system prompt and tools are not persisted — pass them again. See Doc 08 §5.
 
 ---
 
 ## 4. Level 4 — Adding Tools
 
-Tools are `ToolImpl`s registered on the session's `ToolCallManager` after
-`build()`:
+Tools are `ToolImpl`s registered on the session's `ToolCallManager` — on the
+builder with `.with_tool(..)` / `.with_tools(..)`, or after `build()`:
 
 ```rust
 use foundation_ai::harness::ToolPreset;
@@ -530,8 +542,7 @@ ToolPreset::files(Arc::clone(&fs))                     // read / write / edit ov
     .register_all(agent.tool_manager());
 ```
 
-There are no fixed tool slots, and passing a populated `ToolShed` to
-`with_toolshed` makes `build()` fail. See
+There are no fixed tool slots. See
 [Tools & Presets](03-tools-and-presets.md) and
 [Doc 10](../10-building-custom-tools.md) for writing tools.
 
@@ -593,8 +604,12 @@ OpenRouter:
 Persistence:
   .with_doc_store(doc_store).with_memory_store(kv_memory_store)
 
-Tools (after build):
-  agent.tool_manager().register(Arc::new(tool))
+Persistent stores:
+  AgentSession::builder_with_stores(id, router, doc_store, mem_store)
+
+Tools:
+  .with_tool(Arc::new(tool))                      // on the builder
+  agent.tool_manager().register(Arc::new(tool))   // or after build
   ToolPreset::files(fs).merge(ToolPreset::shell()).register_all(agent.tool_manager())
 ```
 

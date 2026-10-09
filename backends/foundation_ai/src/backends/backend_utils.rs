@@ -31,22 +31,7 @@ pub fn empty_usage_report() -> UsageReport {
     }
 }
 
-#[must_use]
-pub fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::base_types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::base_types::ArgType::Float64(f)
-            } else {
-                crate::types::base_types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::base_types::ArgType::JSON(other.to_string()),
-    }
-}
+pub use crate::types::base_types::json_value_to_arg_type;
 
 #[must_use]
 pub fn model_id_to_string(id: &ModelId) -> String {

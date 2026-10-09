@@ -181,15 +181,46 @@ pub struct RouterPreset {
 impl RouterPreset {
     /// Bridge into an [`AgentSessionBuilder`] for the given session, applying
     /// the preset's primary/memory/fallback models. The caller picks the
-    /// document store `D` and memory store `M` and finishes the build.
+    /// document store `D` and memory store `M` and finishes the build; stores
+    /// not set with `with_doc_store` / `with_memory_store` are default-built.
     #[must_use]
     pub fn into_agent_builder<D, M>(self, session_id: SessionId) -> AgentSessionBuilder<D, M>
+    where
+        D: DocumentStore + Default + 'static,
+        M: MemoryStore + Default + 'static,
+    {
+        let builder = AgentSession::<D, M>::builder(session_id, self.router.clone());
+        self.apply_models(builder)
+    }
+
+    /// [`into_agent_builder`](Self::into_agent_builder) over explicit stores —
+    /// for persistent backends that can't be default-constructed.
+    #[must_use]
+    pub fn into_agent_builder_with_stores<D, M>(
+        self,
+        session_id: SessionId,
+        doc_store: D,
+        memory_store: M,
+    ) -> AgentSessionBuilder<D, M>
     where
         D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
-        let mut builder =
-            AgentSession::<D, M>::builder(session_id, self.router).with_model(self.primary_model);
+        let builder = AgentSession::<D, M>::builder_with_stores(
+            session_id,
+            self.router.clone(),
+            doc_store,
+            memory_store,
+        );
+        self.apply_models(builder)
+    }
+
+    fn apply_models<D, M>(self, builder: AgentSessionBuilder<D, M>) -> AgentSessionBuilder<D, M>
+    where
+        D: DocumentStore + 'static,
+        M: MemoryStore + 'static,
+    {
+        let mut builder = builder.with_model(self.primary_model);
         if let Some(memory) = self.memory_model {
             builder = builder.with_memory_model(memory);
         }

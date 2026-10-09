@@ -32,7 +32,7 @@ use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::message_api::MessageApi;
 use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
-use crate::agentic::tool_impl::ToolCallManager;
+use crate::agentic::tool_impl::{ToolCallManager, ToolImpl};
 use crate::agentic::ErrorPolicy;
 use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, ToolShed};
 
@@ -107,14 +107,16 @@ pub struct AgentSessionBuilder<D, M> {
     session_id: SessionId,
     router: ProviderRouter,
     toolshed: ToolShed,
+    /// Tools registered on the session's `ToolCallManager` before preflight.
+    tools: Vec<Arc<dyn ToolImpl>>,
     access: Arc<dyn SessionAccessProvider>,
     user: UserId,
     policy: Option<ErrorPolicy>,
     model: Option<ModelId>,
     fallback_models: Vec<ModelId>,
     memory_model: Option<ModelId>,
-    doc_store: Option<D>,
-    memory_store: Option<M>,
+    doc_store: StoreSlot<D>,
+    memory_store: StoreSlot<M>,
     system_prompt: Option<String>,
     config: AgentConfig,
     context_config: ContextConfig,
@@ -123,20 +125,87 @@ pub struct AgentSessionBuilder<D, M> {
     embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
 }
 
+/// A store the builder will use: one the caller supplied, or a constructor for
+/// the default.
+///
+/// WHY: `build()` used to demand `D: Default + M: Default` just to fill in
+/// stores the caller hadn't set — which shut out every persistent backend,
+/// since none of them can be default-constructed. Capturing `Default::default`
+/// at the entry point that has the bound (`builder()`) lets `build()` drop it.
+enum StoreSlot<T> {
+    Value(T),
+    Default(fn() -> T),
+}
+
+impl<T> StoreSlot<T> {
+    fn into_value(self) -> T {
+        match self {
+            StoreSlot::Value(value) => value,
+            StoreSlot::Default(make) => make(),
+        }
+    }
+}
+
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+    /// Start a builder that falls back to `D::default()` / `M::default()` for
+    /// any store not set with `with_doc_store` / `with_memory_store`.
+    ///
+    /// Use [`builder_with_stores`](Self::builder_with_stores) for stores that
+    /// can't be default-constructed (SQL, Turso, D1/R2, …).
     #[must_use]
-    pub fn builder(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder<D, M> {
-        AgentSessionBuilder {
+    pub fn builder(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder<D, M>
+    where
+        D: Default,
+        M: Default,
+    {
+        AgentSessionBuilder::new(
+            session_id,
+            router,
+            StoreSlot::Default(D::default),
+            StoreSlot::Default(M::default),
+        )
+    }
+
+    /// Start a builder over explicit stores — no `Default` bound.
+    ///
+    /// Building with a `session_id` whose history already lives in these stores
+    /// picks the conversation up where it left off: context assembly reads the
+    /// session's messages and memory from them on every turn.
+    #[must_use]
+    pub fn builder_with_stores(
+        session_id: SessionId,
+        router: ProviderRouter,
+        doc_store: D,
+        memory_store: M,
+    ) -> AgentSessionBuilder<D, M> {
+        AgentSessionBuilder::new(
+            session_id,
+            router,
+            StoreSlot::Value(doc_store),
+            StoreSlot::Value(memory_store),
+        )
+    }
+}
+
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
+    fn new(
+        session_id: SessionId,
+        router: ProviderRouter,
+        doc_store: StoreSlot<D>,
+        memory_store: StoreSlot<M>,
+    ) -> Self {
+        Self {
             session_id,
             router,
             toolshed: ToolShed::default(),
+            tools: Vec::new(),
             access: Arc::new(AllowAllAccess),
             user: UserId("local".into()),
             model: None,
             fallback_models: Vec::new(),
             memory_model: None,
-            doc_store: None,
-            memory_store: None,
+            doc_store,
+            memory_store,
             system_prompt: None,
             policy: Some(ErrorPolicy::new()),
             config: AgentConfig::default(),
@@ -145,12 +214,30 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             embedder: None,
         }
     }
-}
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
+    /// Declare the tools the session must expose; `build()` fails unless each
+    /// one is registered (via [`with_tool`](Self::with_tool) /
+    /// [`with_tools`](Self::with_tools)).
+    ///
+    /// You rarely need this: the model is offered whatever is registered on the
+    /// session's `ToolCallManager`, so registering tools is enough.
     #[must_use]
     pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self {
         self.toolshed = toolshed;
+        self
+    }
+
+    /// Register a tool on the session's `ToolCallManager` at `build()`.
+    #[must_use]
+    pub fn with_tool(mut self, tool: Arc<dyn ToolImpl>) -> Self {
+        self.tools.push(tool);
+        self
+    }
+
+    /// Register several tools at `build()` (e.g. `ToolPreset::tools().to_vec()`).
+    #[must_use]
+    pub fn with_tools(mut self, tools: impl IntoIterator<Item = Arc<dyn ToolImpl>>) -> Self {
+        self.tools.extend(tools);
         self
     }
 
@@ -192,13 +279,13 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
     #[must_use]
     pub fn with_doc_store(mut self, store: D) -> Self {
-        self.doc_store = Some(store);
+        self.doc_store = StoreSlot::Value(store);
         self
     }
 
     #[must_use]
     pub fn with_memory_store(mut self, store: M) -> Self {
-        self.memory_store = Some(store);
+        self.memory_store = StoreSlot::Value(store);
         self
     }
 
@@ -214,8 +301,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self
     }
 
-    /// Attach an embedding capability so the session's context uses real
-    /// semantic recall (F16). Without it, `SearchMode::Semantic` is keyword-based.
+    /// Enable real semantic recall (F16): `search_context` ranks prior messages
+    /// by embedding cosine similarity instead of keyword matching.
     #[must_use]
     pub fn with_embedder(
         mut self,
@@ -240,31 +327,31 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
     /// Wire components, run preflight, return the session.
     ///
+    /// Every component shares one document store and one memory store: the
+    /// message log, context assembly and the memory hierarchy all see the same
+    /// data. (The hierarchy used to get its own default-constructed stores, so
+    /// memory it wrote never reached the assembled context.)
+    ///
     /// Preflight checks (OD-20-2): (1) every `ToolShed` tool is registered with
     /// the `ToolCallManager`, (2) access provider permits session + model,
     /// (3) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
-    pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>>
-    where
-        D: Default,
-        M: Default,
-    {
+    pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
         let session_id = self.session_id;
 
-        let doc_store = self.doc_store.unwrap_or_default();
-        let memory_store = self.memory_store.unwrap_or_default();
-        let memory_store_arc = Arc::new(memory_store);
+        let doc_store = Arc::new(self.doc_store.into_value());
+        let memory_store = Arc::new(self.memory_store.into_value());
 
         let ledger = TokenLedger::new();
-        let message_api = MessageApi::new(session_id.clone(), doc_store);
+        let message_api = MessageApi::from_shared(session_id.clone(), Arc::clone(&doc_store));
 
         let context_provider = {
             let cp = ContextProvider::new(
                 session_id.clone(),
                 message_api.clone(),
-                Arc::clone(&memory_store_arc),
+                Arc::clone(&memory_store),
                 ledger.clone(),
                 self.system_prompt,
                 self.context_config,
@@ -277,9 +364,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         };
 
         let tool_manager = ToolCallManager::new(session_id.clone());
+        for tool in self.tools {
+            tool_manager.register(tool);
+        }
         let queues = SteeringQueues::new();
 
-        let coordinator = MemoryCoordinator::new(M::default(), D::default());
+        let coordinator = MemoryCoordinator::from_shared(memory_store, doc_store);
         let memory = MemoryHierarchy::new(
             session_id.clone(),
             coordinator,
@@ -287,12 +377,19 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             self.memory_config,
         );
 
+        // The dedicated builder methods override the matching `AgentConfig`
+        // fields only when they were called — otherwise values supplied through
+        // `with_config` (or `resume`) must survive.
         let mut config = self.config;
         if let Some(model) = self.model {
             config.primary_model = model;
         }
-        config.fallback_models = self.fallback_models;
-        config.memory_model = self.memory_model;
+        if !self.fallback_models.is_empty() {
+            config.fallback_models = self.fallback_models;
+        }
+        if self.memory_model.is_some() {
+            config.memory_model = self.memory_model;
+        }
 
         let inner = SessionInner {
             session_id,
@@ -413,6 +510,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         &self.inner.memory
     }
 
+    /// Extension handle: the context provider (session history + memory recall).
+    ///
+    /// Clone it into a `SearchContextTool` to give the agent recall that uses
+    /// this session's stores and embedder.
+    #[must_use]
+    pub fn context_provider(&self) -> &ContextProvider<D, M> {
+        &self.inner.context_provider
+    }
+
     /// Stream each `SessionRecord` as produced — the primary API.
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
@@ -445,7 +551,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             self.inner.policy.clone(),
             self.inner.router.clone(),
             self.inner.config.clone(),
-        );
+        )
+        .with_access(Arc::clone(&self.inner.access), self.inner.user.clone());
 
         execute(agent_loop, None).map_err(|e| {
             ErrorTrace::new(AgenticError::Session(format!(
@@ -555,17 +662,13 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 // ---------------------------------------------------------------------------
 // Resume
 
-impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> AgentSession<D, M> {
-    /// Rehydrate a session by `SessionId` — deterministic Decision 01 order.
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+    /// Rehydrate a session by `SessionId` from default-constructed stores.
     ///
-    /// Resume protocol:
-    /// 1. Load `WorkingMemory` (F15/F07)
-    /// 2. Load Observation + Reflection (F15/F07; obs if no reflection)
-    /// 3. `message_api.recent(10)` (F08; Decision 01 fixes 10)
-    /// 4. Semantic recall (deferred — F31/F32)
-    /// 5. Context assembled by F16 (system -> working -> reflection -> recent -> recalled)
-    /// 6. Queues start EMPTY (were drained+persisted on prior end)
-    /// 7. `ToolCallManager` fresh
+    /// Equivalent to `builder(session_id, router).with_config(config)`. It only
+    /// finds earlier history when `D::default()` / `M::default()` reach the
+    /// same data as before; for real persistence use
+    /// [`resume_with_stores`](Self::resume_with_stores).
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
     pub fn resume(
@@ -573,53 +676,44 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
         router: ProviderRouter,
         config: AgentConfig,
         policy: Option<ErrorPolicy>,
-    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
-        let toolshed = ToolShed::default();
-        let doc_store = D::default();
-        let memory_store = M::default();
-        let memory_store_arc = Arc::new(memory_store);
-
-        let ledger = TokenLedger::new();
-        let message_api = MessageApi::new(session_id.clone(), doc_store);
-
-        let context_provider = ContextProvider::new(
-            session_id.clone(),
-            message_api.clone(),
-            Arc::clone(&memory_store_arc),
-            ledger.clone(),
-            None,
-            ContextConfig::default(),
-        );
-
-        let tool_manager = ToolCallManager::new(session_id.clone());
-        let queues = SteeringQueues::new();
-
-        let coordinator = MemoryCoordinator::new(M::default(), D::default());
-        let memory = MemoryHierarchy::new(
-            session_id.clone(),
-            coordinator,
-            ledger.clone(),
-            MemoryConfig::default(),
-        );
-
-        let inner = SessionInner {
+    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>>
+    where
+        D: Default,
+        M: Default,
+    {
+        Self::resume_with_stores(
             session_id,
             router,
-            toolshed,
-            tool_manager,
-            queues,
-            memory,
-            message_api,
-            ledger,
-            context_provider,
-            policy: policy.unwrap_or_default(),
-            access: Arc::new(AllowAllAccess),
-            user: UserId("local".into()),
             config,
-        };
+            policy,
+            D::default(),
+            M::default(),
+        )
+    }
 
-        Ok(AgentSession {
-            inner: Arc::new(inner),
-        })
+    /// Rehydrate a session by `SessionId` from the stores that hold it.
+    ///
+    /// Resume protocol (Decision 01): nothing is replayed eagerly. Every turn's
+    /// context assembly reads the session's working memory, reflection,
+    /// observation and recent messages from these stores, so the first turn
+    /// after resuming already sees them. Queues start empty (they were drained
+    /// and persisted by the previous `end()`); the tool registry starts empty —
+    /// register tools again, or use `builder_with_stores` + `with_tool`.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
+    pub fn resume_with_stores(
+        session_id: SessionId,
+        router: ProviderRouter,
+        config: AgentConfig,
+        policy: Option<ErrorPolicy>,
+        doc_store: D,
+        memory_store: M,
+    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
+        let mut builder = Self::builder_with_stores(session_id, router, doc_store, memory_store)
+            .with_config(config);
+        if let Some(policy) = policy {
+            builder = builder.with_error_policy(policy);
+        }
+        builder.build()
     }
 }

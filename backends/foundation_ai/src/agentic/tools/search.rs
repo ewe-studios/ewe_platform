@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
-use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{arg_usize, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::types::Tool;
 use crate::types::{ArgType, Args, TextContent, UserModelContent};
 use foundation_db::traits::DocumentStore;
@@ -198,15 +198,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchCo
             _ => SearchMode::Hybrid,
         };
 
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        let k = match arguments.get("k") {
-            Some(ArgType::Usize(n)) => *n,
-            Some(ArgType::U32(n)) => *n as usize,
-            Some(ArgType::U64(n)) => *n as usize,
-            Some(ArgType::I32(n)) => *n as usize,
-            Some(ArgType::I64(n)) => *n as usize,
-            _ => 10,
-        };
+        // A negative `k` used to wrap to a huge `usize`; it now falls back to 10.
+        let k = arg_usize(&arguments, "k").unwrap_or(10);
 
         let hits = self.context.search(&query, mode, k).await;
         let json =
