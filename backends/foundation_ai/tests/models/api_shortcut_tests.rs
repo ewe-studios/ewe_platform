@@ -50,3 +50,17 @@ fn strings_convert_into_user_messages() {
 fn each_constructed_message_gets_a_fresh_id() {
     assert_ne!(Messages::user("a").id(), Messages::user("a").id());
 }
+
+// ---------------------------------------------------------------------------
+// Item 9 — model ids from strings
+// ---------------------------------------------------------------------------
+
+#[test]
+fn strings_convert_into_named_model_ids() {
+    use foundation_ai::types::ModelId;
+
+    let from_str: ModelId = "claude-sonnet-4-6".into();
+    let from_string: ModelId = String::from("gpt-4o").into();
+    assert_eq!(from_str, ModelId::Name("claude-sonnet-4-6".into(), None));
+    assert_eq!(from_string, ModelId::Name("gpt-4o".into(), None));
+}

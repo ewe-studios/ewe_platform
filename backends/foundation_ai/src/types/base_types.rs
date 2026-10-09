@@ -367,6 +367,20 @@ impl Quantization {
     }
 }
 
+/// `"claude-sonnet-4-6"` is `ModelId::Name("claude-sonnet-4-6", None)`.
+impl From<&str> for ModelId {
+    fn from(name: &str) -> Self {
+        ModelId::Name(name.to_string(), None)
+    }
+}
+
+/// A `String` is a `ModelId::Name` with no quantization.
+impl From<String> for ModelId {
+    fn from(name: String) -> Self {
+        ModelId::Name(name, None)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelId {
     /// Specifically named model.

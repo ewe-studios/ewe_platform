@@ -295,21 +295,28 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self
     }
 
+    /// The primary model: a `ModelId`, or a name (`"claude-sonnet-4-6"`).
     #[must_use]
-    pub fn with_model(mut self, model: ModelId) -> Self {
-        self.model = Some(model);
+    pub fn with_model(mut self, model: impl Into<ModelId>) -> Self {
+        self.model = Some(model.into());
         self
     }
 
+    /// Circuit-breaker fallbacks, in order: `["gpt-4o"]`, a `Vec<ModelId>`, …
     #[must_use]
-    pub fn with_fallback_models(mut self, models: Vec<ModelId>) -> Self {
-        self.fallback_models = models;
+    pub fn with_fallback_models<I>(mut self, models: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: Into<ModelId>,
+    {
+        self.fallback_models = models.into_iter().map(Into::into).collect();
         self
     }
 
+    /// The model used for memory generation: a `ModelId` or a name.
     #[must_use]
-    pub fn with_memory_model(mut self, model: ModelId) -> Self {
-        self.memory_model = Some(model);
+    pub fn with_memory_model(mut self, model: impl Into<ModelId>) -> Self {
+        self.memory_model = Some(model.into());
         self
     }
 
