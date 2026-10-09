@@ -21,11 +21,9 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
-// ---------------------------------------------------------------------------
-// ToolDefinition — the single, shared descriptor (F19). Defined in the types
-// layer and re-exported here so `ToolImpl::definition() -> ToolDefinition` and
-// every `impl ToolImpl` keep referring to `tool_impl::ToolDefinition` unchanged.
-pub use crate::types::base_types::ToolDefinition;
+// `ToolDefinition` — the single, shared descriptor (F19) — lives in the types
+// layer and is reached as `foundation_ai::types::ToolDefinition`.
+use crate::types::ToolDefinition;
 
 // ---------------------------------------------------------------------------
 // ToolError

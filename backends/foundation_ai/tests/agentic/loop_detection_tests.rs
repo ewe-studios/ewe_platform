@@ -453,3 +453,26 @@ fn the_ladder_is_spent_once_unless_something_works() {
     detector.reset();
     assert_eq!(detector.escalate(), Escalation::Redirect);
 }
+
+// ---------------------------------------------------------------------------
+// Names at the `agentic` root (doc 15 item 16)
+
+#[test]
+fn agentic_root_names_the_verdict_and_the_error_payload_apart() {
+    use foundation_ai::agentic::{AgenticError, LoopDetectedInfo, LoopDetection as Verdict};
+
+    // `agentic::LoopDetection` is the detector's verdict — no alias needed.
+    let mut detector = LoopDetector::new(LoopDetectorConfig::default());
+    let verdict: Verdict = detector.check(&ModelOutput::Text(TextContent {
+        content: "fresh output".into(),
+        signature: None,
+    }));
+    assert_eq!(verdict, Verdict::NoLoop);
+
+    // `LoopDetectedInfo` is what `AgenticError::LoopDetected` carries.
+    let err = AgenticError::LoopDetected(LoopDetectedInfo {
+        kind: "tool_call".into(),
+        occurrences: 3,
+    });
+    assert_eq!(err.to_string(), "loop detected: tool_call x3");
+}

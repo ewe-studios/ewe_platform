@@ -22,10 +22,10 @@ use foundation_db::traits::DocumentStore;
 
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
-use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::MemoryAccess;
 use crate::types::base_types::Args;
-use crate::types::{ArgType, MemoryFact, SessionRecord, Tool};
+use crate::types::{ArgType, MemoryFact, SessionRecord, Tool, ToolDefinition};
 
 const TOOL: &str = "memory";
 

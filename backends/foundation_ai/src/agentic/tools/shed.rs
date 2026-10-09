@@ -21,7 +21,8 @@ use std::sync::{Arc, OnceLock};
 use serde::{Deserialize, Serialize};
 
 use crate::agentic::embedding::EmbeddingProvider;
-use crate::agentic::tool_impl::{ToolDefinition, ToolError};
+use crate::agentic::tool_impl::ToolError;
+use crate::types::ToolDefinition;
 use crate::types::{Args, Tool};
 
 use foundation_vectors::metric::DistanceMetric;

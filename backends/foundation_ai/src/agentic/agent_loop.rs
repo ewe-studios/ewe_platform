@@ -965,8 +965,8 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             // redirect_count is small (bounded by max_redirects).
                             #[allow(clippy::cast_possible_truncation)]
                             let occurrences = self.detector.redirect_count() as u32;
-                            let err =
-                                AgenticError::LoopDetected(crate::agentic::errors::LoopDetection {
+                            let err = AgenticError::LoopDetected(
+                                crate::agentic::errors::LoopDetectedInfo {
                                     kind: format!("{detection:?}"),
                                     occurrences,
                                 });

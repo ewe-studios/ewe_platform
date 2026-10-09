@@ -5,11 +5,11 @@
 use foundation_ai::types::Tool;
 use async_trait::async_trait;
 use foundation_ai::agentic::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolDefinition,
-    ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
+    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolError,
+    ToolErrorKind, ToolImpl, ToolRetryConfig,
 };
 use foundation_ai::types::{
-    ArgType, Args, ExecutionHint, SessionId, TextContent, UserModelContent,
+    ArgType, Args, ExecutionHint, SessionId, TextContent, ToolDefinition, UserModelContent,
 };
 use std::collections::HashMap;
 use std::sync::Arc;

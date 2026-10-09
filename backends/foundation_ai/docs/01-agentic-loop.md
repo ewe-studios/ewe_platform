@@ -142,15 +142,17 @@ local backends are prompted to use), they become real
 `ModelOutput::ToolCall`s and the surrounding prose is kept as text. Then
 `on_generation_complete`:
 
-1. Runs `LoopDetector::check` on every assistant output. On a loop it
+1. Runs `LoopDetector::check` on every assistant output. On a loop (a
+   `LoopDetection` other than `NoLoop`) it
    escalates:
    - `Redirect` → injects a system message ("Loop detected. Please try a
      different approach…") and re-assembles.
    - `SwitchModelOrTemperature` → moves to the next fallback model via the
      circuit breaker (temperature is **not** changed), injects a system
      message, re-assembles.
-   - `Terminate` → `AgenticError::LoopDetected` as a `FailedAction`. A
-     repeated *empty* answer is passed through instead of failing.
+   - `Terminate` → `AgenticError::LoopDetected(LoopDetectedInfo { kind,
+     occurrences })` as a `FailedAction`. A repeated *empty* answer is passed
+     through instead of failing.
 2. If the turn called no tool, judges the assembled answer with
    `LoopDetector::check_answer`. A vacuous answer (a lone `.`, an empty
    reply, or a bare number to a question that didn't ask for one) is retried:

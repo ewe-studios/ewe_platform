@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::{
-    ToolCallManager, ToolCallRequest, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+    ToolCallManager, ToolCallRequest, ToolCallResult, ToolError, ToolImpl,
 };
 use foundation_ai::agentic::{
     CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, ShedResult, ToolDiscovery,
@@ -11,7 +11,8 @@ use foundation_ai::agentic::{
 use foundation_ai::types::{
     ArgType, BoxModel, CostStatus, ExecutionHint, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox,
-    ProviderRouter, RoutableProvider, StopReason, ToolDeclarations, UsageCosting, UsageReport,
+    ProviderRouter, RoutableProvider, StopReason, ToolDeclarations, ToolDefinition, UsageCosting,
+    UsageReport,
 };
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};

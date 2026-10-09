@@ -25,7 +25,8 @@ use crate::types::{
 };
 use crate::types::{ProviderRouter, RoutableProvider};
 
-use super::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use super::tool_impl::{ToolCallResult, ToolError, ToolImpl};
+use crate::types::ToolDefinition;
 
 // ---------------------------------------------------------------------------
 // Matchers — Fn(&ModelInteraction) -> bool closures

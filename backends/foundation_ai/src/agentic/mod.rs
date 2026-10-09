@@ -35,11 +35,11 @@ pub use embedding::{
 };
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
-    LoopDetection, UserId,
+    LoopDetectedInfo, UserId,
 };
 pub use loop_detection::{
-    is_bare_number, is_vacuous_answer, question_expects_a_number, Escalation, LoopDetection as InlineLoopDetection, LoopDetector,
-    LoopDetectorConfig, ToolCallSignature,
+    is_bare_number, is_vacuous_answer, question_expects_a_number, Escalation, LoopDetection,
+    LoopDetector, LoopDetectorConfig, ToolCallSignature,
 };
 pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
 pub use memory_coordinator::MemoryCoordinator;
@@ -52,8 +52,7 @@ pub use steering::{CancelCode, SteeringQueues};
 pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use tool_impl::{
     FailMode, FnTool, ToolArgs, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage,
-    ToolCallWorkflow, ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
-    WorkflowResult,
+    ToolCallWorkflow, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
 };
 #[cfg(not(target_family = "wasm"))]
 pub use tools::search::{

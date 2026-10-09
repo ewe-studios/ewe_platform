@@ -29,10 +29,12 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::errors::UserId;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::session::AgentSession;
-use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ToolShed;
 use crate::types::agentic::{SessionId, SessionRecord};
-use crate::types::base_types::{ArgType, Args, MessageRole, Messages, ModelId, Tool};
+use crate::types::base_types::{
+    ArgType, Args, MessageRole, Messages, ModelId, Tool, ToolDefinition,
+};
 use crate::types::routable_provider::ProviderRouter;
 use crate::types::{TextContent, UserModelContent};
 

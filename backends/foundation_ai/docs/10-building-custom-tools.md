@@ -24,8 +24,8 @@ pub trait ToolImpl: Send + Sync {
 ```rust
 use std::collections::HashMap;
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
-use foundation_ai::types::{ArgType, Args, Tool};
+use foundation_ai::agentic::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
+use foundation_ai::types::{ArgType, Args, Tool, ToolDefinition};
 use foundation_jsonschema::scheme;
 
 struct WeatherTool { api_key: String }

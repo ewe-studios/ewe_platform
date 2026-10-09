@@ -18,10 +18,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
-use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::types::base_types::Args;
 use crate::types::ArgType;
-use crate::types::Tool;
+use crate::types::{Tool, ToolDefinition};
 
 fn exec_err(tool: &str, reason: impl Into<String>) -> ToolError {
     ToolError::Execution {

@@ -33,13 +33,14 @@ use crate::types::{Messages, ModelId};
 // Forward-reference stubs (filled by F17 / F18)
 // ============================================================================
 
-/// Forward-reference stub for the F17 loop-detection result.
+/// What `AgenticError::LoopDetected` reports: the kind of repetition and how
+/// often it was seen.
 ///
-/// `AgenticError::LoopDetected` carries it; F17 owns the real type. Pinned to
-/// `Clone + PartialEq + Debug + Serialize + Deserialize` so `AgenticError`
-/// derives cleanly.
+/// Distinct from [`crate::agentic::loop_detection::LoopDetection`], the
+/// detector's verdict. Pinned to `Clone + PartialEq + Debug + Serialize +
+/// Deserialize` so `AgenticError` derives cleanly.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LoopDetection {
+pub struct LoopDetectedInfo {
     /// What kind of repetition was detected (e.g. "`tool_call`", "`assistant_text`").
     pub kind: String,
     /// How many times the repeated unit was seen.
@@ -97,7 +98,7 @@ pub enum AgenticError {
     /// Steering-queue failure (flattened).
     Queue(String),
     /// A repetition/loop was detected (F17 owns redirect/escalation).
-    LoopDetected(LoopDetection),
+    LoopDetected(LoopDetectedInfo),
     /// Authentication/access failure (F18).
     Auth(AuthError),
     /// A budget limit was exceeded.

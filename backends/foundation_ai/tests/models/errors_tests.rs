@@ -22,7 +22,7 @@ fn agentic_error_round_trips_through_json() {
             user: UserId("u1".into()),
         },
         AgenticError::Budget { limit: 1000 },
-        AgenticError::LoopDetected(LoopDetection {
+        AgenticError::LoopDetected(LoopDetectedInfo {
             kind: "tool_call".into(),
             occurrences: 3,
         }),

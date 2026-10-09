@@ -14,13 +14,14 @@ use foundation_ai::agentic::testing::{
 };
 use foundation_ai::agentic::{
     AgentSession, AuthError, CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector,
-    KvMemoryStore, MemoryStore, SessionAccessProvider, TokenBudget, ToolCallResult, ToolDefinition,
-    ToolError, ToolImpl, ToolShed, UserId,
+    KvMemoryStore, MemoryStore, SessionAccessProvider, TokenBudget, ToolCallResult, ToolError,
+    ToolImpl, ToolShed, UserId,
 };
 use foundation_ai::harness::ToolPreset;
 use foundation_ai::types::{
     ArgType, Args, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ProviderRouter,
-    SessionId, SessionRecord, TextContent, Tool, UsageCosting, UsageReport, UserModelContent,
+    SessionId, SessionRecord, TextContent, Tool, ToolDefinition, UsageCosting, UsageReport,
+    UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::DocumentStore;

@@ -15,10 +15,10 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolError, ToolImpl};
 use foundation_ai::agentic::{FnTool, ToolArgs, ToolShed, TurnEvent};
 use foundation_ai::harness;
-use foundation_ai::types::{ArgType, Args, SessionId, Tool};
+use foundation_ai::types::{ArgType, Args, SessionId, Tool, ToolDefinition};
 use foundation_core::valtron::valtron;
 use foundation_jsonschema::scheme;
 

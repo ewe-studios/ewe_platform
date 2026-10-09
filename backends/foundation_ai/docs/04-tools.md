@@ -284,9 +284,8 @@ never returns `Network` today (only `Timeout`, `Execution`,
 ```rust
 use std::collections::HashMap;
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolImpl, ToolCallResult, ToolDefinition, ToolError};
-use foundation_ai::agentic::{AgentSession, FnTool, ToolArgs, ToolShed};
-use foundation_ai::types::{ArgType, Args, Tool};
+use foundation_ai::agentic::{AgentSession, FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl, ToolShed};
+use foundation_ai::types::{ArgType, Args, Tool, ToolDefinition};
 
 struct GreetTool;
 

@@ -14,10 +14,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
-use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
-use crate::types::Tool;
-use crate::types::{ArgType, Args};
+use crate::types::{ArgType, Args, Tool, ToolDefinition};
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
