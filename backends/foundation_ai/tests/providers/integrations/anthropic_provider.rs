@@ -16,8 +16,8 @@ use foundation_ai::backends::anthropic_messages_provider::{
 use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviders, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
-    UserModelContent,
+    ModelProvider, ModelProviders, StopReason, TextContent, ToolDeclarations, UsageCosting,
+    UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
@@ -83,7 +83,7 @@ fn test_llama_server_anthropic_generate() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -139,7 +139,7 @@ fn test_llama_server_anthropic_streaming() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -238,7 +238,7 @@ fn test_llama_server_anthropic_multi_turn() {
                 signature: None,
             },
         ],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -277,7 +277,7 @@ fn test_llama_server_anthropic_max_tokens() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -315,7 +315,7 @@ fn test_llama_server_anthropic_resolve_model() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

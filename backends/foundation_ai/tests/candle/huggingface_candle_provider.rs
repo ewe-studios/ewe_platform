@@ -15,7 +15,7 @@ use foundation_ai::backends::huggingface_candle_provider::{
 };
 use foundation_ai::types::{
     CacheRetention, MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, TextContent, ThinkingLevels, ToolShed, UserModelContent,
+    ModelParams, ModelProvider, TextContent, ThinkingLevels, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron;
 
@@ -307,7 +307,7 @@ fn test_candle_provider_smollm_inference() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

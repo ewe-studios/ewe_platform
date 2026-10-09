@@ -31,8 +31,8 @@ use crate::types::base_types::{
     ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
     ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
     ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
-    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
-    UsageCosting, UsageReport, UserModelContent,
+    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolDeclarations,
+    ToolFormatter, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ============================================================================
@@ -1231,9 +1231,9 @@ impl AnthropicStream {
 // Helpers
 // ============================================================================
 
-/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
+/// Flatten a `ToolDeclarations` into a flat Vec<Tool> for provider APIs.
 #[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
+pub fn flatten_tools(shed: &ToolDeclarations) -> Vec<Tool> {
     shed.all_tools()
 }
 
@@ -1343,7 +1343,7 @@ pub fn build_anthropic_request(
         })
         .collect();
 
-    // Tools: flatten ToolShed through AnthropicFormatter
+    // Tools: flatten ToolDeclarations through AnthropicFormatter
     let tools = {
         let all_tools = flatten_tools(&interaction.tools_shed);
         AnthropicFormatter

@@ -280,7 +280,7 @@ fn search_tools_register_in_toolshed() {
     mgr.register(Arc::new(SearchContextTool::new(ctx)));
     mgr.register(Arc::new(make_vfs_tool()));
 
-    let shed = mgr.build_toolshed();
+    let shed = mgr.all_declarations();
     // Both search tools are collected into `tools` (no named slots under F19).
     assert!(
         shed.tools.iter().any(|t| t.name() == "search_context"),

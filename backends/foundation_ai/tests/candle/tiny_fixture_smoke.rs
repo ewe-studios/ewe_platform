@@ -42,7 +42,7 @@ fn tiny_random_llama_fixture_loads_offline() {
 
 use foundation_ai::types::{
     MessageRole, Messages, ModelInteraction, ModelOutput, ModelParams, Model, TextContent,
-    ToolShed, UserModelContent,
+    ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::Stream;
 
@@ -73,7 +73,7 @@ fn greeting() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }

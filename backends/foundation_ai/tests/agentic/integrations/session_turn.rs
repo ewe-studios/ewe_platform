@@ -79,7 +79,7 @@ fn greeting_interaction() -> foundation_ai::types::ModelInteraction {
         system_prompt: Some("You are a helpful assistant.".to_string()),
         soul: None,
         messages: vec![user_msg("Reply with a single short greeting.")],
-        tools_shed: foundation_ai::types::ToolShed::default(),
+        tools_shed: foundation_ai::types::ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }

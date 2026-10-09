@@ -19,8 +19,8 @@
 
 use foundation_ai::backends::candle::CandleBackend;
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider, ModelSpec,
-    ToolShed, UserModelContent, MessageRole, TextContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelSpec, TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 
@@ -53,7 +53,7 @@ fn greeting() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed {
+        tools_shed: ToolDeclarations {
             shed: None,
             tools: Vec::new(),
         },

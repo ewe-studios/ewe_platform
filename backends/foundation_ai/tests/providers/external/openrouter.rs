@@ -7,7 +7,7 @@ use std::time::Duration;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, TextContent, ToolShed, UserModelContent,
+    ModelProvider, TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
@@ -70,13 +70,13 @@ fn interaction(text: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        // Deliberately EMPTY, not `ToolShed::default()`: the default ships a
+        // Deliberately EMPTY, not `ToolDeclarations::default()`: the default ships a
         // `shed` tool, and offering any tool lets the model reply with a
         // `tool_calls` delta instead of text — mistral-nemo does exactly that,
         // finishing with `finish_reason: "tool_calls"` and no content. These
         // tests assert on text, so the tool has to be off the table or they fail
         // on the model's discretion rather than on our streaming path.
-        tools_shed: ToolShed {
+        tools_shed: ToolDeclarations {
             shed: None,
             tools: Vec::new(),
         },

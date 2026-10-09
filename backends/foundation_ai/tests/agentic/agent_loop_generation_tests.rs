@@ -25,7 +25,7 @@ use foundation_ai::agentic::{
     SteeringQueues, TokenLedger,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
+    ArgType, MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, UserModelContent,
 };
 use foundation_core::valtron::{TaskIterator, TaskStatus};
@@ -638,8 +638,9 @@ fn assembled_interaction_carries_system_message_and_tools() {
 }
 
 /// Matrix 4.5 — a tool's result is fed back into the model on the next inner
-/// iteration. The mock requests a tool on call 0, then on call 1 asserts the
-/// tool result text is present in the interaction it receives.
+/// iteration. The mock looks the tool up with `shed` on call 0, requests it on
+/// call 1, then asserts the tool result text is present in the interaction it
+/// receives.
 #[test]
 fn tool_result_is_fed_back_into_next_assemble() {
     use foundation_ai::agentic::testing::MockTool;
@@ -650,8 +651,16 @@ fn tool_result_is_fed_back_into_next_assemble() {
     let flag = saw_result.clone();
 
     let mut mock = MockModelProvider::new();
-    // Call 0: request the tool.
-    mock.on_nth_call(0, vec![mock_tool_call("lookup", HashMap::new())]);
+    // Call 0: discover the tool (only `shed` is offered up front).
+    mock.on_nth_call(
+        0,
+        vec![mock_tool_call(
+            "shed",
+            HashMap::from([("description".to_string(), ArgType::Text("lookup".into()))]),
+        )],
+    );
+    // Call 1: request the tool `shed` returned.
+    mock.on_nth_call(1, vec![mock_tool_call("lookup", HashMap::new())]);
     // Any later call: check the tool's result reached the interaction, then answer.
     mock.on(
         move |mi| {

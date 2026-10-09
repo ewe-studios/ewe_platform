@@ -13,13 +13,14 @@ use foundation_ai::agentic::testing::{
     mock_text, mock_text_usage, mock_tool_call, MockModelProvider,
 };
 use foundation_ai::agentic::{
-    AgentSession, AuthError, KvMemoryStore, MemoryStore, SessionAccessProvider,
-    TokenBudget, ToolCallResult, ToolDefinition, ToolError, ToolImpl, UserId,
+    AgentSession, AuthError, CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector,
+    KvMemoryStore, MemoryStore, SessionAccessProvider, TokenBudget, ToolCallResult, ToolDefinition,
+    ToolError, ToolImpl, ToolShed, UserId,
 };
 use foundation_ai::harness::ToolPreset;
 use foundation_ai::types::{
-    ArgType, Args, MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId,
-    SessionRecord, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    ArgType, Args, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ProviderRouter,
+    SessionId, SessionRecord, TextContent, Tool, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::DocumentStore;
@@ -48,10 +49,53 @@ fn mock_model() -> ModelId {
 }
 
 fn session_with(mock: MockModelProvider) -> Session {
+    session_with_tools(mock, ToolShed::new())
+}
+
+fn session_with_tools(mock: MockModelProvider, tools: ToolShed) -> Session {
     AgentSession::builder(mock.into_router())
         .with_model(mock_model())
+        .with_toolshed(tools)
         .build()
         .expect("session builds")
+}
+
+/// Mark tools active, as if `shed` had returned them — for tests about what a
+/// tool does once the model may call it.
+fn activate(session: &Session, names: &[&str]) {
+    let names: Vec<String> = names.iter().map(|n| (*n).to_string()).collect();
+    session.tool_manager().activate(&names);
+}
+
+/// The tool names declared on each model request, in call order.
+type Offered = Arc<Mutex<Vec<Vec<String>>>>;
+
+/// Record what every request declares. Registered first, it never matches, so
+/// the scripts added after it still answer.
+fn record_offered(mock: &mut MockModelProvider) -> Offered {
+    let offered: Offered = Arc::new(Mutex::new(Vec::new()));
+    let sink = Arc::clone(&offered);
+    mock.on(
+        move |mi: &ModelInteraction| {
+            let names = mi
+                .tools_shed
+                .all_tools()
+                .iter()
+                .map(|t| t.name().to_string())
+                .collect();
+            sink.lock().unwrap().push(names);
+            false
+        },
+        vec![],
+    );
+    offered
+}
+
+fn shed_call(description: &str) -> Messages {
+    mock_tool_call(
+        "shed",
+        HashMap::from([("description".to_string(), ArgType::Text(description.into()))]),
+    )
 }
 
 /// A tool that records the arguments it was called with.
@@ -191,9 +235,8 @@ fn memory_tool_writes_reach_the_assembled_context() {
     );
     mock.on_any(vec![mock_text("noted")]);
 
-    let session = session_with(mock);
-    ToolPreset::memory(Arc::new(session.memory_hierarchy().clone()))
-        .register_all(session.tool_manager());
+    let session = session_with_tools(mock, ToolShed::new().tools(ToolPreset::session_memory()));
+    activate(&session, &["memory"]);
 
     let records = session
         .run_turn(user_msg("remember I like tea"))
@@ -354,22 +397,226 @@ fn streamed_snapshots_are_persisted_as_one_message() {
 // Tools
 
 #[valtron_test]
-fn builder_registered_tools_satisfy_preflight() {
+fn toolshed_tools_are_registered_at_build() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("ok")]);
     let (tool, _) = RecordingTool::new();
-    let tool: Arc<dyn ToolImpl> = Arc::new(tool);
 
-    let session = AgentSession::builder(mock.into_router())
-        .with_model(mock_model())
-        .with_toolshed(ToolShed::default().with_tool(tool.definition()))
-        .with_tool(tool)
-        .build()
-        .expect("a declared and registered tool passes preflight");
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
     assert!(session
         .tool_manager()
         .names()
         .contains(&"greet".to_string()));
+}
+
+#[valtron_test]
+fn duplicate_tool_names_fail_the_build() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let (first, _) = RecordingTool::new();
+    let (second, _) = RecordingTool::new();
+
+    let err = AgentSession::builder(mock.into_router())
+        .with_model(mock_model())
+        .with_toolshed(ToolShed::new().tool(first).tool(second))
+        .build()
+        .err()
+        .expect("two tools named 'greet' must fail the build");
+    assert!(
+        err.to_string()
+            .contains("'greet' was added to the toolshed twice"),
+        "{err}"
+    );
+}
+
+#[valtron_test]
+fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
+    let mut mock = MockModelProvider::new();
+    let offered = record_offered(&mut mock);
+    mock.on_nth_call(0, vec![shed_call("greet someone")]);
+    mock.on_nth_call(
+        1,
+        vec![mock_tool_call(
+            "greet",
+            HashMap::from([("name".to_string(), ArgType::Text("Ada".into()))]),
+        )],
+    );
+    mock.on_any(vec![mock_text("done")]);
+
+    let (tool, seen) = RecordingTool::new();
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
+    let records = session
+        .run_turn(user_msg("greet Ada"))
+        .expect("turn succeeds");
+
+    let offered = offered.lock().unwrap().clone();
+    assert_eq!(
+        offered[0],
+        vec!["shed".to_string()],
+        "the first request declares only shed"
+    );
+    assert_eq!(
+        offered[1],
+        vec!["shed".to_string(), "greet".to_string()],
+        "a tool shed returned is declared on the next request"
+    );
+    assert_eq!(
+        tool_results(&records),
+        vec![("shed".to_string(), None), ("greet".to_string(), None)]
+    );
+    assert_eq!(seen.lock().unwrap().len(), 1, "the activated tool ran");
+    assert!(session.tool_manager().is_active("greet"));
+}
+
+#[valtron_test]
+fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
+    let mut mock = MockModelProvider::new();
+    mock.on_nth_call(
+        0,
+        vec![mock_tool_call(
+            "greet",
+            HashMap::from([("name".to_string(), ArgType::Text("Ada".into()))]),
+        )],
+    );
+    mock.on_any(vec![mock_text("ok")]);
+
+    let (tool, seen) = RecordingTool::new();
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
+    let records = session
+        .run_turn(user_msg("greet Ada"))
+        .expect("turn succeeds");
+
+    let results = tool_results(&records);
+    assert_eq!(results.len(), 1);
+    let detail = results[0].1.as_deref().unwrap_or_default();
+    assert!(
+        detail.contains("not active") && detail.contains("`shed`"),
+        "the model is told to discover the tool first: {detail}"
+    );
+    assert!(
+        seen.lock().unwrap().is_empty(),
+        "an inactive tool must not run"
+    );
+}
+
+#[valtron_test]
+fn a_tool_less_session_declares_no_tools() {
+    let mut mock = MockModelProvider::new();
+    let offered = record_offered(&mut mock);
+    mock.on_any(vec![mock_text("hi")]);
+
+    let session = session_with(mock);
+    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    assert_eq!(offered.lock().unwrap()[0], Vec::<String>::new());
+}
+
+/// Maps any text mentioning greeting to one direction and everything else to
+/// another, so embedding search finds `greet` for a query with no word in
+/// common with its name or description.
+struct GreetingEmbedder;
+
+impl EmbeddingProvider for GreetingEmbedder {
+    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+        let lower = text.to_lowercase();
+        let data = if lower.contains("greet") || lower.contains("salute") {
+            vec![1.0, 0.0]
+        } else {
+            vec![0.0, 1.0]
+        };
+        Ok(EmbeddingVector {
+            data,
+            dimensions: 2,
+            model_id: "greeting".into(),
+        })
+    }
+    fn embed_batch(
+        &self,
+        texts: &[String],
+        model_id: &str,
+    ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
+        texts.iter().map(|t| self.embed(t, model_id)).collect()
+    }
+    fn register_model(&self, _model_id: &str, _dimensions: u16) {}
+    fn cache_stats(&self) -> CacheStats {
+        CacheStats::default()
+    }
+    fn clear_cache(&self) {}
+}
+
+#[valtron_test]
+fn shed_searches_by_embedding_when_the_session_has_an_embedder() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let (tool, _) = RecordingTool::new();
+
+    let session = AgentSession::builder(mock.into_router())
+        .with_model(mock_model())
+        .with_embedder(Arc::new(GreetingEmbedder), "greeting")
+        .with_toolshed(ToolShed::new().tool(tool))
+        .build()
+        .expect("session builds");
+
+    // No word of "salute somebody" appears in greet's name or description.
+    let hits = session
+        .tool_manager()
+        .search_tools("salute somebody", 5)
+        .expect("search runs");
+    assert_eq!(
+        hits.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        vec!["greet"]
+    );
+}
+
+#[valtron_test]
+fn shed_matches_names_and_descriptions_without_an_embedder() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let (tool, _) = RecordingTool::new();
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
+
+    let mgr = session.tool_manager();
+    let by_description = mgr.search_tools("someone by name", 5).expect("search runs");
+    assert_eq!(by_description.len(), 1);
+    assert_eq!(by_description[0].name, "greet");
+    assert!(
+        by_description[0].schema.is_some(),
+        "hits carry the argument schema"
+    );
+    assert!(mgr
+        .search_tools("salute somebody", 5)
+        .expect("search runs")
+        .is_empty());
+}
+
+#[valtron_test]
+fn session_dependent_tools_are_built_from_the_session() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let seen_id: Arc<Mutex<Option<SessionId>>> = Arc::new(Mutex::new(None));
+    let sink = Arc::clone(&seen_id);
+
+    let session = session_with_tools(
+        mock,
+        ToolShed::new()
+            .tools(ToolPreset::search_context())
+            .tool(foundation_ai::agentic::tool_fn("greet", move |parts| {
+                *sink.lock().unwrap() = Some(parts.session_id.clone());
+                let (tool, _) = RecordingTool::new();
+                Arc::new(tool) as Arc<dyn ToolImpl>
+            })),
+    );
+
+    let mut names = session.tool_manager().names();
+    names.sort();
+    assert_eq!(
+        names,
+        vec!["greet".to_string(), "search_context".to_string()]
+    );
+    assert_eq!(
+        seen_id.lock().unwrap().as_ref(),
+        Some(session.session_id()),
+        "the constructor sees the session being built"
+    );
 }
 
 #[valtron_test]
@@ -385,9 +632,9 @@ fn text_protocol_tool_calls_run_the_tool() {
     );
     mock.on_any(vec![mock_text("Done.")]);
 
-    let session = session_with(mock);
     let (tool, seen) = RecordingTool::new();
-    session.tool_manager().register(Arc::new(tool));
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
+    activate(&session, &["greet"]);
 
     let records = session
         .run_turn(user_msg("greet Ada"))
@@ -410,9 +657,9 @@ fn arguments_violating_the_schema_are_rejected_before_execution() {
     mock.on_nth_call(0, vec![mock_tool_call("greet", HashMap::new())]);
     mock.on_any(vec![mock_text("sorry")]);
 
-    let session = session_with(mock);
     let (tool, seen) = RecordingTool::new();
-    session.tool_manager().register(Arc::new(tool));
+    let session = session_with_tools(mock, ToolShed::new().tool(tool));
+    activate(&session, &["greet"]);
 
     let records = session.run_turn(user_msg("greet")).expect("turn succeeds");
     let results = tool_results(&records);
@@ -459,8 +706,10 @@ impl SessionAccessProvider for ScriptedAccess {
 }
 
 fn session_with_access(mock: MockModelProvider, access: Arc<ScriptedAccess>) -> Session {
+    let (tool, _) = RecordingTool::new();
     AgentSession::builder(mock.into_router())
         .with_model(mock_model())
+        .with_toolshed(ToolShed::new().tool(tool))
         .with_access(access)
         .build()
         .expect("session builds")
@@ -483,8 +732,10 @@ fn denied_tools_do_not_run() {
         recorded: AtomicU64::new(0),
     });
     let session = session_with_access(mock, access);
+    // Re-register a recording greet so the test can see whether it ran.
     let (tool, seen) = RecordingTool::new();
     session.tool_manager().register(Arc::new(tool));
+    activate(&session, &["greet"]);
 
     let records = session
         .run_turn(user_msg("greet Ada"))

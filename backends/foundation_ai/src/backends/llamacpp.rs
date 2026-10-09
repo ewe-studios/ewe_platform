@@ -38,8 +38,8 @@ use crate::errors::{
 use crate::types::base_types::{
     CostStatus, KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
-    ModelUsageCosting, SplitMode, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
-    ToolShed, UsageCosting, UsageReport, UserModelContent,
+    ModelUsageCosting, SplitMode, StopReason, TextBasedFormatter, TextContent, ToolDeclarations,
+    ToolFormatter, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -1092,8 +1092,8 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
-/// Flatten a `ToolShed` into a Vec<Tool> for formatting.
-fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::base_types::Tool> {
+/// Flatten a `ToolDeclarations` into a Vec<Tool> for formatting.
+fn flatten_tools(shed: &ToolDeclarations) -> Vec<crate::types::base_types::Tool> {
     shed.all_tools()
 }
 

@@ -306,7 +306,7 @@ fn args_empty_is_usable_and_serializes() {
 }
 
 // ---------------------------------------------------------------------------
-// Tool::definitions / arg_summary / ToolShed::with_tools
+// Tool::definitions / arg_summary / ToolDeclarations::with_tools
 // ---------------------------------------------------------------------------
 //
 // `arg_summary` is what a TEXT-BASED model (llama.cpp / Candle) is shown to
@@ -314,7 +314,7 @@ fn args_empty_is_usable_and_serializes() {
 // API, so this string is the only thing telling the model what to emit. A wrong
 // summary means the model guesses at argument names.
 
-use foundation_ai::types::{Tool, ToolDefinition, ToolShed};
+use foundation_ai::types::{Tool, ToolDeclarations, ToolDefinition};
 
 fn schema_opts(json: serde_json::Value) -> foundation_jsonschema::ValidationOptions {
     foundation_jsonschema::ValidationOptions::with_schema(json)
@@ -403,7 +403,7 @@ fn arg_summary_handles_a_single_command_group() {
 
 #[test]
 fn toolshed_with_tools_replaces_the_list() {
-    let shed = ToolShed::default().with_tools(vec![
+    let shed = ToolDeclarations::default().with_tools(vec![
         single("a", serde_json::json!({})),
         single("b", serde_json::json!({})),
     ]);
@@ -414,7 +414,7 @@ fn toolshed_with_tools_replaces_the_list() {
 #[test]
 fn toolshed_with_tools_overwrites_rather_than_appends() {
     // Appending would silently double-register tools across two calls.
-    let shed = ToolShed::default()
+    let shed = ToolDeclarations::default()
         .with_tools(vec![single("first", serde_json::json!({}))])
         .with_tools(vec![single("second", serde_json::json!({}))]);
     let names: Vec<&str> = shed.tools.iter().map(Tool::name).collect();
@@ -425,7 +425,7 @@ fn toolshed_with_tools_overwrites_rather_than_appends() {
 fn toolshed_all_tools_includes_the_shed_metatool_first() {
     // `all_tools` is what a provider iterates to build its tool list; the shed
     // meta-tool must lead so discovery is offered before the tools it finds.
-    let shed = ToolShed {
+    let shed = ToolDeclarations {
         shed: Some(single("shed", serde_json::json!({}))),
         tools: vec![single("read", serde_json::json!({}))],
     };
@@ -436,7 +436,7 @@ fn toolshed_all_tools_includes_the_shed_metatool_first() {
 
 #[test]
 fn toolshed_all_tools_omits_an_absent_metatool() {
-    let shed = ToolShed {
+    let shed = ToolDeclarations {
         shed: None,
         tools: vec![single("read", serde_json::json!({}))],
     };

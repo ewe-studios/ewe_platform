@@ -403,7 +403,7 @@ pub fn last_user_contains(needle: &str) -> impl Fn(&ModelInteraction) -> bool + 
     }
 }
 
-/// True when the `ToolShed` contains a tool named `name`.
+/// True when the `ToolDeclarations` contains a tool named `name`.
 pub fn tools_shed_has(name: impl Into<String>) -> impl Fn(&ModelInteraction) -> bool + Send + Sync {
     let name = name.into();
     move |mi: &ModelInteraction| mi.tools_shed.all_tools().iter().any(|t| t.name() == name)
@@ -455,7 +455,7 @@ impl MockTool {
             name: name.into(),
             description: "mock tool".into(),
             // Default to a recognized category so the tool actually populates
-            // the ToolShed handed to the model (build_toolshed groups by
+            // the ToolDeclarations handed to the model (build_toolshed groups by
             // category). "mock" is not a recognized slot; "shell" is.
             category: "shell".into(),
             behavior,
@@ -470,7 +470,7 @@ impl MockTool {
         self
     }
 
-    /// Builder: set the tool category (drives which ToolShed slot it fills).
+    /// Builder: set the tool category (drives which `ToolDeclarations` slot it fills).
     #[must_use]
     pub fn with_category(mut self, category: impl Into<String>) -> Self {
         self.category = category.into();

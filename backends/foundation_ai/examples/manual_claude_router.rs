@@ -17,10 +17,6 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
     RoutingRule, TextContent, UserModelContent,
 };
-use foundation_ai::{
-    agentic::{AgentConfig, AgentSession},
-    types::ToolShed,
-};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
@@ -73,7 +69,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // --- Step 4: Build the session ---
     let agent = AgentSession::builder(router)
-        .with_toolshed(ToolShed::default())
         .with_model(ModelId::Name("claude-opus-4-8".into(), None))
         .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
         .with_config(AgentConfig {

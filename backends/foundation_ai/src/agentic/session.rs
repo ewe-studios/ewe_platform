@@ -5,9 +5,9 @@
 //! `TokenLedger`, `LoopDetector`, `CircuitBreaker`, and `ProviderRouter` by
 //! hand. One builder, one handle, one lifecycle.
 //!
-//! WHAT: `AgentSession` — a builder taking a `ProviderRouter` (F12) and
-//! optional stores (typestate), preflight validation (tools registered,
-//! access, budget) BEFORE scheduling onto valtron, `run_turn` /
+//! WHAT: `AgentSession` — a builder taking a `ProviderRouter` (F12), optional
+//! stores (typestate) and a `ToolShed` (the session's tools), preflight
+//! validation (access, budget) BEFORE scheduling onto valtron, `run_turn` /
 //! `run_turn_stream` / `steer` / `follow_up` / `end`, and resume by id
 //! (`with_session_id` / `resume`, Decision 01 order).
 //!
@@ -34,9 +34,10 @@ use crate::agentic::memory_store::{KvMemoryStore, MemoryStore};
 use crate::agentic::message_api::MessageApi;
 use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
-use crate::agentic::tool_impl::{ToolCallManager, ToolImpl};
+use crate::agentic::tool_impl::ToolCallManager;
+use crate::agentic::toolshed::{SessionParts, ToolShed};
 use crate::agentic::ErrorPolicy;
-use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, ToolShed};
+use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord};
 
 // ---------------------------------------------------------------------------
 // AgentSession
@@ -55,8 +56,8 @@ use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, 
 /// teardown).
 ///
 /// HOW: Built via `AgentSession::builder(router)`. `build()` wires
-/// `SessionInner`, runs preflight (tools registered, access, budget),
-/// returns `AgentSession`. `run_turn_stream`
+/// `SessionInner`, builds the tools from the `ToolShed`, runs preflight
+/// (access, budget), returns `AgentSession`. `run_turn_stream`
 /// pushes the user's prompt, constructs an `AgentLoop`, and schedules it
 /// via `execute()` — which cfg-selects the sendables or `non_sendables`
 /// executor based on the `multi` feature.
@@ -75,14 +76,15 @@ impl<D, M> Clone for AgentSession<D, M> {
 struct SessionInner<D, M> {
     session_id: SessionId,
     router: ProviderRouter,
-    toolshed: ToolShed,
     tool_manager: ToolCallManager,
     queues: SteeringQueues,
-    memory: MemoryHierarchy<M, D>,
+    /// Shared with tools built from `SessionParts`.
+    memory: Arc<MemoryHierarchy<M, D>>,
     message_api: MessageApi<D>,
     policy: ErrorPolicy,
     ledger: TokenLedger,
-    context_provider: ContextProvider<D, M>,
+    /// Shared with tools built from `SessionParts`.
+    context_provider: Arc<ContextProvider<D, M>>,
     access: Arc<dyn SessionAccessProvider>,
     user: UserId,
     config: AgentConfig,
@@ -114,8 +116,6 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
     require_existing: bool,
     router: ProviderRouter,
     toolshed: ToolShed,
-    /// Tools registered on the session's `ToolCallManager` before preflight.
-    tools: Vec<Arc<dyn ToolImpl>>,
     access: Arc<dyn SessionAccessProvider>,
     user: UserId,
     policy: Option<ErrorPolicy>,
@@ -187,8 +187,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             session_id: SessionId::new(),
             require_existing: false,
             router,
-            toolshed: ToolShed::default(),
-            tools: Vec::new(),
+            toolshed: ToolShed::new(),
             access: Arc::new(AllowAllAccess),
             user: UserId("local".into()),
             model: None,
@@ -213,7 +212,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             require_existing: self.require_existing,
             router: self.router,
             toolshed: self.toolshed,
-            tools: self.tools,
             access: self.access,
             user: self.user,
             policy: self.policy,
@@ -272,29 +270,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self.map_stores(|doc_store, _| (doc_store, store))
     }
 
-    /// Declare the tools the session must expose; `build()` fails unless each
-    /// one is registered (via [`with_tool`](Self::with_tool) /
-    /// [`with_tools`](Self::with_tools)).
+    /// The tools the session can call — the only way to give a session tools.
     ///
-    /// You rarely need this: the model is offered whatever is registered on the
-    /// session's `ToolCallManager`, so registering tools is enough.
+    /// `build()` constructs every tool in the shed (session-dependent ones from
+    /// the session's parts) and the result is the session's `ToolCallManager`.
+    /// The model is offered the built-in `shed` meta-tool; the tools `shed`
+    /// returns become active and are declared on later requests.
     #[must_use]
     pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self {
         self.toolshed = toolshed;
-        self
-    }
-
-    /// Register a tool on the session's `ToolCallManager` at `build()`.
-    #[must_use]
-    pub fn with_tool(mut self, tool: Arc<dyn ToolImpl>) -> Self {
-        self.tools.push(tool);
-        self
-    }
-
-    /// Register several tools at `build()` (e.g. `ToolPreset::tools().to_vec()`).
-    #[must_use]
-    pub fn with_tools(mut self, tools: impl IntoIterator<Item = Arc<dyn ToolImpl>>) -> Self {
-        self.tools.extend(tools);
         self
     }
 
@@ -377,9 +361,11 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// data. (The hierarchy used to get its own default-constructed stores, so
     /// memory it wrote never reached the assembled context.)
     ///
-    /// Preflight checks (OD-20-2): (1) every `ToolShed` tool is registered with
-    /// the `ToolCallManager`, (2) access provider permits session + model,
-    /// (3) budget is retrieved and applied to the ledger. If any check fails,
+    /// The toolshed then builds the session's `ToolCallManager` from the
+    /// session's parts, so every tool is registered by construction.
+    ///
+    /// Preflight checks (OD-20-2): (1) access provider permits session + model,
+    /// (2) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
@@ -404,7 +390,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             }
         }
 
-        let context_provider = {
+        let embedder = self.embedder;
+        let context_provider = Arc::new({
             let cp = ContextProvider::new(
                 session_id.clone(),
                 message_api.clone(),
@@ -414,25 +401,33 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
                 self.context_config,
             );
             // Wire the embedder for real semantic recall (F16) when provided.
-            match self.embedder {
-                Some((embedder, model)) => cp.with_embedder(embedder, model),
+            match &embedder {
+                Some((embedder, model)) => cp.with_embedder(Arc::clone(embedder), model.clone()),
                 None => cp,
             }
-        };
+        });
 
-        let tool_manager = ToolCallManager::new(session_id.clone());
-        for tool in self.tools {
-            tool_manager.register(tool);
-        }
         let queues = SteeringQueues::new();
 
         let coordinator = MemoryCoordinator::from_shared(memory_store, doc_store);
-        let memory = MemoryHierarchy::new(
+        let memory = Arc::new(MemoryHierarchy::new(
             session_id.clone(),
             coordinator,
             ledger.clone(),
             self.memory_config,
-        );
+        ));
+
+        // The shed's output is the session's tool manager.
+        let parts = SessionParts {
+            session_id: session_id.clone(),
+            context: Arc::clone(&context_provider) as _,
+            memory: Arc::clone(&memory) as _,
+            embedder,
+        };
+        let tool_manager = self
+            .toolshed
+            .build(&parts)
+            .map_err(|e| ErrorTrace::new(AgenticError::from(e)))?;
 
         // The dedicated builder methods override the matching `AgentConfig`
         // fields only when they were called — otherwise values supplied through
@@ -452,7 +447,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             session_id,
             policy: self.policy.unwrap_or_default(),
             router: self.router,
-            toolshed: self.toolshed,
             tool_manager,
             queues,
             memory,
@@ -477,20 +471,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
 impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
-        let registered = self.tool_manager.names();
-        let shed_name = self.toolshed.shed.as_ref().map(|t| t.name());
-        for tool in self.toolshed.all_tools() {
-            if shed_name == Some(tool.name()) {
-                continue;
-            }
-            if !registered.contains(&tool.name().to_string()) {
-                return Err(ErrorTrace::new(AgenticError::Session(format!(
-                    "toolshed tool '{}' not registered with ToolCallManager",
-                    tool.name()
-                ))));
-            }
-        }
-
         if !self
             .access
             .can_access_session(&self.user, &self.session_id)
@@ -595,14 +575,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 
         let agent_loop = AgentLoop::new(
             self.inner.session_id.clone(),
-            self.inner.context_provider.clone(),
+            (*self.inner.context_provider).clone(),
             self.inner.tool_manager.clone(),
             SteeringQueues::from_shared(
                 self.inner.queues.priority.clone(),
                 self.inner.queues.follow_up.clone(),
                 self.inner.queues.cancel_signal.clone(),
             ),
-            self.inner.memory.clone(),
+            (*self.inner.memory).clone(),
             self.inner.message_api.clone(),
             self.inner.ledger.clone(),
             self.inner.policy.clone(),

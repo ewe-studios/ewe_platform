@@ -703,12 +703,12 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         // Ephemeral context-pressure layer (OD-19-7).
         let system_prompt = self.apply_context_pressure(&ctx);
 
-        // Build the model interaction.
-        let toolshed = self.tool_manager.build_toolshed();
+        // Build the model interaction. The model is offered `shed` plus the
+        // tools `shed` has handed out so far — not every registered tool.
         let interaction = ModelInteraction {
             system_prompt: system_prompt.or(ctx.system_prompt),
             soul: None,
-            tools_shed: toolshed,
+            tools_shed: self.tool_manager.offered_tools(),
             messages: ctx.messages,
             chat_template: None,
             tool_choice: None,
@@ -1229,22 +1229,26 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             // same as any other tool failure.
             let denied = match self.access.can_use_tool(&self.user, &call.name) {
                 Ok(true) => None,
-                Ok(false) => Some(format!(
-                    "user '{}' is not authorized to use tool '{}'",
-                    self.user.0, call.name
-                )),
-                Err(err) => Some(format!("authorization check failed: {}", err.reason)),
+                Ok(false) => Some(ToolError::Execution {
+                    tool: call.name.clone(),
+                    reason: format!(
+                        "user '{}' is not authorized to use tool '{}'",
+                        self.user.0, call.name
+                    ),
+                }),
+                Err(err) => Some(ToolError::Execution {
+                    tool: call.name.clone(),
+                    reason: format!("authorization check failed: {}", err.reason),
+                }),
             };
+            // The model may only call `shed` and the tools `shed` has
+            // returned; anything else gets an error telling it to look first.
+            let refused = denied.or_else(|| mgr.check_offered(&call.name).err());
             let fut: core::pin::Pin<
                 Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
-            > = match denied {
+            > = match refused {
                 None => Box::pin(async move { mgr.execute_with_retry(&call, &retry_config).await }),
-                Some(reason) => Box::pin(async move {
-                    Err(ToolError::Execution {
-                        tool: call.name,
-                        reason,
-                    })
-                }),
+                Some(err) => Box::pin(async move { Err(err) }),
             };
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));

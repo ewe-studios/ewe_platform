@@ -19,8 +19,8 @@ use foundation_ai::backends::openai_provider::{
 };
 use foundation_ai::types::{
     CostStatus, ImageContent, MessageRole, Messages, MimeType, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProviders, ModelUsageCosting, StopReason, TextContent, ToolShed,
-    UsageCosting, UsageReport, UserModelContent,
+    ModelOutput, ModelParams, ModelProviders, ModelUsageCosting, StopReason, TextContent,
+    ToolDeclarations, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ fn interaction_with_assistant_image(mime: MimeType) -> ModelInteraction {
             signature: None,
             metadata: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -187,7 +187,7 @@ fn an_assistant_embedding_contributes_no_message() {
             signature: None,
             metadata: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

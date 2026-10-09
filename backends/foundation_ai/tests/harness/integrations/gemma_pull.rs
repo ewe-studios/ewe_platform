@@ -24,8 +24,8 @@ use foundation_ai::backends::huggingface_gguf_provider::{
 };
 use foundation_ai::harness::{self, Gemma4E2b};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, TextContent,
-    ToolShed, UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider,
+    TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 
@@ -69,7 +69,7 @@ fn hello_interaction() -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }

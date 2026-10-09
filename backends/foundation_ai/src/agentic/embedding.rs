@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::errors::GenerationError;
 use crate::types::{
     BoxModel, CostStatus, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput,
-    ModelProviders, ProviderRouter, RouterError, StopReason, TextContent, ToolShed,
+    ModelProviders, ProviderRouter, RouterError, StopReason, TextContent, ToolDeclarations,
     UserModelContent, UsageCosting, UsageReport,
 };
 
@@ -284,7 +284,7 @@ fn make_embedding_interaction(text: &str) -> ModelInteraction {
     ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
         messages: vec![

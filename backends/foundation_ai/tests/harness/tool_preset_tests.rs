@@ -2,8 +2,8 @@
 //!
 //! WHY: `ToolPreset` is the one-call way to provision an agent's tools and the
 //! source of `child_tools` for the F15 agent tool. Its per-tool constructors
-//! (`files`, `memory`, `shed`) and the composites (`minimal_sub_agent`,
-//! `standard`) were untested — only `shell()` and `agent()` had coverage — so a
+//! (`files`, `memory`, `search_context`, `session_memory`) and the composites
+//! (`minimal_sub_agent`, `standard`) were untested — only `shell()` and `agent()` had coverage — so a
 //! preset could silently ship the wrong tool set.
 //!
 //! WHAT: asserts each constructor produces exactly the tools it claims (by
@@ -21,16 +21,12 @@ use foundation_ai::agentic::memory_coordinator::MemoryCoordinator;
 use foundation_ai::agentic::memory_store::KvMemoryStore;
 use foundation_ai::agentic::token_ledger::TokenLedger;
 use foundation_ai::agentic::tool_impl::ToolCallManager;
-use foundation_ai::agentic::{
-    CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector, ToolDiscovery, UserId,
-};
+use foundation_ai::agentic::{ToolImpl, ToolShed, ToolShedError, UserId};
 use foundation_ai::harness::ToolPreset;
 use foundation_ai::types::routable_provider::ProviderRouter;
 use foundation_ai::types::{ModelId, SessionId, Tool};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_nativeapis::MemoryFs;
-use foundation_vectors::metric::DistanceMetric;
-use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};
 
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
@@ -61,51 +57,18 @@ fn empty_router() -> ProviderRouter {
     ProviderRouter::builder().build()
 }
 
-/// A deterministic stand-in embedder: `ToolDiscovery` only needs *an*
-/// `EmbeddingProvider` to construct, and these tests assert on which tools a
-/// preset contains, never on semantic search quality.
-struct StubEmbedder;
-
-impl EmbeddingProvider for StubEmbedder {
-    fn embed(&self, _text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
-        Ok(EmbeddingVector {
-            data: vec![0.0; 4],
-            dimensions: 4,
-            model_id: "stub".into(),
-        })
-    }
-    fn embed_batch(
-        &self,
-        texts: &[String],
-        model_id: &str,
-    ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
-    }
-    fn register_model(&self, _model_id: &str, _dimensions: u16) {}
-    fn cache_stats(&self) -> CacheStats {
-        CacheStats::default()
-    }
-    fn clear_cache(&self) {}
-}
-
-fn discovery() -> Arc<ToolDiscovery> {
-    let store = Arc::new(InMemoryVectorStore::new(VectorStoreConfig::new(4, DistanceMetric::Cosine)));
-    Arc::new(ToolDiscovery::new(
-        store,
-        Arc::new(StubEmbedder),
-        "stub".into(),
-    ))
-}
-
 /// Registry names of every tool in a preset, sorted for stable comparison.
 fn names(preset: &ToolPreset) -> Vec<String> {
-    let mut n: Vec<String> = preset
-        .tools()
-        .iter()
-        .map(|t| t.definition().name().to_string())
-        .collect();
+    let mut n: Vec<String> = preset.names().into_iter().map(String::from).collect();
     n.sort();
     n
+}
+
+/// The single ready-made tool in a preset.
+fn only_tool(preset: &ToolPreset) -> Arc<dyn ToolImpl> {
+    let mut tools = preset.as_child_tools().expect("ready-made preset");
+    assert_eq!(tools.len(), 1);
+    tools.remove(0)
 }
 
 // ---------------------------------------------------------------------------
@@ -131,7 +94,7 @@ fn memory_preset_provides_one_multicommand_tool() {
     assert_eq!(names(&p), vec!["memory"]);
 
     // memory is a MultiCommands tool exposing add/remove/replace (F14/F19).
-    match p.tools()[0].definition() {
+    match only_tool(&p).definition() {
         Tool::MultiCommands(name, cmds) => {
             assert_eq!(name, "memory");
             let mut sub: Vec<&str> = cmds.iter().map(|c| c.name.as_str()).collect();
@@ -155,7 +118,7 @@ fn agent_preset_provides_the_six_command_agent_tool() {
     );
     assert_eq!(names(&p), vec!["agent"]);
 
-    match p.tools()[0].definition() {
+    match only_tool(&p).definition() {
         Tool::MultiCommands(name, cmds) => {
             assert_eq!(name, "agent");
             let mut sub: Vec<&str> = cmds.iter().map(|c| c.name.as_str()).collect();
@@ -189,25 +152,53 @@ fn minimal_sub_agent_excludes_delegation_and_memory() {
 }
 
 #[test]
-fn shed_preset_provides_the_discovery_metatool() {
-    let p = ToolPreset::shed(discovery());
-    assert_eq!(names(&p), vec!["shed"]);
-}
-
-#[test]
-fn standard_is_files_shell_memory_and_shed() {
-    let p = ToolPreset::standard(fs(), hierarchy(), discovery());
-    assert_eq!(
-        names(&p),
-        vec!["bash", "edit", "memory", "read", "shed", "write"]
-    );
+fn standard_is_files_shell_and_session_memory() {
+    let p = ToolPreset::standard(fs());
+    assert_eq!(names(&p), vec!["bash", "edit", "memory", "read", "write"]);
 }
 
 #[test]
 fn standard_excludes_the_agent_tool() {
     // Delegation is opt-in — `standard` must not silently grant it.
-    let n = names(&ToolPreset::standard(fs(), hierarchy(), discovery()));
+    let n = names(&ToolPreset::standard(fs()));
     assert!(!n.contains(&"agent".to_string()), "got: {n:?}");
+}
+
+// ---------------------------------------------------------------------------
+// Session-dependent presets
+// ---------------------------------------------------------------------------
+
+#[test]
+fn search_context_and_session_memory_are_named_constructors() {
+    assert_eq!(names(&ToolPreset::search_context()), vec!["search_context"]);
+    assert_eq!(names(&ToolPreset::session_memory()), vec!["memory"]);
+}
+
+#[test]
+fn session_dependent_presets_need_a_session() {
+    let mgr = ToolCallManager::new(SessionId::new());
+    let preset = ToolPreset::files(fs()).merge(ToolPreset::search_context());
+
+    assert_eq!(
+        preset.register_all(&mgr),
+        Err(ToolShedError::NeedsSession("search_context".into()))
+    );
+    assert!(mgr.names().is_empty(), "nothing is registered on failure");
+    assert!(preset.as_child_tools().is_err());
+}
+
+#[test]
+fn a_preset_is_an_iterator_of_constructors() {
+    let shed = ToolShed::new()
+        .tools(ToolPreset::files(fs()))
+        .tools(ToolPreset::search_context());
+    assert_eq!(
+        shed.names(),
+        vec!["edit", "read", "search_context", "write"]
+    );
+    assert!(shed.get("search_context").is_some());
+    assert!(shed.get("search_context").unwrap().prebuilt().is_none());
+    assert!(shed.get("read").unwrap().prebuilt().is_some());
 }
 
 // ---------------------------------------------------------------------------
@@ -238,14 +229,16 @@ fn empty_and_default_are_empty() {
 fn from_tools_round_trips() {
     let src = ToolPreset::files(fs());
     let expected = names(&src);
-    let rebuilt = ToolPreset::from_tools(src.tools().to_vec());
+    let rebuilt = ToolPreset::from_tools(src.as_child_tools().expect("ready-made"));
     assert_eq!(names(&rebuilt), expected);
 }
 
 #[test]
 fn register_all_puts_every_tool_on_the_manager() {
     let mgr = ToolCallManager::new(SessionId::new());
-    ToolPreset::minimal_sub_agent(fs()).register_all(&mgr);
+    ToolPreset::minimal_sub_agent(fs())
+        .register_all(&mgr)
+        .expect("ready-made tools register");
 
     let mut registered = mgr.names();
     registered.sort();
@@ -254,7 +247,9 @@ fn register_all_puts_every_tool_on_the_manager() {
 
 #[test]
 fn into_manager_matches_register_all() {
-    let mgr = ToolPreset::minimal_sub_agent(fs()).into_manager(SessionId::new());
+    let mgr = ToolPreset::minimal_sub_agent(fs())
+        .into_manager(SessionId::new())
+        .expect("ready-made tools register");
     let mut registered = mgr.names();
     registered.sort();
     assert_eq!(registered, vec!["bash", "edit", "read", "write"]);
@@ -263,7 +258,7 @@ fn into_manager_matches_register_all() {
 #[test]
 fn as_child_tools_clones_without_consuming() {
     let p = ToolPreset::files(fs());
-    let children = p.as_child_tools();
+    let children = p.as_child_tools().expect("ready-made tools");
     assert_eq!(children.len(), 3);
     // The preset is untouched — Arc clone, not a move.
     assert_eq!(p.len(), 3);
@@ -271,10 +266,12 @@ fn as_child_tools_clones_without_consuming() {
 
 #[test]
 fn preset_tools_survive_into_a_toolshed() {
-    // End-to-end: preset → manager → ToolShed is what an agent session actually
+    // End-to-end: preset → manager → ToolDeclarations is what an agent session actually
     // hands the model, so verify the tools arrive there.
-    let mgr = ToolPreset::minimal_sub_agent(fs()).into_manager(SessionId::new());
-    let shed = mgr.build_toolshed();
+    let mgr = ToolPreset::minimal_sub_agent(fs())
+        .into_manager(SessionId::new())
+        .expect("ready-made tools register");
+    let shed = mgr.all_declarations();
 
     let mut shed_names: Vec<String> =
         shed.tools.iter().map(|t| t.name().to_string()).collect();

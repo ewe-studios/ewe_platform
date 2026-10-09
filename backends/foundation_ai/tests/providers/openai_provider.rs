@@ -22,7 +22,7 @@ use foundation_ai::backends::openai_responses_provider::{
 
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    StopReason, TextContent, ToolShed, UserModelContent,
+    StopReason, TextContent, ToolDeclarations, UserModelContent,
 };
 
 use foundation_ai::types::*;
@@ -105,7 +105,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -574,7 +574,7 @@ fn test_build_response_input_from_messages() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -1103,7 +1103,7 @@ fn test_build_chat_request_with_new_fields() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: Some(ToolChoice::Auto),
     };
@@ -1336,8 +1336,8 @@ fn build_chat_request_covers_tool_and_format_branches() {
 
     use foundation_ai::types::{
         CostStatus, JsonSchema, MessageRole, Messages, ModelInteraction, ModelOutput, ModelParams,
-        OutputFormat, TextContent, Tool, ToolChoice, ToolChoiceFunction, ToolFunctionRef, ToolShed,
-        UsageCosting, UsageReport, UserModelContent,
+        OutputFormat, TextContent, Tool, ToolChoice, ToolChoiceFunction, ToolDeclarations,
+        ToolFunctionRef, UsageCosting, UsageReport, UserModelContent,
     };
 
     let zero_usage = UsageReport {
@@ -1409,7 +1409,7 @@ fn build_chat_request_covers_tool_and_format_branches() {
                 signature: None,
             },
         ],
-        tools_shed: ToolShed::default().with_tool(read_tool),
+        tools_shed: ToolDeclarations::default().with_tool(read_tool),
         chat_template: None,
         tool_choice: Some(ToolChoice::Function(ToolChoiceFunction {
             tool_type: "function".to_string(),
@@ -1450,7 +1450,7 @@ fn build_chat_request_covers_tool_and_format_branches() {
 fn build_chat_request_output_format_and_tool_choice_simple_arms() {
     use foundation_ai::types::{
         MessageRole, Messages, ModelInteraction, ModelParams, OutputFormat, TextContent,
-        ToolChoice, ToolShed, UserModelContent,
+        ToolChoice, ToolDeclarations, UserModelContent,
     };
 
     fn interaction(tc: ToolChoice) -> ModelInteraction {
@@ -1466,7 +1466,7 @@ fn build_chat_request_output_format_and_tool_choice_simple_arms() {
                 }),
                 signature: None,
             }],
-            tools_shed: ToolShed::default(),
+            tools_shed: ToolDeclarations::default(),
             chat_template: None,
             tool_choice: Some(tc),
         }
@@ -1500,7 +1500,7 @@ fn build_response_input_covers_all_message_branches() {
         build_response_input, ResponseInput, ResponseInputItem,
     };
     use foundation_ai::types::{
-        ImageContent, MessageRole, MimeType, ModelInteraction, ModelOutput, ToolShed,
+        ImageContent, MessageRole, MimeType, ModelInteraction, ModelOutput, ToolDeclarations,
     };
 
     let interaction = ModelInteraction {
@@ -1573,7 +1573,7 @@ fn build_response_input_covers_all_message_branches() {
                 signature: None,
             },
         ],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -1590,7 +1590,7 @@ fn build_response_input_covers_all_message_branches() {
         system_prompt: None,
         soul: None,
         messages: vec![],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

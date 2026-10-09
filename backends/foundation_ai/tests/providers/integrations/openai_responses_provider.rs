@@ -12,7 +12,7 @@ use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, Respon
 use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, StopReason,
-    TextContent, ToolShed, UserModelContent,
+    TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
@@ -63,7 +63,7 @@ fn test_llama_server_responses_generate() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -107,7 +107,7 @@ fn test_llama_server_responses_stream() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

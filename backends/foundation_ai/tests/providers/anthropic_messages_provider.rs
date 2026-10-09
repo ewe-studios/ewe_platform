@@ -8,9 +8,9 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    Args, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason,
-    TextContent, Tool, ToolDefinition, ToolShed, UserModelContent,
+    Args, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput,
+    ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason, TextContent, Tool,
+    ToolDeclarations, ToolDefinition, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
@@ -69,7 +69,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -319,7 +319,7 @@ fn test_provider_generate_multimodal() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -815,7 +815,7 @@ fn test_build_anthropic_request_basic() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -849,7 +849,7 @@ fn test_build_anthropic_request_with_tools() {
     let interaction = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: ToolShed {
+        tools_shed: ToolDeclarations {
             shed: Some(test_tool.clone()),
             tools: vec![test_tool.clone(), test_tool.clone()],
         },
@@ -882,7 +882,7 @@ fn test_build_anthropic_request_image() {
             }),
             signature: None,
         }],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -939,7 +939,7 @@ fn test_build_anthropic_request_tool_result() {
                 signature: None,
             },
         ],
-        tools_shed: ToolShed::default(),
+        tools_shed: ToolDeclarations::default(),
         chat_template: None,
         tool_choice: None,
     };

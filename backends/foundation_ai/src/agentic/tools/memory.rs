@@ -23,6 +23,7 @@ use foundation_db::traits::DocumentStore;
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::toolshed::MemoryAccess;
 use crate::types::base_types::Args;
 use crate::types::{
     ArgType, MemoryFact, SessionRecord, TextContent, Tool, UserModelContent,
@@ -82,14 +83,29 @@ fn new_fact(text: String) -> MemoryFact {
 // ---------------------------------------------------------------------------
 
 /// The `memory` tool: `add` / `remove` / `replace` over Tier-1 working memory.
-pub struct MemoryTool<M, D> {
-    hierarchy: Arc<MemoryHierarchy<M, D>>,
+///
+/// Holds the session's memory behind [`MemoryAccess`], so the tool type
+/// doesn't carry the store types.
+pub struct MemoryTool {
+    hierarchy: Arc<dyn MemoryAccess>,
 }
 
-impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryTool<M, D> {
+impl MemoryTool {
+    /// The tool over a memory hierarchy.
     #[must_use]
-    pub fn new(hierarchy: Arc<MemoryHierarchy<M, D>>) -> Self {
+    pub fn new<M, D>(hierarchy: Arc<MemoryHierarchy<M, D>>) -> Self
+    where
+        M: MemoryStore + 'static,
+        D: DocumentStore + 'static,
+    {
         Self { hierarchy }
+    }
+
+    /// The tool over any shared [`MemoryAccess`] — e.g. `SessionParts::memory`
+    /// inside a `ToolShed` constructor.
+    #[must_use]
+    pub fn from_shared(memory: Arc<dyn MemoryAccess>) -> Self {
+        Self { hierarchy: memory }
     }
 
     /// Read the latest working-memory facts + version (empty at version 0 when
@@ -97,8 +113,7 @@ impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryTool<M, D> {
     async fn current_working(&self) -> Result<(Vec<MemoryFact>, u64), ToolError> {
         let memory = self
             .hierarchy
-            .coordinator()
-            .hydrate_async(self.hierarchy.session_id())
+            .hydrate()
             .await
             .map_err(|e| exec_err(format!("hydrate failed: {e}")))?;
 
@@ -156,7 +171,7 @@ impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryTool<M, D> {
 }
 
 #[async_trait]
-impl<M: MemoryStore + 'static, D: DocumentStore + 'static> ToolImpl for MemoryTool<M, D> {
+impl ToolImpl for MemoryTool {
     fn definition(&self) -> Tool {
         Tool::MultiCommands(
             TOOL.to_string(),
@@ -208,8 +223,8 @@ impl<M: MemoryStore + 'static, D: DocumentStore + 'static> ToolImpl for MemoryTo
     }
 }
 
-/// Register the `memory` tool onto a [`ToolCallManager`]. `build_toolshed` then
-/// surfaces it as one `MultiCommands` tool in `ToolShed.tools`.
+/// Register the `memory` tool onto a [`ToolCallManager`]. `all_declarations` then
+/// surfaces it as one `MultiCommands` tool in `ToolDeclarations.tools`.
 ///
 /// [`ToolCallManager`]: crate::agentic::tool_impl::ToolCallManager
 pub fn register_memory_tool<M, D>(

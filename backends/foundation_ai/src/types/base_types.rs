@@ -1431,12 +1431,16 @@ pub struct ToolFunctionRef {
     pub name: String,
 }
 
-/// The set of tools a model is offered (F19). No capability is privileged with a
-/// dedicated field: `shed` is the optional discovery meta-tool, and everything
+/// The tool declarations sent with one model request (F19) — definitions
+/// only, no implementations. `shed` is the discovery meta-tool, and everything
 /// else — `read`, `write`, `memory` (multi), `delegate` (multi), … — lives in
 /// `tools` as a `Tool` (single or multi command).
+///
+/// An agent session fills this from its `ToolCallManager`: `shed` plus the
+/// tools `shed` has activated so far. (This type was called `ToolShed` before
+/// `agentic::ToolShed` became the builder that owns a session's tools.)
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct ToolShed {
+pub struct ToolDeclarations {
     /// The `shed` meta-tool — when present, tells the agent to query the
     /// `ToolCallManager` for any tools registered into its internal store.
     /// `None` when the model should have zero tools.
@@ -1446,7 +1450,7 @@ pub struct ToolShed {
     pub tools: Vec<Tool>,
 }
 
-impl Default for ToolShed {
+impl Default for ToolDeclarations {
     fn default() -> Self {
         Self {
             shed: Some(Tool::SingleCommand(ToolDefinition {
@@ -1462,7 +1466,7 @@ impl Default for ToolShed {
     }
 }
 
-impl ToolShed {
+impl ToolDeclarations {
     /// Add one tool (single or multi command) to the shed.
     #[must_use]
     pub fn with_tool(mut self, tool: Tool) -> Self {
@@ -1494,7 +1498,7 @@ impl ToolShed {
 pub struct ModelInteraction {
     pub system_prompt: Option<String>,
     pub soul: Option<String>,
-    pub tools_shed: ToolShed,
+    pub tools_shed: ToolDeclarations,
     pub messages: Vec<Messages>,
     pub chat_template: Option<String>,
     /// Strategy for tool selection. When `None`, the provider's default

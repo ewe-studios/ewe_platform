@@ -17,10 +17,6 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
     RoutingRule, TextContent, UserModelContent,
 };
-use foundation_ai::{
-    agentic::{AgentConfig, AgentSession},
-    types::ToolShed,
-};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
@@ -81,7 +77,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let router = build_openrouter_router(&api_key, PRIMARY, None);
 
     let agent = AgentSession::builder(router)
-        .with_toolshed(ToolShed::default())
         .with_model(ModelId::Name(PRIMARY.into(), None))
         .with_config(AgentConfig {
             max_outer_iterations: 3,
