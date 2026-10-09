@@ -1,0 +1,32 @@
+# ewe-test-linux — Linux desktop test environment.
+#
+# Start:  docker compose up -d
+# VNC:    vnc://localhost:5900
+# Web:    http://localhost:6080/vnc.html
+# SSH:    ssh developer@localhost -p 2222 (mount your key first)
+#
+# The container runs an X11 desktop with VNC. Tauri tests use this as the
+# display target — the app opens windows on the virtual X display, visible
+# through the VNC connection.
+services:
+  linux:
+    build:
+      context: .
+    environment:
+      DEV_USER: developer
+      RESOLUTION: 1280x720
+    volumes:
+      # Mount your SSH public key for test command dispatch
+      - ~/.ssh/id_ed25519.pub:/tmp/authorized_keys:ro
+      # Mount Docker socket so tests can build/run containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Workspace volume for compiled artifacts + test outputs
+      - test_workspace:/workspace
+    ports:
+      - "2222:22"      # SSH
+      - "5900:5900"    # VNC
+      - "6080:6080"    # noVNC web client
+    restart: unless-stopped
+
+volumes:
+  test_workspace:

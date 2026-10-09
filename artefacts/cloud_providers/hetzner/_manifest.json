@@ -1,0 +1,22 @@
+{
+  "canonical_sha256": "ab4308023774155f9b9990f4119db072ab18790c1242867220864e6fe4ea3779",
+  "hoisted": 633,
+  "normalized_at": "1784275735",
+  "openapi": "3.1.2",
+  "provider": "hetzner",
+  "raw": "artefacts/cloud_providers/raw/hetzner.json",
+  "raw_sha256": "ad5e876499bd3b8da214b3030b76e8a81b114a719e8d0ec2318ac36f5cad4444",
+  "renamed": 0,
+  "schemas": 1852,
+  "source": "https://docs.hetzner.cloud/cloud.spec.json",
+  "spec_files": [
+    "hetzner/openapi.json"
+  ],
+  "spec_version": "1.0.0",
+  "transforms": [
+    "strip_doc_only",
+    "ensure_servers",
+    "normalize_nullable_types",
+    "canonicalize_operations"
+  ]
+}

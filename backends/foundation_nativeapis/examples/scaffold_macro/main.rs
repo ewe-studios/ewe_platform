@@ -1,6 +1,6 @@
 use foundation_macros::scaffold_impl;
 use foundation_nativeapis::shared::vfs::{
-    MemoryFs, OpenMode, VfsCapabilities, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
+    MemoryFs, OpenMode, VfsCapabilities, VfsFileSystem,
     VfsMetadata, VfsResult,
 };
 

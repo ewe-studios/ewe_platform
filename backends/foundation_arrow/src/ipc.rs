@@ -45,7 +45,7 @@ pub fn encode_ipc_batches(batches: &[RecordBatch]) -> IpcResult<Vec<u8>> {
     let schema = batches[0].schema_ref();
     let mut buffer = Vec::new();
     {
-        let mut writer = FileWriter::try_new(&mut buffer, &schema)?;
+        let mut writer = FileWriter::try_new(&mut buffer, schema)?;
         for batch in batches {
             writer.write(batch)?;
         }

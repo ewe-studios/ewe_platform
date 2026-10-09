@@ -53,6 +53,24 @@ publish:
 	$(foreach var,$(PACKAGES), cargo publish --package $(var);)
 
 # ============================================================================
+# Per-package CI (mirrors .github/workflows/check.yaml; settings in ci/packages.toml)
+# ============================================================================
+
+.PHONY: ci-list ci-plan ci-package
+
+ci-list:
+	@python3 scripts/ci/ci.py list
+
+# Packages a change affects, relative to BASE (default: origin/master).
+ci-plan:
+	@python3 scripts/ci/ci.py plan --base $(or $(BASE),origin/master) --head HEAD
+
+# fmt + clippy + tests for one package, exactly as CI runs them.
+ci-package:
+	@test -n "$(PACKAGE)" || (echo "usage: make ci-package PACKAGE=<name> [STEP=fmt|clippy|test]" && exit 2)
+	@python3 scripts/ci/ci.py run $(PACKAGE) $(if $(STEP),--step $(STEP),)
+
+# ============================================================================
 # Git development commands
 # ============================================================================
 
@@ -285,6 +303,42 @@ doc-nostd:
 	@cargo doc --package foundation_nostd --no-deps --all-features --open
 
 # ============================================================================
+# Docker Development Environment (spec-52 F29 Stage 1)
+# ============================================================================
+
+.PHONY: dev ios android docker-stop docker-clean
+
+# Boot all Docker services (macOS + Android) for full-stack development.
+dev:
+	@echo "Starting development environment (macOS + Android)..."
+	docker compose up macos android -d
+	@echo "✓ macOS:   VNC at localhost:5900"
+	@echo "✓ Android: Web UI at localhost:8007"
+	@echo "  First boot takes 10-15 minutes — macOS downloads base images."
+
+# Boot macOS Docker service for iOS development (Xcode + simulator).
+ios:
+	@echo "Starting macOS VM for iOS development..."
+	docker compose up macos -d
+	@echo "✓ macOS: VNC at localhost:5900"
+	@echo "  First boot takes 10-15 minutes. Connect via VNC, open Xcode."
+
+# Boot Android Docker service for Android development (emulator).
+android:
+	@echo "Starting Android emulator..."
+	docker compose --profile android up android -d
+	@echo "✓ Android: Web UI at localhost:8007"
+	@echo "  First boot takes 5-8 minutes. ADB available inside container."
+
+# Stop all Docker services.
+docker-stop:
+	docker compose --profile android stop
+
+# Tear down all Docker services and volumes.
+docker-clean:
+	docker compose --profile android down -v
+
+# ============================================================================
 # Help
 # ============================================================================
 
@@ -301,6 +355,9 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-all           Run all tests (unit + integration)"
+	@echo "  make ci-list            Show every package and its CI settings"
+	@echo "  make ci-plan            Packages your branch affects (BASE=origin/master)"
+	@echo "  make ci-package PACKAGE=x  Run CI's fmt/clippy/tests for one package"
 	@echo "  make test-unit          Run only unit tests (fast)"
 	@echo "  make test-integration   Run only integration tests"
 	@echo "  make test-quick         Quick smoke test"
@@ -333,6 +390,13 @@ help:
 	@echo "  make doc                Generate documentation"
 	@echo "  make doc-open           Generate and open documentation"
 	@echo "  make doc-nostd          Open foundation_nostd docs"
+	@echo ""
+	@echo "Docker Development Environment (spec-52):"
+	@echo "  make dev                Boot macOS + Android for full-stack dev"
+	@echo "  make ios                Boot macOS VM for iOS development"
+	@echo "  make android            Boot Android emulator for Android dev"
+	@echo "  make docker-stop        Stop all Docker services"
+	@echo "  make docker-clean       Tear down all Docker services + volumes"
 	@echo ""
 	@echo "Legacy (existing targets):"
 	@echo "  make nextest            Run with bacon nextest"

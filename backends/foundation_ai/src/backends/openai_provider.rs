@@ -1,37 +1,42 @@
 //! OpenAI-compatible HTTP provider for connecting to `OpenAI`, llama.cpp server,
 //! vLLM, `Ollama`, `OpenRouter`, and any `OpenAI`-compatible endpoint.
 //!
-//! Uses `foundation_core::simple_http` for HTTP I/O with Valtron `TaskIterator`/`StreamIterator`
-//! patterns — no tokio, no async-trait.
+//! Uses `foundation_netio`'s `HttpClient` (`NativeHttpClient`) for HTTP I/O with
+//! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
-use std::cell::RefCell;
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
+use crate::backends::backend_utils::{
+    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+};
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
-use foundation_netio::event_source::{
-    Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
-};
-use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
-};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::shared::client::{
+    request::Extensions,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
+};
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
+use crate::types::base_types::{
     AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter,
-    ToolShed, UsageCosting, UsageReport,
+    ModelState, ModelStreamBox, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError,
+    ToolFormatter, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -138,13 +143,13 @@ impl Clone for OpenAIConfig {
     }
 }
 
-impl crate::types::AuthProvider for OpenAIConfig {
+impl crate::types::base_types::AuthProvider for OpenAIConfig {
     fn auth(&self) -> Option<&AuthCredential> {
         self.auth.as_ref()
     }
 }
 
-impl<R: DnsResolver> OpenAIProvider<R> {
+impl OpenAIProvider {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -155,28 +160,26 @@ impl<R: DnsResolver> OpenAIProvider<R> {
 // ============================================================================
 
 /// OpenAI-compatible HTTP provider implementing [`ModelProvider`].
-pub struct OpenAIProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct OpenAIProvider {
     config: OpenAIConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache: Arc<std::sync::Mutex<HashMap<String, OpenAIModelInfo>>>,
 }
 
-impl Default for OpenAIProvider<SystemDnsResolver> {
+impl Default for OpenAIProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl OpenAIProvider<SystemDnsResolver> {
+impl OpenAIProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -187,44 +190,69 @@ impl OpenAIProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> OpenAIProvider<R> {
-    /// Creates an `OpenAIProvider` with a custom DNS resolver.
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    /// Creates an `OpenAIProvider` with a custom DNS resolver and config.
     #[must_use]
-    pub fn with_resolver_and_config(resolver: R, config: OpenAIConfig) -> Self {
+    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: OpenAIConfig) -> Self {
         Self {
             config,
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    fn auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
+    }
+
+    /// Build a JSON request for `url`.
+    ///
+    /// An empty `body` means there is no payload, which for this API is always a
+    /// read (`GET /v1/models/{id}`), so the method follows the body. Sending
+    /// those as `POST` with `content-length: 0` made the vendor answer 404 — and
+    /// because the caller falls back to synthesised model info on any error, the
+    /// lookup silently never succeeded.
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        let (method, body) = if body.is_empty() {
+            (SimpleMethod::GET, SendSafeBody::None)
+        } else {
+            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+        };
+        Ok(PreparedRequest {
+            method,
+            url: uri,
+            headers,
+            body,
+            extensions: Extensions::default(),
+        })
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -260,30 +288,17 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -301,9 +316,9 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
+impl ModelProvider for OpenAIProvider {
     type Config = OpenAIConfig;
-    type Model = OpenAIModel<OpenAIFormatter, R>;
+    type Model = OpenAIModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -333,19 +348,10 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             self.config = cfg;
         }
 
-        // Apply proxy and timeout configuration to the HTTP client.
-        let mut client = self.http_client.take().unwrap_or_default();
-
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        #[cfg(not(target_family = "wasm"))]
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::http::default_http_client());
         }
-
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -355,11 +361,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             id: "openai",
             name: "OpenAI",
             reasoning: false,
-            api: crate::types::ModelAPI::OpenAICompletions,
+            api: crate::types::base_types::ModelAPI::OpenAICompletions,
             provider: ModelProviders::OPENAI,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: crate::types::base_types::ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -381,11 +387,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
-                _formatter: std::marker::PhantomData,
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+                cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -417,11 +421,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
-            _formatter: std::marker::PhantomData,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+            cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
     }
 
@@ -475,33 +477,79 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 /// The `F` type parameter allows customizing the tool formatter. When used
 /// natively with `OpenAI` it defaults to `OpenAIFormatter`; when used as a
 /// proxy to other endpoints the caller can supply a different formatter.
-pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = SystemDnsResolver> {
+pub struct OpenAIModel {
     config: OpenAIConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
-    /// Cached model metadata from the provider (used in model identity).
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: OpenAIModelInfo,
-    _formatter: std::marker::PhantomData<F>,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
+impl OpenAIModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
+    }
+
+    /// Build a JSON request for `url`.
+    ///
+    /// An empty `body` means there is no payload, which for this API is always a
+    /// read (`GET /v1/models/{id}`), so the method follows the body. Sending
+    /// those as `POST` with `content-length: 0` made the vendor answer 404 — and
+    /// because the caller falls back to synthesised model info on any error, the
+    /// lookup silently never succeeded.
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        let (method, body) = if body.is_empty() {
+            (SimpleMethod::GET, SendSafeBody::None)
+        } else {
+            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+        };
+        Ok(PreparedRequest {
+            method,
+            url: uri,
+            headers,
+            body,
+            extensions: Extensions::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -529,37 +577,23 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
         }
     }
 
-    /// Perform a single HTTP request attempt and parse the JSON response.
     #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -586,7 +620,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             .iter()
             .filter_map(|msg| {
                 if let Messages::User {
-                    content: crate::types::UserModelContent::Text(tc),
+                    content: crate::types::base_types::UserModelContent::Text(tc),
                     ..
                 } = msg
                 {
@@ -648,8 +682,9 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             cost: emb_cost,
             ..emb_usage
         };
-        self.cumulative_cost.borrow_mut().add(&emb_usage.cost);
+        self.cumulative_cost.lock().unwrap().add(&emb_usage.cost);
         Ok(vec![Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage: emb_usage,
@@ -684,27 +719,27 @@ impl ToolFormatter for OpenAIFormatter {
         tools: &[Tool],
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         Ok(serde_json::Value::Array(
+            // One function per tool; a MultiCommands tool becomes one discriminated
+            // function (`command` selects the sub-command). See Tool::function_spec.
             tools
                 .iter()
                 .map(|tool| {
-                    // Use the Args schema if present, otherwise default to empty object
-                    let parameters = tool.arguments.as_ref().map_or_else(
-                        || {
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": {},
-                            })
-                        },
-                        |a| a.schema.clone(),
-                    );
-                    serde_json::json!({
+                    let spec = tool.function_spec();
+                    let mut func = serde_json::json!({
                         "type": "function",
                         "function": {
-                            "name": &tool.name,
-                            "description": tool.description,
-                            "parameters": parameters,
+                            "name": spec.name,
+                            "description": spec.description,
+                            "parameters": spec.parameters,
                         },
-                    })
+                    });
+                    // OpenAI: when a tool declares a return schema, signal strict
+                    // structured-output mode so the model knows its output will be
+                    // validated against that schema.
+                    if spec.returns.is_some() {
+                        func["function"]["strict"] = serde_json::json!(true);
+                    }
+                    func
                 })
                 .collect(),
         ))
@@ -752,13 +787,15 @@ impl ToolFormatter for OpenAIFormatter {
                             .and_then(|f| f.get("arguments"))
                             .and_then(|v| v.as_str())
                             .unwrap_or("{}");
-                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                        let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                             serde_json::from_str(args_str).ok();
                         calls.push(ModelOutput::ToolCall {
                             id,
                             name,
                             arguments,
                             signature: None,
+                            depends_on: Vec::new(),
+                            execution_hint: crate::types::base_types::ExecutionHint::default(),
                         });
                     }
                 }
@@ -783,7 +820,12 @@ impl ToolFormatter for OpenAIFormatter {
         &self,
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
-        let Messages::ToolResult { id, content, .. } = result else {
+        let Messages::ToolResult {
+            tool_call_id,
+            content,
+            ..
+        } = result
+        else {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
@@ -792,20 +834,23 @@ impl ToolFormatter for OpenAIFormatter {
         };
 
         let content_str = match content {
-            crate::types::UserModelContent::Text(t) => t.content.clone(),
-            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+            crate::types::base_types::UserModelContent::Text(t) => t.content.clone(),
+            crate::types::base_types::UserModelContent::Image(_) => "[image]".to_string(),
         };
 
         Ok(serde_json::json!({
             "role": "tool",
-            "tool_call_id": id,
+            "tool_call_id": tool_call_id,
             "content": content_str,
         }))
     }
 }
 
-impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
-    type Formatter = F;
+impl Model for OpenAIModel {
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(OpenAIFormatter)
+    }
+
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -821,10 +866,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             id: "openai",
             name: "OpenAI",
             reasoning: false,
-            api: crate::types::ModelAPI::OpenAICompletions,
+            api: crate::types::base_types::ModelAPI::OpenAICompletions,
             provider: ModelProviders::OPENAI,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
             cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
@@ -832,7 +877,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let cost = self.cumulative_cost.borrow().result();
+        let cost = self.cumulative_cost.lock().unwrap().result();
         Ok(UsageReport {
             input: 0.0,
             output: 0.0,
@@ -864,7 +909,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
 
         let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
-        self.cumulative_cost.borrow_mut().add(&report.cost);
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(vec![message])
     }
 
@@ -872,7 +917,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = build_chat_request(&self.model_name, &interaction, &params, true);
 
@@ -880,34 +925,18 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
         let url = self.build_url("chat/completions");
-
-        let resolver = self
-            .resolver
+        let client = self
+            .http_client
             .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::AUTHORIZATION,
-                format!(
-                    "Bearer {}",
-                    self.api_key
-                        .as_ref()
-                        .map(ConfidentialText::get)
-                        .unwrap_or_default()
-                ),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client
+            .send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
-
-        Ok(OpenAIStream {
-            inner: driven,
+        Ok(Box::new(OpenAIStream {
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             tool_calls: Vec::new(),
@@ -915,8 +944,8 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             usage: None,
             done: false,
             pricing: self.pricing,
-            cumulative_cost: Rc::clone(&self.cumulative_cost),
-        })
+            cumulative_cost: Arc::clone(&self.cumulative_cost),
+        }))
     }
 }
 
@@ -926,11 +955,11 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
 
 /// Streaming iterator that yields incremental `Messages` from an `OpenAI` SSE stream.
 ///
-/// Wraps a `ReconnectingEventSourceTask` driven iterator. For each `Event::Message`
+/// Wraps a `BoxedSseIterator` from the `HttpClient`. For each `Event::Message`
 /// containing a `ChatCompletionChunk`, yields incremental text as `Stream::Next`.
 /// On stream completion (`[DONE]`), yields the final accumulated message.
-struct OpenAIStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct OpenAIStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     tool_calls: Vec<AccumulatedToolCall>,
@@ -938,16 +967,16 @@ struct OpenAIStream<R: DnsResolver + 'static> {
     usage: Option<OpenAIUsage>,
     done: bool,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-struct AccumulatedToolCall {
-    id: String,
-    name: String,
-    arguments: String,
+pub struct AccumulatedToolCall {
+    pub id: String,
+    pub name: String,
+    pub arguments: String,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
+impl Iterator for OpenAIStream {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -958,13 +987,8 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
         let item = self.inner.next()?;
 
         match item {
-            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
-            Stream::Pending(p) => Some(Stream::Pending(match p {
-                ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
-                    ModelState::GeneratingTokens(None)
-                }
-                ReconnectingProgress::Reconnecting => ModelState::GeneratingTokens(None),
-            })),
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
@@ -973,17 +997,19 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                 let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
                 for item in items {
                     match item {
-                        StreamSpread::Done(parse_result) => {
+                        StreamSpread::Done(ref parse_result) => {
                             match self.process_parse_result(parse_result) {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
                                 Stream::Delayed(_) => {
-                                    // Delayed from parse: convert to Done with final message
                                     self.done = true;
                                     let (msg, _) = self.build_final_message();
                                     mapped.push(StreamSpread::Done(msg));
                                 }
-                                Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                                Stream::Init
+                                | Stream::Ignore
+                                | Stream::Wait
+                                | Stream::Spread(_) => {}
                             }
                         }
                         StreamSpread::Pending(_) => {
@@ -1001,9 +1027,9 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> OpenAIStream<R> {
+impl OpenAIStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {
             return Stream::Ignore;
         };
@@ -1011,13 +1037,14 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
         if data.trim() == "[DONE]" {
             self.done = true;
             let (msg, report) = self.build_final_message();
-            self.cumulative_cost.borrow_mut().add(&report.cost);
+            self.cumulative_cost.lock().unwrap().add(&report.cost);
             return Stream::Next(msg);
         }
 
         let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
             return Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1059,6 +1086,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
 
         if text_yielded {
             Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1145,7 +1173,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             })
         } else {
             let tc = &self.tool_calls[0];
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -1163,10 +1191,13 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
                 name: tc.name.clone(),
                 arguments,
                 signature: None,
+                depends_on: Vec::new(),
+                execution_hint: crate::types::base_types::ExecutionHint::default(),
             }
         };
 
         let msg = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage: usage_report.clone(),
@@ -1316,6 +1347,11 @@ pub struct OpenAIFunction {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Value>,
+    /// When `true`, the model uses structured output for this function call
+    /// (the `returns` schema from `ToolDefinition`). OpenAI Chat Completions
+    /// only — other providers ignore this field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1477,11 +1513,13 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
-fn is_retryable_status(status: u16) -> bool {
+#[must_use]
+pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
-fn exponential_backoff(attempt: u32) -> u64 {
+#[must_use]
+pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5); // 1, 2, 4, 8, 16, 32
     base_secs.min(30) // cap at 30s
 }
@@ -1494,13 +1532,15 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
         .and_then(|v| v.parse::<u64>().ok())
 }
 
-fn parse_openai_error(body: &str) -> Option<String> {
+#[must_use]
+pub fn parse_openai_error(body: &str) -> Option<String> {
     serde_json::from_str::<OpenAIErrorResponse>(body)
         .ok()
         .map(|e| e.error.message)
 }
 
-fn format_http_error(status_code: usize, detail: &str) -> String {
+#[must_use]
+pub fn format_http_error(status_code: usize, detail: &str) -> String {
     match status_code {
         401 => format!("Authentication failed: {detail}"),
         403 => format!("Permission denied: {detail}"),
@@ -1575,15 +1615,20 @@ pub struct EmbeddingData {
 pub enum OpenAIError {
     #[from(ignore)]
     Http(String),
+
+    #[from(ignore)]
+    Parse(String),
+
+    #[from(ignore)]
+    Valtron(String),
+
     HttpStatus {
         code: u16,
         body: String,
     },
-    #[from(ignore)]
-    Parse(String),
-    #[from(ignore)]
-    Valtron(String),
+
     NoResult,
+
     RateLimit {
         retry_after: Option<u64>,
     },
@@ -1614,82 +1659,10 @@ impl std::error::Error for OpenAIError {}
 // Helper Functions
 // ============================================================================
 
-/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
-#[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
-    let mut tools = vec![
-        shed.shed.clone(),
-        shed.read.clone(),
-        shed.edit.clone(),
-        shed.write.clone(),
-        shed.search.clone(),
-    ];
-    if let Some(mem) = &shed.memory {
-        tools.push(mem.add.clone());
-        tools.push(mem.replace.clone());
-        tools.push(mem.remove.clone());
-    }
-    if let Some(delegate) = &shed.delegate {
-        tools.push(delegate.start.clone());
-        tools.push(delegate.check.clone());
-        tools.push(delegate.get.clone());
-    }
-    if let Some(bash) = &shed.bash {
-        tools.push(bash.clone());
-    }
-    if let Some(others) = &shed.others {
-        tools.extend(others.iter().cloned());
-    }
-    tools
-}
-
-fn empty_usage_report() -> UsageReport {
-    UsageReport {
-        input: 0.0,
-        output: 0.0,
-        cache_read: 0.0,
-        cache_write: 0.0,
-        total_tokens: 0.0,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 0.0,
-            status: CostStatus::Actual,
-        },
-    }
-}
-
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
-            } else {
-                crate::types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::ArgType::JSON(other.to_string()),
-    }
-}
-
-fn model_id_to_string(id: &ModelId) -> String {
-    match id {
-        ModelId::Name(name, _) => name.clone(),
-        ModelId::Alias(alias, _) => alias.clone(),
-        ModelId::Group(group, _) => group.clone(),
-        ModelId::Architecture(arch, _) => arch.clone(),
-    }
-}
-
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-fn build_chat_request(
+#[must_use]
+pub fn build_chat_request(
     model_name: &str,
     interaction: &ModelInteraction,
     params: &ModelParams,
@@ -1718,16 +1691,16 @@ fn build_chat_request(
         match msg {
             Messages::User { content, .. } => {
                 let msg_content = match content {
-                    crate::types::UserModelContent::Text(tc) => {
+                    crate::types::base_types::UserModelContent::Text(tc) => {
                         OpenAIMessageContent::Text(tc.content.clone())
                     }
-                    crate::types::UserModelContent::Image(img) => {
+                    crate::types::base_types::UserModelContent::Image(img) => {
                         let mime_str = match img.mime_type {
                             #[allow(clippy::match_same_arms)]
-                            crate::types::MimeType::ImagePng => "image/png",
-                            crate::types::MimeType::ImageJpeg => "image/jpeg",
-                            crate::types::MimeType::ImageGif => "image/gif",
-                            crate::types::MimeType::ImageWebp => "image/webp",
+                            crate::types::base_types::MimeType::ImagePng => "image/png",
+                            crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                            crate::types::base_types::MimeType::ImageGif => "image/gif",
+                            crate::types::base_types::MimeType::ImageWebp => "image/webp",
                             _ => "image/png",
                         };
                         let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1794,10 +1767,10 @@ fn build_chat_request(
                 ModelOutput::Image(img) => {
                     #[allow(clippy::match_same_arms)]
                     let mime_str = match img.mime_type {
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1819,59 +1792,76 @@ fn build_chat_request(
                 ModelOutput::Embedding { .. } => {}
             },
             Messages::ToolResult {
-                id, name, content, ..
+                tool_call_id,
+                name,
+                content,
+                ..
             } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 messages.push(OpenAIMessage {
                     role: String::from("tool"),
                     content: Some(OpenAIMessageContent::Text(format!("[{name}] {text}"))),
                     tool_calls: None,
-                    tool_call_id: Some(id.clone()),
+                    tool_call_id: Some(tool_call_id.clone()),
                     refusal: None,
                 });
             }
         }
     }
 
-    let tools = interaction
-        .tools_shed
-        .as_ref()
-        .map(|shed| {
-            flatten_tools(shed)
-                .iter()
-                .map(|tool| OpenAITool {
-                    tool_type: String::from("function"),
-                    function: OpenAIFunction {
-                        name: tool.name.clone(),
-                        description: Some(tool.description.clone()),
-                        parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                    },
-                })
-                .collect::<Vec<_>>()
-        })
-        .filter(|t: &Vec<OpenAITool>| !t.is_empty());
+    let tools = {
+        let all = flatten_tools(&interaction.tools_shed);
+        if all.is_empty() {
+            None
+        } else {
+            Some(
+                all.iter()
+                    .map(|tool| {
+                        let spec = tool.function_spec();
+                        OpenAITool {
+                            tool_type: String::from("function"),
+                            function: OpenAIFunction {
+                                name: spec.name,
+                                description: Some(spec.description),
+                                parameters: Some(spec.parameters),
+                                strict: spec.returns.as_ref().map(|_| true),
+                            },
+                        }
+                    })
+                    .collect::<Vec<_>>(),
+            )
+        }
+    };
 
     let response_format = params.output_format.as_ref().map(|fmt| match fmt {
-        crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
-        crate::types::OutputFormat::JsonObject => OpenAIResponseFormat::JsonObject,
-        crate::types::OutputFormat::JsonSchema(js) => OpenAIResponseFormat::JsonSchema {
-            json_schema: Some(OpenAIJsonSchema {
-                name: js.name.clone(),
-                description: js.description.clone(),
-                schema: js.schema.clone(),
-                strict: js.strict,
-            }),
-        },
+        crate::types::base_types::OutputFormat::Text => OpenAIResponseFormat::Text,
+        crate::types::base_types::OutputFormat::JsonObject => OpenAIResponseFormat::JsonObject,
+        crate::types::base_types::OutputFormat::JsonSchema(js) => {
+            OpenAIResponseFormat::JsonSchema {
+                json_schema: Some(OpenAIJsonSchema {
+                    name: js.name.clone(),
+                    description: js.description.clone(),
+                    schema: js.schema.clone(),
+                    strict: js.strict,
+                }),
+            }
+        }
     });
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto => OpenAIToolChoice::Simple(String::from("auto")),
-        crate::types::ToolChoice::None => OpenAIToolChoice::Simple(String::from("none")),
-        crate::types::ToolChoice::Required => OpenAIToolChoice::Simple(String::from("required")),
-        crate::types::ToolChoice::Function(f) => OpenAIToolChoice::Function {
+        crate::types::base_types::ToolChoice::Auto => {
+            OpenAIToolChoice::Simple(String::from("auto"))
+        }
+        crate::types::base_types::ToolChoice::None => {
+            OpenAIToolChoice::Simple(String::from("none"))
+        }
+        crate::types::base_types::ToolChoice::Required => {
+            OpenAIToolChoice::Simple(String::from("required"))
+        }
+        crate::types::base_types::ToolChoice::Function(f) => OpenAIToolChoice::Function {
             type_: f.tool_type.clone(),
             function: OpenAIToolChoiceFunction {
                 name: f.function.name.clone(),
@@ -1923,7 +1913,7 @@ fn build_chat_request(
     }
 }
 
-fn parse_chat_response(
+pub fn parse_chat_response(
     response: &ChatCompletionResponse,
     model_id: &ModelId,
     pricing: &ModelUsageCosting,
@@ -1989,7 +1979,7 @@ fn parse_chat_response(
 
     let output = if let Some(tool_calls) = &message.tool_calls {
         if let Some(tc) = tool_calls.first() {
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.function.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -2007,6 +1997,8 @@ fn parse_chat_response(
                 name: tc.function.name.clone(),
                 arguments,
                 signature: None,
+                depends_on: Vec::new(),
+                execution_hint: crate::types::base_types::ExecutionHint::default(),
             }
         } else {
             ModelOutput::Text(TextContent {
@@ -2023,6 +2015,7 @@ fn parse_chat_response(
 
     Ok((
         Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
             timestamp: SystemTime::now(),
             usage: usage_report.clone(),
@@ -2045,23 +2038,23 @@ fn build_metadata(
     logprobs: Option<&OpenAILogProbs>,
     system_fingerprint: Option<&String>,
     refusal: Option<&String>,
-) -> Option<Vec<crate::types::GenerationMetadata>> {
+) -> Option<Vec<crate::types::base_types::GenerationMetadata>> {
     let mut metadata = Vec::new();
 
     if let Some(lp) = logprobs {
-        let content: Vec<crate::types::ContentLogProb> = lp
+        let content: Vec<crate::types::base_types::ContentLogProb> = lp
             .content
             .as_ref()
             .map(|items| {
                 items
                     .iter()
-                    .map(|p| crate::types::ContentLogProb {
+                    .map(|p| crate::types::base_types::ContentLogProb {
                         token: p.token.clone(),
                         logprob: p.logprob,
                         bytes: p.bytes.clone(),
                         top_logprobs: p.top_logprobs.as_ref().map(|tops| {
                             tops.iter()
-                                .map(|t| crate::types::TopLogProbEntry {
+                                .map(|t| crate::types::base_types::TopLogProbEntry {
                                     token: t.token.clone(),
                                     logprob: t.logprob,
                                     bytes: t.bytes.clone(),
@@ -2073,11 +2066,11 @@ fn build_metadata(
             })
             .unwrap_or_default();
 
-        let refusal_probs: Option<Vec<crate::types::RefusalLogProb>> =
+        let refusal_probs: Option<Vec<crate::types::base_types::RefusalLogProb>> =
             lp.refusal.as_ref().map(|items| {
                 items
                     .iter()
-                    .map(|p| crate::types::RefusalLogProb {
+                    .map(|p| crate::types::base_types::RefusalLogProb {
                         token: p.token.clone(),
                         logprob: p.logprob,
                         bytes: p.bytes.clone(),
@@ -2086,7 +2079,7 @@ fn build_metadata(
             });
 
         if !content.is_empty() || refusal_probs.is_some() {
-            metadata.push(crate::types::GenerationMetadata::LogProbs {
+            metadata.push(crate::types::base_types::GenerationMetadata::LogProbs {
                 content,
                 refusal: refusal_probs,
             });
@@ -2094,13 +2087,11 @@ fn build_metadata(
     }
 
     if let Some(fp) = system_fingerprint {
-        metadata.push(crate::types::GenerationMetadata::SystemFingerprint(
-            fp.clone(),
-        ));
+        metadata.push(crate::types::base_types::GenerationMetadata::SystemFingerprint(fp.clone()));
     }
 
     if let Some(reason) = refusal {
-        metadata.push(crate::types::GenerationMetadata::RefusalReason(
+        metadata.push(crate::types::base_types::GenerationMetadata::RefusalReason(
             reason.clone(),
         ));
     }
@@ -2109,578 +2100,5 @@ fn build_metadata(
         None
     } else {
         Some(metadata)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_openai_config_defaults() {
-        let config = OpenAIConfig::default();
-        assert_eq!(config.base_url, "https://api.openai.com");
-        assert_eq!(config.api_version, "v1");
-        assert_eq!(config.timeout_secs, 30);
-        assert_eq!(config.max_retries, 3);
-        assert!(config.proxy_url.is_none());
-        assert!(config.streaming);
-    }
-
-    #[test]
-    fn test_openai_config_builder() {
-        let config = OpenAIConfig::new()
-            .with_base_url("http://localhost:8080")
-            .with_timeout_secs(60)
-            .with_streaming(false);
-        assert_eq!(config.base_url, "http://localhost:8080");
-        assert_eq!(config.timeout_secs, 60);
-        assert!(!config.streaming);
-    }
-
-    #[test]
-    fn test_build_url() {
-        let config = OpenAIConfig::new()
-            .with_base_url("http://localhost:8080")
-            .with_api_version("v1");
-        assert_eq!(
-            config.build_url("chat/completions"),
-            "http://localhost:8080/v1/chat/completions"
-        );
-    }
-
-    #[test]
-    fn test_model_id_to_string() {
-        assert_eq!(
-            model_id_to_string(&ModelId::Name("gpt-4".into(), None)),
-            "gpt-4"
-        );
-        assert_eq!(model_id_to_string(&ModelId::Alias("4".into(), None)), "4");
-    }
-
-    #[test]
-    fn test_parse_sse_chunks() {
-        let chunks_raw = vec![
-            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}"#,
-            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{"content":" world"},"finish_reason":null}]}"#,
-            r#"{"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}"#,
-        ];
-
-        let mut accumulated_text = String::new();
-        let mut finish_reason: Option<String> = None;
-
-        for raw in &chunks_raw {
-            let chunk: ChatCompletionChunk = serde_json::from_str(raw).unwrap();
-            for choice in &chunk.choices {
-                if let Some(ref delta) = choice.delta {
-                    if let Some(ref content) = delta.content {
-                        accumulated_text.push_str(content);
-                    }
-                }
-                if choice.finish_reason.is_some() {
-                    finish_reason = choice.finish_reason.clone();
-                }
-            }
-        }
-
-        assert_eq!(accumulated_text, "Hello world");
-        assert_eq!(finish_reason.as_deref(), Some("stop"));
-
-        let stop_reason = match finish_reason.as_deref() {
-            Some("stop") | None => StopReason::Stop,
-            Some("length") => StopReason::Length,
-            Some("tool_calls") => StopReason::ToolUse,
-            Some(_) => StopReason::Error,
-        };
-        assert_eq!(stop_reason, StopReason::Stop);
-    }
-
-    #[test]
-    fn test_chat_completion_request_serialization() {
-        let request = ChatCompletionRequest {
-            model: "gpt-4".into(),
-            messages: vec![
-                OpenAIMessage {
-                    role: "system".into(),
-                    content: Some(OpenAIMessageContent::Text("You are helpful".into())),
-                    tool_calls: None,
-                    tool_call_id: None,
-                    refusal: None,
-                },
-                OpenAIMessage {
-                    role: "user".into(),
-                    content: Some(OpenAIMessageContent::Text("Hello".into())),
-                    tool_calls: None,
-                    tool_call_id: None,
-                    refusal: None,
-                },
-            ],
-            temperature: Some(0.7),
-            top_p: Some(0.9),
-            max_tokens: Some(100),
-            stop: None,
-            stream: Some(false),
-            tools: None,
-            tool_choice: None,
-            n: Some(1),
-            seed: None,
-            frequency_penalty: None,
-            presence_penalty: None,
-            logit_bias: None,
-            response_format: None,
-            logprobs: None,
-            top_logprobs: None,
-        };
-
-        let json = serde_json::to_string(&request).unwrap();
-        assert!(json.contains("\"model\":\"gpt-4\""));
-        assert!(json.contains("\"temperature\":0.7"));
-        assert!(json.contains("\"stream\":false"));
-    }
-
-    #[test]
-    fn test_chat_response_deserialization() {
-        let json = r#"{
-            "id": "chatcmpl-123",
-            "object": "chat.completion",
-            "created": 1234567890,
-            "model": "gpt-4",
-            "choices": [{
-                "index": 0,
-                "message": { "role": "assistant", "content": "Hello!" },
-                "finish_reason": "stop"
-            }],
-            "usage": { "prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15 }
-        }"#;
-
-        let response: ChatCompletionResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response.id, "chatcmpl-123");
-        assert_eq!(
-            response.choices[0].message.as_ref().unwrap().content,
-            Some(OpenAIMessageContent::Text("Hello!".into()))
-        );
-        assert!(response.usage.is_some());
-        assert_eq!(response.usage.as_ref().unwrap().total_tokens, 15);
-    }
-
-    #[test]
-    fn test_tool_call_delta_deserialization() {
-        let chunk_json = r#"{
-            "id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4",
-            "choices":[{
-                "index":0,
-                "delta":{"tool_calls":[{"index":0,"id":"call_abc","type":"function","function":{"name":"get_weather","arguments":""}}]},
-                "finish_reason":null
-            }]
-        }"#;
-
-        let chunk: ChatCompletionChunk = serde_json::from_str(chunk_json).unwrap();
-        let delta = chunk.choices[0].delta.as_ref().unwrap();
-        let tc = &delta.tool_calls.as_ref().unwrap()[0];
-        assert_eq!(tc.index, 0);
-        assert_eq!(tc.id.as_deref(), Some("call_abc"));
-        assert_eq!(
-            tc.function.as_ref().unwrap().name.as_deref(),
-            Some("get_weather")
-        );
-    }
-
-    #[test]
-    fn test_tool_call_delta_continuation() {
-        let continuation = r#"{
-            "id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4",
-            "choices":[{
-                "index":0,
-                "delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"loc"}}]},
-                "finish_reason":null
-            }]
-        }"#;
-
-        let chunk: ChatCompletionChunk = serde_json::from_str(continuation).unwrap();
-        let delta = chunk.choices[0].delta.as_ref().unwrap();
-        let tc = &delta.tool_calls.as_ref().unwrap()[0];
-        assert_eq!(tc.index, 0);
-        assert!(tc.id.is_none());
-        assert_eq!(
-            tc.function.as_ref().unwrap().arguments.as_deref(),
-            Some("{\"loc")
-        );
-    }
-
-    #[test]
-    fn test_tool_call_accumulation() {
-        let chunks = vec![
-            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"get_weather","arguments":""}}]},"finish_reason":null}]}"#,
-            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"location\""}}]},"finish_reason":null}]}"#,
-            r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":": \"Paris\"}"}}]},"finish_reason":null}]}"#,
-        ];
-
-        let mut tool_calls: Vec<AccumulatedToolCall> = Vec::new();
-
-        for raw in &chunks {
-            let chunk: ChatCompletionChunk = serde_json::from_str(raw).unwrap();
-            for choice in &chunk.choices {
-                if let Some(ref delta) = choice.delta {
-                    if let Some(ref tcs) = delta.tool_calls {
-                        for tc_delta in tcs {
-                            let idx = tc_delta.index as usize;
-                            while tool_calls.len() <= idx {
-                                tool_calls.push(AccumulatedToolCall {
-                                    id: String::new(),
-                                    name: String::new(),
-                                    arguments: String::new(),
-                                });
-                            }
-                            let tc = &mut tool_calls[idx];
-                            if let Some(ref id) = tc_delta.id {
-                                tc.id.clone_from(id);
-                            }
-                            if let Some(ref func) = tc_delta.function {
-                                if let Some(ref name) = func.name {
-                                    tc.name.clone_from(name);
-                                }
-                                if let Some(ref args) = func.arguments {
-                                    tc.arguments.push_str(args);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        assert_eq!(tool_calls.len(), 1);
-        assert_eq!(tool_calls[0].id, "call_1");
-        assert_eq!(tool_calls[0].name, "get_weather");
-        assert_eq!(tool_calls[0].arguments, r#"{"location": "Paris"}"#);
-    }
-
-    #[test]
-    fn test_json_value_to_arg_type() {
-        let text = json_value_to_arg_type(&serde_json::json!("hello"));
-        assert!(matches!(text, crate::types::ArgType::Text(s) if s == "hello"));
-
-        let int = json_value_to_arg_type(&serde_json::json!(42));
-        assert!(matches!(int, crate::types::ArgType::I64(42)));
-
-        let float = json_value_to_arg_type(&serde_json::json!(3.64));
-        assert!(
-            matches!(float, crate::types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
-        );
-
-        let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
-        assert!(matches!(obj, crate::types::ArgType::JSON(_)));
-    }
-
-    #[test]
-    fn test_parse_chat_response_tool_calls() {
-        let response = ChatCompletionResponse {
-            id: "chatcmpl-123".into(),
-            object: "chat.completion".into(),
-            created: 0,
-            model: "gpt-4".into(),
-            choices: vec![OpenAIChoice {
-                index: 0,
-                message: Some(OpenAIMessage {
-                    role: "assistant".into(),
-                    content: None,
-                    tool_calls: Some(vec![OpenAIToolCall {
-                        id: "call_abc".into(),
-                        tool_type: "function".into(),
-                        function: OpenAIFunctionCall {
-                            name: "get_weather".into(),
-                            arguments: r#"{"location":"Paris"}"#.into(),
-                        },
-                    }]),
-                    tool_call_id: None,
-                    refusal: None,
-                }),
-                finish_reason: Some("tool_calls".into()),
-                logprobs: None,
-            }],
-            usage: Some(OpenAIUsage {
-                prompt_tokens: 10,
-                completion_tokens: 5,
-                total_tokens: 15,
-            }),
-            system_fingerprint: None,
-        };
-
-        let model_id = ModelId::Name("gpt-4".into(), None);
-        let (msg, _report) =
-            parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
-
-        if let Messages::Assistant {
-            content,
-            stop_reason,
-            ..
-        } = &msg
-        {
-            assert_eq!(*stop_reason, StopReason::ToolUse);
-            if let ModelOutput::ToolCall {
-                id,
-                name,
-                arguments,
-                ..
-            } = content
-            {
-                assert_eq!(id, "call_abc");
-                assert_eq!(name, "get_weather");
-                let args = arguments.as_ref().expect("Should have arguments");
-                assert!(args.contains_key("location"));
-            } else {
-                panic!("Expected ToolCall output");
-            }
-        } else {
-            panic!("Expected Assistant message");
-        }
-    }
-
-    #[test]
-    fn test_parse_chat_response_text() {
-        let response = ChatCompletionResponse {
-            id: "chatcmpl-456".into(),
-            object: "chat.completion".into(),
-            created: 0,
-            model: "gpt-4".into(),
-            choices: vec![OpenAIChoice {
-                index: 0,
-                message: Some(OpenAIMessage {
-                    role: "assistant".into(),
-                    content: Some(OpenAIMessageContent::Text("Hello!".into())),
-                    tool_calls: None,
-                    tool_call_id: None,
-                    refusal: None,
-                }),
-                finish_reason: Some("stop".into()),
-                logprobs: None,
-            }],
-            usage: Some(OpenAIUsage {
-                prompt_tokens: 5,
-                completion_tokens: 2,
-                total_tokens: 7,
-            }),
-            system_fingerprint: None,
-        };
-
-        let model_id = ModelId::Name("gpt-4".into(), None);
-        let (msg, _report) =
-            parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
-
-        if let Messages::Assistant {
-            content,
-            stop_reason,
-            usage,
-            metadata: _,
-            ..
-        } = &msg
-        {
-            assert_eq!(*stop_reason, StopReason::Stop);
-            if let ModelOutput::Text(tc) = content {
-                assert_eq!(tc.content, "Hello!");
-            } else {
-                panic!("Expected Text output");
-            }
-            assert!((usage.total_tokens - 7.0).abs() < f64::EPSILON);
-        } else {
-            panic!("Expected Assistant message");
-        }
-    }
-
-    #[test]
-    fn test_parse_openai_error_format() {
-        let body = r#"{"error":{"message":"Invalid API key","type":"invalid_request_error","code":"invalid_api_key"}}"#;
-        let detail = parse_openai_error(body).expect("Should parse OpenAI error");
-        assert_eq!(detail, "Invalid API key");
-    }
-
-    #[test]
-    fn test_parse_openai_error_plain_text_fallback() {
-        let detail = parse_openai_error("Internal Server Error");
-        assert!(detail.is_none());
-    }
-
-    #[test]
-    fn test_format_http_error_auth() {
-        let msg = format_http_error(401, "Invalid API key");
-        assert!(msg.contains("Authentication failed"), "got: {msg}");
-        assert!(msg.contains("Invalid API key"), "got: {msg}");
-    }
-
-    #[test]
-    fn test_format_http_error_rate_limit() {
-        let msg = format_http_error(429, "Rate limit reached");
-        assert!(msg.contains("Rate limit exceeded"), "got: {msg}");
-    }
-
-    #[test]
-    fn test_format_http_error_server_error() {
-        let msg = format_http_error(500, "Internal Server Error");
-        assert!(msg.contains("Server error"), "got: {msg}");
-        assert!(msg.contains("Internal Server Error"), "got: {msg}");
-    }
-
-    #[test]
-    fn test_is_retryable_status() {
-        assert!(is_retryable_status(429));
-        assert!(is_retryable_status(500));
-        assert!(is_retryable_status(502));
-        assert!(is_retryable_status(503));
-        assert!(!is_retryable_status(400));
-        assert!(!is_retryable_status(401));
-        assert!(!is_retryable_status(404));
-        assert!(!is_retryable_status(200));
-    }
-
-    #[test]
-    fn test_exponential_backoff() {
-        assert_eq!(exponential_backoff(0), 1);
-        assert_eq!(exponential_backoff(1), 2);
-        assert_eq!(exponential_backoff(2), 4);
-        assert_eq!(exponential_backoff(3), 8);
-        assert_eq!(exponential_backoff(5), 30); // capped
-        assert_eq!(exponential_backoff(10), 30); // capped
-    }
-
-    #[test]
-    fn test_response_format_serialization() {
-        let fmt = OpenAIResponseFormat::Text;
-        let json = serde_json::to_string(&fmt).unwrap();
-        assert_eq!(json, r#"{"type":"text"}"#);
-
-        let fmt = OpenAIResponseFormat::JsonObject;
-        let json = serde_json::to_string(&fmt).unwrap();
-        assert_eq!(json, r#"{"type":"json_object"}"#);
-
-        let fmt = OpenAIResponseFormat::JsonSchema {
-            json_schema: Some(OpenAIJsonSchema {
-                name: "test_schema".into(),
-                description: Some("A test schema".into()),
-                schema: serde_json::json!({"type": "object", "properties": {"name": {"type": "string"}}}),
-                strict: Some(true),
-            }),
-        };
-        let json = serde_json::to_string(&fmt).unwrap();
-        assert!(json.contains(r#""type":"json_schema""#));
-        assert!(json.contains(r#""name":"test_schema""#));
-        assert!(json.contains(r#""strict":true"#));
-    }
-
-    #[test]
-    fn test_tool_choice_serialization() {
-        let tc = OpenAIToolChoice::Simple("auto".into());
-        let json = serde_json::to_string(&tc).unwrap();
-        assert_eq!(json, r#""auto""#);
-
-        let tc = OpenAIToolChoice::Simple("none".into());
-        let json = serde_json::to_string(&tc).unwrap();
-        assert_eq!(json, r#""none""#);
-
-        let tc = OpenAIToolChoice::Simple("required".into());
-        let json = serde_json::to_string(&tc).unwrap();
-        assert_eq!(json, r#""required""#);
-
-        let tc = OpenAIToolChoice::Function {
-            type_: "function".into(),
-            function: OpenAIToolChoiceFunction {
-                name: "get_weather".into(),
-            },
-        };
-        let json = serde_json::to_string(&tc).unwrap();
-        assert!(json.contains(r#""type":"function""#));
-        assert!(json.contains(r#""name":"get_weather""#));
-    }
-
-    #[test]
-    fn test_build_chat_request_with_new_fields() {
-        use crate::types::{OutputFormat, ToolChoice, ToolChoiceFunction, ToolFunctionRef};
-
-        let mut interaction = ModelInteraction {
-            system_prompt: Some("You are helpful".into()),
-            soul: Some("Be concise and technical".into()),
-            messages: vec![crate::types::Messages::User {
-                role: "user".into(),
-                content: crate::types::UserModelContent::Text(TextContent {
-                    content: "Hello".into(),
-                    signature: None,
-                }),
-                signature: None,
-            }],
-            tools_shed: None,
-            chat_template: None,
-            tool_choice: Some(ToolChoice::Auto),
-        };
-        let mut params = ModelParams::default();
-        params.output_format = Some(OutputFormat::JsonObject);
-        params.frequency_penalty = Some(0.5);
-        params.presence_penalty = Some(0.3);
-        let mut logit_bias = std::collections::HashMap::new();
-        logit_bias.insert("50256".to_string(), -100.0);
-        params.logit_bias = Some(logit_bias);
-
-        let request = build_chat_request("gpt-4", &interaction, &params, false);
-
-        assert!(request.response_format.is_some());
-        let fmt = request.response_format.unwrap();
-        assert!(serde_json::to_string(&fmt).unwrap().contains("json_object"));
-
-        assert_eq!(request.frequency_penalty, Some(0.5));
-        assert_eq!(request.presence_penalty, Some(0.3));
-        assert!(request.logit_bias.is_some());
-        assert!(request.tool_choice.is_some());
-
-        // Now test forced function
-        interaction.tool_choice = Some(ToolChoice::Function(ToolChoiceFunction {
-            tool_type: "function".into(),
-            function: ToolFunctionRef {
-                name: "get_weather".into(),
-            },
-        }));
-        let request2 = build_chat_request("gpt-4", &interaction, &params, false);
-        let tc = request2.tool_choice.unwrap();
-        let json = serde_json::to_string(&tc).unwrap();
-        assert!(json.contains("get_weather"));
-    }
-
-    #[test]
-    fn test_multimodal_message_serialization() {
-        let msg = OpenAIMessage {
-            role: "user".into(),
-            content: Some(OpenAIMessageContent::Parts(vec![
-                OpenAIContentPart::Text {
-                    text: "What is this?".into(),
-                },
-                OpenAIContentPart::ImageUrl {
-                    image_url: OpenAIImageUrlObject {
-                        url: "data:image/png;base64,iVBORw0KGgo".into(),
-                        detail: Some("auto".into()),
-                    },
-                },
-            ])),
-            tool_calls: None,
-            tool_call_id: None,
-            refusal: None,
-        };
-
-        let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains(r#""type":"text""#));
-        assert!(json.contains(r#""type":"image_url""#));
-        assert!(json.contains("data:image/png;base64,"));
-        assert!(json.contains(r#""detail":"auto""#));
-    }
-
-    #[test]
-    fn test_text_only_message_serialization() {
-        let msg = OpenAIMessage {
-            role: "user".into(),
-            content: Some(OpenAIMessageContent::Text("Hello".into())),
-            tool_calls: None,
-            tool_call_id: None,
-            refusal: None,
-        };
-
-        let json = serde_json::to_string(&msg).unwrap();
-        // Text variant serializes as simple string, not object
-        assert!(json.contains(r#""content":"Hello""#));
     }
 }

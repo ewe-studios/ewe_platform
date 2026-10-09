@@ -3,11 +3,11 @@
 //! Tests Sec-WebSocket-Protocol header handling during handshake.
 
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::SimpleHeaders;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
-use std::time::Duration;
 use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
@@ -30,9 +30,9 @@ fn test_client_requests_subprotocol() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        SimpleHeaders::new(),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(result.is_ok(), "Should connect to server with subprotocols");
@@ -73,9 +73,9 @@ fn test_client_with_subprotocol_builder() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        SimpleHeaders::new(),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(result.is_ok());
@@ -98,9 +98,9 @@ fn test_server_selects_first_matching_protocol() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        SimpleHeaders::new(),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -126,9 +126,9 @@ fn test_client_requests_multiple_subprotocols() {
         SystemDnsResolver,
         &url,
         Some("superchat,chat".to_string()),
-        Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        SimpleHeaders::new(),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -170,8 +170,8 @@ fn test_connection_without_subprotocol() {
     let result = WebSocketClient::connect(
         SystemDnsResolver,
         &url,
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -195,8 +195,8 @@ fn test_server_without_subprotocol_support() {
     let result = WebSocketClient::connect(
         SystemDnsResolver,
         &url,
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -210,7 +210,9 @@ fn test_server_without_subprotocol_support() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_subprotocol_header_extraction() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::shared::http::{
+        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    };
 
     // Build a mock request with subprotocol header
     let builder = SimpleIncomingRequest::builder()
@@ -228,7 +230,10 @@ fn test_subprotocol_header_extraction() {
     let request = builder.build().unwrap();
 
     // Extract subprotocols
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(
+            &request,
+        );
 
     assert_eq!(protocols, Some("chat, superchat, other".to_string()));
 }
@@ -238,7 +243,9 @@ fn test_subprotocol_header_extraction() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_missing_subprotocol_returns_none() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::shared::http::{
+        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    };
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -250,7 +257,10 @@ fn test_missing_subprotocol_returns_none() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(
+            &request,
+        );
 
     assert!(
         protocols.is_none(),
@@ -263,7 +273,9 @@ fn test_missing_subprotocol_returns_none() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_empty_subprotocol_string() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+    use foundation_netio::shared::http::{
+        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    };
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -276,7 +288,10 @@ fn test_empty_subprotocol_string() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols =
+        foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(
+            &request,
+        );
 
     assert_eq!(
         protocols,
@@ -290,8 +305,10 @@ fn test_empty_subprotocol_string() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
-    use foundation_netio::websocket::WebSocketUpgrade;
+    use foundation_netio::shared::http::{
+        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    };
+    use foundation_netio::websocket::native::server::WebSocketUpgrade;
 
     // Build request with subprotocol
     let builder = SimpleIncomingRequest::builder()

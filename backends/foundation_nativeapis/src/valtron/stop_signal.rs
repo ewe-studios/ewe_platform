@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use foundation_core::valtron::EventReadiness;
+use foundation_core::valtron::{EventReadiness, EventReadinessPtr};
 
 #[derive(Clone)]
 pub struct StopSignal(Arc<AtomicBool>);
@@ -52,12 +52,12 @@ impl EventReadiness for StopSignal {
 /// is ready. Used to wake a parked task when the watcher has events OR
 /// when `StopSignal.stop()` has been called.
 pub struct CompositeReadiness {
-    a: Arc<dyn EventReadiness>,
-    b: Arc<dyn EventReadiness>,
+    a: EventReadinessPtr,
+    b: EventReadinessPtr,
 }
 
 impl CompositeReadiness {
-    pub fn new(a: Arc<dyn EventReadiness>, b: Arc<dyn EventReadiness>) -> Self {
+    pub fn new(a: EventReadinessPtr, b: EventReadinessPtr) -> Self {
         Self { a, b }
     }
 }

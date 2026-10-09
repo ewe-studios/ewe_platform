@@ -13,12 +13,12 @@
 //!
 //! PHASE 3 SCOPE: Max reconnect duration support.
 
+use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
+use crate::shared::client::DnsResolver;
+use crate::shared::http::timeout::TimeoutCalculator;
+use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod, TryClone};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
-use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -117,12 +117,10 @@ where
         })?;
 
         if !uri.scheme().is_http() && !uri.scheme().is_https() {
-            return Err(crate::event_source::EventSourceError::InvalidUrl(
-                format!(
-                    "Unsupported scheme: {}. Only http:// and https:// are supported.",
-                    uri.scheme()
-                ),
-            ));
+            return Err(crate::event_source::EventSourceError::InvalidUrl(format!(
+                "Unsupported scheme: {}. Only http:// and https:// are supported.",
+                uri.scheme()
+            )));
         }
 
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
@@ -181,7 +179,7 @@ where
     /// Set the timeout calculator for dynamic timeout configuration.
     ///
     /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
-    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// The `TimeoutCalculator` provides dynamic timeout calculation based on context.
     /// WHAT: Returns Self with `timeout_calculator` configured.
     #[must_use]
     pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
@@ -207,14 +205,16 @@ where
         self
     }
 
-    /// Set the request body (applied only on the first connection).
+    /// Set the request body, replayed on every connection attempt.
     ///
-    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
-    /// WHAT: Returns Self with the body applied to the initial inner task.
-    /// On reconnect, the body is dropped — only the URL, method, and headers are re-sent.
+    /// WHY: Some SSE endpoints (e.g. `OpenAI` chat completions) require POST with a JSON body.
+    /// WHAT: Returns Self with the body applied to each inner task, including
+    /// reconnections — the method stays POST, so a reconnect without the body
+    /// would be a malformed request the vendor rejects with 400.
+    /// Non-replayable (iterator) bodies still apply only to the first connection.
     #[must_use]
     pub fn with_body(mut self, body: SendSafeBody) -> Self {
-        debug!("Setting request body (first connection only)");
+        debug!("Setting request body");
         self.config.body = Some(body);
         self.config.method = SimpleMethod::POST;
         self
@@ -222,8 +222,9 @@ where
 
     /// Create a new inner [`EventSourceTask`] for (re)connection.
     ///
-    /// NOTE: Body is taken via `take()` so it only applies on the first connection.
-    /// The method is preserved across all reconnections.
+    /// NOTE: A replayable body (`Text`/`Bytes`) is cloned onto every connection,
+    /// matching the preserved POST method. Single-shot iterator bodies cannot be
+    /// replayed and so apply only to the first connection.
     fn create_inner_task(&mut self) -> Option<EventSourceTask<R>> {
         let mut task = EventSourceTask::connect(self.resolver.clone(), &self.config.url).ok()?;
 
@@ -235,8 +236,33 @@ where
             task = task.with_header(name.clone(), value);
         }
 
-        // Apply body only on first connection (taken so None on reconnect)
-        if let Some(body) = self.config.body.take() {
+        // Replay the body on EVERY connection attempt, not just the first.
+        //
+        // The WHATWG `EventSource` reconnect is a bodyless GET, which is where
+        // "first connection only" came from. But this task also drives POST SSE
+        // endpoints (OpenAI/OpenRouter chat completions — see `with_body`), and
+        // those need their JSON body on every attempt. Dropping it while
+        // `with_method` faithfully preserves POST produces a bodyless POST, which
+        // the vendor answers with 400 "JSON parsing failed"; that is then counted
+        // as a connection error and retried, so every attempt burns the same way
+        // and the stream dies with "max retries exhausted".
+        //
+        // `SendSafeBody::try_clone` decides what is replayable: owned payloads
+        // copy, single-shot streams refuse. A refused body keeps the original
+        // take-semantics — it applies to the first connection and no other,
+        // because handing out a second handle to a spent stream would send an
+        // empty body rather than the intended one.
+        let body = match self.config.body.as_ref() {
+            Some(body) => match body.try_clone() {
+                Ok(replayable) => Some(replayable),
+                Err(err) => {
+                    debug!(%err, "body cannot be replayed; applying to this connection only");
+                    self.config.body.take()
+                }
+            },
+            None => None,
+        };
+        if let Some(body) = body {
             task = task.with_body(body);
         }
 
@@ -344,7 +370,9 @@ where
                             .map(|item| match item {
                                 TaskSpread::Ready(v) => TaskSpread::Ready(v),
                                 TaskSpread::Pending(p) => TaskSpread::Pending(match p {
-                                    EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
+                                    EventSourceProgress::Connecting => {
+                                        ReconnectingProgress::Connecting
+                                    }
                                     EventSourceProgress::Reading => ReconnectingProgress::Reading,
                                 }),
                             })
@@ -356,8 +384,7 @@ where
                         let close_reason = inner.close_reason();
                         debug!(reason = ?close_reason, "Inner task closed");
 
-                        if let Some(crate::event_source::EventSourceCloseReason::Eof) =
-                            close_reason
+                        if let Some(crate::event_source::EventSourceCloseReason::Eof) = close_reason
                         {
                             // Legitimate EOF - server closed connection normally
                             // Don't retry, just exhaust

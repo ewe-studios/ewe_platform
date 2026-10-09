@@ -10,6 +10,7 @@ pub mod macros;
 pub mod retries;
 pub mod synca;
 pub mod trace;
+pub mod traits;
 pub mod type_uuid;
 pub mod url;
 pub mod valtron;

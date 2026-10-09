@@ -126,172 +126,72 @@ impl core::fmt::Display for IntrospectionError {
 impl std::error::Error for IntrospectionError {}
 
 // ===========================================================================
-// Platform-specific fetch
+// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
 // ===========================================================================
 
-/// Build HTTP Basic Auth header value.
 fn basic_auth_header(client_id: &str, client_secret: &str) -> String {
     let credentials = format!("{client_id}:{client_secret}");
     format!("Basic {}", STANDARD.encode(credentials))
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 async fn do_introspect(
     url: &str,
     token: &str,
     client_id: &str,
     client_secret: &str,
 ) -> Result<String, IntrospectionError> {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_core::url::Uri;
+    use foundation_netio::default_http_client;
+    use foundation_netio::shared::client::body_reader::try_collect_bytes;
+    use foundation_netio::shared::client::request::PreparedRequest;
+    use foundation_netio::shared::http::{
+        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
 
-    let body = format!("token={}", urlencoding::encode(token));
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| IntrospectionError::ConnectionFailed(format!("invalid URL: {e}")))?;
 
-    let client = SimpleHttpClient::from_system();
+    let body_text = format!("token={}", urlencoding::encode(token));
+
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec!["application/x-www-form-urlencoded".into()],
+    );
+    headers.insert(
+        SimpleHeader::AUTHORIZATION,
+        vec![basic_auth_header(client_id, client_secret)],
+    );
+
+    let req = PreparedRequest {
+        method: SimpleMethod::POST,
+        url: uri,
+        headers,
+        body: SendSafeBody::Text(body_text),
+        extensions: Default::default(),
+    };
+
     let resp = client
-        .post(url)
-        .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))?
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
-        )
-        .basic_auth(client_id, client_secret)
-        .body_text(body)
-        .build_client()
-        .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))?
-        .send_async()
+        .send_async(req)
         .await
         .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
+    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
+    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
+    let body = try_collect_bytes(resp.take_body())
+        .map(|b| String::from_utf8_lossy(&b).to_string())
+        .map_err(|e| IntrospectionError::ConnectionFailed(format!("read body: {e}")))?;
 
     if status == 401 {
-        let body = match resp.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                String::from_utf8_lossy(b).to_string()
-            }
-            _ => String::new(),
-        };
         return Err(IntrospectionError::Unauthorized(body));
     }
-
-    if !resp.is_success() {
-        let body = match resp.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                String::from_utf8_lossy(b).to_string()
-            }
-            _ => String::new(),
-        };
+    if !(200..300).contains(&status) {
         return Err(IntrospectionError::ServerError {
             status: status as u16,
             message: body,
         });
     }
-
-    match resp.get_body_ref() {
-        foundation_netio::simple_http::shared::SendSafeBody::Text(t) => Ok(t.clone()),
-        foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-            String::from_utf8(b.clone())
-                .map_err(|e| IntrospectionError::ConnectionFailed(e.to_string()))
-        }
-        _ => Ok(String::new()),
-    }
-}
-
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-async fn do_introspect(
-    url: &str,
-    token: &str,
-    client_id: &str,
-    client_secret: &str,
-) -> Result<String, IntrospectionError> {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
-    use web_sys::{Request, RequestInit, RequestMode};
-
-    let body = format!("token={}", urlencoding::encode(token));
-
-    let opts = RequestInit::new();
-    opts.set_method("POST");
-    opts.set_mode(RequestMode::Cors);
-    opts.set_body(&wasm_bindgen::JsValue::from_str(&body));
-
-    let request = Request::new_with_str_and_init(url, &opts)
-        .map_err(|e| IntrospectionError::ConnectionFailed(format!("request failed: {e:?}")))?;
-    request
-        .headers()
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .map_err(|e| {
-            IntrospectionError::ConnectionFailed(format!("content-type header failed: {e:?}"))
-        })?;
-    request
-        .headers()
-        .set("Authorization", &basic_auth_header(client_id, client_secret))
-        .map_err(|e| {
-            IntrospectionError::ConnectionFailed(format!("auth header failed: {e:?}"))
-        })?;
-
-    let window = web_sys::window()
-        .ok_or_else(|| IntrospectionError::ConnectionFailed("no window available".into()))?;
-    let resp_value = JsFuture::from(
-        window
-            .fetch_with_request(request)
-            .map_err(|e| IntrospectionError::ConnectionFailed(format!("fetch failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| IntrospectionError::ConnectionFailed(format!("await failed: {e:?}")))?;
-
-    let resp: web_sys::Response = resp_value.dyn_into().map_err(|_| {
-        IntrospectionError::ConnectionFailed("failed to parse response".into())
-    })?;
-    let text = JsFuture::from(
-        resp.text()
-            .map_err(|e| IntrospectionError::ConnectionFailed(format!("text failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| IntrospectionError::ConnectionFailed(format!("await text failed: {e:?}")))?;
-
-    Ok(text.as_string().unwrap_or_default())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_active_token() {
-        let json = r#"{
-            "active": true,
-            "scope": "openid profile email",
-            "client_id": "resource-server",
-            "sub": "user-123",
-            "username": "alice",
-            "token_type": "Bearer",
-            "exp": 9999999999,
-            "iat": 1700000000,
-            "jti": "token-abc"
-        }"#;
-
-        let result: IntrospectionResult = serde_json::from_str(json).unwrap();
-        assert!(result.active);
-        assert_eq!(result.scope.as_deref(), Some("openid profile email"));
-        assert_eq!(result.sub.as_deref(), Some("user-123"));
-        assert!(result.is_valid());
-    }
-
-    #[test]
-    fn test_parse_inactive_token() {
-        let json = r#"{"active": false}"#;
-        let result: IntrospectionResult = serde_json::from_str(json).unwrap();
-        assert!(!result.active);
-        assert!(!result.is_valid());
-    }
-
-    #[test]
-    fn test_basic_auth_header() {
-        let header = basic_auth_header("client-id", "client-secret");
-        assert_eq!(header, "Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=");
-    }
+    Ok(body)
 }

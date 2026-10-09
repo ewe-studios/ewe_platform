@@ -1,5 +1,5 @@
 use foundation_nativeapis::shared::vfs::{
-    DeltaStore, MemoryDelta, MemoryFs, OpenMode, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
+    DeltaStore, MemoryDelta, MemoryFs, VfsDirectory, VfsFileSystem,
 };
 use foundation_nativeapis::shared::vfs::OverlayFileSystem;
 

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_codegentools"
-version = "0.1.0"
+version = "0.1.1"
 description = "Code generation tooling: WASM binary generation, schema codegen, crate scanning, and build tooling for the ewe platform"
 edition.workspace = true
 rust-version.workspace = true
@@ -14,16 +14,27 @@ cli = ["dep:clap"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_codegen = { workspace = true, features = ["wat"] }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.1", features = ["wat"] }
+foundation_openapi = { path = "../foundation_openapi", version = "0.0.2" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { workspace = true }
 syn = { version = "2", features = ["full", "parsing"] }
+# Manifest provenance: detects the vendor moving a spec, or an artefact being
+# hand-edited (spec-56 decision 05).
+sha2 = "0.10"
+# `check()` generates into a scratch tree to compare without writing — so it is a
+# runtime need of the library, not just of the tests.
+tempfile = "3.10"
 
 [dev-dependencies]
 serde_json = { workspace = true }
-tempfile = "3.10"
+
+[[bin]]
+name = "genapi"
+path = "src/bin/genapi.rs"
+required-features = ["cli"]
 
 [lints]
 workspace = true

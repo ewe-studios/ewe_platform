@@ -7,7 +7,7 @@
 
 use foundation_arrow::{ArrowSchema, ToArrow, FromArrow};
 use foundation_arrow::arrow_schema::Schema;
-use foundation_nativeapis::shared::vfs::types::{VfsDirEntry, VfsFileType, VfsMetadata};
+use foundation_nativeapis::shared::vfs::types::{VfsDirEntry, VfsFileType};
 
 fn main() {
     println!("=== Arrow Serialization Example ===\n");

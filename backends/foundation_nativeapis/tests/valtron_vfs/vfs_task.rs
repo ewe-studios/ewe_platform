@@ -11,7 +11,7 @@ fn init_pool() -> PoolGuard {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn vfs_task_receives_write_events() {
@@ -39,7 +39,7 @@ fn vfs_task_receives_write_events() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn vfs_task_receives_multiple_events() {
@@ -73,7 +73,7 @@ fn vfs_task_receives_multiple_events() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn vfs_task_stop_signal_terminates() {
@@ -92,7 +92,7 @@ fn vfs_task_stop_signal_terminates() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn vfs_task_subscribe_for_downstream() {

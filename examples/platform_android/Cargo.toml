@@ -1,0 +1,17 @@
+# Root package — thin shell. build.rs delegates to foundation_platform::codegen.
+# src-tauri/ and app/ each have their own [workspace].
+
+[workspace]
+
+[package]
+name = "platform_android"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "platform_android_build"
+path = "src/lib.rs"
+
+[build-dependencies]
+foundation_platform = { path = "../../backends/foundation_platform" }

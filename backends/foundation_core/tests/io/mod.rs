@@ -1,1 +1,2 @@
+mod incremental_decoder_tests;
 mod shared_byte_buffer_stream_probe;

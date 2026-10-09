@@ -2,11 +2,14 @@
 //!
 //! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
 //! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
+//!
+//! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
+//! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     SimpleHeader, SendSafeBody,
 };
@@ -65,7 +68,7 @@ pub enum ConnectionResult {
 // Serve (native-only — uses RawStream)
 
 /// Core handler trait — executed at request time (native TCP connections).
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub trait Serve: Send + Sync + 'static {
     /// Handle an incoming request.
     fn serve(
@@ -77,7 +80,7 @@ pub trait Serve: Send + Sync + 'static {
 }
 
 /// Factory trait for creating handler instances.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub trait ServeFactory: Serve + Sized {
     /// Create a new instance of this handler.
     fn create(bag: &ContextBag) -> Self;
@@ -138,6 +141,7 @@ fn status_from_code(code: u16) -> Status {
         502 => Status::BadGateway,
         503 => Status::ServiceUnavailable,
         504 => Status::GatewayTimeout,
+        505 => Status::HttpVersionNotSupported,
         n => Status::Numbered(n as usize, String::new()),
     }
 }
@@ -239,6 +243,9 @@ pub mod respond {
     /// Write a 100 Continue interim response.
     #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
+        // A `100 Continue` interim response is header-less. The `Http11` renderer
+        // allows that for informational (1xx) statuses (other statuses still
+        // require at least one header) — see `Http11ResState::Headers`.
         tracing::trace!("Building 100 Continue response");
         let response = SimpleOutgoingResponse::builder()
             .with_status(status_from_code(100))
@@ -251,7 +258,13 @@ pub mod respond {
             .http_render_to_writer(conn)
             .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
 
-        tracing::trace!("100 Continue response rendered successfully");
+        // Flush so the interim response reaches the client immediately — the client
+        // blocks reading it before it will send the request body, so any buffering
+        // here would stall the whole exchange.
+        conn.flush()
+            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+
+        tracing::trace!("100 Continue response sent successfully");
         Ok(())
     }
 }

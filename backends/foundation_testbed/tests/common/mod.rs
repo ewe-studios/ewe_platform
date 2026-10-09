@@ -8,12 +8,12 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_testbed::bootstrap::BootstrapLogger;
-use foundation_testbed::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
-use foundation_testbed::qemu::{QemuConfig, QemuVm};
-use foundation_testbed::qemu::mount;
-use foundation_testbed::ssh;
-use foundation_testbed::state;
+use foundation_testbed::vms::bootstrap::BootstrapLogger;
+use foundation_testbed::vms::config::{DisplayMode, GuestOs, Result, VmProfile, get_profile};
+use foundation_testbed::vms::qemu::{QemuConfig, QemuVm};
+use foundation_testbed::vms::qemu::mount;
+use foundation_testbed::vms::ssh;
+use foundation_testbed::vms::state;
 
 /// Resolve the display mode from the `HEADFUL` environment variable.
 /// Set `HEADFUL=1` (or any non-empty value) to run VMs with a visible VNC window.
@@ -58,7 +58,7 @@ impl TestVm {
         println!("[{}] Starting VM '{}' ({:?})...", std::any::type_name::<Self>(), profile_name, display);
 
         // Ensure image is available
-        let _disk = foundation_testbed::import::ensure_image(&profile)?;
+        let _disk = foundation_testbed::vms::import::ensure_image(&profile)?;
 
         let mut config = QemuConfig::new(profile.clone(), display);
         if mount_project {
@@ -80,7 +80,7 @@ impl TestVm {
         let ssh_port = qemu.resolved_ports.ssh_port;
 
         // Save state
-        let monitor_path = foundation_testbed::config::monitor_dir(&profile.name)
+        let monitor_path = foundation_testbed::vms::config::monitor_dir(&profile.name)
             .join(format!("{}.monitor", profile.name));
         let vm_state = state::from_qemu(
             &profile.name,
@@ -115,7 +115,7 @@ impl TestVm {
                     &self.profile_name, self.ssh_port, timeout);
                 loop {
                     if start.elapsed() > timeout {
-                        return Err(foundation_testbed::config::TestbedError::SshFailed {
+                        return Err(foundation_testbed::vms::config::TestbedError::SshFailed {
                             port: self.ssh_port,
                             source: anyhow::anyhow!("timed out waiting for VM connectivity after {:?}", timeout),
                         });
@@ -135,12 +135,12 @@ impl TestVm {
                     &self.profile_name, timeout);
                 loop {
                     if start.elapsed() > timeout {
-                        return Err(foundation_testbed::config::TestbedError::SshFailed {
+                        return Err(foundation_testbed::vms::config::TestbedError::SshFailed {
                             port: self.ssh_port,
                             source: anyhow::anyhow!("timed out waiting for WinRM after {:?}", timeout),
                         });
                     }
-                    if let Ok(winrm) = foundation_testbed::winrm::WinRM::from_profile(&self.profile) {
+                    if let Ok(winrm) = foundation_testbed::vms::winrm::WinRM::from_profile(&self.profile) {
                         if winrm.ping() {
                             println!("[{}] WinRM ready", &self.profile_name);
                             return Ok(());
@@ -159,14 +159,14 @@ impl TestVm {
     ///
     /// Logs are written to `$PWD/.testbed/<profile-name>/bootstrap.log`.
     pub fn bootstrap(&mut self) -> Result<()> {
-        if foundation_testbed::bootstrap::is_bootstrapped(&self.profile) {
+        if foundation_testbed::vms::bootstrap::is_bootstrapped(&self.profile) {
             println!("[{}] Already bootstrapped, skipping", &self.profile_name);
             return Ok(());
         }
 
         // Create logger for test output
         let logger = BootstrapLogger::new(&self.profile_name)
-            .map_err(|e| foundation_testbed::config::TestbedError::BootstrapFailed {
+            .map_err(|e| foundation_testbed::vms::config::TestbedError::BootstrapFailed {
                 step: "create logger".to_string(),
                 message: e.to_string(),
             })?;
@@ -174,16 +174,16 @@ impl TestVm {
         match self.profile.os {
             GuestOs::Linux | GuestOs::MacOS => {
                 let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
-                foundation_testbed::bootstrap::bootstrap(&self.profile, &mut session, &logger, None)?;
+                foundation_testbed::vms::bootstrap::bootstrap(&self.profile, &mut session, &logger, None)?;
             }
             GuestOs::Windows => {
                 let winrm_port = self.profile.winrm_port.unwrap_or(5985);
-                let winrm = foundation_testbed::winrm::WinRM::new(
+                let winrm = foundation_testbed::vms::winrm::WinRM::new(
                     "127.0.0.1", winrm_port, self.profile.user, self.profile.pass,
                 );
 
                 // Phase 1: WinRM-only (installs OpenSSH, configures SSH)
-                foundation_testbed::bootstrap::windows::bootstrap_windows_winrm_phase(
+                foundation_testbed::vms::bootstrap::windows::bootstrap_windows_winrm_phase(
                     &self.profile, &winrm, &logger, None,
                 )?;
 
@@ -192,7 +192,7 @@ impl TestVm {
                 let deadline = Instant::now() + Duration::from_secs(120);
                 loop {
                     if Instant::now() > deadline {
-                        return Err(foundation_testbed::config::TestbedError::BootstrapFailed {
+                        return Err(foundation_testbed::vms::config::TestbedError::BootstrapFailed {
                             step: "wait for SSH".to_string(),
                             message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
                         });
@@ -205,7 +205,7 @@ impl TestVm {
 
                 // Phase 2: SSH-required (installs dev tools)
                 let mut session = ssh::connect_from_port(self.ssh_port, self.profile.user, self.profile.os)?;
-                foundation_testbed::bootstrap::windows::bootstrap_windows_ssh_phase(
+                foundation_testbed::vms::bootstrap::windows::bootstrap_windows_ssh_phase(
                     &self.profile, &winrm, &mut session, &logger, None, false,
                 )?;
             }
@@ -272,7 +272,7 @@ impl Drop for TestVm {
 /// Ensure a VM image is cached (downloads if needed).
 pub fn ensure_image(profile_name: &str) -> Result<PathBuf> {
     let profile = get_profile(profile_name).map(|p| p.clone())?;
-    foundation_testbed::import::ensure_image(&profile)
+    foundation_testbed::vms::import::ensure_image(&profile)
 }
 
 /// Assert that a build completed successfully (exit code 0, artifact exists).
@@ -293,7 +293,7 @@ pub fn assert_build_ok_windows(vm: &TestVm, project_path: &str) -> Result<bool> 
 
 /// Validate that a file is an ELF binary (Linux executable).
 pub fn assert_elf_binary(path_on_host: &Path) -> Result<bool> {
-    use foundation_testbed::config::TestbedError;
+    use foundation_testbed::vms::config::TestbedError;
     if !path_on_host.exists() {
         return Ok(false);
     }
@@ -307,7 +307,7 @@ pub fn assert_elf_binary(path_on_host: &Path) -> Result<bool> {
 
 /// Validate that a file is a PE binary (Windows .exe with MZ header).
 pub fn assert_pe_binary(path_on_host: &Path) -> Result<bool> {
-    use foundation_testbed::config::TestbedError;
+    use foundation_testbed::vms::config::TestbedError;
     if !path_on_host.exists() {
         return Ok(false);
     }
@@ -329,7 +329,7 @@ pub fn assert_build_ok_macos(vm: &TestVm, project_path: &str) -> Result<bool> {
 
 /// Validate that a file is a Mach-O binary (macOS executable).
 pub fn assert_macho_binary(path_on_host: &Path) -> Result<bool> {
-    use foundation_testbed::config::TestbedError;
+    use foundation_testbed::vms::config::TestbedError;
     if !path_on_host.exists() {
         return Ok(false);
     }

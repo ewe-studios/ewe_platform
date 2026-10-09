@@ -31,10 +31,30 @@ pub fn foundation_core_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_core")
 }
 
+pub fn foundation_ui_traits_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_ui_traits")
+}
+
+pub fn foundation_wasm_ui_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_wasm_ui")
+}
+
 pub fn foundation_jsonschema_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_jsonschema")
 }
 
 pub fn serde_json_path() -> proc_macro2::TokenStream {
     resolve_crate("serde_json")
+}
+
+pub fn foundation_nostd_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_nostd")
+}
+
+pub fn foundation_theme_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_theme")
+}
+
+pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_deployment_platform")
 }

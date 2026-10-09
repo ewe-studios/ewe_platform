@@ -11,7 +11,7 @@
 use foundation_testing::http::{HttpRequest, HttpResponse, TestHttpServer};
 
 // Note: Uncomment these when HTTP client public API is ready
-// use foundation_netio::simple_http::client::SimpleHttpClient;
+// use foundation_netio::http::SimpleHttpClient;
 
 // ========================================================================
 // Internal HTTP Server Tests

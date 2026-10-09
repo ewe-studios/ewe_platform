@@ -1,4 +1,4 @@
-// A tiny DOM stand-in — just enough surface for ArrowDomApplicator, so DOM tests run
+// A tiny DOM stand-in — just enough surface for DomOpApplicator, so DOM tests run
 // under plain `node --test` without jsdom.
 
 class ClassList {
@@ -56,6 +56,89 @@ export class MockNode {
     return child;
   }
 
+  replaceChild(newChild, oldChild) {
+    const i = this.children.indexOf(oldChild);
+    if (i >= 0) {
+      this.children[i] = newChild;
+      newChild.parent = this;
+      oldChild.parent = null;
+    }
+    return oldChild;
+  }
+
+  removeChild(child) {
+    const i = this.children.indexOf(child);
+    if (i >= 0) {
+      this.children.splice(i, 1);
+      child.parent = null;
+    }
+    return child;
+  }
+
+  /** DOM-alias so code written against `parentNode` works on mocks too. */
+  get parentNode() {
+    return this.parent;
+  }
+
+  /** Sibling/child traversal aliases for the morph engine. */
+  get childNodes() {
+    return this.children;
+  }
+
+  get firstChild() {
+    return this.children[0] ?? null;
+  }
+
+  get nextSibling() {
+    if (!this.parent) return null;
+    const i = this.parent.children.indexOf(this);
+    return i >= 0 ? this.parent.children[i + 1] ?? null : null;
+  }
+
+  /** Structural equality (DOM's isEqualNode, mock edition). */
+  isEqualNode(other) {
+    if (!other || other.tag !== this.tag) return false;
+    if (this.tag === "#text") return this.textContent === other.textContent;
+    const mine = this.getAttributeNames().sort();
+    const theirs = (other.getAttributeNames?.() ?? []).sort();
+    if (mine.length !== theirs.length) return false;
+    for (let i = 0; i < mine.length; i++) {
+      if (mine[i] !== theirs[i]) return false;
+      if (this.getAttribute(mine[i]) !== other.getAttribute(mine[i])) return false;
+    }
+    if (this.children.length !== other.children.length) return false;
+    return this.children.every((child, i) => child.isEqualNode(other.children[i]));
+  }
+
+  /** DOM-alias for the event runtime's delegate resolution. */
+  get parentElement() {
+    return this.parent;
+  }
+
+  /** Subtree containment (delegation guards). */
+  contains(node) {
+    for (let cur = node; cur; cur = cur.parent) {
+      if (cur === this) return true;
+    }
+    return false;
+  }
+
+  /** Nearest ancestor-or-self matching a bare tag name (island boundary). */
+  closest(tag) {
+    for (let cur = this; cur; cur = cur.parent) {
+      if (cur.tag === tag) return cur;
+    }
+    return null;
+  }
+
+  /**
+   * Records adjacent-HTML insertions for assertions (real parsing/morphing is
+   * feature 07); `position` is one of beforebegin/afterbegin/beforeend/afterend.
+   */
+  insertAdjacentHTML(position, html) {
+    (this.adjacentHTML ??= []).push({ position, html });
+  }
+
   insertBefore(child, ref) {
     const i = this.children.indexOf(ref);
     child.parent = this;
@@ -85,10 +168,38 @@ export class MockNode {
 }
 
 export class MockDocument {
+  constructor() {
+    // Root for querySelector walks; tests append what they want findable.
+    this.root = new MockNode("#document");
+  }
+
   createElement(tag) { return new MockNode(tag); }
   createTextNode(text) {
     const n = new MockNode("#text");
     n.textContent = text;
     return n;
+  }
+
+  /**
+   * Minimal selector engine over `root`: `[primal-id="N"]`, `#id`, `.class`,
+   * or a bare tag name — exactly what REGISTER_NODE and MORPH_NODE use.
+   */
+  querySelector(selector) {
+    const matches = (node) => {
+      const attr = /^\[primal-id="(.+)"\]$/.exec(selector);
+      if (attr) return String(node.getAttribute("primal-id")) === attr[1];
+      if (selector.startsWith("#")) return node.getAttribute("id") === selector.slice(1);
+      if (selector.startsWith(".")) return node.classList.contains(selector.slice(1));
+      return node.tag === selector;
+    };
+    const walk = (node) => {
+      if (matches(node)) return node;
+      for (const child of node.children) {
+        const hit = walk(child);
+        if (hit) return hit;
+      }
+      return null;
+    };
+    return walk(this.root);
   }
 }

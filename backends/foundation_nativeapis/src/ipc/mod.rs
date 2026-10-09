@@ -42,7 +42,7 @@ pub struct Message<T> {
 
 impl<T: MessageBox> Message<T> {
     pub fn new(mut selector: Selector, payload: T) -> Self {
-        use foundation_core::type_uuid::TypeUuid;
+        
         selector.uuid = payload.uuid();
         Self {
             selector,

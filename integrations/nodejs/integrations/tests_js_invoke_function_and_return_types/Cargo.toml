@@ -10,8 +10,8 @@ repository.workspace = true
 keywords = ["tests", "tests_js_invoke_function_and_return_types"]
 
 [dependencies]
-foundation_nostd = { workspace = true }
-foundation_wasm = { workspace = true }
+foundation_nostd = { path = "../../../../backends/foundation_nostd", version = "0.0.4" }
+foundation_wasm = { path = "../../../../backends/foundation_wasm", version = "0.0.3" }
 
 
 [lib]

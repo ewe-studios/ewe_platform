@@ -1,0 +1,36 @@
+# ewe-test-android — Android test environment.
+#
+# Start:  docker compose up -d
+# VNC:    vnc://localhost:5901
+# Web:    http://localhost:6081/vnc.html
+# ADB:    adb connect localhost:5555
+#
+# Requires KVM on the host for emulator hardware acceleration.
+# Without KVM, the emulator runs in software mode (TCG, ~10x slower).
+services:
+  android:
+    build:
+      context: .
+    privileged: true   # KVM needs /dev/kvm and libvirt access
+    environment:
+      DEV_USER: developer
+      RESOLUTION: 1280x720
+      ANDROID_AVD_NAME: test_avd
+      ANDROID_EMULATOR_EXTRA_ARGS: ""
+    volumes:
+      - ~/.ssh/id_ed25519.pub:/tmp/authorized_keys:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - test_workspace:/workspace
+    devices:
+      - /dev/kvm:/dev/kvm   # KVM for hardware-accelerated emulator
+    ports:
+      - "2223:22"      # SSH (different from Linux's 2222)
+      - "5901:5901"    # VNC
+      - "6081:6081"    # noVNC web client
+      - "5037:5037"    # ADB server
+      - "5554:5554"    # Emulator console
+      - "5555:5555"    # ADB bridge to emulator
+    restart: unless-stopped
+
+volumes:
+  test_workspace:

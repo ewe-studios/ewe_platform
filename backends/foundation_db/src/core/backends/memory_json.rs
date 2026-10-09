@@ -38,10 +38,6 @@ impl MemoryJsonStore {
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))
     }
 
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
-
     fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
         Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
@@ -54,39 +50,35 @@ impl Default for MemoryJsonStore {
 }
 
 impl KeyValueStore for MemoryJsonStore {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
-        let result = match data.get(key) {
+        match data.get(key) {
             Some(json) => {
                 let value: V =
                     serde_json::from_str(json).map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Some(value)
+                Ok(Some(value))
             }
-            None => None,
-        };
-        Ok(Self::stream_once(result))
+            None => Ok(None),
+        }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
         let json = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let mut data = self.lock()?;
         data.insert(key.to_string(), json);
-        Ok(Self::stream_once(()))
+        Ok(())
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let mut data = self.lock()?;
         data.remove(key);
-        Ok(Self::stream_once(()))
+        Ok(())
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self.lock()?;
-        Ok(Self::stream_once(data.contains_key(key)))
+        Ok(data.contains_key(key))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -115,13 +107,13 @@ impl QueryStore for MemoryJsonStore {
         &self,
         _sql: &str,
         _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryJsonStore".to_string(),
         ))
     }
 
-    fn execute_batch(&self, _sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryJsonStore".to_string(),
         ))
@@ -134,7 +126,7 @@ impl RateLimiterStore for MemoryJsonStore {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -158,10 +150,10 @@ impl RateLimiterStore for MemoryJsonStore {
             }
             None => true,
         };
-        Ok(Self::stream_once(allowed))
+        Ok(allowed)
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -187,46 +179,46 @@ impl RateLimiterStore for MemoryJsonStore {
             data.insert(rate_key, entry);
             1
         };
-        Ok(Self::stream_once(new_count))
+        Ok(new_count)
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.lock()?;
         data.remove(&rate_key);
-        Ok(Self::stream_once(()))
+        Ok(())
     }
 }
 
 impl BlobStore for MemoryJsonStore {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         // Store binary data as base64 JSON string
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
         let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
         let mut store = self.lock()?;
         store.insert(key.to_string(), json);
-        Ok(Self::stream_once(()))
+        Ok(())
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let data = self.lock()?;
         let result = data.get(key).and_then(|json| {
             let wrapper: serde_json::Value = serde_json::from_str(json).ok()?;
             let encoded = wrapper.get("data").and_then(|v| v.as_str())?;
             base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()
         });
-        Ok(Self::stream_once(result))
+        Ok(result)
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let mut data = self.lock()?;
         data.remove(key);
-        Ok(Self::stream_once(()))
+        Ok(())
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let data = self.lock()?;
-        Ok(Self::stream_once(data.contains_key(key)))
+        Ok(data.contains_key(key))
     }
 }
 
@@ -234,7 +226,7 @@ impl BlobStore for MemoryJsonStore {
 // Async trait implementations — in-memory ops resolve immediately.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for MemoryJsonStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
@@ -279,7 +271,7 @@ impl AsyncKeyValueStore for MemoryJsonStore {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for MemoryJsonStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
@@ -311,7 +303,7 @@ impl AsyncBlobStore for MemoryJsonStore {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for MemoryJsonStore {
     async fn check_rate_limit_async(
         &self,

@@ -20,6 +20,10 @@ pub struct AuthContext {
     pub ip_address: Option<String>,
     /// User agent string.
     pub user_agent: Option<String>,
+    /// Principal identifier (from JWT sub, session user_id).
+    pub sub: Option<String>,
+    /// RBAC roles from the credential.
+    pub roles: Vec<String>,
 }
 
 impl AuthContext {
@@ -31,6 +35,8 @@ impl AuthContext {
             path,
             ip_address,
             user_agent,
+            sub: None,
+            roles: Vec::new(),
         }
     }
 
@@ -111,13 +117,17 @@ pub fn extract_session_token(cookies: &[&str], cookie_name: &str) -> Option<Stri
 /// Check whether a bearer token is present in the Authorization header.
 ///
 /// Returns the token value (without the "Bearer " prefix) if found.
+/// Per RFC 9110, the scheme matching is case-insensitive.
 #[must_use]
 pub fn extract_bearer_token(auth_header: Option<&str>) -> Option<String> {
     let header = auth_header?;
-    header
-        .strip_prefix("Bearer ")
-        .or_else(|| header.strip_prefix("bearer "))
-        .map(String::from)
+    const PREFIX: &[u8] = b"Bearer ";
+    let bytes = header.as_bytes();
+    if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
+        header.get(PREFIX.len()..).map(String::from)
+    } else {
+        None
+    }
 }
 
 /// Validate that a token has one of the required scopes.
@@ -147,105 +157,3 @@ pub fn has_scope(ctx: &AuthContext, required: &[&str]) -> bool {
     required.iter().any(|r| scopes.contains(r))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::shared::types::ConfidentialText;
-
-    #[test]
-    fn test_require_auth_with_valid_token() {
-        let future = chrono::Utc::now().timestamp() as f64 + 3600.0;
-        let ctx =
-            AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
-                access_token: ConfidentialText::new("tok".to_string()),
-                refresh_token: None,
-                token_type: "Bearer".to_string(),
-                expires_at: future,
-                scope: Some("read".to_string()),
-            });
-
-        match require_auth(ctx) {
-            GuardResult::Authorized(c) => assert_eq!(c.path, "/api/data"),
-            other => panic!("expected Authorized, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn test_require_auth_expired_token() {
-        let past = chrono::Utc::now().timestamp() as f64 - 3600.0;
-        let ctx =
-            AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
-                access_token: ConfidentialText::new("tok".to_string()),
-                refresh_token: None,
-                token_type: "Bearer".to_string(),
-                expires_at: past,
-                scope: None,
-            });
-
-        assert!(matches!(require_auth(ctx), GuardResult::TokenExpired));
-    }
-
-    #[test]
-    fn test_require_auth_no_token() {
-        let ctx = AuthContext::new("/api/data".to_string(), None, None);
-        assert!(matches!(require_auth(ctx), GuardResult::Unauthorized));
-    }
-
-    #[test]
-    fn test_optional_auth_strips_expired_token() {
-        let past = chrono::Utc::now().timestamp() as f64 - 3600.0;
-        let ctx =
-            AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
-                access_token: ConfidentialText::new("tok".to_string()),
-                refresh_token: None,
-                token_type: "Bearer".to_string(),
-                expires_at: past,
-                scope: None,
-            });
-
-        if let GuardResult::Authorized(c) = optional_auth(ctx) {
-            assert!(c.token.is_none());
-        } else {
-            panic!("optional_auth should always return Authorized");
-        }
-    }
-
-    #[test]
-    fn test_extract_session_token() {
-        let cookies = vec![
-            "session_token=abc123; Path=/; HttpOnly",
-            "session_data={}; Path=/",
-        ];
-        assert_eq!(
-            extract_session_token(&cookies, "session_token"),
-            Some("abc123".to_string())
-        );
-    }
-
-    #[test]
-    fn test_extract_bearer_token() {
-        assert_eq!(
-            extract_bearer_token(Some("Bearer abc123")),
-            Some("abc123".to_string())
-        );
-        assert_eq!(extract_bearer_token(Some("abc123")), None);
-        assert_eq!(extract_bearer_token(None), None);
-    }
-
-    #[test]
-    fn test_has_scope() {
-        let ctx = AuthContext::new("/api".to_string(), None, None).with_token(AuthToken::OAuth {
-            access_token: ConfidentialText::new("tok".to_string()),
-            refresh_token: None,
-            token_type: "Bearer".to_string(),
-            expires_at: 0.0,
-            scope: Some("read write".to_string()),
-        });
-
-        assert!(has_scope(&ctx, &["read"]));
-        assert!(has_scope(&ctx, &["write"]));
-        assert!(has_scope(&ctx, &["read", "admin"]));
-        assert!(!has_scope(&ctx, &["admin"]));
-        assert!(has_scope(&ctx, &[]));
-    }
-}

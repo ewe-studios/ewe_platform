@@ -1,8 +1,107 @@
 # CR Byte Investigation: GCP Discovery API Response Corruption
 
 **Date:** 2026-04-03  
-**Status:** Root cause identified, workaround implemented, proper fix in progress  
+**Status:** ⚠️ **Superseded — see "Update 2026-07-17" below before acting on anything here.**
+The parser-level CR stripping this document recommends **has been removed**. If GCP
+Discovery JSON needs CRs cleaned, that belongs in the GCP fetch layer, not the
+shared HTTP parser.  
 **Author:** Claude Code
+
+---
+
+## Update 2026-07-17 — parser-level CR stripping removed
+
+**What changed.** `SimpleHttpChunkIterator` no longer strips CR bytes from chunk
+data (`backends/foundation_netio/src/shared/http/impls.rs`). Chunk data is opaque
+octets: the chunk-size says exactly how many bytes belong to the chunk, and CRLF
+only frames them. The transport hands the bytes over untouched.
+
+**Why it had to go.** The strip corrupted every *binary* chunked body in the
+workspace. Docker's multiplexed log stream is the concrete case: each frame is an
+8-byte header `[stream, 0,0,0, size_be32]` followed by the payload, so a **13-byte**
+log line puts a literal `0x0D` in the size field. Stripping it desynchronised the
+frame and the log came back **empty**. Proven against the wire — dockerd sent 21
+bytes, our client returned 20:
+
+```
+wire  : 01 00 00 00 00 00 00 0d 66 72 6f 6d 2d 74 68 65 2d 68 6f 73 74   ("from-the-host")
+ours  : 01 00 00 00 00 00 00    66 72 6f 6d 2d 74 68 65 2d 68 6f 73 74   ← the 0d is gone
+```
+
+Any tar, gzip or protobuf body has the same exposure. This is exactly the risk
+recorded in this document's own **Next Steps #4** ("Monitor for issues with binary
+content that might legitimately contain 0x0D bytes") — it happened.
+
+Note also that the workaround **as this document implemented it** was GCP-local
+(in `gcp/fetch.rs`, since deleted), and its "Cons" already said a parser-level
+version would leave "other protocols/formats … corrupted data". It was later moved
+into the shared parser anyway, citing this file. The guidance below restores the
+original, correct layering.
+
+### The CRs were probably ours, not GCP's
+
+The evidence in this document fits a **parser** defect better than a server one:
+
+- The CRs broke words *mid-token* (`cor\rresponding`, `PART\rIAL`). A chunk
+  boundary falling mid-word plus a leaked delimiter byte produces exactly that:
+  `"cor"` + a stray `\r` + `"responding"`.
+- Curl saw **zero** CRs from the same endpoint. This document explained that away
+  as GCP serving different content per client — a stretch.
+- Alongside the strip, the chunk header parser ran `eat_crlf` **and**
+  `eat_newlines`, both looping until a non-CR/LF byte. RFC 7230 §4.1 is
+  `chunk-size [ext] CRLF chunk-data CRLF` — **exactly one** terminator. So data
+  starting with CR/LF was eaten as framing and `read_exact` then pulled the
+  delimiter in as content. That is the "double-consumption" hypothesised in
+  *Step 4* of this document and never fixed. **It is fixed now** (2026-07-17):
+  exactly one terminator is consumed (CRLF, or a bare LF for lenient servers).
+- This is the same class of bug as the April fix recorded in `learnings.md`,
+  which removed `eat_escaped_crlf` for "consuming legitimate JSON content". Two
+  greedy eaters were left behind; those were the remaining half of the problem.
+
+### If the GCP CRs come back
+
+1. **Re-test first.** With the delimiter bug fixed, fetch the Discovery doc and
+   diff it against `curl --http1.1`. The CRs may simply be gone. Do not add a
+   workaround for a bug that no longer exists.
+2. **If GCP genuinely sends CRs in its JSON**, strip them **in the GCP fetch
+   layer** — where the response is known to be text and known to be JSON:
+
+   ```rust
+   // In the GCP discovery fetch/parse path, NOT in the HTTP parser:
+   let mut body = /* collected response body as String */;
+   if body.contains('\r') {
+       warn!("gcp/{name}: stripping {} CR bytes from Discovery JSON", body.matches('\r').count());
+       body = body.replace('\r', "");
+   }
+   let spec: DiscoveryDoc = serde_json::from_str(&body)?;
+   ```
+
+   That code no longer exists in the tree (the provider's fetch path was removed);
+   re-add it wherever the Discovery JSON is fetched and deserialized.
+3. **Never** put it back in `foundation_netio`. The transport cannot know whether
+   a `0x0D` is a stray character in someone's JSON or a length byte in a binary
+   frame — only the caller that knows the payload's format can decide that.
+
+### Regression tests that now pin this
+
+`backends/foundation_netio/tests/simple_http/`:
+
+- `chunked_tests.rs::test_chunk_data_cr_preserved` — CRs in chunk data round-trip.
+- `chunked_encoding.rs::test_cr_in_chunk_data_preserved_at_various_positions` —
+  CR at the start, middle and end of chunk data.
+- `chunked_encoding.rs::test_gcp_style_cr_in_json_is_preserved` — a GCP-style
+  stray CR inside a JSON string survives the transport.
+- `chunked_encoding.rs::test_gcp_chunked_fixture_from_file` — the captured GCP
+  response reassembles byte-for-byte. `gcp_chunked_expected.bin` was regenerated
+  to the **171** bytes the capture actually carries; it previously stored 162,
+  i.e. the CR-stripped version.
+- `chunked_encoding.rs::test_lf_framing_keeps_leading_lf_in_data` — replaces
+  `test_double_lf_line_endings`. `<size>\n\n<data>` is not a framing any server
+  sends, and supporting it is unavoidably ambiguous with data that begins with LF.
+
+End-to-end proof lives in
+`backends/foundation_deployment_platform/tests/network_volume_integration.rs`,
+which reads container logs (13-byte payload included) over this path.
 
 ---
 
@@ -211,38 +310,45 @@ if body.contains('\r') {
 - Doesn't address root cause in HTTP parser
 - Other protocols/formats would still see corrupted data
 
-### Proper Fix (Recommended)
+### ~~Proper Fix (Recommended)~~ — ❌ REJECTED AND REVERTED 2026-07-17
 
-Strip CR bytes at the chunked encoding parser level, ensuring ALL chunked responses are correctly handled:
+> **Do not implement this.** It was implemented, it corrupted every binary
+> chunked body, and it has been removed. See "Update 2026-07-17" at the top.
+
+~~Strip CR bytes at the chunked encoding parser level, ensuring ALL chunked responses are correctly handled:~~
 
 ```rust
-// In SimpleHttpChunkIterator::next(), after reading chunk data
-// Filter out any CR bytes from chunk data before returning
+// REMOVED from SimpleHttpChunkIterator::next() — do not reinstate.
 chunk_data.retain(|&b| b != b'\r');
 ```
 
-**Pros:**
-- Fixes issue for ALL chunked transfer coding, not just GCP
-- Ensures protocol-level correctness
-- Handles any server that sends unexpected CR bytes
+The "Cons" below understated the damage: it is not that this *may* hide
+legitimate CR bytes, it is that it **silently corrupts every payload whose bytes
+are not text** — Docker log frames, tar, gzip, protobuf. The fix belongs in the
+GCP fetch layer; see "If the GCP CRs come back" at the top.
 
-**Cons:**
-- Modifies core HTTP parsing logic
-- May hide legitimate CR bytes if ever valid in chunk data (unlikely per RFC 7230)
+### RFC 7230 Compliance Note — ⚠️ the reasoning below is wrong
 
-### RFC 7230 Compliance Note
+The original note read:
 
-Per RFC 7230 Section 4.1, chunked transfer coding uses CRLF (`\r\n`) as line terminators. Chunk DATA should not contain unescaped CR bytes as they're control characters. Stripping CRs from chunk data is:
-- **Safe** for text-based formats (JSON, XML, HTML)
-- **Safe** for most binary formats (CRs rarely meaningful)
-- **Potentially lossy** for binary data that legitimately contains 0x0D bytes
+> Per RFC 7230 Section 4.1, chunked transfer coding uses CRLF (`\r\n`) as line
+> terminators. Chunk DATA should not contain unescaped CR bytes as they're
+> control characters. […] 3. No legitimate use case for raw CRs in HTTP response
+> bodies […] stripping is the pragmatic solution.
 
-For strict binary correctness, the fix should only strip CRs that are clearly protocol artifacts, not data. However, given that:
-1. GCP's CRs appear in text content (JSON strings)
-2. RFC 7230 doesn't define CR handling within chunk data
-3. No legitimate use case for raw CRs in HTTP response bodies
+Corrections:
 
-...stripping is the pragmatic solution.
+1. **Chunk data is opaque octets.** RFC 7230 §4.1 gives `chunk-data` an explicit
+   length (`chunk-size`); the CRLFs delimit the framing *around* it. Chunk data
+   may contain any byte, CR included. There is nothing to "not define" — the
+   size field settles it.
+2. **"No legitimate use case for raw CRs in HTTP response bodies" is false.** Any
+   binary body has them. `Content-Type: application/vnd.docker.multiplexed-stream`
+   puts a payload length in each frame header, so a 13-byte log line carries
+   `0x0D` there. A gzip or tar body hits `0x0D` constantly.
+3. **"Safe for most binary formats (CRs rarely meaningful)"** — a corrupted byte
+   is corrupt whether or not the byte was "meaningful"; the length changes and
+   every downstream framing decision shifts with it.
 
 ---
 
@@ -273,21 +379,33 @@ Create TCP capture test that:
 
 ## Files Modified
 
+> Paths below are from 2026-04-03. `foundation_core::wire::simple_http` has since
+> moved to **`foundation_netio::shared::http`**, and the tests to
+> `backends/foundation_netio/tests/simple_http/`.
+
 | File | Change | Purpose |
 |------|--------|---------|
-| `backends/foundation_core/src/wire/simple_http/impls.rs` | Add CR stripping in `SimpleHttpChunkIterator::next()` | Proper fix for all chunked responses |
-| `backends/foundation_core/tests/chunked_encoding.rs` | New integration tests with GCP-style fixture | Regression tests for CR stripping |
+| ~~`backends/foundation_core/src/wire/simple_http/impls.rs`~~ | ~~Add CR stripping in `SimpleHttpChunkIterator::next()`~~ | **Reverted 2026-07-17** — corrupted binary bodies |
+| `backends/foundation_core/tests/chunked_encoding.rs` | Integration tests with GCP-style fixture | Now assert byte-exact round-tripping instead |
 | `bin/platform/src/tcp_capture/mod.rs` | New TCP capture utility | Capture raw HTTP responses for debugging |
 
 ---
 
 ## Next Steps
 
-1. ~~Implement proper fix~~ **DONE** - CR stripping in `SimpleHttpChunkIterator::next()`
+1. ~~Implement proper fix~~ — **REVERTED 2026-07-17.** The parser-level strip
+   corrupted every binary chunked body; see the update at the top of this file.
 2. ~~Create TCP capture utility~~ **DONE** - `ewe_platform tcp_capture` command
-3. ~~Create regression tests~~ **DONE** - `backends/foundation_core/tests/chunked_encoding.rs`
-4. **Monitor for issues** with binary content that might legitimately contain 0x0D bytes
-5. **Consider filing issue** with GCP team about inconsistent API spec content
+3. ~~Create regression tests~~ **DONE** — rewritten 2026-07-17 to assert chunk
+   data survives byte-for-byte.
+4. ~~**Monitor for issues** with binary content that might legitimately contain
+   0x0D bytes~~ — **this happened** (Docker log frames; see the update at top).
+5. **Consider filing issue** with GCP team about inconsistent API spec content —
+   only worth doing once step 6 confirms the CRs are really theirs.
+6. **Re-verify the GCP Discovery fetch** now that the chunk-header parser
+   consumes exactly one terminator. The stray CRs may have been our own leaked
+   delimiter bytes all along. If they persist, strip them in the GCP fetch layer
+   (snippet at the top of this file) — not in the shared parser.
 
 ---
 

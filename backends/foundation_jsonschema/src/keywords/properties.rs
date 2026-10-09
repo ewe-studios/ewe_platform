@@ -32,9 +32,13 @@ impl Validate for PropertiesValidator {
         if let Value::Object(obj) = instance {
             for (name, value) in obj {
                 if let Some(schema) = self.properties.get(name) {
+                    let state = ctx.save_evaluation_state();
+                    ctx.mark_property_evaluated(name);
                     if !schema.is_valid(value, ctx) {
                         valid = false;
                     }
+                    // Restore to pre-subschema state but keep our mark
+                    ctx.restore_evaluation_state(&state);
                     ctx.mark_property_evaluated(name);
                 }
             }
@@ -52,9 +56,11 @@ impl Validate for PropertiesValidator {
             for (name, value) in obj {
                 if let Some(schema) = self.properties.get(name) {
                     let child_path = instance_path.push_property(name);
-                    // Mark as evaluated regardless of validation outcome.
+                    let state = ctx.save_evaluation_state();
                     ctx.mark_property_evaluated(name);
                     schema.validate(value, &child_path, ctx)?;
+                    ctx.restore_evaluation_state(&state);
+                    ctx.mark_property_evaluated(name);
                 }
             }
         }
@@ -72,9 +78,12 @@ impl Validate for PropertiesValidator {
             for (name, value) in obj {
                 if let Some(schema) = self.properties.get(name) {
                     let child_path = instance_path.push_property(name);
+                    let state = ctx.save_evaluation_state();
+                    ctx.mark_property_evaluated(name);
                     for e in schema.iter_errors(value, &child_path, ctx) {
                         errors.push(e);
                     }
+                    ctx.restore_evaluation_state(&state);
                     ctx.mark_property_evaluated(name);
                 }
             }

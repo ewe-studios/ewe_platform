@@ -24,13 +24,31 @@ type AsyncStream<T> = Pin<Box<dyn futures_core::Stream<Item = T> + Send>>;
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
 /// Errors are yielded in the stream as `Stream::Next(Err(e))` - callers can use
 /// `.flatten()` to extract only successful values or collect into `Result` to propagate errors.
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + 'a>;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
+
+/// Async analog of [`StorageItemStream`]: a lazily-pulled async stream of
+/// deserialized items, each a `StorageResult<T>`.
+///
+/// Consumers pull one item at a time with `.next().await`
+/// (`while let Some(item) = stream.next().await { ... }`), so even an unbounded
+/// scan never materializes a `Vec` — back-pressure is natural and large
+/// collections can't OOM. This is the **async-canonical** read shape: the async
+/// `*_async` methods are the real implementation, and the sync `DocumentStore`
+/// bridges this stream to a sync iterator via valtron (`run_future_iter`),
+/// exactly as `QueryStore::query` wraps `query_async`.
+#[cfg(target_family = "wasm")]
+pub type AsyncStorageItemStream<'a, T> =
+    Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + 'a>>;
+
+#[cfg(not(target_family = "wasm"))]
+pub type AsyncStorageItemStream<'a, T> =
+    Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + Send + 'a>>;
 
 /// A single SQL parameter value (crate-owned, backend-agnostic).
 #[derive(Debug, Clone)]
@@ -172,6 +190,18 @@ impl FromDataValue for Vec<u8> {
     }
 }
 
+/// SQL `NULL` maps to `None`; any other value is converted via `T` and wrapped
+/// in `Some`. Use this (not `String`) to distinguish a NULL column from an empty
+/// string — `String::from_data_value` deliberately coerces NULL to `""`.
+impl<T: FromDataValue> FromDataValue for Option<T> {
+    fn from_data_value(value: &DataValue) -> StorageResult<Self> {
+        match value {
+            DataValue::Null => Ok(None),
+            other => T::from_data_value(other).map(Some),
+        }
+    }
+}
+
 impl FromDataValue for bool {
     fn from_data_value(value: &DataValue) -> StorageResult<Self> {
         match value {
@@ -200,7 +230,7 @@ pub struct AsyncQueryStream {
 }
 
 impl AsyncQueryStream {
-    /// Wrap any `futures_core::Stream<Item = StorageResult<SqlRow>>` as an AsyncQueryStream.
+    /// Wrap any `futures_core::Stream<Item = StorageResult<SqlRow>>` as an `AsyncQueryStream`.
     pub fn new<S>(stream: S) -> Self
     where
         S: futures_core::Stream<Item = StorageResult<SqlRow>> + Send + 'static,
@@ -232,7 +262,7 @@ pub struct AsyncListStream {
 }
 
 impl AsyncListStream {
-    /// Wrap any `futures_core::Stream<Item = StorageResult<String>>` as an AsyncListStream.
+    /// Wrap any `futures_core::Stream<Item = StorageResult<String>>` as an `AsyncListStream`.
     pub fn new<S>(stream: S) -> Self
     where
         S: futures_core::Stream<Item = StorageResult<String>> + Send + 'static,
@@ -267,6 +297,7 @@ pub struct AsyncQueryStreamIterator {
 }
 
 impl AsyncQueryStreamIterator {
+    #[must_use]
     pub fn new(stream: AsyncQueryStream) -> Self {
         Self { stream }
     }
@@ -288,6 +319,7 @@ pub struct AsyncListStreamIterator {
 }
 
 impl AsyncListStreamIterator {
+    #[must_use]
     pub fn new(stream: AsyncListStream) -> Self {
         Self { stream }
     }
@@ -304,89 +336,45 @@ impl Iterator for AsyncListStreamIterator {
 
 /// Key-value store operations available on all backends.
 ///
-/// All methods return `StorageItemStream` for composable, non-blocking I/O.
-/// Single-value operations yield exactly one `Stream::Next` item.
-/// Use `collect_one` / `collect_result` at sync boundaries to extract values.
+/// Single-value operations return `StorageResult<T>` directly.
+/// Multi-value operations return `StorageItemStream<T>`.
 pub trait KeyValueStore: Send + Sync {
-    /// Get a value by key. Yields one `Next(Option<V>)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if scheduling fails or deserialization fails.
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>>;
+    /// Get a value by key. Returns `None` if key doesn't exist.
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
 
-    /// Set a key-value pair. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if serialization or scheduling fails.
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Set a key-value pair.
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
 
-    /// Delete a key. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Delete a key.
+    fn delete(&self, key: &str) -> StorageResult<()>;
 
-    /// Check if a key exists. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
+    /// Check if a key exists.
+    fn exists(&self, key: &str) -> StorageResult<bool>;
 
     /// List all keys with optional prefix filter.
-    /// Yields multiple `Next(String)` items.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
+    /// Returns a stream of keys.
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
 }
 
 /// Blob storage operations for binary large objects.
 pub trait BlobStore: Send + Sync {
-    /// Put a blob into storage. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Put a blob into storage.
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
 
-    /// Get a blob from storage. Yields one `Next(Option<Vec<u8>>)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>>;
+    /// Get a blob from storage. Returns `None` if key doesn't exist.
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
 
-    /// Delete a blob. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Delete a blob.
+    fn delete_blob(&self, key: &str) -> StorageResult<()>;
 
-    /// Check if a blob exists. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
+    /// Check if a blob exists.
+    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
 }
 
 /// SQL query operations for relational backends (Turso, D1).
 pub trait QueryStore: Send + Sync {
     /// Execute a query that returns rows.
-    /// Returns a stream of `Next(SqlRow)` items.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the query fails or parameter conversion fails.
+    /// Returns a stream of `SqlRow` items.
     fn query(
         &self,
         sql: &str,
@@ -394,26 +382,16 @@ pub trait QueryStore: Send + Sync {
     ) -> StorageResult<StorageItemStream<'_, SqlRow>>;
 
     /// Execute a statement that returns number of rows affected.
-    /// Yields one `Next(u64)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the statement fails or parameter conversion fails.
-    fn execute(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<StorageItemStream<'_, u64>>;
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
 
-    /// Execute a batch of SQL statements. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if any statement in the batch fails.
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Execute a batch of SQL statements.
+    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
 }
 
 /// Async SQL query operations — for wasm backends (D1) where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncQueryStore {
+#[async_trait::async_trait]
+pub trait AsyncQueryStore: Send + Sync {
     /// Execute a query that returns rows as an async stream.
     ///
     /// For Turso/Libsql: yields rows one at a time as they're fetched.
@@ -436,8 +414,8 @@ pub trait AsyncQueryStore {
 
 /// Async key-value store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncKeyValueStore {
+#[async_trait::async_trait]
+pub trait AsyncKeyValueStore: Send + Sync {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete_async(&self, key: &str) -> StorageResult<()>;
@@ -451,37 +429,25 @@ pub trait AsyncKeyValueStore {
 
 /// Rate limiting operations.
 pub trait RateLimiterStore: Send + Sync {
-    /// Check if a rate limit key is allowed. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
+    /// Check if a rate limit key is allowed.
     fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>>;
+    ) -> StorageResult<bool>;
 
-    /// Record a rate-limited action. Yields one `Next(u32)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>>;
+    /// Record a rate-limited action. Returns the current count.
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32>;
 
-    /// Reset a rate limit key. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Reset a rate limit key.
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
 }
 
 /// Async blob store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncBlobStore {
+#[async_trait::async_trait]
+pub trait AsyncBlobStore: Send + Sync {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
@@ -490,8 +456,8 @@ pub trait AsyncBlobStore {
 
 /// Async rate limiter store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncRateLimiterStore {
+#[async_trait::async_trait]
+pub trait AsyncRateLimiterStore: Send + Sync {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -502,4 +468,222 @@ pub trait AsyncRateLimiterStore {
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32>;
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()>;
+}
+
+// ===========================================================================
+// StoreResponse — reserved for future use
+//
+// If an operation ever needs to support both single-value and streaming
+// returns from the same method, use:
+//
+//   pub enum StoreResponse<T, S> {
+//       One(T),
+//       Stream(StorageItemStream<S>),
+//   }
+//
+// Currently not needed — each method has a clear single vs multi-value intent.
+// ===========================================================================
+
+/// A single document in a document store.
+///
+/// `#[non_exhaustive]` so future promoted columns can be added without breaking
+/// construction sites (use `Document { .. }` with the named fields).
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct Document {
+    /// Unique document ID within the collection (scru128 — time-ordered).
+    pub id: String,
+    /// The document content as a JSON string (full fidelity, source of truth).
+    pub content: String,
+    /// Optional metadata (`created_at`, `updated_at`, etc.).
+    pub metadata: serde_json::Value,
+    /// Promoted searchable column — a short title/label (nullable).
+    pub title: Option<String>,
+    /// Promoted searchable column — a summary/first-line (nullable).
+    pub summary: Option<String>,
+    /// Promoted searchable column — the record discriminant
+    /// ("conversation"/"observation"/...); nullable.
+    pub record_type: Option<String>,
+}
+
+impl Document {
+    #[must_use]
+    pub fn new(
+        id: String,
+        content: String,
+        metadata: serde_json::Value,
+        title: Option<String>,
+        summary: Option<String>,
+        record_type: Option<String>,
+    ) -> Self {
+        Self {
+            id,
+            content,
+            metadata,
+            title,
+            summary,
+            record_type,
+        }
+    }
+}
+
+/// Document append operations — available on all backends.
+///
+/// Documents are stored as JSON strings in an append-only collection.
+/// Each document gets a unique ID (scru128 or similar).
+/// Collections are identified by a key (e.g., `session:{id}:messages`).
+pub trait DocumentStore: Send + Sync {
+    /// Append a document to a collection. Returns the stored document with an
+    /// assigned scru128 ID. Ordering across all scans is by `doc_id` (scru128 is
+    /// lexicographically == chronologically ordered).
+    fn append<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Append a document with a **caller-supplied** `doc_id` (e.g. an agentic
+    /// message scru128), so `scan_from` can later anchor on a known id (OD-06-5).
+    /// The id must be a scru128 string for ordering to remain coherent.
+    fn append_with_id<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Scan the last N documents from a collection, **newest-first** (ordered by
+    /// `doc_id` DESC).
+    fn scan<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Scan all documents from a collection, **oldest-first** (ordered by `doc_id` ASC).
+    fn scan_all<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Scan documents whose id is **>= `from_id`** (inclusive — OD-06-2),
+    /// oldest-first, up to `limit` (0 = unlimited). Exploits scru128
+    /// lexicographic == chronological ordering for fast resume / incremental sync.
+    fn scan_from<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Append a document, populating the promoted columns from a
+    /// [`PromotableDocument`] (OD-06-1). Plain `append` leaves them NULL.
+    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Like [`append_promotable`](Self::append_promotable) but with a
+    /// caller-supplied `doc_id`.
+    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Scan the last N documents as full [`Document`]s (promoted columns
+    /// observable), newest-first by `doc_id` (OD-06-6).
+    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
+    /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
+    /// up to `limit` (0 = unlimited).
+    fn scan_documents_from(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>>;
+
+    /// Delete a specific document from a collection by its ID.
+    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()>;
+
+    /// Delete all documents in a collection. Returns count of deleted documents.
+    fn delete_all(&self, key: &str) -> StorageResult<u64>;
+
+    /// Count documents in a collection.
+    fn count(&self, key: &str) -> StorageResult<u64>;
+}
+
+/// A type whose values can populate the `DocumentStore`'s promoted columns.
+///
+/// WHY: rather than make callers pass `title`/`summary`/`record_type` to every
+/// `append`, a record type implements this once and the store extracts them
+/// (OD-06-1). F01's `SessionRecord` implements it (`record_type` from the
+/// variant, `summary` from observation/reflection text).
+pub trait PromotableDocument {
+    /// The record discriminant ("conversation"/"observation"/...), if any.
+    fn record_type(&self) -> Option<String> {
+        None
+    }
+    /// A short title/label, if any.
+    fn title(&self) -> Option<String> {
+        None
+    }
+    /// A summary/first-line, if any.
+    fn summary(&self) -> Option<String> {
+        None
+    }
+}
+
+/// Async document store operations — for wasm backends where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait]
+pub trait AsyncDocumentStore: Send + Sync {
+    /// Append a document to a collection.
+    async fn append_async<V: Serialize + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+
+    /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
+    async fn append_with_id_async<V: Serialize + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+
+    /// Append a document, populating the promoted columns from [`PromotableDocument`]
+    /// (async mirror of `append_promotable`; OD-22b-1).
+    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+
+    /// Like [`append_promotable_async`](Self::append_promotable_async) with a caller-supplied `doc_id`.
+    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+
+    /// Scan the last N documents as full [`Document`]s (promoted columns observable),
+    /// newest-first. Bounded by `limit`, so this returns a `Vec` (async mirror of
+    /// `scan_documents`; OD-22b-1).
+    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
+    /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
+    /// up to `limit` (0 = unlimited).
+    async fn scan_documents_from_async(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
+    /// Scan the last N documents from a collection, newest-first (by `doc_id`).
+    /// Returns a lazily-pulled [`AsyncStorageItemStream`] — pull each item with
+    /// `.next().await`; nothing is materialized into a `Vec` (no OOM).
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+
+    /// Scan all documents from a collection, oldest-first (by `doc_id`), as a
+    /// lazily-pulled [`AsyncStorageItemStream`].
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+
+    /// Scan documents whose id is >= `from_id` (inclusive), oldest-first, up to
+    /// `limit` (0 = unlimited), as a lazily-pulled [`AsyncStorageItemStream`]
+    /// (`while let Some(item) = stream.next().await { … }`). CF KV/D1 impls land
+    /// in F23 — OD-06-7.
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+
+    /// Delete a specific document.
+    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;
+
+    /// Delete all documents in a collection.
+    async fn delete_all_async(&self, key: &str) -> StorageResult<u64>;
+
+    /// Count documents in a collection.
+    async fn count_async(&self, key: &str) -> StorageResult<u64>;
 }

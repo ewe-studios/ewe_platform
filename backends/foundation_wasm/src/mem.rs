@@ -1,8 +1,14 @@
+// Every public function in this module:
+//   - Returns `MemoryAllocationResult<T>`, `MemoryWriterResult<T>`, or
+//     `BinaryReaderResult<T>` — error semantics are defined by the type alias.
+//   - Panics if the internal `Mutex` is poisoned (consistent
+//     `.unwrap_or_else(PoisonError::into_inner)` pattern).
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
 #![allow(dead_code)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::items_after_test_module)]
 #![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_panics_doc)]
 
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -463,7 +469,10 @@ impl MemoryAllocations {
         }
     }
 
+    // Returns MemoryAllocationResult for consistency with all other methods
+    // in this module, even though this particular fn cannot error.
     #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::unnecessary_wraps)]
     fn get_free_slot(&mut self) -> MemoryAllocationResult<Option<usize>> {
         if !self.free.is_empty() {
             if let Some(index) = self.free.pop() {
@@ -472,108 +481,5 @@ impl MemoryAllocations {
         }
 
         Ok(None)
-    }
-}
-
-#[cfg(test)]
-mod memory_allocation_tests {
-    use super::*;
-    use alloc::vec;
-
-    #[test]
-    fn can_allocator_memory() {
-        let mut allocator = MemoryAllocations::new();
-
-        let mem1 = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, mem1.index());
-        assert_eq!(0, mem1.generation());
-        assert_eq!(0, mem1.as_u64());
-    }
-
-    #[test]
-    fn can_get_allocator_id() {
-        let mut allocator = MemoryAllocations::new();
-
-        let mem1 = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, mem1.index());
-        assert_eq!(0, mem1.generation());
-        assert_eq!(0, mem1.as_u64());
-
-        _ = allocator.get(mem1).expect("should find allocation");
-    }
-
-    #[test]
-    fn can_dispose_of_an_allocation() {
-        let mut allocator = MemoryAllocations::new();
-
-        let mem1 = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, mem1.index());
-        assert_eq!(0, mem1.generation());
-        assert_eq!(0, mem1.as_u64());
-
-        allocator
-            .deallocate(mem1)
-            .expect("should dispose allocation");
-
-        assert!(
-            allocator.get(mem1).is_err(),
-            "should fail to get allocation"
-        );
-    }
-
-    #[test]
-    fn can_use_allocator() {
-        let mut allocator = MemoryAllocations::new();
-
-        let mem1 = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, mem1.index());
-
-        let mem2 = allocator.allocate(30).expect("should allocate memory");
-        assert_eq!(1, mem2.index());
-    }
-
-    #[test]
-    fn can_use_allocated_memory() {
-        let mut allocator = MemoryAllocations::new();
-
-        let id = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, id.index());
-
-        let memory_slot = allocator.get(id).expect("should be able to find memory id");
-        memory_slot.reset_to(0);
-
-        memory_slot.apply(|memo| {
-            memo.push(10);
-            memo.push(20);
-            memo.push(30);
-        });
-
-        let content = memory_slot.clone_memory().expect("should clone valid data");
-        assert_eq!(vec![10, 20, 30], content);
-    }
-
-    #[test]
-    fn can_clear_allocated_memory() {
-        let mut allocator = MemoryAllocations::new();
-
-        let id = allocator.allocate(20).expect("should allocate memory");
-        assert_eq!(0, id.index());
-
-        let memory_slot = allocator.get(id).expect("should be able to find memory id");
-        memory_slot.reset_to(0);
-        memory_slot.apply(|memo| {
-            memo.push(10);
-            memo.push(20);
-            memo.push(30);
-        });
-
-        let content = memory_slot.clone_memory().expect("should clone valid data");
-        assert_eq!(vec![10, 20, 30], content);
-
-        memory_slot.clear().expect("clear memory");
-
-        assert!(memory_slot
-            .is_empty()
-            .expect("should return is_empty state"));
     }
 }

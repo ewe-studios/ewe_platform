@@ -1,7 +1,7 @@
 [package]
 name = "infrastructure_llama_cpp"
 description = "llama.cpp bindings for Rust (originally: utilityai/llama-cpp-rs/infrastructure_llama_bindings)"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-infrastructure_llama_bindings = { workspace = true }
+infrastructure_llama_bindings = { path = "../llama-bindings", version = "0.0.2" }
 
 enumflags2 = "0.7.12"
 thiserror = { workspace = true }
@@ -21,7 +21,9 @@ tracing-core = { workspace = true }
 
 [dev-dependencies]
 encoding_rs = { workspace = true }
-tracing-subscriber = { workspace = true }
+# `env-filter` is needed by tests/log_filtering.rs, which asserts our native-log
+# tracing target is actually silenceable by an EnvFilter directive.
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 [features]
 sampler = []
@@ -39,7 +41,7 @@ system-ggml = ["infrastructure_llama_bindings/system-ggml"]
 
 
 [target.'cfg(all(target_os = "macos", any(target_arch = "aarch64", target_arch = "arm64")))'.dependencies]
-infrastructure_llama_bindings = { workspace = true, features = [
+infrastructure_llama_bindings = { path = "../llama-bindings", version = "0.0.2", features = [
     "metal",
 ] }
 

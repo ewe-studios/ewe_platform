@@ -6,13 +6,15 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Authentication and authorization — OAuth2/OIDC flows, JWT handling, password hashing (Argon2), TOTP, and session management with Turso/SQLite and wasm-bindgen backends"
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_db = { workspace = true, default-features = false }
-foundation_http = { workspace = true, optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
+foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -20,9 +22,10 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 # Cryptography
 zeroize = { version = "1" }
 argon2 = "0.5"            # Password hashing (memory-hard)
+pbkdf2 = "0.12"           # PBKDF2-HMAC-SHA256 (native)
 chacha20poly1305 = "0.10" # Encrypted session data
-sha2 = "0.10"             # SHA256 for PKCE
-hmac = "0.12"             # TOTP, HMAC
+sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
+hmac = "0.12"             # TOTP, HMAC, PBKDF2
 rand = "0.8"              # Secure random generation
 getrandom = { version = "0.2", optional = true }
 
@@ -36,6 +39,7 @@ urlencoding = "2.1"
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_cbor = { version = "0.11", optional = true }
 
 # Time handling
 time = "0.3"
@@ -45,6 +49,19 @@ chrono = "0.4"
 uuid = { version = "1.0", features = ["v4"] }
 bytes = "1.5"
 async-trait = "0.1"
+
+# Async stream plumbing for the async storage layer (gated behind `server`)
+futures-core = { version = "0.3", optional = true }
+futures-lite = { version = "2", optional = true }
+
+# WebAuthn/FIDO2 — native only (openssl dep, does not compile to wasm32).
+# `danger-allow-state-serialisation` lets us persist the in-progress
+# PasskeyRegistration/PasskeyAuthentication ceremony state into the shared
+# server-side KV cache (the crate's supported use of this flag) instead of a
+# process-local map, so register/start and register/finish can be served by
+# different handler instances / nodes.
+webauthn-rs = { version = "0.5", optional = true, features = ["danger-allow-state-serialisation"] }
+url = { version = "2", optional = true }
 
 # Wasm-bindgen OAuth support (gated behind wasm-bindgen-oauth feature)
 wasm-bindgen = { version = "0.2", optional = true }
@@ -60,12 +77,26 @@ web-sys = { version = "0.3", features = [
   "ServiceWorkerGlobalScope",
   "Window",
   "Crypto",
+  "SubtleCrypto",
+  "CryptoKey",
 ], optional = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
+
+# NOTE: `default-features = false` is required here. Cargo unions default-features
+# across a crate's dependency declarations, so without it this target line would
+# re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
+# all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"
+foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }
+tracing = "0.1"
 
 [lints]
 workspace = true
@@ -74,14 +105,23 @@ workspace = true
 # Turso/SQLite backend (native only)
 default = ["turso"]
 turso = ["foundation_db/turso"]
-# IdP server module (pulls in foundation_http)
-server = ["dep:foundation_http"]
+# IdP server module (pulls in foundation_http + foundation_db for storage)
+server = ["dep:foundation_http", "dep:futures-core", "dep:futures-lite"]
 # Integration tests for IdP server (real TCP, thread pool)
-server-test = ["server", "foundation_core/multi", "foundation_http/multi"]
+server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API
 wasm-bindgen-oauth = [
+  "wasm",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
+
+# PBKDF2 on WASM (needs web-sys for SubtleCrypto, js-sys/wasm-bindgen-futures for JS interop)
+wasm-pbkdf2 = [
   "wasm",
   "dep:wasm-bindgen",
   "dep:wasm-bindgen-futures",
@@ -93,3 +133,11 @@ wasm-bindgen-session = [
   "wasm",
   "foundation_db/wasm-bindgen-storage",
 ]
+# Native server with WebAuthn (openssl dep, wasm-incompatible)
+server-native = ["server", "dep:webauthn-rs", "dep:url", "dep:serde_cbor"]
+
+# Test module tree (units/ + integration/ via lib.rs)
+[[test]]
+name = "foundation_auth_tests"
+path = "tests/lib.rs"
+required-features = ["server-test"]

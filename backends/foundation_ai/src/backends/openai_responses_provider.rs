@@ -3,26 +3,36 @@
 //! Implements the `/v1/responses` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::thread;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
-use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
-use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::shared::client::{
+    request::Extensions,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
 };
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+};
 use serde::{Deserialize, Serialize};
 
+use crate::backends::backend_utils::{
+    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
+use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
+    ModelState, ModelStreamBox, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
+    UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -157,15 +167,14 @@ pub struct ResponseRequest {
 }
 
 /// Tool definition for the Responses API.
+///
+/// Unlike the Chat Completions API (`{"type":"function","function":{...}}`),
+/// the Responses API puts name/description/parameters at the top level:
+/// `{"type":"function","name":"...","description":"...","parameters":{...}}`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResponseTool {
     #[serde(rename = "type")]
     pub tool_type: String,
-    pub function: ResponseFunction,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseFunction {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -323,29 +332,27 @@ pub enum ResponseEvent {
 // ============================================================================
 
 /// `OpenAI` Responses API provider implementing [`ModelProvider`].
-pub struct ResponsesProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct ResponsesProvider {
     config: ResponsesConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache:
         Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
-impl Default for ResponsesProvider<SystemDnsResolver> {
+impl Default for ResponsesProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ResponsesProvider<SystemDnsResolver> {
+impl ResponsesProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -356,31 +363,60 @@ impl ResponsesProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> ResponsesProvider<R> {
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    fn auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
-        if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+    #[must_use]
+    pub fn with_http_client_and_config(
+        client: Arc<dyn HttpClient>,
+        config: ResponsesConfig,
+    ) -> Self {
+        Self {
+            config,
+            api_key: None,
+            http_client: Some(client),
+            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+    }
+
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
+        if let Some(key) = &self.api_key {
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
+        }
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
     }
 
     fn build_url(&self, endpoint: &str) -> String {
@@ -417,29 +453,17 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -456,9 +480,9 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> {
+impl ModelProvider for ResponsesProvider {
     type Config = ResponsesConfig;
-    type Model = ResponsesModel<R>;
+    type Model = ResponsesModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -485,15 +509,10 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             self.config = cfg;
         }
 
-        let mut client = self.http_client.take().unwrap_or_default();
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        #[cfg(not(target_family = "wasm"))]
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::http::default_http_client());
         }
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -503,11 +522,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             id: "openai-responses",
             name: "OpenAI Responses",
             reasoning: true,
-            api: crate::types::ModelAPI::OpenAIResponses,
+            api: crate::types::base_types::ModelAPI::OpenAIResponses,
             provider: ModelProviders::OPENAIRESPONSES,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: crate::types::base_types::ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -529,8 +548,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
+                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+                cumulative_cost: Arc::new(std::sync::Mutex::new(
+                    crate::costing::CostAccumulator::new(),
+                )),
             });
         }
         drop(cache);
@@ -563,8 +585,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
+            pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
+            cumulative_cost: Arc::new(std::sync::Mutex::new(
+                crate::costing::CostAccumulator::new(),
+            )),
         })
     }
 
@@ -615,29 +640,71 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
 // Model
 // ============================================================================
 
-pub struct ResponsesModel<R: DnsResolver = SystemDnsResolver> {
+pub struct ResponsesModel {
     config: ResponsesConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
+    /// Per-million pricing, sourced the same way `OpenAIModel` sources it.
+    pricing: crate::types::base_types::ModelUsageCosting,
+    /// Running usage total across this model instance's calls. Without it
+    /// `costing()` cannot report a cumulative figure even though each response
+    /// already carries the vendor's token counts.
+    cumulative_cost: Arc<std::sync::Mutex<crate::costing::CostAccumulator>>,
 }
 
-impl<R: DnsResolver + 'static> ResponsesModel<R> {
+impl ResponsesModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
     }
 
     fn build_request(
@@ -657,24 +724,29 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         };
 
         // Tools: flatten ToolShed into ResponseTool array
-        let tools = interaction
-            .tools_shed
-            .as_ref()
-            .map(|shed| {
-                flatten_tools(shed)
-                    .iter()
-                    .map(|tool| ResponseTool {
-                        tool_type: String::from("function"),
-                        function: ResponseFunction {
-                            name: tool.name.clone(),
-                            description: Some(tool.description.clone()),
-                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                            strict: None,
-                        },
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .filter(|t: &Vec<ResponseTool>| !t.is_empty());
+        let tools = {
+            let all = flatten_tools(&interaction.tools_shed);
+            if all.is_empty() {
+                None
+            } else {
+                Some(
+                    all.iter()
+                        .map(|tool| {
+                            let spec = tool.function_spec();
+                            ResponseTool {
+                                tool_type: String::from("function"),
+                                name: spec.name,
+                                description: Some(spec.description),
+                                parameters: Some(spec.parameters),
+                                // Responses API: signal strict when a return schema
+                                // is declared so the model knows to adhere to it.
+                                strict: spec.returns.as_ref().map(|_| true),
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            }
+        };
 
         // Tool choice
         let tool_choice = interaction.tool_choice.as_ref().map(convert_tool_choice);
@@ -736,29 +808,17 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, _headers, body, _pool, _conn) = response.into_parts();
+        let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -774,8 +834,7 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
-    type Formatter = crate::types::TextBasedFormatter;
+impl Model for ResponsesModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -786,12 +845,41 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         }
     }
 
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(TextBasedFormatter)
+    }
+
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        None
+        // Parity with OpenAIModel/AnthropicModel: returning None left callers
+        // with no provider identity, API type or input-modality information at
+        // all. Pricing comes from the same source the siblings use.
+        Some(ModelProviderDescriptor {
+            id: "openai-responses",
+            name: "OpenAI Responses",
+            reasoning: true,
+            api: crate::types::base_types::ModelAPI::OpenAIResponses,
+            provider: ModelProviders::OPENAIRESPONSES,
+            base_url: None,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: self.pricing,
+            context_window: 0,
+            max_tokens: 0,
+        })
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        Ok(empty_usage_report())
+        // Was a fixed empty report, so a caller could never read a running
+        // total. Each response already carries the vendor's token counts; this
+        // just surfaces their sum, as OpenAIModel does.
+        let cost = self.cumulative_cost.lock().unwrap().result();
+        Ok(UsageReport {
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: cost.total_tokens,
+            cost,
+        })
     }
 
     fn generate(
@@ -809,6 +897,14 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         let response: Response = self.execute_request(&url, &body)?;
 
         let message = parse_response(&response, &self.model_id);
+
+        // Accrue this call's usage so `costing()` can report a running total.
+        // `parse_response` has already converted the vendor's token counts into
+        // the message's UsageReport, so this only sums what is already there.
+        if let Messages::Assistant { ref usage, .. } = message {
+            self.cumulative_cost.lock().unwrap().add(&usage.cost);
+        }
+
         Ok(vec![message])
     }
 
@@ -816,7 +912,7 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = self.build_request(&interaction, &params, true);
 
@@ -825,38 +921,23 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
 
         let url = self.build_url("responses");
 
-        let resolver = self
-            .resolver
+        let client = self
+            .http_client
             .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::AUTHORIZATION,
-                format!(
-                    "Bearer {}",
-                    self.api_key
-                        .as_ref()
-                        .map(ConfidentialText::get)
-                        .unwrap_or_default()
-                ),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client
+            .send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
-
-        Ok(ResponsesStream {
-            inner: driven,
+        Ok(Box::new(ResponsesStream {
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             response: None,
             done: false,
-        })
+        }))
     }
 }
 
@@ -864,15 +945,15 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
 // Streaming Parser
 // ============================================================================
 
-struct ResponsesStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct ResponsesStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     response: Option<Response>,
     done: bool,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
+impl Iterator for ResponsesStream {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -880,40 +961,46 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
             return None;
         }
 
-        loop {
-            let item = self.inner.next()?;
+        let item = self.inner.next()?;
 
-            match item {
-                Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
-                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait => continue,
-                Stream::Spread(items) => {
-                    let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
-                    for item in items {
-                        match item {
-                            StreamSpread::Done(parse_result) => {
-                                match self.process_parse_result(parse_result) {
-                                    Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
-                                    Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
-                                    Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
-                                }
-                            }
-                            StreamSpread::Pending(_) => {
-                                mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
-                            }
+        match item {
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::Spread(items) => {
+                let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
+                for item in items {
+                    match item {
+                        StreamSpread::Done(ref inner) => match self.process_parse_result(inner) {
+                            Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                            Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                            Stream::Delayed(_)
+                            | Stream::Spread(_)
+                            | Stream::Init
+                            | Stream::Wait
+                            | Stream::Ignore => {}
+                        },
+                        StreamSpread::Pending(_) => {
+                            mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
                         }
                     }
-                    if !mapped.is_empty() {
-                        return Some(Stream::Spread(mapped));
-                    }
+                }
+                if mapped.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(mapped))
                 }
             }
         }
     }
 }
 
-impl<R: DnsResolver + 'static> ResponsesStream<R> {
+impl ResponsesStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {
             return Stream::Ignore;
         };
@@ -921,6 +1008,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
         let Ok(event) = serde_json::from_str::<ResponseEvent>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON in Responses API");
             return Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -940,6 +1028,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
             ResponseEvent::ResponseOutputTextDelta { delta, .. } => {
                 self.accumulated_text.push_str(&delta);
                 Stream::Next(Messages::Assistant {
+                    id: foundation_compact::ids::new_scru128(),
                     model: self.model_id.clone(),
                     timestamp: SystemTime::now(),
                     usage: empty_usage_report(),
@@ -967,6 +1056,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
     fn build_final_message(&self) -> Messages {
         let Some(response) = &self.response else {
             return Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1013,6 +1103,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
         let metadata = build_response_metadata(&response.output);
 
         Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage,
@@ -1030,23 +1121,26 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
 // Helpers
 // ============================================================================
 
-fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
+#[must_use]
+pub fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
     let items: Vec<ResponseInputItem> = interaction
         .messages
         .iter()
         .filter_map(|msg| match msg {
             Messages::User { content, .. } => match content {
-                crate::types::UserModelContent::Text(tc) => Some(ResponseInputItem::Message {
-                    role: String::from("user"),
-                    content: ResponseInputContent::Text(tc.content.clone()),
-                }),
-                crate::types::UserModelContent::Image(img) => {
+                crate::types::base_types::UserModelContent::Text(tc) => {
+                    Some(ResponseInputItem::Message {
+                        role: String::from("user"),
+                        content: ResponseInputContent::Text(tc.content.clone()),
+                    })
+                }
+                crate::types::base_types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
                         #[allow(clippy::match_same_arms)]
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1081,14 +1175,17 @@ fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
                 _ => None,
             },
             Messages::ToolResult {
-                id, name, content, ..
+                tool_call_id,
+                name,
+                content,
+                ..
             } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 Some(ResponseInputItem::FunctionCallOutput {
-                    call_id: id.clone(),
+                    call_id: tool_call_id.clone(),
                     output: format!("[{name}] {text}"),
                 })
             }
@@ -1127,7 +1224,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                 arguments,
                 ..
             } => {
-                let args: Option<HashMap<String, crate::types::ArgType>> =
+                let args: Option<HashMap<String, crate::types::base_types::ArgType>> =
                     serde_json::from_str(arguments)
                         .ok()
                         .map(|v: serde_json::Value| {
@@ -1144,6 +1241,8 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                     name: name.clone(),
                     arguments: args,
                     signature: None,
+                    depends_on: Vec::new(),
+                    execution_hint: crate::types::base_types::ExecutionHint::default(),
                 };
             }
             ResponseOutputItem::Reasoning { content, .. } => {
@@ -1208,6 +1307,7 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     let metadata = build_response_metadata(&response.output);
 
     Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
         model: model_id.clone(),
         timestamp: SystemTime::now(),
         usage,
@@ -1220,55 +1320,13 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     }
 }
 
-fn empty_usage_report() -> UsageReport {
-    UsageReport {
-        input: 0.0,
-        output: 0.0,
-        cache_read: 0.0,
-        cache_write: 0.0,
-        total_tokens: 0.0,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 0.0,
-            status: CostStatus::Actual,
-        },
-    }
-}
-
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
-            } else {
-                crate::types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::ArgType::JSON(other.to_string()),
-    }
-}
-
-fn model_id_to_string(id: &ModelId) -> String {
-    match id {
-        ModelId::Name(name, _) => name.clone(),
-        ModelId::Alias(alias, _) => alias.clone(),
-        ModelId::Group(group, _) => group.clone(),
-        ModelId::Architecture(arch, _) => arch.clone(),
-    }
-}
-
-fn is_retryable_status(status: u16) -> bool {
+#[must_use]
+pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
-fn exponential_backoff(attempt: u32) -> u64 {
+#[must_use]
+pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5);
     base_secs.min(30)
 }
@@ -1285,238 +1343,22 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 // Helpers
 // ============================================================================
 
-/// Flatten a `ToolShed` into a Vec<Tool> for formatting.
-#[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
-    let mut tools = vec![
-        shed.shed.clone(),
-        shed.read.clone(),
-        shed.edit.clone(),
-        shed.write.clone(),
-        shed.search.clone(),
-    ];
-    if let Some(mem) = &shed.memory {
-        tools.push(mem.add.clone());
-        tools.push(mem.replace.clone());
-        tools.push(mem.remove.clone());
-    }
-    if let Some(delegate) = &shed.delegate {
-        tools.push(delegate.start.clone());
-        tools.push(delegate.check.clone());
-        tools.push(delegate.get.clone());
-    }
-    if let Some(bash) = &shed.bash {
-        tools.push(bash.clone());
-    }
-    if let Some(others) = &shed.others {
-        tools.extend(others.iter().cloned());
-    }
-    tools
-}
-
-fn convert_tool_choice(choice: &crate::types::ToolChoice) -> ResponseToolChoice {
+fn convert_tool_choice(choice: &crate::types::base_types::ToolChoice) -> ResponseToolChoice {
     match choice {
-        crate::types::ToolChoice::Auto => ResponseToolChoice::Simple(String::from("auto")),
-        crate::types::ToolChoice::None => ResponseToolChoice::Simple(String::from("none")),
-        crate::types::ToolChoice::Required => ResponseToolChoice::Simple(String::from("required")),
-        crate::types::ToolChoice::Function(f) => ResponseToolChoice::Function {
+        crate::types::base_types::ToolChoice::Auto => {
+            ResponseToolChoice::Simple(String::from("auto"))
+        }
+        crate::types::base_types::ToolChoice::None => {
+            ResponseToolChoice::Simple(String::from("none"))
+        }
+        crate::types::base_types::ToolChoice::Required => {
+            ResponseToolChoice::Simple(String::from("required"))
+        }
+        crate::types::base_types::ToolChoice::Function(f) => ResponseToolChoice::Function {
             r#type: String::from("function"),
             function: ResponseToolChoiceFunction {
                 name: f.function.name.clone(),
             },
         },
-    }
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_response_request_serialization() {
-        let request = ResponseRequest {
-            model: "o1".into(),
-            input: ResponseInput::Text("Hello".into()),
-            instructions: Some("Be helpful".into()),
-            tools: None,
-            tool_choice: None,
-            max_output_tokens: Some(100),
-            temperature: Some(1.0),
-            top_p: None,
-            stream: Some(false),
-            truncate: None,
-            previous_response_id: None,
-        };
-
-        let json = serde_json::to_string(&request).unwrap();
-        assert!(json.contains(r#""model":"o1""#));
-        assert!(json.contains(r#""input":"Hello""#));
-        assert!(json.contains(r#""instructions":"Be helpful""#));
-        assert!(json.contains(r#""max_output_tokens":100"#));
-        assert!(json.contains(r#""stream":false"#));
-    }
-
-    #[test]
-    fn test_response_input_items() {
-        let input = ResponseInput::Items(vec![ResponseInputItem::Message {
-            role: "user".into(),
-            content: ResponseInputContent::Text("Hello".into()),
-        }]);
-
-        let json = serde_json::to_string(&input).unwrap();
-        assert!(json.contains(r#""type":"message""#));
-        assert!(json.contains(r#""role":"user""#));
-    }
-
-    #[test]
-    fn test_response_deserialization() {
-        let json = r#"{
-            "id": "resp_abc123",
-            "object": "response",
-            "created_at": 1234567890,
-            "model": "o1",
-            "output": [{
-                "type": "message",
-                "id": "msg_001",
-                "status": "completed",
-                "role": "assistant",
-                "content": [{"type": "output_text", "text": "Hello!"}]
-            }],
-            "status": "completed",
-            "usage": {"input_tokens": 10, "output_tokens": 5, "total_tokens": 15}
-        }"#;
-
-        let response: Response = serde_json::from_str(json).unwrap();
-        assert_eq!(response.id, "resp_abc123");
-        assert_eq!(response.status, "completed");
-        assert_eq!(response.output.len(), 1);
-        assert_eq!(response.usage.as_ref().unwrap().total_tokens, 15);
-    }
-
-    #[test]
-    fn test_response_output_item_reasoning() {
-        let json = r#"{
-            "type": "reasoning",
-            "id": "rs_001",
-            "content": "Let me think about this..."
-        }"#;
-
-        let item: ResponseOutputItem = serde_json::from_str(json).unwrap();
-        match item {
-            ResponseOutputItem::Reasoning { content, .. } => {
-                assert_eq!(content, "Let me think about this...");
-            }
-            _ => panic!("Expected Reasoning variant"),
-        }
-    }
-
-    #[test]
-    fn test_response_output_item_function_call() {
-        let json = r#"{
-            "type": "function_call",
-            "id": "fc_001",
-            "call_id": "call_123",
-            "name": "get_weather",
-            "arguments": "{\"location\": \"Paris\"}",
-            "status": "completed"
-        }"#;
-
-        let item: ResponseOutputItem = serde_json::from_str(json).unwrap();
-        match item {
-            ResponseOutputItem::FunctionCall {
-                name, arguments, ..
-            } => {
-                assert_eq!(name, "get_weather");
-                assert!(arguments.contains("Paris"));
-            }
-            _ => panic!("Expected FunctionCall variant"),
-        }
-    }
-
-    #[test]
-    fn test_response_event_deserialization() {
-        let json = r#"{
-            "type": "response.output_text.delta",
-            "item_id": "msg_001",
-            "delta": "Hello"
-        }"#;
-
-        let event: ResponseEvent = serde_json::from_str(json).unwrap();
-        match event {
-            ResponseEvent::ResponseOutputTextDelta { delta, .. } => {
-                assert_eq!(delta, "Hello");
-            }
-            _ => panic!("Expected ResponseOutputTextDelta variant"),
-        }
-    }
-
-    #[test]
-    fn test_response_completed_event() {
-        let json = r#"{
-            "type": "response.completed",
-            "response": {
-                "id": "resp_abc",
-                "object": "response",
-                "created_at": 0,
-                "model": "o1",
-                "output": [],
-                "status": "completed"
-            }
-        }"#;
-
-        let event: ResponseEvent = serde_json::from_str(json).unwrap();
-        match event {
-            ResponseEvent::ResponseCompleted { response } => {
-                assert_eq!(response.id, "resp_abc");
-            }
-            _ => panic!("Expected ResponseCompleted variant"),
-        }
-    }
-
-    #[test]
-    fn test_build_response_input_from_messages() {
-        let interaction = ModelInteraction {
-            system_prompt: Some("Be helpful".into()),
-            soul: None,
-            messages: vec![Messages::User {
-                role: "user".into(),
-                content: crate::types::UserModelContent::Text(TextContent {
-                    content: "Hello".into(),
-                    signature: None,
-                }),
-                signature: None,
-            }],
-            tools_shed: None,
-            chat_template: None,
-            tool_choice: None,
-        };
-
-        let input = build_response_input(&interaction);
-        match input {
-            ResponseInput::Items(items) => {
-                assert_eq!(items.len(), 1);
-                match &items[0] {
-                    ResponseInputItem::Message { role, content } => {
-                        assert_eq!(role, "user");
-                        assert!(matches!(content, ResponseInputContent::Text(_)));
-                    }
-                    _ => panic!("Expected Message item"),
-                }
-            }
-            _ => panic!("Expected Items input"),
-        }
-    }
-
-    #[test]
-    fn test_configs_defaults() {
-        let config = ResponsesConfig::default();
-        assert_eq!(config.base_url, "https://api.openai.com");
-        assert_eq!(config.api_version, "v1");
-        assert_eq!(config.timeout_secs, 120);
-        assert!(config.streaming);
     }
 }

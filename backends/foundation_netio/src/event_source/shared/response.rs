@@ -5,7 +5,7 @@
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
-use crate::simple_http::shared::{
+use crate::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleOutgoingResponse,
     SimpleOutgoingResponseBuilder, Status,
 };

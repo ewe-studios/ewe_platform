@@ -5,9 +5,9 @@
 //! - `SseTestServer` (streaming) — verifies reconnection behavior with controlled close
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
-use foundation_netio::event_source::ReconnectingEventSourceTask;
-use foundation_netio::simple_http::client::StaticSocketAddr;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
+use foundation_netio::event_source::native::ReconnectingEventSourceTask;
+use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
 };
@@ -68,7 +68,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
             {
                 let mut b = captured.body.lock().unwrap();
                 let bytes = match &req.body {
-                    foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
+                    foundation_netio::shared::http::SendSafeBody::Bytes(b) => b.clone(),
                     _ => Vec::new(),
                 };
                 *b = String::from_utf8_lossy(&bytes).to_string();
@@ -146,22 +146,32 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 // -- SseTestServer-based tests (reconnection behavior)
 
 /// WHY: Verify that when an SSE connection drops abruptly (simulating network
-/// failure), the reconnecting task actually reconnects and re-sends headers
-/// but NOT the body (which is `take()`n on first connection).
+/// failure), the reconnecting task reconnects and re-sends the headers AND a
+/// replayable body.
+///
+/// This previously asserted the opposite — that the body is dropped on
+/// reconnect, because it was `take()`n. That codified a bug rather than a
+/// contract: the task keeps POSTing (the method is deliberately preserved), so
+/// a bodyless reconnect sends `POST` with no payload. A real SSE-over-POST
+/// vendor answers that with `400 "JSON parsing failed"`, which the task counts
+/// as a connection error and retries, so every attempt fails identically and
+/// the stream dies with "max retries exhausted". Replaying the body is what
+/// makes reconnection actually work for OpenAI/OpenRouter chat completions.
 ///
 /// WHAT: Uses `SseTestServer` with `abrupt_drop` close behavior to trigger
 /// a reconnection, then verifies:
 /// 1. Reconnection occurs (>= 2 connections seen)
 /// 2. Both connections have POST method
-/// 3. Only the first connection has the body
+/// 3. BOTH connections carry the JSON body
 /// 4. Both connections have the Authorization header
 #[test]
 #[serial(valtron_pool)]
 #[traced_test]
-fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
+fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
     #[derive(Clone, Default)]
     struct CapturedRequests {
-        requests: Arc<std::sync::Mutex<Vec<(String, String, String)>>>, // (method, body, auth)
+        // (method, body, auth, host, accept)
+        requests: Arc<std::sync::Mutex<Vec<(String, String, String, String, String)>>>,
     }
 
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
@@ -190,7 +200,7 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
 
             let body = {
                 let bytes = match &req.body {
-                    foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
+                    foundation_netio::shared::http::SendSafeBody::Bytes(b) => b.clone(),
                     _ => Vec::new(),
                 };
                 String::from_utf8_lossy(&bytes).to_string()
@@ -203,7 +213,25 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
                 .cloned()
                 .unwrap_or_default();
 
-            captured.requests.lock().unwrap().push((method, body, auth));
+            let host = req
+                .headers
+                .get(&SimpleHeader::HOST)
+                .and_then(|v| v.first())
+                .cloned()
+                .unwrap_or_default();
+
+            // Joined so a duplicated value is visible to the assertion.
+            let accept = req
+                .headers
+                .get(&SimpleHeader::ACCEPT)
+                .map(|v| v.join(", "))
+                .unwrap_or_default();
+
+            captured
+                .requests
+                .lock()
+                .unwrap()
+                .push((method, body, auth, host, accept));
 
             // First connection: send one event then drop (triggers reconnect)
             if conn_num == 0 {
@@ -260,8 +288,22 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
     );
 
     // First connection: POST + body + auth
-    let (method, body, auth) = &requests[0];
+    let (method, body, auth, host, accept) = &requests[0];
     assert_eq!(method, "POST", "First connection should use POST");
+    // RFC 7230 §5.4 makes Host mandatory on HTTP/1.1; a server MUST answer a
+    // request without it with 400. Omitting it made every SSE request to a
+    // spec-compliant vendor fail as an opaque "BadRequest" that the reconnect
+    // logic retried to exhaustion.
+    assert!(
+        !host.is_empty(),
+        "HTTP/1.1 requires a Host header — without it the server returns 400"
+    );
+    // `add_header_raw` appends, so defaulting Accept when the caller already set
+    // one produced `text/event-stream, text/event-stream`.
+    assert_eq!(
+        accept, "text/event-stream",
+        "Accept must not be duplicated, got: {accept}"
+    );
     assert!(
         body.contains(r#""model":"qwen2.5""#),
         "First connection should include JSON body, got: {body}"
@@ -271,15 +313,22 @@ fn test_reconnecting_task_reconnects_with_headers_but_not_body() {
         "First connection should include Authorization header, got: {auth}"
     );
 
-    // Second connection (reconnection): POST + NO body + auth
-    let (method, body, auth) = &requests[1];
+    // Second connection (reconnection): POST + the SAME body + auth.
+    // The body must be replayed: the method stays POST, so an empty body here
+    // is a malformed request the vendor rejects outright.
+    let (method, body, auth, host, _accept) = &requests[1];
     assert_eq!(
         method, "POST",
         "Reconnection should use POST, got: {method}"
     );
     assert!(
-        body.is_empty(),
-        "Reconnection should NOT include body (body is take()n), got: {body}"
+        !host.is_empty(),
+        "the reconnect must also carry Host, or it is rejected with 400"
+    );
+    assert!(
+        body.contains(r#""model":"qwen2.5""#),
+        "Reconnection must replay the JSON body — a bodyless POST is rejected \
+         with 400 and burns every retry, got: {body}"
     );
     assert!(
         auth.contains("Bearer test-key-123"),

@@ -9,14 +9,16 @@ use std::sync::Arc;
 use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore, BlobStore,
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
+    SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+use foundation_compact::SendWrapper;
 
 // ===========================================================================
 // Inline valtron helpers (no async_utils — use valtron directly)
@@ -118,14 +120,14 @@ impl D1WasmStorage {
         let stmt = self.db.prepare(sql);
         if params.is_empty() {
             let promise = stmt.run();
-            JsFuture::from(promise)
+            SendWrapper::new(JsFuture::from(promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         } else {
             let array = data_values_to_js_array(params);
             let bound = stmt.bind(array);
             let promise = bound.run();
-            JsFuture::from(promise)
+            SendWrapper::new(JsFuture::from(promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         }
@@ -147,7 +149,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.first(None)
         };
-        let result = JsFuture::from(first_result)
+        let result = SendWrapper::new(JsFuture::from(first_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
 
@@ -176,7 +178,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.all()
         };
-        let result = JsFuture::from(all_result)
+        let result = SendWrapper::new(JsFuture::from(all_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
@@ -217,7 +219,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.run()
         };
-        let result = JsFuture::from(run_result)
+        let result = SendWrapper::new(JsFuture::from(run_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 
@@ -259,38 +261,38 @@ impl D1WasmStorage {
 
 impl KeyValueStore for D1WasmStorage {
     fn get<'a, V: serde::de::DeserializeOwned + Send + 'static>(
-        &'a self,
+        &self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    ) -> StorageResult<Option<V>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
+        exec_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
     }
 
     fn set<V: serde::Serialize + Send + 'static>(
         &self,
         key: &str,
         value: V,
-    ) -> StorageResult<StorageItemStream<'_, ()>> {
+    ) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
         })
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_delete_async(&this.db, &this.table_prefix, &key).await },
         )
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_exists_async(&this.db, &this.table_prefix, &key).await },
         )
     }
@@ -434,13 +436,13 @@ impl D1WasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for D1WasmStorage {
     async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<Option<V>> {
-        self.get_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
 
     async fn set_async<V: serde::Serialize + Send + 'static>(
@@ -448,19 +450,24 @@ impl AsyncKeyValueStore for D1WasmStorage {
         key: &str,
         value: V,
     ) -> StorageResult<()> {
-        self.set_async(key, value).await
+        foundation_compact::SendWrapper::new(async move { self.set_async(key, value).await }).await
     }
 
     async fn delete_async(&self, key: &str) -> StorageResult<()> {
-        self.delete_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
-        self.exists_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        self.list_keys_async(prefix).await
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let keys = foundation_compact::SendWrapper::new(async move {
+            self.list_keys_async(prefix).await
+        }).await?;
+        Ok(AsyncListStream::new(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 
@@ -533,17 +540,17 @@ impl QueryStore for D1WasmStorage {
         &self,
         sql: &str,
         params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         let this = self.clone();
         let sql = sql.to_string();
         let params = params.to_vec();
-        schedule_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
+        exec_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let this = self.clone();
         let sql = sql.to_string();
-        schedule_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
+        exec_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
     }
 }
 
@@ -598,22 +605,31 @@ impl D1WasmStorage {
     }
 
     async fn do_execute_batch_async(db: &Arc<D1Database>, sql: &str) -> Result<(), StorageError> {
-        do_execute_sql(db, sql, &[]).await
+        let promise = db.exec(sql);
+        SendWrapper::new(JsFuture::from(promise))
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 exec failed: {e:?}")))?;
+        Ok(())
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for D1WasmStorage {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        self.query_async(sql, params).await
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        let rows = foundation_compact::SendWrapper::new(async move {
+            self.query_async(sql, params).await
+        }).await?;
+        Ok(AsyncQueryStream::new(futures_lite::stream::iter(
+            rows.into_iter().map(Ok),
+        )))
     }
 
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        self.execute_async(sql, params).await
+        foundation_compact::SendWrapper::new(async move { self.execute_async(sql, params).await }).await
     }
 
     async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
-        self.execute_batch_async(sql).await
+        foundation_compact::SendWrapper::new(async move { self.execute_batch_async(sql).await }).await
     }
 }
 
@@ -627,24 +643,24 @@ impl RateLimiterStore for D1WasmStorage {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_check_rate_limit_async(&this.db, &key, max_count, window_seconds).await
         })
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
+        exec_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
+        exec_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
     }
 }
 
@@ -753,7 +769,7 @@ impl D1WasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for D1WasmStorage {
     async fn check_rate_limit_async(
         &self,
@@ -761,16 +777,17 @@ impl AsyncRateLimiterStore for D1WasmStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        self.check_rate_limit_async(key, max_count, window_seconds)
-            .await
+        foundation_compact::SendWrapper::new(async move {
+            self.check_rate_limit_async(key, max_count, window_seconds).await
+        }).await
     }
 
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        self.record_rate_limit_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key).await }).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        self.reset_rate_limit_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
     }
 }
 
@@ -779,35 +796,35 @@ impl AsyncRateLimiterStore for D1WasmStorage {
 // ===========================================================================
 
 impl BlobStore for D1WasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_put_blob_async(&this.db, &this.table_prefix, &key, &data).await
         })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_get_blob_async(&this.db, &this.table_prefix, &key).await },
         )
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_delete_blob_async(&this.db, &this.table_prefix, &key).await
         })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_blob_exists_async(&this.db, &this.table_prefix, &key).await
         })
     }
@@ -927,22 +944,22 @@ impl D1WasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for D1WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        self.put_blob_async(key, data).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        self.get_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.get_blob_async(key).await }).await
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        self.delete_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.delete_blob_async(key).await }).await
     }
 
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        self.blob_exists_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.blob_exists_async(key).await }).await
     }
 }
 
@@ -1026,14 +1043,14 @@ async fn do_execute_sql(
     let stmt = db.prepare(sql);
     if params.is_empty() {
         let promise = stmt.run();
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     } else {
         let array = data_values_to_js_array(params);
         let bound = stmt.bind(array);
         let promise = bound.run();
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     }
@@ -1053,7 +1070,7 @@ async fn do_query_first(
         let bound = stmt.bind(array);
         bound.first(None)
     };
-    let result = JsFuture::from(first_result)
+    let result = SendWrapper::new(JsFuture::from(first_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
 
@@ -1080,7 +1097,7 @@ async fn do_query_all(
         let bound = stmt.bind(array);
         bound.all()
     };
-    let result = JsFuture::from(all_result)
+    let result = SendWrapper::new(JsFuture::from(all_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
@@ -1119,7 +1136,7 @@ async fn do_execute_with_changes(
         let bound = stmt.bind(array);
         bound.run()
     };
-    let result = JsFuture::from(run_result)
+    let result = SendWrapper::new(JsFuture::from(run_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 

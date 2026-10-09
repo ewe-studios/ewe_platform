@@ -150,7 +150,7 @@ pub struct Operation {
     pub description: Option<String>,
     #[serde(default)]
     pub parameters: Option<Vec<Parameter>>,
-    #[serde(default, rename = "request")]
+    #[serde(default, rename = "requestBody")]
     pub request_body: Option<RequestBody>,
     #[serde(default)]
     pub responses: BTreeMap<String, Response>,
@@ -304,6 +304,21 @@ pub struct Schema {
 
     #[serde(default, rename = "anyOf")]
     pub any_of: Option<Vec<Schema>>,
+
+    /// The vendor says this field may be `null`.
+    ///
+    /// **Why this must be read even though the field is `required`:** those are
+    /// two different statements. `required` means the key is always present;
+    /// `nullable` means its value may be `null`. Hetzner marks pagination's
+    /// `next_page` **both** — the key is always there, and it is `null` on the
+    /// last page. Ignoring `nullable` generated `pub next_page: i64`, and the
+    /// first real `list_servers` call died with
+    /// `invalid type: null, expected i64`.
+    ///
+    /// `normalize_nullable_types` writes this from OpenAPI 3.1's
+    /// `"type": ["integer", "null"]`, so both spec versions land here.
+    #[serde(default)]
+    pub nullable: Option<bool>,
 
     #[serde(default)]
     pub default: Option<serde_json::Value>,

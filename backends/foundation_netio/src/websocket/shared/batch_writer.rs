@@ -370,6 +370,10 @@ where
     ///
     /// # Panics
     /// Never panics.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn into_inner(mut self) -> Result<W, WebSocketError> {
         self.flush()?;
         Ok(self.inner)

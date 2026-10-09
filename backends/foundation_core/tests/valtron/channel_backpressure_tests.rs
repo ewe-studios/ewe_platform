@@ -9,7 +9,7 @@ use std::time::Duration;
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{SharedTaskQueue, TaskStatus, WrapTask};
 use foundation_core::valtron::{
-    ExecutionAction, InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
+    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
     PriorityOrder, NotificationItem,
 };
 use foundation_core::{
@@ -33,7 +33,7 @@ impl ProcessController for NoYielder {
 // Bounded NotifyQueue Tests (Channel-level backpressure)
 // ============================================================================
 
-/// Test that bounded NotifyQueue correctly applies backpressure.
+/// Test that bounded `NotifyQueue` correctly applies backpressure.
 /// When the queue is full, push should fail with Full error.
 #[test]
 fn test_bounded_notify_queue_push_error_full() {
@@ -73,15 +73,11 @@ fn test_store_and_retry_pattern() {
 
     // Try to push another - should fail
     let result = queue.push(99);
-    let stored_value;
-
-    match result {
-        Err(concurrent_queue::PushError::Full(val)) => {
-            stored_value = val;
-        }
-        Ok(_) => panic!("Expected PushError::Full"),
+    let stored_value = match result {
+        Err(concurrent_queue::PushError::Full(val)) => val,
+        Ok(()) => panic!("Expected PushError::Full"),
         Err(concurrent_queue::PushError::Closed(_)) => panic!("Unexpected PushError::Closed"),
-    }
+    };
 
     // Make space by popping
     assert_eq!(queue.pop().unwrap(), 42);
@@ -97,10 +93,13 @@ fn test_store_and_retry_pattern() {
     assert_eq!(queue.pop().unwrap(), 99);
 }
 
-/// Test that NotifyQueue with bounded capacity properly coordinates
+/// Test that `NotifyQueue` with bounded capacity properly coordinates
 /// producer and consumer through backpressure.
 #[test]
 #[traced_test]
+// producer/produced/consumer/consumed are the domain vocabulary here — renaming
+// them to satisfy similar_names would make the test harder to follow.
+#[allow(clippy::similar_names)]
 fn test_bounded_queue_producer_consumer_coordination() {
     use std::thread;
 
@@ -181,7 +180,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -201,9 +200,8 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
     // Task that produces many values quickly
     let task = WrapTask::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].into_iter());
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
-        Vec::new(),
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
         task,
         Duration::from_micros(50),
     );
@@ -229,12 +227,12 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 
     // Verify all values are present
     for i in 1..=10 {
-        assert!(final_results.contains(&i), "Should contain value {}", i);
+        assert!(final_results.contains(&i), "Should contain value {i}");
     }
 }
 
-/// Test that ready_iter with bounded channel produces all values without loss.
-/// This verifies the ReadyConsumingIter store-and-retry pattern works correctly.
+/// Test that `ready_iter` with bounded channel produces all values without loss.
+/// This verifies the `ReadyConsumingIter` store-and-retry pattern works correctly.
 #[test]
 #[traced_test]
 fn test_executor_ready_iter_no_message_loss() {
@@ -244,7 +242,7 @@ fn test_executor_ready_iter_no_message_loss() {
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -264,9 +262,8 @@ fn test_executor_ready_iter_no_message_loss() {
     // Task that produces values
     let task = WrapTask::new(vec![100, 200, 300, 400, 500].into_iter());
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
-        Vec::new(),
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
         task,
         Duration::from_micros(50),
     );
@@ -282,7 +279,7 @@ fn test_executor_ready_iter_no_message_loss() {
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(item) = receiver.next() {
+    for item in receiver.by_ref() {
         if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
@@ -295,4 +292,130 @@ fn test_executor_ready_iter_no_message_loss() {
     assert!(final_results.contains(&300));
     assert!(final_results.contains(&400));
     assert!(final_results.contains(&500));
+}
+
+// ============================================================================
+// Fan-out (split) Backpressure Tests (Feature 45 Part C1)
+// ============================================================================
+
+/// Minimal in-order task iterator for the split backpressure tests.
+struct SeqTask {
+    items: std::vec::IntoIter<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
+}
+
+impl Iterator for SeqTask {
+    type Item = TaskStatus<u32, String, foundation_core::valtron::NoAction>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.items.next()
+    }
+}
+
+/// A split continuation parks on a FULL observer queue instead of dropping the
+/// matched item (Feature 45 Part C1 replaces the old `force_push` drop-oldest).
+///
+/// This is the fan-out analogue of the Decision 00 §L1b delivery rule: while the
+/// observer is full the source yields `TaskStatus::Depends` (park, turn-count
+/// flat) rather than a value; draining a slot unparks it and the stashed item
+/// lands — zero loss.
+#[test]
+#[traced_test]
+fn test_split_continuation_parks_on_full_observer_no_loss() {
+    use foundation_core::valtron::{Stream, TaskIteratorExt};
+
+    // Three matched items through a depth-1 (queue_size = 1) observer queue.
+    let task = SeqTask {
+        items: vec![
+            TaskStatus::Ready(10),
+            TaskStatus::Ready(20),
+            TaskStatus::Ready(30),
+        ]
+        .into_iter(),
+    };
+    let (mut observer, mut continuation) = task.split_collect_one(|_| true);
+
+    // Step 1: pushes 10 into the depth-1 queue and forwards Ready(10).
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Ready(10))),
+        "first step forwards the source value and fills the observer queue"
+    );
+
+    // Steps 2 & 3: the queue is full, so the source PARKS on vacancy instead of
+    // dropping 10 — turn-count stays flat (repeated Depends, no value consumed).
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        "full observer queue parks the source rather than dropping"
+    );
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        "still parked while the observer stays full"
+    );
+
+    // Drain one slot: the stashed copy of 20 now lands and the source advances.
+    assert!(matches!(observer.next(), Some(Stream::Next(10))));
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Ready(20))),
+        "draining a slot unparks the source and delivers the stashed item"
+    );
+
+    // Finish in lockstep and prove every matched item reached the observer.
+    let mut received = vec![10u32];
+    loop {
+        while let Some(stream) = observer.next() {
+            match stream {
+                Stream::Next(v) => received.push(v),
+                _ => break,
+            }
+        }
+        match continuation.next() {
+            Some(_) => {}
+            None => break,
+        }
+    }
+    for stream in &mut observer {
+        if let Stream::Next(v) = stream {
+            received.push(v);
+        }
+    }
+    received.sort_unstable();
+    assert_eq!(
+        received,
+        vec![10, 20, 30],
+        "backpressured fan-out loses zero items"
+    );
+}
+
+/// A DROPPED observer does not kill the stream: the continuation stops copying
+/// (observer queue closed) but keeps forwarding source values (Feature 45 Part
+/// C1 observer-dropped policy).
+#[test]
+#[traced_test]
+fn test_split_continuation_survives_dropped_observer() {
+    use foundation_core::valtron::TaskIteratorExt;
+
+    let task = SeqTask {
+        items: vec![
+            TaskStatus::Ready(1),
+            TaskStatus::Ready(2),
+            TaskStatus::Ready(3),
+        ]
+        .into_iter(),
+    };
+    let (observer, mut continuation) = task.split_collect_one(|_| true);
+
+    // Drop the observer immediately — its queue closes.
+    drop(observer);
+
+    // The continuation must keep forwarding every source value (no park, no panic).
+    let mut forwarded = Vec::new();
+    while let Some(status) = continuation.next() {
+        if let TaskStatus::Ready(v) = status {
+            forwarded.push(v);
+        }
+    }
+    assert_eq!(
+        forwarded,
+        vec![1, 2, 3],
+        "a dropped observer does not stall or kill the source stream"
+    );
 }

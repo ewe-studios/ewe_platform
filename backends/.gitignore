@@ -1,1 +1,4 @@
 !foundation_testbed/**
+# …but never track build artifacts under it (the broad negation above would
+# otherwise un-ignore nested Cargo target/ dirs, e.g. integration/module/target).
+foundation_testbed/**/target/

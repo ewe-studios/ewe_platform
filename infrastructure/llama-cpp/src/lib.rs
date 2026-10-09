@@ -52,6 +52,7 @@ pub mod model;
 #[cfg(feature = "mtmd")]
 pub mod mtmd;
 pub mod sampling;
+pub mod speculative;
 pub mod timing;
 pub mod token;
 pub mod token_type;
@@ -265,7 +266,7 @@ pub enum LlamaLoraAdapterRemoveError {
 /// ```
 /// # use infrastructure_llama_cpp::llama_time_us;
 /// # use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-/// let backend = LlamaBackend::init().unwrap();
+/// let backend = LlamaBackend::init_or_get().unwrap();
 /// let time = llama_time_us();
 /// assert!(time > 0);
 /// ```
@@ -354,6 +355,29 @@ pub enum ApplyChatTemplateError {
     /// the string could not be converted to utf8.
     #[error("{0}")]
     FromUtf8Error(#[from] FromUtf8Error),
+    /// `llama_chat_apply_template` returned a negative value, meaning llama.cpp
+    /// could not apply this template — typically the template (often the one
+    /// baked into the model's GGUF metadata) is unknown or unsupported by this
+    /// build of llama.cpp. The value is the raw negative return code.
+    #[error("llama.cpp could not apply the chat template (return code {0}); the template is unknown or unsupported by this build")]
+    TemplateNotApplicable(i32),
+}
+
+/// Failed to render a chat via the Jinja (minja) chat-template path
+/// (`common_chat_templates_*` in llama.cpp's common library).
+#[derive(Debug, thiserror::Error)]
+pub enum JinjaChatTemplateError {
+    /// The model's chat templates could not be initialized — the model exposes
+    /// no usable chat template, or the template failed to parse.
+    #[error("failed to initialize chat templates from model (no template, or the Jinja template failed to parse)")]
+    InitFailed,
+    /// The template rendered but the result could not be produced (allocation
+    /// failure or a C++ exception at the boundary was caught and reported).
+    #[error("failed to apply the Jinja chat template to the messages")]
+    ApplyFailed,
+    /// The rendered prompt was not valid UTF-8.
+    #[error("{0}")]
+    FromUtf8Error(#[from] std::str::Utf8Error),
 }
 
 /// Get the time in microseconds according to ggml
@@ -361,7 +385,7 @@ pub enum ApplyChatTemplateError {
 /// ```
 /// # use std::time::Duration;
 /// # use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-/// let backend = LlamaBackend::init().unwrap();
+/// let backend = LlamaBackend::init_or_get().unwrap();
 /// use infrastructure_llama_cpp::ggml_time_us;
 ///
 /// let start = ggml_time_us();

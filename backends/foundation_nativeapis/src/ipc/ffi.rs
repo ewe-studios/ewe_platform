@@ -8,7 +8,7 @@ use std::os::raw::{c_char, c_int};
 use std::time::Duration;
 
 use crate::ipc::{
-    BytesMessage, Message, MessageBox, Options, Label, LabelOp, Selector,
+    BytesMessage, Message, Options, Label, LabelOp, Selector,
     EndpointSender, EndpointReceiver,
 };
 

@@ -1,0 +1,365 @@
+# Decision 16: Error Handling Conventions
+
+**Status:** Accepted  
+**Date:** 2026-06-12  
+**Context:** Specification 36 — Agentic API for foundation_ai
+
+## Problem
+
+The agentic loop spans multiple components (LLM, tools, memory, queues) that can fail in different ways. Errors need:
+- A unified type that wraps all underlying errors
+- A propagation mechanism through valtron streams
+- Clear ownership of retry/resilience logic
+
+## Decision
+
+> **⚠️ SUPERSEDED IN PART — see the two AMENDED notes in §"Error Type → Variant Mapping" below.** The
+> error *taxonomy + classification + circuit-breaker + retry-ownership* decisions still hold, but the
+> **propagation mechanism changed**: errors are no longer a `Result` in the stream's `D` / `Next(Err)`.
+> The stream is **pure `D = SessionRecord`** and failures are **`SessionRecord::FailedAction { error:
+> AgenticError, trace: foundation_errstacks::StructuredErrorTrace }`** records (F03/F01). `AgentEvent` is
+> dead (D08/D11). Read the AMENDED notes before treating any code snippet here as current.
+
+Errors are handled via a **unified `AgenticError` enum** propagated through valtron streams as `Stream::Next(Err(e))`. Retry and resilience logic is owned by model tasks internally — the agent loop does not manage retries.
+
+### Error Type Hierarchy
+
+```rust
+#[derive(Debug, Display, Error)]
+pub enum AgenticError {
+    /// LLM generation failed (model error, context overflow, provider error)
+    #[display("generation failed: {0}")]
+    Generation(#[from] GenerationError),
+    
+    /// Tool call execution failed
+    #[display("tool '{tool_name}' failed: {reason}")]
+    ToolCall { tool_name: String, reason: String },
+    
+    /// Tool not authorized for this user/session
+    #[display("tool '{tool_name}' not authorized")]
+    ToolNotAuthorized { tool_name: String, user_id: UserId },
+    
+    /// Message store operation failed
+    #[display("message store error: {0}")]
+    MessageStore(#[from] StorageError),
+    
+    /// Memory operation failed
+    #[display("memory error: {0}")]
+    Memory(#[from] MemoryError),
+    
+    /// Vector store operation failed
+    #[display("vector store error: {0}")]
+    VectorStore(#[from] VectorStoreError),
+    
+    /// Embedding generation failed
+    #[display("embedding error: {0}")]
+    Embedding(#[from] EmbeddingError),
+    
+    /// Session operation failed
+    #[display("session error: {0}")]
+    Session(#[from] SessionError),
+    
+    /// Queue operation failed
+    #[display("queue error: {0}")]
+    Queue(#[from] QueueError),
+    
+    /// Loop detected — agent is repeating itself
+    #[display("loop detected: {0}")]
+    LoopDetected(LoopDetection),
+    
+    /// Authentication/authorization failed
+    #[display("auth error: {0}")]
+    Auth(#[from] AuthError),
+    
+    /// Unknown/unexpected error
+    #[display("unexpected error: {0}")]
+    Unexpected(String),
+}
+```
+
+### Error Propagation
+
+Errors flow through valtron streams as `Stream<Result<AgentEvent, AgenticError>, AgentProgress>`. The `D` (data) type parameter carries a `Result`, so errors are yielded as `Stream::Next(Err(AgenticError))`:
+
+```rust
+// Agent loop stream — D carries Result
+Stream<Result<AgentEvent, AgenticError>, AgentProgress>
+├── Stream::Next(Ok(AgentEvent::MessageEnd { ... }))  // normal event
+├── Stream::Next(Ok(AgentEvent::ToolCallEnd { ... })) // normal event
+├── Stream::Next(Err(AgenticError::Generation(...))) // error — agent loop handles
+├── Stream::Next(Err(AgenticError::ToolCall { ... })) // error — agent loop handles
+└── Stream::Pending(AgentProgress::Generating { ... }) // progress
+```
+
+No changes needed to the `Stream<D, P>` enum — the existing type handles this naturally. The agent loop receives errors via its valtron iterator:
+```rust
+for item in agent_loop {
+    match item {
+        Stream::Next(Ok(event)) => handle_event(event),
+        Stream::Next(Err(error)) => handle_error(error),
+        Stream::Pending(progress) => report_progress(progress),
+        _ => {}
+    }
+}
+```
+
+### Error Ownership
+
+**Model tasks own retry and resilience:**
+
+```
+foundation_ai model tasks (own retry logic internally)
+├── LLM task
+│   ├── Retries on rate limit (exponential backoff, max 3 retries)
+│   ├── Retries on network failure (exponential backoff, max 3 retries)
+│   ├── Context overflow detection → truncates or reports error
+│   └── On permanent failure → returns Stream::Next(Err(AgenticError::Generation(...)))
+│
+├── Tool execution task
+│   ├── Retries on tool timeout (configurable, max 2 retries)
+│   ├── Tool panic → catches, returns error result to LLM
+│   └── On permanent failure → returns Stream::Next(Err(AgenticError::ToolCall { ... }))
+│
+└── Embedding task
+    ├── Retries on embedding model failure (max 2 retries)
+    └── On permanent failure → returns error via channel
+```
+
+**Agent loop does NOT manage retries.** It receives the final error after the model task's internal retry logic is exhausted. The agent loop's job is:
+1. Log the error
+2. Decide whether to continue (e.g., skip the failed tool call and continue with others) or terminate
+3. Surface the error to the user if appropriate
+
+### Error Handling in Agent Loop
+
+```rust
+fn handle_error(&self, error: AgenticError) -> AgentAction {
+    match error {
+        // Retriable at agent level — try a different model or reduce context
+        AgenticError::Generation(GenerationError::ContextOverflow) => {
+            self.reduce_context_and_retry()
+        }
+        AgenticError::Generation(GenerationError::RateLimit) => {
+            // Already retried by model task — switch to fallback model
+            self.switch_to_fallback_model()
+        }
+        
+        // Tool errors — report to LLM so it can adapt
+        AgenticError::ToolCall { ref tool_name, ref reason } => {
+            // Inject error message into conversation
+            self.message_store.append(Messages::ToolResult {
+                id: tool_name.clone(),
+                name: tool_name.clone(),
+                content: UserModelContent::Text(format!("Error: {reason}")),
+                error_detail: Some(reason.clone()),
+                ..
+            });
+            AgentAction::Continue  // LLM will see the error and adapt
+        }
+        
+        // Auth errors — terminate, user needs to re-authenticate
+        AgenticError::Auth(_) | AgenticError::ToolNotAuthorized { .. } => {
+            AgentAction::Terminate(error)
+        }
+        
+        // Loop detection — redirect with memory context
+        AgenticError::LoopDetected(detection) => {
+            self.inject_redirect_from_memory(detection)
+        }
+        
+        // Unexpected errors — terminate with error
+        AgenticError::Unexpected(_) => {
+            AgentAction::Terminate(error)
+        }
+    }
+}
+
+enum AgentAction {
+    Continue,          // Keep going — LLM will see error and adapt
+    RetryWithReducedContext,  // Reduce context, retry LLM call
+    SwitchModel,       // Try fallback model
+    Terminate(AgenticError),  // End session with error
+}
+```
+
+### Error Surfacing
+
+**Tool errors ALWAYS go back to the model.** The LLM must know whether its tool call succeeded, failed, or produced an error — so it can adapt, retry with different arguments, or report to the user.
+
+| Error Type | Surfaces To | Action |
+|-----------|-------------|--------|
+| LLM generation error | User (via stream) | Agent terminates or switches model |
+| **Tool call error** | **LLM (via ToolResult message)** | **LLM sees error, adapts or retries with different args** |
+| Auth error | User (via stream) | Agent terminates |
+| Loop detection | Agent (internal redirect) | Agent redirects with memory context |
+| Memory/vector error | Agent (logs, continues) | Agent continues without memory |
+
+### ToolCallManager Retry Configuration
+
+The ToolCallManager has built-in retry with exponential backoff for tool calls:
+
+```rust
+pub struct ToolRetryConfig {
+    /// Maximum number of retry attempts (default: 3)
+    pub max_retries: u32,
+    /// Initial backoff duration (default: 1s)
+    pub initial_backoff: Duration,
+    /// Backoff multiplier (default: 2x)
+    pub backoff_multiplier: f64,
+    /// Maximum backoff duration (default: 30s)
+    pub max_backoff: Duration,
+    /// Retry only on these error types (default: timeouts, network errors)
+    pub retry_on: Vec<ToolErrorKind>,
+}
+
+impl Default for ToolRetryConfig {
+    fn default() -> Self {
+        Self {
+            max_retries: 3,
+            initial_backoff: Duration::from_secs(1),
+            backoff_multiplier: 2.0,
+            max_backoff: Duration::from_secs(30),
+            retry_on: vec![ToolErrorKind::Timeout, ToolErrorKind::Network],
+        }
+    }
+}
+
+impl ToolCallManager {
+    /// Execute a tool call with automatic retry
+    fn execute_with_retry(&self, call: ToolCallRequest) -> ToolCallResult {
+        let config = self.get_retry_config(&call.name);
+        let mut backoff = config.initial_backoff;
+        
+        for attempt in 0..=config.max_retries {
+            match self.execute_tool(&call) {
+                Ok(result) => return Ok(result),
+                Err(e) => {
+                    if attempt == config.max_retries || !config.retry_on.contains(&e.kind()) {
+                        // All retries exhausted or non-retriable error
+                        // Return error to LLM via ToolResult message
+                        return self.return_error_to_llm(&call, e);
+                    }
+                    // Wait with exponential backoff
+                    sleep(backoff);
+                    backoff = min(backoff * config.backoff_multiplier, config.max_backoff);
+                }
+            }
+        }
+        unreachable!()
+    }
+}
+```
+
+Retry configuration can be customized per tool:
+- **File operations** (read, write, edit): retry on I/O errors, 2 retries
+- **Network tools** (HTTP, API calls): retry on timeouts/network errors, 3 retries
+- **Shell commands**: no retry (side effects may be non-idempotent)
+- **Search tools** (fff): retry on index errors, 1 retry
+
+### Circuit Breaker — Model Degradation
+
+The Agent task receives a **ModelProvider** (not just a single Model), giving it access to all available models. When the primary model keeps erroring, the agent can switch to a fallback model.
+
+```rust
+pub struct AgentConfig {
+    pub provider: Arc<dyn ModelProvider>,  // access to all models
+    pub primary_model: ModelId,            // default model
+    pub fallback_models: Vec<ModelId>,     // models to try on failure
+    pub memory_model: Option<ModelId>,     // smaller model for memory generation
+}
+
+impl AgentLoop {
+    /// Circuit breaker: if primary model fails, try fallback models
+    fn handle_generation_failure(&mut self, error: AgenticError) -> AgentAction {
+        self.failure_count += 1;
+        
+        if self.failure_count >= self.circuit_breaker_threshold {
+            if let Some(next_model) = self.next_fallback_model() {
+                self.current_model = next_model;
+                self.failure_count = 0;
+                AgentAction::RetryWithNewModel(next_model)
+            } else {
+                AgentAction::Terminate(error)
+            }
+        } else {
+            AgentAction::RetrySameModel
+        }
+    }
+}
+```
+
+### Memory Generation with Smaller Models
+
+Memory generation (observations, reflections) uses a **smaller, cheaper model** than the main conversation model:
+
+```rust
+impl ContextProvider {
+    fn get_memory_model(&self) -> Arc<dyn Model> {
+        if let Some(model_id) = &self.config.memory_model {
+            self.provider.get_model(model_id.clone())
+                .unwrap_or_else(|_| self.provider.get_model(&self.config.primary_model).unwrap())
+        } else {
+            self.provider.get_model(&self.config.primary_model).unwrap()
+        }
+    }
+}
+```
+
+Model allocation example:
+- **Primary model:** Claude Sonnet 4.6 — conversation, reasoning, tool use
+- **Memory model:** Claude Haiku 4.5 — observation/reflection generation (cheaper, faster)
+- **Fallback model:** Claude Opus 4.8 — when primary fails (more capable, expensive)
+
+### Existing Error Types (Reused)
+
+The agentic error wraps existing error types from the platform:
+
+| Source | Error Type | Wrapped As |
+|--------|-----------|------------|
+| foundation_ai | `GenerationError` | `AgenticError::Generation` |
+| foundation_ai | `ToolCallingError` | `AgenticError::ToolCall` |
+| foundation_db | `StorageError` | `AgenticError::MessageStore` |
+| foundation_auth | Auth errors | `AgenticError::Auth` |
+| foundation_errstacks | `ErrorTrace<T>` | Converted to `String` in `Unexpected` |
+
+> **AMENDED (2026-06-15, F03 + F02):** `AgenticError` must be **`Clone + PartialEq + Debug`** (for the F03 stream derives). **`GenerationError` is NOT `Clone`/`PartialEq`** and has NO `ContextOverflow`/`RateLimit` variants — so F02 **flattens** generation failures to a `String`-backed error (not `#[from]`) and classifies overflow via the real **`Messages::is_context_overflow()`**. Retry/resilience owned by model+tool tasks.
+>
+> **AMENDED again (2026-06-15, F03 OD-03-1 + F01 §5 + user):** errors are **no longer carried as `Stream::Next(Err(..))` / a `Result` in `D`.** The stream is **pure `D = SessionRecord`**; a failure is a **`SessionRecord::FailedAction { error: AgenticError, trace: foundation_errstacks::StructuredErrorTrace }`** record on `Stream::Next` (transient, NOT persisted). All agentic errors are **`foundation_errstacks` errors** (`ErrorTrace<AgenticError>`); the in-record `trace` is the owned, JSON-serializable `to_structured()` projection (the live `ErrorTrace` is not `Deserialize`). Consequently `AgenticError` must additionally be **`Serialize + Deserialize`** (the flattened `String`-backed design already makes this possible). Synchronous API methods (`build`/`resume`/`run_turn`/`end`) return `Result<_, ErrorTrace<AgenticError>>`. Every `Stream<Result<AgentEvent, AgenticError>, ..>`, `Stream::Next(Ok/Err(..))`, and `AgentEvent` snippet elsewhere in this document is SUPERSEDED by this note (the original body is retained only for ADR history).
+
+## Rationale
+
+**Why unified `AgenticError`?**
+- Single error type for the entire agentic API — callers don't need to handle multiple error types
+- `#[from]` conversions make it easy to wrap underlying errors
+- Each variant carries the data relevant to that failure mode
+
+**Why errors flow through `Stream::Next(Err(...))`?**
+- Consistent with valtron's execution model — errors are just another stream item
+- Callers handle errors in the same match block as normal events
+- No separate error channel needed
+
+**Why model tasks own retry logic?**
+- Retry policies are model-specific (rate limits, timeouts, backoff)
+- Agent loop shouldn't care about retry internals — it just sees the final result
+- Keeps agent loop simple — flow control, not error recovery
+
+**Why tool errors surface to LLM?**
+- LLM can adapt — try a different tool, fix arguments, or report to user
+- More resilient than terminating the session on first tool failure
+
+## Alternatives Considered
+
+### Separate error channel (not through stream)
+- **Pros:** Errors are distinct from events
+- **Cons:** More complex — two channels to monitor
+- **Rejected because:** `Stream::Next(Err(...))` is sufficient and consistent
+
+### Agent loop manages retries
+- **Pros:** Agent has full control
+- **Cons:** Agent loop becomes complex — needs to know about rate limits, backoff, etc.
+- **Rejected because:** Model tasks are better positioned to manage their own resilience
+
+### No unified error type (propagate raw errors)
+- **Pros:** No wrapper overhead
+- **Cons:** Callers need to handle many error types
+- **Rejected because:** Unified type simplifies the API

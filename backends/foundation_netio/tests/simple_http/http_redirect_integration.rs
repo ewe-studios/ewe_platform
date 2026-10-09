@@ -3,8 +3,8 @@
 // WHAT: Ensure correct status transitions, header/semantic mutability, limit enforcement, and sensitive header stripping per sync-only project mandate
 
 use foundation_core::valtron;
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::HttpClientError;
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use serial_test::serial;
@@ -230,7 +230,7 @@ fn test_redirect_after_100_continue() {
             // Build absolute URL from request's Host header
             let host = req
                 .headers
-                .get(&foundation_netio::simple_http::shared::SimpleHeader::HOST);
+                .get(&foundation_netio::shared::http::SimpleHeader::HOST);
             let host_str = host
                 .and_then(|v| v.first())
                 .map(|s| s.as_str())
@@ -266,5 +266,112 @@ fn test_redirect_after_100_continue() {
         response.get_status().into_usize(),
         201,
         "Should be 201 status"
+    );
+}
+
+// ── Bodyless request regression tests ─────────────────────────────────────────
+//
+// These tests validate the fix for GetHttpRequestRedirectTask where body
+// detection was done via header inspection (Content-Length, Transfer-Encoding)
+// instead of checking the actual request body field. This caused bodyless
+// requests (GET, HEAD, DELETE without body) to enter the WriteBody state
+// unnecessarily.
+
+/// A plain GET with no body must complete successfully without entering
+/// WriteBody. Before the fix, WriteBody would call `Http11::request_body()` on
+/// a bodyless request and attempt to render/write an empty body.
+#[test]
+#[traced_test]
+#[serial(valtron_pool)]
+fn get_without_body_completes_successfully() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(48, None);
+    let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"hello"));
+    let client = SimpleHttpClient::from_system();
+    let res = client
+        .get(&server.url("/test"))
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send();
+    assert!(res.is_ok(), "GET without body should succeed");
+    assert_eq!(
+        res.unwrap().get_status().into_usize(),
+        200,
+        "GET should get 200 OK"
+    );
+}
+
+/// A POST with no body (Content-Length: 0 but no actual body data in the
+/// SendSafeBody field) must NOT trigger the Expect: 100-continue handshake
+/// probe. The body field directly tells us there's nothing to write.
+#[test]
+#[traced_test]
+#[serial(valtron_pool)]
+fn post_with_empty_body_skips_100_continue() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(49, None);
+    let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"ok"));
+    let client = SimpleHttpClient::from_system();
+
+    // POST with no body (explicitly None, not even Content-Length: 0) —
+    // the client must not send Expect: 100-continue.
+    let res = client
+        .post(&server.url("/test"))
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send();
+    assert!(res.is_ok(), "POST without body should succeed");
+}
+
+/// A POST with an actual body must still work correctly — this is the
+/// regression guard for the happy path.
+#[test]
+#[traced_test]
+#[serial(valtron_pool)]
+fn post_with_body_still_works() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(50, None);
+    let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"received"));
+    let client = SimpleHttpClient::from_system();
+    let res = client
+        .post(&server.url("/test"))
+        .unwrap()
+        .body_text("hello world")
+        .build_client()
+        .unwrap()
+        .send();
+    assert!(res.is_ok(), "POST with body should succeed");
+    let resp = res.unwrap();
+    assert_eq!(
+        resp.get_status().into_usize(),
+        200,
+        "POST with body should get 200 OK"
+    );
+}
+
+/// A redirect chain where each hop is a bodyless GET must complete without
+/// entering WriteBody at any redirect step.
+#[test]
+#[traced_test]
+#[serial(valtron_pool)]
+fn redirect_chain_bodyless_requests_skip_writebody() {
+    let _pool_guard = foundation_core::valtron::initialize_pool(51, None);
+    let server = TestHttpServer::http_chain(vec![(302, "/step2"), (302, "/step3"), (200, "final")]);
+    let client = SimpleHttpClient::from_system().max_redirects(5);
+
+    let res = client
+        .get(&server.url("/step1"))
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send();
+
+    assert!(
+        res.is_ok(),
+        "redirect chain of bodyless GETs should succeed"
+    );
+    assert_eq!(
+        res.unwrap().get_status().into_usize(),
+        200,
+        "final response should be 200"
     );
 }

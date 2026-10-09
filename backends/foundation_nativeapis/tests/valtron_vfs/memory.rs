@@ -20,7 +20,7 @@ fn init_pool() -> PoolGuard {
 // ── SyncFs<MemoryFs>: Basic Operations ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_mkdir_and_stat() {
@@ -39,7 +39,7 @@ fn syncfs_memory_mkdir_and_stat() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_create_write_read() {
@@ -60,7 +60,7 @@ fn syncfs_memory_create_write_read() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_read_file_write_file() {
@@ -78,7 +78,7 @@ fn syncfs_memory_read_file_write_file() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_open_seekable() {
@@ -103,7 +103,7 @@ fn syncfs_memory_open_seekable() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_seek_operations() {
@@ -131,7 +131,7 @@ fn syncfs_memory_seek_operations() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_rename_and_remove() {
@@ -150,7 +150,7 @@ fn syncfs_memory_rename_and_remove() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_remove_all() {
@@ -170,7 +170,7 @@ fn syncfs_memory_remove_all() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_chmod() {
@@ -187,7 +187,7 @@ fn syncfs_memory_chmod() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_directory_operations() {
@@ -207,7 +207,7 @@ fn syncfs_memory_directory_operations() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_copy() {
@@ -224,7 +224,7 @@ fn syncfs_memory_copy() {
 // ── SyncFs<MemoryDelta>: DeltaStore Operations ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_basic() {
@@ -237,7 +237,7 @@ fn syncfs_memory_delta_basic() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_whiteout() {
@@ -253,7 +253,7 @@ fn syncfs_memory_delta_whiteout() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_list_whiteouts() {
@@ -271,7 +271,7 @@ fn syncfs_memory_delta_list_whiteouts() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_reset() {
@@ -289,7 +289,7 @@ fn syncfs_memory_delta_reset() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_flush() {
@@ -303,7 +303,7 @@ fn syncfs_memory_delta_flush() {
 // ── Concurrent Operations via Valtron Threads ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_concurrent_mkdir() {
@@ -328,7 +328,7 @@ fn syncfs_memory_concurrent_mkdir() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_memory_concurrent_write_different_files() {

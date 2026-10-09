@@ -6,7 +6,7 @@
 //! - Expired rate limits (outside the sliding window)
 //! - Expired verification tokens, OAuth states, magic links, and email OTPs
 
-use crate::core::errors::{StorageError, StorageResult};
+use crate::core::errors::StorageResult;
 use crate::core::storage_provider::QueryStore;
 
 /// Cleanup operations for storage maintenance.
@@ -44,13 +44,7 @@ pub trait StorageCleanup: QueryStore {
             None => vec![crate::core::storage_provider::DataValue::Integer(now)],
         };
 
-        let stream = self.execute(&sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(&sql, &params)
     }
 
     /// Delete expired JWT tokens (refresh tokens past expiration).
@@ -66,13 +60,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM jwt_tokens WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired verification tokens.
@@ -88,13 +76,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM verification_tokens WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired OAuth states (PKCE states past expiration).
@@ -110,13 +92,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM oauth_states WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired magic links.
@@ -132,13 +108,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM magic_links WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired email OTPs.
@@ -154,13 +124,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM email_otps WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Clean up old rate limit entries.
@@ -185,13 +149,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM rate_limits WHERE window_start < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(cutoff)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Run all cleanup operations in one call.

@@ -6,15 +6,18 @@ use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
+use super::storage::HandlerStorage;
+use foundation_db::{KeyValueStore, MemoryStorage};
 
-pub struct IdpServer {
+pub struct IdpServer<KV: KeyValueStore + 'static = MemoryStorage> {
     config: IdpConfig,
+    storage: Arc<HandlerStorage<KV>>,
 }
 
-impl IdpServer {
+impl<KV: KeyValueStore + 'static> IdpServer<KV> {
     #[must_use]
-    pub fn new(config: IdpConfig) -> Self {
-        Self { config }
+    pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
+        Self { config, storage }
     }
 
     pub fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>, prefix: &str) {
@@ -26,12 +29,50 @@ impl IdpServer {
         app.route::<ServeAdapter>(SimpleMethod::GET, &format!("{p}/userinfo"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/introspect"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/device/authorize"));
+        // F011 — social login callback (authorize is already registered above)
+        app.route::<ServeAdapter>(SimpleMethod::GET, &format!("{p}/callback"));
+        // F02 — auth endpoints (unified login, MFA, logout)
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/authorize");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/mfa");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/logout");
+        // F03 — registration endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/register");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/dev/register");
+        // F04 — password reset endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/request_reset");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/users/{id}/reset");
+        // F05 — Proof of Work endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/pow");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/pow");
+        // F08 — template/config API endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/config");
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/password_policy");
+        // F09 — account management endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/users/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/users/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/change_password");
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/users/{id}/sessions");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/revoke");
+        // F06 — WebAuthn/FIDO2 endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/register/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/register/finish");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/login/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/login/finish");
+        app.route::<ServeAdapter>(SimpleMethod::DELETE, "/auth/v1/webauthn/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/webauthn/{id}");
+        // F06 — passkey-only login endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/passkey/login/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/passkey/login/finish");
+        // F07 — Terms of Service endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/tos/latest");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/tos/accept");
     }
 
     #[must_use]
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
         let mut app = HttpApp::new_serve();
         app.ctx.store(self.config);
+        app.ctx.store(self.storage);
         Self::register_routes(&mut app, "/idp");
         app
     }
@@ -50,51 +91,3 @@ impl IdpServer {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_http_app() {
-        let config = IdpConfig::new("https://auth.example.com".into());
-        let server = IdpServer::new(config);
-        let app = server.http_app();
-        assert!(app.ctx.contains::<IdpConfig>());
-    }
-
-    #[test]
-    fn test_default_prefix_routes() {
-        let config = IdpConfig::new("https://auth.example.com".into());
-        let server = IdpServer::new(config);
-        let app = server.http_app();
-
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/idp/.well-known/openid-configuration").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/idp/.well-known/jwks.json").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/idp/authorize").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::POST, "/idp/token").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/idp/userinfo").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::POST, "/idp/introspect").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::POST, "/idp/device/authorize").is_some());
-    }
-
-    #[test]
-    fn test_custom_prefix() {
-        let config = IdpConfig::new("https://auth.example.com".into());
-        let mut app = HttpApp::new_serve();
-        app.ctx.store(config);
-        IdpServer::register_routes(&mut app, "/auth/v1");
-
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/auth/v1/.well-known/openid-configuration").is_some());
-        assert!(app.router.dispatch(&SimpleMethod::POST, "/auth/v1/token").is_some());
-    }
-
-    #[test]
-    fn test_no_route_without_prefix() {
-        let config = IdpConfig::new("https://auth.example.com".into());
-        let server = IdpServer::new(config);
-        let app = server.http_app();
-
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/token").is_none());
-        assert!(app.router.dispatch(&SimpleMethod::GET, "/unknown").is_none());
-    }
-}

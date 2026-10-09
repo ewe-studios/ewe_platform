@@ -1,9 +1,8 @@
 //! Turso storage backend integration tests.
 
-use foundation_core::valtron::collect_one;
 use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
-use tempfile::TempDir;
 use std::sync::Mutex;
+use tempfile::TempDir;
 
 /// Shared Valtron pool guard — initialized once and reused across all tests
 /// to avoid parallel tests interfering with each other's thread pool.
@@ -27,36 +26,22 @@ fn test_turso_storage_basic() {
     let storage = TursoStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    let _: () = collect_one(
-        storage
-            .set::<String>("test_key", "test_value".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-
-    let value: Option<String> = collect_one(storage.get("test_key").unwrap())
-        .unwrap()
+    storage
+        .set::<String>("test_key", "test_value".to_string())
         .unwrap();
+
+    let value: Option<String> = storage.get("test_key").unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = collect_one(storage.exists("test_key").unwrap())
-        .unwrap()
-        .unwrap();
+    let exists: bool = storage.exists("test_key").unwrap();
     assert!(exists);
 
-    let not_exists: bool = collect_one(storage.exists("nonexistent").unwrap())
-        .unwrap()
-        .unwrap();
+    let not_exists: bool = storage.exists("nonexistent").unwrap();
     assert!(!not_exists);
 
-    let _: () = collect_one(storage.delete("test_key").unwrap())
-        .unwrap()
-        .unwrap();
+    storage.delete("test_key").unwrap();
 
-    let deleted: bool = collect_one(storage.exists("test_key").unwrap())
-        .unwrap()
-        .unwrap();
+    let deleted: bool = storage.exists("test_key").unwrap();
     assert!(!deleted);
 }
 
@@ -67,23 +52,16 @@ fn test_turso_storage_encryption() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    // Create storage with encryption
     let key = EncryptionKey::generate();
     let storage = TursoStorage::with_encryption(url, Some(key.clone())).unwrap();
     storage.init_schema().unwrap();
 
     let secret_value = "sensitive_data_12345".to_string();
-    let _: () = collect_one(storage.set("secret_key", secret_value.clone()).unwrap())
-        .unwrap()
-        .unwrap();
+    storage.set("secret_key", secret_value.clone()).unwrap();
 
-    // Retrieve and decrypt
-    let value: Option<String> = collect_one(storage.get("secret_key").unwrap())
-        .unwrap()
-        .unwrap();
+    let value: Option<String> = storage.get("secret_key").unwrap();
     assert_eq!(value, Some(secret_value.clone()));
 
-    // Verify the value is encrypted in the database (not plaintext)
     let raw_result = storage
         .query(
             "SELECT value FROM kv_store WHERE key = ?",
@@ -97,8 +75,6 @@ fn test_turso_storage_encryption() {
         .collect::<Vec<_>>();
 
     assert!(!raw_result.is_empty(), "Should have a result");
-    // The stored value should be base64-encoded ciphertext, not plaintext
-    // Use index-based access (column 0 is "value")
     let stored_value = raw_result[0].get::<String>(0).unwrap();
     assert_ne!(
         stored_value, secret_value,
@@ -117,28 +93,21 @@ fn test_turso_storage_encryption_wrong_key() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    // Create storage with one key
     let key1 = EncryptionKey::generate();
     let storage1 = TursoStorage::with_encryption(url, Some(key1.clone())).unwrap();
     storage1.init_schema().unwrap();
 
     let secret_value = "sensitive_data".to_string();
-    let _: () = collect_one(storage1.set("secret_key", secret_value.clone()).unwrap())
-        .unwrap()
-        .unwrap();
+    storage1.set("secret_key", secret_value.clone()).unwrap();
 
-    // Try to read with a different key - should fail
     let key2 = EncryptionKey::generate();
     let storage2 = TursoStorage::with_encryption(url, Some(key2.clone())).unwrap();
 
-    let result: Option<Result<Option<String>, foundation_db::StorageError>> =
-        collect_one(storage2.get("secret_key").unwrap());
-    match result {
-        Some(Err(foundation_db::StorageError::Encryption(_))) => {} // Expected
-        Some(Err(e)) => panic!("Expected Encryption error, got: {e:?}"),
-        Some(Ok(_)) => panic!("Should have failed to decrypt with wrong key"),
-        None => panic!("Should have a result (even if error)"),
-    }
+    let result = storage2.get::<String>("secret_key");
+    assert!(
+        result.is_err(),
+        "Should fail with wrong key, got: {result:?}"
+    );
 }
 
 #[test]
@@ -151,29 +120,16 @@ fn test_turso_storage_list_keys() {
     let storage = TursoStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key1", "value1".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key2", "value2".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("other:key3", "value3".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
+    storage
+        .set::<String>("prefix:key1", "value1".to_string())
+        .unwrap();
+    storage
+        .set::<String>("prefix:key2", "value2".to_string())
+        .unwrap();
+    storage
+        .set::<String>("other:key3", "value3".to_string())
+        .unwrap();
 
-    // List all keys - flat_map to extract Result from Stream, then collect
     let keys: Vec<String> = storage
         .list_keys(None)
         .unwrap()
@@ -184,7 +140,6 @@ fn test_turso_storage_list_keys() {
         .collect();
     assert_eq!(keys.len(), 3);
 
-    // List keys with prefix
     let keys: Vec<String> = storage
         .list_keys(Some("prefix:"))
         .unwrap()
@@ -260,4 +215,120 @@ fn test_turso_storage_migrations() {
     assert!(users_exist, "users table should be accessible");
     assert!(sessions_exist, "sessions table should be accessible");
     assert!(migrations_exist, "_migrations table should be accessible");
+}
+
+/// Migration 024/025: upstream_providers + user_provider_links tables are
+/// created by init_schema and support real INSERT/SELECT round-trips.
+#[test]
+fn test_social_login_tables_functional() {
+    init_valtron();
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let url = db_path.to_str().unwrap();
+
+    let storage = TursoStorage::new(url).unwrap();
+    storage.init_schema().unwrap();
+
+    // Insert a provider row (mirrors ProviderService::create's columns).
+    storage
+        .execute(
+            "INSERT INTO upstream_providers \
+             (id, name, provider_type, client_id, encryption_key_id, discovery_url, scopes, is_active, mapping_config, created_at, updated_at) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            &[
+                DataValue::Text("google".into()),
+                DataValue::Text("Google".into()),
+                DataValue::Text("oidc".into()),
+                DataValue::Text("client-abc".into()),
+                DataValue::Text("default".into()),
+                DataValue::Text("https://accounts.google.com/.well-known/openid-configuration".into()),
+                DataValue::Text("[\"openid\",\"email\"]".into()),
+                DataValue::Integer(1),
+                DataValue::Text("{}".into()),
+                DataValue::Integer(1000),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+
+    // Read it back.
+    let rows = storage
+        .query(
+            "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?",
+            &[DataValue::Text("google".into())],
+        )
+        .unwrap()
+        .flat_map(|item| match item {
+            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
+            _ => vec![],
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(rows.len(), 1, "provider row should be readable");
+    assert_eq!(rows[0].get::<String>(0).unwrap(), "Google");
+    assert_eq!(rows[0].get::<String>(1).unwrap(), "client-abc");
+    assert_eq!(rows[0].get::<i64>(2).unwrap(), 1);
+
+    // A user + a link referencing the provider.
+    storage
+        .execute(
+            "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            &[
+                DataValue::Text("user-1".into()),
+                DataValue::Text("alice@example.com".into()),
+                DataValue::Integer(1000),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+    storage
+        .execute(
+            "INSERT INTO user_provider_links \
+             (id, user_id, provider_id, upstream_subject, upstream_email, created_at) \
+             VALUES (?, ?, ?, ?, ?, ?)",
+            &[
+                DataValue::Text("link-1".into()),
+                DataValue::Text("user-1".into()),
+                DataValue::Text("google".into()),
+                DataValue::Text("google-sub-123".into()),
+                DataValue::Text("alice@example.com".into()),
+                DataValue::Integer(1000),
+            ],
+        )
+        .unwrap();
+
+    // The unique (provider_id, upstream_subject) index must reject a duplicate.
+    let dup = storage.execute(
+        "INSERT INTO user_provider_links \
+         (id, user_id, provider_id, upstream_subject, created_at) \
+         VALUES (?, ?, ?, ?, ?)",
+        &[
+            DataValue::Text("link-2".into()),
+            DataValue::Text("user-1".into()),
+            DataValue::Text("google".into()),
+            DataValue::Text("google-sub-123".into()),
+            DataValue::Integer(1001),
+        ],
+    );
+    assert!(
+        dup.is_err(),
+        "duplicate (provider_id, upstream_subject) must be rejected by unique index"
+    );
+
+    // Lookup by (provider_id, upstream_subject) returns the linked user.
+    let link_rows = storage
+        .query(
+            "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?",
+            &[
+                DataValue::Text("google".into()),
+                DataValue::Text("google-sub-123".into()),
+            ],
+        )
+        .unwrap()
+        .flat_map(|item| match item {
+            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
+            _ => vec![],
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(link_rows.len(), 1);
+    assert_eq!(link_rows[0].get::<String>(0).unwrap(), "user-1");
 }

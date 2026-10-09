@@ -9,8 +9,8 @@
 //! HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
 //!       per-API provider instances.
 
-use foundation_netio::simple_http::client::shared::DnsResolver;
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::shared::client::DnsResolver;
+use foundation_netio::http::SimpleHttpClient;
 use foundation_db::core::state::traits::StateStore;
 use std::sync::Arc;
 
@@ -70,9 +70,14 @@ where
     ///
     /// # Example
     ///
-    /// ```rust
-    /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-    /// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+    /// ```rust,no_run
+    /// use std::path::Path;
+    /// use foundation_deployment::provider_client::ProviderClient;
+    /// use foundation_db::core::state::FileStateStore;
+    /// use foundation_netio::http::NativeHttpClient;
+    ///
+    /// let state_store = FileStateStore::new(Path::new("/path"), "my-project", "dev");
+    /// let http_client = NativeHttpClient::default();
     /// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
     /// ```
     pub fn new(

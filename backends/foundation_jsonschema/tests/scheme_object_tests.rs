@@ -2,9 +2,9 @@
 
 extern crate alloc;
 
+use alloc::collections::BTreeMap;
 use foundation_jsonschema::scheme;
 use serde_json::json;
-use alloc::collections::BTreeMap;
 
 #[test]
 fn object_default_schema() {
@@ -27,7 +27,9 @@ fn object_optional_property() {
         .optional("bio", scheme::string())
         .build_schema();
     assert_eq!(schema["properties"]["bio"]["type"], "string");
-    assert!(schema.get("required").is_none_or(|r| r.as_array().is_none_or(|a| !a.iter().any(|v| v == "bio"))));
+    assert!(schema
+        .get("required")
+        .is_none_or(|r| r.as_array().is_none_or(|a| !a.iter().any(|v| v == "bio"))));
 }
 
 #[test]
@@ -69,9 +71,7 @@ fn object_loose() {
 
 #[test]
 fn object_catchall_schema() {
-    let schema = scheme::object()
-        .catchall(scheme::string())
-        .build_schema();
+    let schema = scheme::object().catchall(scheme::string()).build_schema();
     assert_eq!(schema["additionalProperties"]["type"], "string");
 }
 
@@ -142,10 +142,12 @@ fn object_nested_with_raw_value() {
 #[test]
 fn object_nested_builders() {
     let schema = scheme::object()
-        .required("user", scheme::object()
-            .required("name", scheme::string())
-            .optional("age", scheme::integer().min(0))
-            .strict()
+        .required(
+            "user",
+            scheme::object()
+                .required("name", scheme::string())
+                .optional("age", scheme::integer().min(0))
+                .strict(),
         )
         .build_schema();
     let user_props = &schema["properties"]["user"]["properties"];
@@ -179,9 +181,7 @@ fn object_strict_with_nested_object_validates() {
 
 #[test]
 fn object_build_schema_is_non_consuming() {
-    let builder = scheme::object()
-        .required("name", scheme::string())
-        .strict();
+    let builder = scheme::object().required("name", scheme::string()).strict();
     let schema1 = builder.build_schema();
     let schema2 = builder.build_schema();
     assert_eq!(schema1, schema2);

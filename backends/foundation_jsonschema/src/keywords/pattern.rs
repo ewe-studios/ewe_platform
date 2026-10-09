@@ -21,8 +21,8 @@ impl PatternValidator {
         pattern: alloc::string::String,
         schema_path: Location,
     ) -> Result<Self, alloc::string::String> {
-        let regex = Regex::new(&pattern)
-            .map_err(|e| alloc::format!("invalid pattern '{pattern}': {e}"))?;
+        let regex =
+            Regex::new(&pattern).map_err(|e| alloc::format!("invalid pattern '{pattern}': {e}"))?;
         Ok(Self {
             regex,
             raw_pattern: pattern,

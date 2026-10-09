@@ -1,0 +1,39 @@
+[package]
+name = "foundation_browser"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Pure-Rust browser test driver (CDP) — speak the browser's JSON-RPC protocol directly from Rust"
+keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
+
+[dependencies]
+# `multi` is REQUIRED: foundation_netio's native WebSocket client is
+# `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
+# (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
+# ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
+# bundled localhost dev cert — for testing secure-context features.
+foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["ssl-rustls-ring"] }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
+# embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
+# serve <mount-stream> without a build step.
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", features = ["embedded-js"] }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
+tracing = { workspace = true }
+base64 = "0.22"
+# Holds the dev TLS key zeroized in memory, matching the SSLAcceptor::from_pem API.
+zeroize = "1"
+
+[features]
+# Integration tests that require a real Chromium binary opt into this so CI
+# without a browser skips them.
+browser-tests = []

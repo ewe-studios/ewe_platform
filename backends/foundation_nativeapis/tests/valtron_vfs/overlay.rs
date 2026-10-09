@@ -18,7 +18,7 @@ fn init_pool() -> PoolGuard {
 // ── Overlay<MemoryFs, MemoryDelta> via Valtron ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_read_passthrough() {
@@ -41,7 +41,7 @@ fn overlay_memory_read_passthrough() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_write_to_delta() {
@@ -57,7 +57,7 @@ fn overlay_memory_write_to_delta() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_cow() {
@@ -79,7 +79,7 @@ fn overlay_memory_cow() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_whiteout_hides_base() {
@@ -102,7 +102,7 @@ fn overlay_memory_whiteout_hides_base() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_directory_listing() {
@@ -129,7 +129,7 @@ fn overlay_memory_directory_listing() {
 // ── Overlay with Nested Dirs ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_nested_dirs() {
@@ -152,7 +152,7 @@ fn overlay_memory_nested_dirs() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_remove_all() {
@@ -171,7 +171,7 @@ fn overlay_memory_remove_all() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn overlay_memory_mkdir_all() {

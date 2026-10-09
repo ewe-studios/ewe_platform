@@ -44,7 +44,7 @@ fn init_pool() -> PoolGuard {
 /// Test: FileWatcherTask executes on multi-threaded worker pool.
 /// Uses collect_one to grab the first event then stop.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_multi_executor() {
@@ -77,7 +77,7 @@ fn file_watcher_task_multi_executor() {
 /// Test: Multiple FileWatcherTask instances run concurrently.
 /// Each uses collect_one to grab its first event then stop.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn multiple_watchers_concurrent_multi_executor() {

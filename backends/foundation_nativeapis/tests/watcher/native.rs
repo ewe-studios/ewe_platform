@@ -334,3 +334,55 @@ fn watcher_builder_fallback_poll() {
 
     assert!(watcher.is_ok(), "Poll watcher should always be available");
 }
+
+/// The readiness check must not consume what `poll()` needs.
+///
+/// WHY: `InotifyWatcher` registers its inotify fd **edge-triggered**. An earlier
+/// `has_events()` ran its own `epoll_wait` on that selector, consuming the
+/// one-shot edge; `poll()` then saw no event and returned empty *without ever
+/// reading the fd*. The events stayed queued and a `FileWatcherTask` parked on
+/// `Depends(watcher)` forever. It was racy — sometimes `poll()` won the edge —
+/// which is why it only showed up under test parallelism.
+///
+/// WHAT: after any number of `has_events()` calls, `poll()` must still return
+/// the queued events.
+///
+/// HOW: `has_events()` now asks `FIONREAD` (non-destructive) and `poll()` reads
+/// the fd directly rather than gating on an epoll edge.
+#[cfg(target_os = "linux")]
+#[serial]
+#[test]
+fn inotify_has_events_does_not_consume_the_readiness_edge() {
+    let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
+        .expect("failed to create inotify watcher");
+    let dir = TempDir::new();
+    watcher.watch(dir.path(), false).expect("failed to watch dir");
+
+    let _file = File::create(dir.path().join("edge.txt")).expect("failed to create file");
+
+    // Let inotify queue the event, then interrogate readiness repeatedly.
+    let mut saw_ready = false;
+    for _ in 0..50 {
+        if watcher.has_events(None) {
+            saw_ready = true;
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(saw_ready, "has_events must report the queued inotify event");
+
+    // Ask several more times: a non-destructive check stays true.
+    for i in 0..5 {
+        assert!(
+            watcher.has_events(None),
+            "has_events call {i} returned false — it consumed the readiness it reported"
+        );
+    }
+
+    // And the events must still be there to collect.
+    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    assert!(
+        events.iter().any(|e| e.path.ends_with("edge.txt")),
+        "poll() lost the event that has_events() reported; got {events:?}"
+    );
+}

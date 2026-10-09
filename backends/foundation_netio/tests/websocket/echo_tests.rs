@@ -2,10 +2,8 @@
 
 #![cfg(feature = "multi")]
 
-use std::time::Duration;
-
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
@@ -16,7 +14,7 @@ use tracing_test::traced_test;
 /// Test basic text message echo.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_text_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -27,8 +25,8 @@ fn test_text_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(4),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(4),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -53,7 +51,7 @@ fn test_text_message_echo() {
 /// Test binary message echo.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_binary_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -64,8 +62,8 @@ fn test_binary_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -91,7 +89,7 @@ fn test_binary_message_echo() {
 /// Test multiple messages in sequence.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_multiple_messages_sequence() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -102,8 +100,8 @@ fn test_multiple_messages_sequence() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_millis(10),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_millis(10),
     )
     .expect("should connect");
 
@@ -141,7 +139,7 @@ fn test_multiple_messages_sequence() {
 /// Test ping/pong exchange.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_ping_pong_exchange() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -152,8 +150,8 @@ fn test_ping_pong_exchange() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -179,7 +177,7 @@ fn test_ping_pong_exchange() {
 /// Test client-initiated close handshake.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_client_initiated_close() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -190,8 +188,8 @@ fn test_client_initiated_close() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -215,7 +213,7 @@ fn test_client_initiated_close() {
 /// Test large message handling.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_large_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -226,8 +224,8 @@ fn test_large_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -254,7 +252,7 @@ fn test_large_message_echo() {
 /// Test very large message (4-byte extended length).
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_very_large_message_echo() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -265,8 +263,8 @@ fn test_very_large_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -293,7 +291,7 @@ fn test_very_large_message_echo() {
 /// Test UTF-8 validation.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_utf8_text_messages() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -304,8 +302,8 @@ fn test_utf8_text_messages() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -338,7 +336,7 @@ fn test_utf8_text_messages() {
 /// Test message iterator.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_message_iterator() {
     let _pool_guard: PoolGuard = foundation_core::valtron::initialize_pool(42, None);
@@ -349,8 +347,8 @@ fn test_message_iterator() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(2),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(2),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 

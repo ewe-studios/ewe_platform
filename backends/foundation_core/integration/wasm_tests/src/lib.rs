@@ -6,7 +6,7 @@
 //! (`foundation_core/tests/valtron/wasm_js_yield_integration.rs`, retained as the
 //! F14 opt-in path):
 //! - Timing comes from a REGISTERED host function (`Date.now()` over the owned
-//!   ABI) instead of wasm-bindgen's `foundation_webwasm::Instant`.
+//!   ABI) instead of wasm-bindgen's `foundation_compact::Instant`.
 //! - Completion is awaited by `async` cases on the owned re-poll loop (each
 //!   `Pending` poll yields through `schedule_timeout`, which is exactly the
 //!   executor re-entry mechanism under test) instead of wasm-bindgen `Closure`

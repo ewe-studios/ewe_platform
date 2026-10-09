@@ -4,9 +4,9 @@
 /// registered file descriptor becomes readable, writable, closed, or errors.
 /// The struct is platform-specific internally but exposes a uniform interface.
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 mod linux;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub use linux::Event;
 
 #[cfg(any(

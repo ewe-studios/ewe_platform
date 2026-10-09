@@ -2,9 +2,9 @@
 
 use foundation_core::valtron::{from_future, execute, ShortCircuit, Stream, StreamIteratorExt};
 use foundation_db::{StorageError, StorageItemStream};
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
-use foundation_netio::simple_http::client::FinalizedResponse;
+use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::http::FinalizedResponse;
 
 type HttpResponse = FinalizedResponse<SendSafeBody, SystemDnsResolver>;
 
@@ -33,7 +33,7 @@ impl NativeOAuth {
     }
 
     // ========================================================================
-    // Async API (source of truth — uses SimpleHttpClient::send_async)
+    // Async API (source of truth — uses NativeHttpClient::send_async)
     // ========================================================================
 
     /// Async version of [`Self::exchange_code`].
@@ -228,7 +228,7 @@ fn collect_one_result<T>(
 
 /// Async HTTP POST with form-urlencoded body.
 async fn do_post_async(url: &str, body: &str) -> Result<HttpResponse, OAuthError> {
-    let client = foundation_netio::simple_http::client::SimpleHttpClient::from_system();
+    let client = foundation_netio::http::NativeHttpClient::from_system();
     let response = client
         .post(url)
         .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?

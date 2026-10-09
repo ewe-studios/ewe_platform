@@ -36,11 +36,30 @@ use std::fmt;
 /// query.append("page", "1");
 /// assert_eq!(query.to_string(), "search=rust+programming&page=1");
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Query {
-    /// Key-value pairs in order of appearance
+    /// Key-value pairs in order of appearance (percent-decoded).
     pairs: Vec<(String, String)>,
+    /// The exact raw query string this was parsed from (without `?`), used for
+    /// **lossless** rendering. `None` once the query is constructed empty or
+    /// mutated — in which case [`Display`] regenerates canonically from `pairs`.
+    ///
+    /// WHY: proxying and signed URLs (AWS SigV4, OAuth) require the query to
+    /// round-trip byte-for-byte; re-encoding `,` → `%2C` or adding `=` to a bare
+    /// key would break a signature. Preserving the raw source keeps parse→render
+    /// lossless while still exposing structured access via `pairs`.
+    raw: Option<String>,
 }
+
+/// Two queries are equal when their decoded key-value pairs are equal — the raw
+/// rendering cache is an encoding detail and does not affect identity.
+impl PartialEq for Query {
+    fn eq(&self, other: &Self) -> bool {
+        self.pairs == other.pairs
+    }
+}
+
+impl Eq for Query {}
 
 impl Query {
     /// Creates a new empty Query.
@@ -55,7 +74,10 @@ impl Query {
     /// ```
     #[must_use]
     pub fn new() -> Self {
-        Self { pairs: Vec::new() }
+        Self {
+            pairs: Vec::new(),
+            raw: None,
+        }
     }
 
     /// Parses a query string into key-value pairs.
@@ -94,6 +116,7 @@ impl Query {
             return Ok(Self::new());
         }
 
+        let raw = Some(s.to_string());
         let mut pairs = Vec::new();
 
         for pair_str in s.split('&') {
@@ -117,7 +140,7 @@ impl Query {
             }
         }
 
-        Ok(Self { pairs })
+        Ok(Self { pairs, raw })
     }
 
     /// Appends a key-value pair to the query.
@@ -133,6 +156,7 @@ impl Query {
     /// ```
     pub fn append(&mut self, key: impl Into<String>, value: impl Into<String>) {
         self.pairs.push((key.into(), value.into()));
+        self.raw = None; // structure changed — Display must regenerate canonically
     }
 
     /// Gets the first value for a given key.
@@ -189,10 +213,50 @@ impl Query {
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
         self.pairs.iter().map(|(k, v)| (k.as_str(), v.as_str()))
     }
+
+    /// Retains only the key-value pairs for which the predicate returns `true`.
+    ///
+    /// # Purpose (WHY)
+    ///
+    /// Structured query manipulation (set/remove of a parameter) needs to drop
+    /// pairs selectively without rebuilding the whole query string.
+    ///
+    /// # Arguments (WHAT)
+    ///
+    /// * `f` - Predicate receiving `(key, value)`; pairs returning `false` are removed.
+    ///
+    /// # Returns (HOW)
+    ///
+    /// Mutates in place, delegating to `Vec::retain` over the `(key, value)` pairs.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use foundation_core::url::Query;
+    ///
+    /// let mut query = Query::parse("a=1&b=2&a=3").unwrap();
+    /// query.retain(|k, _| k != "a");
+    /// assert_eq!(query.to_string(), "b=2");
+    /// ```
+    pub fn retain(&mut self, mut f: impl FnMut(&str, &str) -> bool) {
+        self.pairs.retain(|(k, v)| f(k.as_str(), v.as_str()));
+        self.raw = None; // structure changed — Display must regenerate canonically
+    }
 }
 
 impl fmt::Display for Query {
+    /// Renders the query. When the raw parsed string is still intact (the query
+    /// has not been mutated since parsing) it is emitted verbatim for lossless
+    /// round-tripping; otherwise the decoded pairs are re-serialized with
+    /// percent-encoding.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(raw) = &self.raw {
+            return write!(f, "{raw}");
+        }
         for (i, (key, value)) in self.pairs.iter().enumerate() {
             if i > 0 {
                 write!(f, "&")?;

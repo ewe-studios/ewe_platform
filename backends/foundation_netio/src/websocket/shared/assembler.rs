@@ -57,8 +57,8 @@ struct FragmentState {
 /// # Examples
 ///
 /// ```no_run
-/// use foundation_netio::wire::websocket::MessageAssembler;
-/// use foundation_netio::wire::websocket::WebSocketFrame;
+/// use foundation_netio::websocket::MessageAssembler;
+/// use foundation_netio::websocket::WebSocketFrame;
 ///
 /// let mut assembler = MessageAssembler::new(1024 * 1024); // 1 MiB limit
 /// // Process frames as they arrive...
@@ -81,7 +81,7 @@ impl MessageAssembler {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::websocket::MessageAssembler;
+    /// use foundation_netio::websocket::MessageAssembler;
     ///
     /// let assembler = MessageAssembler::new(1024 * 1024); // 1 MiB limit
     /// ```
@@ -98,7 +98,7 @@ impl MessageAssembler {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::websocket::MessageAssembler;
+    /// use foundation_netio::websocket::MessageAssembler;
     ///
     /// let assembler = MessageAssembler::default();
     /// ```
@@ -255,7 +255,7 @@ impl MessageAssembler {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::websocket::MessageAssembler;
+    /// use foundation_netio::websocket::MessageAssembler;
     ///
     /// let mut assembler = MessageAssembler::default();
     /// assert!(!assembler.is_assembling());
@@ -270,7 +270,7 @@ impl MessageAssembler {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::websocket::MessageAssembler;
+    /// use foundation_netio::websocket::MessageAssembler;
     ///
     /// let mut assembler = MessageAssembler::default();
     /// assert_eq!(assembler.accumulated_size(), 0);
@@ -287,7 +287,7 @@ impl MessageAssembler {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::websocket::MessageAssembler;
+    /// use foundation_netio::websocket::MessageAssembler;
     ///
     /// let mut assembler = MessageAssembler::default();
     /// assembler.reset();

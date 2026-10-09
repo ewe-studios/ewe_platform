@@ -1,11 +1,14 @@
-// HTTP 1.1 Client Module
-
-// Shared types — always compiled, including on wasm32
-pub mod shared;
-
-// Native types — gated behind not(target_arch = "wasm32")
-#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
-pub mod native;
-
-#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]
+pub mod shared { pub use crate::shared::client::*; }
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+pub mod native { pub use crate::http::*; }
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub mod wasm { pub use crate::wasm::client::*; }
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+pub use crate::http::default_http_client;
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use crate::wasm::client::default_http_client;
+pub use shared::*;
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub use native::*;
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use wasm::*;

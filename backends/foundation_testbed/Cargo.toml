@@ -2,85 +2,136 @@
 name = "foundation_testbed"
 version = "0.0.1"
 edition = "2024"
-description = "Cross-platform VM testbed using QEMU/KVM for building and testing binaries"
+description = "Holistic test harness: QEMU/KVM VM testbed (vms) + wasm32 browser/Deno/Workers harness (wasm), feature-gated"
 license = "MIT"
 
 [features]
-default = ["qemu"]
 
-# Linux: QEMU/KVM backend
-qemu = []
+# Default: wasm + cli only (vms moved to foundation_deployment_platform, spec-53 Feature 11)
+default = ["wasm", "cli"]
 
-# macOS: UTM/Hypervisor backend
-utm = []
+# Docker-based cross-platform test environments (F30).
+# Uses std::process::Command for docker exec — zero new Rust deps.
+docker-tests = []
 
-# CLI: standalone clap binary + bin/platform integration
+# vms feature kept as alias — enables foundation_deployment_platform with vms
+vms = ["dep:foundation_deployment_platform"]
+# cli kept for backward compat
 cli = ["dep:clap"]
+foundation_deployment_platform_vms = ["dep:foundation_deployment_platform"]
 
-# All providers (for testing on a machine with both)
-all-providers = ["qemu", "utm"]
+# wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
+wasm = [
+  "dep:clap",
+  "dep:walrus",
+  "dep:foundation_codegen",
+  "dep:foundation_wasm_ui",
+  "dep:foundation_http",
+  "dep:foundation_browser",
+  "dep:foundation_macros",
+  "dep:foundation_nostd",
+  "dep:tempfile",
+  "dep:portpicker",
+  "dep:tracing-subscriber",
+  "dep:which",
+]
+
+# F52: re-export #[wasm_bindgen_test] from foundation_testbed so consumer crates
+# can write browser tests without depending on wasm-bindgen directly.
+wasm-bindgen-test = [
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-test",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
+
+# spec-44: run the wasm harness JS in-process via an embedded Deno runtime. We
+# compose deno_core + the extensions we actually need (web/console/url/fetch) —
+# NOT the full deno_runtime, whose deno_crypto pins `aes =0.8.3`, conflicting with
+# turso's `aes ^0.8.4` (workspace-wide). We don't need crypto.subtle. No
+# node/deno install. Heavy (links V8), so it's a sub-feature of `wasm`.
+wasm-embedded-js = [
+  "wasm",
+  "dep:deno_core",
+  "dep:deno_web",      # TextEncoder/TextDecoder, timers, console, URL, performance
+  "dep:deno_webidl",   # WebIDL bindings deno_web depends on
+  "dep:deno_fetch",    # fetch / Request / Response / Headers
+  "dep:deno_websocket", # WebSocket global (F51 — cross-platform WebSocket client tests)
+  "dep:deno_net",      # TLS/net JS deno_fetch's http client lazy-loads (ext:deno_net/02_tls.js)
+  "dep:deno_permissions", # PermissionsContainer that op_fetch/op_net read from OpState
+  "dep:sys_traits",    # RealSys for the permission descriptor parser
+  "dep:rustls",        # install the aws-lc-rs CryptoProvider deno_tls expects
+  "dep:deno_error",    # JsErrorBox for the harness ops
+  "dep:tokio",         # current-thread executor for deno_core's event loop
+]
 
 [dependencies]
-foundation_errstacks = { workspace = true }
-foundation_core = { workspace = true, features = ["multi"] }
-foundation_netio = { workspace = true, features = ["multi"] }
-
-# CLI
-clap = { version = "4", features = ["derive"], optional = true }
-
-# Networking / VM communication
-ssh2 = { version = "0.9", features = ["vendored-openssl"] }
-
-# Process management
-which = "7"
-
-# Progress / UX
-indicatif = "0.17"
-
-# Archive / compression
-tar = "0.4"
-flate2 = "1"
-xz2 = "0.1"
-
-# Auth / utils
+# Shared across features.
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+which = { version = "7", optional = true }
 base64 = "0.22"
-dirs = "6"
 tracing = "0.1"
-
-# Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-# Error handling
-anyhow = "1"
 derive_more = { version = "2", features = ["display", "error", "from"] }
 
-# Image processing (screenshot validation)
-image = "0.25"
+# wasm feature — the wasm32 test harness (optional, enabled by `wasm`).
+walrus = { workspace = true, optional = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.1", optional = true }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", optional = true, features = ["embedded-js"] }
+foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
+foundation_browser = { path = "../foundation_browser", version = "0.0.1", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5", optional = true }
+portpicker = { workspace = true, optional = true }
+tempfile = { version = "3", optional = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
 
-# Process checks (kill(pid, 0) for stale detection)
-libc = "0.2"
+# F52: wasm-bindgen ecosystem — re-exported for consumer browser tests.
+# Pinned by foundation_testbed (single source of truth). Update the CLI:
+#   cargo install wasm-bindgen-cli --version <same as wasm-bindgen below>
+# The runtime version check (>=) allows newer CLI, not older.
+wasm-bindgen = { version = "=0.2.126", optional = true }
+wasm-bindgen-test = { version = "=0.3.76", optional = true }
+wasm-bindgen-test-macro = { version = "=0.3.76", optional = true }
+wasm-bindgen-futures = { version = "=0.4.76", optional = true }
+js-sys = { version = "=0.3.103", optional = true }
+web-sys = { version = "=0.3.103", optional = true, features = [
+  "Window", "console",
+  "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
+] }
 
-# Time formatting (state timestamps)
-chrono = "0.4"
+# wasm-embedded-js feature — embedded Deno runtime, composed (spec-44, optional).
+# deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
+# Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
+deno_core = { version = "0.404", optional = true }
+deno_web = { version = "0.282", optional = true }  # console/url/encoding folded in (those crates are now deprecated stubs)
+deno_webidl = { version = "0.251", optional = true }
+deno_fetch = { version = "0.275", optional = true }  # fetch / Request / Response / Headers
+deno_websocket = { version = "0.256", optional = true }  # WebSocket global (pairs with deno_core 0.404)
+deno_net = { version = "0.243", optional = true }    # net/TLS JS deno_fetch lazy-loads
+deno_permissions = { version = "0.110", optional = true }  # op_fetch's PermissionsContainer (allow-all for tests)
+sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys for the permission descriptor parser
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }  # CryptoProvider for deno_tls
+deno_error = { version = "0.7", optional = true }  # JsErrorBox for fallible ops
+tokio = { version = "1", features = ["rt", "time", "net", "io-util"], optional = true }  # drives deno_core's event loop (current-thread); net+io for deno_websocket's TCP dial
 
-# Config file parsing
-toml = "0.8"
+# clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
+clap = { version = "4", features = ["derive"], optional = true }
 
-# Disk space checking (doctor command)
-fs2 = "0.4"
-
-# Checksums (export manifest SHA256)
-sha2 = "0.10"
-
-# Hostname detection (export manifest creator)
-whoami = "2"
+# vms has moved to foundation_deployment_platform (spec-53, Feature 11). This is
+# a NATIVE dependency (VM/container orchestration), enabled by the `vms` feature
+# — it must not live under the wasm32-only target table.
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
 
 [[bin]]
-name = "testbed"
-path = "src/bin/testbed.rs"
-required-features = ["cli"]
+name = "wasm-testbed"
+path = "src/bin/wasm-testbed.rs"
+required-features = ["wasm"]

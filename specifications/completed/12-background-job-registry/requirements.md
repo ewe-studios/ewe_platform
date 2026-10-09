@@ -61,7 +61,7 @@ This is problematic because:
 ## Goals
 
 1. **`BackgroundJobRegistry` struct** — Owns a fixed number of worker threads that listen on a `ConcurrentQueue<Box<dyn FnOnce() + Send>>` for jobs
-2. **Thread allocation formula** — Split `thread_num` between `ThreadRegistry` and `BackgroundJobRegistry` so background jobs get ~30% (min 1) of threads
+2. **Thread allocation formula** — Split `thread_num` between `ThreadRegistry` and `BackgroundJobRegistry` so background jobs get `total` threads (burst capacity) and task threads get `max(2, total / 2)`
 3. **Integration into `initialize_pool`** — Both registries created and stored during pool initialization in `multi/mod.rs`
 4. **`run_background_job` API** — Unified function exposed through `single/mod.rs`, `multi/mod.rs`, and `unified.rs`
 5. **`ThreadedFuture` migration** — Replace `std::thread::spawn` with `run_background_job` call
@@ -82,25 +82,24 @@ This is problematic because:
 When `thread_num` is the total number of allocatable threads:
 
 ```
-bg_threads = max(1, thread_num / 3)
-task_threads = thread_num - bg_threads
+task_threads = max(2, thread_num / 2)
+bg_threads = thread_num
 ```
+
+Background jobs run I/O-heavy blocking work (cargo builds, network calls, file I/O) where threads spend most of their time waiting, not burning CPU. A larger background pool prevents queue backup when multiple blocking operations coincide. Task threads park efficiently on readiness signals, so they need fewer.
 
 | thread_num | task_threads (ThreadRegistry) | bg_threads (BackgroundJobRegistry) |
 |------------|-------------------------------|------------------------------------|
-| 2          | 1                             | 1                                  |
-| 3          | 2                             | 1                                  |
-| 4          | 3                             | 1                                  |
-| 5          | 4                             | 1                                  |
-| 6          | 4                             | 2                                  |
-| 7          | 5                             | 2                                  |
-| 8          | 6                             | 2                                  |
-| 9          | 6                             | 3                                  |
-| 10         | 7                             | 3                                  |
-| 12         | 8                             | 4                                  |
-| 16         | 11                            | 5                                  |
+| 3          | 2                             | 3                                  |
+| 4          | 2                             | 4                                  |
+| 5          | 2                             | 5                                  |
+| 6          | 3                             | 6                                  |
+| 8          | 4                             | 8                                  |
+| 10         | 5                             | 10                                 |
+| 12         | 6                             | 12                                 |
+| 16         | 8                             | 16                                 |
 
-The formula ensures `ThreadRegistry` always gets the larger share and `BackgroundJobRegistry` always gets at least 1 thread.
+The formula ensures `BackgroundJobRegistry` gets burst capacity equal to the full core count, while `ThreadRegistry` still gets enough threads to multiplex since idle tasks park.
 
 ### Component Layout
 
@@ -194,7 +193,7 @@ Integrate `BackgroundJobRegistry` into the multi-threaded pool:
 
 - Add `BG_REGISTRY: Mutex<Option<Arc<BackgroundJobRegistry>>>` static alongside existing `REGISTRY`
 - Modify `initialize_pool` to:
-  1. Compute `bg_threads` and `task_threads` using the 30% formula
+  1. Compute `bg_threads` and `task_threads` using the burst formula (`bg = total`, `task = max(2, total / 2)`)
   2. Create `ThreadRegistry` with `task_threads`
   3. Create `BackgroundJobRegistry` with `bg_threads`, sharing `kill_signal` from `ThreadRegistry`
   4. Store both in their respective statics

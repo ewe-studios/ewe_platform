@@ -1,5 +1,7 @@
-#![allow(clippy::must_use_candidate)]
+// Every public function: returns type-aliased Results; panics on Mutex poison.
+#![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
+#![allow(clippy::must_use_candidate)]
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -15,12 +17,12 @@ use crate::{
 
 // Imports only the `web` ABI module needs (gated to keep non-web builds warning-free).
 #[cfg(feature = "web")]
-use foundation_nostd::raw_parts::RawParts;
-#[cfg(feature = "web")]
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, JSEncoding, Params,
-    ReturnValueError, ReturnValues, ToBinary,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, JSEncoding,
+    Params, ReturnValueError, ReturnValues, ToBinary,
 };
+#[cfg(feature = "web")]
+use foundation_nostd::raw_parts::RawParts;
 
 // Allocations for the memory management.
 // `pub(crate)` so the relocated return-value parser in `protocol.rs` can read/free
@@ -47,6 +49,7 @@ static SCHEDULED_CALLBACKS: Mutex<ScheduleRegistry> = ScheduleRegistry::create()
 /// You should never place a function in here that needs to be exposed to the host or host function
 /// we want to define but instead use the [`exposed_runtime`] or [`abi`] modules.
 pub mod internal_api {
+    #![allow(clippy::missing_errors_doc)]
     use alloc::boxed::Box;
 
     use crate::{FnCallback, MemoryAllocationResult, ReturnValues};
@@ -95,8 +98,17 @@ pub mod internal_api {
 
     // Callback return parsers
 
-    /// [`parse_replies`] will attempt to parse the replies encoded into the giving
-    /// memory location referenced by the provided [`MemoryId`].
+    /// Parse the replies encoded in the memory location referenced by the
+    /// provided [`MemoryId`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MemoryAllocationError`] if the allocation is invalid or
+    /// the reply binary cannot be deserialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn parse_callback_replies(
         memory_id: MemoryId,
         returns: ReturnTypeHints,
@@ -168,7 +180,7 @@ pub mod internal_api {
 
     /// [`register_animation_hook`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_animation_hook<F>(f: F)
     where
         F: Fn(f64) -> TickState + Send + Sync + 'static,
@@ -181,7 +193,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_animation_hook<F>(f: F)
     where
         F: Fn(f64) -> TickState + 'static,
@@ -194,7 +206,7 @@ pub mod internal_api {
 
     /// [`register_animation_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`FrameCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_animation_interval_callback<F>(f: F)
     where
         F: FrameCallback + 'static,
@@ -207,7 +219,7 @@ pub mod internal_api {
 
     /// [`register_animation_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`FrameCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_animation_interval_callback<F>(f: F)
     where
         F: FrameCallback + Send + Sync + 'static,
@@ -230,8 +242,15 @@ pub mod internal_api {
             .expect("should be registered");
     }
 
-    /// [`run_schedule_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered scheduled callback by ID (oneshot timeout).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has already fired.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
         match SCHEDULED_CALLBACKS
             .lock()
@@ -247,7 +266,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_schedule<F>(f: F) -> InternalPointer
     where
         F: Fn() + Send + Sync + 'static,
@@ -260,7 +279,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_schedule<F>(f: F) -> InternalPointer
     where
         F: Fn() + 'static,
@@ -273,7 +292,7 @@ pub mod internal_api {
 
     /// [`register_schedule_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_schedule_callback<F>(f: F) -> InternalPointer
     where
         F: DoTask + 'static,
@@ -286,7 +305,7 @@ pub mod internal_api {
 
     /// [`register_schedule_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_schedule_callback<F>(f: F) -> InternalPointer
     where
         F: DoTask + Send + Sync + 'static,
@@ -299,8 +318,15 @@ pub mod internal_api {
 
     // interval function registration with the host.
 
-    /// [`run_interval_callback`] provides a method that will automatically
-    /// convert any type that implements the [`Fn`] trait.
+    /// Run a registered interval callback by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the callback is not found or has been deregistered.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal mutex is poisoned.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
         match RECURRING_INTERVAL_CALLBACKS
             .lock()
@@ -316,7 +342,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + Send + Sync + 'static,
@@ -339,7 +365,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + 'static,
@@ -352,7 +378,7 @@ pub mod internal_api {
 
     /// [`register_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_interval_callback<F>(f: F) -> InternalPointer
     where
         F: IntervalCallback + 'static,
@@ -365,7 +391,7 @@ pub mod internal_api {
 
     /// [`register_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_interval_callback<F>(f: F) -> InternalPointer
     where
         F: IntervalCallback + Send + Sync + 'static,
@@ -380,7 +406,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: Fn(TaskResult<Returns>) + Send + Sync + 'static,
@@ -393,7 +419,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: Fn(TaskResult<Returns>) + 'static,
@@ -406,7 +432,7 @@ pub mod internal_api {
 
     /// [`register_internal_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + Send + Sync + 'static,
@@ -419,7 +445,7 @@ pub mod internal_api {
 
     /// [`register_internal_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
@@ -462,8 +488,7 @@ pub mod internal_api {
                         .expect("should have called callback");
                 }
                 _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {:?}",
-                    err
+                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
                 ),
             },
         }
@@ -497,6 +522,7 @@ pub mod internal_api {
 /// the system. These are functions the runtime exposes to the host to be able
 /// to make calls into the system or triggering processes.
 pub mod exposed_runtime {
+    #![allow(clippy::missing_errors_doc)]
     use super::{internal_api, InternalPointer, MemoryId, ALLOCATIONS};
 
     #[no_mangle]
@@ -591,6 +617,32 @@ pub mod exposed_runtime {
             MemoryId::from_u64(allocation_id),
         );
     }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_tick() -> u8 {
+        crate::wasi_host::tick().into_u8()
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_poll_blocking() -> u8 {
+        crate::wasi_host::poll_blocking().into_u8()
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_time_until_next_event_ms() -> u64 {
+        crate::wasi_host::time_until_next_event()
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(u64::MAX)
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_has_pending_work() -> u8 {
+        u8::from(crate::wasi_host::has_pending_work())
+    }
 }
 
 /// [`abi`] is the expected interface which the JS/Host
@@ -605,11 +657,11 @@ pub mod exposed_runtime {
 #[allow(unused)]
 pub mod abi {
     use super::{
-        abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-        DoTask, ExternalPointer, FrameCallback, FromBinary, InternalCallback,
-        InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params,
-        RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
-        ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+        abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask,
+        ExternalPointer, FrameCallback, FromBinary, InternalCallback, InternalPointer,
+        IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params, RawParts,
+        ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String, ThreeState,
+        TickState, ToBinary, Vec, ALLOCATIONS,
     };
     // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
     use crate::GroupReturnTypeHints;
@@ -622,16 +674,16 @@ pub mod abi {
         use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
         use super::{
-            abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-            DoTask, ExternalPointer, FrameCallback, FromBinary,
-            InternalCallback, InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError,
-            MemoryId, Params, RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError,
-            ReturnValues, Returns, String, ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+            abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask,
+            ExternalPointer, FrameCallback, FromBinary, InternalCallback, InternalPointer,
+            IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params, RawParts,
+            ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
+            ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
         };
         // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
         use crate::GroupReturnTypeHints;
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         #[link(wasm_import_module = "abi")]
         extern "C" {
 
@@ -921,9 +973,27 @@ pub mod abi {
                 returns_start: *const u8,
                 returns_length: u64,
             ) -> u64;
+
+            // ── F28: Stream FFI (WASM → JS) ────────────────────────────
+            ///
+            /// WASM creates streams, pushes chunks, and ends them.
+            /// JS binds callbacks via `FoundationWasm` methods (not via
+            /// WASM FFI — callback binding is a JS-side concern).
+            ///
+            /// Buffered chunks live on the JS heap. Always bind or end
+            /// the stream within a bounded time window.
+
+            /// Create a host-side stream. Returns a u64 stream ID.
+            pub fn host_stream_create() -> u64;
+
+            /// Push a chunk to a host-side stream by ID.
+            pub fn host_sender_send(stream_id: u64, data_start: *const u8, data_len: u32, seq: u64);
+
+            /// Signal end-of-stream on a host-side stream by ID.
+            pub fn host_sender_end(stream_id: u64);
         }
 
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         mod stubs {
             pub fn hook_up_animation_frames() {}
             pub fn schedule_timeout(_timing: f64, _callback: u64) {}
@@ -1066,10 +1136,16 @@ pub mod abi {
             ) -> u64 {
                 0
             }
+
+            // ── F28: Stream FFI ────────────────────────────────────────
+
+            pub fn host_stream_create() -> u64 { 0 }
+            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_sender_end(_stream_id: u64) {}
         }
 
         // Re-export stubs with same names as extern functions for non-wasm targets
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub use stubs::*;
 
         // `allocate_dom_reference` moved to `foundation_wasm_ui::wasm::dom::element`
@@ -1078,17 +1154,13 @@ pub mod abi {
         /// [`allocate_function_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for a function.
         pub fn allocate_function_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(abi::web::function_allocate_external_pointer())
-            }
+            unsafe { ExternalPointer::pointer(abi::web::function_allocate_external_pointer()) }
         }
 
         /// [`allocate_object_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for an object.
         pub fn allocate_object_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(abi::web::object_allocate_external_pointer())
-            }
+            unsafe { ExternalPointer::pointer(abi::web::object_allocate_external_pointer()) }
         }
 
         /// [`batch`] sends a [`CompletedInstructions`] batch over to the host runtime
@@ -1178,7 +1250,7 @@ pub mod abi {
 
         /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + Send + Sync + 'static,
@@ -1194,7 +1266,7 @@ pub mod abi {
 
         /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + 'static,
@@ -1210,7 +1282,7 @@ pub mod abi {
 
         /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
@@ -1226,7 +1298,7 @@ pub mod abi {
 
         /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
@@ -1251,7 +1323,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() + Send + Sync + 'static,
@@ -1265,7 +1337,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() + 'static,
@@ -1279,7 +1351,7 @@ pub mod abi {
 
         /// [`register_schedule_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: DoTask + 'static,
@@ -1293,7 +1365,7 @@ pub mod abi {
 
         /// [`register_schedule_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: DoTask + Send + Sync + 'static,
@@ -1316,7 +1388,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() -> TickState + Send + Sync + 'static,
@@ -1330,7 +1402,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() -> TickState + 'static,
@@ -1344,7 +1416,7 @@ pub mod abi {
 
         /// [`register_interval_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: IntervalCallback + Send + Sync + 'static,
@@ -1358,7 +1430,7 @@ pub mod abi {
 
         /// [`register_interval_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: IntervalCallback + Send + Sync + 'static,
@@ -1444,11 +1516,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_f64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_f64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1461,11 +1529,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_f32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_f32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1478,11 +1542,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1495,11 +1555,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1512,11 +1568,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i16(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i16(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1529,11 +1581,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i8(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i8(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1546,11 +1594,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1563,11 +1607,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             ExternalPointer::pointer(unsafe {
-                abi::web::host_invoke_function_as_object(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_object(handler, param_raw.ptr, param_raw.length)
             })
         }
 
@@ -1592,11 +1632,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1609,11 +1645,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u16(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u16(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1626,11 +1658,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u8(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u8(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1642,11 +1670,8 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_bool(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                ) == 1
+                abi::web::host_invoke_function_as_bool(handler, param_raw.ptr, param_raw.length)
+                    == 1
             }
         }
 
@@ -1934,4 +1959,3 @@ pub mod abi {
         }
     }
 }
-

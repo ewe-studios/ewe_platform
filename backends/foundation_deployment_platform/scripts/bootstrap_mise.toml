@@ -1,0 +1,6 @@
+[tools]
+rust = "stable"
+"aqua:nushell/nushell" = "latest"
+cargo-binstall = "latest"
+sccache = "latest"
+"cargo:tauri-cli" = "2"

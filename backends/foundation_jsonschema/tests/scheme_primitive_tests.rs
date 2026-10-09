@@ -47,8 +47,14 @@ fn string_format_shorthands() {
     assert_eq!(scheme::string().email().build_schema()["format"], "email");
     assert_eq!(scheme::string().uri().build_schema()["format"], "uri");
     assert_eq!(scheme::string().uuid().build_schema()["format"], "uuid");
-    assert_eq!(scheme::string().date_time().build_schema()["format"], "date-time");
-    assert_eq!(scheme::string().hostname().build_schema()["format"], "hostname");
+    assert_eq!(
+        scheme::string().date_time().build_schema()["format"],
+        "date-time"
+    );
+    assert_eq!(
+        scheme::string().hostname().build_schema()["format"],
+        "hostname"
+    );
     assert_eq!(scheme::string().ipv4().build_schema()["format"], "ipv4");
     assert_eq!(scheme::string().ipv6().build_schema()["format"], "ipv6");
     assert_eq!(scheme::string().base64().build_schema()["format"], "base64");
@@ -122,7 +128,10 @@ fn integer_min_max() {
 
 #[test]
 fn integer_exclusive_min_max() {
-    let schema = scheme::integer().exclusive_min(0).exclusive_max(100).build_schema();
+    let schema = scheme::integer()
+        .exclusive_min(0)
+        .exclusive_max(100)
+        .build_schema();
     assert_eq!(schema["exclusiveMinimum"], json!(0));
     assert_eq!(schema["exclusiveMaximum"], json!(100));
 }
@@ -159,9 +168,7 @@ fn integer_nonpositive_shorthand() {
 
 #[test]
 fn integer_enum_values() {
-    let schema = scheme::integer()
-        .enum_values(vec![1, 2, 3])
-        .build_schema();
+    let schema = scheme::integer().enum_values(vec![1, 2, 3]).build_schema();
     assert_eq!(schema["enum"], json!([1, 2, 3]));
 }
 
@@ -221,7 +228,10 @@ fn number_min_max() {
 
 #[test]
 fn number_exclusive_min_max() {
-    let schema = scheme::number().exclusive_min(0.0).exclusive_max(1.0).build_schema();
+    let schema = scheme::number()
+        .exclusive_min(0.0)
+        .exclusive_max(1.0)
+        .build_schema();
     assert_eq!(schema["exclusiveMinimum"], json!(0.0));
     assert_eq!(schema["exclusiveMaximum"], json!(1.0));
 }
@@ -281,7 +291,9 @@ fn boolean_default_schema() {
 
 #[test]
 fn boolean_description() {
-    let schema = scheme::boolean().description("Is active flag").build_schema();
+    let schema = scheme::boolean()
+        .description("Is active flag")
+        .build_schema();
     assert_eq!(schema["description"], "Is active flag");
 }
 

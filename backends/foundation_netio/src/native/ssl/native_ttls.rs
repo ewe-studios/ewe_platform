@@ -1,0 +1,283 @@
+//! Taken from the tiny-http project https://github.com/tiny-http/tiny-http/
+
+#![cfg(not(target_family = "wasm"))]
+
+use crate::native::connection::Connection;
+use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
+use crate::shared::errors::{DataStreamError, DataStreamResult};
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream};
+use std::error::Error;
+use std::io::{Read, Write};
+use std::net::{Shutdown, TcpStream};
+use std::sync::{Arc, Mutex};
+use zeroize::Zeroizing;
+
+pub use native_tls::{Identity, TlsConnector, TlsStream};
+
+/// A wrapper around a `native_tls` stream.
+///
+/// Uses an internal Mutex to permit disparate reader & writer threads to access the stream independently.
+#[derive(Clone)]
+pub struct NativeTlsStream(Arc<Mutex<native_tls::TlsStream<Connection>>>);
+
+/// Expose the fd of the TCP socket the TLS session wraps so the connection can
+/// be registered with the reactor (Decision 12 §12). Readiness lives on the
+/// socket, not the TLS layer. Unix-only (native-socket).
+#[cfg(unix)]
+impl std::os::unix::io::AsRawFd for NativeTlsStream {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        // Reading the fd only touches the socket handle; recover from a poisoned
+        // lock rather than panic (the fd is still valid).
+        let guard = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        guard.get_ref().as_raw_fd()
+    }
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for NativeTlsStream {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by the wrapped socket and outlives the borrow.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
+impl NativeTlsStream {
+    pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_ref().read_timeout()
+    }
+
+    pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_ref().write_timeout()
+    }
+
+    pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_mut().set_write_timeout(dur)
+    }
+
+    pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_mut().set_read_timeout(dur)
+    }
+}
+
+impl ReadTimeoutInto for NativeTlsStream {
+    fn read_timeout_into(
+        &mut self,
+        buf: &mut [u8],
+        timeout: std::time::Duration,
+    ) -> std::result::Result<usize, std::io::Error> {
+        let current_timeout = self.read_timeout()?;
+
+        self.set_read_timeout(Some(timeout))?;
+
+        let read_result = self.read(buf);
+
+        self.set_read_timeout(current_timeout)?;
+
+        read_result
+    }
+}
+
+// These struct methods form the implict contract for swappable TLS implementations
+impl NativeTlsStream {
+    pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
+        let guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_ref().try_clone()
+    }
+
+    pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_mut().local_addr()
+    }
+
+    pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_mut().peer_addr()
+    }
+
+    pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
+        let local_addr = self.local_addr()?;
+        let peer_addr = self.peer_addr()?;
+
+        match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoLocalAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }
+    }
+
+    pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.get_mut().shutdown(how)
+    }
+}
+
+impl PeekableReadStream for NativeTlsStream {
+    fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
+        let mut guard = self.0.lock().map_err(|_| PeekError::LockAcquisitionError)?;
+        guard.get_mut().peek(buf)
+    }
+}
+
+impl Read for NativeTlsStream {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.read(buf)
+    }
+}
+
+impl Write for NativeTlsStream {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        let mut guard = self.0.lock().map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("Mutex poisoned: {}", e))
+        })?;
+        guard.flush()
+    }
+}
+
+// Implementation for accepting incoming client connection within a TLS servers.
+pub struct NativeTlsAcceptor(native_tls::TlsAcceptor);
+
+impl NativeTlsAcceptor {
+    pub fn from_identity(identity: Identity) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let acceptor = native_tls::TlsAcceptor::new(identity)?;
+        Ok(Self(acceptor))
+    }
+
+    pub fn from_der2(
+        der: Vec<u8>,
+        password: Zeroizing<Vec<u8>>,
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let identity = native_tls::Identity::from_pkcs8(&der, &password)?;
+        Self::from_identity(identity)
+    }
+
+    pub fn from_der(
+        der: Vec<u8>,
+        password: Zeroizing<String>,
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let identity = native_tls::Identity::from_pkcs12(&der, &password)?;
+        Self::from_identity(identity)
+    }
+
+    pub fn from_pem(
+        certificates: Vec<u8>,
+        private_key: Zeroizing<Vec<u8>>,
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let identity = native_tls::Identity::from_pkcs8(&certificates, &private_key)?;
+        Self::from_identity(identity)
+    }
+
+    pub fn accept(
+        &self,
+        stream: Connection,
+    ) -> Result<NativeTlsStream, Box<dyn Error + Send + Sync + 'static>> {
+        let stream = self.0.accept(stream)?;
+        Ok(NativeTlsStream(Arc::new(Mutex::new(stream))))
+    }
+}
+
+// Implementation for creating client connection to TLS servers.
+pub struct NativeTlsConnector(Arc<native_tls::TlsConnector>);
+
+impl NativeTlsConnector {
+    pub fn new() -> Self {
+        let connector = TlsConnector::new().expect("should generate tls connector");
+        Self(std::sync::Arc::new(connector))
+    }
+
+    pub fn create(endpoint: &Endpoint<Arc<native_tls::TlsConnector>>) -> Self {
+        match &endpoint {
+            Endpoint::WithIdentity(_config, identity) => {
+                Self(identity.clone())
+            }
+            _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
+        }
+    }
+
+    pub fn client_tls_from_endpoint(
+        endpoint: &Endpoint<Arc<native_tls::TlsConnector>>,
+    ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let connector = Self::create(endpoint);
+        connector.from_endpoint(endpoint)
+    }
+
+    pub fn from_tcp_stream(
+        &self,
+        sni: String,
+        plain: Connection,
+    ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let local_addr = plain.local_addr()?;
+        let peer_addr = plain.peer_addr()?;
+
+        let addr = match (local_addr, peer_addr) {
+            (Some(l1), Some(l2)) => Ok(DataStreamAddr::new(l1, Some(l2))),
+            (Some(l1), None) => Ok(DataStreamAddr::new(l1, None)),
+            (None, Some(_)) => Err(DataStreamError::NoPeerAddr),
+            _ => Err(DataStreamError::NoAddr),
+        }?;
+
+        let ssl_stream = self.0.connect(sni.as_str(), plain)?;
+        let conn_stream = Arc::new(Mutex::new(ssl_stream));
+
+        Ok((NativeTlsStream(conn_stream), addr))
+    }
+
+    pub fn from_endpoint(
+        &self,
+        endpoint: &Endpoint<Arc<native_tls::TlsConnector>>,
+    ) -> Result<(NativeTlsStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let host = endpoint.host();
+        let host_socket_addr: core::net::SocketAddr = host.parse()?;
+
+        let plain_stream = match endpoint {
+            Endpoint::WithDefault(config) => match config {
+                EndpointConfig::WithTimeout(_, timeout) => {
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
+                }
+                _ => TcpStream::connect(host_socket_addr),
+            },
+            Endpoint::WithIdentity(config, _) => match config {
+                EndpointConfig::WithTimeout(_, timeout) => {
+                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
+                }
+                _ => TcpStream::connect(host_socket_addr),
+            },
+        }?;
+
+        self.from_tcp_stream(host, Connection::Tcp(plain_stream))
+    }
+}

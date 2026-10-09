@@ -1,53 +1,35 @@
-//! foundation_testbed — QEMU/KVM VM orchestration for cross-platform build & test.
+//! foundation_testbed — a holistic test harness. Feature-gated capabilities:
+//! `wasm` (a CLI-driven `wasm32-unknown-unknown` harness: browser via the
+//! pure-Rust CDP/BiDi driver, Deno, and Cloudflare Workers).
 //!
-//! Provides a sync API to launch, manage, and interact with QEMU virtual
-//! machines for building and testing binaries on Windows and Linux guests
-//! from a Linux host.
-//!
-//! # Quick Start
-//!
-//! ```no_run
-//! use foundation_testbed::config::{get_profile, DisplayMode};
-//! use foundation_testbed::qemu::QemuConfig;
-//!
-//! let profile = get_profile("windows-build").unwrap();
-//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless)
-//!     .launch()
-//!     .unwrap();
-//! ```
-//!
-//! # Architecture
-//!
-//! - **config** — VM profiles, guest OS types, display modes, error types
-//! - **qemu** — Process management, disk operations, networking, snapshots, downloads
-//! - **ssh** — SSH connections and command execution on guests
-//! - **winrm** — WinRM SOAP client for Windows guest bootstrapping
-//! - **import** — Image download, cache management, Vagrant Cloud integration
-//! - **bootstrap** — VM bootstrapping with mise + nushell
-//! - **build** — Build pipeline, code sync, artifact retrieval
-//! - **runner** — Binary launcher, screenshots, logs, file transfer, UI automation
-//! - **state** — Persistent VM state management
-//! - **doctor** — Host and VM health checks
-//! - **init** — Project scaffolding (testbed init, scripts, .gitignore)
-//! - **host_bootstrap** — Host prerequisites (mise, nushell, pitchfork)
+//! VM/container orchestration (QEMU, UTM, Docker) moved to
+//! `foundation_deployment_platform` (spec-53, Feature 11). Re-exported here
+//! for convenience.
 
 #![allow(clippy::too_many_arguments)]
 
-pub mod artifacts;
-pub mod bootstrap;
-pub mod build;
-pub mod config;
-pub mod doctor;
-pub mod export;
-pub mod host_bootstrap;
-pub mod import;
-pub mod init;
-pub mod providers;
-pub mod qemu;
-pub mod runner;
-pub mod ssh;
-pub mod state;
-pub mod winrm;
+// Re-export the platform for backward compatibility. Only present when the
+// (optional) platform dependency is pulled in — the `vms` feature (or its
+// `foundation_deployment_platform_vms` alias). Without this gate the re-export
+// fails to compile under the default feature set, which breaks every crate that
+// dev-depends on `foundation_testbed`.
+#[cfg(any(feature = "vms", feature = "foundation_deployment_platform_vms"))]
+pub use foundation_deployment_platform as platform;
 
-#[cfg(feature = "cli")]
-pub mod cli;
+#[cfg(feature = "wasm")]
+pub mod wasm;
+
+// F52: re-export js-sys / web-sys / wasm-bindgen-futures for browser tests.
+// wasm-bindgen-test must be a direct dev-dep of the consumer (Rust limitation:
+// proc-macro attributes cannot be re-exported across crate boundaries).
+#[cfg(feature = "wasm-bindgen-test")]
+pub mod bindgen;
+
+// F30: Docker-based cross-platform test environments.
+#[cfg(feature = "docker-tests")]
+pub mod docker;
+
+// F32: QEMU Monitor control — universal agentic keyboard/mouse/screenshot (Tier 1).
+// Supports both HMP (text) and QMP (JSON) protocols — auto-detected.
+// Always available (not feature-gated) — uses Unix sockets + serde_json.
+pub mod qemu_control;

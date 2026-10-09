@@ -29,9 +29,7 @@ struct SimpleStream<D, P> {
 
 impl<D, P> SimpleStream<D, P> {
     fn from_vec(vec: Vec<D>) -> Self {
-        let items = <Vec<_> as std::iter::FromIterator<_>>::from_iter(
-            vec.into_iter().map(Stream::Next)
-        );
+        let items: Vec<_> = Iterator::collect(vec.into_iter().map(Stream::Next));
         let items = items.into_iter();
         Self { items }
     }
@@ -212,23 +210,41 @@ fn test_split_collect_one_map() {
     let items = vec![Stream::Next(3), Stream::Next(10), Stream::Next(20)];
     let stream = TestStream::new(items);
 
-    let (observer, mut continuation) =
+    let (mut observer, mut continuation) =
         stream.split_collect_one_map::<_, String, ()>(|item| match item {
             Stream::Next(v) if *v > 5 => (true, Some(Stream::Next(v.to_string()))),
             _ => (false, None),
         });
 
-    while Iterator::next(&mut continuation).is_some() {}
+    // F45 Resolution 4: a full observer queue backpressures the continuation
+    // (yields `Stream::Wait`) instead of dropping. Drive both in lockstep so the
+    // depth-1 queue never permanently backs up.
+    let mut collected: Vec<String> = Vec::new();
+    loop {
+        // Free any pending slot first so a parked source can advance.
+        while let Some(item) = observer.next() {
+            match item {
+                Stream::Next(v) => collected.push(v),
+                _ => break,
+            }
+        }
+        match Iterator::next(&mut continuation) {
+            Some(_) => {}
+            None => break,
+        }
+    }
+    // Final drain after the continuation closed the queue.
+    for item in &mut observer {
+        if let Stream::Next(v) = item {
+            collected.push(v);
+        }
+    }
 
-    let collected: Vec<_> = observer
-        .filter_map(|item| match item {
-            Stream::Next(v) => Some(v),
-            _ => None,
-        })
-        .collect();
-
-    // Queue size 1, so only first match gets through
-    assert_eq!(collected.len(), 1);
+    // Zero loss under backpressure: both matches (10, 20) get through, unlike the
+    // old `force_push` drop that kept only one. Order depends on drain interleaving.
+    assert_eq!(collected.len(), 2);
+    assert!(collected.contains(&"10".to_string()));
+    assert!(collected.contains(&"20".to_string()));
 }
 
 #[test]
@@ -772,7 +788,7 @@ fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
     let mut ignore_count = 0;
     for _ in 0..5 {
         if let Some(Stream::Ignore) = iter.next() {
-            ignore_count += 1
+            ignore_count += 1;
         }
     }
 
@@ -801,7 +817,7 @@ fn test_concurrent_queue_stream_iterator_returns_none_when_closed() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "max_turns must be greater than 0")]
 fn test_concurrent_queue_stream_iterator_panics_on_zero_max_turns() {
     let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
     let _ = ConcurrentQueueStreamIterator::new(queue.clone(), 0, Duration::from_nanos(20));
@@ -846,7 +862,7 @@ fn test_concurrent_queue_stream_iterator_passes_through_stream_variants() {
     assert!(matches!(iter.next(), Some(Stream::Next(42))));
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 #[test]
 fn test_concurrent_queue_stream_iterator_concurrent_push() {
     use std::thread;

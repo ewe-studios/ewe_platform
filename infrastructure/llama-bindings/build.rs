@@ -330,6 +330,13 @@ fn main() {
         .allowlist_type("ggml_.*")
         .allowlist_function("llama_.*")
         .allowlist_type("llama_.*")
+        // The C++ chat-template shim (wrapper_chat.h) exposes ewe_chat_* / the
+        // ewe_chat_templates opaque type; the MTP speculative shim
+        // (wrapper_mtp.h) exposes ewe_mtp_*. Allow them through the filter above.
+        .allowlist_function("ewe_chat_.*")
+        .allowlist_type("ewe_chat_.*")
+        .allowlist_function("ewe_mtp_.*")
+        .allowlist_type("ewe_mtp_.*")
         .prepend_enum_name(false);
 
     // Configure mtmd feature if enabled
@@ -555,6 +562,14 @@ fn main() {
     config.define("LLAMA_BUILD_TESTS", "OFF");
     config.define("LLAMA_BUILD_EXAMPLES", "OFF");
     config.define("LLAMA_BUILD_TOOLS", "OFF");
+    // Newer llama.cpp (>= b98xx) adds a unified `llama` binary under app/, gated
+    // only by LLAMA_BUILD_APP (NOT by LLAMA_BUILD_TOOLS) and defaulting ON in a
+    // standalone build. It links the tools impl libs we disable via TOOLS=OFF,
+    // so it fails to build. We only need libllama + libcommon for the bindings,
+    // so force it OFF. (The server/UI live under tools/ and are already excluded
+    // by TOOLS=OFF; the actual llama-server is built separately by
+    // backends/foundation_ai/build.rs.)
+    config.define("LLAMA_BUILD_APP", "OFF");
     config.define("LLAMA_CURL", "OFF");
 
     // Ignore external/system llama.cpp installations that may have stale CMake configs.
@@ -952,6 +967,31 @@ fn main() {
             // culibos is required when statically linking cudart_static
             println!("cargo:rustc-link-lib=static=culibos");
         }
+    }
+
+    // Compile the C++ chat-template shim (wrapper_chat.cpp). It wraps
+    // llama.cpp's Jinja-capable common_chat_templates_* API (common/chat.h),
+    // which the legacy llama_chat_apply_template C API cannot handle for modern
+    // models. Emitted BEFORE the llama/ggml link directives below so static
+    // resolution sees `-lewe_chat_shim` ahead of `-lllama-common`.
+    println!("cargo:rerun-if-changed=wrapper_chat.cpp");
+    println!("cargo:rerun-if-changed=wrapper_chat.h");
+    println!("cargo:rerun-if-changed=wrapper_mtp.cpp");
+    println!("cargo:rerun-if-changed=wrapper_mtp.h");
+    {
+        // Both C++ shims (chat-template + MTP speculative) compile the same way:
+        // C++17 against llama.cpp's common/ headers, linked ahead of
+        // libllama-common below.
+        let mut shim = cc::Build::new();
+        shim.cpp(true)
+            .std("c++17")
+            .file("wrapper_chat.cpp")
+            .file("wrapper_mtp.cpp")
+            .include(llama_src.join("common"))
+            .include(llama_src.join("vendor"))
+            .include(llama_src.join("include"))
+            .include(llama_src.join("ggml/include"));
+        shim.compile("ewe_shim");
     }
 
     // Link libraries

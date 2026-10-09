@@ -30,7 +30,7 @@ mod shim_exports {
     use once_cell::sync::Lazy;
     use tracing;
 
-    use foundation_core::valtron::{initialize_pool, PoolGuard};
+    use foundation_core::valtron::PoolGuard;
 
     use crate::native::vfs::native_fs::NativeFs;
     use crate::shared::vfs::dynfs::DynFs;
@@ -211,9 +211,16 @@ mod shim_exports {
         unsafe { super::real::open(pathname, flags, mode) }
     }
 
+    /// `open64` is a distinct symbol from `open`; delegating to our `open`
+    /// left `real::open64` unresolved and unused.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn open64(pathname: *const c_char, flags: c_int, mode: libc::mode_t) -> c_int {
-        open(pathname, flags, mode)
+        if let Some(path) = unsafe { c_path_to_str(pathname) } {
+            if path_matches_prefix(path) {
+                return handle_virtual_open(path, flags, mode);
+            }
+        }
+        unsafe { super::real::open64(pathname, flags, mode) }
     }
 
     #[unsafe(no_mangle)]
@@ -274,9 +281,16 @@ mod shim_exports {
         unsafe { super::real::stat(pathname, statbuf) }
     }
 
+    /// `lstat` must *not* follow symlinks. Delegating to our `stat` sent
+    /// non-virtual paths through `real::stat`, which does follow them.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn lstat(pathname: *const c_char, statbuf: *mut libc::stat) -> c_int {
-        stat(pathname, statbuf)
+        if let Some(path) = unsafe { c_path_to_str(pathname) } {
+            if path_matches_prefix(path) {
+                return handle_virtual_stat(path, statbuf);
+            }
+        }
+        unsafe { super::real::lstat(pathname, statbuf) }
     }
 
     #[unsafe(no_mangle)]
@@ -368,7 +382,7 @@ mod shim_exports {
                 None => { set_errno(libc::EBADF); -1 }
             };
         }
-        unsafe { libc::pread(fd, buf, count, offset) }
+        unsafe { super::real::pread(fd, buf, count, offset) }
     }
 
     #[unsafe(no_mangle)]
@@ -380,7 +394,7 @@ mod shim_exports {
                 None => { set_errno(libc::EBADF); -1 }
             };
         }
-        unsafe { libc::pwrite(fd, buf, count, offset) }
+        unsafe { super::real::pwrite(fd, buf, count, offset) }
     }
 
     // ── readlink / symlink ──
@@ -394,7 +408,7 @@ mod shim_exports {
                 return -1;
             }
         }
-        unsafe { libc::readlink(pathname, buf, bufsiz) }
+        unsafe { super::real::readlink(pathname, buf, bufsiz) }
     }
 
     #[unsafe(no_mangle)]
@@ -406,7 +420,7 @@ mod shim_exports {
                 return -1;
             }
         }
-        unsafe { libc::symlink(target, linkpath) }
+        unsafe { super::real::symlink(target, linkpath) }
     }
 
     // ── chmod / fchmod ──
@@ -419,7 +433,7 @@ mod shim_exports {
                 return 0;
             }
         }
-        unsafe { libc::chmod(pathname, mode) }
+        unsafe { super::real::chmod(pathname, mode) }
     }
 
     #[unsafe(no_mangle)]
@@ -428,7 +442,7 @@ mod shim_exports {
             // chmod on virtual files is a no-op for now
             return 0;
         }
-        unsafe { libc::fchmod(fd, mode) }
+        unsafe { super::real::fchmod(fd, mode) }
     }
 
     // ── truncate / ftruncate ──
@@ -445,7 +459,7 @@ mod shim_exports {
                 return 0;
             }
         }
-        unsafe { libc::truncate(pathname, length) }
+        unsafe { super::real::truncate(pathname, length) }
     }
 
     #[unsafe(no_mangle)]
@@ -461,7 +475,7 @@ mod shim_exports {
             set_errno(libc::EBADF);
             return -1;
         }
-        unsafe { libc::ftruncate(fd, length) }
+        unsafe { super::real::ftruncate(fd, length) }
     }
 
     // ── fsync ──
@@ -472,7 +486,7 @@ mod shim_exports {
             // In-memory / SQLite delta — data is already persisted
             return 0;
         }
-        unsafe { libc::fsync(fd) }
+        unsafe { super::real::fsync(fd) }
     }
 
     // ── opendir / readdir / closedir ──
@@ -484,17 +498,17 @@ mod shim_exports {
                 return handle_virtual_opendir(path);
             }
         }
-        unsafe { libc::opendir(pathname) }
+        unsafe { super::real::opendir(pathname) }
     }
 
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn readdir(dirp: *mut libc::DIR) -> *mut libc::dirent {
-        unsafe { libc::readdir(dirp) }
+        unsafe { super::real::readdir(dirp) }
     }
 
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn closedir(dirp: *mut libc::DIR) -> c_int {
-        unsafe { libc::closedir(dirp) }
+        unsafe { super::real::closedir(dirp) }
     }
 
     // ── VFS operation handlers ──

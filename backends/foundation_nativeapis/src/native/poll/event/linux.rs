@@ -1,6 +1,3 @@
-/// Linux `Event` — wraps `libc::epoll_event`.
-
-use super::super::Token;
 
 /// A single readiness event from `epoll_wait()`.
 #[derive(Clone, Copy)]
@@ -52,6 +49,31 @@ impl Event {
     /// Returns `true` if the event indicates priority/out-of-band data (`EPOLLPRI`).
     pub fn is_priority(&self) -> bool {
         (self.event.events as libc::c_int & libc::EPOLLPRI) != 0
+    }
+}
+
+impl Event {
+    /// WHY: the io_uring selector synthesises events from CQE poll masks rather
+    /// than receiving them from `epoll_wait`. Without this it would have to
+    /// `transmute` a `libc::epoll_event` into an `Event`.
+    ///
+    /// WHAT: build an `Event` from an epoll-style event bitmask and a token.
+    ///
+    /// HOW: `Event` is `repr(transparent)` over `libc::epoll_event`, so the
+    /// bitmask and token populate that struct directly. `events` must use the
+    /// `EPOLL*` bit values; the `POLL*` values from a poll mask coincide with
+    /// them for IN/OUT/ERR/HUP/PRI/RDHUP on Linux.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(feature = "uring")]
+    pub(crate) fn from_parts(events: u32, token: super::super::Token) -> Self {
+        Self {
+            event: libc::epoll_event {
+                events,
+                u64: token.0 as u64,
+            },
+        }
     }
 }
 

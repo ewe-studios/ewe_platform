@@ -1,0 +1,5 @@
+error: unknown health_check key: bad
+  --> tests/trybuild/fail/proxy_unknown_health_check_key.rs:16:21
+   |
+16 |                     bad: 1,
+   |                     ^^^

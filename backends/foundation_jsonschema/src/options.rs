@@ -140,7 +140,8 @@ impl ValidationOptions {
     /// Panics if no schema has been embedded.
     #[must_use]
     pub fn schema(&self) -> &Value {
-        self.schema.as_ref()
+        self.schema
+            .as_ref()
             .expect("schema must be set — use scheme::Builder::build() first")
     }
 
@@ -151,7 +152,8 @@ impl ValidationOptions {
     /// Panics if no schema has been embedded.
     #[must_use]
     pub fn into_schema(mut self) -> Value {
-        self.schema.take()
+        self.schema
+            .take()
             .expect("schema must be set — use scheme::Builder::build() first")
     }
 
@@ -162,7 +164,8 @@ impl ValidationOptions {
     /// Panics if no schema has been embedded.
     #[must_use]
     pub fn clone_schema(&self) -> Value {
-        self.schema.as_ref()
+        self.schema
+            .as_ref()
             .expect("schema must be set — use scheme::Builder::build() first")
             .clone()
     }

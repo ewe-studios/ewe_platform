@@ -145,7 +145,7 @@ fn get_attr(ast: &syn::DeriveInput, attr_name: &str) -> Option<String> {
     }
 }
 
-fn find_root_cargo(
+pub fn find_root_cargo(
     manifest_dir: &Path,
     previous_dir: Option<PathBuf>,
 ) -> Option<(PathBuf, PathBuf)> {
@@ -182,7 +182,7 @@ static ROOT_WORKSPACE_MATCHER: &str = "$ROOT_CRATE";
 static CURRENT_CRATE_MATCHER: &str = "$CURRENT_CRATE";
 static CURRENT_CRATE_ALT_MATCHER: &str = "$CRATE";
 
-fn get_target_source_path(
+pub fn get_target_source_path(
     cargo_manifest_dir_env: &str,
     root_workspace_str: &str,
     target_source: &str,
@@ -1080,7 +1080,7 @@ fn impl_embeddable_directory(
                 true,
             );
 
-            const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
+            pub const _ROOT_DIRECTORY: &'static str =  #embedded_directory_path_literal;
         }
 
         impl foundation_nostd::embeddable::FileData for #struct_name {
@@ -1269,7 +1269,7 @@ fn impl_embeddable_directory(
                             #project_dir_tokens,
                             "",
                             "",
-                            "",
+                            None,
                             None,
                             true,
                         ),
@@ -1291,8 +1291,30 @@ fn impl_embeddable_directory(
         }
     };
 
+    let compression_value = match compression {
+        foundation_nostd::embeddable::DataCompression::NONE => {
+            quote! { foundation_nostd::embeddable::DataCompression::NONE }
+        }
+        foundation_nostd::embeddable::DataCompression::GZIP => {
+            quote! { foundation_nostd::embeddable::DataCompression::GZIP }
+        }
+        foundation_nostd::embeddable::DataCompression::BROTTLI => {
+            quote! { foundation_nostd::embeddable::DataCompression::BROTTLI }
+        }
+    };
+
+    let has_compression_tokens = quote! {
+        impl foundation_nostd::embeddable::HasCompression for #struct_name {
+            fn compression(&self) -> foundation_nostd::embeddable::DataCompression {
+                #compression_value
+            }
+        }
+    };
+
     quote! {
         #embeddable_file_tokens
+
+        #has_compression_tokens
 
         #embeddable_directory_tokens
 
@@ -1300,7 +1322,7 @@ fn impl_embeddable_directory(
     }
 }
 
-fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: usize) {
+pub fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: usize) {
     if dir.is_dir() {
         let root_parent = root_dir.parent().expect("get root dir");
         let dir_path_string = String::from(dir.to_str().expect("get string"));
@@ -1382,7 +1404,7 @@ fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, index: u
     }
 }
 
-struct EmbeddableFile {
+pub struct EmbeddableFile {
     pub data: Vec<u8>,
     pub data_utf16: Option<Vec<u8>>,
     pub hash: String,
@@ -1413,7 +1435,7 @@ fn get_file_hash(target_file: &Path) -> Result<String, GenError> {
     Ok(generate_hash(&file_content))
 }
 
-fn get_file(target_file: &Path, with_utf16: bool) -> Result<EmbeddableFile, GenError> {
+pub fn get_file(target_file: &Path, with_utf16: bool) -> Result<EmbeddableFile, GenError> {
     let mut file = fs::File::open(target_file).map_err(|err| GenError::Any(Box::new(err)))?;
 
     let mut file_content: Vec<u8> = Vec::new();

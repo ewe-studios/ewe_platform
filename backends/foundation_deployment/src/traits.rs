@@ -4,21 +4,37 @@
 //!      The `Deployable` trait provides a unified interface for deploying and
 //!      destroying resources across all providers.
 //!
-//! WHAT: A trait with associated types for output, error, state store, and DNS resolver.
-//!       Implementors provide `deploy()` and `destroy()` methods that return
-//!       valtron `TaskIterator` types. Users decide how to orchestrate execution.
+//! WHAT: A trait with associated types for output, error, state store, and DNS
+//!       resolver. `deploy()` and `destroy()` are **async**: they return a
+//!       [`BoxFuture`] (a `Pin<Box<dyn Future<Output = Result<..>> + Send>>`).
+//!       Implementors write ordinary async logic and `Box::pin(async move { … })`
+//!       it — no `async_trait` macro, and the trait stays object-safe.
 //!
-//! HOW: Users implement `Deployable` on their structs. The trait methods receive
-//!      `ProviderClient<Store, Resolver>` which provides access to state persistence
-//!      and HTTP client for API calls.
+//! HOW: Users implement `Deployable` on their structs. The methods receive a
+//!      [`ProviderClient<Store, Resolver>`] for state persistence and (for
+//!      HTTP-first providers) an API client. A provider whose transport does
+//!      not fit `ProviderClient`'s HTTP client — e.g. Docker over a Unix socket
+//!      — may build its own client inside the future and use `ProviderClient`
+//!      only for state. See `foundation_deployment_docker`'s `ContainerDeployment`.
 
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::shared::DnsResolver;
+use std::future::Future;
+use std::pin::Pin;
+
+use foundation_netio::shared::client::DnsResolver;
 use foundation_db::core::state::namespaced::NamespacedStore;
 use foundation_db::core::state::traits::StateStore;
-use serde::Serialize;
 
 use crate::provider_client::ProviderClient;
+
+/// A boxed, `Send` future — the return type of [`Deployable::deploy`] and
+/// [`Deployable::destroy`].
+///
+/// Boxing keeps the trait object-safe and lets implementors write plain
+/// `Box::pin(async move { … })` without `async_trait` or unstable
+/// return-position-`impl`-Trait-in-trait Send plumbing. Any valtron task can
+/// also be adapted into one of these futures, so this is the single async
+/// interface deployment code speaks.
+pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 /// Generic progress states for deployment and destroy execution.
 ///
@@ -26,7 +42,9 @@ use crate::provider_client::ProviderClient;
 ///
 /// WHAT: Simple enum with `Init`, `Processing`, `Done`, and `Failed` variants.
 ///
-/// HOW: Used as the `Pending` associated type in `TaskIterator` return types.
+/// HOW: A general-purpose progress signal a caller may report while awaiting a
+/// [`Deployable`] future (the trait itself is plain async and does not require
+/// it).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Deploying {
     /// Initial state before execution begins.
@@ -46,11 +64,12 @@ pub enum Deploying {
 ///      No YAML, TOML, or custom configuration formats needed.
 ///
 /// WHAT: Trait with associated types for deploy output, destroy output, error,
-///       state store, and DNS resolver. Provides `deploy()` and `destroy()` methods
-///       that return `TaskIterator` — users orchestrate execution themselves.
+///       state store, and DNS resolver. `deploy()` and `destroy()` are async —
+///       they return a [`BoxFuture`] the caller `.await`s.
 ///
 /// HOW: Implement on user structs. Methods receive `ProviderClient<Store, Resolver>`
-///      providing state persistence and HTTP client access.
+///      providing state persistence and HTTP client access. Write the real work
+///      as an `async move` block and `Box::pin` it.
 ///
 /// # Associated Types
 ///
@@ -63,11 +82,10 @@ pub enum Deploying {
 /// # Examples
 ///
 /// ```rust,no_run
-/// use foundation_deployment::traits::{Deployable, Deploying};
+/// use foundation_deployment::traits::{BoxFuture, Deployable};
 /// use foundation_deployment::provider_client::ProviderClient;
-/// use foundation_db::state::FileStateStore;
-/// use foundation_netio::simple_http::client::SystemDnsResolver;
-/// use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
+/// use foundation_db::core::state::FileStateStore;
+/// use foundation_netio::shared::client::dns::SystemDnsResolver;
 ///
 /// struct MyWorker {
 ///     name: String,
@@ -86,23 +104,20 @@ pub enum Deploying {
 ///         &self,
 ///         instance_id: usize,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
-///     ) -> Result<
-///         impl TaskIterator<Ready = Result<Self::DeployOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
-///         Self::Error,
-///     > {
-///         // Return a TaskIterator — users call execute() or compose it
-///         todo!()
+///     ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>> {
+///         let name = self.name.clone();
+///         Box::pin(async move {
+///             // ... real async deploy logic ...
+///             Ok(name)
+///         })
 ///     }
 ///
 ///     fn destroy(
 ///         &self,
 ///         instance_id: usize,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
-///     ) -> Result<
-///         impl TaskIterator<Ready = Result<Self::DestroyOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
-///         Self::Error,
-///     > {
-///         todo!()
+///     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
+///         Box::pin(async move { Ok(()) })
 ///     }
 /// }
 /// ```
@@ -130,10 +145,10 @@ pub trait Deployable {
     /// DNS resolver type for HTTP calls.
     type Resolver: DnsResolver + Clone + 'static;
 
-    /// Deploy a specific instance, returning a TaskIterator for composition.
+    /// Deploy a specific instance (async).
     ///
-    /// Users decide how to execute it — valtron combinators, sequential iteration,
-    /// parallel spawning, etc.
+    /// Returns a [`BoxFuture`] the caller `.await`s (or drives on valtron via
+    /// `from_future`). Implement it as `Box::pin(async move { … })`.
     ///
     /// # Arguments
     ///
@@ -143,20 +158,12 @@ pub trait Deployable {
         &self,
         instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl TaskIterator<
-                Ready = Result<Self::DeployOutput, Self::Error>,
-                Pending = Deploying,
-                Spawner = BoxedSendExecutionAction,
-            > + Send
-            + 'static,
-        Self::Error,
-    >;
+    ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>>;
 
-    /// Destroy a specific instance, returning a TaskIterator for composition.
+    /// Destroy a specific instance (async).
     ///
-    /// Users decide how to execute it — valtron combinators, sequential iteration,
-    /// parallel spawning, etc.
+    /// Returns a [`BoxFuture`] the caller `.await`s. Implement it as
+    /// `Box::pin(async move { … })`.
     ///
     /// # Arguments
     ///
@@ -166,102 +173,19 @@ pub trait Deployable {
         &self,
         instance_id: usize,
         client: ProviderClient<Self::Store, Self::Resolver>,
-    ) -> Result<
-        impl TaskIterator<
-                Ready = Result<Self::DestroyOutput, Self::Error>,
-                Pending = Deploying,
-                Spawner = BoxedSendExecutionAction,
-            > + Send
-            + 'static,
-        Self::Error,
-    >;
+    ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>>;
 
     // -- Default methods --
 
     /// Returns a `NamespacedStore` scoped to `Self::NAMESPACE`.
     ///
     /// All `get()`, `list()`, `delete()` operations on the returned wrapper
-    /// are automatically prefixed with `NAMESPACE`.
+    /// are automatically prefixed with `NAMESPACE`. Call it in `deploy`/`destroy`
+    /// to persist and read back what was deployed (the id to tear down, etc.).
     fn store(
         &self,
         client: &ProviderClient<Self::Store, Self::Resolver>,
     ) -> NamespacedStore<Self::Store> {
         NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
-    }
-
-    /// Wraps a valtron task to persist the result under `"{NAMESPACE}/{instance_id}"`.
-    ///
-    /// On task success, stores the result in the state store. The deploy
-    /// path calls this to record what was deployed; the destroy path reads it back
-    /// via `self.store(client).get_typed(instance_id)` to know what to tear down.
-    fn update<T, V, E, I>(
-        &self,
-        client: &ProviderClient<Self::Store, Self::Resolver>,
-        instance_id: usize,
-        input: I,
-        task: T,
-    ) -> UpdateTask<T, Self::Store>
-    where
-        T: TaskIterator<Ready = Result<V, E>> + Send + 'static,
-        V: Serialize + Clone + Send + 'static,
-        E: Send + 'static,
-        T::Pending: Send + 'static,
-        T::Spawner: Send + 'static,
-        I: Serialize,
-    {
-        UpdateTask {
-            store: NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE),
-            instance_id,
-            input: serde_json::to_value(&input).unwrap_or(serde_json::json!(null)),
-            task,
-        }
-    }
-}
-
-/// Internal task wrapper that persists results after the inner task completes.
-pub struct UpdateTask<T, S>
-where
-    S: StateStore,
-    T: TaskIterator,
-{
-    pub(crate) store: NamespacedStore<S>,
-    pub(crate) instance_id: usize,
-    pub(crate) input: serde_json::Value,
-    pub(crate) task: T,
-}
-
-impl<T, S, V, E> TaskIterator for UpdateTask<T, S>
-where
-    S: StateStore + Send + Sync + 'static,
-    T: TaskIterator<Ready = Result<V, E>>,
-    T::Pending: Send + 'static,
-    T::Spawner: Send + 'static,
-    V: Serialize + Send + 'static,
-    E: Send + 'static,
-{
-    type Ready = Result<V, E>;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        match self.task.next_status()? {
-            TaskStatus::Ready(Ok(value)) => {
-                let key = self.instance_id.to_string();
-                let stored = (
-                    &self.input,
-                    serde_json::to_value(&value).unwrap_or(serde_json::json!(null)),
-                );
-                if let Err(e) = self.store.store_typed(&key, &stored) {
-                    tracing::warn!(
-                        "Failed to store deployment state for {}/{}: {e:?}",
-                        self.store.prefix(),
-                        key
-                    );
-                }
-                Some(TaskStatus::Ready(Ok(value)))
-            }
-            TaskStatus::Ready(Err(e)) => Some(TaskStatus::Ready(Err(e))),
-            other => Some(other),
-        }
     }
 }

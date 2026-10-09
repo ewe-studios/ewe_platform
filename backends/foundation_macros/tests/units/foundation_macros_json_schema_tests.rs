@@ -1,3 +1,7 @@
+// Derive-macro fixtures: fields exist to drive JsonSchema generation and
+// are asserted via the emitted schema, never read directly at runtime.
+#![allow(dead_code)]
+
 use foundation_jsonschema::JsonSchema;
 use foundation_macros::JsonSchema;
 

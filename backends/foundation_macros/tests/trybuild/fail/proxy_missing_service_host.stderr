@@ -1,0 +1,5 @@
+error: unexpected end of input, missing required field: host
+  --> tests/trybuild/fail/proxy_missing_service_host.rs:11:13
+   |
+11 |             },
+   |             ^

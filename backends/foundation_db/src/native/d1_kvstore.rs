@@ -1,20 +1,20 @@
 //! Cloudflare D1 storage backend (unified).
 //!
-//! WHY: D1 is Cloudflare's edge SQLite - useful for KV, query execution,
+//! WHY: D1 is Cloudflare's edge `SQLite` - useful for KV, query execution,
 //! blob storage, rate limiting, and deployment state.
 //!
-//! WHAT: `D1Store` implements multiple storage traits via `SimpleHttpClient`
+//! WHAT: `D1Store` implements multiple storage traits via `NativeHttpClient`
 //! for HTTP calls to the D1 API over HTTP.
 //!
 //! HOW: Different constructors for different usage modes:
 //!   - `D1Store::new()` / `D1Store::new_kv()` — KV/query/rate-limit/blob store (table: `{prefix}_kv`)
-//!   - `D1Store::new_state()` — StateStore (table: `{project}_{stage}_resources`)
+//!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{Stream, ThreadedValue};
-use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_string_async};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use futures_lite::stream;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -116,7 +116,7 @@ fn state_to_params(state: &ResourceState) -> Result<Vec<serde_json::Value>, Stor
 enum D1Mode {
     /// KV/query/rate-limit/blob store. Table name = `{prefix}_kv`.
     KeyValue { kv_table: String },
-    /// StateStore. Table name = `{project}_{stage}_resources`.
+    /// `StateStore`. Table name = `{project}_{stage}_resources`.
     State { state_table: String },
 }
 
@@ -128,7 +128,7 @@ pub struct D1Store {
     account_id: String,
     database_id: String,
     base_url: String,
-    client: SimpleHttpClient,
+    client: NativeHttpClient,
     mode: D1Mode,
 }
 
@@ -151,7 +151,7 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: D1Mode::KeyValue { kv_table: format!("{table_prefix}_kv") },
         }
     }
@@ -173,13 +173,13 @@ impl D1Store {
 
     // ========== State-mode constructors ==========
 
-    /// StateStore at production Cloudflare API.
+    /// `StateStore` at production Cloudflare API.
     #[must_use]
     pub fn new_state(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
         Self::new_state_with_base_url(api_token, account_id, database_id, project, stage, CF_API_BASE)
     }
 
-    /// StateStore with custom base URL (for tests).
+    /// `StateStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_state_with_base_url(
         api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str, base_url: &str,
@@ -194,12 +194,12 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: D1Mode::State { state_table },
         }
     }
 
-    /// StateStore from environment.
+    /// `StateStore` from environment.
     pub fn from_env_state(project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_id = std::env::var("DEPLOYMENT_D1_DATABASE_ID").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_D1_DATABASE_ID must be set".to_string())
@@ -249,7 +249,7 @@ impl D1Store {
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
-    /// Async version of `execute_sql`. Uses `SimpleHttpClient::send_async()`
+    /// Async version of `execute_sql`. Uses `NativeHttpClient::send_async()`
     /// to perform the HTTP request without blocking.
     async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
         let body = serde_json::json!({ "sql": sql, "params": params });
@@ -301,9 +301,6 @@ impl D1Store {
         }
     }
 
-    fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
 
     fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
         Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
@@ -334,7 +331,7 @@ impl D1Store {
 // ===========================================================================
 
 impl KeyValueStore for D1Store {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
@@ -344,13 +341,13 @@ impl KeyValueStore for D1Store {
                     .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
                 let deserialized: V = serde_json::from_str(&value)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Self::wrap_value(Some(deserialized)))
+                Ok(Some(deserialized))
             }
-            None => Ok(Self::wrap_value(None)),
+            None => Ok(None),
         }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
         let json_value = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
@@ -359,19 +356,19 @@ impl KeyValueStore for D1Store {
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
         self.execute_sql(&sql, &[kv.clone(), jv.clone(), jv])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))
+        Ok(!Self::extract_rows(&response).is_empty())
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -427,7 +424,7 @@ impl QueryStore for D1Store {
         Ok(Self::wrap_vec(results?))
     }
 
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
             DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
@@ -439,12 +436,12 @@ impl QueryStore for D1Store {
         let affected = response.pointer("/result/0/meta/changes")
             .and_then(serde_json::Value::as_i64)
             .map_or(0, i64::unsigned_abs);
-        Ok(Self::wrap_value(affected))
+        Ok(affected)
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_sql(sql, &[])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 }
 
@@ -453,7 +450,7 @@ impl QueryStore for D1Store {
 // ===========================================================================
 
 impl RateLimiterStore for D1Store {
-    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
         self.execute_sql(create_table, &[])?;
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
@@ -470,10 +467,10 @@ impl RateLimiterStore for D1Store {
             }
             None => true,
         };
-        Ok(Self::wrap_value(allowed))
+        Ok(allowed)
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let sql = "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start";
         self.execute_sql(sql, &[serde_json::Value::String(key.to_string()), serde_json::Value::Number(serde_json::Number::from(now))])?;
@@ -482,13 +479,13 @@ impl RateLimiterStore for D1Store {
         let count = Self::extract_rows(&response).first()
             .and_then(|r| r.get("count")).and_then(serde_json::Value::as_i64)
             .map_or(1, |c| c as u32);
-        Ok(Self::wrap_value(count))
+        Ok(count)
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let sql = "DELETE FROM rate_limits WHERE key = ?";
         self.execute_sql(sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 }
 
@@ -497,7 +494,7 @@ impl RateLimiterStore for D1Store {
 // ===========================================================================
 
 impl BlobStore for D1Store {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);
         let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();
         let sql = format!(
@@ -507,10 +504,10 @@ impl BlobStore for D1Store {
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
         self.execute_sql(&sql, &[kv.clone(), jv.clone(), jv])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
@@ -521,28 +518,28 @@ impl BlobStore for D1Store {
                 let wrapper: serde_json::Value = serde_json::from_str(&value)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
                 if wrapper.get("type").and_then(serde_json::Value::as_str) != Some("blob") {
-                    return Ok(Self::wrap_value(None));
+                    return Ok(None);
                 }
                 let encoded = wrapper.get("data").and_then(serde_json::Value::as_str)
                     .ok_or_else(|| StorageError::Serialization("missing data field in blob wrapper".to_string()))?;
                 let decoded = STANDARD.decode(encoded)
                     .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?;
-                Ok(Self::wrap_value(Some(decoded)))
+                Ok(Some(decoded))
             }
-            None => Ok(Self::wrap_value(None)),
+            None => Ok(None),
         }
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))
+        Ok(!Self::extract_rows(&response).is_empty())
     }
 }
 
@@ -705,7 +702,7 @@ impl StateStore for D1Store {
 // Async trait implementations
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for D1Store {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
@@ -768,7 +765,7 @@ impl AsyncKeyValueStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for D1Store {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
@@ -823,7 +820,7 @@ impl AsyncQueryStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for D1Store {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
@@ -864,7 +861,7 @@ impl AsyncRateLimiterStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for D1Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);

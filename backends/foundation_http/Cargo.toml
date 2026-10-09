@@ -10,9 +10,9 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -24,6 +24,12 @@ base64 = "0.22"
 tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 async-trait = "0.1"
+
+# The I/O gate: ServerIo + the completion-mode accept path (Feature 48). Native
+# only — there is no reactor on wasm. iogate brings foundation_nativeapis in
+# transitively, above netio, so no dependency cycle forms.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
 
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -46,10 +52,15 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { workspace = true, default-features = false, features = ["wasm", "wasm-bindgen-storage"], optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.2", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
-foundation_testing = { workspace=true }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
+foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+# `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+# Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
@@ -66,6 +77,8 @@ ssl-rustls-ring = ["foundation_netio/ssl-rustls-ring"]
 ssl-rustls-awsrc = ["foundation_netio/ssl-rustls-awsrc"]
 ssl-openssl = ["foundation_netio/ssl-openssl"]
 ssl-native-tls = ["foundation_netio/ssl-native-tls"]
+# HTTP/3 (QUIC) — gates H3Serve trait and ServerApp::Http3 (F35)
+quic = ["foundation_netio/quic"]
 # Wasm compatibility — uses browser crypto for UUID generation
 wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers
@@ -83,3 +96,9 @@ wasm-test = []
 
 [lints]
 workspace = true
+
+# HTTP/3 server integration test (F19) — real QUIC over loopback, quic-gated.
+[[test]]
+name = "http3_server_tests"
+path = "tests/http3_server_tests.rs"
+required-features = ["quic"]

@@ -11,7 +11,7 @@
 ///
 /// Ancillary data: SCM_RIGHTS with array of fds (objects + memory region fds)
 
-use std::{io, mem, os::fd::RawFd, ptr, slice};
+use std::{mem, os::fd::RawFd, ptr, slice};
 
 use foundation_core::type_uuid::TypeUuid;
 
@@ -21,9 +21,6 @@ use crate::ipc::{
     Error, MemoryRegion, Selector,
 };
 use super::Fd as Object;
-
-/// Maximum buffer size for socket send/recv (64KB).
-static MAXIMUM_BUF_SIZE: i32 = 64 << 10;
 
 pub(crate) struct EncodedMessage {
     pub selector: Selector,
@@ -78,8 +75,10 @@ impl EncodedMessage {
 
             // Receive payload
             let mut iov_data: Vec<u8> = alloc_buffer::<u32>(meta.iov_len as _);
-            iov.iov_base = iov_data.as_mut_ptr() as _;
-            iov.iov_len = iov_data.len();
+            // `hdr.msg_iov` already points at `iov`; write through that pointer so
+            // the update is visible to rustc as well as to the kernel.
+            (*hdr.msg_iov).iov_base = iov_data.as_mut_ptr().cast();
+            (*hdr.msg_iov).iov_len = iov_data.len();
 
             let mut control_data: Vec<u8> = alloc_buffer::<usize>(meta.control_len as _);
             hdr.msg_control = control_data.as_mut_ptr() as _;
@@ -162,17 +161,16 @@ impl EncodedMessage {
 
     /// Send this message to a remote endpoint.
     pub fn send(&mut self, remote: &Remote) -> Result<(), Error> {
+        // Fill the iovec *before* `msg_iov` captures a pointer to it. Assigning
+        // afterwards works — the kernel reads through the pointer — but rustc
+        // cannot see through the raw pointer and reports the writes as dead.
         let mut iov = libc::iovec {
-            iov_base: ptr::null_mut(),
-            iov_len: 0,
+            iov_base: self.iov_data.as_mut_ptr().cast(),
+            iov_len: self.iov_data.len(),
         };
         let mut hdr: libc::msghdr = unsafe { mem::zeroed() };
-        hdr.msg_iov = &mut iov;
+        hdr.msg_iov = &raw mut iov;
         hdr.msg_iovlen = 1;
-
-        // Set up payload
-        iov.iov_base = self.iov_data.as_mut_ptr() as _;
-        iov.iov_len = self.iov_data.len();
 
         hdr.msg_control = self.control_data.as_mut_ptr() as _;
         hdr.msg_controllen = self.control_data.len() as _;

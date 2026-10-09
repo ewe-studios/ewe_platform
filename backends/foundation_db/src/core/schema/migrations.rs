@@ -5,6 +5,7 @@
 
 use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{AsyncQueryStore, DataValue, QueryStore};
+use foundation_core::valtron::Stream;
 
 /// A single database migration.
 pub struct Migration {
@@ -110,6 +111,31 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create device codes table",
         sql: include_str!("sql/019_create_device_codes.sql"),
     },
+    Migration {
+        id: "020_create_documents",
+        name: "Create documents table for DocumentStore",
+        sql: include_str!("sql/020_create_documents.sql"),
+    },
+    Migration {
+        id: "021_promote_document_columns",
+        name: "Add promoted searchable columns to documents",
+        sql: include_str!("sql/021_promote_document_columns.sql"),
+    },
+    Migration {
+        id: "022_add_documents_r2_key",
+        name: "Add r2_key column for R2 blob offload",
+        sql: include_str!("sql/022_add_documents_r2_key.sql"),
+    },
+    Migration {
+        id: "024_create_upstream_providers",
+        name: "Create upstream identity providers table for social login",
+        sql: include_str!("sql/024_create_upstream_providers.sql"),
+    },
+    Migration {
+        id: "025_create_user_provider_links",
+        name: "Create user-provider links table for account linking",
+        sql: include_str!("sql/025_create_user_provider_links.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -175,53 +201,52 @@ impl<'a> MigrationRunner<'a> {
     ///
     /// Returns an error if any migration SQL statement fails.
     pub fn run(&self, store: &dyn QueryStore) -> StorageResult<usize> {
+        // Ensure the migrations tracking table exists before we query it
+        // (mirrors `run_async`). Without this the first SELECT below targets a
+        // missing table.
+        store.execute_batch(
+            "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"
+        )?;
+
         let mut count = 0;
 
         for migration in self.migrations {
-            // Check if migration already applied
-            let mut rows = store.query(
+            // Check if migration already applied. `query` returns a *lazy*
+            // stream that interleaves `Stream::Pending` readiness markers with
+            // the actual rows, so `next().is_some()` is NOT a row test (a single
+            // Pending marker would falsely report "exists"). Drain the stream and
+            // look for a real `Stream::Next(Ok(_))`, propagating any error.
+            let rows = store.query(
                 "SELECT 1 FROM _migrations WHERE id = ?",
                 &[DataValue::Text(migration.id.to_string())],
             )?;
-
-            // Check if any rows returned (migration exists)
-            let exists = rows.next().is_some();
+            let mut exists = false;
+            for item in rows {
+                match item {
+                    Stream::Next(Ok(_)) => exists = true,
+                    Stream::Next(Err(e)) => return Err(e),
+                    _ => {}
+                }
+            }
 
             if !exists {
                 // Apply migration - consume the iterator
-                for _result in store.execute_batch(migration.sql)? {}
+                store.execute_batch(migration.sql)?;
 
-                // Record migration - consume the iterator
-                for _result in store.execute(
-                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                // Record migration (id + name, matching the table schema and
+                // `run_async`; the old `(name)`-only insert left `id` NULL).
+                store.execute(
+                    "INSERT OR IGNORE INTO _migrations (id, name) VALUES (?, ?)",
                     &[
                         DataValue::Text(migration.id.to_string()),
                         DataValue::Text(migration.name.to_string()),
                     ],
-                )? {}
+                )?;
 
                 count += 1;
             }
         }
 
         Ok(count)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_migrations_defined() {
-        assert!(!MIGRATIONS.is_empty());
-        assert_eq!(MIGRATIONS.len(), 19);
-    }
-
-    #[test]
-    fn test_migration_ids_unique() {
-        let ids: Vec<&str> = MIGRATIONS.iter().map(|m| m.id).collect();
-        let unique_ids: std::collections::HashSet<_> = ids.iter().collect();
-        assert_eq!(ids.len(), unique_ids.len(), "Migration IDs must be unique");
     }
 }

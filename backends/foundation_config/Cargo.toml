@@ -1,6 +1,6 @@
 [package]
 name = "foundation_config"
-version = "0.1.0"
+version = "0.1.1"
 description = "TOML-based configuration file loading — pure std::fs + serde + toml"
 edition.workspace = true
 rust-version.workspace = true

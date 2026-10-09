@@ -1,0 +1,54 @@
+# WireGuard mesh — 3-node self-assembling Docker network (spec-55, F10).
+#
+# Start:  docker compose -f backends/foundation_wireguard/docker-compose.yml up --build
+#
+# The first container (wgnode-seed) generates a secret, the other two join through it.
+# SWIM gossip propagates membership so node-3 can join through node-2 if node-1 dies.
+
+version: "3.9"
+
+services:
+  wgnode-seed:
+    build:
+      context: ../..
+      dockerfile: backends/foundation_wireguard/Dockerfile
+    container_name: wgnode-seed
+    environment:
+      # No WG_SEED_ENDPOINTS → this container is the seed.
+      - WG_SECRET=${WG_SECRET:-}
+      - WG_RELAY=true
+    ports:
+      - "51820:51820/udp"
+    networks:
+      - wgmesh
+
+  wgnode-joiner-1:
+    build:
+      context: ../..
+      dockerfile: backends/foundation_wireguard/Dockerfile
+    container_name: wgnode-joiner-1
+    environment:
+      - WG_SECRET=${WG_SECRET:-}
+      - WG_SEED_ENDPOINTS=wgnode-seed:51820
+    depends_on:
+      - wgnode-seed
+    networks:
+      - wgmesh
+
+  wgnode-joiner-2:
+    build:
+      context: ../..
+      dockerfile: backends/foundation_wireguard/Dockerfile
+    container_name: wgnode-joiner-2
+    environment:
+      - WG_SECRET=${WG_SECRET:-}
+      - WG_SEED_ENDPOINTS=wgnode-seed:51820,wgnode-joiner-1:51820
+    depends_on:
+      - wgnode-seed
+      - wgnode-joiner-1
+    networks:
+      - wgmesh
+
+networks:
+  wgmesh:
+    driver: bridge

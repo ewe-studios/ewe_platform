@@ -3,6 +3,7 @@
 use std::fmt;
 
 use crate::url::errors::InvalidUri;
+use crate::url::query::Query;
 
 /// Path and query component of a URI.
 ///
@@ -11,14 +12,17 @@ use crate::url::errors::InvalidUri;
 ///
 /// WHAT: Represents `path[?query]` with validation and normalization.
 ///
-/// HOW: Stores path and optional query, ensuring path is valid according
-/// to RFC 3986.
+/// HOW: Stores path and a structured [`Query`]. The `Query` owns the decoded
+/// key-value pairs *and* preserves the raw parsed string, so callers can
+/// manipulate individual parameters (via [`crate::url::Uri`] helpers) while
+/// unmutated queries still render byte-for-byte — critical for proxying and
+/// signed URLs.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PathAndQuery {
     /// Path component (may be empty for authority-only URIs)
     pub path: String,
-    /// Optional query component (without the '?')
-    pub query: Option<String>,
+    /// Structured query component (empty [`Query`] when absent).
+    pub query: Query,
 }
 
 impl PathAndQuery {
@@ -40,21 +44,18 @@ impl PathAndQuery {
         if s.is_empty() {
             return Ok(PathAndQuery {
                 path: "/".to_string(),
-                query: None,
+                query: Query::new(),
             });
         }
 
         // Split on '?' for query
         let (path_str, query) = if let Some(q_pos) = s.find('?') {
             let query_str = &s[q_pos + 1..];
-            let query = if query_str.is_empty() {
-                None
-            } else {
-                Some(query_str.to_string())
-            };
+            let query = Query::parse(query_str)
+                .map_err(|e| InvalidUri::new(format!("invalid query: {e}")))?;
             (&s[..q_pos], query)
         } else {
-            (s, None)
+            (s, Query::new())
         };
 
         // Validate path
@@ -114,18 +115,48 @@ impl PathAndQuery {
         &self.path
     }
 
-    /// Returns the query component if present.
+    /// Returns the serialized query component if present.
+    ///
+    /// WHY: Callers that only need the raw `key=value&...` string (for
+    /// rendering a request target) shouldn't reach into the structured [`Query`].
+    ///
+    /// WHAT: Returns `Some(query_string)` when the query has at least one pair,
+    /// `None` when empty.
+    ///
+    /// HOW: Serializes the structured [`Query`] on demand (percent-encoded).
+    /// This allocates for non-empty queries. For structured access use
+    /// [`PathAndQuery::query_params`].
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     #[must_use]
-    pub fn query(&self) -> Option<&str> {
-        self.query.as_deref()
+    pub fn query(&self) -> Option<String> {
+        if self.query.is_empty() {
+            None
+        } else {
+            Some(self.query.to_string())
+        }
+    }
+
+    /// Returns a reference to the structured query parameters.
+    #[must_use]
+    pub fn query_params(&self) -> &Query {
+        &self.query
+    }
+
+    /// Returns a mutable reference to the structured query parameters.
+    #[must_use]
+    pub fn query_params_mut(&mut self) -> &mut Query {
+        &mut self.query
     }
 }
 
 impl fmt::Display for PathAndQuery {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.path)?;
-        if let Some(query) = &self.query {
-            write!(f, "?{query}")?;
+        if !self.query.is_empty() {
+            write!(f, "?{}", self.query)?;
         }
         Ok(())
     }

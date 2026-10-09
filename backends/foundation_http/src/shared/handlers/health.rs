@@ -1,8 +1,8 @@
 //! Health check handler — responds to /health, /health/live, /health/ready.
 
-use foundation_netio::simple_http::shared::SimpleIncomingRequest;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 use serde_json::json;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
 use crate::shared::context::ContextBag;
@@ -39,7 +39,7 @@ impl ServeWriter for HealthHandler {
 }
 
 /// Native Serve impl (delegates to ServeWriter).
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 impl crate::shared::serve::Serve for HealthHandler {
     fn serve(
         &self,
@@ -51,7 +51,7 @@ impl crate::shared::serve::Serve for HealthHandler {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 impl crate::shared::serve::ServeFactory for HealthHandler {
     fn create(bag: &ContextBag) -> Self {
         <Self as ServeWriterFactory>::create(bag)

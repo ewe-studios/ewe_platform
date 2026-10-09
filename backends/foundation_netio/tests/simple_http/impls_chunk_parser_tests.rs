@@ -1,4 +1,4 @@
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::http::*;
 use tracing_test::traced_test;
 
 struct ChunkSample {

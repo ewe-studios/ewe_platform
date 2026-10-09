@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use foundation_arrow::arrow_array::{
-    self, ArrayRef, BinaryArray, BooleanArray, Float64Array, Int64Array, RecordBatch, StringArray,
+    ArrayRef, BinaryArray, BooleanArray, Int64Array, RecordBatch, StringArray,
     UInt64Array, UInt8Array,
 };
 use foundation_arrow::arrow_schema::{DataType, Field, Schema, ArrowError};

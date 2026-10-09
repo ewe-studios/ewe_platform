@@ -1,17 +1,15 @@
-//! Tests for ThreadYielder interruptibility
+//! Tests for `ThreadYielder` interruptibility
 //!
-//! These tests verify that ThreadYielder properly uses CondVar::wait_timeout
-//! instead of park_timeout, allowing threads to be interrupted during shutdown.
+//! These tests verify that `ThreadYielder` properly uses `CondVar::wait_timeout`
+//! instead of `park_timeout`, allowing threads to be interrupted during shutdown.
 
 #![cfg(feature = "multi")]
 
-use serial_test::serial;
 use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tracing_test::traced_test;
 
 use foundation_core::valtron::multi::get_num_threads;
 use foundation_core::valtron::{
@@ -50,13 +48,11 @@ impl TaskIterator for ImmediateTask {
 }
 
 #[test]
-#[traced_test]
-#[serial]
 fn shutdown_interrupts_delayed_tasks() {
-    let start = Instant::now();
-
-    // Initialize pool with seed=42, thread_num=10
+    // Initialize pool with seed=42, thread_num=10. Time AFTER acquiring the pool
+    // so the lifecycle-gate queueing time is excluded from the shutdown assertion.
     let guard = initialize_pool(42, Some(10));
+    let start = Instant::now();
 
     // Spawn task with 10s delay
     spawn()
@@ -79,18 +75,17 @@ fn shutdown_interrupts_delayed_tasks() {
     // Should complete quickly (< 1s), not wait 10s
     assert!(
         elapsed < Duration::from_secs(1),
-        "Shutdown took too long: {:?}",
-        elapsed
+        "Shutdown took too long: {elapsed:?}"
     );
 }
 
 #[test]
-#[traced_test]
-#[serial]
 fn multiple_delayed_tasks_shutdown_quickly() {
-    let start = Instant::now();
-
     let guard = initialize_pool(42, Some(4));
+    // Start timing AFTER acquiring the pool — initialize_pool blocks on the
+    // process-wide lifecycle gate (FIFO), and that queueing time must not count
+    // against the shutdown-speed assertion below.
+    let start = Instant::now();
 
     // Spawn multiple tasks with long delays
     for _ in 0..10 {
@@ -114,8 +109,7 @@ fn multiple_delayed_tasks_shutdown_quickly() {
     // Should still complete quickly
     assert!(
         elapsed < Duration::from_secs(2),
-        "Shutdown with multiple delayed tasks took too long: {:?}",
-        elapsed
+        "Shutdown with multiple delayed tasks took too long: {elapsed:?}"
     );
 }
 
@@ -123,11 +117,11 @@ fn multiple_delayed_tasks_shutdown_quickly() {
 /// When a thread is sleeping on a long sleeper deadline, spawning new work
 /// should interrupt the sleep so the new work is picked up quickly.
 #[test]
-#[traced_test]
-#[serial]
 fn new_work_interrupts_sleep() {
-    let start = Instant::now();
+    // Time AFTER acquiring the pool so the lifecycle-gate queueing time is
+    // excluded from the interrupt-latency assertion.
     let guard = initialize_pool(42, Some(4));
+    let start = Instant::now();
 
     // Spawn task with long delay - this will cause the thread to sleep for 30s
     spawn()
@@ -163,13 +157,11 @@ fn new_work_interrupts_sleep() {
     let elapsed = start.elapsed();
     assert!(
         elapsed < Duration::from_secs(1),
-        "Test took too long: {:?}",
-        elapsed
+        "Test took too long: {elapsed:?}"
     );
 }
 
 #[test]
-#[traced_test]
 fn test_get_num_threads_when_env_is_not_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     let thread_num = get_num_threads();
@@ -178,7 +170,6 @@ fn test_get_num_threads_when_env_is_not_set() {
 }
 
 #[test]
-#[traced_test]
 fn test_get_num_threads_when_env_is_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     env::set_var("VALTRON_NUM_THREADS", "2");

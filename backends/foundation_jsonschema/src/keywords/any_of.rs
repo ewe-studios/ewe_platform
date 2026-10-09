@@ -32,8 +32,9 @@ impl Validate for AnyOfValidator {
             let state = ctx.save_evaluation_state();
             if schema.is_valid(instance, ctx) {
                 any_valid = true;
-                // Keep marks from this matching branch, continue to collect more
+                // Keep marks from this matching branch
             } else {
+                // Discard marks from non-matching branch
                 ctx.restore_evaluation_state(&state);
             }
         }

@@ -2,7 +2,7 @@
 
 use foundation_nativeapis::native::vfs::{DirectoryDelta, NativeFs};
 use foundation_nativeapis::shared::vfs::{
-    DeltaStore, MemoryDelta, OverlayFileSystem, VfsDirectory, VfsFile, VfsFileSystem,
+    DeltaStore, OverlayFileSystem, VfsDirectory, VfsFileSystem,
 };
 use std::fs;
 use std::path::PathBuf;

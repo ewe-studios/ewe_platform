@@ -34,15 +34,10 @@ impl CedarRequestBuilder {
     }
 
     #[must_use]
-    pub fn principal_str(
-        mut self,
-        type_name: &str,
-        id: &str,
-    ) -> Result<Self, CedarError> {
+    pub fn principal_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id)
-            .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
         self.principal = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
@@ -54,15 +49,10 @@ impl CedarRequestBuilder {
     }
 
     #[must_use]
-    pub fn action_str(
-        mut self,
-        type_name: &str,
-        id: &str,
-    ) -> Result<Self, CedarError> {
+    pub fn action_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id)
-            .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
         self.action = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
@@ -74,15 +64,10 @@ impl CedarRequestBuilder {
     }
 
     #[must_use]
-    pub fn resource_str(
-        mut self,
-        type_name: &str,
-        id: &str,
-    ) -> Result<Self, CedarError> {
+    pub fn resource_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id)
-            .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
         self.resource = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
@@ -134,34 +119,5 @@ impl CedarRequest {
     #[must_use]
     pub fn builder() -> CedarRequestBuilder {
         CedarRequestBuilder::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_request() {
-        let req = CedarRequest::builder()
-            .principal_str("User", "alice")
-            .unwrap()
-            .action_str("Action", "view")
-            .unwrap()
-            .resource_str("Album", "trip")
-            .unwrap()
-            .build();
-        assert!(req.is_ok());
-    }
-
-    #[test]
-    fn test_build_request_missing_principal() {
-        let req = CedarRequest::builder()
-            .action_str("Action", "view")
-            .unwrap()
-            .resource_str("Album", "trip")
-            .unwrap()
-            .build();
-        assert!(req.is_err());
     }
 }

@@ -6,7 +6,7 @@
 //! RFC 7230 Section 3.3 specifies that 1xx responses MUST NOT contain a body.
 //! The actual `HttpResponseReader` handling is tested at the integration level.
 
-use foundation_netio::simple_http::shared::{IncomingResponseParts, Proto, SimpleHeaders, Status};
+use foundation_netio::shared::http::{IncomingResponseParts, Proto, SimpleHeaders, Status};
 
 /// WHY: Verify `Status::SwitchingProtocols` is correctly defined as 101.
 /// WHAT: Tests that the status code value is 101.

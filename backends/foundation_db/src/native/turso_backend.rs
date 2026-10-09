@@ -92,25 +92,12 @@ impl TursoStorage {
     ///
     /// Returns a `StorageError` if schema creation fails.
     pub fn init_schema(&self) -> StorageResult<()> {
-        let schema_sql = r"
-            CREATE TABLE IF NOT EXISTS kv_store (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
-                updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_kv_store_key ON kv_store(key);
-
-            CREATE TABLE IF NOT EXISTS _migrations (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-            );
-        ";
-
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(schema_sql).await })?;
+        // Apply the full canonical migration set (kv_store via 001 … documents +
+        // promoted columns via 020/021). Previously this hardcoded only
+        // `kv_store`/`_migrations`, so every other table — including `documents`
+        // — was never created on the native sync path. The runner is idempotent
+        // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
+        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS).run(self)?;
         Ok(())
     }
 
@@ -175,11 +162,17 @@ impl TursoStorage {
         }
     }
 
-    /// Convert `turso::Row` to crate-owned [`SqlRow`].
-    fn turso_row_to_sql_row(row: &turso::Row, column_count: i32) -> StorageResult<SqlRow> {
+    fn turso_row_to_sql_row(
+        row: &turso::Row,
+        column_count: i32,
+        column_names: &[String],
+    ) -> StorageResult<SqlRow> {
         let mut columns = Vec::with_capacity(column_count.unsigned_abs() as usize);
         for i in 0..column_count {
-            let name = format!("col{i}");
+            let name = column_names
+                .get(i as usize)
+                .cloned()
+                .unwrap_or_else(|| format!("col{i}"));
             #[allow(clippy::cast_sign_loss)]
             let value = Self::turso_value_to_data_value(row.get_value(i as usize)?);
             columns.push((name, value));
@@ -217,9 +210,11 @@ impl TursoStorage {
                     .decode(stored_value)
                     .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
                 let decrypted = decrypt(key, &encrypted)?;
-                String::from_utf8(decrypted).map_err(|e| {
-                    StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
-                })
+                core::str::from_utf8(&decrypted)
+                    .map(String::from)
+                    .map_err(|e| {
+                        StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                    })
             }
             None => Ok(stored_value.to_string()),
         }
@@ -513,12 +508,18 @@ impl TursoStorage {
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
+            // Column names live on the result set (Rows), not individual Row values.
+            let column_names = rows.column_names();
 
             while let Some(row) = rows.next().await
                 .map_err(|e| StorageError::Backend(e.to_string()))?
             {
                 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-                yield Self::turso_row_to_sql_row(&row, row.column_count() as i32)?;
+                yield Self::turso_row_to_sql_row(
+                    &row,
+                    row.column_count() as i32,
+                    &column_names,
+                )?;
             }
         }
     }
@@ -565,7 +566,7 @@ impl TursoStorage {
             .map_err(|e| StorageError::Backend(e.to_string()))
     }
 
-    /// Async execute_batch.
+    /// Async `execute_batch`.
     async fn execute_batch_async_internal(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
@@ -575,6 +576,7 @@ impl TursoStorage {
     }
 
     /// Helper: wrap an async result into a `StorageItemStream` via `from_future`.
+#[allow(dead_code)]
     fn wrap_async<T: Send + 'static>(
         future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
     ) -> StorageResult<StorageItemStream<'static, T>> {
@@ -598,40 +600,53 @@ impl TursoStorage {
                 .map_pending(|_| ()),
         ))
     }
+
+    /// Helper: wrap an async result into a direct value via valtron.
+    fn wrap_async_value<T: Send + 'static>(
+        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
+    ) -> StorageResult<T> {
+        use foundation_core::valtron::{execute, collect_one};
+
+        let task = from_future(future);
+        let stream = execute(task, None)
+            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+
+        collect_one(stream)
+            .transpose()
+            .map_err(|e| StorageError::Backend(format!("Execution failed: {e}")))?
+            .ok_or_else(|| StorageError::Backend("No result from async operation".to_string()))
+    }
 }
 
 impl KeyValueStore for TursoStorage {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.get_async_internal::<V>(&key).await
         })
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.set_async_internal(&key, value).await
         })
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.delete_async_internal(&key).await
         })
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.exists_async_internal(&key).await
         })
     }
@@ -685,19 +700,19 @@ impl QueryStore for TursoStorage {
         &self,
         sql: &str,
         params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         let sql = sql.to_string();
         let storage = self.clone();
         let params = params.to_vec();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.execute_async_internal(&sql, &params).await
         })
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.execute_batch_async_internal(&sql).await
         })
     }
@@ -709,61 +724,61 @@ impl RateLimiterStore for TursoStorage {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.check_rate_limit_async_internal(&key, max_count, window_seconds).await
         })
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.record_rate_limit_async_internal(&key).await
         })
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.reset_rate_limit_async_internal(&key).await
         })
     }
 }
 
 impl BlobStore for TursoStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let key = key.to_string();
         let data = data.to_vec();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.put_blob_async_internal(&key, &data).await
         })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.get_blob_async_internal(&key).await
         })
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.delete_blob_async_internal(&key).await
         })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.blob_exists_async_internal(&key).await
         })
     }
@@ -773,7 +788,7 @@ impl BlobStore for TursoStorage {
 // Async trait implementations — direct calls to _async_internal methods.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for TursoStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
@@ -809,7 +824,7 @@ impl AsyncKeyValueStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for TursoStorage {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let conn = Arc::clone(&self.conn);
@@ -828,7 +843,7 @@ impl AsyncQueryStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for TursoStorage {
     async fn check_rate_limit_async(
         &self,
@@ -848,7 +863,7 @@ impl AsyncRateLimiterStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for TursoStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await

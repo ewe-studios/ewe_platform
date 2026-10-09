@@ -11,8 +11,8 @@ pub(crate) use encoded_message::alloc_buffer;
 pub(crate) use io_mul::IoMultiplexing;
 
 use crate::ipc::{
-    version::version, version::Version, util::EndpointID, Error, Label, LabelOp, MemoryRegion, MessageBox, Message,
-    Selector, decode, util::Align4,
+    version::version, util::EndpointID, Error, Label, LabelOp, MemoryRegion, MessageBox, Message,
+    Selector, util::Align4,
 };
 
 pub mod fd;

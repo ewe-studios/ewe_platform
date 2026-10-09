@@ -11,13 +11,13 @@
 //!
 //! Run with: wasm-testbed test bindgen-deno ./foundation_core --features js-wasmbindgen
 
-#![cfg(target_arch = "wasm32")]
+#![cfg(target_family = "wasm")]
 #![cfg(feature = "js-wasmbindgen")]
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use foundation_webwasm::Instant;
+use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},

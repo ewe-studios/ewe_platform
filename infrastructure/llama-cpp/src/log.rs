@@ -40,19 +40,22 @@ macro_rules! log_cs {
     };
 }
 log_cs!(
+    tracing_core::Level::TRACE,
+    TRACE_CS,
+    TRACE_META,
+    TRACE_FIELDS,
+    TraceCallsite
+);
+log_cs!(
     tracing_core::Level::DEBUG,
     DEBUG_CS,
     DEBUG_META,
     DEBUG_FIELDS,
     DebugCallsite
 );
-log_cs!(
-    tracing_core::Level::INFO,
-    INFO_CS,
-    INFO_META,
-    INFO_FIELDS,
-    InfoCallsite
-);
+// No INFO callsite: nothing maps to tracing INFO any more. See
+// `tracing_level_for` — llama.cpp's INFO is a load-time dump and is emitted at
+// DEBUG so a plain `info` filter stays usable without per-app directives.
 log_cs!(
     tracing_core::Level::WARN,
     WARN_CS,
@@ -83,17 +86,85 @@ impl Module {
     }
 }
 
+/// Map a ggml log level onto the tracing level the event is emitted at.
+///
+/// WHY the levels are shifted down rather than passed through: llama.cpp's
+/// notion of INFO is a load-time diagnostic dump — 165 lines of tensor and
+/// vocabulary metadata on every single model load — not the handful of
+/// application-level events a Rust caller means by `info`. Passing it through
+/// meant every binary embedding this crate had to carry a `llama-cpp-2=off`
+/// directive just to make `RUST_LOG=info` usable, and anyone who forgot got a
+/// wall of C output.
+///
+/// WARN is also demoted to DEBUG for the same reason: the warnings llama.cpp
+/// emits (token-type mismatches, vocabulary quirks) are model-metadata noise,
+/// not something the end user can act on. A plain `info` filter should be
+/// usable without any per-target directives.
+///
+/// ERROR stays at ERROR: when llama.cpp has a real fault, the caller must hear
+/// about it even under a quiet filter.
+///
+/// WHAT: ggml DEBUG → TRACE, ggml INFO/WARN → DEBUG, ggml ERROR → ERROR.
+pub(super) const fn tracing_level_for(
+    level: infrastructure_llama_bindings::ggml_log_level,
+) -> tracing_core::Level {
+    match level {
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG => tracing_core::Level::TRACE,
+        infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO
+        | infrastructure_llama_bindings::GGML_LOG_LEVEL_WARN => tracing_core::Level::DEBUG,
+        _ => tracing_core::Level::ERROR,
+    }
+}
+
+/// Pick the callsite for a ggml level, via [`tracing_level_for`].
+///
+/// Routed through that function rather than repeating the mapping, so the
+/// levels the unit tests assert on are the levels events are actually emitted
+/// at. Duplicating it meant `tracing_level_for` was dead code the tests still
+/// happily covered — a reverted mapping here would not have failed anything.
 fn meta_for_level(
     level: infrastructure_llama_bindings::ggml_log_level,
 ) -> (&'static Metadata<'static>, &'static OverridableFields) {
-    match level {
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_DEBUG => (&DEBUG_META, &DEBUG_FIELDS),
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_INFO => (&INFO_META, &INFO_FIELDS),
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_WARN => (&WARN_META, &WARN_FIELDS),
-        infrastructure_llama_bindings::GGML_LOG_LEVEL_ERROR => (&ERROR_META, &ERROR_FIELDS),
-        _ => {
-            unreachable!("Illegal log level to be called here")
-        }
+    match tracing_level_for(level) {
+        tracing_core::Level::TRACE => (&TRACE_META, &TRACE_FIELDS),
+        tracing_core::Level::DEBUG => (&DEBUG_META, &DEBUG_FIELDS),
+        tracing_core::Level::WARN => (&WARN_META, &WARN_FIELDS),
+        _ => (&ERROR_META, &ERROR_FIELDS),
+    }
+}
+
+#[cfg(test)]
+mod level_mapping_tests {
+    use super::tracing_level_for;
+    use infrastructure_llama_bindings as bindings;
+    use tracing_core::Level;
+
+    #[test]
+    fn native_info_is_demoted_so_a_plain_info_filter_stays_quiet() {
+        // The model-loader dump arrives at ggml INFO. If this ever maps back to
+        // tracing INFO, `RUST_LOG=info` floods again.
+        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_INFO), Level::DEBUG);
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_DEBUG),
+            Level::TRACE
+        );
+    }
+
+    #[test]
+    fn native_errors_are_never_demoted() {
+        // A caller that quietens this crate must still hear about real faults.
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_ERROR),
+            Level::ERROR
+        );
+    }
+
+    #[test]
+    fn native_warn_is_demoted_to_debug() {
+        // Token-type warnings and similar model-metadata quirks are not
+        // actionable for the end user. They must not survive a plain `info`
+        // filter.
+        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_WARN), Level::DEBUG);
     }
 }
 
@@ -351,6 +422,8 @@ mod tests {
 
     #[test]
     fn cont_disabled_log() {
+        // Feeds ggml DEBUG (emitted at tracing TRACE) into an INFO subscriber,
+        // so nothing should be captured.
         let logger = create_logger(tracing::Level::INFO);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
         let log_ptr =
@@ -388,7 +461,10 @@ mod tests {
 
     #[test]
     fn cont_enabled_log() {
-        let logger = create_logger(tracing::Level::INFO);
+        // DEBUG, not INFO: ggml INFO is emitted at tracing DEBUG (see
+        // `tracing_level_for`), so a subscriber at INFO would filter the very
+        // events this test is about and assert on an empty log.
+        let logger = create_logger(tracing::Level::DEBUG);
         let mut log_state = Box::new(State::new(Module::LlamaCpp, LogOptions::default()));
         let log_ptr =
             std::ptr::from_mut::<State>(log_state.as_mut()).cast::<std::os::raw::c_void>();

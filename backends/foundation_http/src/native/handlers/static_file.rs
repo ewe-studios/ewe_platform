@@ -1,13 +1,14 @@
 //! Static file handler — serves files from a directory with path traversal prevention.
 
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
     SendSafeBody, Status,
 };
@@ -97,13 +98,52 @@ impl StaticFileHandler {
             .build()
             .expect("valid response");
 
-        match Http11::response(response).http_render_to_writer(conn) {
-            Ok(_) => ConnectionResult::Keep,
+        // Collect render chunks into one buffer, then write with WouldBlock retry.
+        // Non-blocking sockets (valtron pump) cause write_all to fail immediately
+        // when the send buffer is full.
+        let render = match Http11::response(response).http_render() {
+            Ok(chunks) => chunks,
             Err(e) => {
                 tracing::error!("Failed to render static file response: {e}");
-                ConnectionResult::Close(None)
+                return ConnectionResult::Close(None);
+            }
+        };
+
+        let mut wire = Vec::new();
+        for chunk in render {
+            match chunk {
+                Ok(bytes) => wire.extend_from_slice(&bytes),
+                Err(e) => {
+                    tracing::error!("Failed to collect render chunk: {e}");
+                    return ConnectionResult::Close(None);
+                }
             }
         }
+
+        const MAX_RETRIES: u32 = 10;
+        for attempt in 0..MAX_RETRIES {
+            match conn.write_all(&wire).and_then(|()| conn.flush()) {
+                Ok(()) => return ConnectionResult::Keep,
+                Err(ref e)
+                    if e.kind() == std::io::ErrorKind::WouldBlock
+                        || e.kind() == std::io::ErrorKind::ConnectionReset
+                        || e.kind() == std::io::ErrorKind::ConnectionAborted
+                        || e.kind() == std::io::ErrorKind::BrokenPipe =>
+                {
+                    if attempt + 1 < MAX_RETRIES {
+                        std::thread::sleep(Duration::from_millis(50 * (attempt + 1) as u64));
+                        continue;
+                    }
+                    tracing::error!("Failed to write static file after {MAX_RETRIES} retries");
+                    return ConnectionResult::Close(None);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to write static file response: {e}");
+                    return ConnectionResult::Close(None);
+                }
+            }
+        }
+        unreachable!()
     }
 }
 

@@ -22,6 +22,40 @@ impl LlamaBackend {
         }
     }
 
+    /// Route llama.cpp + ggml native logs into `tracing`, exactly once.
+    ///
+    /// WHY: llama.cpp writes the full model-loader dump, per-tensor `repack:`
+    /// lines and graph-reservation output straight to `stderr` on every load,
+    /// which buries an app's own output (spec-60/B). Sending them through
+    /// `tracing` instead makes them ordinary events under the app's
+    /// `EnvFilter`, so a directive can silence or reveal them.
+    ///
+    /// The directive is `llama-cpp-2`, NOT `llama.cpp` or `ggml`. Both modules
+    /// share the single target `"llama-cpp-2"`, hard-coded as a string literal
+    /// in the `log_cs!` macro in `crate::log` — `tracing` requires a target to
+    /// be a literal, so the originating module cannot be promoted into it and
+    /// rides along as a `module` *field* instead. `EnvFilter` matches on target
+    /// only, so `llama.cpp=off` and `ggml=off` are silently inert; they look
+    /// like they work because these events are already below the default level.
+    ///
+    /// * silence:  `llama-cpp-2=off` (or just `info` — token-type warnings and
+    ///   the loader dump are both demoted to DEBUG so a plain `info` filter is
+    ///   quiet)
+    /// * reveal:   `llama-cpp-2=debug`
+    ///
+    /// Regression-locked by `tests/log_filtering.rs`.
+    ///
+    /// HOW: `send_logs_to_tracing` installs the C log callback via
+    /// `llama_log_set`/`ggml_log_set`. It is guarded by a `Once` here so repeated
+    /// `init_or_get` calls (the common case) install the hook only on the first.
+    fn route_logs_to_tracing() {
+        use std::sync::Once;
+        static LOG_ROUTE: Once = Once::new();
+        LOG_ROUTE.call_once(|| {
+            crate::send_logs_to_tracing(crate::LogOptions::default());
+        });
+    }
+
     /// Return a handle to the llama backend, initializing it on first call.
     ///
     /// Unlike [`init`](Self::init), this never errors if the backend is
@@ -45,6 +79,7 @@ impl LlamaBackend {
     /// ```
     #[tracing::instrument(skip_all)]
     pub fn init_or_get() -> crate::Result<LlamaBackend> {
+        Self::route_logs_to_tracing();
         match Self::mark_init() {
             Ok(()) => {
                 unsafe { infrastructure_llama_bindings::llama_backend_init() }
@@ -108,7 +143,19 @@ impl LlamaBackend {
         unsafe { infrastructure_llama_bindings::llama_supports_mlock() }
     }
 
-    /// Change the output of llama.cpp's logging to be voided instead of pushed to `stderr`.
+    /// Discard llama.cpp's and ggml's native logs instead of writing them to
+    /// `stderr`.
+    ///
+    /// WHY: this is the blunt alternative to [`route_logs_to_tracing`] for
+    /// callers with no `tracing` subscriber — there is nothing to filter with,
+    /// so the callback drops every line.
+    ///
+    /// Both back ends must be silenced. ggml keeps its own log callback, and
+    /// the loader dump and per-tensor `repack:` lines come from ggml rather
+    /// than llama.cpp — setting only `llama_log_set` leaves the noisiest half
+    /// still writing to `stderr`.
+    ///
+    /// [`route_logs_to_tracing`]: Self::route_logs_to_tracing
     pub fn void_logs(&mut self) {
         unsafe extern "C" fn void_log(
             _level: ggml_log_level,
@@ -119,6 +166,7 @@ impl LlamaBackend {
 
         unsafe {
             infrastructure_llama_bindings::llama_log_set(Some(void_log), std::ptr::null_mut());
+            infrastructure_llama_bindings::ggml_log_set(Some(void_log), std::ptr::null_mut());
         }
     }
 }
@@ -187,10 +235,10 @@ impl From<NumaStrategy> for infrastructure_llama_bindings::ggml_numa_strategy {
 ///# use std::error::Error;
 ///
 ///# fn main() -> Result<(), Box<dyn Error>> {
-/// let backend = LlamaBackend::init()?;
+/// let backend = LlamaBackend::init_or_get()?;
 /// drop(backend);
 /// // can be initialized again after being dropped
-/// let backend = LlamaBackend::init()?;
+/// let backend = LlamaBackend::init_or_get()?;
 ///# Ok(())
 ///# }
 ///

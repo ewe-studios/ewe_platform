@@ -8,7 +8,7 @@ use std::io::Write;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::event_source::{EventWriter, SseEvent};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
     SimpleOutgoingResponse, SendSafeBody, Status,
 };
@@ -182,6 +182,25 @@ impl SseStream {
         self.writer
             .message(data)
             .map_err(|e| UpgradeError::WriteError(e.to_string()))
+    }
+
+    /// Send a BINARY frame as an SSE message — base64-encoded.
+    ///
+    /// WHY: SSE `data:` lines are text (UTF-8, line-delimited), so raw binary
+    /// protocol frames (NUL bytes, embedded newlines) can't ride them directly.
+    /// This is the SERVER half of the binary-over-SSE contract: the browser
+    /// decodes with `atob`. The frame stays self-describing — an envelope
+    /// `[protocol][version][length][..]` carries its own type, so no SSE
+    /// `event:`/headers are needed; the receiver reads the envelope header.
+    /// WHAT: base64-encodes `frame` and writes it as a `data:` message event.
+    ///
+    /// # Errors
+    ///
+    /// Returns `UpgradeError` if writing fails.
+    pub fn binary(&mut self, frame: &[u8]) -> Result<(), UpgradeError> {
+        use base64::Engine as _;
+        let encoded = base64::engine::general_purpose::STANDARD.encode(frame);
+        self.message(encoded)
     }
 
     /// Send a comment (keep-alive).

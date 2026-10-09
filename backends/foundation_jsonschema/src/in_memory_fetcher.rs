@@ -13,7 +13,7 @@
 
 use alloc::collections::BTreeMap;
 use alloc::format;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 
 use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
 use serde_json::Value;
@@ -112,7 +112,8 @@ fn build_builtin_map() -> BTreeMap<String, Value> {
     ];
     for (uri, json_str) in pairs {
         if let Ok(val) = serde_json::from_str::<Value>(json_str) {
-            map.insert((*uri).to_string(), val);
+            let norm = crate::referencing::uri::normalize(uri);
+            map.insert(norm, val);
         }
     }
     map
@@ -166,8 +167,13 @@ impl InMemoryFetcher {
     }
 
     /// Insert a custom URI → schema mapping.
+    ///
+    /// WHY: URIs are normalized per RFC 3986 (§6.2.2.1) so that
+    /// `http://Example.COM/x` and `http://example.com/x` map to the same entry.
     pub fn insert(&mut self, uri: impl Into<String>, schema: Value) -> &mut Self {
-        self.schemas.insert(uri.into(), schema);
+        use crate::referencing::uri;
+        let norm = uri::normalize(&uri.into());
+        self.schemas.insert(norm, schema);
         self
     }
 
@@ -200,7 +206,9 @@ impl Default for InMemoryFetcher {
 
 impl JsonResolver for InMemoryFetcher {
     fn resolve(&self, uri: &str) -> Result<Value, ErrorTrace<ResolveError>> {
-        self.schemas.get(uri).cloned().ok_or_else(|| {
+        use crate::referencing::uri;
+        let norm = uri::normalize(uri);
+        self.schemas.get(&norm).cloned().ok_or_else(|| {
             ResolveError::new(uri)
                 .into_error_trace()
                 .attach(format!("not found in in-memory fetcher: {uri}"))

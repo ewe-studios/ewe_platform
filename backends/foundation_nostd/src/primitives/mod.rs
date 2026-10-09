@@ -68,40 +68,40 @@ pub use wait_duration::wait_duration;
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopMutex`
 /// - On all other platforms: Uses `SpinMutex`
-#[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+#[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 pub type Mutex<T> = noop::NoopMutex<T>;
 
 /// Platform-appropriate Mutex type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopMutex`
 /// - On all other platforms: Uses `SpinMutex`
-#[cfg(any(not(target_arch = "wasm32"), target_feature = "atomics"))]
+#[cfg(any(not(target_family = "wasm"), target_feature = "atomics"))]
 pub type Mutex<T> = SpinMutex<T>;
 
 /// Platform-appropriate `RwLock` type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopRwLock`
 /// - On all other platforms: Uses `SpinRwLock`
-#[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+#[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 pub type RwLock<T> = noop::NoopRwLock<T>;
 
 /// Platform-appropriate `RwLock` type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopRwLock`
 /// - On all other platforms: Uses `SpinRwLock`
-#[cfg(any(not(target_arch = "wasm32"), target_feature = "atomics"))]
+#[cfg(any(not(target_family = "wasm"), target_feature = "atomics"))]
 pub type RwLock<T> = SpinRwLock<T>;
 
 /// Platform-appropriate Once type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopOnce`
 /// - On all other platforms: Uses `Once`
-#[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+#[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 pub type PlatformOnce = noop::NoopOnce;
 
 /// Platform-appropriate Once type.
 ///
 /// - On single-threaded WASM (no atomics): Uses `NoopOnce`
 /// - On all other platforms: Uses `Once`
-#[cfg(any(not(target_arch = "wasm32"), target_feature = "atomics"))]
+#[cfg(any(not(target_family = "wasm"), target_feature = "atomics"))]
 pub type PlatformOnce = Once;

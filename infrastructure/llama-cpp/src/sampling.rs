@@ -125,7 +125,7 @@ impl LlamaSampler {
     /// };
     /// use infrastructure_llama_cpp::sampling::LlamaSampler;
     /// use infrastructure_llama_cpp::llama_backend::LlamaBackend;
-    /// let backend = LlamaBackend::init().unwrap();
+    /// let backend = LlamaBackend::init_or_get().unwrap();
     ///
     /// let mut data_array = LlamaTokenDataArray::new(vec![
     ///     LlamaTokenData::new(LlamaToken(0), 0., 0.),

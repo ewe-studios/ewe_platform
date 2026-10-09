@@ -3,7 +3,7 @@
 //! These tests verify that TLS backends are properly configured and can be instantiated.
 //! Network tests are marked as #[ignore] to avoid requiring internet connectivity.
 
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 
 #[cfg(feature = "ssl-rustls")]
 mod rustls_tests {

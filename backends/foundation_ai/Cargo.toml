@@ -6,85 +6,255 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "AI foundation create for the eweplatform"
+description = "AI foundation crate for the eweplatform"
 keywords = ["foundations_ai", "ewe-platform-ai"]
 
 [dependencies]
 
 # -- Workspace dependencies
 
-foundation_nostd = { workspace = true }
-foundation_auth = { workspace = true, features = ["turso"] }
-foundation_macros = { workspace = true }
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_deployment = { workspace = true, features = ["huggingface"] }
-foundation_errstacks = { workspace = true }
-foundation_jsonschema = { workspace = true }
-
-infrastructure_llama_cpp = { workspace = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
+foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
+# foundation_deployment_huggingface is native-only (uses reqwest/std networking)
+# pulled in by llamacpp/candle features via the native target gate below
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
+foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.2" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.1", features = ["serde"] }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
+# DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
+# stores (F07). default-features=false → just the core traits + in-memory backends
+# (no turso/d1/r2 pulled into foundation_ai).
+foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
+# VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
+foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
+concurrent-queue = "2.5.0"
 
 # -- Other dependencies
+async-trait = "0.1"
 regex = { version = "1.10" }
 tracing = { workspace = true }
 lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-fastrand = { version = "2.3"}
-rand_chacha = { version = "0.10"}
-rand = { version = "0.10"}
-chrono = { version = "0.4.44"}
+ahash = "0.8"
+# Tool-boundary panic containment in the agentic loop (catch_unwind on the
+# tool future). Also a dev-dependency for block_on in tests.
+futures-lite = "2"
+
+# native-only deps
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
+# vfs-search-fff (F18): the real fff search engine for native search_file, via
+# the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search", "vfs-search-fff"] }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["wasm"], default-features = false }
+
+# llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
+[target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2", optional = true }
 
 # Candle ML framework (optional, behind feature flags)
-# Note: candle-core is NOT listed here — it's pulled in transitively by
-# candle-nn and candle-transformers. The Apple target-specific dep below
-# adds candle-core with metal feature on macOS.
-candle-nn = { version = "0.10", optional = true }
-candle-transformers = { version = "0.10", optional = true }
-tokenizers = { version = "0.22", optional = true }
+[dependencies.candle-core]
+version = "0.11"
+optional = true
 
-# Candle with Metal — Apple only. Non-optional + target-specific so
-# --all-features on Linux never pulls in objc2 (target deps are skipped
-# on non-matching targets, unlike optional deps where features activate globally).
+[dependencies.candle-nn]
+version = "0.11"
+optional = true
+
+[dependencies.candle-transformers]
+version = "0.11"
+optional = true
+
+[dependencies.tokenizers]
+version = "0.22"
+optional = true
+
+[dependencies.fastrand]
+version = "2.3"
+optional = true
+
+# Chat-template rendering for the candle backend (spec-60/S5). Same version as
+# foundation_packager, which already uses it.
+[dependencies.minijinja]
+version = "2.0"
+optional = true
+
+# Candle with Metal — Apple only.
 [target.'cfg(target_vendor = "apple")'.dependencies]
-candle-core = { version = "0.10", features = ["metal"] }
+candle-core = { version = "0.11", features = ["metal"] }
 
 [dev-dependencies]
-# Foundation testing with HuggingFace model downloading
-foundation_testing = { workspace = true, features = ["huggingface"] }
+foundation_testing = { path = "../foundation_testing", version = "0.0.1", features = ["huggingface"] }
 serial_test = { workspace = true }
-tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
+tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
+futures-lite = "2"
+
+# Native-only: lets tests construct the source llama.cpp error types to cover the
+# From/Display conversions in errors/llama.rs (already a build dep via llamacpp).
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2" }
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[[test]]
+name = "foundation_ai_tests"
+path = "tests/mod.rs"
+# `testing` is required for the same reason as `agentic_tests`: tests/models
+# imports `agentic::testing`, which only exists under that feature, so without
+# it the target fails to compile rather than skipping cleanly.
+required-features = ["agentic", "llamacpp", "candle", "testing"]
+
+[[test]]
+name = "agentic_tests"
+path = "tests/agentic/mod.rs"
+# `testing` too, so the target is all-or-nothing. It used to be gated per-module
+# inside mod.rs, which meant `--features agentic` reported "188 passed" while
+# silently skipping 44 — a suite that looks green while omitting the half that
+# drives real turns.
+required-features = ["agentic", "testing"]
+
+[[test]]
+name = "provider_tests"
+path = "tests/providers/mod.rs"
+required-features = ["agentic", "llamacpp"]
+
+[[test]]
+name = "tool_tests"
+path = "tests/tools/mod.rs"
+required-features = ["agentic"]
+
+[[test]]
+name = "candle_tests"
+path = "tests/candle/mod.rs"
+required-features = ["candle"]
+
+
+[[test]]
+name = "gpu_tests"
+path = "tests/gpu/mod.rs"
+required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
+
+[[test]]
+name = "model_tests"
+path = "tests/models/mod.rs"
+required-features = ["testing"]
+
+[[test]]
+name = "memory_tests"
+path = "tests/memory/mod.rs"
+required-features = ["agentic"]
 
 [features]
-# vulkan + Apple Metal
-metal = ["infrastructure_llama_cpp/metal"]
-vulkan = ["infrastructure_llama_cpp/vulkan"]
+default = ["llamacpp", "candle", "agentic"]
+llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
+agentic = []
+
+# Toolbox utilities to make testing and execution easier.
+toolbox = []
+
+# vulkan + Apple Metal (route through llamacpp)
+metal = ["llamacpp", "infrastructure_llama_cpp/metal"]
+vulkan = ["llamacpp", "infrastructure_llama_cpp/vulkan"]
 
 # cuda flags
-cuda = ["infrastructure_llama_cpp/cuda"]
-cuda_static = ["infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
+cuda = ["llamacpp", "infrastructure_llama_cpp/cuda"]
+cuda_static = ["llamacpp", "infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
 
 # Android
-android = ["infrastructure_llama_cpp/android-shared-stdcxx"]
+android = ["llamacpp", "infrastructure_llama_cpp/android-shared-stdcxx"]
 
 # OpenMP
-openmp = ["infrastructure_llama_cpp/openmp"]
+openmp = ["llamacpp", "infrastructure_llama_cpp/openmp"]
 
 # MultiModel Model
-mtmd = ["infrastructure_llama_cpp/mtmd"]
+mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-# candle-core is a transitive dep of candle-nn/candle-transformers; the
-# metal variant is added as a non-optional target-specific dep above.
-candle = ["candle-nn", "candle-transformers", "tokenizers"]
-# candle-core is pulled in transitively by candle-nn; we enable cuda feature on it.
-candle-cuda = ["candle", "candle-core/cuda"]
-# candle-metal: auto-enabled on Apple targets via target-specific dep above.
-# Code uses #[cfg(all(target_vendor = "apple", feature = "candle"))] guards.
+candle = ["candle-core", "candle-nn", "candle-transformers", "tokenizers", "fastrand", "minijinja", "dep:foundation_deployment_huggingface"]
+# CUDA needs the cuda feature on EVERY candle crate, not just candle-core: the
+# fused ops (rms-norm, softmax, rope) live in candle-nn and error with "no cuda
+# implementation for rms-norm" if only candle-core/cuda is on, while the model
+# code is in candle-transformers.
+candle-cuda = [
+    "candle",
+    "candle-core/cuda",
+    "candle-nn/cuda",
+    "candle-transformers/cuda",
+]
+candle-gpu = ["candle-cuda"]
 
 # Multi-threaded executor
-multi = ["foundation_deployment/multi", "foundation_core/multi"]
+multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
+
+# Test substrate (F21): MockModelProvider, MockTool, message builders
+testing = ["toolbox"]
+
+# live-model-tests: integration tests that need a LARGE or DOWNLOADED model
+# (SmolLM2, Gemma-4, the qwen GGUF the llama-server runs) or a live cloud API
+# (OpenAI/Anthropic). Everything testable with the committed tiny safetensors
+# fixtures (tiny-random Llama/Gemma2, via the candle backend) runs by default
+# and is NOT gated here — see tests/candle and tests/agentic/*_candle.
+live-model-tests = ["testing", "llamacpp", "candle"]
+
+# Back-compat alias — prefer `live-model-tests`.
+integration_tests = ["live-model-tests"]
+
+# external-service-tests: tests that hit a NETWORK SERVICE — OpenRouter, OpenAI,
+# Anthropic, HF Hub download, cloud HTTP generators. Require credentials
+# (OPENROUTER_API_KEY, …) and self-skip when absent — never fail a run for a
+# missing key. Distinct from live-model-tests (a local downloaded model).
+external-service-tests = ["testing", "llamacpp", "candle"]
+
+# ===========================================================================
+# Examples — runnable with `cargo run -p foundation_ai --example <name>`
+# ===========================================================================
+
+[[example]]
+name = "hello_claude"
+path = "examples/hello_claude.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_openai"
+path = "examples/hello_openai.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_openrouter"
+path = "examples/hello_openrouter.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "hello_llamacpp"
+path = "examples/hello_llamacpp.rs"
+required-features = ["agentic", "llamacpp"]
+
+[[example]]
+name = "custom_router"
+path = "examples/custom_router.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "agent_with_tools"
+path = "examples/agent_with_tools.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "manual_claude_router"
+path = "examples/manual_claude_router.rs"
+required-features = ["agentic"]
+
+[[example]]
+name = "manual_openrouter"
+path = "examples/manual_openrouter.rs"
+required-features = ["agentic"]
 
 [lints]
 workspace = true

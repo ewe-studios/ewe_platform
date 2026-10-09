@@ -3,10 +3,10 @@
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
 //! Uses `MockDnsResolver` — no real network connections.
 
-use foundation_core::valtron::TaskIterator;
-use foundation_netio::event_source::ReconnectingEventSourceTask;
-use foundation_netio::simple_http::client::MockDnsResolver;
-use foundation_netio::simple_http::shared::DnsError;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_netio::event_source::native::ReconnectingEventSourceTask;
+use foundation_netio::shared::client::MockDnsResolver;
+use foundation_netio::shared::http::DnsError;
 
 /// WHY: `ReconnectingEventSourceTask::connect` should validate URLs.
 /// WHAT: Verify connect returns Err for invalid URL.
@@ -44,7 +44,7 @@ fn test_reconnecting_task_builder_chaining() {
         .unwrap()
         .with_max_retries(10)
         .with_header(
-            foundation_netio::simple_http::shared::SimpleHeader::custom("Authorization"),
+            foundation_netio::shared::http::SimpleHeader::custom("Authorization"),
             "Bearer token",
         )
         .with_last_event_id("42");
@@ -119,11 +119,11 @@ fn test_reconnecting_task_defers_connection_until_next_status() {
     // Build task with body and headers
     let _task = ReconnectingEventSourceTask::connect(resolver, "http://test.invalid/events")
         .unwrap()
-        .with_body(foundation_netio::simple_http::shared::SendSafeBody::Text(
+        .with_body(foundation_netio::shared::http::SendSafeBody::Text(
             r#"{"model":"test"}"#.into(),
         ))
         .with_header(
-            foundation_netio::simple_http::shared::SimpleHeader::AUTHORIZATION,
+            foundation_netio::shared::http::SimpleHeader::AUTHORIZATION,
             "Bearer test-key",
         );
 
@@ -159,6 +159,8 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
             foundation_core::valtron::TaskStatus::Ignore => "Ignore".to_string(),
             foundation_core::valtron::TaskStatus::Spawn(_) => "Spawn".to_string(),
             foundation_core::valtron::TaskStatus::Wait => "Wait".to_string(),
+            TaskStatus::Spread(_) => "Spread".to_string(),
+            TaskStatus::Depends(_) => "Depends".to_string(),
         };
         states.push(label);
         // Safety valve

@@ -1,0 +1,13 @@
+[package]
+name = "app_shell"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Opt out of parent workspace — same pattern as app/ and app-hello/.
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]

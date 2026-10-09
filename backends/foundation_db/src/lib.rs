@@ -4,7 +4,7 @@
 //!
 //! - **`core/`** — shared between native and wasm (traits, errors, memory backends,
 //!   D1/R2 HTTP backends, schema, crypto, cleanup)
-//! - **`native/`** — non-wasm only (turso, libsql, json_file, rows_stream)
+//! - **`native/`** — non-wasm only (turso, libsql, `json_file`, `rows_stream`)
 //! - **`wasm/`** — wasm32 only (CF D1/R2/KV wasm-bindgen bindings)
 //!
 //! # Storage Providers
@@ -23,11 +23,11 @@ pub mod core;
 pub mod storage_provider;
 
 // Native — TCP/DB backends, rows streaming
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 // Wasm — optional wasm-bindgen bridge for Cloudflare Workers (D1/R2/KV)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-bindings"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-bindings"))]
 pub mod wasm;
 
 // Public re-exports (shared — always available)
@@ -37,24 +37,29 @@ pub use core::cleanup::*;
 pub use core::backends::*;
 pub use core::crypto::*;
 pub use core::schema::*;
+pub use core::auth_store::*;
 
 // Central StorageProvider + StorageBackend (always available)
 pub use storage_provider::{StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{
-    AsyncQueryStore, BlobStore, DataValue, FromDataValue, KeyValueStore, QueryStore,
+    AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncStorageItemStream, BlobStore, DataValue, FromDataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow, StorageItemStream,
 };
 
 // Native-only re-exports
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
-pub use wasm::{D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+pub use wasm::{CfD1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
+
+// State store module
+pub use core::state;

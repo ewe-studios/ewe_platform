@@ -1,5 +1,5 @@
 use foundation_arrow::ipc::{decode_ipc, encode_ipc};
-use foundation_arrow::{ArrowMessageBox, ArrowSchema, FromArrow, ToArrow};
+use foundation_arrow::{ArrowMessageBox, FromArrow, ToArrow};
 use foundation_macros::{ArrowSchema, FromArrow, ToArrow};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -16,7 +16,7 @@ fn test_to_arrow_single_row() {
     let record = SimpleRecord {
         name: "test".to_string(),
         count: 42,
-        score: 3.14,
+        score: 3.5,
         active: true,
     };
     let batch = record.to_arrow().unwrap();
@@ -50,7 +50,7 @@ fn test_roundtrip_single() {
     let original = SimpleRecord {
         name: "roundtrip".to_string(),
         count: 99,
-        score: 2.718,
+        score: 2.5,
         active: false,
     };
     let batch = original.to_arrow().unwrap();
@@ -357,7 +357,7 @@ fn test_vfs_metadata_roundtrip() {
 #[test]
 fn test_vfs_metadata_ipc_roundtrip() {
     let original = VfsMetadataArrow {
-        size: 1048576,
+        size: 1_048_576,
         file_type: 1, // Directory
         permissions: 0o755,
         owner_uid: 0,
@@ -408,7 +408,7 @@ fn test_arrow_message_box_encode_decode() {
     let original = SimpleRecord {
         name: "message".to_string(),
         count: 42,
-        score: 3.14,
+        score: 3.5,
         active: true,
     };
     let bytes = original.encode_arrow().unwrap();

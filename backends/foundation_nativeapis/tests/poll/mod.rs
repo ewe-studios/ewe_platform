@@ -7,7 +7,7 @@
 /// - Multiple tokens return correct tokens
 
 use foundation_nativeapis::{Events, Interest, Poll, SourceFd, Token, Waker};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -296,7 +296,7 @@ fn tcp_stream_connect_accept() {
         .expect("register failed");
 
     // Connect a client
-    let client = std::net::TcpStream::connect(addr).expect("connect failed");
+    let _client = std::net::TcpStream::connect(addr).expect("connect failed");
 
     // Poll should return event for listener
     let mut events = Events::with_capacity(16);

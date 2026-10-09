@@ -37,16 +37,16 @@ impl Debug for LlamaModelContext<'_> {
     }
 }
 
-impl Clone for LlamaModelContext<'_> {
-    fn clone(&self) -> Self {
-        Self {
-            context: self.context,
-            model: self.model,
-            initialized_logits: self.initialized_logits.clone(),
-            embeddings_enabled: self.embeddings_enabled,
-        }
-    }
-}
+// `LlamaModelContext` is deliberately NOT `Clone`.
+//
+// It owns a raw `llama_context` pointer and frees it in `Drop`
+// (`llama_free`). A derived/shallow `Clone` would copy that pointer while
+// leaving both values owning it, so the first drop freed the context out from
+// under every other copy — a use-after-free that crashed the streaming path
+// with SIGSEGV (see foundation_ai/docs/fixes/006).
+//
+// Share a context by reference, or behind an `Arc`/`Arc<Mutex<_>>` when it must
+// outlive a single scope — never by copying the handle.
 
 impl<'model> LlamaModelContext<'model> {
     #[must_use]

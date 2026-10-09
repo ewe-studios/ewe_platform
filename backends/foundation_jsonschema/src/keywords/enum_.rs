@@ -89,7 +89,8 @@ fn numbers_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
     if a.as_u64().is_some() && b.as_u64().is_some() {
         return a.as_u64() == b.as_u64();
     }
-    if a.as_f64().is_some() && b.as_f64().is_some()
+    if a.as_f64().is_some()
+        && b.as_f64().is_some()
         && a.as_i64().is_none()
         && a.as_u64().is_none()
         && b.as_i64().is_none()

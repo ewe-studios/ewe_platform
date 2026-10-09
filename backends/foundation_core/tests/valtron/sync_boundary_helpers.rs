@@ -9,7 +9,7 @@
 
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{
-    collect_one, collect_result, initialize_pool, sync_all, sync_collect_one, sync_one, NoAction,
+    collect_one, collect_result, sync_all, sync_collect_one, sync_one, valtron_test, NoAction,
     TaskStatus,
 };
 
@@ -149,9 +149,8 @@ fn test_collect_result_no_next_values() {
 // ============================================================================
 
 /// `sync_one` executes a task that produces a single value after pending states.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_one_single_value_task() {
-    let _guard = initialize_pool(42, None);
 
     let task = CounterTask::new(3, 77);
     let results = sync_one(task).expect("sync_one should succeed");
@@ -159,9 +158,8 @@ fn test_sync_one_single_value_task() {
 }
 
 /// `sync_one` executes a task that produces a value with no pending states.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_one_immediate_ready() {
-    let _guard = initialize_pool(42, None);
 
     let task = CounterTask::new(0, 55);
     let results = sync_one(task).expect("sync_one should succeed");
@@ -169,9 +167,8 @@ fn test_sync_one_immediate_ready() {
 }
 
 /// `sync_one` collects multiple Ready values from a multi-value task.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_one_multi_value_task() {
-    let _guard = initialize_pool(42, None);
 
     let task = MultiValueTask::new(vec![10, 20, 30]);
     let results = sync_one(task).expect("sync_one should succeed");
@@ -183,9 +180,8 @@ fn test_sync_one_multi_value_task() {
 // ============================================================================
 
 /// `sync_all` executes multiple tasks in parallel and collects all results.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_all_multiple_tasks() {
-    let _guard = initialize_pool(42, None);
 
     let tasks = vec![
         CounterTask::new(1, 10),
@@ -200,9 +196,8 @@ fn test_sync_all_multiple_tasks() {
 }
 
 /// `sync_all` with a single task behaves like `sync_one`.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_all_single_task() {
-    let _guard = initialize_pool(42, None);
 
     let tasks = vec![CounterTask::new(1, 42)];
     let results = sync_all(tasks).expect("sync_all should succeed");
@@ -210,9 +205,8 @@ fn test_sync_all_single_task() {
 }
 
 /// `sync_all` with an empty task list returns an error (no results produced).
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_all_empty_tasks() {
-    let _guard = initialize_pool(42, None);
 
     let tasks: Vec<CounterTask> = vec![];
     let result = sync_all(tasks);
@@ -220,9 +214,8 @@ fn test_sync_all_empty_tasks() {
 }
 
 /// `sync_all` collects results from tasks with varying pending counts.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_all_varying_pending_counts() {
-    let _guard = initialize_pool(42, None);
 
     let tasks = vec![
         CounterTask::new(0, 1),  // immediate
@@ -294,9 +287,8 @@ fn test_collect_one_no_next_values() {
 // ============================================================================
 
 /// `sync_collect_one` executes a task and returns the single result directly.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_collect_one_single_value() {
-    let _guard = initialize_pool(42, None);
 
     let task = CounterTask::new(3, 77);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
@@ -304,9 +296,8 @@ fn test_sync_collect_one_single_value() {
 }
 
 /// `sync_collect_one` with immediate ready (no pending states).
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_collect_one_immediate_ready() {
-    let _guard = initialize_pool(42, None);
 
     let task = CounterTask::new(0, 55);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
@@ -314,9 +305,8 @@ fn test_sync_collect_one_immediate_ready() {
 }
 
 /// `sync_collect_one` with a multi-value task returns the first value.
-#[test]
+#[valtron_test(seed = 42)]
 fn test_sync_collect_one_multi_value_returns_first() {
-    let _guard = initialize_pool(42, None);
 
     let task = MultiValueTask::new(vec![10, 20, 30]);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");

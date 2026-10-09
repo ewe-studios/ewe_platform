@@ -5,7 +5,7 @@
 
 pub mod shared;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 #[cfg(feature = "server")]
@@ -40,6 +40,12 @@ pub use shared::jwks::{Jwk, Jwks, JwksError, JwksManager};
 // Feature 03: OIDC Discovery
 pub use shared::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 
+// Feature 03: Unified Upstream OIDC/OAuth2 Client (cross-platform — native + wasm)
+pub use shared::upstream_client::{UpstreamClientError, UpstreamOidcClient, UpstreamProfile};
+
+// Feature 01/03: Upstream provider models (cross-platform, pure serde)
+pub use shared::provider::{ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider};
+
 // Feature 04: UserInfo Client
 pub use shared::userinfo::{UserInfo, UserInfoClient, UserInfoError};
 
@@ -50,6 +56,10 @@ pub use shared::middleware::{
     extract_bearer_token, extract_session_token, has_scope, optional_auth, require_auth,
     AuthContext, GuardResult,
 };
+pub use shared::auth_session::{
+    AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore, DEFAULT_AUTH_SESSION_TTL_SECS,
+};
+
 pub use shared::oauth::{OAuthConfig, OAuthConfigBuilder, OAuthError, OAuthManager, PkceChallenge};
 pub use shared::oauth::TokenResponse;
 pub use shared::oauth_token::OAuthToken;
@@ -57,22 +67,22 @@ pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
 pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoFactorError};
 
 // Re-export platform-specific OAuth wrappers.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::oauth::NativeOAuth;
 
 // Feature 05: Password Auth (native only)
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::password_auth::{
     LoginResult, LoginRequest, MfaType, PasswordAuthClient, PasswordAuthError,
 };
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-oauth"))]
 pub use wasm_bindgen::oauth::WasmOAuth;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 #[cfg(feature = "wasm-bindgen-session")]
 pub use wasm_bindgen::d1_credential_store::D1CredentialStore;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 #[cfg(feature = "wasm-bindgen-session")]
 pub use wasm_bindgen::session::{SessionPayload, WasmSessionManager};

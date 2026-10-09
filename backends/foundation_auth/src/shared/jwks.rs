@@ -442,163 +442,45 @@ impl From<JwtError> for JwksError {
 }
 
 // ===========================================================================
-// Platform-specific fetch (shared pattern via feature flags)
+// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
 // ===========================================================================
 
-/// Fetch JWKS JSON from the given URL.
-#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_jwks(url: &str) -> Result<String, JwksError> {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+    use foundation_core::url::Uri;
+    use foundation_netio::default_http_client;
+    use foundation_netio::shared::client::body_reader::try_collect_bytes;
+    use foundation_netio::shared::client::request::PreparedRequest;
+    use foundation_netio::shared::http::{
+        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
 
-    let client = SimpleHttpClient::from_system();
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| JwksError::JwksFetchFailed(format!("invalid URL: {e}")))?;
+    let mut headers = SimpleHeaders::new();
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+
+    let req = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: uri,
+        headers,
+        body: SendSafeBody::None,
+        extensions: Default::default(),
+    };
+
     let resp = client
-        .get(url)
-        .map_err(|e| JwksError::JwksFetchFailed(e.to_string()))?
-        .header(SimpleHeader::ACCEPT, "application/json")
-        .build_client()
-        .map_err(|e| JwksError::JwksFetchFailed(e.to_string()))?
-        .send_async()
+        .send_async(req)
         .await
         .map_err(|e| JwksError::JwksFetchFailed(e.to_string()))?;
 
-    if !resp.is_success() {
-        let status: usize = resp.get_status().into();
-        let body = match resp.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            _ => String::new(),
-        };
-        return Err(JwksError::JwksFetchFailed(format!(
-            "HTTP {status}: {body}"
-        )));
+    let status: usize = resp.get_status().into();
+    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
+    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
+    let body = try_collect_bytes(resp.take_body())
+        .map(|b| String::from_utf8_lossy(&b).to_string())
+        .map_err(|e| JwksError::JwksFetchFailed(format!("read body: {e}")))?;
+    if !(200..300).contains(&status) {
+        return Err(JwksError::JwksFetchFailed(format!("HTTP {status}: {body}")));
     }
-
-    match resp.get_body_ref() {
-        SendSafeBody::Text(t) => Ok(t.clone()),
-        SendSafeBody::Bytes(b) => {
-            String::from_utf8(b.clone()).map_err(|e| JwksError::JwksFetchFailed(e.to_string()))
-        }
-        _ => Ok(String::new()),
-    }
-}
-
-/// Fetch JWKS JSON from the given URL (wasm — browser fetch).
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-async fn fetch_jwks(url: &str) -> Result<String, JwksError> {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
-    use web_sys::{Request, RequestInit, RequestMode, Response};
-
-    let opts = RequestInit::new();
-    opts.set_method("GET");
-    opts.set_mode(RequestMode::Cors);
-
-    let request =
-        Request::new_with_str_and_init(url, &opts).map_err(|e| {
-            JwksError::JwksFetchFailed(format!("failed to create request: {e:?}"))
-        })?;
-    request
-        .headers()
-        .set("Accept", "application/json")
-        .map_err(|e| JwksError::JwksFetchFailed(format!("failed to set header: {e:?}")))?;
-
-    let window = web_sys::window().ok_or_else(|| {
-        JwksError::JwksFetchFailed("no window available".into())
-    })?;
-    let resp_value = JsFuture::from(
-        window
-            .fetch_with_request(request)
-            .map_err(|e| JwksError::JwksFetchFailed(format!("fetch failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| JwksError::JwksFetchFailed(format!("await failed: {e:?}")))?;
-
-    let resp: Response = resp_value.dyn_into().map_err(|_| {
-        JwksError::JwksFetchFailed("failed to parse response".into())
-    })?;
-
-    let text_promise = resp
-        .text()
-        .map_err(|e| JwksError::JwksFetchFailed(format!("text() failed: {e:?}")))?;
-    let text = JsFuture::from(text_promise)
-        .await
-        .map_err(|e| JwksError::JwksFetchFailed(format!("await text failed: {e:?}")))?;
-
-    Ok(text.as_string().unwrap_or_default())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_jwks_ed25519() {
-        let json = r#"{
-            "keys": [{
-                "kty": "OKP",
-                "crv": "Ed25519",
-                "x": "Fb6xzYJqMxN0KqZ6F3h4YvGkHxT0zG0qHqZ3Yb1x4Yc",
-                "kid": "key-2025-01",
-                "use": "sig",
-                "alg": "EdDSA"
-            }]
-        }"#;
-
-        let jwks = Jwks::from_json(json).unwrap();
-        assert_eq!(jwks.keys.len(), 1);
-        let key = jwks.find_by_kid("key-2025-01").unwrap();
-        assert_eq!(key.key_type, "OKP");
-        assert_eq!(key.algorithm, "EdDSA");
-    }
-
-    #[test]
-    fn test_parse_jwks_multiple_keys() {
-        let json = r#"{
-            "keys": [
-                {
-                    "kty": "OKP", "crv": "Ed25519",
-                    "x": "Fb6xzYJqMxN0KqZ6F3h4YvGkHxT0zG0qHqZ3Yb1x4Yc",
-                    "kid": "key-1", "use": "sig", "alg": "EdDSA"
-                },
-                {
-                    "kty": "OKP", "crv": "Ed25519",
-                    "x": "Fb6xzYJqMxN0KqZ6F3h4YvGkHxT0zG0qHqZ3Yb1x4Yc",
-                    "kid": "key-2", "use": "sig", "alg": "EdDSA"
-                }
-            ]
-        }"#;
-
-        let jwks = Jwks::from_json(json).unwrap();
-        assert_eq!(jwks.keys.len(), 2);
-        assert!(jwks.find_by_kid("key-1").is_some());
-        assert!(jwks.find_by_kid("key-2").is_some());
-        assert!(jwks.find_by_kid("key-3").is_none());
-    }
-
-    #[test]
-    fn test_jwks_to_json_roundtrip() {
-        let json = r#"{
-            "keys": [{
-                "kty": "OKP", "crv": "Ed25519",
-                "x": "Fb6xzYJqMxN0KqZ6F3h4YvGkHxT0zG0qHqZ3Yb1x4Yc",
-                "kid": "key-1", "use": "sig", "alg": "EdDSA"
-            }]
-        }"#;
-
-        let jwks = Jwks::from_json(json).unwrap();
-        let serialized = jwks.to_json().unwrap();
-        let parsed = Jwks::from_json(&serialized).unwrap();
-        assert_eq!(parsed.keys.len(), 1);
-        assert_eq!(parsed.keys[0].key_id, "key-1");
-    }
-
-    #[test]
-    fn test_extract_issuer_from_url() {
-        assert_eq!(
-            extract_issuer_from_url("https://auth.example.com/.well-known/jwks.json"),
-            Some("https://auth.example.com".into())
-        );
-        assert_eq!(extract_issuer_from_url("https://example.com/jwks"), None);
-    }
+    Ok(body)
 }

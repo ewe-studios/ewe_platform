@@ -1,0 +1,15 @@
+services:
+  proxmox:
+    hostname: pve
+    image: dockurr/proxmox
+    container_name: proxmox
+    environment:
+      PASSWORD: "root"
+    ports:
+      - 8006:8006
+    volumes:
+      - ./data:/var/lib/vz
+      - ./config:/var/lib/pve-cluster
+    restart: always
+    privileged: true
+    stop_grace_period: 2m

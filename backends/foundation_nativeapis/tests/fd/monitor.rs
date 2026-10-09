@@ -7,13 +7,13 @@
 /// - Verify callback is invoked and data is read
 /// - Verify poll interval respected (callback not called before write)
 
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_core::valtron::TaskIterator;
 use foundation_nativeapis::native::fd::RegisteredFd;
-use foundation_nativeapis::{Interest, Poll, Token};
+use foundation_nativeapis::{Poll, Token};
 use foundation_nativeapis::FdMonitorTask;
 
 /// Create a pipe (reader, writer), both nonblocking.
@@ -129,7 +129,7 @@ fn fd_monitor_task_poll_interval() {
     let registered = RegisteredFd::new(reader, &registry, Token(0))
         .expect("failed to register fd");
 
-    let interval = Duration::from_millis(100);
+    let _interval = Duration::from_millis(100);
     let mut task = FdMonitorTask::new(registered);
 
     // Tick when no data available

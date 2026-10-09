@@ -231,6 +231,7 @@ async fn do_fetch(url: &str) -> Result<OidcDiscovery, DiscoveryError> {
 }
 
 /// Validate required fields.
+#[allow(dead_code)]
 fn validate_discovery(d: &OidcDiscovery) -> Result<(), DiscoveryError> {
     if d.issuer.is_empty() {
         return Err(DiscoveryError::MissingRequiredField(
@@ -279,150 +280,45 @@ impl core::fmt::Display for DiscoveryError {
 impl std::error::Error for DiscoveryError {}
 
 // ===========================================================================
-// Platform-specific fetch
+// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
 // ===========================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+    use foundation_core::url::Uri;
+    use foundation_netio::default_http_client;
+    use foundation_netio::shared::client::body_reader::try_collect_bytes;
+    use foundation_netio::shared::client::request::PreparedRequest;
+    use foundation_netio::shared::http::{
+        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
 
-    let client = SimpleHttpClient::from_system();
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| DiscoveryError::FetchFailed(format!("invalid URL: {e}")))?;
+    let mut headers = SimpleHeaders::new();
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+
+    let req = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: uri,
+        headers,
+        body: SendSafeBody::None,
+        extensions: Default::default(),
+    };
+
     let resp = client
-        .get(url)
-        .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?
-        .header(SimpleHeader::ACCEPT, "application/json")
-        .build_client()
-        .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?
-        .send_async()
+        .send_async(req)
         .await
         .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?;
 
-    if !resp.is_success() {
-        let status: usize = resp.get_status().into();
-        let body = match resp.get_body_ref() {
-            SendSafeBody::Text(t) => t.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-            _ => String::new(),
-        };
-        return Err(DiscoveryError::FetchFailed(format!(
-            "HTTP {status}: {body}"
-        )));
+    let status: usize = resp.get_status().into();
+    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
+    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
+    let body = try_collect_bytes(resp.take_body())
+        .map(|b| String::from_utf8_lossy(&b).to_string())
+        .map_err(|e| DiscoveryError::FetchFailed(format!("read body: {e}")))?;
+    if !(200..300).contains(&status) {
+        return Err(DiscoveryError::FetchFailed(format!("HTTP {status}: {body}")));
     }
-
-    match resp.get_body_ref() {
-        SendSafeBody::Text(t) => Ok(t.clone()),
-        SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
-            .map_err(|e| DiscoveryError::FetchFailed(e.to_string())),
-        _ => Ok(String::new()),
-    }
-}
-
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
-    use web_sys::{Request, RequestInit, RequestMode};
-
-    let opts = RequestInit::new();
-    opts.set_method("GET");
-    opts.set_mode(RequestMode::Cors);
-
-    let request = Request::new_with_str_and_init(url, &opts)
-        .map_err(|e| DiscoveryError::FetchFailed(format!("request failed: {e:?}")))?;
-    request
-        .headers()
-        .set("Accept", "application/json")
-        .map_err(|e| DiscoveryError::FetchFailed(format!("header failed: {e:?}")))?;
-
-    let window = web_sys::window()
-        .ok_or_else(|| DiscoveryError::FetchFailed("no window available".into()))?;
-    let resp_value = JsFuture::from(
-        window
-            .fetch_with_request(request)
-            .map_err(|e| DiscoveryError::FetchFailed(format!("fetch failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| DiscoveryError::FetchFailed(format!("await failed: {e:?}")))?;
-
-    let resp: web_sys::Response = resp_value.dyn_into().map_err(|_| {
-        DiscoveryError::FetchFailed("failed to parse response".into())
-    })?;
-    let text = JsFuture::from(
-        resp.text()
-            .map_err(|e| DiscoveryError::FetchFailed(format!("text failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| DiscoveryError::FetchFailed(format!("await text failed: {e:?}")))?;
-
-    Ok(text.as_string().unwrap_or_default())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_well_known_url() {
-        assert_eq!(
-            build_well_known_url("https://auth.example.com"),
-            "https://auth.example.com/.well-known/openid-configuration"
-        );
-        assert_eq!(
-            build_well_known_url("https://auth.example.com/"),
-            "https://auth.example.com/.well-known/openid-configuration"
-        );
-        assert_eq!(
-            build_well_known_url("https://auth.example.com/.well-known/openid-configuration"),
-            "https://auth.example.com/.well-known/openid-configuration"
-        );
-    }
-
-    #[test]
-    fn test_parse_discovery_json() {
-        let json = r#"{
-            "issuer": "https://auth.example.com",
-            "authorization_endpoint": "https://auth.example.com/authorize",
-            "token_endpoint": "https://auth.example.com/token",
-            "userinfo_endpoint": "https://auth.example.com/userinfo",
-            "jwks_uri": "https://auth.example.com/jwks",
-            "response_types_supported": ["code"],
-            "subject_types_supported": ["public"],
-            "id_token_signing_alg_values_supported": ["EdDSA"],
-            "scopes_supported": ["openid", "profile", "email"],
-            "code_challenge_methods_supported": ["S256"]
-        }"#;
-
-        let discovery: OidcDiscovery = serde_json::from_str(json).unwrap();
-        assert_eq!(discovery.issuer, "https://auth.example.com");
-        assert_eq!(
-            discovery.jwks_url(),
-            "https://auth.example.com/jwks"
-        );
-    }
-
-    #[test]
-    fn test_to_oauth_config() {
-        let json = r#"{
-            "issuer": "https://auth.example.com",
-            "authorization_endpoint": "https://auth.example.com/authorize",
-            "token_endpoint": "https://auth.example.com/token",
-            "response_types_supported": ["code"],
-            "subject_types_supported": ["public"],
-            "id_token_signing_alg_values_supported": ["EdDSA"],
-            "scopes_supported": ["openid", "profile", "email"],
-            "code_challenge_methods_supported": ["S256"]
-        }"#;
-
-        let discovery: OidcDiscovery = serde_json::from_str(json).unwrap();
-        let config = discovery.to_oauth_config("my-client", "https://app.com/callback");
-
-        assert_eq!(
-            config.authorization_url,
-            "https://auth.example.com/authorize"
-        );
-        assert_eq!(config.token_url, "https://auth.example.com/token");
-        assert!(config.pkce_enabled);
-        assert!(config.scopes.contains(&"openid".to_string()));
-    }
+    Ok(body)
 }

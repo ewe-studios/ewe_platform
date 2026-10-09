@@ -1,0 +1,5 @@
+error: unknown SSL provider: bad_provider
+ --> tests/trybuild/fail/proxy_unknown_ssl_provider.rs:8:14
+  |
+8 |         ssl: bad_provider {
+  |              ^^^^^^^^^^^^

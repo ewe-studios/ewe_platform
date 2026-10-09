@@ -4,7 +4,7 @@
 //! WHAT: [`JsonV1`] — protocol byte `2`, composing `JsonEncoder` (Layer 1) with the
 //! `ProtocolHandler` transport (Layer 2).
 //!
-//! HOW: Identical composition to [`super::ArrowV1`]; only the encoder differs.
+//! HOW: Identical composition to [`super::ColumnarV1`]; only the encoder differs.
 
 use alloc::vec::Vec;
 

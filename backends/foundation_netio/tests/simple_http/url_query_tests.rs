@@ -1,6 +1,4 @@
-use foundation_netio::simple_http::shared::{
-    client::Uri, url::percent_decode, url::percent_encode, url::Query,
-};
+use foundation_core::url::{percent_decode, percent_encode, Query, Uri};
 
 /// Unit tests for URL query extraction/visibility via `Uri`.
 ///

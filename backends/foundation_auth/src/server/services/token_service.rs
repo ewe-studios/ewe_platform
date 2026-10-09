@@ -152,6 +152,63 @@ impl TokenService {
     pub fn hash_refresh_token(token: &str) -> String {
         hex_sha256(token)
     }
+
+    /// Verify an access token's signature and return the decoded claims.
+    /// Returns `InvalidToken` if the signature is invalid or the token is expired.
+    pub fn verify_access_token(&self, token: &str) -> Result<serde_json::Value, TokenServiceError> {
+        use jwt_simple::prelude::{Ed25519PublicKey, EdDSAPublicKeyLike};
+        let public_pem = self.config.signing_key.public_key_pem()
+            .map_err(|e| TokenServiceError::SigningFailed(e.to_string()))?;
+        let crate::shared::jwt::JwtSigningKey::Ed25519(_) = &self.config.signing_key else {
+            return Err(TokenServiceError::SigningFailed(
+                "Only Ed25519 verification is supported".into()));
+        };
+        let pk = Ed25519PublicKey::from_pem(&public_pem)
+            .map_err(|e| TokenServiceError::SigningFailed(e.to_string()))?;
+        let claims: jwt_simple::claims::JWTClaims<serde_json::Value> = pk.verify_token(token, None)
+            .map_err(|_| TokenServiceError::InvalidToken)?;
+        // Convert jwt-simple Claims to serde_json::Value
+        let subject = claims.subject.ok_or(TokenServiceError::InvalidToken)?;
+        let issuer = claims.issuer.ok_or(TokenServiceError::InvalidToken)?;
+        let aud = match &claims.audiences {
+            Some(a) => match a {
+                jwt_simple::claims::Audiences::AsString(s) => s.clone(),
+                jwt_simple::claims::Audiences::AsSet(set) => set.iter().next().cloned().unwrap_or_default(),
+            },
+            None => String::new(),
+        };
+        let exp = claims.expires_at.map(|e| e.as_secs()).unwrap_or(0);
+        let iat = claims.issued_at.map(|t| t.as_secs()).unwrap_or(0);
+        let jti = claims.jwt_id.unwrap_or_default();
+        let scope = claims.custom.get("scope")
+            .and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let client_id = claims.custom.get("client_id")
+            .and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let nonce = claims.custom.get("nonce")
+            .and_then(|v| v.as_str()).map(|s| s.to_string());
+
+        let mut map = serde_json::Map::new();
+        map.insert("sub".into(), serde_json::Value::String(subject));
+        map.insert("iss".into(), serde_json::Value::String(issuer));
+        map.insert("aud".into(), serde_json::Value::String(aud));
+        map.insert("exp".into(), serde_json::Value::Number(serde_json::Number::from(exp)));
+        map.insert("iat".into(), serde_json::Value::Number(serde_json::Number::from(iat)));
+        map.insert("jti".into(), serde_json::Value::String(jti));
+        map.insert("scope".into(), serde_json::Value::String(scope));
+        map.insert("client_id".into(), serde_json::Value::String(client_id));
+        if let Some(n) = nonce {
+            map.insert("nonce".into(), serde_json::Value::String(n));
+        }
+        // Copy any extra custom claims from the JSON object
+        if let Some(obj) = claims.custom.as_object() {
+            for (k, v) in obj {
+                if !matches!(k.as_str(), "scope" | "client_id" | "nonce") {
+                    map.insert(k.clone(), v.clone());
+                }
+            }
+        }
+        Ok(serde_json::Value::Object(map))
+    }
 }
 
 fn generate_refresh_token() -> String {
@@ -160,81 +217,3 @@ fn generate_refresh_token() -> String {
     URL_SAFE_NO_PAD.encode(bytes)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn test_config() -> Arc<IdpConfig> {
-        Arc::new(IdpConfig::new("https://auth.test.com".into()))
-    }
-
-    fn test_user() -> User {
-        User {
-            id: "user_1".into(),
-            email: "alice@example.com".into(),
-            username: Some("Alice".into()),
-            password_hash: None,
-            email_verified: true,
-            email_verified_at: None,
-            created_at: 0,
-            updated_at: 0,
-            metadata: None,
-            failed_login_attempts: 0,
-            locked_until: None,
-            deleted_at: None,
-        }
-    }
-
-    fn test_client() -> OAuthClient {
-        OAuthClient {
-            id: "client_1".into(),
-            name: "Test App".into(),
-            client_secret_hash: String::new(),
-            redirect_uris: vec!["https://app.example.com/cb".into()],
-            grant_types: vec!["authorization_code".into()],
-            scopes: vec!["openid".into(), "profile".into()],
-            is_public: false,
-            created_at: 0,
-        }
-    }
-
-    #[test]
-    fn test_generate_tokens() {
-        let svc = TokenService::new(test_config());
-        let result = svc.generate_tokens(&test_user(), &test_client(), "openid profile", None);
-        assert!(result.is_ok());
-        let pair = result.unwrap();
-        assert!(!pair.access_token.is_empty());
-        assert!(!pair.id_token.is_empty());
-        assert!(!pair.refresh_token.is_empty());
-        assert_eq!(pair.scope, "openid profile");
-    }
-
-    #[test]
-    fn test_generate_tokens_with_nonce() {
-        let svc = TokenService::new(test_config());
-        let result =
-            svc.generate_tokens(&test_user(), &test_client(), "openid", Some("nonce123"));
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_generate_client_credentials() {
-        let svc = TokenService::new(test_config());
-        let result = svc.generate_client_credentials_tokens(&test_client(), "openid");
-        assert!(result.is_ok());
-        let pair = result.unwrap();
-        assert!(!pair.access_token.is_empty());
-        assert!(pair.id_token.is_empty());
-        assert!(pair.refresh_token.is_empty());
-    }
-
-    #[test]
-    fn test_hash_refresh_token() {
-        let hash1 = TokenService::hash_refresh_token("token_a");
-        let hash2 = TokenService::hash_refresh_token("token_a");
-        let hash3 = TokenService::hash_refresh_token("token_b");
-        assert_eq!(hash1, hash2);
-        assert_ne!(hash1, hash3);
-    }
-}

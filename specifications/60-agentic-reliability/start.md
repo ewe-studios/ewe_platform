@@ -1,0 +1,126 @@
+# 60: agentic + provider reliability
+
+Prove the agentic stack correct, end to end, against real providers — with
+coverage measured rather than assumed — then complete the agent's actual
+capabilities: the standard tools (read/write/edit/bash) and the spec-36 carryover
+(memory/delegate tools, semantic recall).
+
+Supersedes and absorbs former spec 61 (candle-multi-model): the candle backend
+is not a separate concern, it is the provider the agentic suite runs on.
+
+> **This spec is now feature-based — see [`features.md`](./features.md) for the
+> live roadmap and status.** The original stage-based plan (S0–S9) is complete
+> and captured below as history; new work (100% coverage, standard tools,
+> spec-36 carryover) is tracked as features F01–F17 in `features.md` +
+> `features/`.
+
+## North star
+
+**Every interaction, workflow and process in the agentic stack is exercised by a
+test that runs offline, and code coverage tells us where we are still blind.**
+
+Concretely:
+
+- one committed fixture pair — **tiny-random-Llama** and **tiny-random-Gemma2** —
+  drives *both* the candle and llama.cpp suites, so the two backends are tested
+  on identical weights
+- synthetic generated weights cover breadth (architectures we have no fixture
+  for) where a real tokenizer is not what is under test
+- coverage is reported, and the gaps it finds become tests
+- ~90% of critical logic; trivial accessors may be excluded by review, flow and
+  error paths may not
+
+## Why this spec exists
+
+The agent replied `(no response)` to every prompt. The chain of defects is in
+`backends/foundation_ai/docs/fixes/006_root_cause_stream_never_creates_context.md`
+— a stream that never created its context, a `Clone`+`Drop` use-after-free,
+tokens never decoded back, a prompt that ignored the conversation, ~10 failure
+paths reporting success, and the model reloaded from disk every turn.
+
+All are fixed. The reason they survived is the point of this spec: **`run_turn`
+had no test at any level, and nothing exercised `Model::stream`.** Every provider
+suite called `generate()` — a different code path.
+
+Reviewing candle for a test provider then found the same shapes there: one
+architecture of ~40, a prompt built by hand with the tokenizer parameter unused,
+hand-rolled sampling ignoring `top_p`/`repeat_penalty`, and no seed.
+
+## Stages
+
+Each stage unblocks the next. Nothing later starts before its predecessor is
+green.
+
+| Stage | Name | Unblocks | Why here |
+|-------|------|----------|----------|
+| **S0** | Coverage harness | everything | Without measurement, "90%" is a feeling. Must exist before we claim progress. |
+| **S1** | Candle 0.11 bump | S2 | Land API churn alone, so later regressions are attributable. |
+| **S2** | Model state into the model | S3, S6 | `forward`/`CandleStream` assume a Llama-shaped cache. Fix before a second architecture entrenches it. |
+| **S3** | Sampling via `LogitsProcessor` | S5 | Cheap, and the **seed** is what makes every later assertion deterministic. |
+| **S4** | GGUF fixture conversion | S5 | llama.cpp is GGUF-only; convert the committed fixtures so both backends test the same weights. |
+| **S5** | Chat templates via minijinja | S6, S7 | Shared by `generate()` and `stream()`. The defect class of docs/fixes/006. |
+| **S6** | Architecture coverage | S7 | Now safe: state is abstracted (S2) and prompting is correct (S5). |
+| **S7** | The test matrix | — | Fill `test-matrix.md` to green, driven by S0's coverage report. |
+| **S8** | Generated weights (tier 1) | — | Breadth for architectures with no fixture. Last: a convenience, not a blocker. |
+| **S9** | Generation quality | — | Why the real model answers `"."`. Independent of the rest. |
+
+## Test model tiers
+
+| Tier | What | Size | Used for |
+|------|------|------|----------|
+| 1 | Generated at test run | KB | Architectures with no fixture; pure breadth |
+| 2 | `tiny-random-LlamaForCausalLM` — safetensors **and** GGUF | 5.7 MB + GGUF | **Both** backends: real tokenizer, real loading |
+| 3 | `tiny-random-Gemma2ForCausalLM` — safetensors **and** GGUF | 48 MB + GGUF | **Both** backends: 256k vocab, real chat template |
+| 4 | SmolLM2-135M-Instruct / Gemma 4 E2B | 270 MB / 2.9 GB | `integration_tests` only: semantic quality (S9) |
+
+Tiers 2 and 3 are the default. Candle-only concerns (architecture dispatch,
+`VarBuilder`) use candle alone; everything testable on both runs on both.
+
+## Progress
+
+| Stage | Status | Notes |
+|-------|--------|-------|
+| S0 coverage harness | DONE | cargo-llvm-cov + llvm-tools; measured throughout |
+| S1 candle 0.11 | DONE | bumped, zero breaking changes |
+| S2 state into model | DONE | per-arch state (decision 06); Llama external cache, Gemma2 internal |
+| S3 sampling + seed | DONE | LogitsProcessor + repeat_penalty + seed; determinism tested |
+| S4 GGUF fixtures | DONE | committed tiny-llama-f16.gguf (2.7MB, torch-free-ish convert via uv+py3.12); llama.cpp in-process runs offline by default |
+| S5 chat templates | DONE | minijinja render + pycompat str methods; template applied |
+| S6 architectures | DONE (2 archs) | detection + honest errors + Llama + **Gemma2** loaders, both tested on committed fixtures; Qwen/Mistral/Phi3 follow the same pattern (deferred — no offline fixture => would be untested) |
+| S7 test matrix | **116/119** | 3 n/a (tool-cancellation interleaving, gated preset); 480 tests; agent_loop 21->75%, session 70->88%, candle 28->74%, llamacpp 4.6->53%; found+fixed 2 stubbed features (preflight compression, tool-panic containment) + the ledger-never-recorded bug |
+| S8 generated weights | Not needed | committed Llama+Gemma2 fixtures (safetensors+GGUF) cover both supported archs; no consumer for generated weights until a fixture-less arch is added |
+| S9 generation quality | DONE | conditional BOS + phantom-tool fix (docs/fixes/007); model coherent |
+| B llama.cpp logging | DONE | routed through tracing; silent by default, `llama.cpp=debug` enables |
+| C known warts | DONE | cache race, dead field, println; silent-failure sweep in stream |
+
+## Decisions
+
+| # | Decision | Status |
+|---|----------|--------|
+| 00 | Candle is a first-class provider and the in-process test provider | Resolved |
+| 01 | `CandleArchitecture::Custom(String)` must not remain a hardcoded error | Resolved |
+| 02 | First architecture cut: Llama, Qwen2, Qwen3, Mistral, Phi3, Gemma2/3 (Mamba/RWKV excluded — recurrent state) | Resolved |
+| 03 | Chat templates render with **minijinja** — already a workspace dep (`foundation_packager`) | Resolved |
+| 04 | Four model tiers; committed fixtures are the default and serve **both** backends | Resolved |
+| 05 | Sampling seed lives on `ModelParams` so a caller can force determinism per request | Resolved |
+| 06 | Per-architecture state moves **into** the model abstraction | Resolved |
+| 07 | Bump candle 0.10.2 → 0.11.0, before the architecture work | Resolved |
+| 08 | Coverage tool: **`cargo-llvm-cov`** (source-based, workspace-aware, lcov + html) | Resolved |
+| 09 | Whether coverage gates CI or only reports | **Open** |
+| 10 | GGUF fixtures are COMMITTED (tiny-llama-f16.gguf, 2.7MB) — offline, deterministic | Resolved |
+
+## Non-goals
+
+- Rewriting the agent loop's state machine. Bugs get fixed; the design stands.
+- Multimodal, embedding, vision, audio models. Text generation first.
+- Replacing llama.cpp. Candle is the in-process path; llama.cpp is the
+  GGUF/quantized production path. Both stay, and both get tested.
+- Training or fine-tuning.
+
+## Related
+
+- `test-matrix.md` — every interaction, workflow and process to be covered
+- `backends/foundation_ai/docs/fixes/006_root_cause_stream_never_creates_context.md`
+- `backends/foundation_ai/docs/fixes/005_root_cause_ffi_pointers_not_send.md`
+- `backends/foundation_ai/tests/agentic/integrations/session_turn.rs` — the seed of S7
+- `artefacts/test-models/` — the committed fixtures

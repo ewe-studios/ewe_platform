@@ -1,7 +1,7 @@
-//! HuggingFace Candle Provider — safetensors model downloading + Candle inference.
+//! `HuggingFace` Candle Provider — safetensors model downloading + Candle inference.
 //!
 //! Wraps [`CandleBackend`] with automatic safetensors model downloading from
-//! HuggingFace Hub, mirroring the [`HuggingFaceGGUFProvider`] pattern for GGUF models.
+//! `HuggingFace` Hub, mirroring the [`HuggingFaceGGUFProvider`] pattern for GGUF models.
 
 use std::path::PathBuf;
 
@@ -10,15 +10,15 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_deployment::providers::huggingface::{
+use foundation_core::valtron::Stream;
+use foundation_deployment_huggingface::repository;
+use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
 };
-use foundation_deployment::providers::huggingface::repository;
-use foundation_core::valtron::Stream;
 
-/// HuggingFace provider for safetensors models via the Candle inference backend.
+/// `HuggingFace` provider for safetensors models via the Candle inference backend.
 ///
-/// Downloads models from HuggingFace Hub and loads them using [`CandleBackend`].
+/// Downloads models from `HuggingFace` Hub and loads them using [`CandleBackend`].
 pub struct HuggingFaceCandleProvider {
     hf_client: HFClient,
     backend: CandleBackend,
@@ -172,6 +172,8 @@ impl HuggingFaceCandleProvider {
     /// Create a new provider from configuration.
     ///
     /// Initialises the HF client and underlying [`CandleBackend`] (CPU).
+    /// # Errors
+    /// Returns [`GenerationError`] if the model cannot be loaded.
     pub fn new(config: HuggingFaceCandleConfig) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
@@ -186,8 +188,7 @@ impl HuggingFaceCandleProvider {
             )
             .build()
             .map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                     format!("Failed to create HFClient: {e}"),
                 )))
             })?;
@@ -206,8 +207,7 @@ impl HuggingFaceCandleProvider {
             .cache_dir(&config.cache_dir)
             .build();
 
-        let backend = CandleBackend::cpu()
-            .create(Some(backend_config))?;
+        let backend = CandleBackend::cpu().create(Some(backend_config))?;
 
         Ok(Self {
             hf_client,
@@ -217,7 +217,7 @@ impl HuggingFaceCandleProvider {
         })
     }
 
-    /// Parse a [`ModelId`] into a HuggingFace repository id.
+    /// Parse a [`ModelId`] into a `HuggingFace` repository id.
     ///
     /// Expects `ModelId::Name("owner/repo", _)`.
     #[must_use]
@@ -236,9 +236,11 @@ impl HuggingFaceCandleProvider {
     }
 
     /// Download model files (config.json, tokenizer.json, safetensors) from
-    /// HuggingFace Hub into the local cache directory.
+    /// `HuggingFace` Hub into the local cache directory.
     ///
     /// Returns the local directory path containing the downloaded files.
+    /// # Errors
+    /// Returns [`GenerationError`] if generation fails.
     pub fn download_model(&self, repo_id: &str) -> ModelProviderResult<PathBuf> {
         let dest_dir = self.cache_dir.join(repo_id.replace('/', "--"));
 
@@ -254,7 +256,11 @@ impl HuggingFaceCandleProvider {
             )))
         })?;
 
-        tracing::info!("Downloading safetensors model {} to {:?}", repo_id, dest_dir);
+        tracing::info!(
+            "Downloading safetensors model {} to {:?}",
+            repo_id,
+            dest_dir
+        );
 
         let repo = self.hf_client.model(
             repo_id.split('/').next().unwrap_or("").to_string(),
@@ -269,8 +275,7 @@ impl HuggingFaceCandleProvider {
                 directory: dest_dir.clone(),
             };
             repository::repo_download_file(&repo, &params).map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                     format!("Failed to download {filename}: {e}"),
                 )))
             })?;
@@ -306,12 +311,11 @@ impl HuggingFaceCandleProvider {
                     "Failed to read index: {e}"
                 )))
             })?;
-            let index: serde_json::Value =
-                serde_json::from_str(&index_content).map_err(|e| {
-                    ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
-                        "Failed to parse index: {e}"
-                    )))
-                })?;
+            let index: serde_json::Value = serde_json::from_str(&index_content).map_err(|e| {
+                ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
+                    "Failed to parse index: {e}"
+                )))
+            })?;
 
             if let Some(weight_map) = index.get("weight_map").and_then(|w| w.as_object()) {
                 let mut filenames: Vec<String> = weight_map
@@ -328,8 +332,7 @@ impl HuggingFaceCandleProvider {
                         directory: dest_dir.clone(),
                     };
                     repository::repo_download_file(&repo, &params).map_err(|e| {
-                        ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
+                        ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                             format!("Failed to download shard {filename}: {e}"),
                         )))
                     })?;
@@ -341,9 +344,11 @@ impl HuggingFaceCandleProvider {
         Ok(dest_dir)
     }
 
-    /// List available safetensors files in a HuggingFace repository.
+    /// List available safetensors files in a `HuggingFace` repository.
     ///
     /// Useful for discovering what models/shards are available before downloading.
+    /// # Errors
+    /// Returns [`GenerationError`] if streaming fails.
     pub fn list_model_files(&self, repo_id: &str) -> ModelProviderResult<Vec<String>> {
         let repo = self.hf_client.model(
             repo_id.split('/').next().unwrap_or("").to_string(),
@@ -357,12 +362,12 @@ impl HuggingFaceCandleProvider {
         };
 
         let tree = repository::repo_list_tree(&repo, &params).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                 format!("Failed to list repository files: {e}"),
             )))
         })?;
 
+        #[allow(clippy::match_same_arms)]
         let entries: Vec<_> = tree
             .filter_map(|s| match s {
                 Stream::Next(Ok(entry)) => Some(entry),
@@ -395,10 +400,7 @@ impl ModelProvider for HuggingFaceCandleProvider {
     type Config = HuggingFaceCandleConfig;
     type Model = CandleModels;
 
-    fn create(
-        self,
-        config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
@@ -485,14 +487,11 @@ impl ModelProvider for HuggingFaceCandleProvider {
 
 fn has_safetensors(dir: &std::path::Path) -> bool {
     std::fs::read_dir(dir)
-        .map(|entries| {
-            entries
-                .filter_map(|e| e.ok())
-                .any(|e| {
-                    e.path()
-                        .extension()
-                        .map_or(false, |ext| ext == "safetensors")
-                })
+        .is_ok_and(|entries| {
+            entries.filter_map(std::result::Result::ok).any(|e| {
+                e.path()
+                    .extension()
+                    .is_some_and(|ext| ext == "safetensors")
+            })
         })
-        .unwrap_or(false)
 }

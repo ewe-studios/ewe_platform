@@ -1,0 +1,567 @@
+//! `ToolImpl` + `ToolCallManager` — the tool contract, registry (F09), and
+//! staged execution DAG (F11).
+//!
+//! WHY: The agent needs a uniform way to define, register, look up, and execute
+//! tools — including multi-call workflows with dependency ordering, retry, and
+//! persist-before-deliver.
+//!
+//! WHAT: `ToolImpl` (definition + async execute), `ToolCallManager` (registration +
+//! lookup + validation + execute + workflow), `ToolCallWorkflow` / `ToolCallStage` /
+//! `FailMode` (staged DAG execution), and `ToolRetryConfig` (non-blocking backoff).
+
+use crate::types::{ArgType, Args, ExecutionHint, Tool, ToolShed};
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Duration;
+
+// ---------------------------------------------------------------------------
+// ToolDefinition — the single, shared descriptor (F19). Defined in the types
+// layer and re-exported here so `ToolImpl::definition() -> ToolDefinition` and
+// every `impl ToolImpl` keep referring to `tool_impl::ToolDefinition` unchanged.
+pub use crate::types::base_types::ToolDefinition;
+
+// ---------------------------------------------------------------------------
+// ToolError
+
+/// Error types for tool execution — Clone + `PartialEq` so F02's `AgenticError` can
+/// embed it (the stream types must stay Clone + `PartialEq`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ToolError {
+    /// The named tool is not registered.
+    UnknownTool(String),
+    /// Arguments failed JSON-Schema validation.
+    InvalidArguments { tool: String, reason: String },
+    /// Tool execution failed (user-code error, subprocess exit ≠ 0, etc.).
+    Execution { tool: String, reason: String },
+    /// Tool execution exceeded its deadline (valtron-driven timeout, F11).
+    Timeout { tool: String },
+    /// Tool execution was cancelled via steering signal.
+    Cancelled(String),
+}
+
+impl std::fmt::Display for ToolError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToolError::UnknownTool(name) => write!(f, "unknown tool: {name}"),
+            ToolError::InvalidArguments { tool, reason } => {
+                write!(f, "invalid arguments for {tool}: {reason}")
+            }
+            ToolError::Execution { tool, reason } => {
+                write!(f, "execution error in {tool}: {reason}")
+            }
+            ToolError::Timeout { tool } => write!(f, "timeout in {tool}"),
+            ToolError::Cancelled(tool) => write!(f, "cancelled: {tool}"),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ToolCallResult
+
+/// The result of a tool execution. Becomes `Messages::ToolResult.content`.
+#[derive(Debug, Clone)]
+pub struct ToolCallResult {
+    /// The content returned to the LLM.
+    pub content: crate::types::UserModelContent,
+    /// Optional error detail (for diagnostics — the LLM sees `content`).
+    pub error_detail: Option<String>,
+}
+
+// ---------------------------------------------------------------------------
+// ToolImpl trait
+
+/// The tool contract every tool implementer satisfies. Registered as
+/// `Arc<dyn ToolImpl>` in the `ToolCallManager`.
+#[async_trait]
+pub trait ToolImpl: Send + Sync {
+    /// The tool's own declaration of its shape (F19): `Tool::SingleCommand` for a
+    /// leaf capability, or `Tool::MultiCommands(name, commands)` for a tool that
+    /// exposes several commands (dispatched on the `command` argument). The
+    /// registry keys the tool by `Tool::name()`.
+    fn definition(&self) -> Tool;
+
+    /// Run the tool with validated arguments. Async (async-first).
+    /// Cancellation = valtron stops polling the future and drops it —
+    /// drop-based cleanup handles process kills, connection closes, etc.
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError>;
+}
+
+// ---------------------------------------------------------------------------
+// ToolCallRequest — parsed from ModelOutput::ToolCall
+
+/// A single tool-call request (carries F01's `depends_on` / `execution_hint`).
+#[derive(Debug, Clone)]
+pub struct ToolCallRequest {
+    /// The tool-call id (matches `Messages::ToolResult.tool_call_id`).
+    pub id: String,
+    /// The tool name (registry key).
+    pub name: String,
+    /// Parsed arguments (validated against the tool's Args schema).
+    pub arguments: HashMap<String, ArgType>,
+    /// Other tool-call ids this depends on (F01 / F11 DAG).
+    pub depends_on: Vec<String>,
+    /// How the caller wants this tool run (F01).
+    pub execution_hint: ExecutionHint,
+}
+
+// ---------------------------------------------------------------------------
+// F11: ToolCallWorkflow — staged DAG execution
+
+/// A staged workflow built from tool-call dependency graphs.
+/// Each stage contains calls that can execute after all prior stages complete.
+#[derive(Debug, Clone)]
+pub struct ToolCallWorkflow {
+    pub stages: Vec<ToolCallStage>,
+}
+
+/// One stage of a workflow — either parallel or sequential execution.
+#[derive(Debug, Clone)]
+pub enum ToolCallStage {
+    Parallel {
+        calls: Vec<ToolCallRequest>,
+        fail_mode: FailMode,
+    },
+    Sequential {
+        calls: Vec<ToolCallRequest>,
+        fail_fast: bool,
+    },
+}
+
+/// How parallel-stage failures are handled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum FailMode {
+    /// Run all calls; collect all results (including errors).
+    #[default]
+    CollectAll,
+    /// Cancel remaining calls on first failure.
+    CancelOnFailure,
+}
+
+/// Which error kinds are retriable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ToolErrorKind {
+    Timeout,
+    Network,
+    Execution,
+    InvalidArguments,
+}
+
+impl ToolError {
+    #[must_use]
+    pub fn kind(&self) -> ToolErrorKind {
+        match self {
+            ToolError::Timeout { .. } => ToolErrorKind::Timeout,
+            ToolError::Execution { .. } | ToolError::Cancelled(_) => ToolErrorKind::Execution,
+            ToolError::InvalidArguments { .. } | ToolError::UnknownTool(_) => {
+                ToolErrorKind::InvalidArguments
+            }
+        }
+    }
+}
+
+/// Per-tool retry configuration. Backoff uses `TaskStatus::Delayed` —
+/// never `sleep()` (would block the valtron executor / deadlock on wasm).
+#[derive(Debug, Clone)]
+pub struct ToolRetryConfig {
+    pub max_retries: u32,
+    pub initial_backoff: Duration,
+    pub backoff_multiplier: f64,
+    pub max_backoff: Duration,
+    pub retry_on: Vec<ToolErrorKind>,
+}
+
+impl Default for ToolRetryConfig {
+    fn default() -> Self {
+        Self {
+            max_retries: 3,
+            initial_backoff: Duration::from_secs(1),
+            backoff_multiplier: 2.0,
+            max_backoff: Duration::from_secs(30),
+            retry_on: vec![ToolErrorKind::Timeout, ToolErrorKind::Network],
+        }
+    }
+}
+
+impl ToolRetryConfig {
+    #[must_use]
+    pub fn should_retry(&self, err: &ToolError, attempt: u32) -> bool {
+        attempt < self.max_retries && self.retry_on.contains(&err.kind())
+    }
+
+    #[must_use]
+    pub fn backoff_for(&self, attempt: u32) -> Duration {
+        // as_millis returns u128; precision loss acceptable for backoff durations.
+        #[allow(clippy::cast_precision_loss)]
+        let millis = self.initial_backoff.as_millis() as f64
+            * self.backoff_multiplier.powi(attempt.cast_signed());
+        // millis is non-negative and capped by max_backoff.
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        Duration::from_millis(millis as u64).min(self.max_backoff)
+    }
+}
+
+/// The result of executing an entire workflow — one result per tool call.
+#[derive(Debug)]
+pub struct WorkflowResult {
+    pub results: Vec<(ToolCallRequest, Result<ToolCallResult, ToolError>)>,
+    pub interrupted: bool,
+}
+
+// ---------------------------------------------------------------------------
+// ToolCallManager
+
+/// The tool registry — owns `Arc<dyn ToolImpl>` by name. Cheap to clone
+/// (`Arc`-shared) across valtron tasks.
+///
+/// ```ignore
+/// let mgr = ToolCallManager::new(session_id);
+/// mgr.register(Arc::new(MyTool::new()));
+/// let result = mgr.execute_one(&request).await?;
+/// ```
+pub struct ToolCallManager {
+    inner: Arc<ToolCallManagerInner>,
+}
+
+impl Clone for ToolCallManager {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+struct ToolCallManagerInner {
+    tools: std::sync::RwLock<HashMap<String, Arc<dyn ToolImpl>>>,
+    /// Cached definitions keyed by tool name — `build_toolshed` reads from this
+    /// instead of looping the tools map and calling `definition()` each time.
+    defs: std::sync::RwLock<HashMap<String, Tool>>,
+    /// Per-tool retry config overrides (F11).
+    retry_configs: std::sync::RwLock<HashMap<String, ToolRetryConfig>>,
+    session_id: crate::types::SessionId,
+}
+
+impl ToolCallManager {
+    /// Create a new empty registry for the given session.
+    #[must_use]
+    pub fn new(session_id: crate::types::SessionId) -> Self {
+        Self {
+            inner: Arc::new(ToolCallManagerInner {
+                tools: std::sync::RwLock::new(HashMap::new()),
+                defs: std::sync::RwLock::new(HashMap::new()),
+                retry_configs: std::sync::RwLock::new(HashMap::new()),
+                session_id,
+            }),
+        }
+    }
+
+    /// Register a tool (interior mutability — `&self`, no `Arc` mutation needed).
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
+    /// # Panics
+    /// Panics if the tool cannot be registered.
+    pub fn register(&self, tool: Arc<dyn ToolImpl>) {
+        let def = tool.definition();
+        let mut tools = self.inner.tools.write().unwrap();
+        let mut defs = self.inner.defs.write().unwrap();
+
+        let tool_name = def.name().to_string();
+        defs.insert(tool_name.clone(), def);
+        tools.insert(tool_name, tool);
+    }
+
+    /// Deregister a tool by name.
+    /// # Errors
+    /// Returns [`ToolError`] if arguments are invalid.
+    pub fn deregister(&self, name: &str) {
+        self.inner.tools.write().unwrap().remove(name);
+        self.inner.defs.write().unwrap().remove(name);
+    }
+
+    /// Look up a registered tool.
+    #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
+    pub fn get(&self, name: &str) -> Option<Arc<dyn ToolImpl>> {
+        self.inner.tools.read().unwrap().get(name).cloned()
+    }
+
+    /// Look up a tool's definition (fast — cached at register time).
+    #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if a dependency fails.
+    pub fn get_def(&self, name: &str) -> Option<Tool> {
+        self.inner.defs.read().unwrap().get(name).cloned()
+    }
+
+    /// List all registered tool names.
+    #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
+    pub fn names(&self) -> Vec<String> {
+        self.inner.tools.read().unwrap().keys().cloned().collect()
+    }
+
+    /// Collect the registered tools' own `Tool` declarations, name-sorted for
+    /// determinism, with the `shed` meta-tool (registered as `SingleCommand`
+    /// named `shed`) pulled aside. Returns `(shed_tool, other_tools)`. No
+    /// grouping: each tool declares its own shape (single or multi command).
+    fn collected_tools(&self) -> (Option<Tool>, Vec<Tool>) {
+        let defs = self.inner.defs.read().unwrap();
+        let mut all: Vec<Tool> = defs.values().cloned().collect();
+        all.sort_by(|a, b| a.name().cmp(b.name()));
+
+        let mut shed = None;
+        let mut tools = Vec::new();
+        for tool in all {
+            if tool.name() == "shed" {
+                shed = Some(tool);
+            } else {
+                tools.push(tool);
+            }
+        }
+        (shed, tools)
+    }
+
+    /// Validate arguments against the tool's JSON-Schema, then execute.
+    /// # Errors
+    /// Returns [`ToolError`] if validation fails.
+    pub async fn execute_one(
+        &self,
+        request: &ToolCallRequest,
+    ) -> Result<ToolCallResult, ToolError> {
+        let tool = self
+            .get(&request.name)
+            .ok_or_else(|| ToolError::UnknownTool(request.name.clone()))?;
+
+        // Validate arguments against the tool's Args schema.
+        // Schema validation is delegated to the tool implementer — we just
+        // ensure the args can be serialized to JSON (the schema is carried
+        // through to the LLM for pre-validation).
+        let _def = tool.definition();
+
+        // Contain a panicking tool at the boundary: a buggy tool must not take
+        // down the agent (or wedge the driving valtron task). A panic becomes a
+        // ToolError::Execution the loop handles like any other tool failure.
+        use futures_lite::FutureExt;
+        let name = request.name.clone();
+        match std::panic::AssertUnwindSafe(tool.execute(request.arguments.clone()))
+            .catch_unwind()
+            .await
+        {
+            Ok(result) => result,
+            Err(_panic) => Err(ToolError::Execution {
+                tool: name,
+                reason: "tool panicked during execution".into(),
+            }),
+        }
+    }
+
+    /// Build the `ToolShed` from the registered tools (F19): each tool's own
+    /// `Tool` declaration is collected into `tools` (no grouping). The `shed`
+    /// meta-tool is included only when there is at least one real tool to
+    /// discover — advertising it to a tool-less agent injected a phantom `shed()`
+    /// into every prompt (small models visibly wasted reasoning; see
+    /// docs/fixes/007).
+    #[must_use]
+    pub fn build_toolshed(&self) -> ToolShed {
+        let (shed_tool, tools) = self.collected_tools();
+
+        let shed = if tools.is_empty() {
+            None
+        } else {
+            shed_tool.or_else(|| {
+                Some(Tool::SingleCommand(ToolDefinition {
+                    name: "shed".into(),
+                    category: "shed".into(),
+                    description:
+                        "Search the tool registry for available tools by category or free-text query."
+                            .into(),
+                    arguments: Args::empty(),
+                    returns: None,
+                }))
+            })
+        };
+
+        ToolShed { shed, tools }
+    }
+
+    /// Register the default tool set + the shed discovery tool.
+    /// `shed` is registered first and is always present.
+    #[must_use]
+    pub fn with_defaults(
+        session_id: crate::types::SessionId,
+        discovery: Arc<crate::agentic::tools::shed::ToolDiscovery>,
+    ) -> Self {
+        let mgr = Self::new(session_id);
+        mgr.register(Arc::new(crate::agentic::tools::shed::ShedTool::new(
+            discovery,
+        )));
+        mgr
+    }
+
+    /// Access the session id (for logging / persist).
+    #[must_use]
+    pub fn session_id(&self) -> &crate::types::SessionId {
+        &self.inner.session_id
+    }
+
+    // -----------------------------------------------------------------
+    // F11: Workflow builder + execution
+    // -----------------------------------------------------------------
+
+    /// Topologically group tool calls into stages by `depends_on` depth.
+    ///
+    /// Stage 0 = calls with no deps (default: Parallel).
+    /// Stage N = calls whose deps are all satisfied by stages < N.
+    /// Cycles or missing deps → `ToolError::InvalidArguments`.
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
+    pub fn build_workflow(&self, calls: &[ToolCallRequest]) -> Result<ToolCallWorkflow, ToolError> {
+        fn resolve_depth(
+            idx: usize,
+            calls: &[ToolCallRequest],
+            ids: &HashMap<&str, usize>,
+            depths: &mut [Option<u32>],
+            stack: &mut Vec<usize>,
+        ) -> Result<u32, ToolError> {
+            if let Some(d) = depths[idx] {
+                return Ok(d);
+            }
+            if stack.contains(&idx) {
+                return Err(ToolError::InvalidArguments {
+                    tool: calls[idx].name.clone(),
+                    reason: format!("cyclic dependency involving '{}'", calls[idx].id),
+                });
+            }
+            stack.push(idx);
+            let mut max_dep = 0u32;
+            for dep_id in &calls[idx].depends_on {
+                let dep_idx =
+                    ids.get(dep_id.as_str())
+                        .ok_or_else(|| ToolError::InvalidArguments {
+                            tool: calls[idx].name.clone(),
+                            reason: format!("depends on unknown call '{dep_id}'"),
+                        })?;
+                let dep_depth = resolve_depth(*dep_idx, calls, ids, depths, stack)?;
+                max_dep = max_dep.max(dep_depth + 1);
+            }
+            stack.pop();
+            depths[idx] = Some(max_dep);
+            Ok(max_dep)
+        }
+
+        if calls.is_empty() {
+            return Ok(ToolCallWorkflow { stages: vec![] });
+        }
+
+        let ids: HashMap<&str, usize> = calls
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (c.id.as_str(), i))
+            .collect();
+
+        // Compute depth for each call.
+        let mut depths: Vec<Option<u32>> = vec![None; calls.len()];
+        let mut stack: Vec<usize> = Vec::new();
+
+        for i in 0..calls.len() {
+            resolve_depth(i, calls, &ids, &mut depths, &mut stack)?;
+        }
+
+        // Group by depth.
+        let max_depth = depths.iter().filter_map(|d| *d).max().unwrap_or(0);
+        let mut stages = Vec::with_capacity((max_depth + 1) as usize);
+
+        for depth in 0..=max_depth {
+            let stage_calls: Vec<ToolCallRequest> = calls
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| depths[*i] == Some(depth))
+                .map(|(_, c)| c.clone())
+                .collect();
+
+            if stage_calls.is_empty() {
+                continue;
+            }
+
+            // If any call in the stage requests Sequential, the whole stage is sequential.
+            let any_sequential = stage_calls
+                .iter()
+                .any(|c| c.execution_hint == ExecutionHint::Sequential);
+
+            if any_sequential || stage_calls.len() == 1 {
+                stages.push(ToolCallStage::Sequential {
+                    calls: stage_calls,
+                    fail_fast: true,
+                });
+            } else {
+                stages.push(ToolCallStage::Parallel {
+                    calls: stage_calls,
+                    fail_mode: FailMode::CollectAll,
+                });
+            }
+        }
+
+        Ok(ToolCallWorkflow { stages })
+    }
+
+    /// Execute a single call with retry (non-blocking backoff via returned Duration).
+    ///
+    /// Returns `(result, backoff_durations_used)`. The caller is responsible for
+    /// implementing the actual delay (via `TaskStatus::Delayed` in valtron context).
+    /// In test / direct-call context, retries happen immediately.
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
+    pub async fn execute_with_retry(
+        &self,
+        request: &ToolCallRequest,
+        config: &ToolRetryConfig,
+    ) -> Result<ToolCallResult, ToolError> {
+        let mut attempt = 0u32;
+        loop {
+            match self.execute_one(request).await {
+                Ok(result) => return Ok(result),
+                Err(e) if config.should_retry(&e, attempt) => {
+                    attempt += 1;
+                    // In async context, the caller should yield with the backoff duration.
+                    // Here we just proceed to the next attempt (valtron Delayed is wired
+                    // by the task iterator in F19, not by this async fn).
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    /// Set per-tool retry config override.
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
+    pub fn set_retry_config(&self, tool_name: &str, config: ToolRetryConfig) {
+        self.inner
+            .retry_configs
+            .write()
+            .unwrap()
+            .insert(tool_name.to_string(), config);
+    }
+
+    /// Get retry config for a tool (per-tool override or default).
+    #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if a dependency fails.
+    pub fn retry_config(&self, tool_name: &str) -> ToolRetryConfig {
+        self.inner
+            .retry_configs
+            .read()
+            .unwrap()
+            .get(tool_name)
+            .cloned()
+            .unwrap_or_default()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests

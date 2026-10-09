@@ -79,23 +79,25 @@ impl Validate for ContainsValidator {
                 }
             }
             if match_count < self.min_contains {
-                return Err(
-                    ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
-                        .build(ValidationErrorKind::MinContains {
-                            min: self.min_contains,
-                            actual: match_count,
-                        }),
-                );
+                return Err(ValidationErrorBuilder::new(
+                    instance_path.materialize(),
+                    Location::new(),
+                )
+                .build(ValidationErrorKind::MinContains {
+                    min: self.min_contains,
+                    actual: match_count,
+                }));
             }
             if let Some(max) = self.max_contains {
                 if match_count > max {
-                    return Err(
-                        ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
-                            .build(ValidationErrorKind::MaxContains {
-                                max,
-                                actual: match_count,
-                            }),
-                    );
+                    return Err(ValidationErrorBuilder::new(
+                        instance_path.materialize(),
+                        Location::new(),
+                    )
+                    .build(ValidationErrorKind::MaxContains {
+                        max,
+                        actual: match_count,
+                    }));
                 }
             }
             Ok(())

@@ -1,0 +1,931 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Docker environment variables
+
+: "${DISK_IO:="native"}"          # I/O Mode, can be set to 'native', 'threads' or 'io_uring'
+: "${DISK_FMT:=""}"               # Disk file format, can be set to "raw" (default) or "qcow2"
+: "${DISK_TYPE:=""}"              # Device type to be used, "sata", "nvme", "blk" or "scsi"
+: "${DISK_FLAGS:=""}"             # Specifies the options for use with the qcow2 disk format
+: "${DISK_CACHE:="none"}"         # Caching mode, can be set to 'writeback' for better performance
+: "${DISK_DISCARD:="unmap"}"      # Controls whether unmap (TRIM) commands are passed to the host.
+: "${DISK_ROTATION:="1"}"         # Rotation rate, set to 1 for SSD storage and increase for HDD
+
+# Sanitize all variables
+DISK_IO=$(strip "$DISK_IO")
+DISK_FMT=$(strip "$DISK_FMT")
+DISK_TYPE=$(strip "$DISK_TYPE")
+DISK_FLAGS=$(strip "$DISK_FLAGS")
+DISK_CACHE=$(strip "$DISK_CACHE")
+DISK_DISCARD=$(strip "$DISK_DISCARD")
+DISK_ROTATION=$(strip "$DISK_ROTATION")
+
+fmt2ext() {
+  local DISK_FMT="$1"
+
+  case "${DISK_FMT,,}" in
+    qcow2) echo "qcow2" ;;
+    raw) echo "img" ;;
+    *) error "Unrecognized disk format: $DISK_FMT" && exit 78 ;;
+  esac
+}
+
+ext2fmt() {
+  local DISK_EXT="$1"
+
+  case "${DISK_EXT,,}" in
+    qcow2) echo "qcow2" ;;
+    img) echo "raw" ;;
+    *) error "Unrecognized file extension: .$DISK_EXT" && exit 78 ;;
+  esac
+}
+
+getSize() {
+
+  local DISK_FILE="$1"
+  local DISK_EXT DISK_FMT size
+
+  DISK_EXT=$(echo "${DISK_FILE//*./}" | sed 's/^.*\.//')
+  DISK_FMT=$(ext2fmt "$DISK_EXT")
+
+  case "${DISK_FMT,,}" in
+    raw)
+      stat -c%s "$DISK_FILE"
+      ;;
+
+    qcow2)
+      size=$(qemu-img info --output=json -f "$DISK_FMT" "$DISK_FILE" | jq -r '."virtual-size" // empty')
+      if [[ ! "$size" =~ ^[0-9]+$ ]]; then
+        error "Failed to determine virtual size of $DISK_FILE"
+        exit 78
+      fi
+      echo "$size"
+      ;;
+
+    *)
+      error "Unrecognized disk format: $DISK_FMT"
+      exit 78
+      ;;
+  esac
+}
+
+isCow() {
+  local FS="$1"
+
+  if [[ "${FS,,}" == "btrfs" ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+supportsDirect() {
+  local FS="$1"
+
+  if [[ "${FS,,}" == "ecryptfs" || "${FS,,}" == "tmpfs" ]]; then
+    return 1
+  fi
+
+  return 0
+}
+
+validDiskType() {
+
+  case "${1,,}" in
+    "ide" | "sata" | "nvme" | "usb" | "scsi" | "blk" | \
+    "virtio-blk" | "virtio-scsi" | "auto" | "none" )
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+allocateRaw() {
+
+  local DISK_FILE="$1"
+  local DATA_SIZE="$2"
+
+  if disabled "$ALLOCATE"; then
+    truncate -s "$DATA_SIZE" "$DISK_FILE"
+    return $?
+  fi
+
+  fallocate -l "$DATA_SIZE" "$DISK_FILE" &>/dev/null && return 0
+  fallocate -l -x "$DATA_SIZE" "$DISK_FILE" && return 0
+  truncate -s "$DATA_SIZE" "$DISK_FILE" || return 1
+
+  return 0
+}
+
+getDiskOptions() {
+
+  local FS="$1"
+  local DISK_FMT="$2"
+  local DISK_PARAM="$DISK_ALLOC"
+
+  isCow "$FS" && DISK_PARAM+=",nocow=on"
+
+  if [[ "${DISK_FMT,,}" != "raw" ]]; then
+    [ -n "$DISK_FLAGS" ] && DISK_PARAM+=",$DISK_FLAGS"
+  fi
+
+  echo "$DISK_PARAM"
+  return 0
+}
+
+normalizeSize() {
+
+  local DISK_SPACE="$1"
+  local DISK_DESC="$2"
+  local DIR="$3"
+  local SPACE FREE GB DATA_SIZE
+
+  if [[ "${DISK_SPACE,,}" == "max" || "${DISK_SPACE,,}" == "half" ]]; then
+
+    local SPARE=1073741824
+    FREE=$(df --output=avail -B 1 "$DIR" | tail -n 1)
+
+    if [[ "${DISK_SPACE,,}" == "max" ]]; then
+      FREE=$(( FREE - SPARE ))
+    else
+      FREE=$(( FREE / 2 ))
+    fi
+
+    (( FREE < SPARE )) && FREE="$SPARE"
+    GB=$(( FREE / 1073741825 ))
+    DISK_SPACE="${GB}G"
+
+  fi
+
+  SPACE="${DISK_SPACE// /}"
+  [ -z "$SPACE" ] && SPACE="64G"
+  [ -z "${SPACE//[0-9. ]}" ] && SPACE="${SPACE}G"
+  SPACE=$(echo "${SPACE^^}" | sed 's/MB/M/g;s/GB/G/g;s/TB/T/g')
+
+  if ! numfmt --from=iec "$SPACE" &>/dev/null; then
+    error "Invalid value for ${DISK_DESC^^}_SIZE: $DISK_SPACE" && exit 73
+  fi
+
+  DATA_SIZE=$(numfmt --from=iec "$SPACE")
+
+  if (( DATA_SIZE < 104857600 )); then
+    error "Please increase the ${DISK_DESC^^}_SIZE variable to at least 100 MB." && exit 73
+  fi
+
+  echo "$SPACE"
+  return 0
+}
+
+baseDir() {
+
+  local path="${1%/}"
+
+  [[ -z "$path" || "$path" == "/" ]] && {
+    echo "/"
+    return 0
+  }
+
+  path="${path#/}"
+  path="${path%%/*}"
+
+  echo "/$path"
+  return 0
+}
+
+freeSpace() {
+
+  local path="$1"
+  local base
+
+  base=$(baseDir "$path")
+
+  if ! SPACE=$(df --output=avail -B 1 "$path" | tail -n 1); then
+    error "Failed to check free space in $base."
+    exit 76
+  fi
+
+  if [[ ! "$SPACE" =~ ^[0-9]+$ ]]; then
+    error "Failed to check free space in $base."
+    exit 76
+  fi
+
+  return 0
+}
+
+createDisk() {
+
+  local DISK_FILE="$1"
+  local DISK_SPACE="$2"
+  local DISK_DESC="$3"
+  local DISK_FMT="$4"
+  local FS="$5"
+  local DATA_SIZE DIR BASE_DIR SPACE GB FA
+
+  rm -f "$DISK_FILE"
+
+  DATA_SIZE=$(numfmt --from=iec "$DISK_SPACE")
+
+  if ! disabled "$ALLOCATE"; then
+
+    # Check free diskspace
+    DIR=$(dirname "$DISK_FILE")
+    BASE_DIR=$(baseDir "$DIR")
+
+    freeSpace "$DIR"
+
+    if (( DATA_SIZE > SPACE )); then
+      GB=$(formatBytes "$SPACE")
+      error "Not enough free space to create a $DISK_DESC of ${DISK_SPACE/G/ GB} in $BASE_DIR, it has only $GB available..."
+      error "Please specify a smaller ${DISK_DESC^^}_SIZE or disable preallocation by setting ALLOCATE=N." && exit 76
+    fi
+
+  fi
+
+  html "Creating a $DISK_DESC image..."
+  info "Creating a ${DISK_SPACE/G/ GB} $DISK_STYLE $DISK_DESC image in $DISK_FMT format..."
+
+  local FAIL="Could not create a $DISK_STYLE $DISK_FMT $DISK_DESC image of ${DISK_SPACE/G/ GB} ($DISK_FILE)"
+
+  case "${DISK_FMT,,}" in
+    raw)
+
+      if isCow "$FS"; then
+        if ! touch "$DISK_FILE"; then
+          error "$FAIL" && exit 77
+        fi
+        { chattr +C "$DISK_FILE"; } || :
+      fi
+
+      if ! allocateRaw "$DISK_FILE" "$DATA_SIZE"; then
+        rm -f "$DISK_FILE"
+        error "$FAIL" && exit 77
+      fi
+      ;;
+    qcow2)
+
+      local DISK_PARAM
+      DISK_PARAM=$(getDiskOptions "$FS" "$DISK_FMT")
+
+      if ! qemu-img create -f "$DISK_FMT" -o "$DISK_PARAM" -- "$DISK_FILE" "$DATA_SIZE" ; then
+        rm -f "$DISK_FILE"
+        error "$FAIL" && exit 70
+      fi
+      ;;
+  esac
+
+  if isCow "$FS"; then
+    FA=$(lsattr "$DISK_FILE")
+    if [[ "$FA" != *"C"* ]]; then
+      error "Failed to disable COW for $DISK_DESC image $DISK_FILE on ${FS^^} filesystem (returned $FA)"
+    fi
+  fi
+
+  return 0
+}
+
+resizeDisk() {
+
+  local DISK_FILE="$1"
+  local DISK_SPACE="$2"
+  local DISK_DESC="$3"
+  local DISK_FMT="$4"
+  local FS="$5"
+  local CUR_SIZE DATA_SIZE DIR BASE_DIR SPACE GB
+
+  CUR_SIZE=$(getSize "$DISK_FILE") || exit 71
+  DATA_SIZE=$(numfmt --from=iec "$DISK_SPACE")
+  local REQ=$(( DATA_SIZE - CUR_SIZE ))
+  (( REQ < 1 )) && error "Shrinking disks is not supported yet, please increase ${DISK_DESC^^}_SIZE." && exit 71
+
+  if ! disabled "$ALLOCATE"; then
+
+    # Check free diskspace
+    DIR=$(dirname "$DISK_FILE")
+    BASE_DIR=$(baseDir "$DIR")
+
+    freeSpace "$DIR"
+
+    if (( REQ > SPACE )); then
+      GB=$(formatBytes "$SPACE")
+      error "Not enough free space to resize $DISK_DESC to ${DISK_SPACE/G/ GB} in $BASE_DIR, it has only $GB available.."
+      error "Please specify a smaller ${DISK_DESC^^}_SIZE or disable preallocation by setting ALLOCATE=N." && exit 74
+    fi
+
+  fi
+
+  GB=$(formatBytes "$CUR_SIZE")
+  MSG="Resizing $DISK_DESC from $GB to ${DISK_SPACE/G/ GB}..."
+  info "$MSG" && html "$MSG"
+
+  local FAIL="Could not resize the $DISK_STYLE $DISK_FMT $DISK_DESC image from ${GB} to ${DISK_SPACE/G/ GB} ($DISK_FILE)"
+
+  case "${DISK_FMT,,}" in
+    raw)
+
+      if ! allocateRaw "$DISK_FILE" "$DATA_SIZE"; then
+        error "$FAIL" && exit 75
+      fi
+      ;;
+    qcow2)
+
+      if ! qemu-img resize -f "$DISK_FMT" "--$DISK_ALLOC" "$DISK_FILE" "$DATA_SIZE" ; then
+        error "$FAIL" && exit 72
+      fi
+
+      ;;
+  esac
+
+  return 0
+}
+
+convertDisk() {
+
+  local SOURCE_FILE="$1"
+  local SOURCE_FMT="$2"
+  local DST_FILE="$3"
+  local DST_FMT="$4"
+  local DISK_BASE="$5"
+  local DISK_DESC="$6"
+  local FS="$7"
+
+  [ -f "$DST_FILE" ] && error "Conversion failed, destination file $DST_FILE already exists?" && exit 79
+  [ ! -f "$SOURCE_FILE" ] && error "Conversion failed, source file $SOURCE_FILE does not exist?" && exit 79
+
+  local TMP_FILE="$DISK_BASE.tmp"
+  rm -f "$TMP_FILE"
+
+  local DIR BASE_DIR FA
+  DIR=$(dirname "$TMP_FILE")
+  BASE_DIR=$(baseDir "$DIR")
+
+  if ! disabled "$ALLOCATE"; then
+
+    local CUR_SIZE SPACE GB
+
+    # Check free diskspace
+    CUR_SIZE=$(getSize "$SOURCE_FILE") || exit 79
+
+    freeSpace "$DIR"
+
+    if (( CUR_SIZE > SPACE )); then
+      GB=$(formatBytes "$SPACE")
+      error "Not enough free space to convert $DISK_DESC to $DST_FMT in $BASE_DIR, it has only $GB available..."
+      error "Please free up some disk space or disable preallocation by setting ALLOCATE=N." && exit 76
+    fi
+
+  fi
+
+  local msg="Converting $DISK_DESC to $DST_FMT"
+  html "$msg..."
+  info "$msg, please wait until completed..."
+
+  local CONV_FLAGS="-p"
+  local DISK_PARAM
+  DISK_PARAM=$(getDiskOptions "$FS" "$DST_FMT")
+
+  if [[ "$DST_FMT" != "raw" ]]; then
+    if disabled "$ALLOCATE"; then
+      CONV_FLAGS+=" -c"
+    fi
+  fi
+
+  # shellcheck disable=SC2086
+  if ! qemu-img convert -f "$SOURCE_FMT" $CONV_FLAGS -o "$DISK_PARAM" -O "$DST_FMT" -- "$SOURCE_FILE" "$TMP_FILE"; then
+    rm -f "$TMP_FILE"
+    error "Failed to convert $DISK_STYLE $DISK_DESC image to $DST_FMT format in $BASE_DIR, is there enough space available?" && exit 79
+  fi
+
+  if [[ "$DST_FMT" == "raw" ]]; then
+    if ! disabled "$ALLOCATE"; then
+
+      # Work around qemu-img bug
+      if ! CUR_SIZE=$(stat -c%s "$TMP_FILE"); then
+        error "Failed to determine converted image size: $TMP_FILE"
+        exit 79
+      fi
+
+      if ! fallocate -l "$CUR_SIZE" "$TMP_FILE" &>/dev/null; then
+        if ! fallocate -l -x "$CUR_SIZE" "$TMP_FILE"; then
+          error "Failed to allocate $CUR_SIZE bytes for $DISK_DESC image $TMP_FILE"
+        fi
+      fi
+    fi
+  fi
+
+  if ! mv "$TMP_FILE" "$DST_FILE"; then
+    error "Failed to move converted $DISK_DESC image to $DST_FILE."
+    exit 79
+  fi
+
+  if ! rm -f "$SOURCE_FILE"; then
+    error "Failed to remove old $DISK_DESC image $SOURCE_FILE."
+    exit 79
+  fi
+
+  if isCow "$FS"; then
+    FA=$(lsattr "$DST_FILE")
+    if [[ "$FA" != *"C"* ]]; then
+      error "Failed to disable COW for $DISK_DESC image $DST_FILE on ${FS^^} filesystem (returned $FA)"
+    fi
+  fi
+
+  msg="Conversion of $DISK_DESC"
+  info "$msg to $DST_FMT completed successfully!"
+
+  return 0
+}
+
+checkFS () {
+
+  local FS="$1"
+  local DISK_FILE="$2"
+  local DISK_DESC="$3"
+  local DIR BASE_DIR FA
+
+  DIR=$(dirname "$DISK_FILE")
+  BASE_DIR=$(baseDir "$DIR")
+  [ ! -d "$DIR" ] && return 0
+
+  if [[ "${FS,,}" == "overlay"* && "${ENGINE,,}" == "docker" ]]; then
+    warn "the filesystem of $BASE_DIR is OverlayFS, this usually means it was binded to an invalid path!"
+  fi
+
+  if [[ "${FS,,}" == "fuse"* ]]; then
+    warn "the filesystem of $BASE_DIR is FUSE, this extra layer will negatively affect performance!"
+  fi
+
+  if ! supportsDirect "$FS"; then
+    warn "the filesystem of $BASE_DIR is $FS, which does not support O_DIRECT mode, adjusting settings..."
+  fi
+
+  if isCow "$FS"; then
+    if [ -f "$DISK_FILE" ]; then
+      FA=$(lsattr "$DISK_FILE")
+      if [[ "$FA" != *"C"* ]]; then
+        warn "COW (copy on write) is not disabled for $DISK_DESC image file $DISK_FILE, this is recommended on ${FS^^} filesystems!"
+      fi
+    fi
+  fi
+
+  return 0
+}
+
+createDevice () {
+
+  local DISK_FILE="$1"
+  local DISK_TYPE="$2"
+  local DISK_INDEX="$3"
+  local DISK_ADDRESS="$4"
+  local DISK_FMT="$5"
+  local DISK_IO="$6"
+  local DISK_CACHE="$7"
+  local DISK_SERIAL="$8"
+  local DISK_SECTORS="$9"
+  local DISK_ID="data$DISK_INDEX"
+
+  local BUS="${PCI_BUS:-pcie.0}"
+  [[ -z "${PCI_BUS:-}" && ( "${MACHINE,,}" == pc || "${MACHINE,,}" == pc-i440fx* ) ]] && BUS="pci.0"
+
+  local index=""
+  [ -n "$DISK_INDEX" ] && index=",bootindex=$DISK_INDEX"
+  local result=" -drive file=$DISK_FILE,id=$DISK_ID,format=$DISK_FMT,cache=$DISK_CACHE,aio=$DISK_IO,discard=$DISK_DISCARD,detect-zeroes=on"
+
+  case "${DISK_TYPE,,}" in
+    "none" ) ;;
+    "auto" )
+      echo "$result"
+      ;;
+    "usb" )
+      result+=",if=none \
+      -device usb-storage,drive=${DISK_ID}${index}${DISK_SERIAL}${DISK_SECTORS}"
+      echo "$result"
+      ;;
+    "nvme" )
+      result+=",if=none \
+      -device nvme,drive=${DISK_ID}${index},serial=deadbeaf${DISK_INDEX}${DISK_SERIAL}${DISK_SECTORS}"
+      echo "$result"
+      ;;
+    "ide" | "sata" )
+      result+=",if=none \
+      -device ich9-ahci,id=ahci${DISK_INDEX},addr=$DISK_ADDRESS \
+      -device ide-hd,drive=${DISK_ID},bus=ahci$DISK_INDEX.0,rotation_rate=$DISK_ROTATION${index}${DISK_SERIAL}${DISK_SECTORS}"
+      echo "$result"
+      ;;
+    "blk" | "virtio-blk" )
+      result+=",if=none \
+      -device virtio-blk-pci,drive=${DISK_ID},bus=$BUS,addr=$DISK_ADDRESS,iothread=io2${index}${DISK_SERIAL}${DISK_SECTORS}"
+      echo "$result"
+      ;;
+    "scsi" | "virtio-scsi" )
+      result+=",if=none \
+      -device virtio-scsi-pci,id=${DISK_ID}b,bus=$BUS,addr=$DISK_ADDRESS,iothread=io2,hotplug=off \
+      -device scsi-hd,drive=${DISK_ID},bus=${DISK_ID}b.0,channel=0,scsi-id=0,lun=0,rotation_rate=$DISK_ROTATION${index}${DISK_SERIAL}${DISK_SECTORS}"
+      echo "$result"
+      ;;
+  esac
+
+  return 0
+}
+
+addMedia () {
+
+  local DISK_FILE="$1"
+  local DISK_TYPE="$2"
+  local DISK_INDEX="$3"
+  local DISK_ADDRESS="$4"
+
+  local BUS="${PCI_BUS:-pcie.0}"
+  [[ -z "${PCI_BUS:-}" && ( "${MACHINE,,}" == pc || "${MACHINE,,}" == pc-i440fx* ) ]] && BUS="pci.0"
+
+  local index=""
+  local DISK_ID="cdrom$DISK_INDEX"
+  [ -n "$DISK_INDEX" ] && index=",bootindex=$DISK_INDEX"
+  local result=" -drive file=$DISK_FILE,id=$DISK_ID,format=raw,cache=unsafe,readonly=on,media=cdrom"
+
+  case "${DISK_TYPE,,}" in
+    "none" ) ;;
+    "auto" )
+      echo "$result"
+      ;;
+    "usb" )
+      result+=",if=none \
+      -device usb-storage,drive=${DISK_ID}${index},removable=on"
+      echo "$result"
+      ;;
+    "nvme" )
+      result+=",if=none \
+      -device nvme,drive=${DISK_ID}${index},serial=deadbeaf${DISK_INDEX}"
+      echo "$result"
+      ;;
+    "ide" | "sata" )
+      result+=",if=none \
+      -device ich9-ahci,id=ahci${DISK_INDEX},addr=$DISK_ADDRESS \
+      -device ide-cd,drive=${DISK_ID},bus=ahci${DISK_INDEX}.0${index}"
+      echo "$result"
+      ;;
+    "blk" | "virtio-blk" )
+      result+=",if=none \
+      -device virtio-blk-pci,drive=${DISK_ID},bus=$BUS,addr=$DISK_ADDRESS,iothread=io2${index}"
+      echo "$result"
+      ;;
+    "scsi" | "virtio-scsi" )
+      result+=",if=none \
+      -device virtio-scsi-pci,id=${DISK_ID}b,bus=$BUS,addr=$DISK_ADDRESS,iothread=io2,hotplug=off \
+      -device scsi-cd,drive=${DISK_ID},bus=${DISK_ID}b.0${index}"
+      echo "$result"
+      ;;
+  esac
+
+  return 0
+}
+
+finishDisks () {
+
+  local type
+
+  for type in "${DISK_TYPE,,}" "${MEDIA_TYPE,,}"; do
+    case "$type" in
+      "blk" | "scsi" | "virtio-blk" | "virtio-scsi" )
+        [[ "$DISK_OPTS" != *" -object iothread,id=io2"* ]] && DISK_OPTS+=" -object iothread,id=io2"
+        break ;;
+    esac
+  done
+
+  return 0
+}
+
+addDisk () {
+
+  local DISK_BASE="$1"
+  local DISK_TYPE="$2"
+  local DISK_DESC="$3"
+  local DISK_SPACE="$4"
+  local DISK_INDEX="$5"
+  local DISK_ADDRESS="$6"
+  local DISK_FMT="$7"
+  local DISK_IO="$8"
+  local DISK_CACHE="$9"
+  local DISK_EXT DIR SPACE DATA_SIZE FS PREV_FMT PREV_EXT CUR_SIZE LEFT FREE USED
+
+  DISK_EXT=$(fmt2ext "$DISK_FMT")
+  local DISK_FILE="$DISK_BASE.$DISK_EXT"
+
+  DIR=$(dirname "$DISK_FILE")
+  [ ! -d "$DIR" ] && return 0
+
+  SPACE=$(normalizeSize "$DISK_SPACE" "$DISK_DESC" "$DIR")
+  DATA_SIZE=$(numfmt --from=iec "$SPACE")
+
+  FS=$(stat -f -c %T "$DIR")
+  checkFS "$FS" "$DISK_FILE" "$DISK_DESC" || exit $?
+
+  if ! supportsDirect "$FS"; then
+    DISK_IO="threads"
+    DISK_CACHE="writeback"
+  fi
+
+  if [ ! -s "$DISK_FILE" ] ; then
+
+    if [[ "${DISK_FMT,,}" != "raw" ]]; then
+      PREV_FMT="raw"
+    else
+      PREV_FMT="qcow2"
+    fi
+
+    PREV_EXT=$(fmt2ext "$PREV_FMT")
+
+    if [ -s "$DISK_BASE.$PREV_EXT" ] ; then
+      convertDisk "$DISK_BASE.$PREV_EXT" "$PREV_FMT" "$DISK_FILE" "$DISK_FMT" "$DISK_BASE" "$DISK_DESC" "$FS" || exit $?
+    fi
+
+  fi
+
+  if [ -s "$DISK_FILE" ]; then
+
+    CUR_SIZE=$(getSize "$DISK_FILE") || exit 71
+
+    if (( DATA_SIZE > CUR_SIZE )); then
+
+      resizeDisk "$DISK_FILE" "$SPACE" "$DISK_DESC" "$DISK_FMT" "$FS" || exit $?
+
+    else
+
+      if (( DATA_SIZE < CUR_SIZE )); then
+
+        if [[ "${DISK_SPACE,,}" != "max" && "${DISK_SPACE,,}" != "half" ]]; then
+          info "You decreased the ${DISK_DESC^^}_SIZE variable to ${DISK_SPACE/G/ GB} but shrinking disks is not supported, will be ignored..."
+        fi
+
+      fi
+    fi
+
+  else
+
+    createDisk "$DISK_FILE" "$SPACE" "$DISK_DESC" "$DISK_FMT" "$FS" || exit $?
+
+  fi
+
+  if [ -f "$DISK_FILE" ] && disabled "$ALLOCATE"; then
+
+    CUR_SIZE=$(getSize "$DISK_FILE") || exit 73
+    USED=$(du -sB 1 "$DISK_FILE" | cut -f1)
+    FREE=$(df --output=avail -B 1 "$DIR" | tail -n 1)
+    LEFT=$(( CUR_SIZE - USED - FREE ))
+    (( LEFT < 0 )) && LEFT=0
+
+    if (( LEFT > 0 )); then
+
+      local GB BASE_DIR
+      GB=$(formatBytes "$FREE")
+      BASE_DIR=$(baseDir "$DIR")
+      LEFT=$(formatBytes "$LEFT")
+      CUR_SIZE=$(formatBytes "$CUR_SIZE")
+      msg="The virtual size of the ${DISK_DESC,,} is $CUR_SIZE"
+
+      if [ -n "$USED" ] && [[ "$USED" != "0" ]]; then
+        USED=$(formatBytes "$USED")
+        msg+=" (of which $USED is used)"
+      fi
+
+      info "$msg, but there is only $GB of free space remaining in $BASE_DIR now."
+      info "Please consider making at least $LEFT more space available in $BASE_DIR for future expansions."
+
+    fi
+  fi
+
+  if [ -f "$DISK_FILE" ]; then
+    if ! setOwner "$DISK_FILE"; then
+      warn "failed to set the owner for \"$DISK_FILE\" !"
+    fi
+  fi
+
+  DISK_OPTS+=$(createDevice "$DISK_FILE" "$DISK_TYPE" "$DISK_INDEX" "$DISK_ADDRESS" "$DISK_FMT" "$DISK_IO" "$DISK_CACHE" "" "")
+
+  return 0
+}
+
+addDevice () {
+
+  local DISK_DEV="$1"
+  local DISK_TYPE="$2"
+  local DISK_INDEX="$3"
+  local DISK_ADDRESS="$4"
+
+  [ -z "$DISK_DEV" ] && return 0
+  [ ! -b "$DISK_DEV" ] && error "Device $DISK_DEV cannot be found! Please add it to the 'devices' section of your compose file." && exit 55
+
+  local result=""
+  local sectors=""
+  local logical=""
+  local physical=""
+
+  result=$(fdisk -l "$DISK_DEV" 2>/dev/null | grep -m 1 -o "(logical/physical): .*" | cut -c 21- || true)
+
+  if [ -n "$result" ]; then
+    logical="${result%% *}"
+    physical=$(echo "$result" | grep -m 1 -o "/ .*" | cut -c 3- || true)
+    physical="${physical%% *}"
+  fi
+
+  if [ -z "$logical" ] || [ -z "$physical" ]; then
+    warn "Failed to determine the sector size for $DISK_DEV"
+  elif [[ "$physical" != "512" ]]; then
+    sectors=",logical_block_size=$logical,physical_block_size=$physical"
+  fi
+
+  DISK_OPTS+=$(createDevice "$DISK_DEV" "$DISK_TYPE" "$DISK_INDEX" "$DISK_ADDRESS" "raw" "$DISK_IO" "$DISK_CACHE" "" "$sectors")
+
+  return 0
+}
+
+[ -z "${DISK_OPTS:-}" ] && DISK_OPTS=""
+[ -z "${DISK_TYPE:-}" ] && DISK_TYPE="scsi"
+[ -z "${DISK_NAME:-}" ] && DISK_NAME="data"
+[ -z "${DISK_DISABLE:-}" ] && DISK_DISABLE=""
+
+if ! enabled "$DISK_DISABLE"; then
+  msg="Initializing disks..."
+  enabled "$DEBUG" && echo "$msg"
+fi
+
+if [[ "${DISK_IO,,}" == "native" && "${DISK_CACHE,,}" != "none" && "${DISK_CACHE,,}" != "directsync" ]]; then
+  warn "DISK_IO=native requires direct I/O caching, using DISK_IO=threads with DISK_CACHE=$DISK_CACHE."
+  DISK_IO="threads"
+fi
+
+case "${DISK_DISCARD,,}" in
+  "y" | "yes" | "true" | "1" | "on" | "unmap" )
+    DISK_DISCARD="unmap" ;;
+
+  "n" | "no" | "false" | "0" | "off" | "ignore" )
+    DISK_DISCARD="ignore" ;;
+
+  * )
+    warn "Invalid DISK_DISCARD value '$DISK_DISCARD', using 'unmap'."
+    DISK_DISCARD="unmap" ;;
+esac
+
+if [[ ! "$DISK_ROTATION" =~ ^[0-9]+$ ]]; then
+  warn "Invalid DISK_ROTATION value '$DISK_ROTATION', using 1."
+  DISK_ROTATION="1"
+fi
+
+if ! validDiskType "$DISK_TYPE"; then
+  error "Invalid DISK_TYPE specified, value \"$DISK_TYPE\" is not recognized!"
+  exit 80
+fi
+
+if [[ "$DISK_FLAGS" =~ [[:space:]] ]]; then
+  error "Invalid DISK_FLAGS value '$DISK_FLAGS', spaces are not allowed."
+  exit 78
+fi
+
+if [[ "${PLATFORM,,}" != "arm64" ]]; then
+  FALLBACK="ide"
+else
+  FALLBACK="usb"
+fi
+
+[[ "${BOOT_MODE:-}" == "windows_legacy" ]] && FALLBACK="auto"
+
+if [ -z "${MEDIA_TYPE:-}" ]; then
+  if [[ "${BOOT_MODE:-}" != "windows"* ]]; then
+    if [[ "${DISK_TYPE,,}" == "blk" ]]; then
+      MEDIA_TYPE="$FALLBACK"
+    else
+      MEDIA_TYPE="$DISK_TYPE"
+    fi
+  else
+    MEDIA_TYPE="$FALLBACK"
+  fi
+fi
+
+if ! validDiskType "$MEDIA_TYPE"; then
+  error "Invalid MEDIA_TYPE specified, value \"$MEDIA_TYPE\" is not recognized!"
+  exit 80
+fi
+
+if [ -s "$BOOT" ]; then
+  case "${BOOT,,}" in
+    *".iso" )
+        if [[ "${BOOT_MODE:-}" == "windows"* ]]; then
+          hybrid="0000"
+        else
+          hybrid=$(head -c 512 "$BOOT" | tail -c 2 | xxd -p)
+        fi
+        if [[ "$hybrid" != "0000" ]]; then
+          DISK_OPTS+=$(addMedia "$BOOT" "usb" "$BOOT_INDEX" "0x5")
+        else
+          DISK_OPTS+=$(addMedia "$BOOT" "$MEDIA_TYPE" "$BOOT_INDEX" "0x5")
+        fi ;;
+    *".img" | *".raw" )
+        DISK_OPTS+=$(createDevice "$BOOT" "$DISK_TYPE" "$BOOT_INDEX" "0x5" "raw" "$DISK_IO" "$DISK_CACHE" "" "") ;;
+    *".qcow2" )
+        DISK_OPTS+=$(createDevice "$BOOT" "$DISK_TYPE" "$BOOT_INDEX" "0x5" "qcow2" "$DISK_IO" "$DISK_CACHE" "" "") ;;
+    * )
+        error "Invalid BOOT image specified, extension \".${BOOT/*./}\" is not recognized!" && exit 80 ;;
+  esac
+fi
+
+DRIVERS="/mount.iso"
+[ ! -s "$DRIVERS" ] && DRIVERS="/drivers.iso"
+[ ! -s "$DRIVERS" ] && DRIVERS="$STORAGE/drivers.iso"
+
+if [ -s "$DRIVERS" ]; then
+  DISK_OPTS+=$(addMedia "$DRIVERS" "$FALLBACK" "" "0x6")
+fi
+
+RESCUE="/start.iso"
+[ ! -s "$RESCUE" ] && RESCUE="$STORAGE/start.iso"
+
+if [ -s "$RESCUE" ]; then
+  DISK_OPTS+=$(addMedia "$RESCUE" "$FALLBACK" "1" "0x6")
+fi
+
+DISK1_FILE="$STORAGE/${DISK_NAME}"
+DISK2_FILE="/storage2/${DISK_NAME}2"
+DISK3_FILE="/storage3/${DISK_NAME}3"
+DISK4_FILE="/storage4/${DISK_NAME}4"
+DISK5_FILE="/storage5/${DISK_NAME}5"
+DISK6_FILE="/storage6/${DISK_NAME}6"
+
+if [ -z "$DISK_FMT" ]; then
+  if [ -f "$DISK1_FILE.qcow2" ]; then
+    DISK_FMT="qcow2"
+  else
+    DISK_FMT="raw"
+  fi
+fi
+
+DISK_FMT="${DISK_FMT,,}"
+
+case "$DISK_FMT" in
+  "raw" | "qcow2" ) ;;
+  * ) error "Invalid DISK_FMT specified, value \"$DISK_FMT\" is not recognized!" && exit 78 ;;
+esac
+
+if [ -z "$ALLOCATE" ]; then
+  ALLOCATE="N"
+fi
+
+if disabled "$ALLOCATE"; then
+  DISK_STYLE="growable"
+  DISK_ALLOC="preallocation=off"
+else
+  DISK_STYLE="preallocated"
+  DISK_ALLOC="preallocation=falloc"
+fi
+
+if enabled "$DISK_DISABLE"; then
+  finishDisks && return 0
+fi
+
+: "${DISK2_SIZE:=""}"
+: "${DISK3_SIZE:=""}"
+: "${DISK4_SIZE:=""}"
+: "${DISK5_SIZE:=""}"
+: "${DISK6_SIZE:=""}"
+
+: "${DEVICE:=""}"        # Docker variables to passthrough a block device, like /dev/vdc1.
+: "${DEVICE2:=""}"
+: "${DEVICE3:=""}"
+: "${DEVICE4:=""}"
+: "${DEVICE5:=""}"
+: "${DEVICE6:=""}"
+
+[ -z "$DEVICE" ] && [ -b "/disk" ] && DEVICE="/disk"
+[ -z "$DEVICE" ] && [ -b "/disk1" ] && DEVICE="/disk1"
+[ -z "$DEVICE2" ] && [ -b "/disk2" ] && DEVICE2="/disk2"
+[ -z "$DEVICE3" ] && [ -b "/disk3" ] && DEVICE3="/disk3"
+[ -z "$DEVICE4" ] && [ -b "/disk4" ] && DEVICE4="/disk4"
+[ -z "$DEVICE5" ] && [ -b "/disk5" ] && DEVICE5="/disk5"
+[ -z "$DEVICE6" ] && [ -b "/disk6" ] && DEVICE6="/disk6"
+
+[ -z "$DEVICE" ] && [ -b "/dev/disk1" ] && DEVICE="/dev/disk1"
+[ -z "$DEVICE2" ] && [ -b "/dev/disk2" ] && DEVICE2="/dev/disk2"
+[ -z "$DEVICE3" ] && [ -b "/dev/disk3" ] && DEVICE3="/dev/disk3"
+[ -z "$DEVICE4" ] && [ -b "/dev/disk4" ] && DEVICE4="/dev/disk4"
+[ -z "$DEVICE5" ] && [ -b "/dev/disk5" ] && DEVICE5="/dev/disk5"
+[ -z "$DEVICE6" ] && [ -b "/dev/disk6" ] && DEVICE6="/dev/disk6"
+
+DISK_FILES=( "$DISK1_FILE" "$DISK2_FILE" "$DISK3_FILE" "$DISK4_FILE" "$DISK5_FILE" "$DISK6_FILE" )
+DISK_DESCS=( "disk" "disk2" "disk3" "disk4" "disk5" "disk6" )
+DISK_SIZES=( "$DISK_SIZE" "$DISK2_SIZE" "$DISK3_SIZE" "$DISK4_SIZE" "$DISK5_SIZE" "$DISK6_SIZE" )
+DISK_DEVICES=( "$DEVICE" "$DEVICE2" "$DEVICE3" "$DEVICE4" "$DEVICE5" "$DEVICE6" )
+DISK_INDEXES=( "3" "4" "5" "6" "7" "8" )
+DISK_ADDRESSES=( "0xa" "0xb" "0xc" "0xd" "0xe" "0xf" )
+
+for i in "${!DISK_FILES[@]}"; do
+
+  if [ -n "${DISK_DEVICES[i]}" ]; then
+    addDevice "${DISK_DEVICES[i]}" "$DISK_TYPE" "${DISK_INDEXES[i]}" "${DISK_ADDRESSES[i]}" || exit $?
+  else
+    addDisk "${DISK_FILES[i]}" "$DISK_TYPE" "${DISK_DESCS[i]}" "${DISK_SIZES[i]}" "${DISK_INDEXES[i]}" "${DISK_ADDRESSES[i]}" "$DISK_FMT" "$DISK_IO" "$DISK_CACHE" || exit $?
+  fi
+
+done
+
+finishDisks
+
+return 0

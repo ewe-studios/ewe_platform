@@ -54,7 +54,7 @@ impl Drop for TempFile {
 // ── SyncLibsqlDelta: Basic Operations ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_mkdir_and_stat() {
@@ -74,7 +74,7 @@ fn sync_libsql_mkdir_and_stat() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_create_write_read() {
@@ -94,7 +94,7 @@ fn sync_libsql_create_write_read() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_read_file_write_file() {
@@ -113,7 +113,7 @@ fn sync_libsql_read_file_write_file() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_open_seekable() {
@@ -138,7 +138,7 @@ fn sync_libsql_open_seekable() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_seek_operations() {
@@ -163,7 +163,7 @@ fn sync_libsql_seek_operations() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_rename_and_remove() {
@@ -182,7 +182,7 @@ fn sync_libsql_rename_and_remove() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_remove_all() {
@@ -200,7 +200,7 @@ fn sync_libsql_remove_all() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_chmod() {
@@ -218,7 +218,7 @@ fn sync_libsql_chmod() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_directory_operations() {
@@ -238,7 +238,7 @@ fn sync_libsql_directory_operations() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_copy() {
@@ -256,7 +256,7 @@ fn sync_libsql_copy() {
 // ── SyncLibsqlDelta: DeltaStore Operations ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_whiteout() {
@@ -272,7 +272,7 @@ fn sync_libsql_whiteout() {
     assert_eq!(sync.is_whiteout("/hidden.txt").unwrap(), None);
 }
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_list_whiteouts() {
@@ -290,7 +290,7 @@ fn sync_libsql_list_whiteouts() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_reset() {
@@ -310,7 +310,7 @@ fn sync_libsql_reset() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_flush() {
@@ -324,7 +324,7 @@ fn sync_libsql_flush() {
 // ── Large File Test (chunked storage) ──
 
 #[test]
-#[ntest::timeout(120_000)]
+#[foundation_macros::timeout(120_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn sync_libsql_large_file_chunked() {

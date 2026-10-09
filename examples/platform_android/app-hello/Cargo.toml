@@ -1,0 +1,23 @@
+[workspace]
+[package]
+name = "app_hello_wasm"
+version = "0.1.0"
+publish = false
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+foundation_wasm = { path = "../../../backends/foundation_wasm", features = ["web"] }
+foundation_wasm_ui = { path = "../../../backends/foundation_wasm_ui" }
+foundation_ui_traits = { path = "../../../backends/foundation_ui_traits" }
+foundation_macros = { path = "../../../backends/foundation_macros" }
+
+[profile.uat]
+inherits = "release"
+codegen-backend = "llvm"
+
+[[bin]]
+name = "hello_dashboard"
+path = "bin/hello_dashboard/main.rs"

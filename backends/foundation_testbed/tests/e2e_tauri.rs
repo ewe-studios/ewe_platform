@@ -1,3 +1,4 @@
+#![cfg(feature = "vms")]
 //! Tauri E2E integration tests.
 //!
 //! These tests exercise the full VM lifecycle:
@@ -26,7 +27,7 @@ use std::time::Duration;
 
 use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows, assert_build_ok_macos,
              assert_elf_binary, assert_pe_binary, assert_macho_binary};
-use foundation_testbed::config::Result;
+use foundation_testbed::vms::config::Result;
 use serial_test::serial;
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -463,7 +464,7 @@ fn test_project_mount_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");
@@ -499,7 +500,7 @@ fn test_tauri_build_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");
@@ -712,7 +713,7 @@ fn test_full_e2e_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");

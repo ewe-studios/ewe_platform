@@ -6,92 +6,12 @@
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {
-        "procMacro": {
-          "enable": true
+        "check": {
+          "command": "clippy"
         },
         "cargo": {
-          "allFeatures": false,
-          "loadOutDirsFromCheck": true,
-          "buildScripts": {
-            "enable": true
-          }
-        },
-        "check": {
-          "command": "clippy",
-          "allTargets": true,
-          "allFeatures": false
-        },
-        "completion": {
-          "autoimport": {
-            "enable": true
-          },
-          "privateEditable": {
-            "enable": true
-          },
-          "callable": {
-            "snippets": "fill_arguments"
-          },
-          "limit": 100
-        },
-        "inlayHints": {
-          "bindingModeHints": {
-            "enable": true
-          },
-          "parameterHints": {
-            "enable": true
-          },
-          "typeHints": {
-            "enable": true
-          },
-          "chainingHints": {
-            "enable": true
-          },
-          "closureReturnTypeHints": {
-            "enable": "always"
-          }
-        },
-        "hover": {
-          "documentation": {
-            "enable": true,
-            "keywords": {
-              "enable": true
-            }
-          }
-        },
-        "diagnostics": {
-          "enable": true,
-          "disabled": []
-        },
-        "files": {
-          "watcher": "server",
-          "excludeDirs": [
-            "tools/emsdk",
-            "tools/dawn",
-            "target/release",
-            ".git"
-          ]
-        },
-        "lens": {
-          "enable": true,
-          "run": {
-            "enable": true
-          },
-          "debug": {
-            "enable": true
-          },
-          "implementations": {
-            "enable": true
-          },
-          "references": {
-            "adt": {
-              "enable": true
-            },
-            "trait": {
-              "enable": true
-            },
-            "method": {
-              "enable": true
-            }
+          "extraEnv": {
+            "PATH": "/home/darkvoid/.local/lib/zed-bin:/home/darkvoid/.cargo/bin:/usr/lib/rustup/bin:/usr/local/bin:/usr/bin:/bin"
           }
         }
       }

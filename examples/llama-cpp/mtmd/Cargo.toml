@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-infrastructure_llama_cpp = { workspace = true, features = ["mtmd"]  }
+infrastructure_llama_cpp = { path = "../../../infrastructure/llama-cpp", version = "0.0.1", features = ["mtmd"]  }
 clap = { workspace = true, features = ["derive"] }
 
 [features]

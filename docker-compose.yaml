@@ -1,0 +1,83 @@
+# ewe_platform development environment
+#
+#   docker compose --profile macos up -d     # macOS Sequoia (iOS build + simulator)
+#   docker compose --profile android up -d   # Android emulator
+#   docker compose --profile windows up -d   # Windows VM (testing + artifacts)
+#   docker compose --profile macos --profile android --profile windows up -d   # all active services
+#
+# First boot takes 10-15 minutes — macOS/Windows download base images.
+# Access: VNC to localhost:5900 (macOS), web UI at localhost:8006 (all VMs),
+#         RDP to localhost:3389 (windows, user: Docker, pass: admin).
+# Clipboard sharing is enabled — use the clipboard button in the web viewer.
+
+services:
+  macos:
+    image: ewestudios/macos:latest
+    container_name: ewe_macos
+    environment:
+      VERSION: "15.7"
+      RAM_SIZE: "8G"
+      CPU_CORES: "4"
+      DISK_SIZE: "128G"
+      CLIPBOARD: "Y"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8006:8006
+      - 5900:5900/tcp
+      - 5900:5900/udp
+    volumes:
+      - /home/darkvoid/Boxxed/@dev/sandbox/macos:/storage
+      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
+    profiles: [macos]
+
+  android:
+    image: ewestudios/android:latest
+    container_name: ewe_android
+    environment:
+      ANDROID_VERSION: "14"
+      RAM_SIZE: "4G"
+      CPU_CORES: "2"
+      DISK_SIZE: "8G"
+      DEVICE: "pixel_6"   # phone: pixel_6, Nexus 5 | tablet: pixel_c, Nexus 7
+    devices:
+      - /dev/kvm
+    ports:
+      - "5901:5900"     # x11vnc — emulator display (vnc://localhost:5901)
+      - "6081:6080"     # noVNC web viewer (http://localhost:6081/vnc.html)
+      - "5554:5554"     # emulator ADB (adb connect localhost:5554)
+      - "5555:5555"     # second emulator instance
+    volumes:
+      - ./android_shared:/storage
+    profiles: [android]
+
+  windows:
+    image: ewestudios/windows:latest
+    container_name: ewe_windows
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "16G"
+      CPU_CORES: "4"
+      DISK_SIZE: "128G"
+      CLIPBOARD: "Y"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8008:8006" # web UI (VNC viewer)
+      - "3389:3389/tcp" # RDP (preferred after install)
+      - "3389:3389/udp" # RDP (UDP for better performance)
+      - "5900:5900/tcp" # raw VNC
+    volumes:
+      - /home/darkvoid/Boxxed/@dev/sandbox/windows:/storage
+      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
+    profiles: [windows]

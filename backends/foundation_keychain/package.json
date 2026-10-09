@@ -1,0 +1,16 @@
+{
+  "name": "foundation-keychain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "worker-build --release",
+    "dev": "npx wrangler dev",
+    "test": "node test.mjs",
+    "test:no-build": "node test.mjs --no-build"
+  },
+  "devDependencies": {
+    "miniflare": "^4.20260518.0",
+    "wrangler": "^4.93.0"
+  }
+}

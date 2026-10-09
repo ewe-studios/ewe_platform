@@ -3,7 +3,7 @@
 //! `WasmEnvelope`, that the payload round-trips, that `ack` frees the slot, and that
 //! `InstructionReceiver` batches/flushes per decision 030.
 //!
-//! WHAT: `ArrowV1`/`BatchInstructionsV1`/`JsonV1` `encode_and_send` + `handle_received` +
+//! WHAT: `ColumnarV1`/`BatchInstructionsV1`/`JsonV1` `encode_and_send` + `handle_received` +
 //! `ack`, and `InstructionReceiver` queue/flush/ack behaviour.
 //!
 //! HOW: Native build — `host_apply` is a no-op stub, so we inspect the arena slot the
@@ -11,15 +11,16 @@
 
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, WasmEnvelope};
-use foundation_wasm_ui::{ArrowV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
+use foundation_wasm_ui::{ColumnarV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
 
 fn sample_ops() -> Vec<DomOp> {
     vec![
-        DomOp::CreateEl {
+        DomOp::CreateElement {
             node_id: 1000,
-            tag: "div".into(),
+            tag: "div".into(), // known tag -> rides the wire as `id:1`
             class: "card".into(),
         },
+        DomOp::RegisterNode { node_id: 1000 },
         DomOp::SetText {
             node_id: 1001,
             text: "hello — café".into(),
@@ -67,8 +68,8 @@ fn assert_protocol_round_trip<P: ProtocolMethods<Vec<DomOp>>>(proto: &P, expecte
 }
 
 #[test]
-fn arrow_v1_encode_send_round_trip() {
-    assert_protocol_round_trip(&ArrowV1::new(), 1);
+fn columnar_v1_encode_send_round_trip() {
+    assert_protocol_round_trip(&ColumnarV1::new(), 1);
 }
 
 #[test]
@@ -84,10 +85,124 @@ fn json_v1_encode_send_round_trip() {
     assert_protocol_round_trip(&JsonV1::new(), 2);
 }
 
+// ─── Feature 01 spec tests 22-24: byte-0 (Custom Binary) round-trips ───────────
+// The CustomBinaryEncoder of the spec IS BatchInstructionsV1 (decision 022), so
+// the spec's encoder tests live here rather than in foundation_ui_traits.
+
+/// Test 23 — an empty batch ships and decodes to an empty vec.
+#[test]
+fn batch_instructions_empty_batch_round_trips() {
+    let mut mem = MemoryAllocations::new();
+    let proto = BatchInstructionsV1::new();
+    let result = proto.encode_and_send(vec![], &mut mem);
+    let slot = mem.get(result.memory_id).expect("slot live");
+    let bytes = slot.clone_memory().expect("read bytes");
+    let (_, payload) = WasmEnvelope::parse(&bytes);
+    let decoded = proto
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("decode");
+    assert_eq!(decoded, vec![]);
+}
+
+/// Test 24 — every `DomOp` variant survives the byte-0 instruction stream.
+#[test]
+fn batch_instructions_round_trips_all_nineteen_variants() {
+    use foundation_ui_traits::{MorphAction, TargetSelector};
+    use std::borrow::Cow;
+
+    let ops = vec![
+        DomOp::CreateElement {
+            node_id: 1,
+            tag: "custom-widget".into(),
+            class: "".into(),
+        },
+        DomOp::CreateTextNode {
+            node_id: 2,
+            content: "text".into(),
+        },
+        DomOp::SetText {
+            node_id: 3,
+            text: "new".into(),
+        },
+        DomOp::SetAttribute {
+            node_id: 4,
+            name: "class".into(),
+            value: "x".into(),
+        },
+        DomOp::RemoveAttribute {
+            node_id: 5,
+            name: "style".into(),
+        },
+        DomOp::SetProperty {
+            node_id: 6,
+            name: "value".into(),
+            value: "\"v\"".into(),
+        },
+        DomOp::AddEventListener {
+            node_id: 7,
+            event_name: "click".into(),
+        },
+        DomOp::RemoveEventListener {
+            node_id: 8,
+            event_name: "click".into(),
+        },
+        DomOp::AppendChild {
+            parent_id: 9,
+            child_id: 10,
+        },
+        DomOp::RemoveChild {
+            parent_id: 11,
+            child_id: 12,
+        },
+        DomOp::RemoveNode { node_id: 13 },
+        DomOp::InsertBefore {
+            parent_id: 14,
+            child_id: 15,
+            ref_id: 16,
+        },
+        DomOp::ReplaceNode {
+            old_id: 17,
+            new_id: 18,
+        },
+        DomOp::SetStyle {
+            node_id: 19,
+            prop: "color".into(),
+            value: "red".into(),
+        },
+        DomOp::AddClass {
+            node_id: 20,
+            class: "on".into(),
+        },
+        DomOp::RemoveClass {
+            node_id: 21,
+            class: "off".into(),
+        },
+        DomOp::MorphNode {
+            target: TargetSelector::Query(Cow::Borrowed("main > p:last-child")),
+            action: MorphAction::InsertAfter,
+            content: "<b>m</b>".into(),
+        },
+        DomOp::RegisterNode { node_id: 22 },
+        DomOp::UnregisterNode { node_id: 23 },
+    ];
+    assert_eq!(ops.len(), 19);
+
+    let mut mem = MemoryAllocations::new();
+    let proto = BatchInstructionsV1::new();
+    let result = proto.encode_and_send(ops.clone(), &mut mem);
+    let slot = mem.get(result.memory_id).expect("slot live");
+    let bytes = slot.clone_memory().expect("read bytes");
+    let (_, payload) = WasmEnvelope::parse(&bytes);
+    let decoded = proto
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("decode");
+    assert_eq!(decoded, ops);
+}
+
 #[test]
 fn instruction_receiver_batches_and_flushes_once() {
     let ops = sample_ops();
-    let mut receiver = InstructionReceiver::new(Box::new(ArrowV1::new()), MemoryAllocations::new());
+    let mut receiver = InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
 
     // Empty flush is a no-op: no encoding, no slot.
     assert!(receiver.flush().is_none());
@@ -110,8 +225,8 @@ fn instruction_receiver_batches_and_flushes_once() {
     let slot = receiver.memory().expect("owned arena").get(result.memory_id).expect("slot live");
     let bytes = slot.clone_memory().expect("read bytes");
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
-    assert_eq!(envelope.protocol, 1); // Arrow
-    let decoded = ArrowV1::new()
+    assert_eq!(envelope.protocol, 1); // columnar (Arrow slot, wire v1)
+    let decoded = ColumnarV1::new()
         .handle_received(result.memory_id, payload.as_ptr(), payload.len())
         .expect("decode");
     assert_eq!(decoded, ops);
@@ -135,7 +250,7 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     // shipped slot resolves through `internal_api::get_memory` (same arena the
     // exposed_runtime exports use) and decodes back to the queued ops.
     let ops = sample_ops();
-    let mut receiver = InstructionReceiver::with_global_arena(Box::new(ArrowV1::new()));
+    let mut receiver = InstructionReceiver::with_global_arena(Box::new(ColumnarV1::new()));
     assert!(receiver.memory().is_none(), "global receiver owns no arena");
 
     for op in &ops {
@@ -149,7 +264,7 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     assert_eq!(envelope.protocol, 1);
     assert_eq!(envelope.memory_id, result.memory_id.as_u64());
 
-    let decoded = ArrowV1::new()
+    let decoded = ColumnarV1::new()
         .handle_received(result.memory_id, payload.as_ptr(), payload.len())
         .expect("payload decodes");
     assert_eq!(decoded, ops);
@@ -168,5 +283,8 @@ fn embedded_js_assets_carry_both_runtimes() {
     assert!(FOUNDATION_WASM_JS.contains("class FoundationWasm"));
     assert!(FOUNDATION_WASM_JS.contains("globalThis.FoundationWasmRuntime"));
     assert!(FOUNDATION_WASM_UI_JS.contains("globalThis.FoundationWasmUiRuntime"));
+    // Feature 20: the bundled Apache Arrow JS reader (wire v2 consumers).
+    assert!(foundation_wasm_ui::embedded::APACHE_ARROW_JS.contains("apache-arrow")
+        || foundation_wasm_ui::embedded::APACHE_ARROW_JS.len() > 100_000);
     assert!(FOUNDATION_WASM_UI_JS.contains("class DomHeap"));
 }

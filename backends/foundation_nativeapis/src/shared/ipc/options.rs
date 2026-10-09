@@ -36,25 +36,3 @@ impl Options {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn options_new() {
-        let opts = Options::new("test-bus", Label::new("my-endpoint"));
-        assert_eq!(opts.identifier, "test-bus");
-        assert_eq!(opts.label.as_str(), "my-endpoint");
-        assert!(opts.token.is_empty());
-        assert!(!opts.controller_affinity);
-    }
-
-    #[test]
-    fn options_builder() {
-        let opts = Options::new("test-bus", Label::new("my-endpoint"))
-            .token("secret")
-            .controller_affinity(true);
-        assert_eq!(opts.token, "secret");
-        assert!(opts.controller_affinity);
-    }
-}

@@ -1,6 +1,6 @@
 //! Object type schema builder — properties, required, additional properties.
 
-use super::{ValidationOptions, BTreeMap, Value};
+use super::{BTreeMap, ValidationOptions, Value};
 use serde_json::Map;
 
 /// Builder for JSON Schema object type.
@@ -29,10 +29,18 @@ impl ObjectSchema {
         self.ensure_properties();
         self.ensure_required();
 
-        if let Some(props) = self.schema.get_mut("properties").and_then(Value::as_object_mut) {
+        if let Some(props) = self
+            .schema
+            .get_mut("properties")
+            .and_then(Value::as_object_mut)
+        {
             props.insert(name.into(), schema.into());
         }
-        if let Some(req) = self.schema.get_mut("required").and_then(Value::as_array_mut) {
+        if let Some(req) = self
+            .schema
+            .get_mut("required")
+            .and_then(Value::as_array_mut)
+        {
             let val = Value::String(name.into());
             if !req.contains(&val) {
                 req.push(val);
@@ -46,7 +54,11 @@ impl ObjectSchema {
     pub fn optional(mut self, name: &str, schema: impl Into<Value>) -> Self {
         self.ensure_properties();
 
-        if let Some(props) = self.schema.get_mut("properties").and_then(Value::as_object_mut) {
+        if let Some(props) = self
+            .schema
+            .get_mut("properties")
+            .and_then(Value::as_object_mut)
+        {
             props.insert(name.into(), schema.into());
         }
         self
@@ -57,7 +69,11 @@ impl ObjectSchema {
     pub fn properties(mut self, map: BTreeMap<String, Value>) -> Self {
         self.ensure_properties();
 
-        if let Some(props) = self.schema.get_mut("properties").and_then(Value::as_object_mut) {
+        if let Some(props) = self
+            .schema
+            .get_mut("properties")
+            .and_then(Value::as_object_mut)
+        {
             for (k, v) in map {
                 props.insert(k, v);
             }
@@ -88,7 +104,8 @@ impl ObjectSchema {
     pub fn pattern_property(mut self, re: &str, schema: impl Into<Value>) -> Self {
         self.ensure_pattern_properties();
 
-        if let Some(pp) = self.schema
+        if let Some(pp) = self
+            .schema
             .get_mut("patternProperties")
             .and_then(Value::as_object_mut)
         {
@@ -100,21 +117,24 @@ impl ObjectSchema {
     /// Set minimum number of properties.
     #[must_use]
     pub fn min_properties(mut self, n: usize) -> Self {
-        self.schema.insert("minProperties".into(), Value::Number(n.into()));
+        self.schema
+            .insert("minProperties".into(), Value::Number(n.into()));
         self
     }
 
     /// Set maximum number of properties.
     #[must_use]
     pub fn max_properties(mut self, n: usize) -> Self {
-        self.schema.insert("maxProperties".into(), Value::Number(n.into()));
+        self.schema
+            .insert("maxProperties".into(), Value::Number(n.into()));
         self
     }
 
     /// Add a description to the schema.
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -135,10 +155,10 @@ impl ObjectSchema {
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -146,10 +166,10 @@ impl ObjectSchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -157,7 +177,12 @@ impl ObjectSchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.

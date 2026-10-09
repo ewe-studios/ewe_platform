@@ -6,8 +6,9 @@
 //!
 //! They intentionally avoid performing real network operations.
 
-use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::client::*;
+use foundation_netio::http::*;
+use foundation_netio::shared::http::*;
 use std::time::Duration;
 use tracing_test::traced_test;
 
@@ -22,12 +23,12 @@ fn test_client_config_default() {
 #[test]
 fn test_client_config_fields_public() {
     let mut config = ClientConfig::default()
-        .with_connect_timeout(Duration::from_secs(10))
+        .with_connect_timeout(std::time::Duration::from_secs(10))
         .with_max_retries(3);
 
     assert_eq!(
         config.timeout_calculator.config().connect_timeout,
-        Duration::from_secs(10)
+        std::time::Duration::from_secs(10)
     );
     assert_eq!(config.max_retries, 3);
 }

@@ -26,7 +26,7 @@ pub trait CloneableIterator: Iterator {
 pub type CloneableSendBoxIterator<T, E> = Box<dyn CloneableSendIterator<Item = AnyResult<T, E>>>;
 
 /// `CloneableIterator` that can be Send
-pub trait CloneableSendIterator: Iterator + Send {
+pub trait CloneableSendIterator: Iterator + Send + Sync {
     fn clone_box_send_iterator(&self) -> Box<dyn CloneableSendIterator<Item = Self::Item>>;
 }
 
@@ -41,7 +41,7 @@ where
 
 impl<T, I> CloneableSendIterator for T
 where
-    T: Iterator<Item = I> + Clone + Send + 'static,
+    T: Iterator<Item = I> + Clone + Send + Sync + 'static,
 {
     fn clone_box_send_iterator(&self) -> Box<dyn CloneableSendIterator<Item = I>> {
         Box::new(self.clone())
@@ -109,7 +109,7 @@ pub type BoxedIterator<T> = Box<dyn Iterator<Item = T>>;
 
 /// [`BoxedSendIterator`] defines a type alias for a boxed iterator that always returns a object of type
 /// `T`.
-pub type BoxedSendIterator<T> = Box<dyn Iterator<Item = T> + Send>;
+pub type BoxedSendIterator<T> = Box<dyn Iterator<Item = T> + Send + Sync>;
 
 /// [`BoxedSendableIterator`] defines a type which is an iterator that can also be Send.
 pub type BoxedSendableIterator<T, E> = BoxedSendIterator<AnyResult<T, E>>;

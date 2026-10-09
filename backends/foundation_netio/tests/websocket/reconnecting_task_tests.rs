@@ -3,7 +3,7 @@
 //! WebSocket `ReconnectingWebSocketTask` state machine tests.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
 
@@ -113,12 +113,10 @@ fn test_with_max_retries() {
 #[test]
 #[traced_test]
 fn test_with_max_reconnect_duration() {
-    use std::time::Duration;
-
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
-        .with_max_reconnect_duration(Duration::from_secs(60));
+        .with_max_reconnect_duration(std::time::Duration::from_secs(60));
 
     let _ = task;
 }
@@ -151,7 +149,7 @@ fn test_with_subprotocols() {
 #[test]
 #[traced_test]
 fn test_with_header() {
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_netio::shared::http::SimpleHeader;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -165,12 +163,10 @@ fn test_with_header() {
 #[test]
 #[traced_test]
 fn test_with_read_timeout() {
-    use std::time::Duration;
-
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
-        .with_read_timeout(Duration::from_secs(10));
+        .with_read_timeout(std::time::Duration::from_secs(10));
 
     let _ = task;
 }
@@ -240,17 +236,16 @@ fn test_failing_connection_eventual_exhaust() {
 #[test]
 #[traced_test]
 fn test_builder_chain() {
-    use foundation_netio::simple_http::shared::SimpleHeader;
-    use std::time::Duration;
+    use foundation_netio::shared::http::SimpleHeader;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_retries(10)
-        .with_max_reconnect_duration(Duration::from_secs(120))
+        .with_max_reconnect_duration(std::time::Duration::from_secs(120))
         .with_subprotocol("chat")
         .with_header(SimpleHeader::Custom("X-Test".to_string()), "test-value")
-        .with_read_timeout(Duration::from_secs(15));
+        .with_read_timeout(std::time::Duration::from_secs(15));
 
     // If it compiles, the builder pattern works
     let _ = task;

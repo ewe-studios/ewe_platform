@@ -39,14 +39,14 @@ pub enum EventSourceError {
 impl fmt::Display for EventSourceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventSourceError::Http(msg) => write!(f, "HTTP error: {msg}"),
-            EventSourceError::ParseError(msg) => write!(f, "Parse error: {msg}"),
-            EventSourceError::ConnectionClosed => write!(f, "Connection closed"),
-            EventSourceError::InvalidRetry(msg) => write!(f, "Invalid retry value: {msg}"),
-            EventSourceError::ReadError(msg) => write!(f, "Read error: {msg}"),
-            EventSourceError::WriteError(msg) => write!(f, "Write error: {msg}"),
-            EventSourceError::InvalidUrl(msg) => write!(f, "Invalid URL: {msg}"),
-            EventSourceError::Timeout => write!(f, "Connection timeout"),
+            Self::Http(msg) => write!(f, "HTTP error: {msg}"),
+            Self::ParseError(msg) => write!(f, "Parse error: {msg}"),
+            Self::ConnectionClosed => write!(f, "Connection closed"),
+            Self::InvalidRetry(msg) => write!(f, "Invalid retry value: {msg}"),
+            Self::ReadError(msg) => write!(f, "Read error: {msg}"),
+            Self::WriteError(msg) => write!(f, "Write error: {msg}"),
+            Self::InvalidUrl(msg) => write!(f, "Invalid URL: {msg}"),
+            Self::Timeout => write!(f, "Connection timeout"),
         }
     }
 }
@@ -55,6 +55,6 @@ impl std::error::Error for EventSourceError {}
 
 impl From<std::io::Error> for EventSourceError {
     fn from(err: std::io::Error) -> Self {
-        EventSourceError::ReadError(err.to_string())
+        Self::ReadError(err.to_string())
     }
 }

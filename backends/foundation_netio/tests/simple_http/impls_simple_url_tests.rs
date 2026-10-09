@@ -1,4 +1,4 @@
-use foundation_netio::simple_http::shared::SimpleUrl;
+use foundation_netio::shared::http::SimpleUrl;
 use std::collections::BTreeMap;
 
 #[test]

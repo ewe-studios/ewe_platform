@@ -1,4 +1,6 @@
-use foundation_netio::simple_http::client::{Cookie, CookieJar, CookieParseError, SameSite};
+use foundation_netio::shared::client::{
+    Cookie, CookieJar, CookieParseError, SameSite,
+};
 use std::time::{Duration, SystemTime};
 
 /// WHY: Basic cookie creation is the foundation - must work correctly
@@ -22,7 +24,7 @@ fn test_cookie_new_basic() {
 #[test]
 fn test_cookie_builder_methods() {
     let expires = SystemTime::now();
-    let max_age = Duration::from_secs(3600);
+    let max_age = std::time::Duration::from_secs(3600);
 
     let cookie = Cookie::new("session", "abc123")
         .domain("example.com")
@@ -67,7 +69,7 @@ fn test_cookie_parse_with_attributes() {
     assert_eq!(cookie.path, Some("/api".to_string()));
     assert!(cookie.secure);
     assert!(cookie.http_only);
-    assert_eq!(cookie.max_age, Some(Duration::from_secs(3600)));
+    assert_eq!(cookie.max_age, Some(std::time::Duration::from_secs(3600)));
     assert_eq!(cookie.same_site, SameSite::Strict);
 }
 
@@ -129,7 +131,7 @@ fn test_cookie_jar_add_replaces() {
 fn test_domain_matches_exact() {
     // We need to access the internal function, so we'll test through get_for_url later
     // For now, let's create a helper test using the URL module
-    use foundation_netio::simple_http::url::Uri;
+    use foundation_core::url::Uri;
 
     let mut jar = CookieJar::new();
     let cookie = Cookie::new("session", "abc")
@@ -148,7 +150,7 @@ fn test_domain_matches_exact() {
 /// WHAT: Cookie with .example.com should match www.example.com and api.example.com
 #[test]
 fn test_domain_matches_subdomain() {
-    use foundation_netio::simple_http::url::Uri;
+    use foundation_core::url::Uri;
 
     let mut jar = CookieJar::new();
     let cookie = Cookie::new("session", "abc")
@@ -181,7 +183,7 @@ fn test_domain_matches_subdomain() {
 /// WHAT: Cookie with path /api should match /api and /api/users but not /
 #[test]
 fn test_path_matches() {
-    use foundation_netio::simple_http::url::Uri;
+    use foundation_core::url::Uri;
 
     let mut jar = CookieJar::new();
     let cookie = Cookie::new("api_token", "xyz")
@@ -214,7 +216,7 @@ fn test_path_matches() {
 /// WHAT: Secure cookie should match HTTPS but not HTTP
 #[test]
 fn test_secure_cookie_filtering() {
-    use foundation_netio::simple_http::url::Uri;
+    use foundation_core::url::Uri;
 
     let mut jar = CookieJar::new();
     let cookie = Cookie::new("secure_token", "abc")

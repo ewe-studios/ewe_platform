@@ -11,9 +11,7 @@ fn array_default_schema() {
 
 #[test]
 fn array_items() {
-    let schema = scheme::array()
-        .items(scheme::string())
-        .build_schema();
+    let schema = scheme::array().items(scheme::string()).build_schema();
     assert_eq!(schema["items"]["type"], "string");
 }
 
@@ -29,11 +27,7 @@ fn array_items_with_constraints() {
 #[test]
 fn array_prefix_items() {
     let schema = scheme::array()
-        .prefix_items(vec![
-            scheme::number(),
-            scheme::number(),
-            scheme::number(),
-        ])
+        .prefix_items(vec![scheme::number(), scheme::number(), scheme::number()])
         .build_schema();
     let prefix = schema["prefixItems"].as_array().unwrap();
     assert_eq!(prefix.len(), 3);
@@ -154,11 +148,7 @@ fn array_combined_constraints() {
 fn array_tuple_type() {
     // Tuple: [number, number, number, ...boolean]
     let schema = scheme::array()
-        .prefix_items(vec![
-            scheme::number(),
-            scheme::number(),
-            scheme::number(),
-        ])
+        .prefix_items(vec![scheme::number(), scheme::number(), scheme::number()])
         .additional_items(scheme::boolean())
         .build_schema();
 
@@ -179,17 +169,15 @@ fn array_validates_with_compiler() {
 
     let v = validator_for(&schema).unwrap();
     assert!(v.is_valid(&json!(["a", "b"])));
-    assert!(!v.is_valid(&json!([])));                // min_items: 1
+    assert!(!v.is_valid(&json!([]))); // min_items: 1
     assert!(!v.is_valid(&json!(["a", "b", "c", "d"]))); // max_items: 3
-    assert!(!v.is_valid(&json!(["a", "a"])));         // unique
-    assert!(!v.is_valid(&json!(["", "b"])));          // min_len: 1
+    assert!(!v.is_valid(&json!(["a", "a"]))); // unique
+    assert!(!v.is_valid(&json!(["", "b"]))); // min_len: 1
 }
 
 #[test]
 fn array_build_schema_is_non_consuming() {
-    let builder = scheme::array()
-        .items(scheme::string())
-        .unique();
+    let builder = scheme::array().items(scheme::string()).unique();
     let schema1 = builder.build_schema();
     let schema2 = builder.build_schema();
     assert_eq!(schema1, schema2);

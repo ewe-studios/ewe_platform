@@ -1,10 +1,10 @@
 #![allow(clippy::type_complexity)]
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 
 use derive_more::From;
 use foundation_core::extensions::result_ext::{SendableBoxedError, SendableBoxedResult};
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::{http_streams, HttpReaderError, SendSafeBody};
+use foundation_netio::shared::http::{http_streams, is_sub_set_of_other_header, HttpReaderError, SendSafeBody};
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
@@ -13,7 +13,7 @@ use std::{
 };
 
 use foundation_core::extensions::result_ext::BoxedError;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     self, Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
     ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
@@ -192,7 +192,7 @@ impl ResourcesHttpServer {
                 };
 
                 if let Some(resource_headers) = &resource.headers {
-                    if !shared::is_sub_set_of_other_header(resource_headers, &headers) {
+                    if !is_sub_set_of_other_header(resource_headers, &headers) {
                         tracing::error!("Headers do not match expected");
                         break;
                     }
@@ -294,9 +294,9 @@ mod test_server_tests {
     use tracing_test::traced_test;
 
     use foundation_core::extensions::result_ext::BoxedResult;
-    use foundation_netio::simple_http::shared::{FuncSimpleServer, RequestDescriptor, SendSafeBody, Status};
+    use foundation_netio::shared::http::{FuncSimpleServer, RequestDescriptor, SendSafeBody, Status};
 
-    use foundation_netio::simple_http::shared::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse};
+    use foundation_netio::shared::http::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse};
 
     use super::ResourcesHttpServer;
 
@@ -362,7 +362,7 @@ Hello world!";
         let mut response = String::new();
         t!(client.read_to_string(&mut response));
 
-        assert_eq!(response, "HTTP/1.1 200 Ok\r\nCONTENT-LENGTH: 39\r\n\r\n{\"name\": \"alex\", \"body\": Hello world! }");
+        assert_eq!(response, "HTTP/1.1 200 Ok\r\ncontent-length: 39\r\n\r\n{\"name\": \"alex\", \"body\": Hello world! }");
 
         test_server.close().expect("should close server");
 
@@ -444,7 +444,7 @@ Hello buster!";
 
         assert_eq!(
             response,
-            "HTTP/1.1 400 Bad Request\r\nCONTENT-LENGTH: 0\r\n\r\n"
+            "HTTP/1.1 400 Bad Request\r\ncontent-length: 0\r\n\r\n"
         );
         test_server.close().expect("should close server");
 

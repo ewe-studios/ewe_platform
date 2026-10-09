@@ -17,19 +17,19 @@
 //! PHASE 2 SCOPE: Automatic reconnection with exponential backoff.
 //! PHASE 3 SCOPE: Idle timeout support.
 
-use foundation_core::extensions::result_ext::SendableBoxedError;
-use crate::netcap::RawStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::event_source::{EventSourceError, ParseResult, SseParser};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpClientConnection;
-use crate::simple_http::client::HttpConnectionPool;
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use foundation_core::url::Uri;
-use crate::simple_http::shared::{
+use crate::http::HttpClientConnection;
+use crate::http::HttpConnectionPool;
+use crate::netcap::RawStream;
+use crate::shared::client::DnsResolver;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_core::extensions::result_ext::SendableBoxedError;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
@@ -83,13 +83,66 @@ enum EventSourceState {
         parser: SseParser<RawStream>,
         last_activity: Instant,
     },
-    /// Reading from SSE stream iterator (when body was returned as SseStream).
+    /// Reading from SSE stream iterator (when body was returned as `SseStream`).
     ReadingStream {
         conn: HttpClientConnection,
         iterator: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send>,
         last_activity: Instant,
     },
     Closed(EventSourceCloseReason),
+}
+
+/// Render an SSE request and write it to the socket.
+///
+/// WHY: extracted from the connecting state so the state machine reads as one
+/// step per line. It also keeps the failure handling honest — render and flush
+/// results used to be discarded, so a request that never reached the wire was
+/// still treated as sent and the connection hung waiting for a reply to bytes
+/// that were never written.
+///
+/// HOW: renders into a buffer first, which is what makes the bytes traceable.
+/// A wire-level mismatch (a missing header, wrong framing) surfaces only as an
+/// opaque vendor 4xx; without the bytes there is no way to tell our request
+/// apart from a working `curl` one.
+fn send_request<W: Write>(request: SimpleIncomingRequest, writer: &mut W) -> std::io::Result<()> {
+    let mut rendered: Vec<u8> = Vec::new();
+    Http11::Request(request)
+        .http_render_to_writer(&mut rendered)
+        .map_err(|err| std::io::Error::other(format!("failed to render SSE request: {err:?}")))?;
+
+    if tracing::enabled!(tracing::Level::TRACE) {
+        trace!(
+            bytes = rendered.len(),
+            request = %redact_credentials(&String::from_utf8_lossy(&rendered)),
+            "SSE request wire bytes"
+        );
+    }
+
+    writer.write_all(&rendered)?;
+    writer.flush()
+}
+
+/// Blank out credential headers in a rendered request.
+///
+/// WHY: the trace above prints the FULL request. Without this, a bearer token or
+/// session cookie is written verbatim into every sink that has trace enabled.
+fn redact_credentials(rendered: &str) -> String {
+    rendered
+        .split("\r\n")
+        .map(|line| {
+            let lower = line.to_ascii_lowercase();
+            if lower.starts_with("authorization:")
+                || lower.starts_with("proxy-authorization:")
+                || lower.starts_with("cookie:")
+            {
+                let name = line.split(':').next().unwrap_or("header");
+                format!("{name}: <redacted>")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\r\n")
 }
 
 pub struct EventSourceTask<R>
@@ -133,7 +186,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -221,7 +274,7 @@ where
 
     /// Set the request body.
     ///
-    /// WHY: Some SSE endpoints (e.g. OpenAI chat completions) require POST with a JSON body.
+    /// WHY: Some SSE endpoints (e.g. `OpenAI` chat completions) require POST with a JSON body.
     /// WHAT: Returns Self with the body configured. The method switches from GET to POST.
     #[must_use]
     pub fn with_body(mut self, body: SendSafeBody) -> Self {
@@ -257,12 +310,12 @@ where
     /// Set the timeout calculator for dynamic timeout configuration.
     ///
     /// WHY: SSE connections need configurable timeouts for idle detection and reconnection.
-    /// The TimeoutCalculator provides dynamic timeout calculation based on context.
+    /// The `TimeoutCalculator` provides dynamic timeout calculation based on context.
     /// WHAT: Returns Self with `timeout_calculator` configured.
     ///
     /// # Parameters
     ///
-    /// * `calculator` - TimeoutCalculator for dynamic timeout computation
+    /// * `calculator` - `TimeoutCalculator` for dynamic timeout computation
     #[must_use]
     pub fn with_timeout_calculator(mut self, calculator: TimeoutCalculator) -> Self {
         debug!("Setting timeout calculator");
@@ -320,8 +373,32 @@ where
 
                 builder = builder.with_method(config.method);
 
-                // Add Accept and Cache-Control headers
-                builder = builder.add_header_raw(SimpleHeader::ACCEPT, "text/event-stream");
+                // `Host` is mandatory on HTTP/1.1. RFC 7230 §5.4: a server MUST
+                // answer a request that lacks it with 400. Omitting it made every
+                // SSE request to a spec-compliant vendor fail as a bare
+                // "BadRequest", which the reconnect logic then treated as a
+                // transient connection error and retried identically to
+                // exhaustion.
+                if let Some(host) = url.host_str() {
+                    let authority = match url.port() {
+                        Some(port) => format!("{host}:{port}"),
+                        None => host,
+                    };
+                    builder = builder.add_header_raw(SimpleHeader::HOST, authority);
+                }
+
+                // Add Accept and Cache-Control headers.
+                //
+                // Only default `Accept` when the caller has not supplied one:
+                // `add_header_raw` appends, so an SSE client that sets its own
+                // produced `accept: text/event-stream, text/event-stream`.
+                let caller_set_accept = config
+                    .headers
+                    .iter()
+                    .any(|(name, _)| *name == SimpleHeader::ACCEPT);
+                if !caller_set_accept {
+                    builder = builder.add_header_raw(SimpleHeader::ACCEPT, "text/event-stream");
+                }
                 builder = builder.add_header_raw(SimpleHeader::CACHE_CONTROL, "no-cache");
 
                 // Add custom headers
@@ -373,10 +450,14 @@ where
                 // clone_stream() returns SharedByteBufferStream<RawStream>
                 let stream = connection.clone_stream();
 
-                // Render full HTTP request (headers + body) and write to socket
                 let mut stream_writer = stream.clone();
-                let _ = Http11::Request(*request).http_render_to_writer(&mut stream_writer);
-                let _ = stream_writer.flush();
+                if let Err(err) = send_request(*request, &mut stream_writer) {
+                    error!(?err, "Failed to send SSE request");
+                    self.state = Some(EventSourceState::Closed(
+                        EventSourceCloseReason::ConnectionError,
+                    ));
+                    return None;
+                }
 
                 debug!(state = "Connecting", "Request sent, awaiting HTTP response");
 
@@ -384,7 +465,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::simple_http::shared::HttpResponseReader::new(
+                    crate::shared::http::HttpResponseReader::new(
                         stream,
                         SimpleHttpBody::default(),
                     ),
@@ -427,7 +508,7 @@ where
                             let content_type = h
                                 .get(&SimpleHeader::CONTENT_TYPE)
                                 .and_then(|v| v.first())
-                                .map(|s| s.as_str());
+                                .map(std::string::String::as_str);
 
                             match content_type {
                                 Some(ct) if ct.contains("text/event-stream") => {
@@ -455,24 +536,20 @@ where
                         )))) => {
                             debug!("Got SSE stream body");
                             // Extract the iterator from SseStream
-                            match opt_iter {
-                                Some(iterator) => {
-                                    // Transition to ReadingStream state with the iterator
-                                    self.state = Some(EventSourceState::ReadingStream {
-                                        conn,
-                                        iterator,
-                                        last_activity: Instant::now(),
-                                    });
-                                    return Some(TaskStatus::Pending(EventSourceProgress::Reading));
-                                }
-                                None => {
-                                    error!("SseStream iterator is None");
-                                    self.state = Some(EventSourceState::Closed(
-                                        EventSourceCloseReason::ConnectionError,
-                                    ));
-                                    return None;
-                                }
+                            if let Some(iterator) = opt_iter {
+                                // Transition to ReadingStream state with the iterator
+                                self.state = Some(EventSourceState::ReadingStream {
+                                    conn,
+                                    iterator,
+                                    last_activity: Instant::now(),
+                                });
+                                return Some(TaskStatus::Pending(EventSourceProgress::Reading));
                             }
+                            error!("SseStream iterator is None");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
                         }
                         Some(Ok(IncomingResponseParts::SizedBody(_))) => {
                             error!("Expected streamed SSE body, got sized body");
@@ -508,7 +585,6 @@ where
                         }
                         _ => {
                             // Skip unknown parts
-                            continue;
                         }
                     }
                 }

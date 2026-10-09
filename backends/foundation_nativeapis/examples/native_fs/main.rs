@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use foundation_nativeapis::native::vfs::native_fs::NativeFs;
 use foundation_nativeapis::shared::vfs::{
-    OpenMode, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
+    VfsDirectory, VfsFile, VfsFileSystem,
 };
 
 fn main() {

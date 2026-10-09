@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use foundation_nostd::comp::basic::RwLock;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub use foundation_nostd::primitives::RwLock;
 
 /// Entry based list using generation markers to identify
@@ -157,6 +157,14 @@ impl<T> EntryList<T> {
                 }
             }
         }
+    }
+
+    /// Remove all entries and reset to empty state.
+    #[inline]
+    pub fn clear(&mut self) {
+        self.items.clear();
+        self.free_entries.clear();
+        self.packed_entries.clear();
     }
 
     /// pack collects the value pointed to by the relevant
@@ -569,7 +577,7 @@ impl<T> ThreadSafeEntry<T> {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_family = "wasm")))]
 mod test_entry_list {
     use tracing_test::traced_test;
 

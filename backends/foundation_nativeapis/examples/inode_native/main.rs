@@ -1,4 +1,4 @@
-use foundation_nativeapis::shared::vfs::{MemoryFs, VfsFile, VfsFileSystem, VfsFileType};
+use foundation_nativeapis::shared::vfs::{MemoryFs, VfsFile, VfsFileSystem};
 
 fn main() {
     println!("=== Inode-Native VFS Example ===\n");

@@ -3,32 +3,35 @@
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
-use std::cell::RefCell;
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
-use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
-use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::shared::client::{
+    request::Extensions,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
 };
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
-    AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
+use crate::types::base_types::{
+    ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
+    ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
+    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
     ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
-    UsageCosting, UsageReport,
+    UsageCosting, UsageReport, UserModelContent,
 };
 
 // ============================================================================
@@ -236,6 +239,7 @@ pub enum AnthropicContentBlock {
     ToolUse {
         id: String,
         name: String,
+        #[serde(default)]
         input: serde_json::Value,
     },
     ToolResult {
@@ -366,29 +370,27 @@ pub struct MessageDeltaDelta {
 // ============================================================================
 
 /// Anthropic Messages API provider implementing [`ModelProvider`].
-pub struct AnthropicMessagesProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct AnthropicMessagesProvider {
     config: AnthropicConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache:
         Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
-impl Default for AnthropicMessagesProvider<SystemDnsResolver> {
+impl Default for AnthropicMessagesProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl AnthropicMessagesProvider<SystemDnsResolver> {
+impl AnthropicMessagesProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -399,39 +401,34 @@ impl AnthropicMessagesProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> AnthropicMessagesProvider<R> {
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
     #[must_use]
-    pub fn with_resolver_and_config(resolver: R, config: AnthropicConfig) -> Self {
+    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: AnthropicConfig) -> Self {
         Self {
             config,
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProvider<R> {
+impl ModelProvider for AnthropicMessagesProvider {
     type Config = AnthropicConfig;
-    type Model = AnthropicModel<R>;
+    type Model = AnthropicModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -458,15 +455,10 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             self.config = cfg;
         }
 
-        let mut client = self.http_client.take().unwrap_or_default();
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        #[cfg(not(target_family = "wasm"))]
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::http::default_http_client());
         }
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -476,11 +468,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             id: "anthropic",
             name: "Anthropic",
             reasoning: true,
-            api: crate::types::ModelAPI::AnthropicMessages,
+            api: ModelAPI::AnthropicMessages,
             provider: ModelProviders::ANTHROPIC,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: MessageType::TextAndImages,
+            cost: ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -502,10 +494,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+                cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -528,10 +519,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+            cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
     }
 
@@ -565,38 +555,65 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
 // Model
 // ============================================================================
 
-pub struct AnthropicModel<R: DnsResolver = SystemDnsResolver> {
+pub struct AnthropicModel {
     config: AnthropicConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<R: DnsResolver + 'static> AnthropicModel<R> {
+impl AnthropicModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((
+            headers.insert(
                 SimpleHeader::from("x-api-key".to_string()),
-                key.get().clone(),
-            ));
+                vec![key.get().clone()],
+            );
         }
-        headers.push((
+        headers.insert(
             SimpleHeader::from("anthropic-version".to_string()),
-            self.config.api_version.clone(),
-        ));
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+            vec![self.config.api_version.clone()],
+        );
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Extensions::default(),
+        })
     }
 
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(
@@ -629,30 +646,14 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, _headers, body, _pool, _conn) = response.into_parts();
+        let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -686,23 +687,18 @@ impl ToolFormatter for AnthropicFormatter {
         tools: &[Tool],
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         Ok(serde_json::Value::Array(
+            // One tool entry per `Tool`; a MultiCommands tool renders as one
+            // discriminated tool (`command` selects the sub-command).
             tools
                 .iter()
                 .map(|tool| {
-                    // Use the Args schema if present, otherwise default to empty object
-                    let input_schema = tool.arguments.as_ref().map_or_else(
-                        || {
-                            serde_json::json!({
-                                "type": "object",
-                                "properties": {},
-                            })
-                        },
-                        |a| a.schema.clone(),
-                    );
+                    let spec = tool.function_spec();
+                    // Anthropic's tool_use block has no output-schema slot —
+                    // `spec.returns` is ignored here.
                     serde_json::json!({
-                        "name": &tool.name,
-                        "description": tool.description,
-                        "input_schema": input_schema,
+                        "name": spec.name,
+                        "description": spec.description,
+                        "input_schema": spec.parameters,
                     })
                 })
                 .collect(),
@@ -716,7 +712,7 @@ impl ToolFormatter for AnthropicFormatter {
     fn extract_tool_calls(
         &self,
         response: &str,
-    ) -> Result<crate::types::ExtractResult, ErrorTrace<ToolCallingError>> {
+    ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
         let parsed: serde_json::Value = serde_json::from_str(response).map_err(|e| {
             ErrorTrace::new(ToolCallingError::Extract {
                 reason: e.to_string(),
@@ -745,13 +741,15 @@ impl ToolFormatter for AnthropicFormatter {
                             .get("input")
                             .cloned()
                             .unwrap_or(serde_json::Value::Null);
-                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                        let arguments: Option<HashMap<String, ArgType>> =
                             serde_json::from_value(input.clone()).ok();
                         calls.push(ModelOutput::ToolCall {
                             id,
                             name,
                             arguments,
                             signature: None,
+                            depends_on: Vec::new(),
+                            execution_hint: ExecutionHint::default(),
                         });
                     }
                     Some("text") => {
@@ -776,7 +774,7 @@ impl ToolFormatter for AnthropicFormatter {
             Some(text_parts.join("\n"))
         };
 
-        Ok(crate::types::ExtractResult {
+        Ok(ExtractResult {
             calls,
             remaining_text,
             has_tool_calls,
@@ -788,8 +786,7 @@ impl ToolFormatter for AnthropicFormatter {
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         let Messages::ToolResult {
-            id,
-            name: _,
+            tool_call_id,
             content,
             error_detail,
             ..
@@ -803,21 +800,20 @@ impl ToolFormatter for AnthropicFormatter {
         };
 
         let content_str = match content {
-            crate::types::UserModelContent::Text(t) => t.content.clone(),
-            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+            UserModelContent::Text(t) => t.content.clone(),
+            UserModelContent::Image(_) => "[image]".to_string(),
         };
 
         Ok(serde_json::json!({
             "type": "tool_result",
-            "tool_use_id": id,
+            "tool_use_id": tool_call_id,
             "content": [{"type": "text", "text": content_str}],
             "is_error": error_detail.is_some(),
         }))
     }
 }
 
-impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
-    type Formatter = AnthropicFormatter;
+impl Model for AnthropicModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -833,10 +829,10 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             id: "anthropic",
             name: "Anthropic",
             reasoning: true,
-            api: crate::types::ModelAPI::AnthropicMessages,
+            api: crate::types::base_types::ModelAPI::AnthropicMessages,
             provider: ModelProviders::ANTHROPIC,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
             cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
@@ -844,7 +840,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let cost = self.cumulative_cost.borrow().result();
+        let cost = self.cumulative_cost.lock().unwrap().result();
         Ok(UsageReport {
             input: 0.0,
             output: 0.0,
@@ -870,7 +866,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         let response: MessagesResponse = self.execute_request(&url, &body)?;
 
         let (messages, report) = parse_response(&response, &self.model_id, &self.pricing)?;
-        self.cumulative_cost.borrow_mut().add(&report.cost);
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(messages)
     }
 
@@ -878,7 +874,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = build_anthropic_request(&self.model_name, &interaction, &params, true);
 
@@ -887,34 +883,15 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
 
         let url = self.build_url("messages");
 
-        let resolver = self
-            .resolver
-            .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::from("x-api-key".to_string()),
-                self.api_key
-                    .as_ref()
-                    .map(|k| k.get().clone())
-                    .unwrap_or_default(),
-            )
-            .with_header(
-                SimpleHeader::from("anthropic-version".to_string()),
-                self.config.api_version.clone(),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client.send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
-
-        Ok(AnthropicStream {
-            inner: driven,
+        Ok(Box::new(AnthropicStream {
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             accumulated_thinking: String::new(),
@@ -925,8 +902,12 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             final_messages: Vec::new(),
             final_message_index: 0,
             pricing: self.pricing,
-            cumulative_cost: Rc::clone(&self.cumulative_cost),
-        })
+            cumulative_cost: Arc::clone(&self.cumulative_cost),
+        }))
+    }
+
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(AnthropicFormatter)
     }
 }
 
@@ -940,8 +921,8 @@ struct AccumulatedToolCall {
     arguments: String,
 }
 
-struct AnthropicStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct AnthropicStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     accumulated_thinking: String,
@@ -952,10 +933,10 @@ struct AnthropicStream<R: DnsResolver + 'static> {
     final_messages: Vec<Messages>,
     final_message_index: usize,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
+impl Iterator for AnthropicStream {
     type Item = Stream<Messages, ModelState>;
 
     #[allow(clippy::too_many_lines)]
@@ -981,7 +962,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
         };
 
         match item {
-            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -991,11 +972,15 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                 let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
                 for item in items {
                     match item {
-                        StreamSpread::Done(parse_result) => {
+                        StreamSpread::Done(ref parse_result) => {
                             match self.process_parse_result(parse_result) {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
-                                Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                                Stream::Delayed(_)
+                                | Stream::Init
+                                | Stream::Ignore
+                                | Stream::Wait
+                                | Stream::Spread(_) => {}
                             }
                         }
                         StreamSpread::Pending(_) => {
@@ -1013,9 +998,9 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> AnthropicStream<R> {
+impl AnthropicStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message {
             data, event_type, ..
         } = &parse_result.event
@@ -1063,6 +1048,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     AnthropicDelta::TextDelta { text } => {
                         self.accumulated_text.push_str(&text);
                         Stream::Next(Messages::Assistant {
+                            id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
                             timestamp: SystemTime::now(),
                             usage: empty_usage_report(),
@@ -1080,6 +1066,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     AnthropicDelta::ThinkingDelta { thinking } => {
                         self.accumulated_thinking.push_str(&thinking);
                         Stream::Next(Messages::Assistant {
+                            id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
                             timestamp: SystemTime::now(),
                             usage: empty_usage_report(),
@@ -1120,7 +1107,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                 let (messages, report) = self.build_final_messages_with_cost();
                 self.final_messages = messages;
                 self.final_message_index = 0;
-                self.cumulative_cost.borrow_mut().add(&report.cost);
+                self.cumulative_cost.lock().unwrap().add(&report.cost);
                 Stream::Ignore
             }
             _ => Stream::Ignore,
@@ -1145,6 +1132,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // Emit thinking as a separate message if accumulated.
         if !self.accumulated_thinking.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1163,6 +1151,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // Emit text as a separate message if accumulated.
         if !self.accumulated_text.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1180,7 +1169,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 
         // Emit each tool call as a separate message.
         for tc in &self.tool_calls {
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -1194,6 +1183,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     });
 
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1202,6 +1192,8 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     name: tc.name.clone(),
                     arguments,
                     signature: None,
+                    depends_on: Vec::new(),
+                    execution_hint: crate::types::base_types::ExecutionHint::default(),
                 },
                 stop_reason: stop_reason.clone(),
                 provider: ModelProviders::ANTHROPIC,
@@ -1214,6 +1206,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // If nothing accumulated, return a single empty text message.
         if messages.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1240,30 +1233,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 /// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
 #[must_use]
 pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
-    let mut tools = vec![
-        shed.shed.clone(),
-        shed.read.clone(),
-        shed.edit.clone(),
-        shed.write.clone(),
-        shed.search.clone(),
-    ];
-    if let Some(mem) = &shed.memory {
-        tools.push(mem.add.clone());
-        tools.push(mem.replace.clone());
-        tools.push(mem.remove.clone());
-    }
-    if let Some(delegate) = &shed.delegate {
-        tools.push(delegate.start.clone());
-        tools.push(delegate.check.clone());
-        tools.push(delegate.get.clone());
-    }
-    if let Some(bash) = &shed.bash {
-        tools.push(bash.clone());
-    }
-    if let Some(others) = &shed.others {
-        tools.extend(others.iter().cloned());
-    }
-    tools
+    shed.all_tools()
 }
 
 #[allow(
@@ -1291,19 +1261,19 @@ pub fn build_anthropic_request(
         .iter()
         .filter_map(|msg| match msg {
             Messages::User { content, .. } => match content {
-                crate::types::UserModelContent::Text(tc) => Some(AnthropicMessage {
+                crate::types::base_types::UserModelContent::Text(tc) => Some(AnthropicMessage {
                     role: AnthropicRole::User,
                     content: vec![AnthropicContentBlock::Text {
                         text: tc.content.clone(),
                     }],
                 }),
-                crate::types::UserModelContent::Image(img) => {
+                crate::types::base_types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
                         #[allow(clippy::match_same_arms)]
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     Some(AnthropicMessage {
@@ -1351,15 +1321,19 @@ pub fn build_anthropic_request(
                 }),
                 ModelOutput::Image(_) | ModelOutput::Embedding { .. } => None,
             },
-            Messages::ToolResult { id, content, .. } => {
+            Messages::ToolResult {
+                tool_call_id,
+                content,
+                ..
+            } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 Some(AnthropicMessage {
                     role: AnthropicRole::User,
                     content: vec![AnthropicContentBlock::ToolResult {
-                        tool_use_id: id.clone(),
+                        tool_use_id: tool_call_id.clone(),
                         content: text,
                         is_error: None,
                     }],
@@ -1369,20 +1343,20 @@ pub fn build_anthropic_request(
         .collect();
 
     // Tools: flatten ToolShed through AnthropicFormatter
-    let tools = interaction.tools_shed.as_ref().and_then(|shed| {
-        let all_tools = flatten_tools(shed);
+    let tools = {
+        let all_tools = flatten_tools(&interaction.tools_shed);
         AnthropicFormatter
             .format_tools(&all_tools)
             .ok()
             .and_then(|v| serde_json::from_value(v).ok())
-    });
+    };
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => {
+        crate::types::base_types::ToolChoice::Auto | crate::types::base_types::ToolChoice::None => {
             AnthropicToolChoice::Auto
         }
-        crate::types::ToolChoice::Required => AnthropicToolChoice::Any,
-        crate::types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
+        crate::types::base_types::ToolChoice::Required => AnthropicToolChoice::Any,
+        crate::types::base_types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
             name: f.function.name.clone(),
         },
     });
@@ -1436,13 +1410,13 @@ fn make_usage_report(
     pricing: &ModelUsageCosting,
 ) -> UsageReport {
     #[allow(clippy::cast_precision_loss)]
-    let usage = crate::types::UsageReport {
+    let usage = crate::types::base_types::UsageReport {
         input: f64::from(input_tokens),
         output: f64::from(output_tokens),
         cache_read: f64::from(cache_read),
         cache_write: f64::from(cache_write),
         total_tokens: f64::from(input_tokens + output_tokens),
-        cost: crate::types::UsageCosting {
+        cost: crate::types::base_types::UsageCosting {
             currency: String::from("USD"),
             input: 0.0,
             output: 0.0,
@@ -1486,6 +1460,7 @@ pub fn parse_response(
     for block in &response.content {
         let msg = match block {
             AnthropicContentBlock::Text { text } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1500,7 +1475,7 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::ToolUse { id, name, input } => {
-                let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                     serde_json::from_value(input.clone())
                         .ok()
                         .map(|v: serde_json::Value| {
@@ -1514,6 +1489,7 @@ pub fn parse_response(
                         });
 
                 Messages::Assistant {
+                    id: foundation_compact::ids::new_scru128(),
                     model: model_id.clone(),
                     timestamp: SystemTime::now(),
                     usage: report.clone(),
@@ -1522,6 +1498,8 @@ pub fn parse_response(
                         name: name.clone(),
                         arguments,
                         signature: None,
+                        depends_on: Vec::new(),
+                        execution_hint: crate::types::base_types::ExecutionHint::default(),
                     },
                     stop_reason: stop_reason.clone(),
                     provider: ModelProviders::ANTHROPIC,
@@ -1534,6 +1512,7 @@ pub fn parse_response(
                 thinking,
                 signature,
             } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1548,6 +1527,7 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::RedactedThinking { .. } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1571,6 +1551,7 @@ pub fn parse_response(
     // If response had no parseable content blocks, return empty text.
     if messages.is_empty() {
         messages.push(Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
             timestamp: SystemTime::now(),
             usage: report.clone(),
@@ -1619,19 +1600,19 @@ pub fn empty_usage_report() -> UsageReport {
     }
 }
 
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
+fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
     match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
+        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
+                crate::types::base_types::ArgType::I64(i)
             } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
+                crate::types::base_types::ArgType::Float64(f)
             } else {
-                crate::types::ArgType::Text(n.to_string())
+                crate::types::base_types::ArgType::Text(n.to_string())
             }
         }
-        other => crate::types::ArgType::JSON(other.to_string()),
+        other => crate::types::base_types::ArgType::JSON(other.to_string()),
     }
 }
 

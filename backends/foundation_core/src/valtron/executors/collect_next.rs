@@ -2,9 +2,12 @@ use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    ExecutionAction, ExecutionIterator, State, TaskIterator, TaskStatus,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, ExecutionAction,
+    ExecutionIterator, State, TaskIterator, TaskStatus,
 };
+// Only the `multi`-gated `Into<BoxedSendExecutionIterator>` uses this alias.
+#[cfg(feature = "multi")]
+use crate::valtron::BoxedSendExecutionIterator;
 
 use crate::compati::Mutex;
 
@@ -52,6 +55,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for CollectNext<'a, Action, Task, Done, Pending>

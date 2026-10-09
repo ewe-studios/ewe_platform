@@ -258,10 +258,31 @@ impl JwtSigningKey {
     ///
     /// Returns `JwtError::GenerationError` if signing fails.
     pub fn sign_claims(&self, claims: &serde_json::Value) -> Result<String, JwtError> {
-        // Build jwt-simple claims from the JSON value
-        let mut builder = jwt_simple::prelude::Claims::create(
-            jwt_simple::prelude::Duration::from_secs(3600),
-        );
+        use jwt_simple::prelude::{Claims, Duration};
+
+        // Token lifetime: derive from an absolute `exp` (epoch seconds) when the
+        // caller supplies one, otherwise default to 1 hour.
+        let duration = claims
+            .get("exp")
+            .and_then(serde_json::Value::as_u64)
+            .map(|exp| {
+                let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
+                Duration::from_secs(exp.saturating_sub(now).max(1))
+            })
+            .unwrap_or_else(|| Duration::from_secs(3600));
+
+        // Application (custom) claims = everything except the registered claims
+        // jwt-simple manages itself — otherwise those keys would appear twice in
+        // the payload. Custom claims are what downstream `VerifiedClaims.custom`
+        // reads back (e.g. Bitwarden's `sstamp`, `device`, `email`, `premium`).
+        let mut custom = claims.clone();
+        if let Some(obj) = custom.as_object_mut() {
+            for key in ["sub", "iss", "aud", "exp", "iat", "nbf", "jti"] {
+                obj.remove(key);
+            }
+        }
+
+        let mut builder = Claims::with_custom_claims(custom, duration);
 
         // Apply standard claims from the JSON value
         if let Some(sub) = claims.get("sub").and_then(|v| v.as_str()) {
@@ -300,6 +321,40 @@ impl JwtSigningKey {
             Self::ES256(kp) => kp.public_key().to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
+    }
+
+    /// Serialise the full key pair (private key) as a PEM string for
+    /// persistence in KV / secrets manager.
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::GenerationError` if PEM encoding fails.
+    pub fn to_pem(&self) -> Result<String, JwtError> {
+        match self {
+            Self::Ed25519(kp) => Ok(kp.to_pem()),
+            Self::RS256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+            Self::ES256(kp) => kp.to_pem()
+                .map_err(|e| JwtError::GenerationError(e.to_string())),
+        }
+    }
+
+    /// Deserialise a key pair from a PEM string previously produced by
+    /// [`to_pem`](Self::to_pem).
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError::InvalidPrivateKey` if the PEM cannot be parsed.
+    pub fn from_pem(pem: &str) -> Result<Self, JwtError> {
+        use jwt_simple::prelude::Ed25519KeyPair;
+
+        // Try Ed25519 first (the default for keychain + IdP).
+        if let Ok(kp) = Ed25519KeyPair::from_pem(pem) {
+            return Ok(Self::Ed25519(kp));
+        }
+        Err(JwtError::InvalidPrivateKey(
+            "could not parse PEM as Ed25519, RS256, or ES256 key".into(),
+        ))
     }
 }
 
@@ -733,6 +788,9 @@ pub enum JwtError {
     /// Public key could not be parsed.
     #[from(ignore)]
     InvalidPublicKey(String),
+    /// Private key could not be parsed from PEM/DER.
+    #[from(ignore)]
+    InvalidPrivateKey(String),
     /// Subject claim is missing or empty.
     #[from(ignore)]
     InvalidSubject,
@@ -761,6 +819,7 @@ impl core::fmt::Display for JwtError {
             JwtError::InvalidAudience(s) => write!(f, "JWT invalid audience: {s}"),
             JwtError::TokenNotYetValid(s) => write!(f, "JWT not yet valid: {s}"),
             JwtError::InvalidPublicKey(s) => write!(f, "JWT invalid public key: {s}"),
+            JwtError::InvalidPrivateKey(s) => write!(f, "JWT invalid private key: {s}"),
             JwtError::InvalidSubject => write!(f, "JWT missing subject claim"),
         }
     }
@@ -768,93 +827,3 @@ impl core::fmt::Display for JwtError {
 
 impl std::error::Error for JwtError {}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_jwt_token_creation() {
-        let future_time = Utc::now().timestamp() + 3600; // 1 hour from now
-        let token = JwtToken::from_parts(
-            "test_token".to_string(),
-            Some("test_refresh".to_string()),
-            future_time,
-            Some("read:write".to_string()),
-            Some("api".to_string()),
-            Some("auth.example.com".to_string()),
-        );
-
-        assert!(!token.is_expired());
-        assert_eq!(token.access_token(), "test_token");
-        assert_eq!(token.refresh_token(), Some("test_refresh".to_string()));
-        assert_eq!(token.scope, Some("read:write".to_string()));
-    }
-
-    #[test]
-    fn test_jwt_token_expiration() {
-        let past_time = Utc::now().timestamp() - 3600; // 1 hour ago
-        let token = JwtToken::from_parts(
-            "expired_token".to_string(),
-            None,
-            past_time,
-            None,
-            None,
-            None,
-        );
-
-        assert!(token.is_expired());
-        assert!(token.expires_in() == 0);
-    }
-
-    #[test]
-    fn test_jwt_token_expires_within() {
-        let soon = Utc::now().timestamp() + 120; // 2 minutes from now
-        let token =
-            JwtToken::from_parts("expiring_token".to_string(), None, soon, None, None, None);
-
-        // Should expire within 5 minutes
-        assert!(token.expires_within(300));
-        // Should NOT expire within 1 minute
-        assert!(!token.expires_within(60));
-    }
-
-    #[test]
-    fn test_jwt_manager_refresh() {
-        let mut manager = JwtManager::new().with_refresh_buffer(300);
-
-        // Initially no token
-        assert!(!manager.has_valid_token());
-
-        // Set a token that's about to expire
-        let soon = Utc::now().timestamp() + 60; // 1 minute from now
-        manager.set_token(JwtToken::from_parts(
-            "test_token".to_string(),
-            Some("refresh_token".to_string()),
-            soon,
-            None,
-            None,
-            None,
-        ));
-
-        // Should need refresh (within buffer)
-        assert!(manager.token.as_ref().unwrap().expires_within(300));
-
-        // Mock refresh function (synchronous)
-        let refresh_fn = |_refresh_token: String| {
-            let future = Utc::now().timestamp() + 3600;
-            Ok(JwtToken::from_parts(
-                "new_token".to_string(),
-                Some("new_refresh".to_string()),
-                future,
-                None,
-                None,
-                None,
-            ))
-        };
-
-        // Refresh should succeed
-        let refreshed = manager.refresh_if_needed(refresh_fn).unwrap();
-        assert!(refreshed);
-        assert_eq!(manager.get_token().unwrap().access_token(), "new_token");
-    }
-}

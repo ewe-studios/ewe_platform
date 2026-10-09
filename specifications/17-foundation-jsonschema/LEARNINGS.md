@@ -69,6 +69,23 @@ Document non-obvious discoveries, critical decisions, and gotchas specific to TH
 - **Naming conflict on ObjectSchema**: `ObjectSchema` already has `optional(name, schema)` for adding optional properties. The universal `optional()` (wrapping in anyOf with null) conflicts. Renamed to `optional_value()` on ObjectSchema only.
 - **Always check spec for universal modifiers**: `optional()`, `nullable()`, `description()`, `default()` are listed on "every builder" in the spec. Easy to miss during initial implementation — do a pass specifically for these after building the core methods.
 
+## URI Normalization (RFC 3986 §6.2.2.1)
+
+- Schemes and hostnames are case-insensitive. The registry normalizes URIs on both insertion and lookup via `uri::normalize()`. The `InMemoryFetcher` also normalizes on insert/resolve.
+- This was the root cause of the `uri_normalization_case_insensitive_host` test failure — `http://Example.COM` and `http://example.com` were treated as different URIs before normalization.
+- Builtin meta-schema URIs (with trailing `#`) are also normalized, which strips the trailing fragment marker.
+
+## `$ref` Sibling Keyword Suppression
+
+- In Draft 4/6/7/2019-09, `$ref` suppresses all sibling keywords EXCEPT `$id`, `$anchor`, `$dynamicAnchor`, and `$recursiveAnchor` which must be processed for URI resolution and dynamic ref tracking.
+- The original suppression (`key != "$ref"`) was too aggressive — it skipped `$recursiveAnchor` which broke the `$recursiveRef` test group.
+
+## Test Suite Data
+
+- The official JSON Schema Test Suite is vendored from the reference project's git submodule at `/home/darkvoid/Boxxed/@formulas/src.rust/src.jsonschema/jsonschema/crates/jsonschema/tests/suite/`.
+- Test data lives in `tests/suite/draft{4,6,7,2019-09,2020-12}/` with `remotes/` for `$ref` test schemas.
+- The referencing suite data is in `tests/suite/referencing-suite/`.
+
 ---
 
-_Last Updated: 2026-05-01_
+_Last Updated: 2026-06-15_

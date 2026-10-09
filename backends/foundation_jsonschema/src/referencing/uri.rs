@@ -344,6 +344,16 @@ pub fn resolve_against(base: &str, reference: &str) -> Result<Uri, UriError> {
     base_uri.resolve(reference)
 }
 
+/// Normalize a URI string: lowercase scheme and host, remove dot segments.
+/// Returns the original string if it fails to parse.
+#[must_use]
+pub fn normalize(raw: &str) -> String {
+    match Uri::parse(raw) {
+        Ok(uri) => uri.normalize().without_fragment().to_string(),
+        Err(_) => raw.to_string(),
+    }
+}
+
 /// Parse a URI string, resolving against the default root if it has no scheme.
 ///
 /// # Errors

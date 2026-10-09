@@ -45,14 +45,16 @@ impl ArraySchema {
     /// Set minimum number of items.
     #[must_use]
     pub fn min_items(mut self, n: usize) -> Self {
-        self.schema.insert("minItems".into(), Value::Number(n.into()));
+        self.schema
+            .insert("minItems".into(), Value::Number(n.into()));
         self
     }
 
     /// Set maximum number of items.
     #[must_use]
     pub fn max_items(mut self, n: usize) -> Self {
-        self.schema.insert("maxItems".into(), Value::Number(n.into()));
+        self.schema
+            .insert("maxItems".into(), Value::Number(n.into()));
         self
     }
 
@@ -85,21 +87,24 @@ impl ArraySchema {
     /// Set minimum number of items that must match `contains` (Draft 2019-09+).
     #[must_use]
     pub fn min_contains(mut self, n: u64) -> Self {
-        self.schema.insert("minContains".into(), Value::Number(n.into()));
+        self.schema
+            .insert("minContains".into(), Value::Number(n.into()));
         self
     }
 
     /// Set maximum number of items that can match `contains` (Draft 2019-09+).
     #[must_use]
     pub fn max_contains(mut self, n: u64) -> Self {
-        self.schema.insert("maxContains".into(), Value::Number(n.into()));
+        self.schema
+            .insert("maxContains".into(), Value::Number(n.into()));
         self
     }
 
     /// Add a description to the schema.
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -117,10 +122,10 @@ impl ArraySchema {
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -128,10 +133,10 @@ impl ArraySchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -139,7 +144,12 @@ impl ArraySchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.

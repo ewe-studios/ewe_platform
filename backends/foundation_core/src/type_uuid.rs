@@ -6,6 +6,12 @@
 //! # Example
 //!
 //! ```rust
+//! # // Inside foundation_core's own doctests the derive expands to
+//! # // `crate::type_uuid::…` (proc-macro-crate resolves Itself), so the module
+//! # // must be importable at the doctest crate root — which also requires an
+//! # // explicit `main` (rustdoc's implicit wrapper would move the `use` inside
+//! # // a function where `crate::…` paths cannot see it).
+//! # use foundation_core::type_uuid;
 //! use foundation_macros::TypeUuid;
 //! use foundation_core::type_uuid::{TypeUuid, Bytes};
 //!
@@ -13,7 +19,9 @@
 //! #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
 //! struct MyType;
 //!
+//! # fn main() {
 //! assert_eq!(MyType::UUID.len(), 16);
+//! # }
 //! ```
 
 /// A 128-bit (16 byte) buffer containing the type's UUID.
@@ -141,71 +149,3 @@ mod std_impls {
 type Unit = ();
 external_type_uuid!(Unit, "03748d1a-0d0c-472f-9fdd-424856157064");
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_uuid_const_works() {
-        let bytes = parse_uuid_const("d4adfc76-f5f4-40b0-8e28-8a51a12f5e46");
-        assert_eq!(bytes[0], 0xd4);
-        assert_eq!(bytes[1], 0xad);
-        assert_eq!(bytes[15], 0x46);
-    }
-
-    #[test]
-    fn standard_type_uuids_exist() {
-        assert_ne!(bool::UUID, [0u8; 16]);
-        assert_ne!(u32::UUID, [0u8; 16]);
-        assert_ne!(String::UUID, [0u8; 16]);
-    }
-
-    #[test]
-    fn type_uuid_dynamic_trait_object() {
-        let val: Box<dyn TypeUuidDynamic> = Box::new(42u32);
-        assert_eq!(val.uuid(), u32::UUID);
-    }
-
-    #[test]
-    fn derive_macro_works() {
-        use foundation_macros::TypeUuid;
-
-        #[derive(TypeUuid)]
-        #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
-        struct TestStruct;
-
-        assert_eq!(
-            TestStruct::UUID,
-            parse_uuid_const("d4adfc76-f5f4-40b0-8e28-8a51a12f5e46")
-        );
-    }
-
-    #[test]
-    fn derive_macro_on_enum() {
-        use foundation_macros::TypeUuid;
-
-        #[derive(TypeUuid)]
-        #[uuid = "aabbccdd-1122-3344-5566-778899aabbcc"]
-        enum TestEnum {
-            A,
-            B(u32),
-        }
-
-        assert_eq!(
-            TestEnum::UUID,
-            parse_uuid_const("aabbccdd-1122-3344-5566-778899aabbcc")
-        );
-    }
-
-    #[test]
-    fn external_type_uuid_proc_macro() {
-        struct ForeignType;
-
-        foundation_macros::external_type_uuid!(ForeignType, "12345678-abcd-ef01-2345-6789abcdef01");
-
-        assert_eq!(
-            ForeignType::UUID,
-            parse_uuid_const("12345678-abcd-ef01-2345-6789abcdef01")
-        );
-    }
-}

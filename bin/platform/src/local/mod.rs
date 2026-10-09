@@ -1,12 +1,16 @@
-use core::time;
-use ewe_devserver::{
-    types::{Http1, ProxyRemoteConfig},
-    HttpDevService, ProjectDefinition, ProxyType, VecStringExt,
+use std::sync::Arc;
+use std::time;
+
+use foundation_toolings::{
+    types::{Http1, ProxyRemoteConfig, ProxyType},
+    DevService, ProjectDefinition, VecStringExt,
 };
-use std::collections::HashMap;
-use tokio::sync::broadcast;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+
+use crate::local::signal::setup_ctrlc_handler;
+
+mod signal;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -82,7 +86,7 @@ pub fn register(command: clap::Command) -> clap::Command {
     )
 }
 
-pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let project_name = args
         .get_one::<String>("project_name")
         .expect("should have project_name address");
@@ -96,7 +100,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let binary_name = if let Some(bin_name) = binary_name_ref {
         bin_name.clone()
     } else {
-        project_name.clone().clone()
+        project_name.clone()
     };
 
     let service_addr = args
@@ -134,7 +138,7 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
     let destination = ProxyRemoteConfig::new(service_addr.clone(), *service_port);
     let source = ProxyRemoteConfig::new(proxy_addr.clone(), *proxy_port);
 
-    let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
+    let tunnel_config = ProxyType::Http1(Http1::new(source, destination));
 
     let definition = ProjectDefinition {
         skip_rust_checks: *skip_rust_checks,
@@ -144,27 +148,17 @@ pub async fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError>
         workspace_root: project_directory.clone(),
         build_directories: vec![project_directory.clone()],
         reload_directories: vec![project_directory.clone()],
-        wait_before_reload: time::Duration::from_millis(300), // magic number that works
+        wait_before_reload: time::Duration::from_millis(300),
         target_directory: format!("{}/target", project_directory.clone()),
         run_arguments: vec!["cargo", "run", "--bin", binary_name.as_str()].to_vec_string(),
         build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
     };
 
-    let mut dev_service = HttpDevService::new(definition);
+    let dev_service = DevService::new(definition);
+    let shutdown = Arc::new(foundation_core::synca::OnSignal::new());
+    setup_ctrlc_handler(shutdown.clone());
 
-    let (_cancel_sender, cancel_receiver) = broadcast::channel::<()>(1);
-
-    // TODO: implement signal handling
-
-    let waiter = dev_service
-        .start(cancel_receiver)
-        .await
-        .expect("safely instantiated");
-
-    waiter
-        .await
-        .expect("safely closed")
-        .expect("should safely be cleanedup");
+    foundation_toolings::run_dev_server(definition)?;
 
     Ok(())
 }

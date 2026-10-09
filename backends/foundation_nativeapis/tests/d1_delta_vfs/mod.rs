@@ -68,7 +68,7 @@ fn test_d1_delta_is_delta_store() {
 // ── Integration Tests through valtron sync bridge ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_d1_kvstore_put_get() {
@@ -85,7 +85,7 @@ fn syncfs_d1_kvstore_put_get() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_d1_exists() {
@@ -101,7 +101,7 @@ fn syncfs_d1_exists() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_d1_whiteout() {
@@ -118,7 +118,7 @@ fn syncfs_d1_whiteout() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_d1_read_write() {
@@ -135,7 +135,7 @@ fn syncfs_d1_read_write() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn syncfs_d1_flush_and_reset() {

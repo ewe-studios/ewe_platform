@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
-    use foundation_netio::simple_http::client::body_reader::{
+    use foundation_netio::netcap::RawStream;
+    use foundation_netio::shared::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, HttpReaderError, IncomingRequestParts, SendSafeBody, SimpleHeader,
         SimpleMethod, SimpleUrl,
     };
@@ -226,12 +226,12 @@ mod http_response_compliance {
     use foundation_core::extensions::result_ext::BoxedError;
 
     use foundation_netio::netcap::RawStream;
-    use foundation_netio::simple_http::client::body_reader::{
+    use foundation_netio::shared::client::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody,
         SimpleHeader, Status,
     };
@@ -2536,7 +2536,7 @@ mod http_response_compliance {
         #[test]
         #[traced_test]
         fn underscore_in_header_key() {
-            let message = "HTTP/1.1 200 OK\r\nServer: DCLK-AdSvr\r\nContent-Type: text/xml\r\nContent-Length: 0\r\nDCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;;~okv=;dcmt=text/xml;;~cs=o\r\n\r\n";
+            let message = "HTTP/1.1 200 OK\r\nServer: DCLK-AdSvr\r\nContent-Type: text/xml\r\nContent-Length: 0\r\nDCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;~okv=;dcmt=text/xml;~cs=o\r\n\r\n";
             // Test implementation can be added here
 
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -3484,7 +3484,7 @@ mod http_requests_compliance {
     use foundation_netio::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         http_streams, ChunkedData, HttpReaderError, IncomingRequestParts, SendSafeBody,
         SimpleHeader, SimpleMethod, SimpleUrl,
     };
@@ -3500,7 +3500,7 @@ mod http_requests_compliance {
     mod hello_request {
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::body_reader::{
+        use foundation_netio::shared::client::body_reader::{
             collect_bytes_from_send_safe, try_collect_bytes,
         };
 
@@ -3980,7 +3980,8 @@ Hello world!";
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::LineFeed};
+        use foundation_core::panic_if_failed;
+        use foundation_netio::shared::http::LineFeed;
 
         use super::*;
 
@@ -7077,7 +7078,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::body_reader::{
+        use foundation_netio::shared::client::body_reader::{
             collect_bytes_from_send_safe, try_collect_bytes,
         };
 
@@ -7812,7 +7813,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::body_reader::try_collect_bytes;
+        use foundation_netio::shared::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -7923,7 +7924,7 @@ Hello world!";
         use tracing_test::traced_test;
 
         use foundation_core::panic_if_failed;
-        use foundation_netio::simple_http::client::body_reader::try_collect_bytes;
+        use foundation_netio::shared::client::body_reader::try_collect_bytes;
 
         use super::*;
 
@@ -9745,9 +9746,9 @@ mod hardening_tests {
     //! - OWS whitespace handling
     //! - Duplicate header combination
 
-    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::netcap::RawStream;
+    use foundation_netio::shared::http::{
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
 
@@ -9999,9 +10000,9 @@ mod hardening_tests {
             let mut client = panic_if_failed!(TcpStream::connect(addr));
             // Send partial request line very slowly (1 byte per 300ms)
             let _ = client.write_all(b"G");
-            thread::sleep(Duration::from_millis(300));
+            thread::sleep(std::time::Duration::from_millis(300));
             let _ = client.write_all(b"E");
-            thread::sleep(Duration::from_millis(300));
+            thread::sleep(std::time::Duration::from_millis(300));
             let _ = client.write_all(b"T");
             // Connection should have timed out before completing the request line
         });
@@ -10009,7 +10010,7 @@ mod hardening_tests {
         let (client_stream, _) = panic_if_failed!(listener.accept());
         // Set read timeout on TCP stream before wrapping - this is the correct approach
         client_stream
-            .set_read_timeout(Some(Duration::from_millis(500)))
+            .set_read_timeout(Some(std::time::Duration::from_millis(500)))
             .expect("should set read timeout");
         let reader = RawStream::from_tcp(client_stream).expect("should create stream");
         let request_reader = http_streams::send::request_reader(reader);
@@ -10027,5 +10028,73 @@ mod hardening_tests {
         );
 
         req_thread.join().expect("should be closed");
+    }
+}
+
+/// HTTP/1.1 interim (1xx) response rendering compliance.
+///
+/// A `100 Continue` (and any 1xx informational) response is legitimately
+/// **header-less** — `HTTP/1.1 100 Continue\r\n\r\n`. The `Http11` response
+/// renderer must emit it as such instead of failing `HeadersRequired`, while
+/// still requiring at least one header for non-informational responses. Without
+/// this, the server could never send `100 Continue` and every
+/// `Expect: 100-continue` request stalled until the client timed out.
+#[cfg(test)]
+mod interim_1xx_response_render {
+    use foundation_netio::shared::http::{
+        Http11, RenderHttp, SendSafeBody, SimpleOutgoingResponse, Status,
+    };
+
+    #[test]
+    fn header_less_100_continue_renders_terminating_crlf() {
+        let response = SimpleOutgoingResponse::builder()
+            .with_status(Status::Continue)
+            .with_body(SendSafeBody::None)
+            .build()
+            .expect("100 Continue response builds");
+
+        let rendered = Http11::response(response)
+            .http_render_string()
+            .expect("header-less 1xx must render, not fail HeadersRequired");
+
+        assert_eq!(rendered, "HTTP/1.1 100 Continue\r\n\r\n");
+    }
+
+    #[test]
+    fn generic_header_less_1xx_renders_terminating_crlf() {
+        // The relaxation is for the whole 1xx range, not just 100.
+        let response = SimpleOutgoingResponse::builder()
+            .with_status(Status::Numbered(103, "Early Hints".into()))
+            .with_body(SendSafeBody::None)
+            .build()
+            .expect("1xx response builds");
+
+        let rendered = Http11::response(response)
+            .http_render_string()
+            .expect("header-less 1xx must render");
+
+        assert_eq!(rendered, "HTTP/1.1 103 Early Hints\r\n\r\n");
+    }
+
+    #[test]
+    fn header_less_non_informational_response_still_requires_headers() {
+        // A 2xx (or any non-1xx) response with no headers must STILL be rejected —
+        // the relaxation is scoped to informational interim responses only.
+        let response = SimpleOutgoingResponse::builder()
+            .with_status(Status::OK)
+            .with_body(SendSafeBody::None)
+            .build()
+            .expect("200 response builds");
+
+        let result = Http11::response(response).http_render_string();
+
+        assert!(
+            result.is_err(),
+            "200 with no headers must still fail to render, got: {result:?}"
+        );
+        assert!(
+            format!("{:?}", result.unwrap_err()).contains("HeadersRequired"),
+            "the rejection must be HeadersRequired"
+        );
     }
 }

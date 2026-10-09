@@ -13,6 +13,6 @@ pub struct JSHostRuntimeAssets;
 
 #[test]
 fn can_read_data_from_js_host_runtime() {
-    let runtime = JSHostRuntime::default();
+    let runtime = JSHostRuntime;
     assert_eq!(runtime.read_utf8(), Some(b"world;\n".to_vec()));
 }

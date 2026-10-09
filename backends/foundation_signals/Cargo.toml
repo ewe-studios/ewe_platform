@@ -1,0 +1,29 @@
+[package]
+name = "foundation_signals"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Standalone reactive signal system: R3-style height-ordered graph, bucket-queue stabilize, version-based stale detection. No DOM, no WASM coupling."
+
+[dependencies]
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { version = "0.1" }
+
+foundation_core = { path = "../foundation_core", version = "0.0.4", optional = true }
+
+[features]
+# G15: WASM is single-threaded; storage cells are RefCell. The off-state would
+# swap in Mutex-backed cells — unimplemented until a consumer needs it.
+default = ["single_threaded"]
+single_threaded = []
+# Feature 18: cross-thread signal access over the SignalHub actor (native
+# only — the hub module is cfg'd off wasm32).
+valtron = ["dep:foundation_core"]
+
+[lints]
+workspace = true

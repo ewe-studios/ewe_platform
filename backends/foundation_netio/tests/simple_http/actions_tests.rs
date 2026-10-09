@@ -9,8 +9,9 @@
 //!   be required they instead perform compile-time type checks or simple
 //!   ownership/Option semantics checks.
 
-use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::client::*;
+use foundation_netio::http::*;
+use foundation_netio::shared::http::*;
 
 use foundation_core::extensions::result_ext::BoxedResult;
 use std::net::SocketAddr as StdSocketAddr;
@@ -88,7 +89,7 @@ fn test_service_action_match_url_only() {
 // // TlsUpgradeAction Tests
 // // ========================================================================
 
-// #[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_family = "wasm"))]
 // mod tls_upgrade_tests {
 //     use super::*;
 
@@ -150,11 +151,11 @@ fn test_service_action_match_url_only() {
 // /// WHY: Verify HttpClientAction::TlsUpgrade variant delegates correctly
 // /// WHAT: Tests that TlsUpgrade variant type compiles (compile-time check)
 // #[test]
-// #[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_family = "wasm"))]
 // fn test_http_client_action_tls_upgrade() {
 //     // Compile-time type check: verify HttpClientAction can hold TlsUpgradeAction
 //     fn _assert_tls_upgrade_variant_exists() {
-//         use foundation_netio::simple_http::client::DnsResolver;
+//         use foundation_netio::shared::client::DnsResolver;
 
 //         // This verifies the enum variant compiles correctly
 //         fn _assert_can_create<R: DnsResolver + Send + 'static>(_action: HttpClientAction<R>) {

@@ -1,14 +1,18 @@
 use foundation_core::valtron::Stream;
 use foundation_db::traits::{QueryStore, StorageItemStream};
-use foundation_db::{DataValue, SqlRow, StorageError};
+use foundation_db::{DataValue, SqlRow};
 
-use crate::core::errors::CedarError;
 use super::traits::PolicyStore;
+use crate::core::errors::CedarError;
 
-fn collect_first_row(stream: StorageItemStream<'_, SqlRow>) -> Result<Option<SqlRow>, StorageError> {
+fn collect_first_row(
+    stream: StorageItemStream<'_, SqlRow>,
+) -> Result<Option<SqlRow>, crate::core::errors::CedarError> {
     for item in stream {
         if let Stream::Next(result) = item {
-            return result.map(Some);
+            return result
+                .map(Some)
+                .map_err(|e| CedarError::PolicyParse(format!("SQL read error: {e}")));
         }
     }
     Ok(None)
@@ -38,16 +42,9 @@ impl<'a> SqlPolicyStore<'a> {
     }
 
     pub fn ensure_table(&self) -> Result<(), CedarError> {
-        let stream = self
-            .store
+        self.store
             .execute_batch(CREATE_TABLE_SQL)
-            .map_err(|e| CedarError::PolicyParse(format!("SQL table creation failed: {e}")))?;
-        for item in stream {
-            if let Stream::Next(result) = item {
-                result.map_err(|e| CedarError::PolicyParse(format!("SQL exec error: {e}")))?;
-            }
-        }
-        Ok(())
+            .map_err(|e| CedarError::PolicyParse(format!("SQL table creation failed: {e}")))
     }
 
     fn load_row(&self) -> Result<SqlRow, CedarError> {
@@ -59,14 +56,12 @@ impl<'a> SqlPolicyStore<'a> {
             )
             .map_err(|e| CedarError::PolicyParse(format!("SQL query error: {e}")))?;
 
-        collect_first_row(stream)
-            .map_err(|e| CedarError::PolicyParse(format!("SQL read error: {e}")))?
-            .ok_or_else(|| {
-                CedarError::PolicyParse(format!(
-                    "No policies found for namespace '{}'",
-                    self.namespace
-                ))
-            })
+        collect_first_row(stream)?.ok_or_else(|| {
+            CedarError::PolicyParse(format!(
+                "No policies found for namespace '{}'",
+                self.namespace
+            ))
+        })
     }
 }
 

@@ -3,21 +3,23 @@ use foundation_nostd::comp::basic::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::io::ioutils;
 use crate::netcap::{ClientEndpoint, DataStreamError, RawStream};
-use foundation_core::retries::{CReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState};
+use derive_more::derive::From;
+use foundation_core::io::ioutils;
+use foundation_core::retries::{
+    CReconnectionDecider, ExponentialBackoffDecider, RetryDecider, RetryState,
+};
 use foundation_core::valtron::delayed_iterators::Delayed;
 use foundation_core::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
-use derive_more::derive::From;
 
-use super::simple_http;
+use super::shared::http;
 
-pub fn create_simple_http_reader<T: simple_http::shared::BodyExtractor>(
+pub fn create_simple_http_reader<T: http::BodyExtractor>(
     stream: RawStream,
     extractor: T,
-) -> simple_http::shared::HttpRequestReader<T, RawStream> {
+) -> http::HttpRequestReader<T, RawStream> {
     let byte_reader = ioutils::SharedByteBufferStream::rwrite(stream);
-    simple_http::shared::HttpRequestReader::new(byte_reader, extractor)
+    http::HttpRequestReader::new(byte_reader, extractor)
 }
 
 /// Representing the different state a connection goes through
@@ -152,9 +154,9 @@ impl Eq for ReconnectionStatus {}
 impl PartialEq for ReconnectionStatus {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (ReconnectionStatus::Waiting(m1), ReconnectionStatus::Waiting(m2)) => m1 == m2,
-            (ReconnectionStatus::Ready(_), ReconnectionStatus::Ready(_)) => true,
-            (ReconnectionStatus::NoMoreWaiting, ReconnectionStatus::NoMoreWaiting) => true,
+            (Self::Waiting(m1), Self::Waiting(m2)) => m1 == m2,
+            (Self::Ready(_), Self::Ready(_)) => true,
+            (Self::NoMoreWaiting, Self::NoMoreWaiting) => true,
             _ => false,
         }
     }

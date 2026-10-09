@@ -22,14 +22,16 @@ LLAMA_SUBMODULE_PATH = "tools/llama.cpp"
 LLAMA_DIR = "{{config_root}}/{{env.LLAMA_SUBMODULE_PATH}}"
 LLAMA_BINDINGS_DIR = "{{config_root}}/infrastructure/llama-bindings"
 LLAMA_SYMLINK_DIR = "{{env.LLAMA_BINDINGS_DIR}}/llama.cpp"
+NO_CAPTURE = "{{ env.NO_CAPTURE | default(value='--show-output') }}"
+TARGET_TEST = "{{ env.TARGET_TEST | default(value='') }}"
 _.path = ["./node_modules/.bin", "{{env.DEPOT_DIR}}"]
 
 # =============================================================================
 # Test model — single source of truth for llama-server integration tests.
 # Change the model here and every task/test that references it updates.
 # =============================================================================
-LLAMA_TEST_MODEL_DIR = "{{config_root}}/artefact/models"
-LLAMA_TEST_MODEL_FILE = "{{config_root}}/artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+LLAMA_TEST_MODEL_DIR = "{{config_root}}/artefacts/models"
+LLAMA_TEST_MODEL_FILE = "{{config_root}}/artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
 LLAMA_TEST_MODEL_NAME = "qwen2.5-0.5b-instruct"
 LLAMA_TEST_MODEL_URL = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
 LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
@@ -73,23 +75,84 @@ echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
 """
 
 [tasks."setup:wasm"]
-description = "Install WASM compilation targets"
+description = "Install WASM compilation targets (full matrix: uu, emscripten, wasip1, wasip2)"
 run = """
 echo "Installing WASM targets..."
 rustup target add wasm32-unknown-unknown
+rustup target add wasm32-unknown-emscripten
 rustup target add wasm32-wasip1
-echo "✓ WASM targets installed"
+rustup target add wasm32-wasip2
+echo "✓ WASM targets installed (unknown-unknown, emscripten, wasip1, wasip2)"
 """
 
 [tasks."setup:playwright"]
 alias = "setup-playwright"
 description = "Install Playwright + chromium for the owned wasm-testbed web runner (spec-39 feature 12)"
-dir = "backends/foundation_wasm_testbed/integration"
+dir = "backends/foundation_testbed/integration"
 run = """
 echo "Installing Playwright (browser runner for wasm-testbed web)..."
 npm install
 npx playwright install --with-deps chromium
 echo "✓ Playwright + chromium installed"
+"""
+
+# ── spec-43: pure-Rust browser testing (no node/Playwright) ──────────────────
+# The foundation_browser driver speaks CDP directly to a system Chromium; these
+# tasks install it per-distro and run the suite. Set PRIMAL_TEST_CHROMIUM_BIN to
+# point at a specific binary.
+[tasks."test:browsers"]
+alias = "test-browsers"
+description = "Install browsers for the pure-Rust browser test driver (spec-43)"
+depends = ["test:browsers:chromium", "test:browsers:firefox"]
+run = 'echo "✓ test browsers installed"'
+
+[tasks."test:browsers:chromium"]
+description = "Install Chromium for foundation_browser tests (per-distro)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+case "$(. /etc/os-release; echo "$ID")" in
+  arch)          sudo pacman -S --needed --noconfirm chromium ;;
+  debian|ubuntu) sudo apt-get update && (sudo apt-get install -y chromium || sudo apt-get install -y chromium-browser) ;;
+  fedora)        sudo dnf install -y chromium ;;
+  *) echo "Install a Chromium build and set PRIMAL_TEST_CHROMIUM_BIN" >&2; exit 1 ;;
+esac
+echo "✓ chromium installed"
+"""
+
+[tasks."test:browsers:firefox"]
+description = "Install Firefox for foundation_browser BiDi tests (per-distro)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+case "$(. /etc/os-release; echo "$ID")" in
+  arch)          sudo pacman -S --needed --noconfirm firefox ;;
+  debian|ubuntu) sudo apt-get update && sudo apt-get install -y firefox-esr || sudo apt-get install -y firefox ;;
+  fedora)        sudo dnf install -y firefox ;;
+  *) echo "Install Firefox and set PRIMAL_TEST_FIREFOX_BIN" >&2; exit 1 ;;
+esac
+echo "✓ firefox installed"
+"""
+
+[tasks."test:browser"]
+alias = "test-browser"
+description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
+run = """
+echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
+cargo test -p foundation_browser --features browser-tests --test smoke
+echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
+"""
+
+[tasks."test:cert:regen"]
+description = "Regenerate the localhost dev TLS cert for #[wasm_ui_server(https = true)]"
+dir = "backends/foundation_browser/src/test/fixtures"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem \
+  -days 3650 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+echo "✓ regenerated cert.pem + key.pem (dev only; the browser trusts it via --ignore-certificate-errors)"
 """
 
 [tasks."setup:depot-tools"]
@@ -199,7 +262,9 @@ echo "Checking installed tools..."
 rustup --version
 cargo --version
 node --version
+echo "WASM targets:"
 rustup target list --installed | grep wasm32 || echo "⚠ No WASM targets installed"
+wasmtime --version 2>/dev/null || echo "⚠ wasmtime not installed (needed for WASI runner)"
 cargo nextest --version 2>/dev/null || echo "⚠ cargo-nextest not installed"
 cargo audit --version 2>/dev/null || echo "⚠ cargo-audit not installed"
 bacon --version 2>/dev/null || echo "⚠ bacon not installed"
@@ -244,11 +309,17 @@ echo "✓ Release build complete"
 
 [tasks."build:wasm"]
 alias = "build-wasm"
-description = "Build foundation_nostd for WASM"
+description = "Build foundation_nostd across the full wasm target matrix"
 run = """
-echo "Building for WASM..."
-cargo build --package foundation_nostd --target wasm32-unknown-unknown
-echo "✓ WASM build complete"
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Building for WASM target matrix..."
+export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
+for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
+  echo "  → $target"
+  cargo build --package foundation_nostd --target "$target"
+done
+echo "✓ WASM matrix build complete (4 targets)"
 """
 
 [tasks."build:demos"]
@@ -820,11 +891,11 @@ export LLAMA_SERVER_API_KEY="test-api-key-123"
 
 echo ""
 echo "=== Running OpenAI Provider Tests ==="
-cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 
 echo ""
 echo "=== Running Responses Provider Tests ==="
-cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 
 echo ""
 echo "All llama-server integration tests passed"
@@ -843,7 +914,7 @@ export LLAMA_SERVER_TEST=1
 export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
 export LLAMA_SERVER_API_KEY="test-api-key-123"
 
-cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 """
 
 [tasks."test:llama-server:responses"]
@@ -859,7 +930,7 @@ export LLAMA_SERVER_TEST=1
 export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
 export LLAMA_SERVER_API_KEY="test-api-key-123"
 
-cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 """
 
 # --- Foundation NoStd Testing ---
@@ -918,15 +989,15 @@ echo "Running stress tests..."
 cargo test --package foundation_testing --release -- stress
 """
 
-[tasks."test:wasm-testbed:node"]
-alias = "test-wasm-testbed-node"
-description = "Owned #[wasm_test] harness e2e under node (sample crate + ported JS-yield tests)"
+[tasks."test:wasm-testbed:deno"]
+alias = "test-wasm-testbed-deno"
+description = "Owned #[wasm_test] harness e2e on the EMBEDDED Deno runtime (spec-44) — in-process, zero node/deno install. Sample crate + ported JS-yield tests."
 run = """
-echo "Owned wasm-testbed sample (node, filtered green subset)..."
-cargo run -p foundation_wasm_testbed -- node backends/foundation_wasm_testbed/integration/module --filter passes
-echo "Ported foundation_core JS-yield tests (node)..."
-cargo run -p foundation_wasm_testbed -- node backends/foundation_core/integration/wasm_tests
-echo "✓ owned node harness green"
+echo "Owned wasm-testbed sample (embedded deno, filtered green subset)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_testbed/integration/module --filter passes
+echo "Ported foundation_core JS-yield tests (embedded deno)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_core/integration/wasm_tests
+echo "✓ owned embedded-deno harness green"
 """
 
 [tasks."test:wasm-testbed:web"]
@@ -935,7 +1006,7 @@ description = "Owned #[wasm_test] harness e2e in the browser (Playwright, headle
 depends = ["setup:playwright"]
 run = """
 echo "Owned wasm-testbed sample in the browser (headless chromium)..."
-cargo run -p foundation_wasm_testbed -- web backends/foundation_wasm_testbed/integration/module --filter passes --headless
+cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- web backends/foundation_testbed/integration/module --filter passes --headless
 echo "✓ owned web harness green"
 """
 
@@ -996,6 +1067,24 @@ echo "Verifying WASM artifacts..."
 ls -lh target/wasm32-unknown-unknown/debug/deps/libfoundation_nostd*.rlib | head -1
 ls -lh target/wasm32-unknown-unknown/release/deps/libfoundation_nostd*.rlib | head -1
 echo "✓ WASM artifacts verified"
+"""
+
+[tasks."test:wasm:matrix"]
+description = "Build agentic crates across the full wasm target matrix (uu, emscripten, wasip1, wasip2)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
+echo "Verifying wasm target matrix..."
+for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
+  echo "  → foundation_compact ($target)"
+  cargo check --package foundation_compact --target "$target"
+done
+echo "  → foundation_wasm --features wasi (wasm32-wasip1)"
+cargo check --package foundation_wasm --features wasi --target wasm32-wasip1
+echo "  → foundation_ai (wasm32-wasip1)"
+cargo check --package foundation_ai --target wasm32-wasip1
+echo "✓ Wasm target matrix verified (4 targets)"
 """
 
 [tasks."test:wasm:node"]

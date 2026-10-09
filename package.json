@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/ewe-studios/ewe_platform#readme",
   "devDependencies": {
+    "miniflare": "^4.20260714.0",
     "node-addon-api": "^8.3.0",
     "node-gyp": "^12.2.0",
     "pnpm": "10.33.0",

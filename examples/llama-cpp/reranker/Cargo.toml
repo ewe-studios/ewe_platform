@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-infrastructure_llama_cpp = { workspace = true }
+infrastructure_llama_cpp = { path = "../../../infrastructure/llama-cpp", version = "0.0.1" }
 
 hf-hub = { version = "0.4.3" }
 clap = { workspace = true, features = ["derive"] }

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foundation Platform</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+      background: #0a0a1a;
+      color: #ccd6f6;
+    }
+  </style>
+  <script src="bundle.js"></script>
+</head>
+<body>
+  <script type="module">
+    // ── platform_dashboard ──
+    import { init } from './platform_dashboard.js';
+    init().then(function() {
+      console.log('[platform] platform_dashboard: WASM active');
+    }).catch(function(err) {
+      console.error('[platform] platform_dashboard:', err);
+    });
+  </script>
+
+</body>
+</html>

@@ -14,7 +14,7 @@ use foundation_core::valtron::{
     SharedTaskQueue, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
-    InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
+    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
     NotifyQueueStreamIterator, NotifyRecvIter, NotifyRecvIterator, PriorityOrder,
     NotificationItem,
 };
@@ -39,7 +39,7 @@ impl ProcessController for NoYielder {
 // NotifyQueue Tests
 // ============================================================================
 
-/// Test that NotifyQueue blocks until item is available in single-threaded mode.
+/// Test that `NotifyQueue` blocks until item is available in single-threaded mode.
 /// Uses a producer thread to push items while consumer waits.
 #[test]
 #[traced_test]
@@ -59,7 +59,7 @@ fn test_notify_queue_blocks_until_item_available() {
     loop {
         match queue.wait_for_item(Duration::from_micros(100)) {
             Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
-            Some(NotificationItem::None) => continue, // Yield signal, retry
+            Some(NotificationItem::None) => {} // Yield signal, retry
             None => break, // Queue closed
         }
     }
@@ -75,7 +75,7 @@ fn test_notify_queue_blocks_until_item_available() {
     );
 }
 
-/// Test that NotifyQueue returns None when queue is closed.
+/// Test that `NotifyQueue` returns None when queue is closed.
 #[test]
 #[traced_test]
 fn test_notify_queue_returns_none_when_closed() {
@@ -89,7 +89,7 @@ fn test_notify_queue_returns_none_when_closed() {
     assert!(result.is_none());
 }
 
-/// Test that NotifyQueue correctly receives items with notification.
+/// Test that `NotifyQueue` correctly receives items with notification.
 #[test]
 #[traced_test]
 fn test_notify_queue_receives_item_with_notification() {
@@ -103,7 +103,7 @@ fn test_notify_queue_receives_item_with_notification() {
     assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
 
-/// Test NotifyQueue handles multiple items with blocking behavior.
+/// Test `NotifyQueue` handles multiple items with blocking behavior.
 /// This simulates a stream of values being processed.
 #[test]
 #[traced_test]
@@ -125,7 +125,7 @@ fn test_notify_queue_multiple_items_blocking() {
         loop {
             match queue.wait_for_item(Duration::from_micros(100)) {
                 Some(NotificationItem::Ready(item)) => { received.push(item); break; }
-                Some(NotificationItem::None) => continue,
+                Some(NotificationItem::None) => {} // Yield signal, retry
                 None => break,
             }
         }
@@ -160,7 +160,7 @@ fn test_notify_queue_race_condition_handling() {
     );
 }
 
-/// Test bounded NotifyQueue capacity handling in single-threaded mode.
+/// Test bounded `NotifyQueue` capacity handling in single-threaded mode.
 #[test]
 #[traced_test]
 fn test_notify_queue_bounded_capacity() {
@@ -204,7 +204,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
     loop {
         match queue.wait_for_item(Duration::from_micros(1)) {
             Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
-            Some(NotificationItem::None) => continue,
+            Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
     }
@@ -224,7 +224,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
 // NotifyRecvIter Tests
 // ============================================================================
 
-/// Test that NotifyRecvIter blocks until item is available.
+/// Test that `NotifyRecvIter` blocks until item is available.
 #[test]
 #[traced_test]
 fn test_notify_recv_iterator_blocks_until_item() {
@@ -244,7 +244,7 @@ fn test_notify_recv_iterator_blocks_until_item() {
     loop {
         match recv_iter.block_recv(Duration::from_micros(100)) {
             Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
-            Some(NotificationItem::None) => continue,
+            Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
     }
@@ -260,7 +260,7 @@ fn test_notify_recv_iterator_blocks_until_item() {
     );
 }
 
-/// Test NotifyRecvIterator correctly iterates with notification.
+/// Test `NotifyRecvIterator` correctly iterates with notification.
 #[test]
 #[traced_test]
 fn test_notify_recv_iterator_iterates_with_notification() {
@@ -277,7 +277,7 @@ fn test_notify_recv_iterator_iterates_with_notification() {
         .take(3)
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
-            _ => None,
+            NotificationItem::None => None,
         })
         .collect();
     assert_eq!(items, vec![1, 2, 3]);
@@ -287,7 +287,7 @@ fn test_notify_recv_iterator_iterates_with_notification() {
 // NotifyQueueStreamIterator Tests
 // ============================================================================
 
-/// Test NotifyQueueStreamIterator blocks until values are available.
+/// Test `NotifyQueueStreamIterator` blocks until values are available.
 #[test]
 #[traced_test]
 fn test_notify_queue_stream_iterator_blocks_until_values() {
@@ -310,7 +310,8 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     while results.len() < 2 {
         match iterator.next() {
             Some(Stream::Next(v)) => results.push(v),
-            Some(Stream::Wait) | Some(Stream::Ignore) | Some(Stream::Init) | Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) | Some(Stream::Spread(_)) => continue,
+            Some(Stream::Wait | Stream::Ignore | Stream::Init | Stream::Pending(()) |
+Stream::Delayed(_) | Stream::Spread(_)) => {} // Not a value — keep polling
             None => break,
         }
     }
@@ -326,7 +327,7 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     );
 }
 
-/// Test NotifyQueueStreamIterator returns None when queue is closed.
+/// Test `NotifyQueueStreamIterator` returns None when queue is closed.
 #[test]
 #[traced_test]
 fn test_notify_queue_stream_iterator_returns_none_when_closed() {
@@ -344,7 +345,7 @@ fn test_notify_queue_stream_iterator_returns_none_when_closed() {
     assert_eq!(iterator.next(), None);
 }
 
-/// Test NotifyQueueStreamIterator receives values via notification.
+/// Test `NotifyQueueStreamIterator` receives values via notification.
 #[test]
 fn test_notify_queue_stream_iterator_receives_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
@@ -376,7 +377,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
 
     let results: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -397,9 +398,8 @@ fn test_single_threaded_executor_with_notification_tasks() {
     // The timeout is critical - must be short for single-threaded
     let task = WrapTask::new(vec![10, 20, 30].into_iter());
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
-        Vec::new(),
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
         task,
         // CRITICAL: Very short timeout for single-threaded mode
         Duration::from_micros(50),
@@ -418,7 +418,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(item) = receiver.next() {
+    for item in receiver.by_ref() {
         if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
@@ -437,7 +437,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -475,9 +475,8 @@ fn test_single_threaded_executor_pends_without_blocking() {
     let counter_clone = Arc::clone(&counter);
     let task = CountingTask(counter_clone);
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
-        Vec::new(),
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
         task,
         // Very short timeout for single-threaded
         Duration::from_micros(10),
@@ -499,7 +498,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
 
     // Drain receiver after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(_status) = receiver.next() {}
+    for _status in receiver.by_ref() {}
 
     // Should complete reasonably quickly, not hang
     assert!(

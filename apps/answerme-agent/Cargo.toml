@@ -1,0 +1,28 @@
+[package]
+name = "answerme-agent"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+foundation_ai = {
+    path="../../backends/foundation_ai",
+    version="0.0.1",
+    features=["multi"],
+}
+foundation_compact = { path = "../../backends/foundation_compact" }
+foundation_core = { path = "../../backends/foundation_core" }
+foundation_db = { path = "../../backends/foundation_db" }
+foundation_repl = { path = "../../backends/foundation_repl" }
+clap = { version = "4", features = ["derive"] }
+
+# -- tracing crates
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+
+[lints]
+workspace = true

@@ -7,7 +7,7 @@
 use std::io::{Cursor, Read, Result as IoResult};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     http_streams, HTTPStreams, HttpRequestReader, HttpResponseReader, IncomingRequestParts,
     IncomingResponseParts, SimpleHttpBody,
 };
