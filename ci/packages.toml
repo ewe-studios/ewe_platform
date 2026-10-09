@@ -5,7 +5,7 @@
 #
 # Keys:
 #   skip            = "why"   leave the package out of CI entirely
-#   fmt / clippy / test       "enforce" (failure fails CI) | "report" (warning
+#   fmt / build / clippy / test  "enforce" (failure fails CI) | "report" (warning
 #                             only) | "off" (don't run)
 #   runs            = [...]   one `cargo test` per entry; each entry is the
 #                             feature flags for that run: "" (defaults),
@@ -22,6 +22,7 @@
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
 fmt = "report"
+build = "enforce"
 clippy = "enforce"
 test = "enforce"
 runs = [""]

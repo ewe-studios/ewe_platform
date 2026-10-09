@@ -48,7 +48,7 @@ GLOBAL_PATHS = (
     ".github/workflows/check.yaml",
 )
 
-STEPS = ("fmt", "clippy", "test")
+STEPS = ("fmt", "build", "clippy", "test")
 MODES = ("enforce", "report", "off")
 
 
@@ -70,6 +70,7 @@ class Settings:
 
     skip: str | None
     fmt: str
+    build: str
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
@@ -141,6 +142,7 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
         s = Settings(
             skip=merged.get("skip"),
             fmt=merged.get("fmt", "report"),
+            build=merged.get("build", "enforce"),
             clippy=merged.get("clippy", "enforce"),
             test=merged.get("test", "enforce"),
             runs=list(merged.get("runs", [""])) or [""],
@@ -239,6 +241,12 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])
+    if s.build != "off":
+        # Library, binaries, tests, examples and benches: compile errors show
+        # up here, separately from test failures.
+        plan["build"].append(
+            ["cargo", "build", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
+        )
     if s.clippy != "off":
         plan["clippy"].append(
             ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
@@ -296,7 +304,7 @@ def cmd_list(_: argparse.Namespace) -> int:
     settings = load_settings(packages)
     for name in sorted(packages):
         p, s = packages[name], settings[name]
-        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} clippy={s.clippy} test={s.test}"
+        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test}"
         runs = ", ".join(repr(r) for r in s.runs)
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}")
     return 0

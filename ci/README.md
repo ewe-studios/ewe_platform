@@ -16,9 +16,11 @@ can't hold up your PR.
    - **Push to `master`, the nightly schedule:** every package.
    - **Manual run** (Actions → Checks → Run workflow): `all`, or the packages
      you name.
-2. **Package jobs.** Each selected package runs `rustfmt`, `clippy` and
-   `cargo test` with the `uat` profile (dev with LLVM; the `dev` profile's
-   Cranelift backend isn't available in CI). Packages that depend on llama.cpp
+2. **Package jobs.** Each selected package runs `rustfmt`, `cargo build`
+   (all targets), `clippy` and `cargo test` as separate steps, so the Actions
+   page shows whether a crate failed to build or failed its tests. They use
+   the `uat` profile (dev with LLVM; the `dev` profile's Cranelift backend
+   isn't available in CI). Packages that depend on llama.cpp
    fetch the `tools/llama.cpp` submodule; nothing else does.
 3. **Checks passed.** One summary job that is green when every selected package
    passed (or none needed testing). Make this the required status check in
@@ -30,8 +32,8 @@ can't hold up your PR.
 ## Per-package settings
 
 `ci/packages.toml` holds only what differs from the defaults: features a
-crate's tests need, extra test runs, timeouts, and whether `fmt`, `clippy` or
-`test` failures fail CI (`enforce`), only warn (`report`), or don't run
+crate's tests need, extra test runs, timeouts, and whether `fmt`, `build`,
+`clippy` or `test` failures fail CI (`enforce`), only warn (`report`), or don't run
 (`off`). A package can also be skipped with a reason. New crates need no entry.
 
 ## Running it locally
@@ -39,7 +41,7 @@ crate's tests need, extra test runs, timeouts, and whether `fmt`, `clippy` or
 ```sh
 make ci-list                          # every package and its settings
 make ci-plan                          # what your branch affects (BASE=origin/master)
-make ci-package PACKAGE=foundation_ai # fmt + clippy + tests, as CI runs them
+make ci-package PACKAGE=foundation_ai # fmt + build + clippy + tests, as CI runs them
 make ci-package PACKAGE=foundation_ai STEP=test
 ```
 

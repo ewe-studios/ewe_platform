@@ -2,7 +2,8 @@ name: Checks
 
 # Per-package CI. A `plan` job works out which workspace packages a change
 # affects (the packages whose files changed, plus everything that depends on
-# them), then every selected package gets its own job: rustfmt, clippy, tests.
+# them), then every selected package gets its own job: rustfmt, build, clippy,
+# tests.
 # Per-package settings live in ci/packages.toml; the driver is
 # scripts/ci/ci.py, which you can run locally (`make ci-package PACKAGE=...`).
 #
@@ -111,6 +112,9 @@ jobs:
 
       - name: rustfmt
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+
+      - name: build
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
 
       - name: clippy
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
