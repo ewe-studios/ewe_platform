@@ -504,7 +504,7 @@ let agent = AgentSession::builder(router)
             .tools(ToolPreset::files(fs))
             .tools(ToolPreset::shell())
             .tool(MyTool)
-            .session_tools(ToolPreset::search_context()) // built inside build(), over the session's stores
+            .tools(ToolPreset::search_context())          // constructed inside build(), from the session
             .build()?,
     )
     .build()?;
@@ -550,71 +550,99 @@ pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = too
 let tool_manager = ToolCallManager::new(session_id.clone());
 ```
 
-Proposed:
+Proposed — the shed holds **tool constructors**, one per name. `build()`
+calls each constructor with the session's parts and registers the result on
+the `ToolCallManager`. A ready-made tool is a constructor that ignores the
+session; a tool that needs the session (`search_context`, `memory`) reads
+what it needs from it. There is one list and one path, with no separate
+"session tools":
 
 ```rust
+/// Makes a tool for a session. Called once, inside `AgentSession::build()`.
+pub trait ToolConstructor: Send + Sync {
+    /// The tool's name: the shed's key, known before construction.
+    fn name(&self) -> &str;
+    fn construct(&self, session: &SessionParts<'_>) -> Arc<dyn ToolImpl>;
+}
+
+/// What a constructor can use from the session being built.
+pub struct SessionParts<'a> {
+    pub session_id: &'a SessionId,
+    pub context: &'a ContextProvider,
+    pub memory: &'a MemoryHierarchy,
+    /* … */
+}
+
+/// An already-built tool: its constructor ignores the session.
+impl<T: ToolImpl + 'static> From<T> for Box<dyn ToolConstructor> { /* wraps Arc<T> */ }
+
+/// A closure constructor, for tools that need the session.
+pub fn tool_fn<F>(name: &str, f: F) -> Box<dyn ToolConstructor>
+where F: Fn(&SessionParts<'_>) -> Arc<dyn ToolImpl> + Send + Sync + 'static;
+
 pub struct ToolShed {
-    shed: Option<Tool>,                      // the `shed` meta-tool, as today
-    tools: HashMap<String, Arc<dyn ToolImpl>>, // implementations, keyed by tool name: O(1) lookup
-    session_tools: Vec<SessionToolFactory>,  // tools that need the built session
+    shed: Option<Tool>,                                // the `shed` meta-tool, as today
+    tools: HashMap<String, Box<dyn ToolConstructor>>,  // keyed by tool name: O(1) lookup
 }
 
 impl ToolShed {
     pub fn builder() -> ToolShedBuilder;
-    /// Definitions offered to the model, derived from the implementations.
-    pub fn definitions(&self) -> Vec<Tool>;
-    /// The tool registered under `name`, if any. O(1).
-    pub fn get(&self, name: &str) -> Option<&Arc<dyn ToolImpl>>;
+    pub fn get(&self, name: &str) -> Option<&dyn ToolConstructor>; // O(1)
     pub fn contains(&self, name: &str) -> bool;
 }
 
 pub struct ToolShedBuilder { /* … */ }
 
 impl ToolShedBuilder {
-    /// Add one tool.
-    pub fn tool<T: ToolImpl + 'static>(self, tool: T) -> Self;
-    /// Add a list: a `Vec<Arc<dyn ToolImpl>>`, a `ToolPreset`, …
-    pub fn tools(self, tools: impl IntoIterator<Item = Arc<dyn ToolImpl>>) -> Self;
-    /// Tools built from the session once its stores exist (`search_context`, `memory`).
-    pub fn session_tools(self, factories: impl IntoIterator<Item = SessionToolFactory>) -> Self;
+    /// Add one tool: a ready-made `ToolImpl`, or any `ToolConstructor`.
+    pub fn tool(self, tool: impl Into<Box<dyn ToolConstructor>>) -> Self;
+    /// Add a list: a `ToolPreset`, a `Vec<Box<dyn ToolConstructor>>`, …
+    pub fn tools(self, tools: impl IntoIterator<Item = Box<dyn ToolConstructor>>) -> Self;
     /// Offer the `shed` meta-tool instead of listing every tool up front.
     pub fn with_shed_tool(self) -> Self;
-    /// Fails with `ToolShedError::DuplicateTool(name)` when two tools share a
-    /// name (caught on insert into the map, not by a scan).
+    /// Fails with `ToolShedError::DuplicateTool(name)` when two entries share
+    /// a name (caught on insert into the map, not by a scan).
     pub fn build(self) -> Result<ToolShed, ToolShedError>;
 }
 
 pub enum ToolShedError { DuplicateTool(String) }
 impl From<ToolShedError> for AgenticError { /* so `?` works in agent setup code */ }
 
-/// Builds a tool from the session's internals inside `AgentSession::build()`.
-pub type SessionToolFactory = Box<dyn FnOnce(&SessionParts) -> Arc<dyn ToolImpl> + Send>;
-
-/// What a session tool can see: the session's context provider and memory.
-pub struct SessionParts<'a> { pub context: &'a ContextProvider, pub memory: &'a MemoryHierarchy, /* … */ }
-
 // AgentSessionBuilder — unchanged signature, the only tool entry point:
 pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = toolshed; self }
 
-// build(), before preflight:
+// build(): stores, context provider and memory hierarchy first, then tools,
+// then preflight.
+let parts = SessionParts { session_id: &session_id, context: &context_provider, memory: &memory, /* … */ };
 let tool_manager = ToolCallManager::new(session_id.clone());
-for tool in toolshed.tools.values() {
-    tool_manager.register(Arc::clone(tool));
+for constructor in toolshed.tools.values() {
+    tool_manager.register(constructor.construct(&parts));
 }
-for make in toolshed.session_tools.drain(..) {
-    tool_manager.register(make(&session_parts));
-}
-// preflight() is unchanged and now passes by construction: every definition
-// offered comes from a registered implementation.
+// The model is offered tool_manager.build_toolshed(), as today. preflight()
+// passes by construction: every offered tool was just registered.
 ```
 
-So `ToolPreset` can be passed straight to `tools(..)`:
+Usage — ready-made and session-dependent tools go in the same way:
+
+```rust
+let tools = ToolShed::builder()
+    .tool(GreetTool)                                // ready-made
+    .tools(ToolPreset::files(fs))                   // a preset of ready-made tools
+    .tools(ToolPreset::search_context())            // constructed from the session's context
+    .tool(tool_fn("notes", |s| Arc::new(NotesTool::new(s.memory.clone()))))
+    .build()?;
+
+let agent = AgentSession::builder(router).with_toolshed(tools).build()?;
+```
+
+`ToolPreset` yields constructors, so presets of either kind can be passed
+straight to `tools(..)`:
 
 ```rust
 impl IntoIterator for ToolPreset {
-    type Item = Arc<dyn ToolImpl>;
-    type IntoIter = std::vec::IntoIter<Arc<dyn ToolImpl>>;
-    fn into_iter(self) -> Self::IntoIter { self.tools.into_iter() }
+    type Item = Box<dyn ToolConstructor>;
+    type IntoIter = std::vec::IntoIter<Box<dyn ToolConstructor>>;
+    fn into_iter(self) -> Self::IntoIter { self.constructors.into_iter() }
 }
 ```
 
@@ -771,18 +799,18 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 }
 
 impl ToolPreset {
-    /// `search_context` over the session's own stores and embedder, built
-    /// inside `build()` (item 1's session tools).
-    pub fn search_context() -> Vec<SessionToolFactory> {
-        vec![Box::new(|parts: &SessionParts| {
-            Arc::new(SearchContextTool::new(parts.context.clone())) as Arc<dyn ToolImpl>
-        })]
+    /// `search_context` over the session's own stores and embedder: a
+    /// constructor (item 1) that reads the session's context provider.
+    pub fn search_context() -> ToolPreset {
+        ToolPreset::from_constructors(vec![tool_fn("search_context", |s| {
+            Arc::new(SearchContextTool::new(s.context.clone())) as Arc<dyn ToolImpl>
+        })])
     }
 }
 
 // call site
 let agent = AgentSession::builder(router)
-    .with_toolshed(ToolShed::builder().session_tools(ToolPreset::search_context()).build()?)
+    .with_toolshed(ToolShed::builder().tools(ToolPreset::search_context()).build()?)
     .build()?;
 ```
 
@@ -1457,6 +1485,6 @@ None right now: the questions raised in review are answered in their items
 | Turn results | `Turn`, `Answer`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
 | Messages / ids | `Messages::{user, system, agent}`, `From<&str>`/`From<String>` for `Messages` and `ModelId` | 6, 9 |
 | Providers | `From<P: ModelProvider> for ProviderRouter`, `ProviderRouterBuilder::provider`, `{Anthropic,OpenAI,Responses}Config::{api_key, from_env}`, `{AnthropicMessages,OpenAI,Responses}Provider::api_key` | 10, 11 |
-| Tools | `ToolShed::builder`, `ToolShedBuilder::{tool, tools, session_tools, with_shed_tool}`, `SessionToolFactory`, `SessionParts`, `ToolShedError`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
+| Tools | `ToolShed::builder`, `ToolShedBuilder::{tool, tools, with_shed_tool}`, `ToolConstructor`, `tool_fn`, `SessionParts`, `ToolShedError`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
 | Stores | `MessageApi::from_shared`, `MemoryCoordinator::from_shared` | 3 |
 | Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}`, `ToolArguments` (replaces `ArgType`) | 14–20 |
