@@ -6,26 +6,27 @@
 //!
 //! # Examples
 //!
-//! The easiest path — a fully-wired agent builder for a model combination,
-//! given a session id:
+//! The easiest path — a preset for a model combination, bridged into a
+//! fully-wired agent builder:
 //!
 //! ```ignore
-//! use foundation_ai::harness;
+//! use foundation_ai::harness::RouterPreset;
 //!
 //! // GLM 5.2 for chat + a small Gemma 4 for memory, ready to customise.
-//! let agent = harness::glm52_gemma_session(session_id, None, None)?
+//! let agent = RouterPreset::glm52_gemma(None, None)?
+//!     .into_agent_builder()
 //!     .with_system_prompt("You are a helpful assistant.")
 //!     .build()?;
 //! ```
 //!
-//! Or take the router preset and mix/inspect it yourself:
+//! Or inspect the preset, or mix your own:
 //!
 //! ```ignore
-//! use foundation_ai::harness::{self, RouterMix, providers::Glm52, providers::Gemma4E2b};
+//! use foundation_ai::harness::{RouterMix, RouterPreset, providers::Glm52, providers::Gemma4E2b};
 //! use foundation_ai::types::ModelId;
 //!
 //! // A ready-made mix...
-//! let preset = harness::claude_router(api_key)?;
+//! let preset = RouterPreset::claude(api_key)?;
 //! let builder = preset
 //!     .into_agent_builder()
 //!     .with_session_id(session_id)
@@ -62,11 +63,3 @@ pub use providers::{
 
 pub use router::{RouterMix, RouterPreset};
 pub use tools::ToolPreset;
-
-#[cfg(feature = "candle")]
-pub use agents::{candle_llama_router, candle_llama_session};
-pub use agents::{
-    claude_router, claude_session, gemma_router, gemma_session, glm52_gemma_router,
-    glm52_gemma_session, openai_chat_router, openai_chat_session, openai_responses_router,
-    openai_responses_session, qwen36_gemma_router, qwen36_gemma_session,
-};

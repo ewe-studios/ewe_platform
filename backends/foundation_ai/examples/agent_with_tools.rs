@@ -15,10 +15,11 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolError, ToolImpl};
-use foundation_ai::agentic::{FnTool, ToolArgs, ToolShed, TurnEvent};
-use foundation_ai::harness;
-use foundation_ai::types::{ArgType, Args, SessionId, Tool, ToolDefinition};
+use foundation_ai::agentic::{
+    FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl, ToolShed, TurnEvent,
+};
+use foundation_ai::harness::RouterPreset;
+use foundation_ai::types::{ArgType, Args, Tool, ToolDefinition};
 use foundation_core::valtron::valtron;
 use foundation_jsonschema::scheme;
 
@@ -85,7 +86,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Build the model preset (Claude Opus main + Sonnet memory) and the
     //    session with its tools. The ToolShed is the one list of what the
     //    agent can call (add ToolPreset::files(fs) etc. the same way).
-    let agent = harness::claude_session(SessionId::new(), &api_key)?
+    let agent = RouterPreset::claude(&api_key)?
+        .into_agent_builder()
         .with_system_prompt("You are a helpful assistant with a few custom tools.")
         .with_toolshed(ToolShed::new().tool(GreetTool).tool(count_letters))
         .build()?;

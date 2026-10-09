@@ -25,7 +25,7 @@ loop drives those futures through Valtron too.
 | `models/providers/` | **Generated** model descriptor catalogues (pricing, context window, API kind) for Anthropic, OpenAI, OpenRouter, Bedrock, Vertex, xAI, … — data, not provider implementations. Regenerate with `cargo run --bin ewe_platform gen_model_descriptors` |
 | `models/generator.rs` | The catalogue generator (native only) |
 | `agentic/` | `AgentSession`, `AgentLoop`, `ContextProvider`, `MessageApi`, `MemoryHierarchy`, `TokenLedger`, `SteeringQueues`, `LoopDetector`, `ErrorPolicy` / `CircuitBreaker`, embeddings, Arrow serialization, the tool runtime (`ToolImpl`, `ToolCallManager`) and the built-in tools (`agentic/tools/`) |
-| `harness/` | One-call setup: provider presets (`CloudPresets`, `Glm52`, `Gemma4E2b`, …), `RouterMix` / `RouterPreset`, ready-made `*_session` builders, and `ToolPreset` |
+| `harness/` | One-call setup: provider presets (`CloudPresets`, `Glm52`, `Gemma4E2b`, …), `RouterMix` / `RouterPreset` with one constructor per model combination (`RouterPreset::claude`, `::glm52_gemma`, …), and `ToolPreset` |
 | `costing.rs` | `calculate_cost`, `CostAccumulator`, token estimation helpers |
 | `errors/` | `GenerationError`, `ModelProviderErrors`, llama.cpp error wrappers |
 | `toolbox/` | llama-server test harness (`toolbox` feature) |

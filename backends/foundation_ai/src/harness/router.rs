@@ -151,9 +151,7 @@ impl RouterMix {
 
         RouterPreset {
             router: builder.build(),
-            primary_model: self
-                .primary
-                .unwrap_or_else(|| ModelId::Name(String::new(), None)),
+            primary_model: self.primary,
             memory_model: self.memory,
             fallback_models: self.fallbacks,
         }
@@ -162,16 +160,18 @@ impl RouterMix {
 
 /// A built router together with the model ids that should drive an agent.
 ///
-/// Returned by the preset functions in [`crate::harness::agents`] and by
-/// [`RouterMix::build`]. Use [`RouterPreset::into_agent_builder`] to obtain an
+/// Returned by the preset constructors ([`RouterPreset::claude`],
+/// [`RouterPreset::glm52_gemma`], …) and by [`RouterMix::build`]. Use [`RouterPreset::into_agent_builder`] to obtain an
 /// [`AgentSessionBuilder`] that already has the primary/memory/fallback models
 /// wired — callers then chain their own `.with_toolshed()`,
 /// `.with_system_prompt()`, etc. before `.build()`.
 pub struct RouterPreset {
     /// The configured multi-provider router.
     pub router: ProviderRouter,
-    /// The model the agent should converse with.
-    pub primary_model: ModelId,
+    /// The model the agent should converse with; `None` when the mix had no
+    /// [`RouterMix::primary`] — the agent builder then fails with
+    /// "no model set" unless `with_model` is called.
+    pub primary_model: Option<ModelId>,
     /// The model used for memory/reflection, if any.
     pub memory_model: Option<ModelId>,
     /// Ordered fallback models for the circuit breaker, if any.
@@ -215,7 +215,10 @@ impl RouterPreset {
         D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
-        let mut builder = builder.with_model(self.primary_model);
+        let mut builder = builder;
+        if let Some(primary) = self.primary_model {
+            builder = builder.with_model(primary);
+        }
         if let Some(memory) = self.memory_model {
             builder = builder.with_memory_model(memory);
         }

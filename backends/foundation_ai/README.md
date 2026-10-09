@@ -84,8 +84,7 @@ GPU builds need a couple of environment variables — see the
 The shortest path to a working agent — a Claude session in a few lines:
 
 ```rust
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -93,7 +92,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")?;
 
     // Harness wires the provider, router, and memory model for you.
-    let agent = harness::claude_session(SessionId::new(), &api_key)?
+    let agent = RouterPreset::claude(&api_key)?
+        .into_agent_builder()
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 

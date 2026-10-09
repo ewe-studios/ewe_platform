@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
 
     println!(
-        "Router built with primary={}, memory={:?}, fallbacks={:?}",
+        "Router built with primary={:?}, memory={:?}, fallbacks={:?}",
         preset.primary_model, preset.memory_model, preset.fallback_models,
     );
 

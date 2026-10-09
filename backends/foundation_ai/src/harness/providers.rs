@@ -77,7 +77,7 @@ fn create_provider(
 /// an MTP head fails at model load rather than silently doing nothing.
 ///
 /// Pass the result as the *main-model* config to a combo router, e.g.
-/// `glm52_gemma_router(Some(with_mtp(None, 4, None)), None)`.
+/// `RouterPreset::glm52_gemma(Some(with_mtp(None, 4, None)), None)`.
 #[must_use]
 pub fn with_mtp(
     base: Option<HuggingFaceGGUFConfig>,

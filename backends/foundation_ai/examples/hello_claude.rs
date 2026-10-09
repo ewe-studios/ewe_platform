@@ -6,8 +6,7 @@
 //!   --example hello_claude
 //! ```
 
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -16,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("ANTHROPIC_API_KEY must be set");
 
     // One-call: Claude Opus (main) + Claude Sonnet (memory) wired for you.
-    let builder = harness::claude_session(SessionId::new(), &api_key)?;
+    let builder = RouterPreset::claude(&api_key)?.into_agent_builder();
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
