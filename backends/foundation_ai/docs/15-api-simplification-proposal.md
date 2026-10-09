@@ -579,7 +579,8 @@ pub fn tool_fn<F>(name: &str, f: F) -> Box<dyn ToolConstructor>
 where F: Fn(&SessionParts<'_>) -> Arc<dyn ToolImpl> + Send + Sync + 'static;
 
 pub struct ToolShed {
-    shed: Option<Tool>,                                // the `shed` meta-tool, as today
+    // No `shed: Option<Tool>` any more: the `shed` meta-tool is always on and is
+    // the only tool the model is told about up front (see "What the model sees").
     tools: HashMap<String, Box<dyn ToolConstructor>>,  // keyed by tool name: O(1) lookup
     duplicates: Vec<String>,                           // names added twice, reported by build()
 }
@@ -590,8 +591,6 @@ impl ToolShed {
     pub fn tool(self, tool: impl Into<Box<dyn ToolConstructor>>) -> Self;
     /// Add a list: a `ToolPreset`, a `Vec<Box<dyn ToolConstructor>>`, …
     pub fn tools(self, tools: impl IntoIterator<Item = Box<dyn ToolConstructor>>) -> Self;
-    /// Offer the `shed` meta-tool instead of listing every tool up front.
-    pub fn with_shed_tool(self) -> Self;
     pub fn get(&self, name: &str) -> Option<&dyn ToolConstructor>; // O(1)
     pub fn contains(&self, name: &str) -> bool;
 
@@ -620,8 +619,37 @@ pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = too
 // the shed's output is the session's tool manager; then preflight.
 let parts = SessionParts { session_id: &session_id, context: &context_provider, memory: &memory, /* … */ };
 let tool_manager = self.toolshed.build(&parts)?;
-// The model is offered tool_manager.build_toolshed(), as today. preflight()
-// passes by construction: every offered tool was just registered.
+// preflight() passes by construction: every tool was just registered.
+```
+
+**What the model sees.** The model is offered exactly one tool, `shed`, no
+matter how many tools the shed holds, so tool schemas stop eating context.
+`shed` is how the model learns what else it can call:
+
+- `shed { description, limit }` searches the registered tools (by embedding
+  through `ToolDiscovery` when the session has an embedder, otherwise by
+  name/description match over the map) and returns each hit's name,
+  description and argument schema.
+- Every tool `shed` returns becomes *active* for the rest of the session, and
+  active tools are added to the tools list of the next request. Native tool
+  calling (Anthropic, OpenAI) only lets a model call tools declared in the
+  request, so a tool has to be declared before the model can call it.
+- A call to a tool that isn't active returns a tool error telling the model
+  to look it up with `shed` first.
+
+```rust
+// AgentLoop, per request — today: every registered tool, plus `shed`.
+let toolshed = self.tool_manager.build_toolshed();
+
+// Proposed: `shed`, plus whatever `shed` has handed out so far.
+let offered: Vec<Tool> = std::iter::once(self.tool_manager.shed_definition())
+    .chain(self.tool_manager.active_definitions())   // grows as `shed` returns hits
+    .collect();
+
+// ToolCallManager
+pub fn shed_definition(&self) -> Tool;
+pub fn active_definitions(&self) -> Vec<Tool>;
+fn activate(&self, names: &[String]);                // called by the shed tool with its hits
 ```
 
 Usage — ready-made and session-dependent tools go in the same way:
@@ -1488,6 +1516,6 @@ None right now: the questions raised in review are answered in their items
 | Turn results | `Turn`, `Answer`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
 | Messages / ids | `Messages::{user, system, agent}`, `From<&str>`/`From<String>` for `Messages` and `ModelId` | 6, 9 |
 | Providers | `From<P: ModelProvider> for ProviderRouter`, `ProviderRouterBuilder::provider`, `{Anthropic,OpenAI,Responses}Config::{api_key, from_env}`, `{AnthropicMessages,OpenAI,Responses}Provider::api_key` | 10, 11 |
-| Tools | `ToolShed::{new, tool, tools, with_shed_tool, build}`, `ToolConstructor`, `tool_fn`, `SessionParts`, `ToolShedError`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
+| Tools | `ToolShed::{new, tool, tools, build}`, `ToolCallManager::{shed_definition, active_definitions}`, `ToolConstructor`, `tool_fn`, `SessionParts`, `ToolShedError`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
 | Stores | `MessageApi::from_shared`, `MemoryCoordinator::from_shared` | 3 |
 | Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}`, `ToolArguments` (replaces `ArgType`) | 14–20 |
