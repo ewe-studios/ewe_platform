@@ -12,6 +12,7 @@
 //!   --example manual_openrouter --features agentic
 //! ```
 
+use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,

@@ -10,6 +10,7 @@
 //!   --example manual_claude_router --features agentic
 //! ```
 
+use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
