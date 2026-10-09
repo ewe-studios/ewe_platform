@@ -8,6 +8,6 @@
   },
   "devDependencies": {
     "miniflare": "^4.20260518.0",
-    "wrangler": "^4.93.0"
+    "wrangler": "^4.103.0"
   }
 }
