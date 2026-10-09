@@ -10,8 +10,8 @@
 //! `PartialEq` against this cache, stores, and reports "changed?" to the graph.
 //! Between stabilize calls `get()` returns the cached value.
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use alloc::rc::Rc;
+use core::cell::RefCell;
 
 use crate::arena::NodeId;
 use crate::runtime::Runtime;

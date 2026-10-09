@@ -77,3 +77,8 @@ timeout-minutes = 90
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).
 runs = ["", "--no-default-features"]
+
+[packages.foundation_signals]
+# The reactive graph is `no_std + alloc` (the wasm UI crates use it that way);
+# test that configuration too (ewe-studios/ewe_platform#51, #52).
+runs = ["", "--no-default-features --features single_threaded"]

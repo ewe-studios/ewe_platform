@@ -11,6 +11,7 @@
 //! stale `NodeId`s (older generation) simply miss.
 
 use crate::node::Node;
+use alloc::vec::Vec;
 
 /// Stable identity of a graph node. Copyable, hashable, never dangles —
 /// lookups with an id from a removed node return `None`.

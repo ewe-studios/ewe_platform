@@ -10,9 +10,12 @@
 //! if a stabilize is in flight) and recurses into children. Double-dispose is
 //! a no-op at every level (flags + arena generation checks).
 
-use std::any::{Any, TypeId};
-use std::cell::RefCell;
-use std::rc::Rc;
+use alloc::boxed::Box;
+use alloc::rc::Rc;
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::any::{Any, TypeId};
+use core::cell::RefCell;
 
 use crate::callback::{Callback, EventData};
 use crate::computed::{ComputedGetter, ComputedStorage};
@@ -284,9 +287,9 @@ fn dispose_inner(runtime: &Rc<Runtime>, inner: &Rc<RefCell<ContextInner>>) {
         }
         inner.disposed = true;
         (
-            std::mem::take(&mut inner.owned),
-            std::mem::take(&mut inner.children),
-            std::mem::take(&mut inner.cleanups),
+            core::mem::take(&mut inner.owned),
+            core::mem::take(&mut inner.children),
+            core::mem::take(&mut inner.cleanups),
         )
     };
     for cleanup in cleanups {

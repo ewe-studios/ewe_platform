@@ -11,8 +11,8 @@
 //! compares with `PartialEq`, writes, and asks the runtime to mark observers —
 //! propagation always waits for `stabilize()`.
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use alloc::rc::Rc;
+use core::cell::RefCell;
 
 use crate::arena::NodeId;
 use crate::runtime::Runtime;

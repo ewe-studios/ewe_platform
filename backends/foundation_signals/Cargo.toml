@@ -10,20 +10,28 @@ description = "Standalone reactive signal system: R3-style height-ordered graph,
 
 [dependencies]
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
-serde = { version = "1", features = ["derive"] }
-serde_json = { workspace = true }
-tracing = { version = "0.1" }
+# The reactive graph is `no_std + alloc`. These all turn `std` on by default,
+# so defaults are off here and `std` is forwarded from this crate's `std`.
+serde = { version = "1", default-features = false, features = ["alloc", "derive"] }
+serde_json = { version = "1.0.114", default-features = false, features = ["alloc"] }
+tracing = { version = "0.1", default-features = false }
 
 foundation_core = { path = "../foundation_core", version = "0.0.4", optional = true }
 
 [features]
+default = ["std", "single_threaded"]
 # G15: WASM is single-threaded; storage cells are RefCell. The off-state would
 # swap in Mutex-backed cells — unimplemented until a consumer needs it.
-default = ["single_threaded"]
 single_threaded = []
+# Links `std`. The reactive graph only needs `core + alloc`; `std` adds the
+# cross-thread `SignalHub` (mpsc channels, `Mutex`/`RwLock`; native only) and
+# forwards `std` to serde/serde_json/tracing. `no_std` consumers (the wasm UI
+# crates) use `default-features = false, features = ["single_threaded"]`.
+std = ["serde/std", "serde_json/std", "tracing/std"]
 # Feature 18: cross-thread signal access over the SignalHub actor (native
-# only — the hub module is cfg'd off wasm32).
-valtron = ["dep:foundation_core"]
+# only — the hub module is cfg'd off wasm32). The hub and foundation_core
+# both need std.
+valtron = ["std", "dep:foundation_core"]
 
 [lints]
 workspace = true

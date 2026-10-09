@@ -15,9 +15,11 @@
 //! borrows. Stabilize pops a node, clones its `Rc` eval closure, drops the
 //! borrow, runs the closure, re-borrows to commit tracking results.
 
-use std::cell::RefCell;
-use std::collections::{BTreeMap, VecDeque};
-use std::rc::Rc;
+use alloc::boxed::Box;
+use alloc::collections::{BTreeMap, VecDeque};
+use alloc::rc::Rc;
+use alloc::vec::Vec;
+use core::cell::RefCell;
 
 use crate::arena::{Arena, NodeId};
 use crate::callback::EventData;
@@ -91,7 +93,7 @@ impl Runtime {
         }
     }
 
-    pub(crate) fn graph(&self) -> std::cell::RefMut<'_, Graph> {
+    pub(crate) fn graph(&self) -> core::cell::RefMut<'_, Graph> {
         self.graph.borrow_mut()
     }
 
@@ -226,7 +228,7 @@ impl Runtime {
             debug_assert!(graph.active.is_none(), "tracked evaluations never nest");
             graph.active = Some(id);
             let prev = match graph.nodes.get_mut(id).and_then(Node::deps_mut) {
-                Some(deps) => std::mem::take(deps),
+                Some(deps) => core::mem::take(deps),
                 None => Vec::new(),
             };
             graph.trail.clear();
@@ -237,7 +239,7 @@ impl Runtime {
 
         let mut graph = self.graph();
         graph.active = None;
-        let new_deps = std::mem::take(&mut graph.trail);
+        let new_deps = core::mem::take(&mut graph.trail);
         graph.commit_tracking(id, &prev_deps, new_deps);
         out
     }
@@ -251,7 +253,7 @@ impl Runtime {
     pub fn untracked<R>(&self, f: impl FnOnce() -> R) -> R {
         let (prev_active, prev_trail) = {
             let mut graph = self.graph();
-            (graph.active.take(), std::mem::take(&mut graph.trail))
+            (graph.active.take(), core::mem::take(&mut graph.trail))
         };
         let out = f();
         {
@@ -307,19 +309,19 @@ impl Runtime {
         }
 
         // Deferred disposals (mid-stabilize context drops).
-        let removals = std::mem::take(&mut self.graph().pending_removals);
+        let removals = core::mem::take(&mut self.graph().pending_removals);
         for id in removals {
             self.graph().unlink_and_remove(id);
         }
 
         // Notification managers: after the loop, registration order, borrow
         // released (managers may set signals — they dirty the NEXT stabilize).
-        let mut managers = std::mem::take(&mut self.graph().managers);
+        let mut managers = core::mem::take(&mut self.graph().managers);
         for manager in &mut managers {
             manager.on_stabilize_complete();
         }
         let mut graph = self.graph();
-        managers.extend(std::mem::take(&mut graph.managers)); // keep any added during firing
+        managers.extend(core::mem::take(&mut graph.managers)); // keep any added during firing
         graph.managers = managers;
     }
 
