@@ -52,6 +52,27 @@ pub struct TursoStorage {
     encryption_key: Option<EncryptionKey>,
 }
 
+/// An in-memory database with the full schema migrated (`kv_store`, `documents`,
+/// …): nothing is persisted, so it suits tests and throwaway sessions. Use
+/// [`TursoStorage::new`] with a file path for a store that survives restarts.
+///
+/// Like `new`, this runs on the valtron executor.
+///
+/// # Panics
+///
+/// If the in-memory database can't be opened or migrated, which only happens
+/// when the executor isn't available or `SQLite` itself fails.
+impl Default for TursoStorage {
+    fn default() -> Self {
+        let storage = Self::new(":memory:")
+            .expect("TursoStorage::default: failed to open an in-memory database");
+        storage
+            .init_schema()
+            .expect("TursoStorage::default: failed to migrate the in-memory database");
+        storage
+    }
+}
+
 impl TursoStorage {
     /// Create a new Turso storage connection without encryption.
     ///

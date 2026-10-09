@@ -376,8 +376,9 @@ let agent = harness::claude_router(&key)?
 ```
 
 `builder(..)` / `into_agent_builder(..)` default-construct any store you don't
-set, which only the in-memory stores support; the `_with_stores` variants take
-any store.
+set, which needs the store types to implement `Default` (the in-memory, Turso,
+libsql, JSON-file and Fjall stores do); the `_with_stores` variants take any
+store, including D1 / R2.
 
 ---
 

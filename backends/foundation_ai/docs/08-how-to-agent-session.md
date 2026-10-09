@@ -87,10 +87,12 @@ Two entry points, then chain `with_*` → `build()`:
 
 - `AgentSession::<D, M>::builder(session_id, router)` — any store you don't
   set with `with_doc_store` / `with_memory_store` is `Default`-constructed
-  (needs `D: Default`, `M: Default`).
+  (needs `D: Default`, `M: Default`). The in-memory, Turso, libsql, JSON-file
+  and Fjall stores implement `Default`; Turso and libsql default to an
+  in-memory database, `JsonFileStorage` to `.ewe/storage.json`.
 - `AgentSession::builder_with_stores(session_id, router, doc_store,
-  memory_store)` — no `Default` bound; use it for SQL, Turso, D1/R2, JSON-file
-  and other persistent stores.
+  memory_store)` — no `Default` bound; use it for stores that have no
+  `Default` (Cloudflare D1 / R2) or when you open the store yourself.
 
 | Method | Default | Notes |
 |---|---|---|

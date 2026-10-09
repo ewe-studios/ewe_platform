@@ -17,9 +17,12 @@ use foundation_ai::types::{
     UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
+use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
 
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
+
+/// The same session over SQL-backed stores (Turso / `SQLite`).
+type SqlSession = AgentSession<SqlDocumentStore<TursoStorage>, KvMemoryStore<TursoStorage>>;
 
 fn user_msg(text: &str) -> Messages {
     Messages::User {
@@ -225,5 +228,32 @@ fn steer_injects_priority_message() {
     assert!(
         saw_priority,
         "the steered priority message must be processed and persisted: {history:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Persistent stores satisfy build()'s `Default` bound
+
+#[valtron_test]
+fn build_and_run_a_turn_on_sql_backed_stores() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("hello from sqlite")]);
+
+    let model_id = ModelId::Name("mock".into(), None);
+    let session: SqlSession = AgentSession::builder(SessionId::new(), mock.into_router())
+        .with_model(model_id.clone())
+        .with_config(AgentConfig {
+            primary_model: model_id,
+            ..Default::default()
+        })
+        .build()
+        .expect("a session over default SQL stores builds");
+
+    let records = session
+        .run_turn(user_msg("hi"))
+        .expect("turn should succeed");
+    assert_eq!(
+        assistant_texts(&records),
+        vec!["hello from sqlite".to_string()]
     );
 }

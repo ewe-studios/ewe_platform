@@ -1,5 +1,8 @@
 [toolchain]
-channel = "nightly"
+# Pinned: a floating `nightly` breaks CI whenever an upstream nightly removes
+# something a dependency uses (nightly-2026-10-08 removed
+# `core::intrinsics::abort`, breaking the `branches` crate). Bump deliberately.
+channel = "nightly-2026-09-20"
 components = ["rustfmt", "rustc-dev", "rust-src"]
 targets = [
     "wasm32-unknown-unknown",
