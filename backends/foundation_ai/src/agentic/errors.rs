@@ -109,6 +109,8 @@ pub enum AgenticError {
     },
     /// Model routing failure (no provider found, rule mismatch — F12).
     Routing(String),
+    /// A provider or preset couldn't be constructed (download, config, auth).
+    Provider(String),
     /// Catch-all for anything unmapped (`ErrorTrace<T>` flattenings, etc.).
     Unexpected(String),
 }
@@ -203,6 +205,7 @@ impl std::fmt::Display for AgenticError {
                 snapshot.total, snapshot.budget
             ),
             AgenticError::Routing(m) => write!(f, "routing: {m}"),
+            AgenticError::Provider(m) => write!(f, "provider: {m}"),
             AgenticError::Unexpected(m) => write!(f, "unexpected: {m}"),
         }
     }

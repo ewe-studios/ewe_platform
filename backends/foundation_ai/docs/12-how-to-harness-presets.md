@@ -46,6 +46,11 @@ The harness gives you three entry points, from highest-level to lowest:
 They compose: `*_session` calls `*_router()?.into_agent_builder().with_session_id(id)`, and
 `*_router` builds a `RouterMix`.
 
+Every fallible harness function returns `ErrorTrace<AgenticError>` — the same
+error type as `build()` and `run_turn()` — so one `?` works end to end. A
+provider that can't be constructed (cache directory, download client, config)
+fails with `AgenticError::Provider(reason)`.
+
 ---
 
 ## 2. Combo presets (`agents.rs`)
@@ -114,7 +119,7 @@ let resp     = CloudPresets::openai_responses(&api_key)?; // Responses API
 
 Cloud model-id constants (`CLAUDE_OPUS`, `CLAUDE_SONNET`, `OPENAI_GPT4O`,
 `OPENAI_GPT4O_MINI`) give you the canonical id strings so a routing rule and the
-agent's `primary_model`/`memory_model` line up.
+agent's primary and memory models line up.
 
 ---
 

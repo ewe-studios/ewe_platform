@@ -22,6 +22,10 @@
 
 use std::path::PathBuf;
 
+use foundation_errstacks::ErrorTrace;
+
+use crate::agentic::AgenticError;
+
 use crate::backends::anthropic_messages_provider::AnthropicMessagesProvider;
 use crate::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
 use crate::backends::llamacpp::SpeculativeConfig;
@@ -44,14 +48,17 @@ pub const Q8_0: &str = "Q8_0";
 fn create_provider(
     quantization: &str,
     config: Option<HuggingFaceGGUFConfig>,
-) -> Result<HuggingFaceGGUFProvider, String> {
+) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
     let config = config.unwrap_or_else(|| {
         HuggingFaceGGUFConfig::builder()
             .default_quantization(quantization)
             .build()
     });
-    HuggingFaceGGUFProvider::new(config)
-        .map_err(|e| format!("Failed to create provider: {e}"))
+    HuggingFaceGGUFProvider::new(config).map_err(|e| {
+        ErrorTrace::new(AgenticError::Provider(format!(
+            "failed to create GGUF provider ({quantization}): {e}"
+        )))
+    })
 }
 
 // ===========================================================================
@@ -94,19 +101,27 @@ impl Glm52 {
     /// GLM 5.2 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -119,19 +134,27 @@ impl Qwen36 {
     /// Qwen 3.6 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -144,19 +167,27 @@ impl Ornith10 {
     /// Ornith 1.0 does not ship an MTP head.
     pub const SUPPORTS_MTP: bool = false;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -169,19 +200,27 @@ impl Gemma4E4b {
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -194,19 +233,27 @@ impl Gemma4_26b {
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -226,19 +273,27 @@ impl Gemma4E2b {
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -254,7 +309,7 @@ impl Gemma4E2b {
 // Cloud providers serve a model by the id string passed at generation time
 // (`ModelId::Name`), not by anything baked into the provider. These constants
 // give callers the canonical ids so a router rule and the agent's
-// `primary_model`/`memory_model` line up.
+// primary and memory models line up.
 
 /// Claude Opus 4.8 — strongest reasoning, the default "main" cloud model.
 pub const CLAUDE_OPUS: &str = "claude-opus-4-8";
@@ -270,28 +325,32 @@ pub struct CloudPresets;
 
 impl CloudPresets {
     /// Create an Anthropic Claude Opus provider.
-    pub fn claude_opus(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
+    pub fn claude_opus(
+        api_key: &str,
+    ) -> Result<AnthropicMessagesProvider, ErrorTrace<AgenticError>> {
         Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an Anthropic Claude Sonnet provider.
-    pub fn claude_sonnet(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
+    pub fn claude_sonnet(
+        api_key: &str,
+    ) -> Result<AnthropicMessagesProvider, ErrorTrace<AgenticError>> {
         Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4 provider (Chat Completions API).
-    pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, String> {
+    pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4o provider (Chat Completions API).
-    pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, String> {
+    pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI provider that speaks the **Responses API** (rather than
     /// Chat Completions). Use this for the newer `/v1/responses` surface.
-    pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, String> {
+    pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, ErrorTrace<AgenticError>> {
         Ok(ResponsesProvider::api_key(api_key))
     }
 }

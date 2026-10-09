@@ -18,6 +18,7 @@
 //! client + cache dir but download nothing until `get_model`, so we point them
 //! at a throwaway cache dir and exercise routing only.
 
+use foundation_ai::agentic::AgenticError;
 use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use foundation_ai::harness::{
     self, CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI,
@@ -366,4 +367,50 @@ fn preset_model_ids_are_distinct_and_nonempty() {
     sorted.sort_unstable();
     sorted.dedup();
     assert_eq!(sorted.len(), ids.len(), "preset MODEL_IDs must be distinct");
+}
+
+// ---------------------------------------------------------------------------
+// Construction failures — one error type at the boundary (doc 15 item 15)
+
+/// A GGUF config whose cache dir can't be created: its parent is a file.
+fn unusable_gguf_config(tag: &str) -> HuggingFaceGGUFConfig {
+    let blocker =
+        std::env::temp_dir().join(format!("ewe-harness-blocker-{tag}-{}", std::process::id()));
+    std::fs::write(&blocker, b"not a directory").expect("write blocker file");
+    HuggingFaceGGUFConfig::builder()
+        .cache_dir(blocker.join("cache"))
+        .default_quantization("Q4_K_M")
+        .build()
+}
+
+#[test]
+fn provider_construction_failure_is_an_agentic_provider_error() {
+    let err = Gemma4E2b::q4_k_m(Some(unusable_gguf_config("provider")))
+        .err()
+        .expect("a cache dir under a file cannot be created");
+    match err.current_context() {
+        AgenticError::Provider(msg) => assert!(
+            msg.contains("cache directory"),
+            "the message names the cause: {msg}"
+        ),
+        other => panic!("expected AgenticError::Provider, got {other:?}"),
+    }
+}
+
+#[test]
+fn preset_router_failure_propagates_the_provider_error() {
+    let err = harness::gemma_router(Some(unusable_gguf_config("router")), None)
+        .err()
+        .expect("the main provider cannot be constructed");
+    assert!(
+        matches!(err.current_context(), AgenticError::Provider(_)),
+        "got {:?}",
+        err.current_context()
+    );
+}
+
+#[test]
+fn provider_error_displays_its_message() {
+    let err = AgenticError::Provider("no key".into());
+    assert_eq!(err.to_string(), "provider: no key");
 }

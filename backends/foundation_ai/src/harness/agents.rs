@@ -35,7 +35,9 @@
 //! preset. Each `*_session()` delegates to its router function and calls
 //! [`RouterPreset::into_agent_builder`].
 
-use crate::agentic::AgentSessionBuilder;
+use foundation_errstacks::ErrorTrace;
+
+use crate::agentic::{AgentSessionBuilder, AgenticError};
 #[cfg(feature = "candle")]
 use crate::backends::candle::CandleArchitecture;
 #[cfg(feature = "candle")]
@@ -65,11 +67,11 @@ fn named(id: &str) -> ModelId {
 /// layers, quantization); pass `None` for the `Q4_K_M` defaults.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn glm52_gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<RouterPreset, String> {
+) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = Glm52::q4_k_m(main)?;
     let memory_provider = Gemma4E2b::q4_k_m(memory)?;
     Ok(RouterMix::new()
@@ -81,12 +83,12 @@ pub fn glm52_gemma_router(
 /// Agent builder for [`glm52_gemma_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn glm52_gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(glm52_gemma_router(main, memory)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -100,11 +102,11 @@ pub fn glm52_gemma_session(
 /// memory model.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn qwen36_gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<RouterPreset, String> {
+) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = Qwen36::q4_k_m(main)?;
     let memory_provider = Gemma4E2b::q4_k_m(memory)?;
     Ok(RouterMix::new()
@@ -116,12 +118,12 @@ pub fn qwen36_gemma_router(
 /// Agent builder for [`qwen36_gemma_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn qwen36_gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(qwen36_gemma_router(main, memory)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -135,11 +137,11 @@ pub fn qwen36_gemma_session(
 /// small memory model — Gemma on both ends.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn gemma_router(
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<RouterPreset, String> {
+) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = Gemma4_26b::q4_k_m(main)?;
     let memory_provider = Gemma4E2b::q4_k_m(memory)?;
     Ok(RouterMix::new()
@@ -151,12 +153,12 @@ pub fn gemma_router(
 /// Agent builder for [`gemma_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if either GGUF provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if either GGUF provider cannot be constructed.
 pub fn gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(gemma_router(main, memory)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -170,8 +172,8 @@ pub fn gemma_session(
 /// model, both via the Anthropic Messages provider.
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
-pub fn claude_router(api_key: &str) -> Result<RouterPreset, String> {
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
+pub fn claude_router(api_key: &str) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = CloudPresets::claude_opus(api_key)?;
     let memory_provider = CloudPresets::claude_sonnet(api_key)?;
     Ok(RouterMix::new()
@@ -183,8 +185,11 @@ pub fn claude_router(api_key: &str) -> Result<RouterPreset, String> {
 /// Agent builder for [`claude_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
-pub fn claude_session(session_id: SessionId, api_key: &str) -> Result<AgentSessionBuilder, String> {
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
+pub fn claude_session(
+    session_id: SessionId,
+    api_key: &str,
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(claude_router(api_key)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -198,8 +203,8 @@ pub fn claude_session(session_id: SessionId, api_key: &str) -> Result<AgentSessi
 /// both via the OpenAI **Chat Completions** provider.
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
-pub fn openai_chat_router(api_key: &str) -> Result<RouterPreset, String> {
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
+pub fn openai_chat_router(api_key: &str) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = CloudPresets::openai_gpt4o(api_key)?;
     let memory_provider = CloudPresets::openai_gpt4o(api_key)?;
     Ok(RouterMix::new()
@@ -211,11 +216,11 @@ pub fn openai_chat_router(api_key: &str) -> Result<RouterPreset, String> {
 /// Agent builder for [`openai_chat_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
 pub fn openai_chat_session(
     session_id: SessionId,
     api_key: &str,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(openai_chat_router(api_key)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -229,8 +234,8 @@ pub fn openai_chat_session(
 /// both via the OpenAI **Responses** provider (`/v1/responses`).
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
-pub fn openai_responses_router(api_key: &str) -> Result<RouterPreset, String> {
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
+pub fn openai_responses_router(api_key: &str) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let main_provider = CloudPresets::openai_responses(api_key)?;
     let memory_provider = CloudPresets::openai_responses(api_key)?;
     Ok(RouterMix::new()
@@ -242,11 +247,11 @@ pub fn openai_responses_router(api_key: &str) -> Result<RouterPreset, String> {
 /// Agent builder for [`openai_responses_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if a provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
 pub fn openai_responses_session(
     session_id: SessionId,
     api_key: &str,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(openai_responses_router(api_key)?
         .into_agent_builder()
         .with_session_id(session_id))
@@ -266,34 +271,35 @@ pub fn openai_responses_session(
 /// `None` for defaults (Llama architecture).
 ///
 /// # Errors
-/// Returns an error string if the Candle provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if the Candle provider cannot be constructed.
 #[cfg(feature = "candle")]
 pub fn candle_llama_router(
     repo_id: &str,
     config: Option<HuggingFaceCandleConfig>,
-) -> Result<RouterPreset, String> {
+) -> Result<RouterPreset, ErrorTrace<AgenticError>> {
     let config = config.unwrap_or_else(|| {
         HuggingFaceCandleConfig::builder()
             .architecture(CandleArchitecture::Llama)
             .build()
     });
-    let provider = HuggingFaceCandleProvider::new(config)
-        .map_err(|e| format!("Failed to create Candle provider: {e}"))?;
-    Ok(RouterMix::new()
-        .primary(provider, named(repo_id))
-        .build())
+    let provider = HuggingFaceCandleProvider::new(config).map_err(|e| {
+        ErrorTrace::new(AgenticError::Provider(format!(
+            "failed to create Candle provider for {repo_id}: {e}"
+        )))
+    })?;
+    Ok(RouterMix::new().primary(provider, named(repo_id)).build())
 }
 
 /// Agent builder for [`candle_llama_router`], wired to `session_id`.
 ///
 /// # Errors
-/// Returns an error string if the Candle provider cannot be constructed.
+/// Returns [`AgenticError::Provider`] if the Candle provider cannot be constructed.
 #[cfg(feature = "candle")]
 pub fn candle_llama_session(
     session_id: SessionId,
     repo_id: &str,
     config: Option<HuggingFaceCandleConfig>,
-) -> Result<AgentSessionBuilder, String> {
+) -> Result<AgentSessionBuilder, ErrorTrace<AgenticError>> {
     Ok(candle_llama_router(repo_id, config)?
         .into_agent_builder()
         .with_session_id(session_id))
