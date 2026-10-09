@@ -211,7 +211,8 @@ for item in agent.run_turn_stream(prompt)? {
 Proposed (items 7, 8):
 
 ```rust
-let answer: String = agent.ask("Hi")?;
+let answer = agent.ask("Hi")?;          // Answer: Complete(text) or Failed { partial_text, .. }
+println!("{}", answer.text());
 let turn = agent.run_turn("Hi")?;      // Turn
 println!("{}", turn.text());
 
@@ -481,7 +482,7 @@ let agent = AgentSession::builder(AnthropicMessagesProvider::api_key(api_key))
     .with_model("claude-sonnet-4-6")
     .build()?;
 
-println!("{}", agent.ask("Hi")?);
+println!("{}", agent.ask("Hi")?.text());
 agent.end()?;
 ```
 
@@ -812,6 +813,8 @@ impl<'a> IntoIterator for &'a Turn { type Item = &'a SessionRecord; /* … */ } 
 impl Turn {
     /// Concatenated `ModelOutput::Text` of the assistant messages (retracted output already dropped).
     pub fn text(&self) -> String;
+    /// The assistant text in one record ("" for anything else); `text()` joins these.
+    pub fn text_of(record: &SessionRecord) -> String;
     /// Each `ModelOutput::ToolCall` the model made: (id, name, arguments).
     pub fn tool_calls(&self) -> impl Iterator<Item = (&str, &str, Option<&HashMap<String, ArgType>>)>;
     /// Each `Messages::ToolResult` produced this turn.
@@ -822,11 +825,64 @@ impl Turn {
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
-    pub fn ask(&self, prompt: impl Into<Messages>) -> Result<String, ErrorTrace<AgenticError>> {
-        Ok(self.run_turn(prompt)?.text())
+    /// Text-only convenience. A turn that fails part-way is not an `Err`: it
+    /// comes back as `Answer::Failed` carrying the text produced before the
+    /// failure. `Err` is kept for failures before the turn starts (preflight,
+    /// access, the stream not starting).
+    pub fn ask(&self, prompt: impl Into<Messages>) -> Result<Answer, ErrorTrace<AgenticError>> {
+        let mut text = String::new();
+        for item in self.run_turn_stream(prompt)? {
+            match item {
+                Stream::Next(SessionRecord::FailedAction { error, trace }) => {
+                    return Ok(Answer::Failed { partial_text: text, error, trace });
+                }
+                Stream::Next(SessionRecord::Retracted { .. }) => text.clear(), // withdrawn output
+                // assistant ModelOutput::Text content, same rule as Turn::text()
+                Stream::Next(record) => text.push_str(&Turn::text_of(&record)),
+                _ => {}
+            }
+        }
+        Ok(Answer::Complete(text))
     }
 }
+
+/// The outcome of `ask`.
+pub enum Answer {
+    /// The turn finished; all assistant text.
+    Complete(String),
+    /// The turn hit a `FailedAction` after producing `partial_text`.
+    Failed {
+        partial_text: String,
+        error: AgenticError,
+        trace: foundation_errstacks::StructuredErrorTrace,
+    },
+}
+
+impl Answer {
+    /// The text either way: complete, or what was produced before the failure.
+    pub fn text(&self) -> &str;
+    pub fn is_complete(&self) -> bool;
+    /// For callers that only want success: `Failed` becomes `Err`.
+    pub fn into_result(self) -> Result<String, ErrorTrace<AgenticError>>;
+}
 ```
+
+Call sites:
+
+```rust
+match agent.ask("Summarise the repo")? {
+    Answer::Complete(text) => println!("{text}"),
+    Answer::Failed { partial_text, error, .. } => {
+        eprintln!("stopped early ({error}); got so far:\n{partial_text}");
+    }
+}
+
+// or, when a partial answer is no use:
+let text = agent.ask("Summarise the repo")?.into_result()?;
+```
+
+`run_turn` keeps returning `Err` on a `FailedAction` (today's behaviour);
+`ask` is the call that keeps the partial text.
 
 #### 8. Streaming events (F4)
 
@@ -1022,7 +1078,8 @@ struct EditArgs { path: String, old_string: String, new_string: String, #[serde(
 let EditArgs { path, old_string, new_string, replace_all } = ToolArgs::new("edit", &arguments).parse()?;
 ```
 
-Longer term, `ArgType` collapses to `serde_json::Value` (open question below).
+`ToolArgs` is also the bridge to item 20: tools written against it keep
+compiling when `ArgType` is replaced by `serde_json::Value`.
 
 #### 13. Closure tools (F9)
 
@@ -1144,7 +1201,7 @@ pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFPr
 // caller: one `?` type end to end
 fn main() -> Result<(), ErrorTrace<AgenticError>> {
     let agent = RouterPreset::claude(&key)?.into_agent_builder().build()?;
-    println!("{}", agent.ask("Hi")?);
+    println!("{}", agent.ask("Hi")?.text());
     agent.end()
 }
 ```
@@ -1265,6 +1322,55 @@ let agent = RouterPreset::claude(&key)?
     .build()?;
 ```
 
+#### 20. Tool arguments are `serde_json::Value` (F9) — breaking
+
+**Decided:** drop `ArgType` and carry tool arguments as JSON end to end. Every
+backend already receives JSON from the model; `ArgType` only adds a lossy
+conversion (F9) that each tool then has to undo.
+
+Today:
+
+```rust
+pub enum ArgType { Text(String), I64(i64), Float64(f64), JSON(String), JSONMap(HashMap<String, ArgType>), /* 13 more */ }
+
+// ModelOutput::ToolCall { arguments: Option<HashMap<String, ArgType>>, .. }
+fn invoke(&self, arguments: Option<HashMap<String, ArgType>>) -> Result<ToolCallResult, ToolError>;
+
+// in a tool
+let replace_all = matches!(args.get("replace_all"), Some(ArgType::Text(t)) if t == "true");
+```
+
+Proposed:
+
+```rust
+// ArgType and json_value_to_arg_type are deleted.
+pub type ToolArguments = serde_json::Map<String, serde_json::Value>;
+
+// ModelOutput::ToolCall { arguments: Option<ToolArguments>, .. }
+fn invoke(&self, arguments: Option<ToolArguments>) -> Result<ToolCallResult, ToolError>;
+
+pub struct ToolArgs<'a> { tool: &'a str, args: &'a ToolArguments } // same methods as item 12
+
+impl<'a> ToolArgs<'a> {
+    pub fn bool(&self, key: &str) -> Result<bool, ToolError> {
+        self.args.get(key).and_then(serde_json::Value::as_bool)
+            .ok_or_else(|| ToolError::InvalidArguments(format!("{}: `{key}` must be a boolean", self.tool)))
+    }
+    pub fn parse<T: serde::de::DeserializeOwned>(&self) -> Result<T, ToolError> {
+        serde_json::from_value(serde_json::Value::Object(self.args.clone()))
+            .map_err(|e| ToolError::InvalidArguments(format!("{}: {e}", self.tool)))
+    }
+    /* str, i64, f64, opt_* as in item 12 */
+}
+
+// in a tool — unchanged from item 12
+let EditArgs { replace_all, .. } = ToolArgs::new("edit", &arguments).parse()?;
+```
+
+Schema validation (`ToolCallManager::execute_one`) then checks the JSON the
+model sent, with no conversion in between. Migration: tools that already use
+`ToolArgs` need no change; tools that match on `ArgType` move to `ToolArgs`.
+
 ## 4. Suggested order
 
 1. Tier 1 items 1–4 (they overlap with the bug fixes and unblock persistence).
@@ -1273,15 +1379,10 @@ let agent = RouterPreset::claude(&key)?
    (`resume`, the two-argument `builder` as `builder_for`) as `#[deprecated]`
    for one release. `with_toolshed` is not deprecated.
 4. Tier 2 items 10–13.
-5. Tier 3 in one breaking release.
+5. Tier 3 (items 14–20) in one breaking release.
 
 ## 5. Open questions
 
-- Is the `ArgType` → `serde_json::Value` move worth the breakage, or is the
-  `ToolArgs` wrapper enough?
-- Do we want `agent.ask` to error on a turn that ends in a `FailedAction`
-  after some text, or return the partial text? (`run_turn` already returns
-  `Err` on the first `FailedAction`, so `ask` as written above errors.)
 - When `with_toolshed` and `with_tools` name the same tool, the shed's entry
   is kept (item 1). Should a mismatch between the shed's definition and the
   tool's own `definition()` be a preflight error?
@@ -1294,9 +1395,9 @@ let agent = RouterPreset::claude(&key)?
 | `AgentSession` | `run_turn(impl Into<Messages>) -> Turn`, `run_turn_stream(impl Into<Messages>) -> TurnStream` | 6, 7, 8 |
 | `AgentSessionBuilder` | `with_toolshed` (kept), `with_tool`, `with_tools`, `with_session_id`, `resume` | 1, 4 |
 | `AgentSessionBuilder` | `with_doc_store` / `with_memory_store` (change the type), `with_model` / `with_fallback_models` / `with_memory_model` (take `Into<ModelId>`) | 2, 9 |
-| Turn results | `Turn`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
+| Turn results | `Turn`, `Answer`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
 | Messages / ids | `Messages::{user, system, agent}`, `From<&str>`/`From<String>` for `Messages` and `ModelId` | 6, 9 |
 | Providers | `From<P: ModelProvider> for ProviderRouter`, `ProviderRouterBuilder::provider`, `{Anthropic,OpenAI,Responses}Config::{api_key, from_env}`, `{AnthropicMessages,OpenAI,Responses}Provider::api_key` | 10, 11 |
 | Tools | `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
 | Stores | `MessageApi::from_shared`, `MemoryCoordinator::from_shared` | 3 |
-| Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}` | 14–19 |
+| Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}`, `ToolArguments` (replaces `ArgType`) | 14–20 |
