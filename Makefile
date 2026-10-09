@@ -53,6 +53,24 @@ publish:
 	$(foreach var,$(PACKAGES), cargo publish --package $(var);)
 
 # ============================================================================
+# Per-package CI (mirrors .github/workflows/check.yaml; settings in ci/packages.toml)
+# ============================================================================
+
+.PHONY: ci-list ci-plan ci-package
+
+ci-list:
+	@python3 scripts/ci/ci.py list
+
+# Packages a change affects, relative to BASE (default: origin/master).
+ci-plan:
+	@python3 scripts/ci/ci.py plan --base $(or $(BASE),origin/master) --head HEAD
+
+# fmt + clippy + tests for one package, exactly as CI runs them.
+ci-package:
+	@test -n "$(PACKAGE)" || (echo "usage: make ci-package PACKAGE=<name> [STEP=fmt|clippy|test]" && exit 2)
+	@python3 scripts/ci/ci.py run $(PACKAGE) $(if $(STEP),--step $(STEP),)
+
+# ============================================================================
 # Git development commands
 # ============================================================================
 
@@ -337,6 +355,9 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-all           Run all tests (unit + integration)"
+	@echo "  make ci-list            Show every package and its CI settings"
+	@echo "  make ci-plan            Packages your branch affects (BASE=origin/master)"
+	@echo "  make ci-package PACKAGE=x  Run CI's fmt/clippy/tests for one package"
 	@echo "  make test-unit          Run only unit tests (fast)"
 	@echo "  make test-integration   Run only integration tests"
 	@echo "  make test-quick         Quick smoke test"
