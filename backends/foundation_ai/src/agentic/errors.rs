@@ -91,6 +91,9 @@ pub enum AgenticError {
     Embedding(String),
     /// Session-management failure (flattened).
     Session(String),
+    /// `AgentSessionBuilder::resume(id)` named a session the stores hold no
+    /// records for.
+    SessionNotFound(crate::types::SessionId),
     /// Steering-queue failure (flattened).
     Queue(String),
     /// A repetition/loop was detected (F17 owns redirect/escalation).
@@ -185,6 +188,9 @@ impl std::fmt::Display for AgenticError {
             AgenticError::VectorStore(m) => write!(f, "vector store: {m}"),
             AgenticError::Embedding(m) => write!(f, "embedding: {m}"),
             AgenticError::Session(m) => write!(f, "session: {m}"),
+            AgenticError::SessionNotFound(id) => {
+                write!(f, "session not found: no records for session {id}")
+            }
             AgenticError::Queue(m) => write!(f, "queue: {m}"),
             AgenticError::LoopDetected(l) => {
                 write!(f, "loop detected: {} x{}", l.kind, l.occurrences)

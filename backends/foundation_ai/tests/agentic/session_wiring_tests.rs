@@ -13,7 +13,7 @@ use foundation_ai::agentic::testing::{
     mock_text, mock_text_usage, mock_tool_call, MockModelProvider,
 };
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, AuthError, KvMemoryStore, MemoryStore, SessionAccessProvider,
+    AgentSession, AuthError, KvMemoryStore, MemoryStore, SessionAccessProvider,
     TokenBudget, ToolCallResult, ToolDefinition, ToolError, ToolImpl, UserId,
 };
 use foundation_ai::harness::ToolPreset;
@@ -48,7 +48,7 @@ fn mock_model() -> ModelId {
 }
 
 fn session_with(mock: MockModelProvider) -> Session {
-    AgentSession::builder(SessionId::new(), mock.into_router())
+    AgentSession::builder(mock.into_router())
         .with_model(mock_model())
         .build()
         .expect("session builds")
@@ -139,21 +139,24 @@ fn stored_assistant_texts(session: &Session) -> Vec<String> {
 // ---------------------------------------------------------------------------
 // Stores
 
-/// Compiles only if `builder_with_stores` + `build` need no `Default` bound —
-/// the requirement that used to shut out every persistent store.
+/// Compiles only if `with_doc_store` / `with_memory_store` + `build` need no
+/// `Default` bound — the requirement that used to shut out every persistent
+/// store.
 fn build_over_any_stores<D, M>(router: ProviderRouter, doc: D, mem: M) -> AgentSession<D, M>
 where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    AgentSession::builder_with_stores(SessionId::new(), router, doc, mem)
+    AgentSession::builder(router)
+        .with_doc_store(doc)
+        .with_memory_store(mem)
         .with_model(mock_model())
         .build()
         .expect("session builds over explicit stores")
 }
 
 #[valtron_test]
-fn builder_with_stores_needs_no_default_bound() {
+fn store_setters_need_no_default_bound() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello")]);
     let session = build_over_any_stores(
@@ -223,14 +226,17 @@ fn memory_tool_writes_reach_the_assembled_context() {
 }
 
 #[valtron_test]
-fn resume_with_stores_sees_earlier_history() {
+fn resume_sees_earlier_history() {
     let doc = MemoryDocumentStore::new();
     let mem = KvMemoryStore::new(MemoryStorage::new());
     let id = SessionId::new();
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("first answer")]);
-    let first = AgentSession::builder_with_stores(id.clone(), mock.into_router(), doc, mem)
+    let first = AgentSession::builder(mock.into_router())
+        .with_session_id(id.clone())
+        .with_doc_store(doc)
+        .with_memory_store(mem)
         .with_model(mock_model())
         .build()
         .expect("first session builds");
@@ -254,18 +260,13 @@ fn resume_with_stores_sees_earlier_history() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("second answer")]);
-    let resumed = Session::resume_with_stores(
-        id,
-        mock.into_router(),
-        AgentConfig {
-            primary_model: mock_model(),
-            ..AgentConfig::default()
-        },
-        None,
-        carried,
-        KvMemoryStore::new(MemoryStorage::new()),
-    )
-    .expect("resume succeeds");
+    let resumed = AgentSession::builder(mock.into_router())
+        .resume(id)
+        .with_doc_store(carried)
+        .with_memory_store(KvMemoryStore::new(MemoryStorage::new()))
+        .with_model(mock_model())
+        .build()
+        .expect("resume succeeds");
 
     let memory = resumed
         .context_provider()
@@ -359,7 +360,7 @@ fn builder_registered_tools_satisfy_preflight() {
     let (tool, _) = RecordingTool::new();
     let tool: Arc<dyn ToolImpl> = Arc::new(tool);
 
-    let session = Session::builder(SessionId::new(), mock.into_router())
+    let session = AgentSession::builder(mock.into_router())
         .with_model(mock_model())
         .with_toolshed(ToolShed::default().with_tool(tool.definition()))
         .with_tool(tool)
@@ -458,7 +459,7 @@ impl SessionAccessProvider for ScriptedAccess {
 }
 
 fn session_with_access(mock: MockModelProvider, access: Arc<ScriptedAccess>) -> Session {
-    Session::builder(SessionId::new(), mock.into_router())
+    AgentSession::builder(mock.into_router())
         .with_model(mock_model())
         .with_access(access)
         .build()

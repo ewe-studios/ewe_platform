@@ -35,9 +35,7 @@
 //! preset. Each `*_session()` delegates to its router function and calls
 //! [`RouterPreset::into_agent_builder`].
 
-use foundation_db::traits::DocumentStore;
-
-use crate::agentic::{AgentSessionBuilder, MemoryStore};
+use crate::agentic::AgentSessionBuilder;
 #[cfg(feature = "candle")]
 use crate::backends::candle::CandleArchitecture;
 #[cfg(feature = "candle")]
@@ -84,16 +82,14 @@ pub fn glm52_gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
-pub fn glm52_gemma_session<D, M>(
+pub fn glm52_gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(glm52_gemma_router(main, memory)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(glm52_gemma_router(main, memory)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -121,16 +117,14 @@ pub fn qwen36_gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
-pub fn qwen36_gemma_session<D, M>(
+pub fn qwen36_gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(qwen36_gemma_router(main, memory)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(qwen36_gemma_router(main, memory)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -158,16 +152,14 @@ pub fn gemma_router(
 ///
 /// # Errors
 /// Returns an error string if either GGUF provider cannot be constructed.
-pub fn gemma_session<D, M>(
+pub fn gemma_session(
     session_id: SessionId,
     main: Option<HuggingFaceGGUFConfig>,
     memory: Option<HuggingFaceGGUFConfig>,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(gemma_router(main, memory)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(gemma_router(main, memory)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -192,15 +184,10 @@ pub fn claude_router(api_key: &str) -> Result<RouterPreset, String> {
 ///
 /// # Errors
 /// Returns an error string if a provider cannot be constructed.
-pub fn claude_session<D, M>(
-    session_id: SessionId,
-    api_key: &str,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(claude_router(api_key)?.into_agent_builder(session_id))
+pub fn claude_session(session_id: SessionId, api_key: &str) -> Result<AgentSessionBuilder, String> {
+    Ok(claude_router(api_key)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -225,15 +212,13 @@ pub fn openai_chat_router(api_key: &str) -> Result<RouterPreset, String> {
 ///
 /// # Errors
 /// Returns an error string if a provider cannot be constructed.
-pub fn openai_chat_session<D, M>(
+pub fn openai_chat_session(
     session_id: SessionId,
     api_key: &str,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(openai_chat_router(api_key)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(openai_chat_router(api_key)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -258,15 +243,13 @@ pub fn openai_responses_router(api_key: &str) -> Result<RouterPreset, String> {
 ///
 /// # Errors
 /// Returns an error string if a provider cannot be constructed.
-pub fn openai_responses_session<D, M>(
+pub fn openai_responses_session(
     session_id: SessionId,
     api_key: &str,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(openai_responses_router(api_key)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(openai_responses_router(api_key)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }
 
 // ===========================================================================
@@ -306,14 +289,12 @@ pub fn candle_llama_router(
 /// # Errors
 /// Returns an error string if the Candle provider cannot be constructed.
 #[cfg(feature = "candle")]
-pub fn candle_llama_session<D, M>(
+pub fn candle_llama_session(
     session_id: SessionId,
     repo_id: &str,
     config: Option<HuggingFaceCandleConfig>,
-) -> Result<AgentSessionBuilder<D, M>, String>
-where
-    D: DocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
-{
-    Ok(candle_llama_router(repo_id, config)?.into_agent_builder(session_id))
+) -> Result<AgentSessionBuilder, String> {
+    Ok(candle_llama_router(repo_id, config)?
+        .into_agent_builder()
+        .with_session_id(session_id))
 }

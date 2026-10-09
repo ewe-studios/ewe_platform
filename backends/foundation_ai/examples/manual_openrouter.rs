@@ -15,19 +15,15 @@
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
-    RoutingRule, SessionId, TextContent, UserModelContent,
+    RoutingRule, TextContent, UserModelContent,
 };
 use foundation_ai::{
-    agentic::{AgentConfig, AgentSession, KvMemoryStore},
+    agentic::{AgentConfig, AgentSession},
     types::ToolShed,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 /// Build a ProviderRouter that talks to OpenRouter.
 /// No harness helpers — explicit provider creation, boxing, and routing rules.
@@ -84,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Building manual OpenRouter router for model: {PRIMARY}");
     let router = build_openrouter_router(&api_key, PRIMARY, None);
 
-    let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+    let agent = AgentSession::builder(router)
         .with_toolshed(ToolShed::default())
         .with_model(ModelId::Name(PRIMARY.into(), None))
         .with_config(AgentConfig {

@@ -350,7 +350,7 @@ fn agent_session_run_turn_through_candle_fixture() {
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
     use foundation_ai::types::PreloadedProvider;
-    use foundation_ai::types::{SessionId, SessionRecord};
+    use foundation_ai::types::SessionRecord;
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     // Concrete CandleModels (Clone via Arc) for PreloadedProvider.
@@ -368,7 +368,7 @@ fn agent_session_run_turn_through_candle_fixture() {
     let router = PreloadedProvider::new(model, model_id.clone()).into_router();
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(SessionId::new(), router)
+        AgentSession::builder(router)
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
             .with_config(AgentConfig {
@@ -413,7 +413,7 @@ fn candle_session_handles_multiple_turns() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
-    use foundation_ai::types::{PreloadedProvider, SessionId, SessionRecord};
+    use foundation_ai::types::{PreloadedProvider, SessionRecord};
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
@@ -429,7 +429,7 @@ fn candle_session_handles_multiple_turns() {
     let model_id = ModelId::Name("tiny-llama".into(), None);
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(SessionId::new(), PreloadedProvider::new(model, model_id.clone()).into_router())
+        AgentSession::builder(PreloadedProvider::new(model, model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
             .with_config(AgentConfig { primary_model: model_id, model_params: params(), ..Default::default() })
@@ -577,7 +577,7 @@ fn cost_accounting_is_per_session() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
-    use foundation_ai::types::{PreloadedProvider, SessionId};
+    use foundation_ai::types::PreloadedProvider;
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
@@ -593,7 +593,7 @@ fn cost_accounting_is_per_session() {
     let model_id = ModelId::Name("tiny".into(), None);
 
     let build = || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
-        AgentSession::builder(SessionId::new(), PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
+        AgentSession::builder(PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
             .with_config(AgentConfig { primary_model: model_id.clone(), model_params: params(), ..Default::default() })

@@ -18,18 +18,13 @@ use async_trait::async_trait;
 use foundation_ai::agentic::tool_impl::{
     ToolCallResult, ToolDefinition, ToolError, ToolImpl,
 };
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness;
 use foundation_ai::types::{
     ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_jsonschema::scheme;
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 // ---------------------------------------------------------------------------
 // Custom tool: greet
@@ -89,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // 1. Build the model preset (Claude Opus main + Sonnet memory)
-    let builder = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?;
+    let builder = harness::claude_session(SessionId::new(), &api_key)?;
 
     // 2. Build the agent session — tools are registered on the session's
     //    ToolCallManager after build().

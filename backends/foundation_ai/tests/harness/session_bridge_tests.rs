@@ -14,13 +14,8 @@
 //! (`MemoryDocumentStore`, `KvMemoryStore<MemoryStorage>`); cloud preflight
 //! (`AllowAllAccess`, empty toolshed, default budget) needs no network.
 
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::harness::{self, CLAUDE_OPUS};
 use foundation_ai::types::{ModelId, SessionId};
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type TestMemStore = KvMemoryStore<MemoryStorage>;
-type TestDocStore = MemoryDocumentStore;
 
 fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)
@@ -32,7 +27,8 @@ fn into_agent_builder_builds_session_with_id() {
     let preset = harness::claude_router("test-key").expect("router builds");
 
     let session = preset
-        .into_agent_builder::<TestDocStore, TestMemStore>(id.clone())
+        .into_agent_builder()
+        .with_session_id(id.clone())
         .build()
         .expect("session builds from preset");
 
@@ -45,7 +41,7 @@ fn into_agent_builder_builds_session_with_id() {
 fn session_convenience_wrapper_builds_and_accepts_customisation() {
     let id = SessionId::from_name("harness-bridge-wrapper");
 
-    let session = harness::claude_session::<TestDocStore, TestMemStore>(id.clone(), "test-key")
+    let session = harness::claude_session(id.clone(), "test-key")
         .expect("builder returned")
         .with_system_prompt("You are a helpful assistant.")
         .build()

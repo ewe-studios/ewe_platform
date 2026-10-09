@@ -232,7 +232,10 @@ where
         let delegate_id = Self::new_id();
         let output_location = format!("{}/{}.json", self.output_base, delegate_id);
 
-        let mut builder = AgentSession::builder(child_session_id.clone(), self.router.clone())
+        let mut builder = AgentSession::builder(self.router.clone())
+            .with_session_id(child_session_id.clone())
+            .with_doc_store(D::default())
+            .with_memory_store(M::default())
             .with_user(self.user.clone())
             .with_model(model.clone());
 
