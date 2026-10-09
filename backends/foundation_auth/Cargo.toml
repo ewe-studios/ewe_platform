@@ -26,7 +26,7 @@ pbkdf2 = "0.12"           # PBKDF2-HMAC-SHA256 (native)
 chacha20poly1305 = "0.10" # Encrypted session data
 sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
 hmac = "0.12"             # TOTP, HMAC, PBKDF2
-rand = "0.8"              # Secure random generation
+rand = "0.9"              # Secure random generation
 getrandom = { version = "0.2", optional = true }
 
 # Token formats
