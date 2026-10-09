@@ -62,18 +62,18 @@ pub enum Messages {
   from ~15 providers' error strings, plus "silent" overflow where usage exceeds
   the window.
 
-Building a user message by hand:
+Building a message:
 
 ```rust
-let prompt = Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent { content: "Hi".into(), signature: None }),
-    signature: None,
-};
+let prompt = Messages::user("Hi");                     // role User, text content, fresh id
+let steer  = Messages::agent("Stop and summarise.");   // role Agent
+let note   = Messages::system("Be brief.");            // role System
+let prompt: Messages = "Hi".into();                    // From<&str> / From<String> = Messages::user
 ```
 
-(`agentic::testing::mock_user("Hi")` does this in tests.)
+Session methods take `impl Into<Messages>`, so `agent.run_turn("Hi")` works
+directly. The struct literal (`Messages::User { id, role, content, signature }`)
+is still there for other content types.
 
 ## 2. `ModelOutput` — what the assistant produces
 
@@ -229,9 +229,12 @@ At the **model** level (`Model::stream`): `D = Messages`, `P = ModelState`
 (`GeneratingTokens(Option<UsageReport>)`, `GeneratingEmbeddings`, `Finished`,
 `Error(String)`).
 
-At the **agent** level (`AgentSession::run_turn_stream`):
-`D = SessionRecord`, `P = AgentProgress` — the alias is
-`agentic::AgentStream`.
+At the **agent** level (`AgentSession::run_turn_stream`, which returns a
+`TurnStream`): `D = SessionRecord`, `P = AgentProgress` — the alias is
+`agentic::AgentStream`. `TurnStream::events()` maps these items to
+`TurnEvent`s (`Text`, `Thinking`, `ToolCall`, `ToolResult`, `Retract`,
+`Progress`, then a terminal `Failed` or `Done(TurnSummary)`), skipping the
+scheduling signals and the memory records.
 
 ## 11. `SessionRecord` — what a turn produces
 

@@ -31,8 +31,8 @@ cap cost on simple agents.
 
 ```rust
 let agent = builder
-    .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
-    .with_fallback_models(vec![ModelId::Name("gpt-4o".into(), None)])
+    .with_model("claude-sonnet-4-6")
+    .with_fallback_models(["gpt-4o"])
     .with_config(AgentConfig { circuit_breaker_threshold: 2, ..AgentConfig::default() })
     .build()?;
 ```

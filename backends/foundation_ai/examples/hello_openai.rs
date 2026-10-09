@@ -6,9 +6,9 @@
 //!   --example hello_openai --features agentic
 //! ```
 
+use foundation_ai::agentic::Answer;
 use foundation_ai::harness;
-use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::SessionId;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -23,30 +23,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
-    println!("Asking OpenAI (Chat Completions)...");
-    let records = agent.run_turn(prompt)?;
-
-    for record in &records {
-        println!("{record:?}");
+    println!("Asking GPT-4o...");
+    // `ask` returns just the text: complete, or what was produced before a
+    // failure ended the turn.
+    match agent.ask("Hello! Please say hi back in one sentence.")? {
+        Answer::Complete(text) => {
+            assert!(!text.is_empty(), "Expected a reply but got none");
+            println!("{text}\n\nGPT-4o responded!");
+        }
+        Answer::Failed {
+            partial_text,
+            error,
+            ..
+        } => {
+            println!("{partial_text}");
+            return Err(format!("the turn ended early: {error}").into());
+        }
     }
-
-    let got_text = records.iter().any(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    });
-    assert!(got_text, "Expected a generation record but got none");
-    println!("\nGPT-4o responded! Got {} records.", records.len());
 
     agent.end()?;
     Ok(())

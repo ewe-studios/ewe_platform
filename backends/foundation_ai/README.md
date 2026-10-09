@@ -86,8 +86,7 @@ The shortest path to a working agent — a Claude session in a few lines:
 
 ```rust
 use foundation_ai::harness;
-use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::SessionId;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -99,19 +98,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
-    let records = agent.run_turn(Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Explain Rust ownership in two sentences.".into(),
-            signature: None,
-        }),
-        signature: None,
-    })?;
+    // `ask` returns the assistant's text (or the text produced before a failure).
+    let answer = agent.ask("Explain Rust ownership in two sentences.")?;
+    println!("{}", answer.text());
 
-    for record in &records {
-        println!("{record:?}");
-    }
     agent.end()?;
     Ok(())
 }

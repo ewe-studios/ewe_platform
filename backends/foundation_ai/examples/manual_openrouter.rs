@@ -14,12 +14,7 @@
 
 use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
-use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
-    RoutingRule, TextContent, UserModelContent,
-};
-use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
 use foundation_core::valtron::valtron;
 
 /// Build a ProviderRouter that talks to OpenRouter.
@@ -29,15 +24,9 @@ fn build_openrouter_router(
     primary_model: &str,
     memory_model: Option<&str>,
 ) -> ProviderRouter {
-    let make_provider = || {
-        OpenAIProvider::with_config(
-            OpenAIConfig::new()
-                .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
-                    api_key.to_string(),
-                )))
-                .with_base_url("https://openrouter.ai/api/v1"),
-        )
-    };
+    // `OpenAIConfig::openrouter(key)` = an API-key credential plus the
+    // OpenRouter base URL.
+    let make_provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
 
     let mut builder = ProviderRouter::builder()
         .add_provider(Box::new(RoutableProviderBox::with_identity(
@@ -46,7 +35,7 @@ fn build_openrouter_router(
             ModelProviders::OPENROUTER,
         )))
         .rule(RoutingRule {
-            model: ModelId::Name(primary_model.to_string(), None),
+            model: primary_model.into(),
             provider_name: primary_model.to_string(),
         });
 
@@ -58,7 +47,7 @@ fn build_openrouter_router(
                 ModelProviders::OPENROUTER,
             )))
             .rule(RoutingRule {
-                model: ModelId::Name(mem.to_string(), None),
+                model: mem.into(),
                 provider_name: mem.to_string(),
             });
     }
@@ -78,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let router = build_openrouter_router(&api_key, PRIMARY, None);
 
     let agent = AgentSession::builder(router)
-        .with_model(ModelId::Name(PRIMARY.into(), None))
+        .with_model(PRIMARY)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()
@@ -88,39 +77,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Manual OpenRouter agent built successfully!");
 
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
     println!("Sending hello prompt via OpenRouter to {PRIMARY}...");
-    let records = agent.run_turn(prompt)?;
+    let turn = agent.run_turn("Hello! Please say hi back in one sentence.")?;
 
-    // Validate response.
-    let conversation_count = records
-        .iter()
-        .filter(|r| {
-            matches!(r, foundation_ai::types::SessionRecord::Conversation {
-                message: foundation_ai::types::Messages::Assistant { .. },
-            })
-        })
-        .count();
-
-    assert!(
-        conversation_count > 0,
-        "Expected at least one generation record from OpenRouter but got none. Records: {records:#?}"
-    );
-
-    for record in &records {
+    for record in &turn {
         println!("{record:?}");
     }
-
-    println!("\nManual OpenRouter agent responded! Got {} records.", records.len());
+    if let Some(error) = turn.failure() {
+        return Err(format!("the turn ended early: {error}").into());
+    }
+    assert!(
+        !turn.text().is_empty(),
+        "Expected a reply but got none: {turn:#?}"
+    );
+    println!(
+        "\n{}\n\nManual OpenRouter agent responded! Got {} records.",
+        turn.text(),
+        turn.len()
+    );
 
     agent.end()?;
     Ok(())

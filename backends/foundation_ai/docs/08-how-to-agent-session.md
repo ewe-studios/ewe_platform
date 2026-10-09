@@ -12,49 +12,25 @@ Source: `src/agentic/session.rs`.
 
 ```rust
 use foundation_ai::agentic::AgentSession;
-use foundation_ai::backends::anthropic_messages_provider::{AnthropicConfig, AnthropicMessagesProvider};
-use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter,
-    RoutableProviderBox, SessionRecord, TextContent, UserModelContent,
-};
-use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider;
 use foundation_core::valtron::valtron;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 1. A provider, wrapped for routing.
-    let api_key = std::env::var("ANTHROPIC_API_KEY")?;
-    let provider = AnthropicMessagesProvider::with_config(
-        AnthropicConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
-    );
-    let router = ProviderRouter::single(Box::new(RoutableProviderBox::new(provider)));
+    // 1. A provider — a single provider converts into a router.
+    let provider = AnthropicMessagesProvider::api_key(std::env::var("ANTHROPIC_API_KEY")?);
 
     // 2. A session (in-memory stores and a fresh SessionId by default).
-    let agent = AgentSession::builder(router)
-        .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    let agent = AgentSession::builder(provider)
+        .with_model("claude-sonnet-4-6")
         .with_system_prompt("Answer concisely.")
         .build()?;
 
     // 3. A turn.
-    let records = agent.run_turn(Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Explain Rust lifetimes in two sentences.".into(),
-            signature: None,
-        }),
-        signature: None,
-    })?;
-
-    for record in &records {
-        if let SessionRecord::Conversation {
-            message: Messages::Assistant { content: ModelOutput::Text(t), .. },
-        } = record
-        {
-            print!("{}", t.content);
-        }
+    let turn = agent.run_turn("Explain Rust lifetimes in two sentences.")?;
+    print!("{}", turn.text());
+    if let Some(error) = turn.failure() {
+        eprintln!("\nthe turn ended early: {error}");
     }
 
     // 4. Teardown.
@@ -70,9 +46,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## 1. The router
 
-`AgentSession` takes a `ProviderRouter`. One provider:
-`ProviderRouter::single(Box::new(RoutableProviderBox::new(p)))`. Several
-providers, rules and resolution order: Doc 03 §3.
+`AgentSession::builder` takes `impl Into<ProviderRouter>`: a single
+`ModelProvider` converts into a one-provider router, so
+`AgentSession::builder(provider)` works. Several providers:
+`ProviderRouter::builder().provider(a).provider(b).build()`; rules and
+resolution order: Doc 03 §3.
 
 Always set the model with `with_model(...)`. The default `primary_model` is an
 empty name, which only resolves in a single-provider router.
@@ -102,9 +80,9 @@ let agent = AgentSession::builder(router)
 | `with_doc_store(D2)` | `MemoryDocumentStore` | Message history (and the memory audit log); changes the builder's type |
 | `with_memory_store(M2)` | `KvMemoryStore<MemoryStorage>` | Memory tiers; changes the builder's type |
 | `with_toolshed(ToolShed)` | empty | The session's tools — the only tool entry point (§3) |
-| `with_model(ModelId)` | empty name | Primary model |
-| `with_fallback_models(Vec<ModelId>)` | `[]` | Circuit-breaker fallbacks |
-| `with_memory_model(ModelId)` | `None` | Stored in `AgentConfig::memory_model`; nothing generates memory yet (Doc 11) |
+| `with_model(impl Into<ModelId>)` | empty name | Primary model: `"claude-sonnet-4-6"` or a `ModelId` |
+| `with_fallback_models(impl IntoIterator<Item: Into<ModelId>>)` | `[]` | Circuit-breaker fallbacks: `["gpt-4o"]`, a `Vec<ModelId>`, … |
+| `with_memory_model(impl Into<ModelId>)` | `None` | Stored in `AgentConfig::memory_model`; nothing generates memory yet (Doc 11) |
 | `with_system_prompt(..)` | none | |
 | `with_config(AgentConfig)` | `AgentConfig::default()` | `with_model` / `with_fallback_models` / `with_memory_model` override the matching fields at `build()` |
 | `with_context_config(ContextConfig)` | 20 recent messages | |
@@ -152,46 +130,61 @@ Writing tools: Doc 10. Presets and sub-agents:
 
 ## 4. Running turns
 
+Every turn method takes `impl Into<Messages>`: a `&str` / `String` (a user
+message), `Messages::user(..)` / `Messages::agent(..)` / `Messages::system(..)`,
+or any `Messages`.
+
 ### Streaming
 
 ```rust
-use foundation_core::valtron::Stream;
-use foundation_ai::agentic::AgentProgress;
+use foundation_ai::agentic::{AgentProgress, TurnEvent};
 
-for item in agent.run_turn_stream(prompt)? {
-    match item {
-        Stream::Pending(AgentProgress::Generating { model, tokens_so_far }) => {
+for event in agent.run_turn_stream("Refactor src/lib.rs")?.events() {
+    match event {
+        TurnEvent::Text(delta) => print!("{delta}"),
+        TurnEvent::Thinking(_) => {}
+        TurnEvent::ToolCall { name, .. } => eprintln!("[tool {name}]"),
+        TurnEvent::ToolResult { name, .. } => eprintln!("[{name} done]"),
+        // The loop is retrying this answer: clear what you printed for it.
+        TurnEvent::Retract { reason } => eprintln!("\n[retrying: {reason}]"),
+        TurnEvent::Progress(AgentProgress::Generating { model, tokens_so_far }) => {
             eprintln!("[{model}: {} tokens]", tokens_so_far.unwrap_or(0));
         }
-        Stream::Pending(AgentProgress::ToolCallRequested { name }) => eprintln!("[tool {name}]"),
-        Stream::Pending(_) => {}
-        Stream::Next(SessionRecord::Conversation {
-            message: Messages::Assistant { content: ModelOutput::Text(t), .. },
-        }) => print!("{}", t.content),
-        Stream::Next(SessionRecord::Retracted { reason, .. }) => {
-            // The loop is retrying this answer: clear what you printed for it.
-            eprintln!("\n[retrying: {reason}]");
-        }
-        Stream::Next(SessionRecord::FailedAction { error, .. }) => {
-            eprintln!("error: {error:?}");
-        }
-        Stream::Next(SessionRecord::Summary { usage, .. }) => {
-            eprintln!("\n[{} tokens total]", usage.total);
-        }
+        TurnEvent::Failed(error) => eprintln!("\nturn ended early: {error}"),  // terminal
+        TurnEvent::Done(summary) => eprintln!("\n[{} tokens total]", summary.usage.total), // terminal
         _ => {}
     }
 }
 ```
 
-`AgentProgress` is `#[non_exhaustive]`, so keep the `_` arms.
+`TurnEvent` and `AgentProgress` are `#[non_exhaustive]`, so keep the `_`
+arms. Memory records (`WorkingMemory`, `Observation`, `Reflection`) are left
+out of `events()`; iterate the `TurnStream` itself for the raw
+`Stream<SessionRecord, AgentProgress>` items.
 
 ### Collected
 
 ```rust
-let records = agent.run_turn(prompt)?;   // Err on the first FailedAction
+let turn = agent.run_turn("Refactor src/lib.rs")?;   // Turn: Deref<Target = Vec<SessionRecord>>
+print!("{}", turn.text());                           // whatever was produced
+for (id, name, args) in turn.tool_calls() { /* … */ }
+if let Some(usage) = turn.usage() { eprintln!("{} tokens", usage.total); }
+if let Some(error) = turn.failure() {                // then the error, if one ended the turn
+    eprintln!("\nturn ended early: {error}");
+}
+
+// Just the text:
+match agent.ask("Summarise the repo")? {
+    Answer::Complete(text) => println!("{text}"),
+    Answer::Failed { partial_text, error, .. } => eprintln!("stopped early ({error}):\n{partial_text}"),
+}
+let text = agent.ask("Summarise the repo")?.into_result()?;   // when a partial answer is no use
 ```
 
-`run_turn` already drops retracted assistant output.
+`run_turn`, `ask` and `events()` follow the same order: **the output produced
+before a failure first, then the error that ended the turn.** `Err` from any
+of them means the turn never started (preflight, access, the stream failing to
+start). Retracted assistant output is already dropped.
 
 ### Multi-turn
 
@@ -202,8 +195,8 @@ to the `MessageApi`, and the next turn's context includes the last
 ## 5. Steering and lifecycle
 
 ```rust
-agent.steer(msg);       // interrupt: discards an in-flight generation / cancels tools
-agent.follow_up(msg);   // run after the current work
+agent.steer(Messages::agent("Stop and summarise."));   // interrupt: discards an in-flight generation / cancels tools
+agent.follow_up("Also check the config file.");        // run after the current work
 agent.abort();          // end the running turn at the next boundary
 agent.end()?;           // flush the log, persist queued messages, reset the cancel signal
 ```

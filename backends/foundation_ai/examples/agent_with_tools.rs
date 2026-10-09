@@ -1,8 +1,9 @@
-//! Example: Agent with custom tools via ToolPreset and ToolShed.
+//! Example: Agent with custom tools via ToolShed.
 //!
 //! Demonstrates:
-//!   - Building tools with ToolImpl (F19 unified tool model)
-//!   - Giving them to a session through a ToolShed
+//!   - A struct tool (`impl ToolImpl`) that reads its arguments with `ToolArgs`
+//!   - A closure tool (`FnTool`)
+//!   - Giving both to a session through a ToolShed
 //!   - What the model sees: the `shed` meta-tool, then the tools it activates
 //!
 //! Run with:
@@ -15,17 +16,14 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
-use foundation_ai::agentic::ToolShed;
+use foundation_ai::agentic::{FnTool, ToolArgs, ToolShed, TurnEvent};
 use foundation_ai::harness;
-use foundation_ai::types::{
-    ArgType, Args, MessageRole, Messages, SessionId, TextContent, Tool, UserModelContent,
-};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::{ArgType, Args, SessionId, Tool};
 use foundation_core::valtron::valtron;
 use foundation_jsonschema::scheme;
 
 // ---------------------------------------------------------------------------
-// Custom tool: greet
+// A struct tool: greet
 // ---------------------------------------------------------------------------
 
 struct GreetTool;
@@ -43,13 +41,10 @@ impl ToolImpl for GreetTool {
                         "name",
                         scheme::string().min_len(1).description("Name to greet"),
                     )
+                    .optional("shout", scheme::boolean())
                     .build(),
             ),
-            returns: Some(Args::new(
-                scheme::object()
-                    .required("greeting", scheme::string())
-                    .build(),
-            )),
+            returns: None,
         })
     }
 
@@ -57,22 +52,14 @@ impl ToolImpl for GreetTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let name = match arguments.get("name") {
-            Some(ArgType::Text(s)) => s.clone(),
-            _ => {
-                return Err(ToolError::InvalidArguments {
-                    tool: "greet".into(),
-                    reason: "missing 'name'".into(),
-                })
-            }
-        };
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent {
-                content: format!("Hello, {name}!"),
-                signature: None,
-            }),
-            error_detail: None,
-        })
+        let args = ToolArgs::new("greet", &arguments);
+        let name = args.str("name")?;
+        let greeting = format!("Hello, {name}!");
+        // `true` and `"true"` both read as true, whichever backend sent it.
+        if args.opt_bool("shout")?.unwrap_or(false) {
+            return Ok(ToolCallResult::text(greeting.to_uppercase()));
+        }
+        Ok(ToolCallResult::text(greeting))
     }
 }
 
@@ -81,17 +68,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key =
         std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
-    // 1. Build the model preset (Claude Opus main + Sonnet memory)
-    let builder = harness::claude_session(SessionId::new(), &api_key)?;
+    // A closure tool: no struct, no `impl ToolImpl`.
+    let count_letters = FnTool::new(
+        "count_letters",
+        "Count the letters in a word.",
+        Args::new(scheme::object().required("word", scheme::string()).build()),
+        |args: ToolArgs<'_>| {
+            let word = args.str("word").map(str::to_owned);
+            async move {
+                let count = word?.chars().filter(|c| c.is_alphabetic()).count();
+                Ok(ToolCallResult::text(count.to_string()))
+            }
+        },
+    );
 
-    // 2. Build the agent session with its tools. The ToolShed is the one list
-    //    of what the agent can call (add ToolPreset::files(fs) etc. the same way).
-    let agent = builder
-        .with_system_prompt("You are a helpful assistant with a custom greeting tool.")
-        .with_toolshed(ToolShed::new().tool(GreetTool))
+    // 1. Build the model preset (Claude Opus main + Sonnet memory) and the
+    //    session with its tools. The ToolShed is the one list of what the
+    //    agent can call (add ToolPreset::files(fs) etc. the same way).
+    let agent = harness::claude_session(SessionId::new(), &api_key)?
+        .with_system_prompt("You are a helpful assistant with a few custom tools.")
+        .with_toolshed(ToolShed::new().tool(GreetTool).tool(count_letters))
         .build()?;
 
-    // 3. What the model can reach through `shed`, and what it is offered now
+    // 2. What the model can reach through `shed`, and what it is offered now
     //    (just `shed` until `shed` returns a tool).
     let all = agent.tool_manager().all_declarations();
     println!("The session has {} tool(s):", all.tools.len());
@@ -108,25 +107,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .collect::<Vec<_>>()
     );
 
-    // 4. Ask the agent to use the tool
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please use the greet tool to greet Alice.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
-    println!("\nAsking the agent about its tools...");
-    let records = agent.run_turn(prompt)?;
-
-    for record in &records {
-        println!("{record:?}");
+    // 3. Ask the agent to use the tools, watching the turn as it happens.
+    println!("\nAsking the agent to greet Alice...");
+    for event in agent
+        .run_turn_stream("Please greet Alice, then tell me how many letters her name has.")?
+        .events()
+    {
+        match event {
+            TurnEvent::Text(delta) => print!("{delta}"),
+            TurnEvent::ToolCall { name, .. } => println!("\n→ {name}"),
+            TurnEvent::ToolResult { name, .. } => println!("← {name}"),
+            TurnEvent::Failed(error) => return Err(format!("\nturn failed: {error}").into()),
+            TurnEvent::Done(summary) => println!("\n[{} tokens]", summary.usage.total),
+            _ => {}
+        }
     }
 
-    println!("\nAgent responded! Got {} records.", records.len());
     agent.end()?;
     Ok(())
 }

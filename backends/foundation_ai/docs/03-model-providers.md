@@ -97,23 +97,28 @@ The second field is a GGUF quantization for local models. The router only
 looks at `ModelId::name()` — the variant and quantization do not affect
 routing; they matter to the provider that receives the id.
 
+A string converts into `ModelId::Name(s, None)` (`From<&str>` / `From<String>`),
+so APIs that take `impl Into<ModelId>` accept `"gpt-4o"` directly.
+
 ## 3. `ProviderRouter`
 
 ```rust
-// One provider serves everything:
-let router = ProviderRouter::single(Box::new(RoutableProviderBox::new(provider)));
+// One provider serves everything — a provider converts into a router:
+let router: ProviderRouter = provider.into();
+// (= ProviderRouter::single(Box::new(RoutableProviderBox::new(provider))))
+let agent = AgentSession::builder(provider).build()?;   // builder takes impl Into<ProviderRouter>
 
 // Several providers:
 let router = ProviderRouter::builder()
-    .add_provider(Box::new(RoutableProviderBox::new(openai)))
-    .add_provider(Box::new(RoutableProviderBox::new(anthropic)))
+    .provider(openai)                   // = add_provider(Box::new(RoutableProviderBox::new(openai)))
+    .provider(anthropic)
     .rule(RoutingRule {
-        model: ModelId::Name("gpt-4o".into(), None),
-        provider_name: "OpenAI".into(),     // must equal that provider's name()
+        model: "gpt-4o".into(),
+        provider_name: "OpenAI".into(), // must equal that provider's name()
     })
     .build();
 
-let model: BoxModel = router.get_model(&ModelId::Name("gpt-4o".into(), None))?;
+let model: BoxModel = router.get_model(&"gpt-4o".into())?;
 ```
 
 Resolution order (`resolve` / `get_model`):
@@ -147,6 +152,19 @@ All three HTTP backends stream with Server-Sent Events through
 `foundation_netio`, and retry 429 / 5xx internally (`with_max_retries`). The
 config builders share `with_base_url`, `with_timeout_secs`,
 `with_max_retries`, `with_proxy_url`, `with_streaming` and `with_auth`.
+
+API keys:
+
+```rust
+let provider = AnthropicMessagesProvider::api_key(key);                  // also OpenAIProvider, ResponsesProvider
+let config = AnthropicConfig::from_env()?;                               // ANTHROPIC_API_KEY
+let config = OpenAIConfig::from_env()?;                                  // OPENAI_API_KEY (ResponsesConfig too)
+let config = OpenAIConfig::openrouter_from_env()?;                       // OPENROUTER_API_KEY + OpenRouter base URL
+let config = OpenAIConfig::api_key(key).with_base_url("http://localhost:11434/v1");
+```
+
+`api_key(key)` is `new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)))`;
+`from_env` returns `Err(std::env::VarError)` when the variable is unset.
 
 ### Model catalogues (`src/models/providers/`)
 
