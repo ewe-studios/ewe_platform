@@ -5187,6 +5187,7 @@ dependencies = [
  "fancy-regex 0.14.0",
  "foundation_errstacks",
  "itoa",
+ "libm",
  "percent-encoding",
  "regex",
  "ryu",

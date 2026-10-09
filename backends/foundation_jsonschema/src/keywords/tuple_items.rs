@@ -145,6 +145,7 @@ mod tests {
     use super::*;
     use crate::node::SchemaNode;
     use crate::paths::{LazyLocation, Location};
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

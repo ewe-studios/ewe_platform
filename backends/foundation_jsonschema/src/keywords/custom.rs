@@ -5,6 +5,7 @@
 
 use crate::error::ValidationError;
 use crate::paths::Location;
+use alloc::boxed::Box;
 
 use super::BoxedValidator;
 

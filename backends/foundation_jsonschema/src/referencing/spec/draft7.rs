@@ -2,6 +2,7 @@
 //!
 //! Same structure as Draft 6 but also supports if/then/else.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 use serde_json::{Map, Value};
 

@@ -1,5 +1,6 @@
 //! Draft 6 specific sub-resource traversal.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 use serde_json::{Map, Value};
 

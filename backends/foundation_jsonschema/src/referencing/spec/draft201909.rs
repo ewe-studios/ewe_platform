@@ -2,6 +2,7 @@
 //!
 //! Same as 2020-12 except no `prefixItems` (uses `items` as array).
 
+use alloc::string::String;
 use alloc::vec::Vec;
 use serde_json::{Map, Value};
 

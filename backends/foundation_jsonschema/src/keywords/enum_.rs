@@ -105,6 +105,7 @@ fn numbers_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

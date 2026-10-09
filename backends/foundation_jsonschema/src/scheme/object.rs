@@ -1,6 +1,9 @@
 //! Object type schema builder — properties, required, additional properties.
 
 use super::{BTreeMap, ValidationOptions, Value};
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 use serde_json::Map;
 
 /// Builder for JSON Schema object type.

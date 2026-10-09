@@ -11,6 +11,7 @@
 
 use alloc::collections::BTreeSet;
 use alloc::string::String;
+use alloc::string::ToString;
 
 /// Mutable state for a single validation run.
 ///

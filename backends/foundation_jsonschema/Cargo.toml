@@ -12,16 +12,29 @@ include = ["src", "artefacts", "Cargo.toml", "README.md"]
 
 [features]
 default = ["std"]
-std = ["foundation_errstacks/std", "dep:tracing"]
+std = [
+    "foundation_errstacks/std",
+    "serde/std",
+    "serde_json/std",
+    "regex/std",
+    "percent-encoding/std",
+    "derive_more/std",
+    "dep:tracing",
+]
 fancy-regex = ["dep:fancy-regex"]
 
 [dependencies]
-serde = { workspace = true }
-serde_json = { workspace = true }
-regex = { workspace = true }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-derive_more = { workspace = true }
-percent-encoding = "2.3"
+# Every dependency below turns `std` on by default; this crate is
+# `no_std + alloc` without its own `std` feature, so defaults are disabled and
+# `std` is forwarded explicitly from the `std` feature above.
+serde = { version = "1.0.197", default-features = false, features = ["alloc", "derive"] }
+serde_json = { version = "1.0.114", default-features = false, features = ["alloc"] }
+regex = { version = "1.12.2", default-features = false, features = ["perf", "unicode"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", default-features = false, features = ["alloc"] }
+derive_more = { version = "2", default-features = false, features = ["display", "error"] }
+percent-encoding = { version = "2.3", default-features = false, features = ["alloc"] }
+# `f64::fract`/`round` are std-only; libm provides identical no_std versions.
+libm = "0.2"
 itoa = "1.0"
 ryu = "1.0"
 fancy-regex = { version = "0.14", optional = true }

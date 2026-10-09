@@ -173,6 +173,7 @@ impl JsonResolver for MapResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use serde_json::json;
 
     #[test]

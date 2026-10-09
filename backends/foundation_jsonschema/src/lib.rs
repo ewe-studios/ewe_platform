@@ -20,7 +20,10 @@
 //! # Features
 //!
 //! - **`std`** (default): Enables `std::error::Error` impls, tracing, and
-//!   `std`-only features of `foundation_errstacks`.
+//!   `std`-only features of `foundation_errstacks`, and forwards `std` to
+//!   `serde`, `serde_json`, `regex`, `percent-encoding` and `derive_more`.
+//!   Without it (`default-features = false`) the crate and all of its
+//!   dependencies are `no_std + alloc`.
 //! - **`fancy-regex`**: Enables ECMA-262 compatible regex via `fancy-regex`
 //!   for the `pattern` keyword.
 //!
@@ -71,6 +74,7 @@ pub use schema_type::JsonSchema;
 // ── Core Types (Feature 0) ──────────────────────────────────────────
 
 mod draft;
+mod float;
 mod paths;
 mod resolver_trait;
 mod types;

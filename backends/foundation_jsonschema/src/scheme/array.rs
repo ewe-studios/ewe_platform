@@ -1,6 +1,9 @@
 //! Array type schema builder — items, length, uniqueness constraints.
 
 use super::{BTreeMap, ValidationOptions, Value};
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
 /// Builder for JSON Schema array type.
 ///

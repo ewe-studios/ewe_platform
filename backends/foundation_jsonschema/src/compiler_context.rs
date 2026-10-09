@@ -4,6 +4,7 @@ use alloc::boxed::Box;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::rc::Rc;
 use alloc::string::String;
+use alloc::string::ToString;
 
 use core::cell::RefCell;
 
