@@ -39,7 +39,10 @@ fn message_constructors_set_the_role_and_text() {
 fn strings_convert_into_user_messages() {
     let from_str: Messages = "hello".into();
     let from_string: Messages = String::from("hello").into();
-    assert_eq!(text_and_role(&from_str), ("hello".into(), MessageRole::User));
+    assert_eq!(
+        text_and_role(&from_str),
+        ("hello".into(), MessageRole::User)
+    );
     assert_eq!(
         text_and_role(&from_string),
         ("hello".into(), MessageRole::User)
@@ -63,4 +66,85 @@ fn strings_convert_into_named_model_ids() {
     let from_string: ModelId = String::from("gpt-4o").into();
     assert_eq!(from_str, ModelId::Name("claude-sonnet-4-6".into(), None));
     assert_eq!(from_string, ModelId::Name("gpt-4o".into(), None));
+}
+
+// ---------------------------------------------------------------------------
+// Item 10 — router conversions
+// ---------------------------------------------------------------------------
+
+fn anthropic() -> foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider {
+    use foundation_ai::backends::anthropic_messages_provider::{
+        AnthropicConfig, AnthropicMessagesProvider,
+    };
+    use foundation_auth::{AuthCredential, ConfidentialText};
+    AnthropicMessagesProvider::with_config(AnthropicConfig::new().with_auth(
+        AuthCredential::SecretOnly(ConfidentialText::new("k".into())),
+    ))
+}
+
+fn openai() -> foundation_ai::backends::openai_provider::OpenAIProvider {
+    use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
+    use foundation_auth::{AuthCredential, ConfidentialText};
+    OpenAIProvider::with_config(OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(
+        ConfidentialText::new("k".into()),
+    )))
+}
+
+#[test]
+fn a_provider_converts_into_a_single_provider_router() {
+    use foundation_ai::types::{ModelId, ProviderRouter};
+
+    let router: ProviderRouter = anthropic().into();
+    let resolved = router
+        .resolve(&ModelId::from("claude-sonnet-4-6"))
+        .expect("the single provider serves the model");
+    assert_eq!(resolved.name(), anthropic_name());
+}
+
+fn anthropic_name() -> String {
+    use foundation_ai::types::ModelProvider;
+    anthropic()
+        .describe()
+        .expect("anthropic describes itself")
+        .name
+        .to_string()
+}
+
+#[test]
+fn router_builder_takes_providers_directly() {
+    use foundation_ai::types::{ProviderRouter, RoutingRule};
+
+    let router = ProviderRouter::builder()
+        .provider(anthropic())
+        .provider(openai())
+        .rule(RoutingRule {
+            model: "gpt-4o".into(),
+            provider_name: openai_name(),
+        })
+        .build();
+    let resolved = router.resolve(&"gpt-4o".into()).expect("gpt-4o routes");
+    assert_eq!(resolved.name(), openai_name());
+}
+
+fn openai_name() -> String {
+    use foundation_ai::types::ModelProvider;
+    openai()
+        .describe()
+        .expect("openai describes itself")
+        .name
+        .to_string()
+}
+
+#[test]
+fn agent_session_builder_takes_a_provider() {
+    use foundation_ai::agentic::AgentSession;
+
+    let session = AgentSession::builder(anthropic())
+        .with_model("claude-sonnet-4-6")
+        .build()
+        .expect("a session over a bare provider builds");
+    assert!(session
+        .router()
+        .resolve(&"claude-sonnet-4-6".into())
+        .is_ok());
 }

@@ -422,6 +422,24 @@ impl Default for ProviderRouter {
     }
 }
 
+/// A single provider is a router: `AgentSession::builder(provider)`.
+///
+/// `ModelProvider` is a local trait that `ProviderRouter` doesn't implement,
+/// so this doesn't overlap with `impl<T> From<T> for T`.
+///
+/// # Panics
+/// Panics if the provider cannot describe itself (see
+/// [`RoutableProviderBox::new`]).
+impl<P> From<P> for ProviderRouter
+where
+    P: ModelProvider + Send + Sync + 'static,
+    P::Model: Send + Sync,
+{
+    fn from(provider: P) -> Self {
+        ProviderRouter::single(Box::new(RoutableProviderBox::new(provider)))
+    }
+}
+
 // ---------------------------------------------------------------------------
 // ProviderRouterBuilder
 
@@ -432,6 +450,22 @@ pub struct ProviderRouterBuilder {
 }
 
 impl ProviderRouterBuilder {
+    /// Add a provider, wrapped in a `RoutableProviderBox` (name and identity
+    /// from its descriptor). Shorthand for
+    /// `add_provider(Box::new(RoutableProviderBox::new(provider)))`.
+    ///
+    /// # Panics
+    /// Panics if the provider cannot describe itself (see
+    /// [`RoutableProviderBox::new`]).
+    #[must_use]
+    pub fn provider<P>(self, provider: P) -> Self
+    where
+        P: ModelProvider + Send + Sync + 'static,
+        P::Model: Send + Sync,
+    {
+        self.add_provider(Box::new(RoutableProviderBox::new(provider)))
+    }
+
     /// Add a routable provider.
     #[must_use]
     pub fn add_provider(mut self, provider: Box<dyn RoutableProvider>) -> Self {
