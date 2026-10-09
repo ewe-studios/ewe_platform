@@ -255,8 +255,7 @@ agent.end()?;
 # }
 ```
 
-Runnable version: `cargo run -p foundation_ai --example agent_with_tools
---features agentic`.
+Runnable version: `cargo run -p foundation_ai --example agent_with_tools`.
 
 ---
 

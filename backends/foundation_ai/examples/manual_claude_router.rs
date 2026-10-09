@@ -7,7 +7,7 @@
 //! Run with:
 //! ```bash
 //! ANTHROPIC_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example manual_claude_router --features agentic
+//!   --example manual_claude_router
 //! ```
 
 use foundation_ai::agentic::{AgentConfig, AgentSession};

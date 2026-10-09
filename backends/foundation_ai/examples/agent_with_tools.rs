@@ -9,7 +9,7 @@
 //! Run with:
 //! ```bash
 //! ANTHROPIC_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example agent_with_tools --features agentic
+//!   --example agent_with_tools
 //! ```
 
 use std::collections::HashMap;

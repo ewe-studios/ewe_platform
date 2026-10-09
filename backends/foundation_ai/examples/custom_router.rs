@@ -10,7 +10,7 @@
 //! Run with:
 //! ```bash
 //! ANTHROPIC_API_KEY=sk-... OPENAI_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example custom_router --features agentic
+//!   --example custom_router
 //! ```
 
 use foundation_ai::agentic::AgentConfig;

@@ -55,7 +55,6 @@ fresh `AgentLoop` that shares them and schedules it on the Valtron executor.
 
 | Flag | Effect |
 |---|---|
-| `agentic` *(default)* | The agent layer (today it gates tests/examples; the modules always compile) |
 | `llamacpp` *(default)* | llama.cpp backend + HuggingFace GGUF provider (native and emscripten) |
 | `candle` *(default)* | Candle backend + HuggingFace safetensors provider (native) |
 | `cuda` / `cuda_static` / `metal` / `vulkan` | GPU builds of llama.cpp |

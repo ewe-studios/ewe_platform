@@ -7,15 +7,15 @@
 //! ```bash
 //! # CPU only:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp"
+//!   --example hello_llamacpp
 //!
 //! # With Apple Metal GPU:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp metal"
+//!   --example hello_llamacpp --features metal
 //!
 //! # With CUDA GPU:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp cuda"
+//!   --example hello_llamacpp --features cuda
 //! ```
 
 use foundation_ai::agentic::TurnEvent;

@@ -3,7 +3,7 @@
 //! Run with:
 //! ```bash
 //! OPENAI_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example hello_openai --features agentic
+//!   --example hello_openai
 //! ```
 
 use foundation_ai::agentic::Answer;

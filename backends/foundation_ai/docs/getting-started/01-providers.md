@@ -19,16 +19,16 @@ scratch.
 |---------|----------------|------|
 | `llamacpp` | `llama.cpp` GGUF inference + GPU backends | Local inference |
 | `candle` | Candle (safetensors) inference | Local ML framework |
-| `agentic` | Agent loop, session, tools, memory | Agent system |
 | `candle-cuda` / `cuda` / `metal` / `vulkan` | GPU acceleration | Local with GPU |
 | `testing` | `MockModelProvider`, `MockTool` | Unit tests |
 
-The `llamacpp`, `candle`, and `agentic` features are on by default. For GPU
+The agent layer (loop, session, tools, memory) is always compiled; the
+`llamacpp` and `candle` features are on by default. For GPU
 setup, see the **[GPU Acceleration](../14-gpu-acceleration.md)** deep dive.
 
 ```toml
 [dependencies]
-foundation_ai = { version = "0.0.1", default-features = false, features = ["agentic"] }
+foundation_ai = { version = "0.0.1", default-features = false }
 foundation_auth = "0.0.1"
 foundation_db = "0.0.1"
 serde_json = "1"
@@ -580,14 +580,14 @@ Tools:
 
 ```bash
 # Harness shortcuts:
-cargo run -p foundation_ai --example hello_claude --features agentic
-cargo run -p foundation_ai --example hello_openai --features agentic
-cargo run -p foundation_ai --example hello_llamacpp --features "agentic llamacpp"
+cargo run -p foundation_ai --example hello_claude
+cargo run -p foundation_ai --example hello_openai
+cargo run -p foundation_ai --example hello_llamacpp
 
 # Manual (no helpers):
-cargo run -p foundation_ai --example manual_claude_router --features agentic
-cargo run -p foundation_ai --example manual_openrouter --features agentic
-cargo run -p foundation_ai --example agent_with_tools --features agentic
+cargo run -p foundation_ai --example manual_claude_router
+cargo run -p foundation_ai --example manual_openrouter
+cargo run -p foundation_ai --example agent_with_tools
 ```
 
 ---

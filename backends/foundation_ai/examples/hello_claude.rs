@@ -3,7 +3,7 @@
 //! Run with:
 //! ```bash
 //! ANTHROPIC_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example hello_claude --features agentic
+//!   --example hello_claude
 //! ```
 
 use foundation_ai::harness;

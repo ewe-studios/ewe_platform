@@ -462,16 +462,16 @@ agent.context_provider();   // history + memory recall
 
 ```bash
 # Harness shortcuts:
-cargo run -p foundation_ai --example hello_claude --features agentic
-cargo run -p foundation_ai --example hello_openai --features agentic
-cargo run -p foundation_ai --example hello_openrouter --features agentic
-cargo run -p foundation_ai --example hello_llamacpp --features "agentic llamacpp"
+cargo run -p foundation_ai --example hello_claude
+cargo run -p foundation_ai --example hello_openai
+cargo run -p foundation_ai --example hello_openrouter
+cargo run -p foundation_ai --example hello_llamacpp
 
 # Manual (no helpers):
-cargo run -p foundation_ai --example manual_claude_router --features agentic
-cargo run -p foundation_ai --example manual_openrouter --features agentic
-cargo run -p foundation_ai --example custom_router --features agentic
-cargo run -p foundation_ai --example agent_with_tools --features agentic
+cargo run -p foundation_ai --example manual_claude_router
+cargo run -p foundation_ai --example manual_openrouter
+cargo run -p foundation_ai --example custom_router
+cargo run -p foundation_ai --example agent_with_tools
 ```
 
 ---
