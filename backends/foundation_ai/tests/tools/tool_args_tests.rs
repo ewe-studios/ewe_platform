@@ -187,3 +187,90 @@ fn edit_accepts_replace_all_in_either_spelling() {
         }
     });
 }
+
+// ---------------------------------------------------------------------------
+// Item 13 — closure tools
+// ---------------------------------------------------------------------------
+
+fn greet_tool() -> foundation_ai::agentic::FnTool {
+    use foundation_ai::agentic::FnTool;
+    use foundation_ai::types::Args;
+    use foundation_jsonschema::scheme;
+
+    FnTool::new(
+        "greet",
+        "Greet someone by name.",
+        Args::new(scheme::object().required("name", scheme::string()).build()),
+        |args: ToolArgs<'_>| {
+            let name = args.str("name").map(str::to_owned);
+            async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
+        },
+    )
+}
+
+#[test]
+fn fn_tool_declares_itself_and_runs_the_closure() {
+    let tool = greet_tool();
+    let def = tool.definition();
+    assert_eq!(def.name(), "greet");
+    assert_eq!(
+        def.category(),
+        Some("custom"),
+        "category defaults to custom"
+    );
+
+    let out = futures_lite::future::block_on(
+        tool.execute(args(&[("name", ArgType::Text("Ada".into()))])),
+    )
+    .expect("greets");
+    assert!(matches!(
+        out.content,
+        UserModelContent::Text(TextContent { ref content, .. }) if content == "Hello, Ada!"
+    ));
+
+    // Argument errors from the closure surface as tool errors.
+    let err = futures_lite::future::block_on(tool.execute(HashMap::new())).unwrap_err();
+    assert!(matches!(
+        err,
+        ToolError::InvalidArguments { ref tool, ref reason }
+            if tool == "greet" && reason.contains("`name`")
+    ));
+
+    let renamed = greet_tool().with_category("social");
+    assert_eq!(renamed.definition().category(), Some("social"));
+}
+
+#[test]
+fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
+    use foundation_ai::agentic::{AgentSession, ToolCallRequest, ToolShed};
+    use foundation_ai::types::{ExecutionHint, ProviderRouter};
+
+    let session = AgentSession::builder(ProviderRouter::builder().build())
+        .with_toolshed(ToolShed::new().tool(greet_tool()))
+        .build()
+        .expect("session builds");
+    let manager = session.tool_manager();
+    assert!(manager.names().contains(&"greet".to_string()));
+
+    let request = |arguments| ToolCallRequest {
+        id: "c1".into(),
+        name: "greet".into(),
+        arguments,
+        depends_on: Vec::new(),
+        execution_hint: ExecutionHint::default(),
+    };
+    let ok = futures_lite::future::block_on(
+        manager.execute_one(&request(args(&[("name", ArgType::Text("Bo".into()))]))),
+    )
+    .expect("runs");
+    assert!(matches!(
+        ok.content,
+        UserModelContent::Text(TextContent { ref content, .. }) if content == "Hello, Bo!"
+    ));
+    // The schema is enforced before the closure runs.
+    let err = futures_lite::future::block_on(
+        manager.execute_one(&request(args(&[("name", ArgType::I64(3))]))),
+    )
+    .unwrap_err();
+    assert!(matches!(err, ToolError::InvalidArguments { .. }), "{err:?}");
+}

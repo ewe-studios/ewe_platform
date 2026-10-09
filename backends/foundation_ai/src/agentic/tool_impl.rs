@@ -12,7 +12,9 @@
 use crate::agentic::tools::shed::{
     shed_definition, ShedResult, ToolDiscovery, ToolSummary, DEFAULT_SHED_LIMIT, SHED_TOOL_NAME,
 };
-use crate::types::{ArgType, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent};
+use crate::types::{
+    ArgType, Args, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent,
+};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -386,6 +388,102 @@ pub trait ToolImpl: Send + Sync {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError>;
+}
+
+// ---------------------------------------------------------------------------
+// FnTool — a tool from a closure
+
+type FnToolFuture = core::pin::Pin<
+    Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
+>;
+type FnToolRun = dyn for<'a> Fn(ToolArgs<'a>) -> FnToolFuture + Send + Sync;
+
+/// A tool built from a closure instead of a struct with an `impl ToolImpl`.
+///
+/// The closure gets the call's [`ToolArgs`] and returns a future; read what
+/// it needs from the arguments first, then move the owned values into the
+/// future:
+///
+/// ```ignore
+/// let greet = FnTool::new(
+///     "greet",
+///     "Greet someone by name.",
+///     Args::new(scheme::object().required("name", scheme::string()).build()),
+///     |args: ToolArgs<'_>| {
+///         let name = args.str("name").map(str::to_owned);
+///         async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
+///     },
+/// );
+/// let tools = ToolShed::new().tool(greet);
+/// ```
+///
+/// The category defaults to `"custom"`; set it with
+/// [`with_category`](Self::with_category).
+pub struct FnTool {
+    name: String,
+    description: String,
+    category: String,
+    arguments: Args,
+    run: Box<FnToolRun>,
+}
+
+impl FnTool {
+    /// A single-command tool named `name` whose arguments follow the
+    /// `arguments` schema.
+    pub fn new<F, Fut>(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        arguments: Args,
+        run: F,
+    ) -> Self
+    where
+        F: for<'a> Fn(ToolArgs<'a>) -> Fut + Send + Sync + 'static,
+        Fut: core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send + 'static,
+    {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            category: "custom".into(),
+            arguments,
+            run: Box::new(move |args| Box::pin(run(args))),
+        }
+    }
+
+    /// Set the category (used for grouping and by `shed`'s search).
+    #[must_use]
+    pub fn with_category(mut self, category: impl Into<String>) -> Self {
+        self.category = category.into();
+        self
+    }
+}
+
+impl std::fmt::Debug for FnTool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FnTool")
+            .field("name", &self.name)
+            .field("category", &self.category)
+            .finish_non_exhaustive()
+    }
+}
+
+#[async_trait]
+impl ToolImpl for FnTool {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
+            name: self.name.clone(),
+            category: self.category.clone(),
+            description: self.description.clone(),
+            arguments: self.arguments.clone(),
+            returns: None,
+        })
+    }
+
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        (self.run)(ToolArgs::new(&self.name, &arguments)).await
+    }
 }
 
 // ---------------------------------------------------------------------------

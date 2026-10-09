@@ -51,8 +51,9 @@ pub use session::{AgentSession, AgentSessionBuilder};
 pub use steering::{CancelCode, SteeringQueues};
 pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use tool_impl::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
-    ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
+    FailMode, FnTool, ToolArgs, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage,
+    ToolCallWorkflow, ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
+    WorkflowResult,
 };
 #[cfg(not(target_family = "wasm"))]
 pub use tools::search::{
