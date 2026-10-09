@@ -9,7 +9,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use foundation_ai::agentic::testing::{mock_text, mock_text_usage, mock_tool_call, MockModelProvider};
+use foundation_ai::agentic::testing::{
+    mock_text, mock_text_usage, mock_tool_call, MockModelProvider,
+};
 use foundation_ai::agentic::{
     AgentConfig, AgentSession, AuthError, KvMemoryStore, MemoryStore, SessionAccessProvider,
     TokenBudget, ToolCallResult, ToolDefinition, ToolError, ToolImpl, UserId,
@@ -27,6 +29,7 @@ use foundation_jsonschema::scheme;
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 type Session = AgentSession<Doc, Mem>;
+type SeenArgs = Arc<Mutex<Vec<HashMap<String, ArgType>>>>;
 
 fn user_msg(text: &str) -> Messages {
     Messages::User {
@@ -53,11 +56,11 @@ fn session_with(mock: MockModelProvider) -> Session {
 
 /// A tool that records the arguments it was called with.
 struct RecordingTool {
-    seen: Arc<Mutex<Vec<HashMap<String, ArgType>>>>,
+    seen: SeenArgs,
 }
 
 impl RecordingTool {
-    fn new() -> (Self, Arc<Mutex<Vec<HashMap<String, ArgType>>>>) {
+    fn new() -> (Self, SeenArgs) {
         let seen = Arc::new(Mutex::new(Vec::new()));
         (
             Self {
@@ -159,9 +162,12 @@ fn builder_with_stores_needs_no_default_bound() {
         KvMemoryStore::new(MemoryStorage::new()),
     );
     let records = session.run_turn(user_msg("hi")).expect("turn succeeds");
-    assert!(records
-        .iter()
-        .any(|r| matches!(r, SessionRecord::Conversation { message: Messages::Assistant { .. } })));
+    assert!(records.iter().any(|r| matches!(
+        r,
+        SessionRecord::Conversation {
+            message: Messages::Assistant { .. }
+        }
+    )));
 }
 
 #[valtron_test]
@@ -173,7 +179,10 @@ fn memory_tool_writes_reach_the_assembled_context() {
             "memory",
             HashMap::from([
                 ("command".to_string(), ArgType::Text("add".into())),
-                ("fact".to_string(), ArgType::Text("the user prefers tea".into())),
+                (
+                    "fact".to_string(),
+                    ArgType::Text("the user prefers tea".into()),
+                ),
             ]),
         )],
     );
@@ -183,7 +192,9 @@ fn memory_tool_writes_reach_the_assembled_context() {
     ToolPreset::memory(Arc::new(session.memory_hierarchy().clone()))
         .register_all(session.tool_manager());
 
-    let records = session.run_turn(user_msg("remember I like tea")).expect("turn succeeds");
+    let records = session
+        .run_turn(user_msg("remember I like tea"))
+        .expect("turn succeeds");
     assert_eq!(
         tool_results(&records),
         vec![("memory".to_string(), None)],
@@ -205,7 +216,10 @@ fn memory_tool_writes_reach_the_assembled_context() {
                 if t.content.contains("the user prefers tea")
         )
     });
-    assert!(has_fact, "working memory must be visible to context assembly");
+    assert!(
+        has_fact,
+        "working memory must be visible to context assembly"
+    );
 }
 
 #[valtron_test]
@@ -220,7 +234,9 @@ fn resume_with_stores_sees_earlier_history() {
         .with_model(mock_model())
         .build()
         .expect("first session builds");
-    first.run_turn(user_msg("first question")).expect("turn succeeds");
+    first
+        .run_turn(user_msg("first question"))
+        .expect("turn succeeds");
     first.end().expect("end succeeds");
 
     // MemoryDocumentStore isn't Clone, so hand the resumed session the same
@@ -302,21 +318,35 @@ fn recent_messages_reach_the_model_oldest_first() {
 #[valtron_test]
 fn streamed_deltas_are_persisted_as_one_message() {
     let mut mock = MockModelProvider::new();
-    mock.on_any(vec![mock_text("Hel"), mock_text("lo, "), mock_text("world")]);
+    mock.on_any(vec![
+        mock_text("Hel"),
+        mock_text("lo, "),
+        mock_text("world"),
+    ]);
     let session = session_with(mock);
 
     session.run_turn(user_msg("hi")).expect("turn succeeds");
-    assert_eq!(stored_assistant_texts(&session), vec!["Hello, world".to_string()]);
+    assert_eq!(
+        stored_assistant_texts(&session),
+        vec!["Hello, world".to_string()]
+    );
 }
 
 #[valtron_test]
 fn streamed_snapshots_are_persisted_as_one_message() {
     let mut mock = MockModelProvider::new();
-    mock.on_any(vec![mock_text("Hel"), mock_text("Hello"), mock_text("Hello, world")]);
+    mock.on_any(vec![
+        mock_text("Hel"),
+        mock_text("Hello"),
+        mock_text("Hello, world"),
+    ]);
     let session = session_with(mock);
 
     session.run_turn(user_msg("hi")).expect("turn succeeds");
-    assert_eq!(stored_assistant_texts(&session), vec!["Hello, world".to_string()]);
+    assert_eq!(
+        stored_assistant_texts(&session),
+        vec!["Hello, world".to_string()]
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -335,7 +365,10 @@ fn builder_registered_tools_satisfy_preflight() {
         .with_tool(tool)
         .build()
         .expect("a declared and registered tool passes preflight");
-    assert!(session.tool_manager().names().contains(&"greet".to_string()));
+    assert!(session
+        .tool_manager()
+        .names()
+        .contains(&"greet".to_string()));
 }
 
 #[valtron_test]
@@ -355,7 +388,9 @@ fn text_protocol_tool_calls_run_the_tool() {
     let (tool, seen) = RecordingTool::new();
     session.tool_manager().register(Arc::new(tool));
 
-    let records = session.run_turn(user_msg("greet Ada")).expect("turn succeeds");
+    let records = session
+        .run_turn(user_msg("greet Ada"))
+        .expect("turn succeeds");
 
     assert_eq!(tool_results(&records), vec![("greet".to_string(), None)]);
     let calls = seen.lock().unwrap();
@@ -382,7 +417,10 @@ fn arguments_violating_the_schema_are_rejected_before_execution() {
     let results = tool_results(&records);
     assert_eq!(results.len(), 1);
     assert!(
-        results[0].1.as_deref().is_some_and(|e| e.contains("invalid arguments")),
+        results[0]
+            .1
+            .as_deref()
+            .is_some_and(|e| e.contains("invalid arguments")),
         "the model sees a validation error: {results:?}"
     );
     assert!(seen.lock().unwrap().is_empty(), "the tool must not run");
@@ -447,13 +485,21 @@ fn denied_tools_do_not_run() {
     let (tool, seen) = RecordingTool::new();
     session.tool_manager().register(Arc::new(tool));
 
-    let records = session.run_turn(user_msg("greet Ada")).expect("turn succeeds");
+    let records = session
+        .run_turn(user_msg("greet Ada"))
+        .expect("turn succeeds");
     let results = tool_results(&records);
     assert!(
-        results[0].1.as_deref().is_some_and(|e| e.contains("not authorized")),
+        results[0]
+            .1
+            .as_deref()
+            .is_some_and(|e| e.contains("not authorized")),
         "{results:?}"
     );
-    assert!(seen.lock().unwrap().is_empty(), "a denied tool must not run");
+    assert!(
+        seen.lock().unwrap().is_empty(),
+        "a denied tool must not run"
+    );
 }
 
 #[valtron_test]

@@ -186,7 +186,10 @@ fn text_formatter_parses_all_json_arg_types() {
     assert_eq!(name, "do_it");
     // The tool receives the entries of the call's `arguments` object.
     let args = arguments.as_ref().expect("arguments present");
-    assert!(!args.contains_key("arguments"), "no envelope nesting: {args:?}");
+    assert!(
+        !args.contains_key("arguments"),
+        "no envelope nesting: {args:?}"
+    );
     assert!(!args.contains_key("name"), "no envelope nesting: {args:?}");
 
     // integer → I64

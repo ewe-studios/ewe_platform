@@ -25,8 +25,8 @@ use serde::{Deserialize, Serialize};
 use foundation_errstacks::ErrorTrace;
 
 use crate::costing::{calculate_cost, CostAccumulator};
-use crate::types::base_types::json_value_to_arg_type;
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
+use crate::types::base_types::json_value_to_arg_type;
 use crate::types::base_types::{
     ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
     ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,

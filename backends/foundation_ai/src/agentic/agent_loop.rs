@@ -347,18 +347,15 @@ fn coalesce_turn(collected: &[Messages]) -> Vec<Messages> {
             // Only assistant output is persisted from a turn.
             _ => continue,
         };
-        match kind {
-            Some(kind) => {
-                if !run.is_empty() && kind != run_kind {
-                    flush(&mut run, &run_kind, &mut out);
-                }
-                run_kind = kind;
-                run.push(message);
-            }
-            None => {
+        if let Some(kind) = kind {
+            if !run.is_empty() && kind != run_kind {
                 flush(&mut run, &run_kind, &mut out);
-                out.push(message.clone());
             }
+            run_kind = kind;
+            run.push(message);
+        } else {
+            flush(&mut run, &run_kind, &mut out);
+            out.push(message.clone());
         }
     }
     flush(&mut run, &run_kind, &mut out);

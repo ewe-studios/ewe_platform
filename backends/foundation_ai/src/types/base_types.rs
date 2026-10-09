@@ -651,8 +651,9 @@ impl ArgType {
         use serde_json::Value;
         match self {
             ArgType::Text(s) => Value::String(s.clone()),
-            ArgType::Float32(n) => serde_json::Number::from_f64(f64::from(*n))
-                .map_or(Value::Null, Value::Number),
+            ArgType::Float32(n) => {
+                serde_json::Number::from_f64(f64::from(*n)).map_or(Value::Null, Value::Number)
+            }
             ArgType::Float64(n) => {
                 serde_json::Number::from_f64(*n).map_or(Value::Null, Value::Number)
             }
@@ -661,17 +662,20 @@ impl ArgType {
             ArgType::U16(n) => Value::from(*n),
             ArgType::U32(n) => Value::from(*n),
             ArgType::U64(n) => Value::from(*n),
-            ArgType::U128(n) => u64::try_from(*n)
-                .map_or_else(|_| Value::String(n.to_string()), Value::from),
+            ArgType::U128(n) => {
+                u64::try_from(*n).map_or_else(|_| Value::String(n.to_string()), Value::from)
+            }
             ArgType::Isize(n) => Value::from(*n),
             ArgType::I8(n) => Value::from(*n),
             ArgType::I16(n) => Value::from(*n),
             ArgType::I32(n) => Value::from(*n),
             ArgType::I64(n) => Value::from(*n),
-            ArgType::I128(n) => i64::try_from(*n)
-                .map_or_else(|_| Value::String(n.to_string()), Value::from),
-            ArgType::Duration(d) => serde_json::Number::from_f64(d.as_secs_f64())
-                .map_or(Value::Null, Value::Number),
+            ArgType::I128(n) => {
+                i64::try_from(*n).map_or_else(|_| Value::String(n.to_string()), Value::from)
+            }
+            ArgType::Duration(d) => {
+                serde_json::Number::from_f64(d.as_secs_f64()).map_or(Value::Null, Value::Number)
+            }
             ArgType::JSON(raw) => {
                 serde_json::from_str(raw).unwrap_or_else(|_| Value::String(raw.clone()))
             }

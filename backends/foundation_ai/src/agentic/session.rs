@@ -681,7 +681,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         D: Default,
         M: Default,
     {
-        Self::resume_with_stores(session_id, router, config, policy, D::default(), M::default())
+        Self::resume_with_stores(
+            session_id,
+            router,
+            config,
+            policy,
+            D::default(),
+            M::default(),
+        )
     }
 
     /// Rehydrate a session by `SessionId` from the stores that hold it.

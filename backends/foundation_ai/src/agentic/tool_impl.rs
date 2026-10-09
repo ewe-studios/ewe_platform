@@ -77,6 +77,7 @@ pub struct ToolCallResult {
 /// Every backend maps a JSON boolean to `ArgType::JSON("true")`; models also
 /// send the string `"true"`. Both are accepted.
 #[must_use]
+#[allow(clippy::implicit_hasher)]
 pub fn arg_bool(args: &HashMap<String, ArgType>, key: &str) -> Option<bool> {
     match args.get(key)? {
         ArgType::JSON(s) | ArgType::Text(s) => match s.trim() {
@@ -94,6 +95,7 @@ pub fn arg_bool(args: &HashMap<String, ArgType>, key: &str) -> Option<bool> {
 /// construction, tests) and numeric strings (some models quote numbers) are
 /// accepted too. Negative or out-of-range values are `None`.
 #[must_use]
+#[allow(clippy::implicit_hasher)]
 pub fn arg_usize(args: &HashMap<String, ArgType>, key: &str) -> Option<usize> {
     match args.get(key)? {
         ArgType::Usize(n) => Some(*n),
@@ -121,6 +123,7 @@ pub fn arg_usize(args: &HashMap<String, ArgType>, key: &str) -> Option<usize> {
 /// # Errors
 /// [`ToolError::InvalidArguments`] naming the first violation, an unknown
 /// command, or a schema that does not compile.
+#[allow(clippy::implicit_hasher)]
 pub fn validate_arguments(
     definition: &Tool,
     tool_name: &str,
@@ -157,8 +160,7 @@ pub fn validate_arguments(
             .map(|(key, value)| (key.clone(), value.to_json_value()))
             .collect(),
     );
-    foundation_jsonschema::validate(schema, &instance)
-        .map_err(|err| invalid(err.to_string()))
+    foundation_jsonschema::validate(schema, &instance).map_err(|err| invalid(err.to_string()))
 }
 
 // ---------------------------------------------------------------------------
