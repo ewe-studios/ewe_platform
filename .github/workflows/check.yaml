@@ -1,138 +1,200 @@
 name: Checks
 
+# Per-package CI. A `plan` job works out which workspace packages a change
+# affects (the packages whose files changed, plus everything that depends on
+# them), then every selected package gets its own job: rustfmt, clippy, tests.
+# Per-package settings live in ci/packages.toml; the driver is
+# scripts/ci/ci.py, which you can run locally (`make ci-package PACKAGE=...`).
+#
+# Pull requests test only what they affect. Pushes to master, the nightly
+# schedule and manual runs test the whole workspace (or the packages you name).
+
 on:
   pull_request:
     branches:
       - master
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "17 2 * * *" # nightly full run, catches drift from dependencies
   workflow_dispatch:
+    inputs:
+      packages:
+        description: "Packages to test: comma/space separated names, or 'all'"
+        required: false
+        default: "all"
 
 concurrency:
-  group: ${{ github.workflow}}-${{github.ref}}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions: read-all
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Smaller target dirs and caches: no incremental state, no debuginfo.
+  CARGO_INCREMENTAL: "0"
+  CARGO_PROFILE_UAT_DEBUG: "0"
+  # The `dev` profile uses the Cranelift backend (not installed in CI, and it
+  # can't do catch_unwind); `uat` is dev with LLVM — what the test docs use.
+  CI_PROFILE: uat
 
 jobs:
-  check:
-    name: "Ubuntu - Run rust checks"
+  plan:
+    name: Plan
     runs-on: ubuntu-latest
-    # Prebuilt image (Dawn, depot_tools, emsdk, Rust stable) — see ci-test.Dockerfile
-    # Override via repo variable CI_TEST_IMAGE if you publish under a different name.
-    container:
-      image: ${{ vars.CI_TEST_IMAGE || 'ewetumo/ewe-platform-ci:latest' }}
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
-          fetch-depth: 1
-      - name: Pull the accompany tools
+
+      - name: Install the pinned toolchain
         run: |
-          git submodule update --init --recursive tools/llama.cpp
-      - name: Link prebuilt Dawn and emsdk from image
-        run: |
-          mkdir -p tools
-          ln -sfn /opt/dawn tools/dawn
-          ln -sfn /opt/emsdk tools/emsdk
-      - name: Clippy
-        run: cargo clippy
-      - name: Fmt
-        run: cargo fmt --check
-      - name: Test (No Std)
-        run: cargo test --workspace
-      - name: Test (Std)
-        run: cargo test --workspace --features multi
-      - name: Test (LLamaCPP)
-        run: cargo test --workspace --features infrastructure_llama_cpp/sampler --features multi
-      - name: Dry-Run Publishing
-        run: RUST_BACKTRACE=1 cargo publish --workspace --verbose --dry-run
-  docker:
-    name: "Docker - Build on various targets"
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Select packages
+        id: plan
+        env:
+          CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+          CI_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
+          CI_PACKAGES: ${{ github.event.inputs.packages }}
+        run: python3 scripts/ci/ci.py plan
+
+  package:
+    name: ${{ matrix.package }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout }}
     strategy:
-      matrix:
-        target: [linux/arm64, linux/amd64]
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: false
           fetch-depth: 1
-      - name: Checkout llama.cpp
+          submodules: false
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install system dependencies
         run: |
-          git submodule update --init --recursive tools/llama.cpp
-      - name: Prepare clean build context
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang libclang-dev cmake pkg-config libssl-dev protobuf-compiler
+
+      - name: Install the pinned toolchain
         run: |
-          mkdir -p /tmp/ewe-docker-build
-          rsync -av --exclude='.git' --exclude='tools/dawn' --exclude='tools/emsdk' --exclude='.agents' --exclude='bin' . /tmp/ewe-docker-build/
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update \
+            --component clippy,rustfmt,rust-src --target wasm32-unknown-unknown
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2
         with:
-          platforms: arm64,amd64
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build
-        uses: docker/build-push-action@v6
+          key: ${{ matrix.package }}
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: rustfmt
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+
+      - name: clippy
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+
+      - name: test
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+
+  # One stable check to mark as required in branch protection: it passes when
+  # every selected package passed, or when no package needed testing.
+  checks-passed:
+    name: Checks passed
+    needs: [plan, package]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate
+        env:
+          PLAN: ${{ needs.plan.result }}
+          PACKAGES: ${{ needs.package.result }}
+        run: |
+          echo "plan: $PLAN, packages: $PACKAGES"
+          if [ "$PLAN" != "success" ]; then exit 1; fi
+          case "$PACKAGES" in
+            success|skipped) exit 0 ;;
+            *) exit 1 ;;
+          esac
+
+  publish-dry-run:
+    name: Publish dry-run
+    # Packaging the whole workspace is slow; run it where releases happen.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          context: /tmp/ewe-docker-build
-          file: /tmp/ewe-docker-build/test-build.Dockerfile
-          platforms: ${{ matrix.target }}
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha
-          build-args: |
-            CUDA_VERSION=12.3.1
-            UBUNTU_VERSION=22.04
-            TARGETPLATFORM=${{ matrix.target }}
-  mac:
-    name: "macOS - Run rust checks"
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch llama.cpp
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang libclang-dev cmake pkg-config libssl-dev protobuf-compiler
+
+      - name: Install the pinned toolchain
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: cargo publish --dry-run
+        run: cargo publish --workspace --dry-run
+
+  macos:
+    name: macOS build
+    # A full macOS build is expensive; run it on master, nightly and on demand.
+    if: github.event_name != 'pull_request'
     runs-on: macos-latest
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: false
           fetch-depth: 1
-      - name: Pull the accompany tools
+          submodules: false
+
+      - name: Fetch llama.cpp
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install the pinned toolchain
         run: |
-          git submodule update --init --recursive tools/emsdk
-          git submodule update --init --recursive tools/llama.cpp
-      - name: Install depot_tools
-        run: |
-          git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
-          echo "$GITHUB_WORKSPACE/tools/depot_tools" >> "$GITHUB_PATH"
-      - name: Clone and sync Dawn
-        run: |
-          git clone https://dawn.googlesource.com/dawn tools/dawn
-          cp tools/dawn/scripts/standalone.gclient tools/dawn/.gclient
-          (cd tools/dawn && gclient sync)
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
         with:
-          components: clippy, rustfmt
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
       - name: Build
-        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
-#  windows:
-#    name: "Windows - Run rust checks"
-#    runs-on: windows-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#        with:
-#          submodules: false
-#          fetch-depth: 1
-#      - name: Enable long paths in Git
-#        run: git config --system core.longpaths true
-#      - name: Pull the accompany tools
-#        run: |
-#          git submodule update --init --recursive tools/emsdk
-#          git submodule update --init --depth=1 tools/dawn
-#          git submodule update --init --recursive tools/llama.cpp
-#      - name: Setup Rust
-#        uses: dtolnay/rust-toolchain@stable
-#        with:
-#          components: clippy, rustfmt
-#      - name: Build
-#        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
-#      - name: Test
-#        run: cargo test --workspace --features infrastructure_llama_cpp/sampler
+        run: cargo build --profile uat --workspace

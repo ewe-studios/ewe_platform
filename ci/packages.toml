@@ -1,0 +1,72 @@
+# Per-package CI settings, read by scripts/ci/ci.py.
+#
+# Every workspace package runs in CI by default. A section here only says how a
+# package differs from [defaults].
+#
+# Keys:
+#   skip            = "why"   leave the package out of CI entirely
+#   fmt / clippy / test       "enforce" (failure fails CI) | "report" (warning
+#                             only) | "off" (don't run)
+#   runs            = [...]   one `cargo test` per entry; each entry is the
+#                             feature flags for that run: "" (defaults),
+#                             "a b" (--features a,b), or raw flags starting
+#                             with "-" (e.g. "--no-default-features")
+#   test-args       = [...]   passed after `--` to the test binaries
+#   timeout-minutes = N       per-package job timeout
+#   reason          = "why"   shown next to report-only failures
+#
+# Run what CI runs, locally:   make ci-package PACKAGE=foundation_ai
+# See every package's settings: make ci-list
+
+[defaults]
+# Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
+# until they are. Packages that are already clean enforce it below.
+fmt = "report"
+clippy = "enforce"
+test = "enforce"
+runs = [""]
+timeout-minutes = 60
+
+# ---------------------------------------------------------------------------
+# Already rustfmt-clean: keep them that way.
+
+[packages.answerme-agent]
+fmt = "enforce"
+
+[packages.ewe_platform_benches]
+fmt = "enforce"
+
+[packages.ewe_platform_tests]
+fmt = "enforce"
+
+[packages.foundation_cedar]
+fmt = "enforce"
+
+[packages.foundation_conditional]
+fmt = "enforce"
+
+[packages.foundation_config]
+fmt = "enforce"
+
+[packages.foundation_errstacks]
+fmt = "enforce"
+
+[packages.foundation_logging]
+fmt = "enforce"
+
+[packages.foundation_runtimes]
+fmt = "enforce"
+
+[packages.foundation_shell]
+fmt = "enforce"
+
+[packages.infrastructure_llama_bindings]
+fmt = "enforce"
+
+# ---------------------------------------------------------------------------
+# Packages that need specific features for their tests.
+
+[packages.foundation_ai]
+# Every test target needs `testing` (mocks); defaults bring llamacpp + candle.
+runs = ["testing"]
+timeout-minutes = 90
