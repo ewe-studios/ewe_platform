@@ -14,12 +14,7 @@ use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
-use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelProviders, ProviderRouter, RoutableProviderBox,
-    RoutingRule, TextContent, UserModelContent,
-};
-use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -28,14 +23,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("ANTHROPIC_API_KEY must be set");
 
     // --- Step 1: Create providers ---
-    let main_provider = AnthropicMessagesProvider::with_config(
-        AnthropicConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.clone()))),
-    );
-    let memory_provider = AnthropicMessagesProvider::with_config(
-        AnthropicConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
-    );
+    // (`api_key(..)` is `with_config(AnthropicConfig::api_key(..))`, i.e. an
+    // `AuthCredential::SecretOnly` credential.)
+    let main_provider = AnthropicMessagesProvider::api_key(api_key.clone());
+    let memory_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::api_key(api_key));
 
     // --- Step 2: Box with explicit routing identities ---
     // name = model id string (must be distinct per role)
@@ -59,19 +50,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_provider(Box::new(main_box))
         .add_provider(Box::new(memory_box))
         .rule(RoutingRule {
-            model: ModelId::Name("claude-opus-4-8".into(), None),
+            model: "claude-opus-4-8".into(),
             provider_name: "claude-opus-4-8".into(),
         })
         .rule(RoutingRule {
-            model: ModelId::Name("claude-sonnet-4-6".into(), None),
+            model: "claude-sonnet-4-6".into(),
             provider_name: "claude-sonnet-4-6".into(),
         })
         .build();
 
     // --- Step 4: Build the session ---
     let agent = AgentSession::builder(router)
-        .with_model(ModelId::Name("claude-opus-4-8".into(), None))
-        .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+        .with_model("claude-opus-4-8")
+        .with_memory_model("claude-sonnet-4-6")
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()
@@ -82,30 +73,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Manual Claude router built successfully!");
 
     // --- Step 5: Run a turn ---
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
     println!("Sending hello prompt...");
-    let records = agent.run_turn(prompt)?;
+    let turn = agent.run_turn("Hello! Please say hi back in one sentence.")?;
 
-    for record in &records {
+    for record in &turn {
         println!("{record:?}");
     }
-
-    let got_text = records.iter().any(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    });
-    assert!(got_text, "Expected a generation record but got none");
-    println!("\nManual Claude agent responded! Got {} records.", records.len());
+    if let Some(error) = turn.failure() {
+        return Err(format!("the turn ended early: {error}").into());
+    }
+    assert!(
+        !turn.text().is_empty(),
+        "Expected a reply but got none: {turn:#?}"
+    );
+    println!(
+        "\n{}\n\nManual Claude agent responded! Got {} records.",
+        turn.text(),
+        turn.len()
+    );
 
     agent.end()?;
     Ok(())

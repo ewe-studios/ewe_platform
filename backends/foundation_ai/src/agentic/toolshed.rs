@@ -18,6 +18,7 @@
 //! the session's store types — the session builder can change its store types
 //! after the shed is set.
 
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -327,10 +328,15 @@ impl ToolShed {
         let name = constructor.name().to_string();
         if name == SHED_TOOL_NAME {
             self.problems.push(ToolShedError::ReservedName(name));
-        } else if self.tools.contains_key(&name) {
-            self.problems.push(ToolShedError::DuplicateTool(name));
-        } else {
-            self.tools.insert(name, constructor);
+            return;
+        }
+        match self.tools.entry(name) {
+            Entry::Occupied(taken) => self
+                .problems
+                .push(ToolShedError::DuplicateTool(taken.key().clone())),
+            Entry::Vacant(slot) => {
+                slot.insert(constructor);
+            }
         }
     }
 

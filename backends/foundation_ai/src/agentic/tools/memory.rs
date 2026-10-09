@@ -22,38 +22,16 @@ use foundation_db::traits::DocumentStore;
 
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
-use crate::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
 use crate::agentic::toolshed::MemoryAccess;
 use crate::types::base_types::Args;
-use crate::types::{
-    ArgType, MemoryFact, SessionRecord, TextContent, Tool, UserModelContent,
-};
+use crate::types::{ArgType, MemoryFact, SessionRecord, Tool};
 
 const TOOL: &str = "memory";
 
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-
-fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolError> {
-    match args.get(key) {
-        Some(ArgType::Text(s)) => Ok(s.clone()),
-        _ => Err(ToolError::InvalidArguments {
-            tool: TOOL.into(),
-            reason: format!("missing or invalid '{key}' argument"),
-        }),
-    }
-}
-
-fn text_result(content: String) -> ToolCallResult {
-    ToolCallResult {
-        content: UserModelContent::Text(TextContent {
-            content,
-            signature: None,
-        }),
-        error_detail: None,
-    }
-}
 
 fn exec_err(reason: impl Into<String>) -> ToolError {
     ToolError::Execution {
@@ -130,16 +108,16 @@ impl MemoryTool {
             .map_err(|e| exec_err(format!("write failed: {e}")))
     }
 
-    async fn add(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let fact = text_arg(args, "fact")?;
+    async fn add(&self, args: ToolArgs<'_>) -> Result<ToolCallResult, ToolError> {
+        let fact = args.str("fact")?.to_string();
         let (mut facts, version) = self.current_working().await?;
         facts.push(new_fact(fact.clone()));
         self.write(facts, version).await?;
-        Ok(text_result(format!("Remembered: {fact}")))
+        Ok(ToolCallResult::text(format!("Remembered: {fact}")))
     }
 
-    async fn remove(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let fact = text_arg(args, "fact")?;
+    async fn remove(&self, args: ToolArgs<'_>) -> Result<ToolCallResult, ToolError> {
+        let fact = args.str("fact")?.to_string();
         let (facts, version) = self.current_working().await?;
         let before = facts.len();
         let remaining: Vec<MemoryFact> = facts.into_iter().filter(|f| f.fact != fact).collect();
@@ -147,12 +125,12 @@ impl MemoryTool {
             return Err(exec_err(format!("no fact matching '{fact}' in working memory")));
         }
         self.write(remaining, version).await?;
-        Ok(text_result(format!("Forgot: {fact}")))
+        Ok(ToolCallResult::text(format!("Forgot: {fact}")))
     }
 
-    async fn replace(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let old = text_arg(args, "old")?;
-        let new = text_arg(args, "new")?;
+    async fn replace(&self, args: ToolArgs<'_>) -> Result<ToolCallResult, ToolError> {
+        let old = args.str("old")?.to_string();
+        let new = args.str("new")?.to_string();
         let (mut facts, version) = self.current_working().await?;
         let mut replaced = false;
         for f in &mut facts {
@@ -166,7 +144,9 @@ impl MemoryTool {
             return Err(exec_err(format!("no fact matching '{old}' in working memory")));
         }
         self.write(facts, version).await?;
-        Ok(text_result(format!("Updated memory: {old} → {new}")))
+        Ok(ToolCallResult::text(format!(
+            "Updated memory: {old} → {new}"
+        )))
     }
 }
 
@@ -210,11 +190,12 @@ impl ToolImpl for MemoryTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let command = text_arg(&arguments, "command")?;
-        match command.as_str() {
-            "add" => self.add(&arguments).await,
-            "remove" => self.remove(&arguments).await,
-            "replace" => self.replace(&arguments).await,
+        let args = ToolArgs::new(TOOL, &arguments);
+        let command = args.str("command")?;
+        match command {
+            "add" => self.add(args).await,
+            "remove" => self.remove(args).await,
+            "replace" => self.replace(args).await,
             other => Err(ToolError::InvalidArguments {
                 tool: TOOL.into(),
                 reason: format!("unknown memory command '{other}' (add|remove|replace)"),

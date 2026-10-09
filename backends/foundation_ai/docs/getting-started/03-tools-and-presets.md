@@ -217,10 +217,7 @@ sub-agents, so delegation chains are bounded no matter what the model requests.
 use std::sync::Arc;
 use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::{self, ToolPreset};
-use foundation_ai::types::{
-    MessageRole, Messages, SessionId, TextContent, UserModelContent,
-};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::SessionId;
 use foundation_nativeapis::shared::vfs::MemoryFs;
 
 # fn demo() -> Result<(), Box<dyn std::error::Error>> {
@@ -241,19 +238,14 @@ let agent = harness::claude_session(SessionId::new(), &api_key)?
 let all = agent.tool_manager().all_declarations();
 println!("agent has {} tool(s)", all.tools.len());
 
-// 3. Run a turn.
-let prompt = Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "Write 'hello' to notes.txt, then read it back.".into(),
-        signature: None,
-    }),
-    signature: None,
-};
-let records = agent.run_turn(prompt)?;
-for record in &records {
-    println!("{record:?}");
+// 3. Run a turn: the model asks `shed` for file tools, then uses them.
+let turn = agent.run_turn("Write 'hello' to notes.txt, then read it back.")?;
+for (_, name, _) in turn.tool_calls() {
+    println!("→ {name}");
+}
+println!("{}", turn.text());
+if let Some(error) = turn.failure() {
+    eprintln!("turn ended early: {error}");
 }
 agent.end()?;
 # Ok(())

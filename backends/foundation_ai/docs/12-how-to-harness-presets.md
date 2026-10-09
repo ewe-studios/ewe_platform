@@ -126,11 +126,10 @@ distinct routing identity, then builds a `ProviderRouter`:
 
 ```rust
 use foundation_ai::harness::{RouterMix, providers::{Glm52, Gemma4E2b}};
-use foundation_ai::types::ModelId;
 
 let preset = RouterMix::new()
-    .primary(Glm52::q4_k_m(None)?, ModelId::Name(Glm52::MODEL_ID.into(), None))
-    .memory(Gemma4E2b::q4_k_m(None)?, ModelId::Name(Gemma4E2b::MODEL_ID.into(), None))
+    .primary(Glm52::q4_k_m(None)?, Glm52::MODEL_ID)      // impl Into<ModelId>
+    .memory(Gemma4E2b::q4_k_m(None)?, Gemma4E2b::MODEL_ID)
     // .fallback(...)  // optional, may be called multiple times
     .build();   // -> RouterPreset
 ```
@@ -199,12 +198,11 @@ If you want none of the mixing machinery, build a single-provider router
 directly (this is the plain `ProviderRouter` path from Doc 03):
 
 ```rust
-use foundation_ai::harness::CloudPresets;
-use foundation_ai::types::{ProviderRouter, RoutableProviderBox};
+use foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider;
+use foundation_ai::types::ProviderRouter;
 
-let provider = CloudPresets::claude_sonnet(&api_key)?;
-let routable = RoutableProviderBox::new(provider);
-let router = ProviderRouter::single(Box::new(routable));
+let router: ProviderRouter = AnthropicMessagesProvider::api_key(&api_key).into();
+// or skip the router: AgentSession::builder(AnthropicMessagesProvider::api_key(&api_key))
 ```
 
 ---

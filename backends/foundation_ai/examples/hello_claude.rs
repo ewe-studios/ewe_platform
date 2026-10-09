@@ -7,8 +7,7 @@
 //! ```
 
 use foundation_ai::harness;
-use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::SessionId;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -23,32 +22,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
-    // Build a user message.
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
     println!("Asking Claude...");
-    let records = agent.run_turn(prompt)?;
+    let turn = agent.run_turn("Hello! Please say hi back in one sentence.")?;
 
-    for record in &records {
-        println!("{record:?}");
+    // Partial output first, then the error if the turn ended early.
+    println!("{}", turn.text());
+    if let Some(error) = turn.failure() {
+        return Err(format!("the turn ended early: {error}").into());
     }
-
-    // Verify we got an assistant response (conversation records containing Assistant messages).
-    let got_text = records.iter().any(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    });
-    assert!(got_text, "Expected a generation record but got none");
-    println!("\nClaude responded! Got {} records.", records.len());
+    assert!(
+        !turn.text().is_empty(),
+        "Expected a reply but got none: {turn:?}"
+    );
+    println!("\nClaude responded! Got {} records.", turn.len());
 
     agent.end()?;
     Ok(())

@@ -81,23 +81,13 @@ Here's what the harness does internally. Build the providers, box them into
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
-use foundation_ai::types::{
-    ModelId, ProviderRouter, RoutableProviderBox, RoutingRule,
-};
+use foundation_ai::types::{ProviderRouter, RoutableProviderBox, RoutingRule};
 use foundation_ai::agentic::{AgentSession, AgentConfig};
-use foundation_auth::{AuthCredential, ConfidentialText};
 
-let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY");
-
-// 1. Create providers.
-let main_provider = AnthropicMessagesProvider::with_config(
-    AnthropicConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.clone()))),
-);
-let memory_provider = AnthropicMessagesProvider::with_config(
-    AnthropicConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
-);
+// 1. Create providers. `AnthropicConfig::from_env()` reads ANTHROPIC_API_KEY;
+//    `api_key(key)` is `new().with_auth(AuthCredential::SecretOnly(..))`.
+let main_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::from_env()?);
+let memory_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::from_env()?);
 
 // 2. Box them with explicit identities (name = model id string).
 //    A provider must be able to describe itself — the descriptor gives
@@ -122,58 +112,52 @@ let router = ProviderRouter::builder()
     .add_provider(Box::new(main_box))
     .add_provider(Box::new(memory_box))
     .rule(RoutingRule {
-        model: ModelId::Name("claude-opus-4-8".into(), None),
+        model: "claude-opus-4-8".into(),
         provider_name: "claude-opus-4-8".into(),
     })
     .rule(RoutingRule {
-        model: ModelId::Name("claude-sonnet-4-6".into(), None),
+        model: "claude-sonnet-4-6".into(),
         provider_name: "claude-sonnet-4-6".into(),
     })
     .build();
 
 // 4. Build the session (in-memory stores and a fresh SessionId by default).
 let agent = AgentSession::builder(router)
-    .with_model(ModelId::Name("claude-opus-4-8".into(), None))
-    .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    .with_model("claude-opus-4-8")
+    .with_memory_model("claude-sonnet-4-6")
     .with_config(AgentConfig::default())
     .with_system_prompt("You are a helpful assistant.")
     .build()?;
 ```
 
-For a **single-provider** router (no memory model, no routing rules needed):
+For a **single provider** (no memory model, no routing rules needed), skip the
+router — a provider converts into one:
 
 ```rust
-let provider = AnthropicMessagesProvider::with_config(
-    AnthropicConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
-);
-let routable = RoutableProviderBox::new(provider);
-let router = ProviderRouter::single(Box::new(routable));
+let agent = AgentSession::builder(AnthropicMessagesProvider::api_key(api_key))
+    .with_model("claude-sonnet-4-6")
+    .build()?;
+// or: let router: ProviderRouter = AnthropicMessagesProvider::api_key(api_key).into();
 ```
 
 ### 1c. Running a Turn
 
 ```rust
-use foundation_ai::types::{MessageRole, Messages, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::agentic::TurnEvent;
 
-let prompt = Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "Hello! Say hi back.".into(),
-        signature: None,
-    }),
-    signature: None,
-};
+// Just the text (or what was produced before a failure):
+let answer = agent.ask("Hello! Say hi back.")?;
+println!("{}", answer.text());
 
-// Blocking: collects all records into a Vec.
-let records = agent.run_turn(prompt)?;
+// Blocking: collects the turn's records (a Turn derefs to Vec<SessionRecord>).
+let turn = agent.run_turn("Hello! Say hi back.")?;
+println!("{}", turn.text());
 
-// Streaming: process each record as it arrives.
-let stream = agent.run_turn_stream(prompt)?;
-for item in stream {
-    // Stream<Messages, ModelState>
+// Streaming: events as they happen.
+for event in agent.run_turn_stream("Hello! Say hi back.")?.events() {
+    if let TurnEvent::Text(delta) = event {
+        print!("{delta}");
+    }
 }
 ```
 
@@ -190,12 +174,10 @@ what happens under the hood.
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
-use foundation_auth::{AuthCredential, ConfidentialText};
-
-let config = AnthropicConfig::new()
-    .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
+let config = AnthropicConfig::api_key(api_key);   // or AnthropicConfig::from_env()? (ANTHROPIC_API_KEY)
 
 let provider = AnthropicMessagesProvider::with_config(config);
+// shorthand: AnthropicMessagesProvider::api_key(api_key)
 ```
 
 `AnthropicConfig` supports `with_auth()`, base URL override, and timeouts.
@@ -205,10 +187,9 @@ let provider = AnthropicMessagesProvider::with_config(config);
 ```rust
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 
-let config = OpenAIConfig::new()
-    .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
+let config = OpenAIConfig::api_key(api_key);       // or OpenAIConfig::from_env()? (OPENAI_API_KEY)
 
-let provider = OpenAIProvider::with_config(config);
+let provider = OpenAIProvider::with_config(config); // shorthand: OpenAIProvider::api_key(api_key)
 ```
 
 ### 2.3. OpenAI (Responses API)
@@ -216,10 +197,9 @@ let provider = OpenAIProvider::with_config(config);
 ```rust
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 
-let config = ResponsesConfig::new()
-    .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
+let config = ResponsesConfig::api_key(api_key);    // or ResponsesConfig::from_env()? (OPENAI_API_KEY)
 
-let provider = ResponsesProvider::with_config(config);
+let provider = ResponsesProvider::with_config(config); // shorthand: ResponsesProvider::api_key(api_key)
 ```
 
 ### 2.4. OpenRouter
@@ -229,38 +209,29 @@ provider** with a custom `base_url`:
 
 ```rust
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
-use foundation_ai::types::ModelId;
-use foundation_auth::{AuthCredential, ConfidentialText};
 
-let config = OpenAIConfig::new()
-    .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())))
-    .with_base_url("https://openrouter.ai/api/v1");
+let config = OpenAIConfig::openrouter(api_key);   // API key + OpenRouter base URL
+// or OpenAIConfig::openrouter_from_env()?          // OPENROUTER_API_KEY
 
 let provider = OpenAIProvider::with_config(config);
 
 // Any OpenRouter model id (see models/providers/openrouter.rs for the full catalog):
-let model = provider.get_model(ModelId::Name("anthropic/claude-opus-4-7".into(), None))?;
+let model = provider.get_model("anthropic/claude-opus-4-7".into())?;
 // Free models:
-let model = provider.get_model(ModelId::Name("google/gemma-4-26b-a4b-it:free".into(), None))?;
+let model = provider.get_model("google/gemma-4-26b-a4b-it:free".into())?;
 ```
 
 **Manual router with primary + memory:**
 
 ```rust
-use foundation_ai::types::{ModelId, ProviderRouter, RoutableProviderBox, RoutingRule};
+use foundation_ai::types::{ProviderRouter, RoutableProviderBox, RoutingRule};
 
 fn openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
 ) -> Result<ProviderRouter, String> {
-    let make_provider = || {
-        OpenAIProvider::with_config(
-            OpenAIConfig::new()
-                .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())))
-                .with_base_url("https://openrouter.ai/api/v1"),
-        )
-    };
+    let make_provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
 
     let main_box = RoutableProviderBox::with_identity(
         make_provider(),
@@ -271,7 +242,7 @@ fn openrouter_router(
     let mut builder = ProviderRouter::builder()
         .add_provider(Box::new(main_box))
         .rule(RoutingRule {
-            model: ModelId::Name(primary_model.into(), None),
+            model: primary_model.into(),
             provider_name: primary_model.into(),
         });
 
@@ -284,7 +255,7 @@ fn openrouter_router(
         builder = builder
             .add_provider(Box::new(mem_box))
             .rule(RoutingRule {
-                model: ModelId::Name(mem.into(), None),
+                model: mem.into(),
                 provider_name: mem.into(),
             });
     }

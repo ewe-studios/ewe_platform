@@ -1,3 +1,4 @@
+mod api_shortcut_tests;
 mod context_tests;
 mod costing_assistant_tests;
 mod costing_tests;

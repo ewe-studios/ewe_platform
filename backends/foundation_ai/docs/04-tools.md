@@ -43,6 +43,7 @@ pub struct ToolCallResult {
     pub content: UserModelContent,   // The tool's output
     pub error_detail: Option<String>,
 }
+ToolCallResult::text("done")         // plain-text result
 ```
 
 ### Tool::function_spec() — the bridge to providers
@@ -280,12 +281,11 @@ never returns `Network` today (only `Timeout`, `Execution`,
 ## 8. Building a custom tool
 
 ```rust
-use std::sync::Arc;
 use std::collections::HashMap;
 use async_trait::async_trait;
 use foundation_ai::agentic::tool_impl::{ToolImpl, ToolCallResult, ToolDefinition, ToolError};
-use foundation_ai::agentic::{AgentSession, ToolShed};
-use foundation_ai::types::{ArgType, Args, Tool, TextContent, UserModelContent};
+use foundation_ai::agentic::{AgentSession, FnTool, ToolArgs, ToolShed};
+use foundation_ai::types::{ArgType, Args, Tool};
 
 struct GreetTool;
 
@@ -313,28 +313,33 @@ impl ToolImpl for GreetTool {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError> {
-        let name = match arguments.get("name") {
-            Some(ArgType::Text(s)) => s.clone(),
-            _ => return Err(ToolError::InvalidArguments {
-                tool: "greet".into(),
-                reason: "missing 'name'".into(),
-            }),
-        };
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent {
-                content: format!("Hello, {name}!"),
-                signature: None,
-            }),
-            error_detail: None,
-        })
+        let name = ToolArgs::new("greet", &arguments).str("name")?;   // InvalidArguments if missing
+        Ok(ToolCallResult::text(format!("Hello, {name}!")))
     }
 }
+
+// The same tool as a closure:
+let greet = FnTool::new(
+    "greet",
+    "Greet someone by name.",
+    Args::new(foundation_jsonschema::scheme::object()
+        .required("name", foundation_jsonschema::scheme::string().min_len(1))
+        .build()),
+    |args: ToolArgs<'_>| {
+        let name = args.str("name").map(str::to_owned);
+        async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
+    },
+);
 
 // Give it to a session:
 let agent = AgentSession::builder(router)
     .with_toolshed(ToolShed::new().tool(GreetTool))
     .build()?;
 ```
+
+`ToolArgs` reads arguments whichever way the backend spelled them (`str`,
+`i64`, `usize`, `f64`, `bool`, their `opt_*` forms, `opt_value`, and
+`parse::<T>()` for a whole struct); Doc 10 §4 has the details.
 
 ---
 

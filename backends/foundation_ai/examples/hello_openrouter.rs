@@ -2,7 +2,7 @@
 //!
 //! OpenRouter proxies 200+ models through a single OpenAI-compatible API.
 //! This example demonstrates:
-//!   - Setting up OpenRouter with the OpenAI provider + custom base_url
+//!   - Setting up `OpenRouter` with the `OpenAI` provider (`OpenAIConfig::openrouter`)
 //!   - Calling a model by its OpenRouter id (e.g. `google/gemma-4-26b-a4b-it:free`)
 //!   - Validating the response contains actual generated content
 //!
@@ -15,9 +15,6 @@
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
-use foundation_ai::types::{MessageRole, Messages, ModelId, TextContent, UserModelContent};
-use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
 
 /// Build a router preset that talks to OpenRouter with the given model as primary.
@@ -25,26 +22,15 @@ fn openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
-) -> Result<RouterPreset, String> {
-    let config = OpenAIConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())))
-        .with_base_url("https://openrouter.ai/api/v1");
+) -> RouterPreset {
+    let provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
 
-    let provider = OpenAIProvider::with_config(config);
-
-    let mut mix = RouterMix::new()
-        .primary(provider, ModelId::Name(primary_model.to_string(), None));
-
-    if let Some(mem) = memory_model {
-        // Re-create provider for memory model (same config, different model id).
-        let config2 = OpenAIConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())))
-            .with_base_url("https://openrouter.ai/api/v1");
-        let provider2 = OpenAIProvider::with_config(config2);
-        mix = mix.memory(provider2, ModelId::Name(mem.to_string(), None));
+    let mut mix = RouterMix::new().primary(provider(), primary_model);
+    if let Some(memory) = memory_model {
+        // A second provider for the memory model (same config, different model id).
+        mix = mix.memory(provider(), memory);
     }
-
-    Ok(mix.build())
+    mix.build()
 }
 
 #[valtron]
@@ -56,50 +42,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     const PRIMARY: &str = "google/gemma-4-26b-a4b-it:free";
 
     println!("Building OpenRouter router for model: {PRIMARY}");
-    let preset = openrouter_router(&api_key, PRIMARY, None)?;
+    let preset = openrouter_router(&api_key, PRIMARY, None);
 
     // Bridge into an AgentSessionBuilder.
-    let builder = preset
+    let agent = preset
         .into_agent_builder()
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()
         })
-        .with_system_prompt("You are a helpful assistant. Keep responses brief.");
-
-    let agent = builder.build()?;
-
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
+        .with_system_prompt("You are a helpful assistant. Keep responses brief.")
+        .build()?;
 
     println!("Sending hello prompt via OpenRouter to {PRIMARY}...");
-    let records = agent.run_turn(prompt)?;
+    let turn = agent.run_turn("Hello! Please say hi back in one sentence.")?;
 
-    // Validate: we should get at least one Conversation record with an Assistant message.
-    let conversation_count = records.iter().filter(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    }).count();
-
-    assert!(
-        conversation_count > 0,
-        "Expected at least one assistant response from OpenRouter but got none. Records: {records:#?}"
-    );
-
-    // Print the response.
-    for record in &records {
+    for record in &turn {
         println!("{record:?}");
     }
+    if let Some(error) = turn.failure() {
+        return Err(format!("the turn ended early: {error}").into());
+    }
+    assert!(
+        !turn.text().is_empty(),
+        "Expected an assistant response from OpenRouter but got none. Records: {turn:#?}"
+    );
 
-    println!("\nOpenRouter responded successfully! Got {} records.", records.len());
+    println!(
+        "\n{}\n\nOpenRouter responded successfully! Got {} records.",
+        turn.text(),
+        turn.len()
+    );
 
     agent.end()?;
     Ok(())

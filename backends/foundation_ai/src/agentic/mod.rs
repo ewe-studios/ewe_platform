@@ -24,6 +24,7 @@ pub mod token_ledger;
 pub mod tool_impl;
 pub mod tools;
 pub mod toolshed;
+pub mod turn;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
@@ -50,8 +51,9 @@ pub use session::{AgentSession, AgentSessionBuilder};
 pub use steering::{CancelCode, SteeringQueues};
 pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use tool_impl::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
-    ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
+    FailMode, FnTool, ToolArgs, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage,
+    ToolCallWorkflow, ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
+    WorkflowResult,
 };
 #[cfg(not(target_family = "wasm"))]
 pub use tools::search::{
@@ -61,5 +63,6 @@ pub use tools::shed::{ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TO
 pub use toolshed::{
     tool_fn, ContextSearch, MemoryAccess, SessionParts, ToolConstructor, ToolShed, ToolShedError,
 };
+pub use turn::{Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary};
 #[cfg(not(target_family = "wasm"))]
 pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

@@ -1,6 +1,6 @@
 # How-To: Building Custom Tools
 
-Define a tool, read its arguments safely, register it, and test it. Doc 04 is
+Define a tool (a struct or a closure), read its arguments with `ToolArgs`, register it, and test it. Doc 04 is
 the reference for the tool runtime.
 
 ---
@@ -24,8 +24,8 @@ pub trait ToolImpl: Send + Sync {
 ```rust
 use std::collections::HashMap;
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolCallResult, ToolDefinition, ToolError, ToolImpl};
-use foundation_ai::types::{ArgType, Args, TextContent, Tool, UserModelContent};
+use foundation_ai::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolDefinition, ToolError, ToolImpl};
+use foundation_ai::types::{ArgType, Args, Tool};
 use foundation_jsonschema::scheme;
 
 struct WeatherTool { api_key: String }
@@ -47,15 +47,12 @@ impl ToolImpl for WeatherTool {
     }
 
     async fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let location = text_arg(&arguments, "location")?;
-        let report = self.fetch(&location).await.map_err(|e| ToolError::Execution {
+        let location = ToolArgs::new("get_weather", &arguments).str("location")?;
+        let report = self.fetch(location).await.map_err(|e| ToolError::Execution {
             tool: "get_weather".into(),
             reason: e.to_string(),
         })?;
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent { content: report, signature: None }),
-            error_detail: None,
-        })
+        Ok(ToolCallResult::text(report))
     }
 }
 ```
@@ -63,6 +60,26 @@ impl ToolImpl for WeatherTool {
 `Args::from_value(json!({...}))` works too if you'd rather write the schema as
 JSON. `returns: Some(Args::new(..))` declares a result schema; OpenAI backends
 then mark the function `strict`.
+
+### Or a closure: `FnTool`
+
+For a tool with no state of its own, skip the struct:
+
+```rust
+use foundation_ai::agentic::{FnTool, ToolArgs, ToolCallResult};
+
+let greet = FnTool::new(
+    "greet",
+    "Greet someone by name.",
+    Args::new(scheme::object().required("name", scheme::string()).build()),
+    |args: ToolArgs<'_>| {
+        // Read what you need first, then move owned values into the future.
+        let name = args.str("name").map(str::to_owned);
+        async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
+    },
+);
+let tools = ToolShed::new().tool(greet);   // category defaults to "custom"; .with_category(..)
+```
 
 ## 3. A multi-command tool
 
@@ -82,9 +99,10 @@ fn definition(&self) -> Tool {
     ])
 }
 
-async fn execute(&self, args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-    match text_arg(&args, "command")?.as_str() {
-        "add" => self.add(&args),
+async fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    let args = ToolArgs::new("todo", &arguments);
+    match args.str("command")? {
+        "add" => self.add(args.str("item")?),
         "list" => self.list(),
         other => Err(ToolError::InvalidArguments {
             tool: "todo".into(),
@@ -104,37 +122,38 @@ violation goes back to the model as an `InvalidArguments` result and your tool
 is not called, so a `required` string is guaranteed present by the time you
 read it.
 
-Every backend maps the model's JSON the same way:
+Read arguments with `ToolArgs` rather than matching `ArgType` yourself — it
+accepts every spelling the backends produce:
+
+```rust
+use foundation_ai::agentic::ToolArgs;
+
+let args = ToolArgs::new("my_tool", &arguments);
+let path = args.str("path")?;                              // &str
+let limit = args.opt_usize("limit")?.unwrap_or(10);        // integer or "10"; negative is an error
+let verbose = args.opt_bool("verbose")?.unwrap_or(false);  // true or "true"
+let ratio = args.f64("ratio")?;                            // any number
+let tags: Option<serde_json::Value> = args.opt_value("tags"); // arrays, objects, … as JSON
+
+// Or everything at once:
+#[derive(Deserialize)]
+struct EditArgs { path: String, old_string: String, new_string: String, #[serde(default)] replace_all: bool }
+let EditArgs { path, old_string, new_string, replace_all } = args.parse()?;
+```
+
+Every getter returns `ToolError::InvalidArguments` naming the tool and the
+key; the `opt_*` getters return `Ok(None)` only when the key is absent, and an
+error when it is present with the wrong type.
+
+For reference, every backend maps the model's JSON the same way:
 
 | JSON value | `ArgType` |
 |---|---|
 | string | `Text(s)` |
 | integer | `I64(n)` |
 | other number | `Float64(x)` |
-| boolean, null, array, object | `JSON(text)` — e.g. `JSON("true")`, `JSON("[1,2]")` |
-
-Helpers in `agentic::tool_impl`:
-
-```rust
-use foundation_ai::agentic::tool_impl::{arg_bool, arg_usize};
-
-let verbose = arg_bool(&args, "verbose").unwrap_or(false);   // JSON("true") or Text("true")
-let limit = arg_usize(&args, "limit").unwrap_or(10);         // I64, unsigned variants, or "10"
-
-fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolError> {
-    match args.get(key) {
-        Some(ArgType::Text(s)) => Ok(s.clone()),
-        _ => Err(ToolError::InvalidArguments {
-            tool: "my_tool".into(),
-            reason: format!("missing or non-string '{key}'"),
-        }),
-    }
-}
-```
-
-For structured values, parse the JSON text:
-`serde_json::from_str::<MyType>(raw)` on `ArgType::JSON(raw)`, or
-`arg.to_json_value()` for any variant.
+| object | `JSONMap(..)` (recursive) |
+| boolean, null, array | `JSON(text)` — e.g. `JSON("true")`, `JSON("[1,2]")` |
 
 ## 5. Errors
 
@@ -145,6 +164,7 @@ pub enum ToolError {
     Execution { tool: String, reason: String },
     Timeout { tool: String },
     Cancelled(String),
+    NotActive(String),   // the model called a tool `shed` hasn't returned yet
 }
 ```
 
@@ -207,8 +227,8 @@ fn weather_tool_reads_location() {
     assert_eq!(def.name, "get_weather");
 
     let args = HashMap::from([("location".to_string(), ArgType::Text("London".into()))]);
-    let result = futures_lite::future::block_on(tool.execute(args));
-    assert!(result.is_ok());
+    let result = futures_lite::future::block_on(tool.execute(args)).expect("runs");
+    assert!(matches!(result.content, UserModelContent::Text(_)));
 }
 ```
 

@@ -74,33 +74,33 @@ impl RouterMix {
 
     /// Register the **main** model + the provider that serves it.
     #[must_use]
-    pub fn primary<P>(self, provider: P, model: ModelId) -> Self
+    pub fn primary<P>(self, provider: P, model: impl Into<ModelId>) -> Self
     where
         P: ModelProvider + Send + Sync + 'static,
         P::Model: Send + Sync,
     {
-        self.add_role(Role::Primary, provider, model)
+        self.add_role(Role::Primary, provider, model.into())
     }
 
     /// Register the **memory/reflection** model + the provider that serves it.
     #[must_use]
-    pub fn memory<P>(self, provider: P, model: ModelId) -> Self
+    pub fn memory<P>(self, provider: P, model: impl Into<ModelId>) -> Self
     where
         P: ModelProvider + Send + Sync + 'static,
         P::Model: Send + Sync,
     {
-        self.add_role(Role::Memory, provider, model)
+        self.add_role(Role::Memory, provider, model.into())
     }
 
     /// Register an additional **fallback** model + its provider. May be called
     /// multiple times; order is preserved.
     #[must_use]
-    pub fn fallback<P>(self, provider: P, model: ModelId) -> Self
+    pub fn fallback<P>(self, provider: P, model: impl Into<ModelId>) -> Self
     where
         P: ModelProvider + Send + Sync + 'static,
         P::Model: Send + Sync,
     {
-        self.add_role(Role::Fallback, provider, model)
+        self.add_role(Role::Fallback, provider, model.into())
     }
 
     fn add_role<P>(mut self, role: Role, provider: P, model: ModelId) -> Self

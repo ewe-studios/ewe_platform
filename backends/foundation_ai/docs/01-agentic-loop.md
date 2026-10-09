@@ -48,27 +48,37 @@ blocks the executor: each `next_status` call does one step of work and returns.
 
 ```rust
 let agent = AgentSession::builder(router)
-    .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    .with_model("claude-sonnet-4-6")
     .with_system_prompt("You are a coding assistant.")
     .build()?;
 
-// Streaming — the primary API.
-for item in agent.run_turn_stream(prompt)? {
-    match item {
-        Stream::Next(record) => { /* SessionRecord */ }
-        Stream::Pending(progress) => { /* AgentProgress */ }
+// Streaming — the primary API, as events.
+for event in agent.run_turn_stream("Fix the failing test")?.events() {
+    match event {
+        TurnEvent::Text(delta) => print!("{delta}"),
+        TurnEvent::Retract { .. } => { /* drop the text shown for this turn */ }
+        TurnEvent::Failed(error) => eprintln!("turn failed: {error}"),
+        TurnEvent::Done(summary) => eprintln!("{} tokens", summary.usage.total),
         _ => {}
     }
 }
 
+// The raw stream is still there: a `TurnStream` iterates
+// `Stream<SessionRecord, AgentProgress>` items.
+for item in agent.run_turn_stream("Hi")? { /* Stream::Next(record), Stream::Pending(progress), … */ }
+
 // Or collect the whole turn.
-let records: Vec<SessionRecord> = agent.run_turn(prompt)?;
+let turn = agent.run_turn("Fix the failing test")?;   // Turn: Deref<Target = Vec<SessionRecord>>
+println!("{}", turn.text());
 ```
 
-`run_turn` drains the stream for you. It returns `Err` on the first
-`SessionRecord::FailedAction`, and when it sees `SessionRecord::Retracted` it
-drops the assistant messages it has collected so far (the loop is retrying that
-answer). Streaming consumers must handle `Retracted` themselves.
+`run_turn` drains the stream for you. When it sees `SessionRecord::Retracted`
+it drops the assistant messages it has collected so far (the loop is retrying
+that answer); `events()` reports it as `TurnEvent::Retract`. A
+`SessionRecord::FailedAction` ends the turn **after** the output produced
+before it: `run_turn` returns `Ok(turn)` with `turn.failure()` set, `ask`
+returns `Answer::Failed { partial_text, .. }`, and `events()` ends with
+`TurnEvent::Failed` (no `Done` follows). `Err` means the turn never started.
 
 The process must be running a Valtron executor (`#[valtron] fn main`, or the
 test helpers in `foundation_testing`).

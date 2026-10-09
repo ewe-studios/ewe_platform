@@ -330,3 +330,50 @@ fn message_api_subscribe_receives_events() {
         "subscriber should have received at least one event"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Proposal 15, item 9: model ids from strings
+
+/// Records the model name preflight asks about.
+struct RecordingModelAccess {
+    asked: std::sync::Mutex<Vec<String>>,
+}
+
+impl SessionAccessProvider for RecordingModelAccess {
+    fn can_access_session(&self, _: &UserId, _: &SessionId) -> Result<bool, AuthError> {
+        Ok(true)
+    }
+    fn can_use_model(&self, _: &UserId, model: &str) -> Result<bool, AuthError> {
+        self.asked.lock().unwrap().push(model.to_string());
+        Ok(true)
+    }
+    fn token_budget(&self, _: &UserId) -> Result<TokenBudget, AuthError> {
+        Ok(TokenBudget::unlimited())
+    }
+}
+
+#[test]
+fn builder_takes_model_names_as_strings() {
+    let access = Arc::new(RecordingModelAccess {
+        asked: std::sync::Mutex::new(Vec::new()),
+    });
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_model("claude-sonnet-4-6")
+        .with_fallback_models(["gpt-4o", "gpt-4o-mini"])
+        .with_memory_model(String::from("claude-haiku"))
+        .with_access(Arc::clone(&access) as Arc<dyn SessionAccessProvider>)
+        .build()
+        .expect("build with string model ids succeeds");
+    assert_eq!(
+        *access.asked.lock().unwrap(),
+        vec!["claude-sonnet-4-6".to_string()],
+        "the string became the primary model preflight checks"
+    );
+
+    // A Vec<ModelId> is still accepted.
+    let _session: TestSession = AgentSession::builder(empty_router())
+        .with_model(ModelId::Name("m".into(), None))
+        .with_fallback_models(vec![ModelId::Name("f".into(), None)])
+        .build()
+        .expect("ModelId arguments still work");
+}

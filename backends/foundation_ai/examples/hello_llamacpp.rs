@@ -18,9 +18,9 @@
 //!   --example hello_llamacpp --features "agentic llamacpp cuda"
 //! ```
 
+use foundation_ai::agentic::TurnEvent;
 use foundation_ai::harness;
-use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
+use foundation_ai::types::SessionId;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -33,30 +33,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Please say hi back in one sentence.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
     println!("Asking GLM 5.2 (local GGUF)...");
-    let records = agent.run_turn(prompt)?;
-
-    for record in &records {
-        println!("{record:?}");
+    // Stream the answer as it is generated.
+    let mut answer = String::new();
+    for event in agent
+        .run_turn_stream("Hello! Please say hi back in one sentence.")?
+        .events()
+    {
+        match event {
+            TurnEvent::Text(delta) => {
+                print!("{delta}");
+                answer.push_str(&delta);
+            }
+            // The loop withdrew what it had streamed and is asking again.
+            TurnEvent::Retract { .. } => answer.clear(),
+            TurnEvent::Failed(error) => return Err(format!("\nturn failed: {error}").into()),
+            TurnEvent::Done(summary) => println!("\n[{} tokens]", summary.usage.total),
+            _ => {}
+        }
     }
-
-    let got_text = records.iter().any(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    });
-    assert!(got_text, "Expected a generation record but got none");
-    println!("\nGLM 5.2 responded! Got {} records.", records.len());
+    assert!(!answer.is_empty(), "Expected a generation but got none");
+    println!("GLM 5.2 responded!");
 
     agent.end()?;
     Ok(())

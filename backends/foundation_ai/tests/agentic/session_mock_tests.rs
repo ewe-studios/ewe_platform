@@ -8,12 +8,18 @@
 //!
 //! Matrix rows: 3.1, 3.2, 6.5, 6.9, 7.1, 7.2, 7.3.
 
-use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
+use std::collections::HashMap;
+
+use foundation_ai::agentic::testing::{
+    last_user_contains, mock_text, mock_tool_call, MockModelProvider,
+};
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    AgentConfig, AgentSession, Answer, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    TurnEvent, TurnOutcome,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent, UserModelContent,
+    ArgType, MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent,
+    UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
@@ -84,20 +90,165 @@ fn run_turn_returns_the_mock_reply() {
 }
 
 // ---------------------------------------------------------------------------
-// Matrix 7.3 — run_turn on a failing provider returns Err
+// Matrix 7.3 — run_turn on a failing provider reports the failure
 
 #[valtron_test]
-fn run_turn_returns_err_on_provider_failure() {
+fn run_turn_reports_a_provider_failure() {
     let mut mock = MockModelProvider::new();
     mock.fail_with(|_| true, "mock failure");
 
     let session = session_with(mock);
-    let result = session.run_turn(user_msg("hi"));
+    let turn = session.run_turn(user_msg("hi")).expect("the turn started");
 
     assert!(
-        result.is_err(),
-        "a failing provider must make run_turn return Err, not Ok: {result:?}"
+        turn.failure().is_some(),
+        "a failing provider must end the turn with a failure: {turn:?}"
     );
+    assert!(turn.text().is_empty(), "nothing was produced before it");
+    assert!(
+        turn.into_result().is_err(),
+        "into_result turns the failure into Err"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Proposal 15, item 7/8 — partial output first, then the error
+
+/// A model that says something and looks for a tool on its first call, then
+/// fails on the next generation (the one that sees the tool result).
+fn fails_after_partial_output() -> MockModelProvider {
+    let mut mock = MockModelProvider::new();
+    mock.fail_with(
+        |mi| {
+            mi.messages
+                .iter()
+                .any(|m| matches!(m, Messages::ToolResult { .. }))
+        },
+        "mock failure after the tool round",
+    );
+    mock.on_nth_call(
+        0,
+        vec![
+            mock_text("Working on it. "),
+            mock_tool_call(
+                "shed",
+                HashMap::from([("description".to_string(), ArgType::Text("anything".into()))]),
+            ),
+        ],
+    );
+    mock
+}
+
+#[valtron_test]
+fn run_turn_keeps_the_partial_output_before_a_failure() {
+    let session = session_with(fails_after_partial_output());
+    let turn = session
+        .run_turn("do the thing")
+        .expect("a mid-turn failure is not an Err");
+
+    assert_eq!(turn.text(), "Working on it. ");
+    assert_eq!(turn.tool_calls().count(), 1);
+    assert_eq!(turn.tool_results().count(), 1);
+    let failure = turn.failure().expect("the failure is reported");
+    assert!(
+        failure
+            .to_string()
+            .contains("mock failure after the tool round"),
+        "{failure}"
+    );
+    assert!(matches!(turn.outcome(), TurnOutcome::Failed { .. }));
+    // Deref to Vec<SessionRecord>: old call sites keep working.
+    assert!(!turn.is_empty());
+    assert!(!turn
+        .iter()
+        .any(|r| matches!(r, SessionRecord::FailedAction { .. })));
+}
+
+#[valtron_test]
+fn ask_returns_the_partial_text_and_the_error() {
+    let session = session_with(fails_after_partial_output());
+    let answer = session.ask("do the thing").expect("the turn started");
+
+    match &answer {
+        Answer::Failed {
+            partial_text,
+            error,
+            ..
+        } => {
+            assert_eq!(partial_text, "Working on it. ");
+            assert!(error.to_string().contains("mock failure"), "{error}");
+        }
+        other @ Answer::Complete(_) => panic!("expected Answer::Failed, got {other:?}"),
+    }
+    assert_eq!(answer.text(), "Working on it. ");
+    assert!(!answer.is_complete());
+    assert!(answer.into_result().is_err());
+}
+
+#[valtron_test]
+fn events_yield_the_partial_output_then_a_terminal_failure() {
+    let session = session_with(fails_after_partial_output());
+    let events: Vec<TurnEvent> = session
+        .run_turn_stream("do the thing")
+        .expect("the turn started")
+        .events()
+        .filter(|e| !matches!(e, TurnEvent::Progress(_)))
+        .collect();
+
+    let text = events
+        .iter()
+        .position(|e| matches!(e, TurnEvent::Text(t) if t == "Working on it. "))
+        .expect("the text arrives");
+    let call = events
+        .iter()
+        .position(|e| matches!(e, TurnEvent::ToolCall { name, .. } if name == "shed"))
+        .expect("the tool call arrives");
+    let result = events
+        .iter()
+        .position(|e| matches!(e, TurnEvent::ToolResult { name, .. } if name == "shed"))
+        .expect("the tool result arrives");
+    assert!(text < call && call < result, "{events:?}");
+    assert!(
+        matches!(events.last(), Some(TurnEvent::Failed(_))),
+        "Failed is the last event: {events:?}"
+    );
+    assert!(
+        !events.iter().any(|e| matches!(e, TurnEvent::Done(_))),
+        "no Done follows a failure: {events:?}"
+    );
+}
+
+#[valtron_test]
+fn ask_and_events_on_a_completed_turn() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
+    let session = session_with(mock);
+
+    let answer = session.ask("hi").expect("turn runs");
+    assert_eq!(answer, Answer::Complete("Hello".into()));
+
+    let events: Vec<TurnEvent> = session
+        .run_turn_stream("hi again")
+        .expect("turn runs")
+        .events()
+        .collect();
+    let text: String = events
+        .iter()
+        .filter_map(|e| match e {
+            TurnEvent::Text(t) => Some(t.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(text, "Hello");
+    match events.last() {
+        Some(TurnEvent::Done(summary)) => assert!(summary.message_count > 0),
+        other => panic!("expected a terminal Done, got {other:?}"),
+    }
+
+    let turn = session.run_turn("and again").expect("turn runs");
+    assert_eq!(turn.text(), "Hello");
+    assert!(turn.failure().is_none());
+    assert!(turn.usage().is_some(), "the summary's usage is exposed");
 }
 
 // ---------------------------------------------------------------------------
@@ -257,4 +408,45 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
         assistant_texts(&records),
         vec!["hello from sqlite".to_string()]
     );
+}
+
+// ---------------------------------------------------------------------------
+// Proposal 15, item 6: turns and steering take anything Into<Messages>
+
+#[valtron_test]
+fn run_turn_accepts_a_plain_string() {
+    let mut mock = MockModelProvider::new();
+    mock.on(
+        last_user_contains("plain prompt"),
+        vec![mock_text("got it")],
+    );
+    mock.on_any(vec![mock_text("wrong prompt")]);
+    let session = session_with(mock);
+
+    let records = session
+        .run_turn("plain prompt")
+        .expect("turn should succeed");
+    assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
+
+    // An owned String works the same way.
+    let records = session
+        .run_turn(String::from("plain prompt again"))
+        .expect("turn should succeed");
+    assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
+}
+
+#[valtron_test]
+fn follow_up_accepts_a_plain_string() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let session = session_with(mock);
+
+    session.follow_up("queued as a user message");
+    let queued = session.steering_queues().drain_follow_up();
+    assert_eq!(queued.len(), 1);
+    assert!(matches!(
+        &queued[0],
+        Messages::User { role: MessageRole::User, content: UserModelContent::Text(t), .. }
+            if t.content == "queued as a user message"
+    ));
 }

@@ -10,14 +10,15 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use foundation_ai::agentic::{AgentConfig, AgentSession, ContextConfig, ErrorPolicy, MemoryConfig};
+use foundation_ai::agentic::{
+    AgentConfig, AgentSession, Answer, ContextConfig, ErrorPolicy, MemoryConfig,
+};
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::harness::RouterMix;
-use foundation_ai::types::{Messages, ModelId, SessionRecord};
-use foundation_ai::types::{ModelOutput, TextContent};
+use foundation_ai::types::ModelId;
 use foundation_core::valtron::valtron;
 use foundation_repl::{Repl, ReplTheme};
 
@@ -131,10 +132,22 @@ fn build_session() -> Session {
 fn run_ask(session: &Session, question: String) {
     tracing::trace!("ask: sending question to model: {question}");
 
-    match session.run_turn(user_message(question)) {
-        Ok(records) => println!("{}", extract_assistant_text(&records)),
+    match session.ask(question) {
+        Ok(Answer::Complete(text)) => println!("{}", or_no_response(&text)),
+        // Partial output first, then the error that ended the turn.
+        Ok(Answer::Failed {
+            partial_text,
+            error,
+            ..
+        }) => {
+            if !partial_text.is_empty() {
+                println!("{partial_text}");
+            }
+            tracing::error!("ask turn failed: {error}");
+            std::process::exit(1);
+        }
         Err(e) => {
-            tracing::error!("ask turn failed: {e}");
+            tracing::error!("ask turn could not start: {e}");
             std::process::exit(1);
         }
     }
@@ -164,68 +177,33 @@ fn run_repl(session: &Session) {
         tracing::trace!("agent: sending message to model: {input}");
 
         let thinking = repl.animation("thinking");
-        let outcome = session.run_turn(user_message(input));
+        let outcome = session.ask(input);
         thinking.finish();
 
+        // `report_error` styles errors as errors rather than as the model's
+        // own words, which `reply` would have done.
         match outcome {
-            Ok(records) => repl.reply(extract_assistant_text(&records)),
-            // `report_error` styles this as an error rather than as the model's
-            // own words, which `reply` would have done.
+            Ok(Answer::Complete(text)) => repl.reply(or_no_response(&text)),
+            Ok(Answer::Failed {
+                partial_text,
+                error,
+                ..
+            }) => {
+                if !partial_text.is_empty() {
+                    repl.reply(partial_text);
+                }
+                repl.report_error(format!("error: {error}"));
+            }
             Err(e) => repl.report_error(format!("error: {e}")),
         }
     }
 }
 
-/// Wrap raw input text as a user message for the session.
-fn user_message(input: String) -> Messages {
-    Messages::User {
-        id: foundation_compact::ids::new_scru128(),
-        role: foundation_ai::types::MessageRole::User,
-        content: foundation_ai::types::UserModelContent::Text(TextContent {
-            content: input,
-            signature: None,
-        }),
-        signature: None,
-    }
-}
-
-/// Extract the assistant's reply text from a list of session records.
-fn extract_assistant_text(records: &[SessionRecord]) -> String {
-    tracing::trace!("received {} records", records.len());
-    let mut parts = Vec::new();
-    for record in records {
-        match record {
-            SessionRecord::Conversation { message } => {
-                if let Messages::Assistant { content, .. } = message {
-                    tracing::debug!("assistant content: {content:?}");
-                    if let ModelOutput::Text(text) = content {
-                        parts.push(text.content.clone());
-                    }
-                } else if let Messages::User { content, .. } = message {
-                    tracing::debug!("user message: {content:?}");
-                }
-            }
-            // The agent threw its own turn away and asked again; drop what it
-            // had already streamed so the retry replaces it instead of being
-            // appended to it.
-            SessionRecord::Retracted { reason, .. } => {
-                tracing::debug!("turn retracted: {reason}");
-                parts.clear();
-            }
-            SessionRecord::Summary { message_count, .. } => {
-                tracing::debug!("summary: message_count={message_count}");
-            }
-            SessionRecord::FailedAction { error, .. } => {
-                tracing::error!("failed action: {error}");
-            }
-            other => {
-                tracing::debug!("other record: {other:?}");
-            }
-        }
-    }
-    if parts.is_empty() {
+/// The reply text, or a placeholder when the model said nothing.
+fn or_no_response(text: &str) -> String {
+    if text.is_empty() {
         "(no response)".into()
     } else {
-        parts.concat()
+        text.to_string()
     }
 }

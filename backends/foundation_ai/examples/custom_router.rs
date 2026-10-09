@@ -15,8 +15,6 @@
 
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O};
-use foundation_ai::types::{MessageRole, Messages, ModelId, TextContent, UserModelContent};
-use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -28,18 +26,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Mix: Claude Opus primary, Claude Sonnet memory, GPT-4o fallback.
     let preset = RouterMix::new()
-        .primary(
-            CloudPresets::claude_opus(&anthropic_key)?,
-            ModelId::Name(CLAUDE_OPUS.into(), None),
-        )
-        .memory(
-            CloudPresets::claude_sonnet(&anthropic_key)?,
-            ModelId::Name(CLAUDE_SONNET.into(), None),
-        )
-        .fallback(
-            CloudPresets::openai_gpt4o(&openai_key)?,
-            ModelId::Name(OPENAI_GPT4O.into(), None),
-        )
+        .primary(CloudPresets::claude_opus(&anthropic_key)?, CLAUDE_OPUS)
+        .memory(CloudPresets::claude_sonnet(&anthropic_key)?, CLAUDE_SONNET)
+        .fallback(CloudPresets::openai_gpt4o(&openai_key)?, OPENAI_GPT4O)
         .build();
 
     println!(
@@ -57,30 +46,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_system_prompt("You are a helpful assistant with a GPT-4o fallback.")
         .build()?;
 
-    let prompt = Messages::User {
-        id: new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: "Hello! Say hi and tell me which model you are.".into(),
-            signature: None,
-        }),
-        signature: None,
-    };
-
     println!("Sending hello via mixed router...");
-    let records = agent.run_turn(prompt)?;
+    let turn = agent.run_turn("Hello! Say hi and tell me which model you are.")?;
 
-    for record in &records {
+    for record in &turn {
         println!("{record:?}");
     }
-
-    let got_text = records.iter().any(|r| {
-        matches!(r, foundation_ai::types::SessionRecord::Conversation {
-            message: foundation_ai::types::Messages::Assistant { .. },
-        })
-    });
-    assert!(got_text, "Expected a generation record but got none");
-    println!("\nCustom router agent responded! Got {} records.", records.len());
+    if let Some(error) = turn.failure() {
+        return Err(format!("the turn ended early: {error}").into());
+    }
+    assert!(!turn.text().is_empty(), "Expected a reply but got none");
+    println!(
+        "\n{}\n\nCustom router agent responded! Got {} records.",
+        turn.text(),
+        turn.len()
+    );
 
     agent.end()?;
     Ok(())

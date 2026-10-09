@@ -4,6 +4,7 @@ mod memory_tools_tests;
 mod search_file_native_tests;
 mod search_tests;
 mod shed_tool_tests;
+mod tool_args_tests;
 mod tool_calling_formatter;
 mod tool_exec_tests;
 mod tool_impl_tests;

@@ -367,6 +367,20 @@ impl Quantization {
     }
 }
 
+/// `"claude-sonnet-4-6"` is `ModelId::Name("claude-sonnet-4-6", None)`.
+impl From<&str> for ModelId {
+    fn from(name: &str) -> Self {
+        ModelId::Name(name.to_string(), None)
+    }
+}
+
+/// A `String` is a `ModelId::Name` with no quantization.
+impl From<String> for ModelId {
+    fn from(name: String) -> Self {
+        ModelId::Name(name, None)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelId {
     /// Specifically named model.
@@ -1126,6 +1140,53 @@ fn fresh_message_id() -> foundation_compact::ids::Id {
 }
 
 impl Messages {
+    /// A user message with text content and a fresh id.
+    #[must_use]
+    pub fn user(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::User, text)
+    }
+
+    /// A system-role message (instructions, redirects) with text content.
+    #[must_use]
+    pub fn system(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::System, text)
+    }
+
+    /// An agent-role message (another agent steering this one) with text
+    /// content.
+    #[must_use]
+    pub fn agent(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::Agent, text)
+    }
+
+    fn text_with_role(role: MessageRole, text: impl Into<String>) -> Self {
+        Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role,
+            content: UserModelContent::Text(TextContent {
+                content: text.into(),
+                signature: None,
+            }),
+            signature: None,
+        }
+    }
+}
+
+/// `"Hi"` is a user message.
+impl From<&str> for Messages {
+    fn from(text: &str) -> Self {
+        Messages::user(text)
+    }
+}
+
+/// A `String` is a user message.
+impl From<String> for Messages {
+    fn from(text: String) -> Self {
+        Messages::user(text)
+    }
+}
+
+impl Messages {
     /// The message's time-ordered scru128 id (uniform across all variants).
     #[must_use]
     pub fn id(&self) -> &foundation_compact::ids::Id {
@@ -1615,8 +1676,8 @@ const TOOL_CALL_CLOSE: &str = "</ToolCall>";
 ///
 /// Needed because `ArgType` is externally tagged and can't be deserialized
 /// from plain JSON values. Strings become `Text`, integers `I64`, other numbers
-/// `Float64`; booleans, `null`, arrays and objects keep their JSON text in
-/// `JSON(..)` so a tool can parse them losslessly.
+/// `Float64`, objects a recursive `JSONMap`; booleans, `null` and arrays keep
+/// their JSON text in `JSON(..)`. Tools read any of these with `ToolArgs`.
 ///
 /// WHY one function: the cloud backends and the text-protocol parser used to
 /// carry their own copies that disagreed (a boolean was `JSON("true")` from
@@ -1635,6 +1696,12 @@ pub fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
                 ArgType::Text(n.to_string())
             }
         }
+        serde_json::Value::Object(map) => ArgType::JSONMap(
+            map.iter()
+                .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                .collect(),
+        ),
+        // bool, null, array: one rule everywhere.
         other => ArgType::JSON(other.to_string()),
     }
 }

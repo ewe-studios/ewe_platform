@@ -12,7 +12,9 @@
 use crate::agentic::tools::shed::{
     shed_definition, ShedResult, ToolDiscovery, ToolSummary, DEFAULT_SHED_LIMIT, SHED_TOOL_NAME,
 };
-use crate::types::{ArgType, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent};
+use crate::types::{
+    ArgType, Args, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent,
+};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -80,47 +82,239 @@ pub struct ToolCallResult {
     pub error_detail: Option<String>,
 }
 
-// ---------------------------------------------------------------------------
-// Argument helpers
-
-/// Read a boolean tool argument, whichever way the backend spelled it.
-///
-/// Every backend maps a JSON boolean to `ArgType::JSON("true")`; models also
-/// send the string `"true"`. Both are accepted.
-#[must_use]
-#[allow(clippy::implicit_hasher)]
-pub fn arg_bool(args: &HashMap<String, ArgType>, key: &str) -> Option<bool> {
-    match args.get(key)? {
-        ArgType::JSON(s) | ArgType::Text(s) => match s.trim() {
-            "true" => Some(true),
-            "false" => Some(false),
-            _ => None,
-        },
-        _ => None,
+impl ToolCallResult {
+    /// A plain-text result with no error detail.
+    #[must_use]
+    pub fn text(content: impl Into<String>) -> Self {
+        Self {
+            content: UserModelContent::Text(TextContent {
+                content: content.into(),
+                signature: None,
+            }),
+            error_detail: None,
+        }
     }
 }
 
-/// Read a non-negative integer tool argument.
+// ---------------------------------------------------------------------------
+// ToolArgs — typed reads of a call's arguments
+
+/// Typed access to a tool call's arguments, whichever way the backend spelled
+/// them.
 ///
-/// JSON integers arrive as `ArgType::I64`; the unsigned variants (direct
-/// construction, tests) and numeric strings (some models quote numbers) are
-/// accepted too. Negative or out-of-range values are `None`.
-#[must_use]
-#[allow(clippy::implicit_hasher)]
-pub fn arg_usize(args: &HashMap<String, ArgType>, key: &str) -> Option<usize> {
-    match args.get(key)? {
-        ArgType::Usize(n) => Some(*n),
-        ArgType::U8(n) => Some(usize::from(*n)),
-        ArgType::U16(n) => Some(usize::from(*n)),
-        ArgType::U32(n) => usize::try_from(*n).ok(),
-        ArgType::U64(n) => usize::try_from(*n).ok(),
-        ArgType::I8(n) => usize::try_from(*n).ok(),
-        ArgType::I16(n) => usize::try_from(*n).ok(),
-        ArgType::I32(n) => usize::try_from(*n).ok(),
-        ArgType::I64(n) => usize::try_from(*n).ok(),
-        ArgType::Isize(n) => usize::try_from(*n).ok(),
-        ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
-        _ => None,
+/// Every getter fails with [`ToolError::InvalidArguments`] naming the tool and
+/// the key; the `opt_*` getters return `Ok(None)` for a missing key but still
+/// fail on a present value of the wrong type. Numbers are accepted as any
+/// integer variant or numeric text (some models quote numbers); booleans as a
+/// JSON boolean or the text `"true"` / `"false"`.
+///
+/// ```ignore
+/// let args = ToolArgs::new("edit", &arguments);
+/// let path = args.str("path")?;
+/// let replace_all = args.opt_bool("replace_all")?.unwrap_or(false);
+///
+/// #[derive(Deserialize)]
+/// struct EditArgs { path: String, #[serde(default)] replace_all: bool }
+/// let EditArgs { path, replace_all } = args.parse()?;
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct ToolArgs<'a> {
+    tool: &'a str,
+    args: &'a HashMap<String, ArgType>,
+}
+
+impl<'a> ToolArgs<'a> {
+    /// Read `args`, reporting errors against `tool`.
+    #[must_use]
+    #[allow(clippy::implicit_hasher)]
+    pub fn new(tool: &'a str, args: &'a HashMap<String, ArgType>) -> Self {
+        Self { tool, args }
+    }
+
+    /// The tool name errors are reported against.
+    #[must_use]
+    pub fn tool(&self) -> &'a str {
+        self.tool
+    }
+
+    /// True when `key` was passed.
+    #[must_use]
+    pub fn contains(&self, key: &str) -> bool {
+        self.args.contains_key(key)
+    }
+
+    fn invalid(&self, reason: String) -> ToolError {
+        ToolError::InvalidArguments {
+            tool: self.tool.to_string(),
+            reason,
+        }
+    }
+
+    fn missing(&self, key: &str) -> ToolError {
+        self.invalid(format!("missing required argument `{key}`"))
+    }
+
+    fn wrong_type(&self, key: &str, expected: &str) -> ToolError {
+        self.invalid(format!("`{key}` must be {expected}"))
+    }
+
+    fn required<T>(&self, key: &str, value: Result<Option<T>, ToolError>) -> Result<T, ToolError> {
+        value?.ok_or_else(|| self.missing(key))
+    }
+
+    /// A required string.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when missing or not a string.
+    pub fn str(&self, key: &str) -> Result<&'a str, ToolError> {
+        self.required(key, self.opt_str(key))
+    }
+
+    /// An optional string.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when present but not a string.
+    pub fn opt_str(&self, key: &str) -> Result<Option<&'a str>, ToolError> {
+        match self.args.get(key) {
+            None => Ok(None),
+            Some(ArgType::Text(s)) => Ok(Some(s.as_str())),
+            Some(_) => Err(self.wrong_type(key, "a string")),
+        }
+    }
+
+    /// A required integer.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when missing, not an integer, or out
+    /// of `i64` range.
+    pub fn i64(&self, key: &str) -> Result<i64, ToolError> {
+        self.required(key, self.opt_i64(key))
+    }
+
+    /// An optional integer.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when present but not an integer in
+    /// `i64` range.
+    pub fn opt_i64(&self, key: &str) -> Result<Option<i64>, ToolError> {
+        let Some(value) = self.args.get(key) else {
+            return Ok(None);
+        };
+        let n = match value {
+            ArgType::I8(n) => Some(i64::from(*n)),
+            ArgType::I16(n) => Some(i64::from(*n)),
+            ArgType::I32(n) => Some(i64::from(*n)),
+            ArgType::I64(n) => Some(*n),
+            ArgType::I128(n) => i64::try_from(*n).ok(),
+            ArgType::Isize(n) => i64::try_from(*n).ok(),
+            ArgType::U8(n) => Some(i64::from(*n)),
+            ArgType::U16(n) => Some(i64::from(*n)),
+            ArgType::U32(n) => Some(i64::from(*n)),
+            ArgType::U64(n) => i64::try_from(*n).ok(),
+            ArgType::U128(n) => i64::try_from(*n).ok(),
+            ArgType::Usize(n) => i64::try_from(*n).ok(),
+            ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
+            _ => None,
+        };
+        n.map(Some)
+            .ok_or_else(|| self.wrong_type(key, "an integer"))
+    }
+
+    /// A required non-negative integer (counts, limits, offsets).
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when missing, not an integer, or
+    /// negative / too large for `usize`.
+    pub fn usize(&self, key: &str) -> Result<usize, ToolError> {
+        self.required(key, self.opt_usize(key))
+    }
+
+    /// An optional non-negative integer.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when present but not a non-negative
+    /// integer that fits `usize`.
+    pub fn opt_usize(&self, key: &str) -> Result<Option<usize>, ToolError> {
+        match self.opt_i64(key)? {
+            None => Ok(None),
+            Some(n) => usize::try_from(n)
+                .map(Some)
+                .map_err(|_| self.wrong_type(key, "a non-negative integer")),
+        }
+    }
+
+    /// A required number.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when missing or not a number.
+    pub fn f64(&self, key: &str) -> Result<f64, ToolError> {
+        self.required(key, self.opt_f64(key))
+    }
+
+    /// An optional number.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when present but not a number.
+    pub fn opt_f64(&self, key: &str) -> Result<Option<f64>, ToolError> {
+        let Some(value) = self.args.get(key) else {
+            return Ok(None);
+        };
+        let n = match value {
+            ArgType::Float64(n) => Some(*n),
+            ArgType::Float32(n) => Some(f64::from(*n)),
+            ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
+            _ => match self.opt_i64(key) {
+                // Integers are numbers too; precision loss past 2^53 is accepted.
+                Ok(Some(i)) => Some(i as f64),
+                _ => None,
+            },
+        };
+        n.map(Some).ok_or_else(|| self.wrong_type(key, "a number"))
+    }
+
+    /// A required boolean.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when missing or not a boolean.
+    pub fn bool(&self, key: &str) -> Result<bool, ToolError> {
+        self.required(key, self.opt_bool(key))
+    }
+
+    /// An optional boolean: a JSON boolean, or the text `"true"` / `"false"`.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] when present but not a boolean.
+    pub fn opt_bool(&self, key: &str) -> Result<Option<bool>, ToolError> {
+        match self.args.get(key) {
+            None => Ok(None),
+            Some(ArgType::JSON(s) | ArgType::Text(s)) => match s.trim() {
+                "true" => Ok(Some(true)),
+                "false" => Ok(Some(false)),
+                _ => Err(self.wrong_type(key, "a boolean")),
+            },
+            Some(_) => Err(self.wrong_type(key, "a boolean")),
+        }
+    }
+
+    /// The argument as plain JSON (arrays, objects, anything), if passed.
+    #[must_use]
+    pub fn opt_value(&self, key: &str) -> Option<serde_json::Value> {
+        self.args.get(key).map(ArgType::to_json_value)
+    }
+
+    /// All arguments as one struct.
+    ///
+    /// # Errors
+    /// [`ToolError::InvalidArguments`] with the deserializer's message when
+    /// the arguments don't fit `T`.
+    pub fn parse<T: serde::de::DeserializeOwned>(&self) -> Result<T, ToolError> {
+        let object = serde_json::Value::Object(
+            self.args
+                .iter()
+                .map(|(key, value)| (key.clone(), value.to_json_value()))
+                .collect(),
+        );
+        serde_json::from_value(object).map_err(|e| self.invalid(e.to_string()))
     }
 }
 
@@ -194,6 +388,102 @@ pub trait ToolImpl: Send + Sync {
         &self,
         arguments: HashMap<String, ArgType>,
     ) -> Result<ToolCallResult, ToolError>;
+}
+
+// ---------------------------------------------------------------------------
+// FnTool — a tool from a closure
+
+type FnToolFuture = core::pin::Pin<
+    Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
+>;
+type FnToolRun = dyn for<'a> Fn(ToolArgs<'a>) -> FnToolFuture + Send + Sync;
+
+/// A tool built from a closure instead of a struct with an `impl ToolImpl`.
+///
+/// The closure gets the call's [`ToolArgs`] and returns a future; read what
+/// it needs from the arguments first, then move the owned values into the
+/// future:
+///
+/// ```ignore
+/// let greet = FnTool::new(
+///     "greet",
+///     "Greet someone by name.",
+///     Args::new(scheme::object().required("name", scheme::string()).build()),
+///     |args: ToolArgs<'_>| {
+///         let name = args.str("name").map(str::to_owned);
+///         async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
+///     },
+/// );
+/// let tools = ToolShed::new().tool(greet);
+/// ```
+///
+/// The category defaults to `"custom"`; set it with
+/// [`with_category`](Self::with_category).
+pub struct FnTool {
+    name: String,
+    description: String,
+    category: String,
+    arguments: Args,
+    run: Box<FnToolRun>,
+}
+
+impl FnTool {
+    /// A single-command tool named `name` whose arguments follow the
+    /// `arguments` schema.
+    pub fn new<F, Fut>(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        arguments: Args,
+        run: F,
+    ) -> Self
+    where
+        F: for<'a> Fn(ToolArgs<'a>) -> Fut + Send + Sync + 'static,
+        Fut: core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send + 'static,
+    {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            category: "custom".into(),
+            arguments,
+            run: Box::new(move |args| Box::pin(run(args))),
+        }
+    }
+
+    /// Set the category (used for grouping and by `shed`'s search).
+    #[must_use]
+    pub fn with_category(mut self, category: impl Into<String>) -> Self {
+        self.category = category.into();
+        self
+    }
+}
+
+impl std::fmt::Debug for FnTool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FnTool")
+            .field("name", &self.name)
+            .field("category", &self.category)
+            .finish_non_exhaustive()
+    }
+}
+
+#[async_trait]
+impl ToolImpl for FnTool {
+    fn definition(&self) -> Tool {
+        Tool::SingleCommand(ToolDefinition {
+            name: self.name.clone(),
+            category: self.category.clone(),
+            description: self.description.clone(),
+            arguments: self.arguments.clone(),
+            returns: None,
+        })
+    }
+
+    async fn execute(
+        &self,
+        arguments: HashMap<String, ArgType>,
+    ) -> Result<ToolCallResult, ToolError> {
+        (self.run)(ToolArgs::new(&self.name, &arguments)).await
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -588,18 +878,11 @@ impl ToolCallManager {
     /// Run the built-in `shed`: search, activate the hits, return them.
     fn run_shed(&self, arguments: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         validate_arguments(&shed_definition(), SHED_TOOL_NAME, arguments)?;
-        let description = match arguments.get("description") {
-            Some(ArgType::Text(s)) => s.clone(),
-            _ => {
-                return Err(ToolError::InvalidArguments {
-                    tool: SHED_TOOL_NAME.into(),
-                    reason: "missing required argument: description".into(),
-                })
-            }
-        };
-        let limit = arg_usize(arguments, "limit").unwrap_or(DEFAULT_SHED_LIMIT);
+        let args = ToolArgs::new(SHED_TOOL_NAME, arguments);
+        let description = args.str("description")?;
+        let limit = args.opt_usize("limit")?.unwrap_or(DEFAULT_SHED_LIMIT);
 
-        let hits = self.search_tools(&description, limit)?;
+        let hits = self.search_tools(description, limit)?;
         let names: Vec<String> = hits.iter().map(|h| h.name.clone()).collect();
         self.activate(&names);
 
@@ -609,13 +892,7 @@ impl ToolCallManager {
                 reason: format!("serialization failed: {e}"),
             }
         })?;
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent {
-                content: json,
-                signature: None,
-            }),
-            error_detail: None,
-        })
+        Ok(ToolCallResult::text(json))
     }
 
     /// Look up a registered tool.

@@ -859,11 +859,15 @@ fn test_json_value_to_arg_type() {
         matches!(float, foundation_ai::types::base_types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
     );
 
+    // Objects become a recursive JSONMap (Proposal 15, item 12).
     let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
-    assert!(matches!(
-        obj,
-        foundation_ai::types::base_types::ArgType::JSON(_)
-    ));
+    match obj {
+        foundation_ai::types::base_types::ArgType::JSONMap(map) => assert!(matches!(
+            map.get("nested"),
+            Some(foundation_ai::types::base_types::ArgType::JSON(t)) if t == "true"
+        )),
+        other => panic!("expected JSONMap, got {other:?}"),
+    }
 }
 
 #[test]

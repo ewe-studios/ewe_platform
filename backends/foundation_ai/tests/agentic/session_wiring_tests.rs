@@ -765,8 +765,10 @@ fn refused_spend_ends_the_turn() {
     });
     let session = session_with_access(mock, access);
 
-    let err = session.run_turn(user_msg("hi")).expect_err("spend refused");
-    assert!(format!("{err:?}").contains("budget exceeded"), "{err:?}");
+    let turn = session.run_turn(user_msg("hi")).expect("the turn started");
+    let err = turn.failure().expect("spend refused");
+    assert!(err.to_string().contains("budget exceeded"), "{err}");
+    assert!(turn.text().is_empty(), "nothing was generated");
 }
 
 #[valtron_test]

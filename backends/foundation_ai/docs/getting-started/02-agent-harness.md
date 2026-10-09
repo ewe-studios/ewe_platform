@@ -70,14 +70,10 @@ When presets don't match your needs, mix providers yourself:
 
 ```rust
 use foundation_ai::harness::{RouterMix, CloudPresets, providers::Glm52};
-use foundation_ai::types::ModelId;
 
 let preset = RouterMix::new()
-    .primary(Glm52::q4_k_m(None)?, ModelId::Name("unsloth/GLM-5.2-GGUF".into(), None))
-    .memory(
-        CloudPresets::claude_sonnet(&anthropic_key)?,
-        ModelId::Name("claude-sonnet-4-6".into(), None),
-    )
+    .primary(Glm52::q4_k_m(None)?, "unsloth/GLM-5.2-GGUF")          // model ids: impl Into<ModelId>
+    .memory(CloudPresets::claude_sonnet(&anthropic_key)?, "claude-sonnet-4-6")
     .build();
 
 let agent = preset
@@ -100,21 +96,12 @@ what the harness does internally, spelled out step by step.
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
-use foundation_ai::types::{
-    ModelId, ProviderRouter, RoutableProviderBox, RoutingRule,
-};
-use foundation_auth::{AuthCredential, ConfidentialText};
+use foundation_ai::types::{ProviderRouter, RoutableProviderBox, RoutingRule};
 
-let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY");
-
-let main_provider = AnthropicMessagesProvider::with_config(
-    AnthropicConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.clone()))),
-);
-let memory_provider = AnthropicMessagesProvider::with_config(
-    AnthropicConfig::new()
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
-);
+// `from_env()` reads ANTHROPIC_API_KEY; `AnthropicConfig::api_key(key)` takes it
+// directly (an `AuthCredential::SecretOnly` credential).
+let main_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::from_env()?);
+let memory_provider = AnthropicMessagesProvider::with_config(AnthropicConfig::from_env()?);
 
 // Box with explicit identities for routing.
 // name = model id string (must be unique per role)
@@ -138,11 +125,11 @@ let router = ProviderRouter::builder()
     .add_provider(Box::new(main_box))
     .add_provider(Box::new(memory_box))
     .rule(RoutingRule {
-        model: ModelId::Name("claude-opus-4-8".into(), None),
+        model: "claude-opus-4-8".into(),
         provider_name: "claude-opus-4-8".into(),
     })
     .rule(RoutingRule {
-        model: ModelId::Name("claude-sonnet-4-6".into(), None),
+        model: "claude-sonnet-4-6".into(),
         provider_name: "claude-sonnet-4-6".into(),
     })
     .build();
@@ -160,8 +147,8 @@ let router = ProviderRouter::builder()
 use foundation_ai::agentic::{AgentSession, AgentConfig};
 
 let agent = AgentSession::builder(router)
-    .with_model(ModelId::Name("claude-opus-4-8".into(), None))
-    .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    .with_model("claude-opus-4-8")
+    .with_memory_model("claude-sonnet-4-6")
     .with_system_prompt("You are a helpful assistant.")
     .with_config(AgentConfig::default())
     .build()?;
@@ -171,23 +158,18 @@ let agent = AgentSession::builder(router)
 
 ```rust
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
-use foundation_ai::types::{ModelId, ProviderRouter, RoutableProviderBox, RoutingRule};
+use foundation_ai::types::{ProviderRouter, RoutableProviderBox, RoutingRule};
 
 fn build_openrouter_router(api_key: &str, primary: &str, memory: Option<&str>) -> ProviderRouter {
-    let mk = || {
-        OpenAIProvider::with_config(
-            OpenAIConfig::new()
-                .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())))
-                .with_base_url("https://openrouter.ai/api/v1"),
-        )
-    };
+    // API key + OpenRouter's base URL.
+    let mk = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
 
     let mut b = ProviderRouter::builder()
         .add_provider(Box::new(RoutableProviderBox::with_identity(
             mk(), primary.into(), "openai-completions".into(),
         )))
         .rule(RoutingRule {
-            model: ModelId::Name(primary.into(), None),
+            model: primary.into(),
             provider_name: primary.into(),
         });
 
@@ -197,7 +179,7 @@ fn build_openrouter_router(api_key: &str, primary: &str, memory: Option<&str>) -
                 mk(), m.into(), "openai-completions".into(),
             )))
             .rule(RoutingRule {
-                model: ModelId::Name(m.into(), None),
+                model: m.into(),
                 provider_name: m.into(),
             });
     }
@@ -212,63 +194,52 @@ fn build_openrouter_router(api_key: &str, primary: &str, memory: Option<&str>) -
 
 ### 3.1. Blocking Turn
 
+Turns take `impl Into<Messages>` — a `&str` is a user message.
+
 ```rust
-use foundation_ai::types::{MessageRole, Messages, TextContent, UserModelContent, SessionRecord, ModelOutput};
-use foundation_compact::ids::new_scru128;
+// Just the answer text:
+let answer = agent.ask("What is 2 + 2?")?;
+println!("Assistant: {}", answer.text());
 
-let prompt = Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "What is 2 + 2?".into(),
-        signature: None,
-    }),
-    signature: None,
-};
-
-let records = agent.run_turn(prompt)?;
-
-for record in &records {
-    match record {
-        SessionRecord::Conversation { message: Messages::Assistant { content, .. } } => {
-            if let ModelOutput::Text(tc) = content {
-                println!("Assistant: {}", tc.content);
-            }
-        }
-        SessionRecord::Conversation { message: Messages::ToolResult { name, .. } } => {
-            println!("Tool result: {name}")
-        }
-        SessionRecord::FailedAction { error, .. } => eprintln!("Error: {error:?}"),
-        _ => {}
+// The whole turn (a Turn derefs to Vec<SessionRecord>):
+let turn = agent.run_turn("What is 2 + 2?")?;
+println!("Assistant: {}", turn.text());
+for result in turn.tool_results() {
+    if let Messages::ToolResult { name, .. } = result {
+        println!("Tool result: {name}");
     }
+}
+// Partial output first, then the error that ended the turn (if any):
+if let Some(error) = turn.failure() {
+    eprintln!("Error: {error}");
 }
 ```
 
 ### 3.2. Streaming Turn
 
 ```rust
-use foundation_core::valtron::Stream;
+use foundation_ai::agentic::TurnEvent;
 
-let stream = agent.run_turn_stream(prompt)?;
-for item in stream {
-    match item {
-        Stream::Next(SessionRecord::Retracted { .. }) => {
-            /* the loop is retrying: drop the assistant text shown for this turn */
-        }
-        Stream::Next(record) => { /* process as it arrives */ }
-        Stream::Pending(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Delayed(_) => {}
-        Stream::Spread(items) => { /* batch completion */ }
+for event in agent.run_turn_stream("What is 2 + 2?")?.events() {
+    match event {
+        TurnEvent::Text(delta) => print!("{delta}"),
+        TurnEvent::Retract { .. } => { /* the loop is retrying: drop the text shown for this turn */ }
+        TurnEvent::ToolCall { name, .. } => eprintln!("→ {name}"),
+        TurnEvent::Failed(error) => eprintln!("\nError: {error}"),   // terminal
+        TurnEvent::Done(summary) => eprintln!("\n[{} tokens]", summary.usage.total), // terminal
+        _ => {}
     }
 }
 ```
 
-`run_turn` handles `Retracted` for you; a streaming consumer must.
+Iterating the `TurnStream` itself still yields the raw
+`Stream<SessionRecord, AgentProgress>` items.
 
 ### 3.3. Multi-Turn
 
 ```rust
-agent.run_turn(first_prompt)?;
-agent.run_turn(follow_up_prompt)?;
+agent.run_turn("First question")?;
+agent.run_turn("A follow-up that relies on the first answer")?;
 ```
 
 ---
@@ -278,29 +249,13 @@ agent.run_turn(follow_up_prompt)?;
 ### 4.1. Priority Queue (Interrupts)
 
 ```rust
-agent.steer(Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "Stop. New instructions.".into(),
-        signature: None,
-    }),
-    signature: None,
-});
+agent.steer("Stop. New instructions.");                  // or Messages::agent(..) from another agent
 ```
 
 ### 4.2. Follow-Up Queue (After Current Work)
 
 ```rust
-agent.follow_up(Messages::User {
-    id: new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "Also check the config file.".into(),
-        signature: None,
-    }),
-    signature: None,
-});
+agent.follow_up("Also check the config file.");
 ```
 
 ---
