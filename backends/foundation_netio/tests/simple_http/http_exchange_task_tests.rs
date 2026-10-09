@@ -27,7 +27,7 @@ fn raw_http_serve(status: u16, body: &'static str) -> std::net::SocketAddr {
     let addr = listener.local_addr().expect("addr");
     let body_bytes = body.as_bytes().to_vec();
     std::thread::spawn(move || {
-        for stream in listener.incoming() {
+        if let Some(stream) = listener.incoming().next() {
             let mut stream = stream.expect("accept");
             let mut buf = [0u8; 4096];
             let _n = stream.read(&mut buf).unwrap_or(0);
@@ -38,7 +38,6 @@ fn raw_http_serve(status: u16, body: &'static str) -> std::net::SocketAddr {
             let mut out = response.into_bytes();
             out.extend_from_slice(&body_bytes);
             let _ = stream.write_all(&out);
-            break;
         }
     });
     addr
