@@ -30,6 +30,18 @@ loop drives those futures through Valtron too.
 | `errors/` | `GenerationError`, `ModelProviderErrors`, llama.cpp error wrappers |
 | `toolbox/` | llama-server test harness (`toolbox` feature) |
 
+`foundation_ai::agentic` re-exports what an application needs: the session
+and its builder (`AgentSession`, `AgentSessionBuilder`, `AgentConfig`,
+`ModelSelection`, `ContextConfig`, `MemoryConfig`), turn results (`Turn`,
+`Answer`, `TurnStream`, `TurnEvent`, `TurnSummary`), tools (`ToolImpl`,
+`FnTool`, `ToolArgs`, `ToolCallResult`, `ToolError`, `ToolShed`, `tool_fn`,
+`ToolPreset`), stores (`MemoryStore`, `KvMemoryStore`), access control and the
+error types. Loop internals — `AgentLoop`, `ContextProvider`, `MessageApi`,
+`MemoryHierarchy`, `ToolCallManager`, `SteeringQueues`, `TokenLedger`,
+`LoopDetector`, the embedding and serialization helpers — are grouped under
+`foundation_ai::agentic::internals`, for custom loops and tests; they are not
+covered by semver.
+
 ## Architecture
 
 ```

@@ -9,13 +9,13 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
+use foundation_ai::agentic::internals::{CacheStats, EmbeddingError, EmbeddingVector};
 use foundation_ai::agentic::testing::{
     mock_text, mock_text_usage, mock_tool_call, MockModelProvider,
 };
 use foundation_ai::agentic::{
-    AgentSession, AuthError, CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector,
-    KvMemoryStore, MemoryStore, SessionAccessProvider, TokenBudget, ToolCallResult, ToolError,
-    ToolImpl, ToolShed, UserId,
+    AgentSession, AuthError, EmbeddingProvider, KvMemoryStore, MemoryStore, SessionAccessProvider,
+    TokenBudget, ToolCallResult, ToolError, ToolImpl, ToolShed, UserId,
 };
 use foundation_ai::harness::ToolPreset;
 use foundation_ai::types::{

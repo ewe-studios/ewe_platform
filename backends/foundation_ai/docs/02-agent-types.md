@@ -231,7 +231,7 @@ At the **model** level (`Model::stream`): `D = Messages`, `P = ModelState`
 
 At the **agent** level (`AgentSession::run_turn_stream`, which returns a
 `TurnStream`): `D = SessionRecord`, `P = AgentProgress` — the alias is
-`agentic::AgentStream`. `TurnStream::events()` maps these items to
+`agentic::internals::AgentStream`. `TurnStream::events()` maps these items to
 `TurnEvent`s (`Text`, `Thinking`, `ToolCall`, `ToolResult`, `Retract`,
 `Progress`, then a terminal `Failed` or `Done(TurnSummary)`), skipping the
 scheduling signals and the memory records.

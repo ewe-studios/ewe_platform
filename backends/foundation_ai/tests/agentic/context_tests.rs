@@ -5,10 +5,9 @@
 
 use std::sync::Arc;
 
+use foundation_ai::agentic::internals::{ContextProvider, MessageApi, TokenLedger};
 use foundation_ai::agentic::memory_store::SessionMemory;
-use foundation_ai::agentic::{
-    ContextConfig, ContextProvider, KvMemoryStore, MessageApi, TokenLedger,
-};
+use foundation_ai::agentic::{ContextConfig, KvMemoryStore};
 use foundation_ai::types::{
     MemoryFact, MessageRole, Messages, SessionId, SessionRecord, TextContent, UserModelContent,
 };
@@ -167,7 +166,7 @@ fn reflection(seq: u8) -> SessionRecord {
     }
 }
 
-fn assistant_texts_of(ctx: &foundation_ai::agentic::AgentContext) -> String {
+fn assistant_texts_of(ctx: &foundation_ai::agentic::internals::AgentContext) -> String {
     ctx.messages
         .iter()
         .map(|m| format!("{m:?}"))
@@ -235,9 +234,8 @@ fn observation_injected_when_no_reflection() {
 // F16 — real embedding-based semantic recall (SearchMode::Semantic)
 // ===========================================================================
 
-use foundation_ai::agentic::{
-    CacheStats, EmbeddingError, EmbeddingProvider, EmbeddingVector, SearchMode,
-};
+use foundation_ai::agentic::internals::{CacheStats, EmbeddingError, EmbeddingVector, SearchMode};
+use foundation_ai::agentic::EmbeddingProvider;
 
 /// A deterministic topic embedder: text maps to a 3-dim [animal, tech, food]
 /// vector by topic keywords. Crucially, semantically-related words that share NO

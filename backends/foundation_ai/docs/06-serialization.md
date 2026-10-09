@@ -69,7 +69,7 @@ Subscribers can watch the log: `message_api.subscribe()` returns a receiver of
 | `content` | The full record as JSON (lossless) |
 
 ```rust
-use foundation_ai::agentic::{to_record_batch, from_record_batch};
+use foundation_ai::agentic::internals::{to_record_batch, from_record_batch};
 
 let records = agent.message_api().all()?;
 let batch = to_record_batch(&records)?;          // arrow RecordBatch

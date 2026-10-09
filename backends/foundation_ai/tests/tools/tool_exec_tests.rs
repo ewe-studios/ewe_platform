@@ -2,12 +2,12 @@
 //!
 //! Tests workflow building (topological staging), retry config, and error classification.
 
-use foundation_ai::types::Tool;
 use async_trait::async_trait;
-use foundation_ai::agentic::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolError,
-    ToolErrorKind, ToolImpl, ToolRetryConfig,
+use foundation_ai::agentic::internals::{
+    FailMode, ToolCallManager, ToolCallRequest, ToolCallStage, ToolErrorKind, ToolRetryConfig,
 };
+use foundation_ai::agentic::{ToolCallResult, ToolError, ToolImpl};
+use foundation_ai::types::Tool;
 use foundation_ai::types::{
     ArgType, Args, ExecutionHint, SessionId, TextContent, ToolDefinition, UserModelContent,
 };

@@ -242,7 +242,8 @@ fn fn_tool_declares_itself_and_runs_the_closure() {
 
 #[test]
 fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
-    use foundation_ai::agentic::{AgentSession, ToolCallRequest, ToolShed};
+    use foundation_ai::agentic::internals::ToolCallRequest;
+    use foundation_ai::agentic::{AgentSession, ToolShed};
     use foundation_ai::types::{ExecutionHint, ProviderRouter};
 
     let session = AgentSession::builder(ProviderRouter::builder().build())

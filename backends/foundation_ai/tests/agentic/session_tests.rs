@@ -447,3 +447,41 @@ fn memory_model_reaches_the_memory_hierarchy() {
     assert_eq!(session.models().memory, None);
     assert_eq!(session.memory_hierarchy().memory_model(), None);
 }
+
+// ---------------------------------------------------------------------------
+// Public surface (doc 15 item 18)
+
+#[test]
+fn session_handles_are_named_through_internals() {
+    use foundation_ai::agentic::internals::{
+        AgentLoop, ContextProvider, MemoryHierarchy, MessageApi, SteeringQueues, TokenLedger,
+        ToolCallManager,
+    };
+
+    let session: TestSession = builder().build().expect("build succeeds");
+    // The extension handles return loop internals; each is reachable by name
+    // under `agentic::internals`.
+    let _: &MessageApi<TestDocStore> = session.message_api();
+    let _: &TokenLedger = session.ledger();
+    let _: &SteeringQueues = session.steering_queues();
+    let _: &ToolCallManager = session.tool_manager();
+    let _: &MemoryHierarchy<TestMemStore, TestDocStore> = session.memory_hierarchy();
+    let _: &ContextProvider<TestDocStore, TestMemStore> = session.context_provider();
+    assert!(std::any::type_name::<AgentLoop<TestDocStore, TestMemStore>>().contains("AgentLoop"));
+}
+
+#[test]
+fn an_application_needs_only_the_agentic_root() {
+    use foundation_ai::agentic::{
+        AgentSession, Answer, ModelSelection, ToolPreset, ToolShed, TurnEvent, TurnSummary,
+    };
+
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_model("test-model")
+        .with_toolshed(ToolShed::new().tools(ToolPreset::shell()))
+        .build()
+        .expect("build succeeds");
+    assert_eq!(session.models(), &ModelSelection::new("test-model"));
+    // Types a caller matches on are nameable from the root.
+    let _ = std::any::type_name::<(Answer, TurnEvent, TurnSummary)>();
+}

@@ -17,12 +17,14 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use foundation_ai::agentic::internals::{
+    AgentLoop, ContextProvider, LoopDetectorConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
+    SteeringQueues, TokenLedger,
+};
 use foundation_ai::agentic::testing::{mock_text, mock_tool_call, MockModelProvider};
 use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
-    AgentConfig, AgentLoop, ContextConfig, ContextProvider, ErrorPolicy, KvMemoryStore,
-    LoopDetectorConfig, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
-    ModelSelection, SteeringQueues, TokenLedger,
+    AgentConfig, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig, ModelSelection,
 };
 use foundation_ai::types::{
     ArgType, MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
@@ -948,7 +950,7 @@ fn well_ordered_dependencies_still_execute() {
 
 #[test]
 fn a_hard_abort_ends_the_turn_before_the_next_generation() {
-    use foundation_ai::agentic::CancelCode;
+    use foundation_ai::agentic::internals::CancelCode;
 
     // A hard abort must be honoured at the outer boundary, not after another
     // (billable) model call. Set it before driving so the very first boundary
@@ -971,7 +973,7 @@ fn a_hard_abort_ends_the_turn_before_the_next_generation() {
 
 #[test]
 fn an_abort_resets_the_cancel_signal() {
-    use foundation_ai::agentic::CancelCode;
+    use foundation_ai::agentic::internals::CancelCode;
 
     // The signal is consumed on handling; leaving it set would abort the NEXT
     // turn too, which reads as the session mysteriously going dead.

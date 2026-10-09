@@ -255,7 +255,7 @@ fn extract_tool_signatures(output: &ModelOutput) -> Option<ToolCallSignature> {
 /// # Examples
 ///
 /// ```
-/// use foundation_ai::agentic::is_vacuous_answer;
+/// use foundation_ai::agentic::internals::is_vacuous_answer;
 ///
 /// assert!(is_vacuous_answer("."));
 /// assert!(is_vacuous_answer("  ...  "));
@@ -326,7 +326,7 @@ const QUANTITY_PHRASES: [&str; 19] = [
 /// # Examples
 ///
 /// ```
-/// use foundation_ai::agentic::question_expects_a_number;
+/// use foundation_ai::agentic::internals::question_expects_a_number;
 ///
 /// assert!(question_expects_a_number("What is 2+2?"));
 /// assert!(question_expects_a_number("How many planets are there?"));

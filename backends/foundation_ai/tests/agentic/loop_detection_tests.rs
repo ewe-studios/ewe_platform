@@ -459,7 +459,8 @@ fn the_ladder_is_spent_once_unless_something_works() {
 
 #[test]
 fn agentic_root_names_the_verdict_and_the_error_payload_apart() {
-    use foundation_ai::agentic::{AgenticError, LoopDetectedInfo, LoopDetection as Verdict};
+    use foundation_ai::agentic::internals::LoopDetection as Verdict;
+    use foundation_ai::agentic::{AgenticError, LoopDetectedInfo};
 
     // `agentic::LoopDetection` is the detector's verdict — no alias needed.
     let mut detector = LoopDetector::new(LoopDetectorConfig::default());

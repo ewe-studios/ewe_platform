@@ -46,7 +46,8 @@ pub trait EmbeddingProvider: Send + Sync {
 The one implementation:
 
 ```rust
-use foundation_ai::agentic::{CachedEmbeddingProvider, SentenceChunker, NoopColdCache};
+use foundation_ai::agentic::CachedEmbeddingProvider;
+use foundation_ai::agentic::internals::{SentenceChunker, NoopColdCache};
 
 let embedder = CachedEmbeddingProvider::new(
     router.clone(),                 // routes the embedding model id

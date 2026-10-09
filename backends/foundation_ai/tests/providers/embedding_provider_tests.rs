@@ -1,8 +1,8 @@
 #![allow(unused_imports)]
-use foundation_ai::agentic::{
-    CacheStats, CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, SentenceChunker,
-    WholeTextChunker,
+use foundation_ai::agentic::internals::{
+    CacheStats, NoopColdCache, SentenceChunker, WholeTextChunker,
 };
+use foundation_ai::agentic::{CachedEmbeddingProvider, EmbeddingProvider};
 use foundation_ai::types::{
     BoxModel, CostStatus, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox, ProviderRouter,
@@ -140,7 +140,10 @@ fn make_router(dims: usize, values: Vec<f32>) -> ProviderRouter {
 #[test]
 fn whole_text_chunker_returns_single_chunk() {
     let chunker = WholeTextChunker;
-    let chunks = foundation_ai::agentic::TextChunker::chunk(&chunker, "Hello world. Second sentence.");
+    let chunks = foundation_ai::agentic::internals::TextChunker::chunk(
+        &chunker,
+        "Hello world. Second sentence.",
+    );
     assert_eq!(chunks.len(), 1);
     assert_eq!(chunks[0], "Hello world. Second sentence.");
 }
@@ -148,7 +151,7 @@ fn whole_text_chunker_returns_single_chunk() {
 #[test]
 fn sentence_chunker_splits_on_punctuation() {
     let chunker = SentenceChunker;
-    let chunks = foundation_ai::agentic::TextChunker::chunk(
+    let chunks = foundation_ai::agentic::internals::TextChunker::chunk(
         &chunker,
         "First sentence. Second sentence! Third?",
     );
@@ -161,7 +164,7 @@ fn sentence_chunker_splits_on_punctuation() {
 #[test]
 fn sentence_chunker_handles_trailing_text() {
     let chunker = SentenceChunker;
-    let chunks = foundation_ai::agentic::TextChunker::chunk(
+    let chunks = foundation_ai::agentic::internals::TextChunker::chunk(
         &chunker,
         "Sentence one. Fragment without ending",
     );
@@ -173,7 +176,7 @@ fn sentence_chunker_handles_trailing_text() {
 #[test]
 fn sentence_chunker_empty_string_returns_original() {
     let chunker = SentenceChunker;
-    let chunks = foundation_ai::agentic::TextChunker::chunk(&chunker, "");
+    let chunks = foundation_ai::agentic::internals::TextChunker::chunk(&chunker, "");
     assert_eq!(chunks.len(), 1);
     assert_eq!(chunks[0], "");
 }
