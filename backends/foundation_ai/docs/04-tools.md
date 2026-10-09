@@ -1,4 +1,4 @@
-# Fundamentals 04 — ToolImpl, ToolShed, ToolPreset, and the execution DAG
+# Fundamentals 04 — ToolImpl, ToolShed, `shed`, ToolPreset, and the execution DAG
 
 How tools are defined, registered, discovered, and executed with dependency
 ordering. (Updated for F19 unified tool model.)
@@ -70,25 +70,90 @@ Provider mapping:
 
 ---
 
-## 2. ToolCallManager — registration and execution
+## 2. ToolShed — the session's tools
 
-Every `AgentSession` owns a `ToolCallManager`. Give it tools on the builder,
-or register them on the session later; the loop rebuilds the `ToolShed` from
-the registry before every generation, so later registration takes effect on
-the next request.
+A session's tools are given in one place: a `ToolShed` passed to
+`with_toolshed`. The shed holds tool *constructors*, one per name.
+`AgentSession::build()` calls each constructor with the session's parts and
+the result is the session's `ToolCallManager` — so every tool is registered by
+construction, and there are no per-tool methods on the session builder.
 
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
-    .with_tool(Arc::new(BashTool::new()))
-    .with_tools(ToolPreset::files(Arc::clone(&fs)).as_child_tools())
-    .build()?;
+use foundation_ai::agentic::{tool_fn, AgentSession, ToolShed};
+use foundation_ai::harness::ToolPreset;
 
-// …or after build:
-agent.tool_manager().register(Arc::new(MyTool));
+let tools = ToolShed::new()
+    .tool(GreetTool)                                  // a ready-made ToolImpl
+    .tools(ToolPreset::files(Arc::clone(&fs)))        // a preset
+    .tools(ToolPreset::shell())
+    .tools(ToolPreset::search_context())              // built from the session
+    .tool(tool_fn("notes", |s| {                      // your own session-dependent tool
+        Arc::new(NotesTool::new(Arc::clone(&s.memory))) as Arc<dyn ToolImpl>
+    }));
+
+let agent = AgentSession::builder(router)
+    .with_toolshed(tools)
+    .build()?;
 ```
 
-`with_toolshed(..)` only declares tools that `build()` must find registered
-(a preflight check); the model is offered whatever is registered either way.
+- `ToolShed::tool(..)` takes anything `Into<Box<dyn ToolConstructor>>`: a
+  `ToolImpl` value, an `Arc<T>` / `Arc<dyn ToolImpl>`, or a constructor from
+  `tool_fn`. `tools(..)` takes any iterator of constructors (a `ToolPreset`, a
+  `Vec<Box<dyn ToolConstructor>>`).
+- `SessionParts` is what a constructor gets: the `session_id`, the session's
+  `context` (`Arc<dyn ContextSearch>` — recall over its stores and embedder),
+  its `memory` (`Arc<dyn MemoryAccess>`) and its `embedder`. These are the same
+  `Arc`s the session holds.
+- `build()` fails with `ToolShedError::DuplicateTool(name)` when a name was
+  added twice, `ReservedName("shed")` for a tool named `shed`, and
+  `NameMismatch` when a constructor builds a tool under a different name. The
+  error converts into `AgenticError`.
+- `ToolShed::get(name)` / `contains(name)` are O(1) lookups; `names()` lists
+  the tools.
+
+`agent.tool_manager().register(Arc::new(MyTool))` after `build()` still works
+for adding a tool to a running session; it is not the normal path.
+
+## 3. What the model sees — `shed` first
+
+The model is offered exactly one tool up front, the built-in `shed`
+meta-tool, however many tools the session has. `shed` is how it learns what
+else it can call:
+
+- `shed { description, limit }` searches the registered tools and returns each
+  hit's name, description, category and argument schema (`ShedResult`). With
+  an embedder on the session (`with_embedder`), it searches by embedding
+  through `ToolDiscovery`; otherwise — and to fill the rest of `limit` — it
+  matches the query's words against tool names, descriptions and categories.
+- Every tool `shed` returns becomes **active**, and active tools are declared
+  on every later request. Native tool calling (Anthropic, OpenAI) only lets a
+  model call tools declared in the request, so a tool must be declared before
+  it can be called.
+- A call to a tool that isn't active gets a tool error
+  (`ToolError::NotActive`) telling the model to look it up with `shed` first;
+  the tool does not run.
+- A session with no tools declares nothing (not even `shed`).
+
+```rust
+// What the loop declares on each request:
+let declared: ToolDeclarations = agent.tool_manager().offered_tools();
+// = shed + agent.tool_manager().active_definitions()
+
+agent.tool_manager().is_active("read");            // has shed returned it?
+agent.tool_manager().activate(&["read".into()]);   // pre-activate (custom loops, tests)
+agent.tool_manager().all_declarations();           // every registered tool, for inspection
+```
+
+`ToolDeclarations` (in `types`) is the provider-facing list — definitions only:
+
+```rust
+pub struct ToolDeclarations {
+    pub shed: Option<Tool>,   // the `shed` meta-tool
+    pub tools: Vec<Tool>,     // the active tools
+}
+```
+
+## 4. ToolCallManager — the registry
 
 A standalone manager (tests, custom loops):
 
@@ -106,67 +171,56 @@ let request = ToolCallRequest {
 let result = futures_lite::future::block_on(manager.execute_one(&request));
 ```
 
-`execute_one` looks the tool up, validates the arguments against the tool's
-JSON Schema (`validate_arguments`; for a `MultiCommands` tool, against the
-schema of the command named by `command`), then runs it with panic
-containment: a panicking tool becomes `ToolError::Execution`. A schema
-violation is `ToolError::InvalidArguments` and the tool does not run.
+`execute_one` runs `shed` itself; for any other name it looks the tool up,
+validates the arguments against the tool's JSON Schema (`validate_arguments`;
+for a `MultiCommands` tool, against the schema of the command named by
+`command`), then runs it with panic containment: a panicking tool becomes
+`ToolError::Execution`. A schema violation is `ToolError::InvalidArguments`
+and the tool does not run. (The "is it active?" check is the loop's, via
+`check_offered`, so a standalone manager can run any registered tool.)
 
-Other methods: `deregister`, `get`, `get_def`, `names`, `build_toolshed`,
-`build_workflow`, `execute_with_retry`, `set_retry_config` / `retry_config`.
+Other methods: `deregister`, `get`, `get_def`, `names`, `offered_tools`,
+`active_definitions`, `activate`, `is_active`, `check_offered`,
+`search_tools`, `enable_discovery`, `all_declarations`, `build_workflow`,
+`execute_with_retry`, `set_retry_config` / `retry_config`.
 
 ### Using ToolPreset (harness)
 
-`harness::ToolPreset` bundles common tools for quick registration:
+`harness::ToolPreset` bundles common tools. A preset is a list of tool
+constructors, so it goes straight into `ToolShed::tools(..)`:
 
 ```rust
 use foundation_ai::harness::ToolPreset;
 
-// Single-tool presets:
+// Ready-made presets:
 ToolPreset::files(fs)        // → read, write, edit
 ToolPreset::shell()          // → bash
-ToolPreset::memory(h)        // → memory add/remove/replace (MultiCommands)
-                             //   h = Arc::new(agent.memory_hierarchy().clone())
+ToolPreset::memory(h)        // → memory add/remove/replace over a given hierarchy
 ToolPreset::agent(...)       // → agent start/check/result/… (MultiCommands)
-ToolPreset::shed(d)          // → tool discovery metatool
+
+// Built from the session inside build():
+ToolPreset::search_context() // → search_context over the session's stores + embedder
+ToolPreset::session_memory() // → memory over the session's own hierarchy
 
 // Compose via merge() or +:
-let preset = ToolPreset::files(fs)
-    .merge(ToolPreset::shell())
-    .merge(ToolPreset::memory(hierarchy));
+let preset = ToolPreset::files(fs).merge(ToolPreset::shell());
 
-// Two modes of use:
-preset.register_all(session.tool_manager());     // register on existing manager
-let child_tools = preset.as_child_tools();       // for AgentTool's child_tools
-let mgr = preset.into_manager(session_id);       // fresh ToolCallManager
+// Normal use:
+let tools = ToolShed::new().tools(preset);
+
+// Ready-made presets only (Err(ToolShedError::NeedsSession) otherwise):
+preset.register_all(session.tool_manager())?;    // add to a running session
+let child_tools = preset.as_child_tools()?;       // for AgentTool's child_tools
+let mgr = preset.into_manager(session_id)?;       // fresh ToolCallManager
 
 // Composite presets:
 ToolPreset::minimal_sub_agent(fs)                // files + shell
-ToolPreset::standard(fs, hierarchy, discovery)   // files + shell + memory + shed
+ToolPreset::standard(fs)                         // files + shell + session memory
 ```
 
 ---
 
-## 3. ToolShed — what the model sees
-
-`ToolCallManager::build_toolshed()` collects registered tools:
-
-```rust
-pub struct ToolShed {
-    pub shed: Option<Tool>,   // Discovery metatool (auto-added when ≥1 real tool)
-    pub tools: Vec<Tool>,     // All other registered tools
-}
-```
-
-Each tool declares its own shape (single or multi command) via
-`ToolImpl::definition()`. A registered tool named `shed` becomes the `shed`
-field; when none is registered, a default `shed` definition is added. When
-there are no other tools, `shed` is `None` — advertising discovery to a
-tool-less model made it call a phantom `shed()`.
-
----
-
-## 4. Execution order (the dependency DAG)
+## 5. Execution order (the dependency DAG)
 
 Tool calls can declare dependencies:
 
@@ -189,7 +243,7 @@ The agent loop flattens the stages and runs the calls **one at a time** in that
 order, each through `execute_with_retry`. The parallel / sequential stage
 distinction is computed but not yet used for concurrency.
 
-## 5. Retry configuration
+## 6. Retry configuration
 
 ```rust
 pub struct ToolRetryConfig {
@@ -207,7 +261,7 @@ never returns `Network` today (only `Timeout`, `Execution`,
 
 ---
 
-## 6. Built-in tools
+## 7. Built-in tools
 
 | Tool | Module | Type |
 |------|--------|------|
@@ -216,22 +270,21 @@ never returns `Network` today (only `Timeout`, `Execution`,
 | `read`, `write`, `edit` | `agentic::tools::files` | SingleCommand × 3 |
 | `bash` | `agentic::tools::files` | SingleCommand |
 | `search_file` (filesystem), `search_context` (session recall) | `agentic::tools::search` | SingleCommand × 2 (native only) |
-| `shed` | `agentic::tools::shed` | SingleCommand (metatool; needs a `ToolDiscovery` with an embedder + vector store) |
+| `shed` | built into every `ToolCallManager` (`agentic::tools::shed` holds `ToolDiscovery`) | SingleCommand meta-tool; embedding search when the session has an embedder, name/description match otherwise |
 
 `register_file_tools(manager, fs)` and `register_shell_tool(manager)` in
 `agentic::tools::files` register the file and shell tools without a preset.
 
 ---
 
-## 7. Building a custom tool
+## 8. Building a custom tool
 
 ```rust
 use std::sync::Arc;
 use std::collections::HashMap;
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{
-    ToolImpl, ToolCallResult, ToolDefinition, ToolError, ToolCallManager,
-};
+use foundation_ai::agentic::tool_impl::{ToolImpl, ToolCallResult, ToolDefinition, ToolError};
+use foundation_ai::agentic::{AgentSession, ToolShed};
 use foundation_ai::types::{ArgType, Args, Tool, TextContent, UserModelContent};
 
 struct GreetTool;
@@ -277,14 +330,15 @@ impl ToolImpl for GreetTool {
     }
 }
 
-// Register:
-let manager = ToolCallManager::new(session_id);
-manager.register(Arc::new(GreetTool));
+// Give it to a session:
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tool(GreetTool))
+    .build()?;
 ```
 
 ---
 
-## 8. Tool error types
+## 9. Tool error types
 
 ```rust
 pub enum ToolError {
@@ -293,5 +347,6 @@ pub enum ToolError {
     Execution { tool: String, reason: String },
     Timeout { tool: String },
     Cancelled(String),
+    NotActive(String),   // registered, but `shed` hasn't returned it yet
 }
 ```

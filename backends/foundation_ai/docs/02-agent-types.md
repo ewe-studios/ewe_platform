@@ -171,9 +171,9 @@ pub enum Tool {
     MultiCommands(String, Vec<ToolDefinition>),  // e.g. "memory" → add/remove/replace
 }
 
-pub struct ToolShed {
+pub struct ToolDeclarations {
     pub shed: Option<Tool>,   // the discovery meta-tool
-    pub tools: Vec<Tool>,
+    pub tools: Vec<Tool>,     // the tools `shed` has activated
 }
 ```
 
@@ -185,7 +185,7 @@ Doc 04 covers how these are built and rendered per provider.
 pub struct ModelInteraction {
     pub system_prompt: Option<String>,
     pub soul: Option<String>,
-    pub tools_shed: ToolShed,
+    pub tools_shed: ToolDeclarations,
     pub messages: Vec<Messages>,
     pub chat_template: Option<String>,   // local backends: override the model's template
     pub tool_choice: Option<ToolChoice>, // Auto | None | Required | Function(..)

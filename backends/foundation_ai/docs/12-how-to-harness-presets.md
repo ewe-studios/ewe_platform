@@ -20,15 +20,10 @@ small memory model, wired and ready:
 
 ```rust
 use foundation_ai::harness;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::SessionId;
 
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
-
 // GLM 5.2 for chat + Gemma 4 E2B for memory, as an AgentSession builder.
-let agent = harness::glm52_gemma_session::<Doc, Mem>(SessionId::new(), None, None)?
+let agent = harness::glm52_gemma_session(SessionId::new(), None, None)?
     .with_system_prompt("You are a helpful assistant.")
     .build()?;
 ```
@@ -48,7 +43,7 @@ The harness gives you three entry points, from highest-level to lowest:
 | `*_router(…)` → `RouterPreset` | router + model ids | you want to inspect/mix further |
 | `providers::*` + `RouterMix` | raw providers, full control | fully custom combinations |
 
-They compose: `*_session` calls `*_router().into_agent_builder(id)`, and
+They compose: `*_session` calls `*_router()?.into_agent_builder().with_session_id(id)`, and
 `*_router` builds a `RouterMix`.
 
 ---
@@ -72,11 +67,11 @@ Each combination has a `*_router()` (returns `RouterPreset`) and a `*_session()`
 ```rust
 // Local (GGUF) — main + memory:
 let preset = harness::gemma_router(None, None)?;              // RouterPreset
-let builder = harness::gemma_session::<Doc, Mem>(id, None, None)?;
+let builder = harness::gemma_session(id, None, None)?;
 
 // Cloud:
 let preset = harness::claude_router(&api_key)?;
-let builder = harness::openai_responses_session::<Doc, Mem>(id, &api_key)?;
+let builder = harness::openai_responses_session(id, &api_key)?;
 ```
 
 > **Candle note:** `candle_llama_*` is gated behind the `candle` feature and
@@ -186,14 +181,14 @@ let preset = harness::claude_router(&api_key)?;
 // Inspect routing:
 let main = preset.router.resolve(&preset.primary_model)?;   // &dyn RoutableProvider
 
-// Or hand back a builder you finish customizing:
+// Or hand back a builder you finish customizing (in-memory stores and a
+// fresh SessionId unless you set them):
 let agent = preset
-    .into_agent_builder::<Doc, Mem>(SessionId::new())
+    .into_agent_builder()
+    .with_session_id(session_id)
     .with_system_prompt("…")
+    .with_toolshed(ToolShed::new().tools(ToolPreset::shell()))   // Doc 04 §2
     .build()?;
-
-// Tools go on the session's manager after build (Doc 04 §2):
-ToolPreset::shell().register_all(agent.tool_manager());
 ```
 
 ---
@@ -249,27 +244,34 @@ presets. It never applies to models without an MTP head. See
 
 ## 9. ToolPreset — pre-built tool collections
 
-`harness::ToolPreset` bundles tool implementations for quick registration,
-mirroring the `register_*` functions in `agentic::tools`. Presets compose and
-double as the source of `child_tools` for the F15 agent tool.
+`harness::ToolPreset` bundles tool constructors. A preset is an iterator of
+constructors, so it goes straight into a session's `ToolShed`; presets of
+ready-made tools also double as the source of `child_tools` for the F15 agent
+tool.
 
 ```rust
 use foundation_ai::harness::ToolPreset;
 
-// Single-tool presets:
+// Ready-made presets:
 ToolPreset::files(fs)       // → read, write, edit
 ToolPreset::shell()         // → bash
-ToolPreset::memory(h)       // → memory add/remove/replace (MultiCommands)
-ToolPreset::shed(d)         // → tool discovery metatool
+ToolPreset::memory(h)       // → memory add/remove/replace over a given hierarchy
 ToolPreset::agent(...)      // → agent start/check/result/… (F15, MultiCommands)
+
+// Built from the session inside build():
+ToolPreset::search_context() // → search_context over the session's stores + embedder
+ToolPreset::session_memory() // → memory over the session's own hierarchy
 ```
+
+The `shed` discovery tool is built into every session — there is no preset
+for it.
 
 ### Compose presets
 
 ```rust
 let preset = ToolPreset::files(my_fs)
     .merge(ToolPreset::shell())
-    .merge(ToolPreset::memory(my_hierarchy));
+    .merge(ToolPreset::search_context());
 
 // Or with the + operator:
 let preset = ToolPreset::files(my_fs) + ToolPreset::shell();
@@ -278,14 +280,20 @@ let preset = ToolPreset::files(my_fs) + ToolPreset::shell();
 ### Use presets
 
 ```rust
-// 1. Register on an existing ToolCallManager:
-preset.register_all(session.tool_manager());
+// 1. The normal path — the session's ToolShed:
+let agent = builder.with_toolshed(ToolShed::new().tools(preset)).build()?;
 
-// 2. Build a fresh ToolCallManager:
-let mgr = preset.into_manager(session_id);
+// Ready-made tools only (Err(ToolShedError::NeedsSession) otherwise):
+// 2. Register on an existing ToolCallManager:
+preset.register_all(session.tool_manager())?;
 
-// 3. As child tools for the agent tool (F15):
-let child_tools = preset.as_child_tools();   // Vec<Arc<dyn ToolImpl>>
+// 3. Build a fresh ToolCallManager:
+let mgr = preset.into_manager(session_id)?;
+
+// 4. As child tools for the agent tool (F15):
+let child_tools = preset.as_child_tools()?;   // Vec<Arc<dyn ToolImpl>>
+// Doc / Mem: the sub-agents\' store types, e.g. MemoryDocumentStore and
+// KvMemoryStore<MemoryStorage>.
 let agent_tool = ToolPreset::agent::<Doc, Mem>(
     router, 0, 5, model, "/tmp/delegations", user, child_tools,
 );
@@ -296,25 +304,26 @@ let agent_tool = ToolPreset::agent::<Doc, Mem>(
 | Preset | Contents |
 |--------|----------|
 | `minimal_sub_agent(fs)` | files + shell (safe for sub-agents — no delegation) |
-| `standard(fs, hierarchy, discovery)` | files + shell + memory + shed |
+| `standard(fs)` | files + shell + session memory |
 
 ### With agent presets
 
 ```rust
+use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::{self, ToolPreset};
 
-// Build the model preset as usual:
-let builder = harness::claude_session::<Doc, Mem>(session_id, &api_key)?;
-
-// Build a tool preset and register on the session:
-let tools = ToolPreset::standard(fs, hierarchy, discovery);
-// … then pass to the session builder's tool manager after build().
-
-// Or for agent delegation:
-let child_tools = ToolPreset::minimal_sub_agent(fs).as_child_tools();
-let agent = ToolPreset::agent::<Doc, Mem>(
+// Agent delegation: the sub-agents' tools, then the agent tool itself.
+let child_tools = ToolPreset::minimal_sub_agent(Arc::clone(&fs)).as_child_tools()?;
+// Doc / Mem: the sub-agents\' store types, e.g. MemoryDocumentStore and
+// KvMemoryStore<MemoryStorage>.
+let delegation = ToolPreset::agent::<Doc, Mem>(
     router, 0, 5, model, "/tmp/delegations", user, child_tools,
 );
+
+// Model preset + tools:
+let agent = harness::claude_session(session_id, &api_key)?
+    .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
+    .build()?;
 ```
 
 ---

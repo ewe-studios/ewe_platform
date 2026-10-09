@@ -47,7 +47,7 @@ blocks the executor: each `next_status` call does one step of work and returns.
 ## 2. Running a turn
 
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+let agent = AgentSession::builder(router)
     .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
     .with_system_prompt("You are a coding assistant.")
     .build()?;
@@ -100,8 +100,11 @@ test helpers in `foundation_testing`).
    `MessageApi`, oldest first
 
 The system prompt rides separately on `ModelInteraction::system_prompt`. The
-tools come from `ToolCallManager::build_toolshed()` at every assemble, so tools
-registered mid-session show up on the next generation.
+tools come from `ToolCallManager::offered_tools()` at every assemble: the `shed`
+meta-tool plus every tool `shed` has returned so far, so a tool becomes
+callable on the generation after `shed` hands it out (Doc 04 §3). A call to a
+tool that isn't active yet becomes a tool error telling the model to use `shed`
+first.
 
 Two budget-driven adjustments run before the request is sent. Both measure the
 context's estimated tokens against the **session token budget**

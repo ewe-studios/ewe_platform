@@ -167,13 +167,28 @@ loop runs the tool.
 
 ## 7. Registering
 
+Tools go in the session's `ToolShed`:
+
 ```rust
-let agent = AgentSession::<Doc, Mem>::builder(id, router).build()?;
-agent.tool_manager().register(Arc::new(WeatherTool { api_key }));
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::new().tool(WeatherTool { api_key }))
+    .build()?;
 ```
 
-Or on the builder: `.with_tool(Arc::new(WeatherTool { api_key }))`. Bundles:
-`ToolPreset::from_tools(vec![..]).register_all(agent.tool_manager())`.
+A tool that needs the session (its context, memory or id) is added as a
+constructor, which `build()` calls with the session's parts:
+
+```rust
+use foundation_ai::agentic::tool_fn;
+
+let tools = ToolShed::new().tool(tool_fn("notes", |s| {
+    Arc::new(NotesTool::new(Arc::clone(&s.memory))) as Arc<dyn ToolImpl>
+}));
+```
+
+The model finds the tool through the `shed` meta-tool — write a `description`
+that says what the tool is for, since that is what `shed` searches. Bundles:
+`ToolPreset::from_tools(vec![..])`, passed to `ToolShed::tools(..)`.
 
 ## 8. Dependencies between calls
 

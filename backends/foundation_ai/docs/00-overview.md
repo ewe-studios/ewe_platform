@@ -18,7 +18,7 @@ loop drives those futures through Valtron too.
 
 | Module | What lives there |
 |---|---|
-| `types/base_types.rs` | `Model`, `ModelProvider`, `ModelId`, `ModelParams`, `ModelInteraction`, `Messages`, `ModelOutput`, `Tool` / `ToolDefinition` / `ToolShed`, `ToolFormatter`, `UsageReport` |
+| `types/base_types.rs` | `Model`, `ModelProvider`, `ModelId`, `ModelParams`, `ModelInteraction`, `Messages`, `ModelOutput`, `Tool` / `ToolDefinition` / `ToolDeclarations`, `ToolFormatter`, `UsageReport` |
 | `types/routable_provider.rs` | `RoutableProvider` (object-safe), `RoutableProviderBox`, `PreloadedProvider`, `ProviderRouter`, `RoutingRule` |
 | `types/agentic.rs` | `SessionId`, `SessionRecord`, memory entry types (`MemoryFact`, `ObservationEntry`, `ReflectionEntry`) |
 | `backends/` | The concrete `ModelProvider`s: OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, llama.cpp (+ HuggingFace GGUF download), Candle (+ HuggingFace safetensors download) |
@@ -40,7 +40,7 @@ AgentSession<D: DocumentStore, M: MemoryStore>      (agentic/session.rs)
        ├─ ProviderRouter      ModelId → RoutableProvider → Box<dyn Model>
        ├─ ContextProvider     system prompt + memory tiers + recent messages
        ├─ MessageApi<D>       append-only session log over a DocumentStore
-       ├─ ToolCallManager     tool registry; builds the ToolShed the model sees
+       ├─ ToolCallManager     tool registry, built from the session's ToolShed; offers `shed` + activated tools
        ├─ MemoryHierarchy     memory tiers + trigger thresholds
        ├─ SteeringQueues      priority / follow-up queues + cancel signal
        ├─ TokenLedger         usage, budget, rolling counter

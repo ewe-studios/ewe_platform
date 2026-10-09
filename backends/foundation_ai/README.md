@@ -34,7 +34,7 @@ Reference and how-to docs for everything the getting-started guides skim:
 | [01. The Agentic Loop](docs/01-agentic-loop.md) | How a turn runs end to end |
 | [02. Agent Types](docs/02-agent-types.md) | `Messages`, `ModelOutput`, the `Stream` contract |
 | [03. Model Providers](docs/03-model-providers.md) | Provider implementations and the router |
-| [04. Tools](docs/04-tools.md) | `ToolImpl`, `ToolShed`, `ToolPreset`, the execution DAG |
+| [04. Tools](docs/04-tools.md) | `ToolImpl`, `ToolShed`, the `shed` meta-tool, `ToolPreset`, the execution DAG |
 | [05. Steering Queues](docs/05-steering-queues.md) | Mid-turn injection and cancellation |
 | [06. Serialization](docs/06-serialization.md) | JSON and Arrow columns |
 | [07. Embeddings](docs/07-embeddings.md) | Embedding provider and vector integration |
@@ -86,21 +86,16 @@ The shortest path to a working agent — a Claude session in a few lines:
 
 ```rust
 use foundation_ai::harness;
-use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::{MessageRole, Messages, SessionId, TextContent, UserModelContent};
 use foundation_compact::ids::new_scru128;
 use foundation_core::valtron::valtron;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
-
-type Doc = MemoryDocumentStore;
-type Mem = KvMemoryStore<MemoryStorage>;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")?;
 
     // Harness wires the provider, router, and memory model for you.
-    let agent = harness::claude_session::<Doc, Mem>(SessionId::new(), &api_key)?
+    let agent = harness::claude_session(SessionId::new(), &api_key)?
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
