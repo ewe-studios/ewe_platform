@@ -804,7 +804,15 @@ Proposed — a wrapper, so existing code that indexes or iterates keeps compilin
 rather than replacing it, so nothing that uses today's return value breaks:
 
 ```rust
-pub struct Turn { records: Vec<SessionRecord> }
+pub struct Turn { records: Vec<SessionRecord>, outcome: TurnOutcome }
+
+/// How the turn ended. On failure the records produced before it are kept, in
+/// order, and the error comes after them: partial output first, then the
+/// error that ended the turn.
+pub enum TurnOutcome {
+    Completed,
+    Failed { error: AgenticError, trace: foundation_errstacks::StructuredErrorTrace },
+}
 
 impl std::ops::Deref for Turn { type Target = Vec<SessionRecord>; /* … */ }
 impl IntoIterator for Turn { type Item = SessionRecord; /* … */ }
@@ -822,6 +830,9 @@ impl Turn {
     /// The `SessionRecord::Summary` usage, if the turn reached it.
     pub fn usage(&self) -> Option<&TokenSnapshot>;
     pub fn into_records(self) -> Vec<SessionRecord>;
+    /// `Some` when a `FailedAction` ended the turn; the records before it are kept.
+    pub fn failure(&self) -> Option<&AgenticError>;
+    pub fn outcome(&self) -> &TurnOutcome;
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
@@ -881,8 +892,25 @@ match agent.ask("Summarise the repo")? {
 let text = agent.ask("Summarise the repo")?.into_result()?;
 ```
 
-`run_turn` keeps returning `Err` on a `FailedAction` (today's behaviour);
-`ask` is the call that keeps the partial text.
+`run_turn`, `ask` and the event stream (item 8) all follow the same order:
+**partial output first, then the error that ends the turn.**
+
+- `run_turn` returns `Ok(Turn)` with the records produced before the failure
+  and `turn.failure()` set (today it returns `Err` and the records are lost).
+- `ask` returns `Answer::Failed { partial_text, .. }`.
+- `events()` yields the `Text`/`ToolCall`/… events first, then a terminal
+  `TurnEvent::Failed`; no `Done` follows it.
+
+`Err` from any of them means the turn never started (preflight, access, the
+stream failing to start).
+
+```rust
+let turn = agent.run_turn("Refactor src/lib.rs")?;
+print!("{}", turn.text());                       // whatever was produced
+if let Some(error) = turn.failure() {
+    eprintln!("\nturn ended early: {error}");   // then the error
+}
+```
 
 #### 8. Streaming events (F4)
 
@@ -913,7 +941,10 @@ pub enum TurnEvent {
     /// Drop the assistant text shown for this turn; the retry follows.
     Retract { reason: String },
     Progress(AgentProgress),
+    /// Terminal: the events before it (the partial output) stand, and this
+    /// ends the turn. No `Done` follows.
     Failed(AgenticError),
+    /// Terminal: the turn completed.
     Done(TurnSummary),
 }
 
