@@ -560,14 +560,17 @@ what it needs from it. There is one list and one path, with no separate
 pub trait ToolConstructor: Send + Sync {
     /// The tool's name: the shed's key, known before construction.
     fn name(&self) -> &str;
-    fn construct(&self, session: &SessionParts<'_>) -> Arc<dyn ToolImpl>;
+    fn construct(&self, session: &SessionParts) -> Arc<dyn ToolImpl>;
 }
 
-/// What a constructor can use from the session being built.
-pub struct SessionParts<'a> {
-    pub session_id: &'a SessionId,
-    pub context: &'a ContextProvider,
-    pub memory: &'a MemoryHierarchy,
+/// What a constructor can use from the session being built. Shared `Arc`s,
+/// not borrows: a tool keeps what it takes for the life of the session, and
+/// cloning one is a refcount bump, not a copy of the stores.
+#[derive(Clone)]
+pub struct SessionParts {
+    pub session_id: SessionId,
+    pub context: Arc<ContextProvider>,  // ContextProvider<D, M>; generics elided
+    pub memory: Arc<MemoryHierarchy>,   // MemoryHierarchy<M, D>
     /* … */
 }
 
@@ -576,7 +579,7 @@ impl<T: ToolImpl + 'static> From<T> for Box<dyn ToolConstructor> { /* wraps Arc<
 
 /// A closure constructor, for tools that need the session.
 pub fn tool_fn<F>(name: &str, f: F) -> Box<dyn ToolConstructor>
-where F: Fn(&SessionParts<'_>) -> Arc<dyn ToolImpl> + Send + Sync + 'static;
+where F: Fn(&SessionParts) -> Arc<dyn ToolImpl> + Send + Sync + 'static;
 
 pub struct ToolShed {
     // No `shed: Option<Tool>` any more: the `shed` meta-tool is always on and is
@@ -597,7 +600,7 @@ impl ToolShed {
     /// Construct every tool for this session and return the populated
     /// `ToolCallManager`. Called by `AgentSession::build()`; fails with
     /// `ToolShedError::DuplicateTool(name)` if a name was added twice.
-    pub fn build(self, session: &SessionParts<'_>) -> Result<ToolCallManager, ToolShedError> {
+    pub fn build(self, session: &SessionParts) -> Result<ToolCallManager, ToolShedError> {
         if let Some(name) = self.duplicates.into_iter().next() {
             return Err(ToolShedError::DuplicateTool(name));
         }
@@ -617,7 +620,12 @@ pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = too
 
 // AgentSession::build(): stores, context provider and memory hierarchy first;
 // the shed's output is the session's tool manager; then preflight.
-let parts = SessionParts { session_id: &session_id, context: &context_provider, memory: &memory, /* … */ };
+let parts = SessionParts {
+    session_id: session_id.clone(),
+    context: Arc::clone(&context_provider),   // the same Arcs the session itself holds
+    memory: Arc::clone(&memory),
+    /* … */
+};
 let tool_manager = self.toolshed.build(&parts)?;
 // preflight() passes by construction: every tool was just registered.
 ```
@@ -659,7 +667,7 @@ let tools = ToolShed::new()
     .tool(GreetTool)                                // ready-made
     .tools(ToolPreset::files(fs))                   // a preset of ready-made tools
     .tools(ToolPreset::search_context())            // constructed from the session's context
-    .tool(tool_fn("notes", |s| Arc::new(NotesTool::new(s.memory.clone()))));
+    .tool(tool_fn("notes", |s| Arc::new(NotesTool::new(Arc::clone(&s.memory)))));
 
 let agent = AgentSession::builder(router)
     .with_toolshed(tools)
@@ -834,7 +842,7 @@ impl ToolPreset {
     /// constructor (item 1) that reads the session's context provider.
     pub fn search_context() -> ToolPreset {
         ToolPreset::from_constructors(vec![tool_fn("search_context", |s| {
-            Arc::new(SearchContextTool::new(s.context.clone())) as Arc<dyn ToolImpl>
+            Arc::new(SearchContextTool::new(Arc::clone(&s.context))) as Arc<dyn ToolImpl>
         })])
     }
 }
