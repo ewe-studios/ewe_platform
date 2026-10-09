@@ -98,25 +98,29 @@ The built-in `memory` and `agent` tools follow this pattern.
 
 ## 4. Reading arguments
 
-Arguments are **not** validated against your schema before `execute` runs —
-the schema guides the model, but you must check what arrives.
+Before `execute` runs, the arguments are checked against your schema
+(`arguments`, or the chosen command's schema for a multi-command tool). A
+violation goes back to the model as an `InvalidArguments` result and your tool
+is not called, so a `required` string is guaranteed present by the time you
+read it.
 
-What a JSON value becomes depends on the backend:
+Every backend maps the model's JSON the same way:
 
-| JSON value | Cloud backends (OpenAI, Responses, Anthropic) | Local backends (llama.cpp, Candle) |
-|---|---|---|
-| string | `Text(s)` | `Text(s)` |
-| integer | `I64(n)` | `I64(n)` |
-| float | `Float64(x)` | `Float64(x)` |
-| boolean | `JSON("true")` | `Text("true")` |
-| null | `JSON("null")` | `Text("")` |
-| array | `JSON("[...]")` | `Text("a, b, c")` |
-| object | `JSON("{...}")` | `JSONMap(..)` |
+| JSON value | `ArgType` |
+|---|---|
+| string | `Text(s)` |
+| integer | `I64(n)` |
+| other number | `Float64(x)` |
+| boolean, null, array, object | `JSON(text)` — e.g. `JSON("true")`, `JSON("[1,2]")` |
 
-Until those are unified, accept both forms for non-string, non-number
-arguments. Helpers:
+Helpers in `agentic::tool_impl`:
 
 ```rust
+use foundation_ai::agentic::tool_impl::{arg_bool, arg_usize};
+
+let verbose = arg_bool(&args, "verbose").unwrap_or(false);   // JSON("true") or Text("true")
+let limit = arg_usize(&args, "limit").unwrap_or(10);         // I64, unsigned variants, or "10"
+
 fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolError> {
     match args.get(key) {
         Some(ArgType::Text(s)) => Ok(s.clone()),
@@ -126,23 +130,11 @@ fn text_arg(args: &HashMap<String, ArgType>, key: &str) -> Result<String, ToolEr
         }),
     }
 }
-
-fn int_arg(args: &HashMap<String, ArgType>, key: &str) -> Option<i64> {
-    match args.get(key) {
-        Some(ArgType::I64(n)) => Some(*n),
-        Some(ArgType::Float64(x)) if x.fract() == 0.0 => Some(*x as i64),
-        Some(ArgType::Text(s)) => s.parse().ok(),
-        _ => None,
-    }
-}
-
-fn bool_arg(args: &HashMap<String, ArgType>, key: &str) -> Option<bool> {
-    match args.get(key) {
-        Some(ArgType::Text(s) | ArgType::JSON(s)) => s.parse().ok(),
-        _ => None,
-    }
-}
 ```
+
+For structured values, parse the JSON text:
+`serde_json::from_str::<MyType>(raw)` on `ArgType::JSON(raw)`, or
+`arg.to_json_value()` for any variant.
 
 ## 5. Errors
 
@@ -180,7 +172,7 @@ let agent = AgentSession::<Doc, Mem>::builder(id, router).build()?;
 agent.tool_manager().register(Arc::new(WeatherTool { api_key }));
 ```
 
-Register after `build()` — not through `with_toolshed` (Doc 04 §2). Bundles:
+Or on the builder: `.with_tool(Arc::new(WeatherTool { api_key }))`. Bundles:
 `ToolPreset::from_tools(vec![..]).register_all(agent.tool_manager())`.
 
 ## 8. Dependencies between calls

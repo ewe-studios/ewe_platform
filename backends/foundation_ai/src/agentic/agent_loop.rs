@@ -22,8 +22,9 @@ use foundation_core::valtron::{
 };
 use foundation_db::traits::DocumentStore;
 
+use crate::agentic::access::{AllowAllAccess, SessionAccessProvider};
 use crate::agentic::context::{AgentContext, ContextProvider};
-use crate::agentic::errors::{AgentAction, AgenticError, CircuitBreaker, ErrorPolicy};
+use crate::agentic::errors::{AgentAction, AgenticError, CircuitBreaker, ErrorPolicy, UserId};
 use crate::agentic::loop_detection::{
     is_vacuous_answer, Escalation, LoopDetection, LoopDetector, LoopDetectorConfig,
 };
@@ -36,7 +37,8 @@ use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallResult, ToolError};
 use crate::types::{
     MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelState,
-    SessionId, SessionRecord, TextContent, UserModelContent,
+    SessionId, SessionRecord, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
+    UserModelContent,
 };
 
 // ---------------------------------------------------------------------------
@@ -223,6 +225,11 @@ pub struct AgentLoop<D, M> {
     /// answering "how many" is correct, `0` answering "hello" is not.
     last_user_prompt: String,
     message_count: u64,
+    /// Who the turn runs for, and the provider that decides what they may do
+    /// (tool use, spend). Defaults to `AllowAllAccess`; `AgentSession` passes
+    /// its own via [`AgentLoop::with_access`].
+    access: Arc<dyn SessionAccessProvider>,
+    user: UserId,
 }
 
 /// The text of a whole turn, as the caller will eventually read it.
@@ -233,17 +240,233 @@ pub struct AgentLoop<D, M> {
 /// and a turn whose only visible output is punctuation is vacuous however much
 /// it thought first.
 fn assembled_answer(collected: &[Messages]) -> String {
-    let mut answer = String::new();
-    for message in collected {
-        if let Messages::Assistant {
-            content: ModelOutput::Text(text),
+    let chunks: Vec<&str> = collected
+        .iter()
+        .filter_map(|message| match message {
+            Messages::Assistant {
+                content: ModelOutput::Text(text),
+                ..
+            } => Some(text.content.as_str()),
+            _ => None,
+        })
+        .collect();
+    join_text_chunks(&chunks)
+}
+
+/// Rebuild a turn's full text from its streamed text chunks.
+///
+/// Backends disagree on what a chunk carries: the local backends stream each
+/// new piece (a delta), the HTTP backends re-send the whole text so far (a
+/// snapshot). Snapshots are recognisable — every chunk extends the previous
+/// one — so in that case the last chunk is the answer; otherwise the chunks
+/// are concatenated.
+fn join_text_chunks(chunks: &[&str]) -> String {
+    let is_snapshots =
+        chunks.len() > 1 && chunks.windows(2).all(|pair| pair[1].starts_with(pair[0]));
+    if is_snapshots {
+        chunks.last().map(|c| (*c).to_string()).unwrap_or_default()
+    } else {
+        chunks.concat()
+    }
+}
+
+/// Collapse a turn's streamed chunks into the messages worth keeping.
+///
+/// Consecutive text chunks become one text message, consecutive thinking
+/// chunks one thinking message (see [`join_text_chunks`]); every other output
+/// (tool calls, images, embeddings) is kept as is. Each merged message takes
+/// the metadata, usage and stop reason of its last chunk.
+fn coalesce_turn(collected: &[Messages]) -> Vec<Messages> {
+    #[derive(PartialEq)]
+    enum Run {
+        Text,
+        Thinking,
+    }
+
+    fn flush(run: &mut Vec<&Messages>, kind: &Run, out: &mut Vec<Messages>) {
+        let Some(last) = run.last().copied() else {
+            return;
+        };
+        let Messages::Assistant {
+            content: last_content,
             ..
-        } = message
-        {
-            answer.push_str(&text.content);
+        } = last
+        else {
+            return;
+        };
+        let pieces: Vec<&str> = run
+            .iter()
+            .filter_map(|message| match message {
+                Messages::Assistant {
+                    content: ModelOutput::Text(text),
+                    ..
+                } => Some(text.content.as_str()),
+                Messages::Assistant {
+                    content: ModelOutput::ThinkingContent { thinking, .. },
+                    ..
+                } => Some(thinking.as_str()),
+                _ => None,
+            })
+            .collect();
+        let joined = join_text_chunks(&pieces);
+        let content = match (kind, last_content) {
+            (Run::Text, ModelOutput::Text(text)) => ModelOutput::Text(TextContent {
+                content: joined,
+                signature: text.signature.clone(),
+            }),
+            (Run::Thinking, ModelOutput::ThinkingContent { signature, .. }) => {
+                ModelOutput::ThinkingContent {
+                    thinking: joined,
+                    signature: signature.clone(),
+                }
+            }
+            _ => last_content.clone(),
+        };
+        let mut merged = last.clone();
+        if let Messages::Assistant { content: slot, .. } = &mut merged {
+            *slot = content;
+        }
+        out.push(merged);
+        run.clear();
+    }
+
+    let mut out = Vec::new();
+    let mut run: Vec<&Messages> = Vec::new();
+    let mut run_kind = Run::Text;
+    for message in collected {
+        let kind = match message {
+            Messages::Assistant {
+                content: ModelOutput::Text(_),
+                ..
+            } => Some(Run::Text),
+            Messages::Assistant {
+                content: ModelOutput::ThinkingContent { .. },
+                ..
+            } => Some(Run::Thinking),
+            Messages::Assistant { .. } => None,
+            // Only assistant output is persisted from a turn.
+            _ => continue,
+        };
+        match kind {
+            Some(kind) => {
+                if !run.is_empty() && kind != run_kind {
+                    flush(&mut run, &run_kind, &mut out);
+                }
+                run_kind = kind;
+                run.push(message);
+            }
+            None => {
+                flush(&mut run, &run_kind, &mut out);
+                out.push(message.clone());
+            }
         }
     }
-    answer
+    flush(&mut run, &run_kind, &mut out);
+    out
+}
+
+/// Turn text-protocol tool calls (`<ToolCall>{..}</ToolCall>`) into real
+/// `ModelOutput::ToolCall`s.
+///
+/// WHY: local backends (llama.cpp, Candle) have no native tool calling. Their
+/// prompt tells the model to emit calls in this text format, but nothing ever
+/// parsed the output — the call stayed text and the tool never ran.
+///
+/// Leaves `collected` untouched when the turn already has native tool calls
+/// or its text contains no `<ToolCall>` block. Otherwise returns the turn as
+/// one assistant text message (the prose around the calls, if any) followed
+/// by one assistant message per call, carrying the last chunk's metadata and
+/// usage so the ledger still records the turn correctly.
+fn with_text_protocol_tool_calls(collected: Vec<Messages>) -> Vec<Messages> {
+    let has_native_call = collected.iter().any(|message| {
+        matches!(
+            message,
+            Messages::Assistant {
+                content: ModelOutput::ToolCall { .. },
+                ..
+            }
+        )
+    });
+    if has_native_call {
+        return collected;
+    }
+
+    let text = assembled_answer(&collected);
+    if !text.contains("<ToolCall>") {
+        return collected;
+    }
+
+    let extracted = match TextBasedFormatter.extract_tool_calls(&text) {
+        Ok(extracted) if extracted.has_tool_calls => extracted,
+        Ok(_) => return collected,
+        Err(err) => {
+            tracing::debug!(error = ?err, "agent: could not parse text-protocol tool calls");
+            return collected;
+        }
+    };
+
+    let Some(Messages::Assistant {
+        model,
+        usage,
+        provider,
+        metadata,
+        ..
+    }) = collected
+        .iter()
+        .rev()
+        .find(|message| matches!(message, Messages::Assistant { .. }))
+        .cloned()
+    else {
+        return collected;
+    };
+
+    let make = |content: ModelOutput, stop_reason: StopReason| Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
+        model: model.clone(),
+        timestamp: foundation_compact::SystemTime::now(),
+        usage: usage.clone(),
+        content,
+        stop_reason,
+        provider: provider.clone(),
+        error_detail: None,
+        signature: None,
+        metadata: metadata.clone(),
+    };
+
+    let mut turn = Vec::new();
+    if let Some(prose) = extracted.remaining_text {
+        turn.push(make(
+            ModelOutput::Text(TextContent {
+                content: prose,
+                signature: None,
+            }),
+            StopReason::Stop,
+        ));
+    }
+    for call in extracted.calls {
+        // The parser numbers calls `tool_0`, `tool_1`, … per response; give
+        // each a unique id so results from different rounds can't be confused.
+        let call = match call {
+            ModelOutput::ToolCall {
+                name,
+                arguments,
+                signature,
+                depends_on,
+                execution_hint,
+                ..
+            } => ModelOutput::ToolCall {
+                id: foundation_compact::ids::new_scru128_string(),
+                name,
+                arguments,
+                signature,
+                depends_on,
+                execution_hint,
+            },
+            other => other,
+        };
+        turn.push(make(call, StopReason::ToolUse));
+    }
+    turn
 }
 
 /// The nudge sent when a turn produced no usable answer.
@@ -305,7 +528,19 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             outer_iteration: 0,
             last_user_prompt: String::new(),
             message_count: 0,
+            access: Arc::new(AllowAllAccess),
+            user: UserId("local".into()),
         }
+    }
+
+    /// Run the loop on behalf of `user`, checking `access` before each tool
+    /// call (`can_use_tool`) and generation (`can_spend`), and reporting usage
+    /// after each generation (`record_usage`).
+    #[must_use]
+    pub fn with_access(mut self, access: Arc<dyn SessionAccessProvider>, user: UserId) -> Self {
+        self.access = access;
+        self.user = user;
+        self
     }
 
     /// Persist a user message to session history.
@@ -489,6 +724,22 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             ..params
         };
 
+        // Let the access provider veto the spend before any tokens are used.
+        let requested = u64::try_from(effective_max).unwrap_or(u64::MAX);
+        match self.access.can_spend(&self.user, requested) {
+            Ok(true) => {}
+            Ok(false) => {
+                self.state = AgentLoopState::Ending;
+                return TaskStatus::Ready(
+                    AgenticError::Budget { limit: requested }.into_failed_action(),
+                );
+            }
+            Err(err) => {
+                self.state = AgentLoopState::Ending;
+                return TaskStatus::Ready(AgenticError::Auth(err).into_failed_action());
+            }
+        }
+
         // Start streaming generation.
         tracing::trace!(
             messages = interaction.messages.len(),
@@ -531,6 +782,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         let Some(item) = stream.next() else {
             // Stream finished — run loop detection, extract tool calls.
             self.breaker.on_success();
+            let collected = with_text_protocol_tool_calls(collected);
             return self.on_generation_complete(&collected);
         };
 
@@ -766,12 +1018,14 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         // set, NOT per `Stream::Next`, so token-streaming models do not write a
         // fragment per token. Loop redirect/terminate return above, so only an
         // accepted generation reaches this point.
-        for msg in collected {
-            if matches!(msg, Messages::Assistant { .. }) {
-                let _ = self.message_api.append(SessionRecord::Conversation {
-                    message: msg.clone(),
-                });
-            }
+        // One message per output, not per streamed chunk: a token-streaming
+        // backend yields a message per token and the HTTP backends re-send the
+        // text so far on every chunk, and either way persisting each chunk
+        // filled the history (and the next turn's context) with fragments.
+        for msg in coalesce_turn(collected) {
+            let _ = self
+                .message_api
+                .append(SessionRecord::Conversation { message: msg });
         }
 
         // Record the model's reported usage into the session ledger.
@@ -786,6 +1040,17 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             .find(|m| matches!(m, Messages::Assistant { .. }))
         {
             self.ledger.record(usage);
+            // Streaming usage is cumulative, so `total_tokens` of the last
+            // message is this generation's total.
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            let tokens = usage.total_tokens.max(0.0) as u64;
+            if let Err(err) = self.access.record_usage(&self.user, tokens) {
+                tracing::warn!(
+                    user = %self.user.0,
+                    reason = %err.reason,
+                    "access provider failed to record usage"
+                );
+            }
         }
 
         // Extract tool calls from assistant messages.
@@ -962,9 +1227,28 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             let call = calls[idx].clone();
             let mgr = self.tool_manager.clone();
             let retry_config = mgr.retry_config(&call.name);
+            // Ask the access provider before running anything. A refusal (or a
+            // failing check) becomes an error result the model can read, the
+            // same as any other tool failure.
+            let denied = match self.access.can_use_tool(&self.user, &call.name) {
+                Ok(true) => None,
+                Ok(false) => Some(format!(
+                    "user '{}' is not authorized to use tool '{}'",
+                    self.user.0, call.name
+                )),
+                Err(err) => Some(format!("authorization check failed: {}", err.reason)),
+            };
             let fut: core::pin::Pin<
                 Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
-            > = Box::pin(async move { mgr.execute_with_retry(&call, &retry_config).await });
+            > = match denied {
+                None => Box::pin(async move { mgr.execute_with_retry(&call, &retry_config).await }),
+                Some(reason) => Box::pin(async move {
+                    Err(ToolError::Execution {
+                        tool: call.name,
+                        reason,
+                    })
+                }),
+            };
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));
             let task = CancellableFutureTask::new(fut, signal);

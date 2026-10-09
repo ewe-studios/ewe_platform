@@ -360,17 +360,24 @@ and feature flag matrix for every backend.
 // type Mem = KvMemoryStore<TursoStorage>;         // Turso memory cache
 // type Mem = KvMemoryStore<JsonFileStorage>;      // JSON file cache
 
-let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
-    .with_doc_store(doc_store)
-    .with_memory_store(KvMemoryStore::new(kv_store))
+let agent = AgentSession::builder_with_stores(
+        session_id,
+        router,
+        doc_store,
+        KvMemoryStore::new(kv_store),
+    )
     .with_model(primary_model)
+    .build()?;
+
+// From a harness preset:
+let agent = harness::claude_router(&key)?
+    .into_agent_builder_with_stores(session_id, doc_store, KvMemoryStore::new(kv_store))
     .build()?;
 ```
 
-> **Limitation:** `build()` currently requires `Doc: Default` and
-> `Mem: Default`, which only `MemoryDocumentStore` and
-> `KvMemoryStore<MemoryStorage>` satisfy. The persistent combinations above
-> don't compile with `build()` yet; see Doc 00, "Known limitations".
+`builder(..)` / `into_agent_builder(..)` default-construct any store you don't
+set, which only the in-memory stores support; the `_with_stores` variants take
+any store.
 
 ---
 
@@ -388,7 +395,8 @@ discovery tool.
 
 ### 6.2. Adding Tools
 
-Register `ToolImpl`s on the session's manager after `build()`:
+Register `ToolImpl`s on the builder (`.with_tool(..)`, `.with_tools(..)`) or on
+the session's manager after `build()`:
 
 ```rust
 use foundation_ai::harness::ToolPreset;
@@ -400,9 +408,7 @@ ToolPreset::files(Arc::clone(&fs))
     .register_all(agent.tool_manager());
 ```
 
-Don't pass a populated `ToolShed` to `with_toolshed` — `build()` checks every
-shed tool against the session's (still empty) manager and fails. Each tool
-declares its own shape via `ToolImpl::definition()` (`Tool::SingleCommand` or
+Each tool declares its own shape via `ToolImpl::definition()` (`Tool::SingleCommand` or
 `Tool::MultiCommands`); there are no fixed slots.
 
 ---
@@ -451,11 +457,11 @@ let agent = AgentSession::<Doc, Mem>::resume(
 )?;
 ```
 
-`resume` rebuilds the session over `Doc::default()` / `Mem::default()` with an
-empty tool registry, no system prompt and default configs. It only finds the
-earlier history if those default stores reach the same data, which the
-in-memory stores don't — so today it is effectively a fresh session. See
-Doc 08 §5.
+History and memory live in the stores, so resuming is rebuilding over the
+same stores with the same id — `resume_with_stores(id, router, config, None,
+doc_store, mem_store)` or `builder_with_stores(..)`. The system prompt and
+tools aren't persisted; pass them again. `resume(..)` without stores uses
+default-constructed ones. See Doc 08 §5.
 
 ---
 

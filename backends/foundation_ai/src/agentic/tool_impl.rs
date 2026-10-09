@@ -70,6 +70,98 @@ pub struct ToolCallResult {
 }
 
 // ---------------------------------------------------------------------------
+// Argument helpers
+
+/// Read a boolean tool argument, whichever way the backend spelled it.
+///
+/// Every backend maps a JSON boolean to `ArgType::JSON("true")`; models also
+/// send the string `"true"`. Both are accepted.
+#[must_use]
+pub fn arg_bool(args: &HashMap<String, ArgType>, key: &str) -> Option<bool> {
+    match args.get(key)? {
+        ArgType::JSON(s) | ArgType::Text(s) => match s.trim() {
+            "true" => Some(true),
+            "false" => Some(false),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Read a non-negative integer tool argument.
+///
+/// JSON integers arrive as `ArgType::I64`; the unsigned variants (direct
+/// construction, tests) and numeric strings (some models quote numbers) are
+/// accepted too. Negative or out-of-range values are `None`.
+#[must_use]
+pub fn arg_usize(args: &HashMap<String, ArgType>, key: &str) -> Option<usize> {
+    match args.get(key)? {
+        ArgType::Usize(n) => Some(*n),
+        ArgType::U8(n) => Some(usize::from(*n)),
+        ArgType::U16(n) => Some(usize::from(*n)),
+        ArgType::U32(n) => usize::try_from(*n).ok(),
+        ArgType::U64(n) => usize::try_from(*n).ok(),
+        ArgType::I8(n) => usize::try_from(*n).ok(),
+        ArgType::I16(n) => usize::try_from(*n).ok(),
+        ArgType::I32(n) => usize::try_from(*n).ok(),
+        ArgType::I64(n) => usize::try_from(*n).ok(),
+        ArgType::Isize(n) => usize::try_from(*n).ok(),
+        ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
+        _ => None,
+    }
+}
+
+/// Check a call's arguments against the tool's declared JSON Schema.
+///
+/// A `SingleCommand` tool is checked against its `arguments` schema. A
+/// `MultiCommands` tool is dispatched on the `command` argument: the command
+/// must exist, and the remaining arguments are checked against that command's
+/// schema.
+///
+/// # Errors
+/// [`ToolError::InvalidArguments`] naming the first violation, an unknown
+/// command, or a schema that does not compile.
+pub fn validate_arguments(
+    definition: &Tool,
+    tool_name: &str,
+    arguments: &HashMap<String, ArgType>,
+) -> Result<(), ToolError> {
+    let invalid = |reason: String| ToolError::InvalidArguments {
+        tool: tool_name.to_string(),
+        reason,
+    };
+
+    let (schema, instance) = match definition {
+        Tool::SingleCommand(def) => (&def.arguments.schema, arguments.clone()),
+        Tool::MultiCommands(_, commands) => {
+            let command = match arguments.get("command") {
+                Some(ArgType::Text(command)) => command.as_str(),
+                _ => return Err(invalid("missing 'command' argument".into())),
+            };
+            let Some(def) = commands.iter().find(|def| def.name == command) else {
+                let known: Vec<&str> = commands.iter().map(|def| def.name.as_str()).collect();
+                return Err(invalid(format!(
+                    "unknown command '{command}' (expected one of: {})",
+                    known.join(", ")
+                )));
+            };
+            let mut rest = arguments.clone();
+            rest.remove("command");
+            (&def.arguments.schema, rest)
+        }
+    };
+
+    let instance = serde_json::Value::Object(
+        instance
+            .iter()
+            .map(|(key, value)| (key.clone(), value.to_json_value()))
+            .collect(),
+    );
+    foundation_jsonschema::validate(schema, &instance)
+        .map_err(|err| invalid(err.to_string()))
+}
+
+// ---------------------------------------------------------------------------
 // ToolImpl trait
 
 /// The tool contract every tool implementer satisfies. Registered as
@@ -338,11 +430,10 @@ impl ToolCallManager {
             .get(&request.name)
             .ok_or_else(|| ToolError::UnknownTool(request.name.clone()))?;
 
-        // Validate arguments against the tool's Args schema.
-        // Schema validation is delegated to the tool implementer — we just
-        // ensure the args can be serialized to JSON (the schema is carried
-        // through to the LLM for pre-validation).
-        let _def = tool.definition();
+        // Validate the arguments against the tool's JSON Schema before running
+        // it. The schema used to be advisory only (sent to the model, never
+        // checked), so every tool had to re-validate — and most didn't.
+        validate_arguments(&tool.definition(), &request.name, &request.arguments)?;
 
         // Contain a panicking tool at the boundary: a buggy tool must not take
         // down the agent (or wedge the driving valtron task). A panic becomes a

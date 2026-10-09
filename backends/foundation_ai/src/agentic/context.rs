@@ -233,9 +233,11 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             }
         }
 
-        // 4. Recent raw messages.
+        // 4. Recent raw messages, oldest first. `recent()` returns the newest N
+        //    newest-first; models need them in conversation order (and a tool
+        //    result must follow the call it answers).
         if let Ok(recent) = self.message_api.recent(self.config.recent_message_count) {
-            for record in recent {
+            for record in recent.into_iter().rev() {
                 if let SessionRecord::Conversation { message } = record {
                     token_estimate += estimate_tokens(&message);
                     messages.push(message);

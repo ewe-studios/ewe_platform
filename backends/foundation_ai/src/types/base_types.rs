@@ -642,6 +642,48 @@ pub enum ArgType {
     JSONMap(std::collections::HashMap<String, ArgType>),
 }
 
+impl ArgType {
+    /// The plain JSON value this argument stands for — the inverse of
+    /// [`json_value_to_arg_type`]. Used to validate a call's arguments against
+    /// the tool's JSON Schema.
+    #[must_use]
+    pub fn to_json_value(&self) -> serde_json::Value {
+        use serde_json::Value;
+        match self {
+            ArgType::Text(s) => Value::String(s.clone()),
+            ArgType::Float32(n) => serde_json::Number::from_f64(f64::from(*n))
+                .map_or(Value::Null, Value::Number),
+            ArgType::Float64(n) => {
+                serde_json::Number::from_f64(*n).map_or(Value::Null, Value::Number)
+            }
+            ArgType::Usize(n) => Value::from(*n),
+            ArgType::U8(n) => Value::from(*n),
+            ArgType::U16(n) => Value::from(*n),
+            ArgType::U32(n) => Value::from(*n),
+            ArgType::U64(n) => Value::from(*n),
+            ArgType::U128(n) => u64::try_from(*n)
+                .map_or_else(|_| Value::String(n.to_string()), Value::from),
+            ArgType::Isize(n) => Value::from(*n),
+            ArgType::I8(n) => Value::from(*n),
+            ArgType::I16(n) => Value::from(*n),
+            ArgType::I32(n) => Value::from(*n),
+            ArgType::I64(n) => Value::from(*n),
+            ArgType::I128(n) => i64::try_from(*n)
+                .map_or_else(|_| Value::String(n.to_string()), Value::from),
+            ArgType::Duration(d) => serde_json::Number::from_f64(d.as_secs_f64())
+                .map_or(Value::Null, Value::Number),
+            ArgType::JSON(raw) => {
+                serde_json::from_str(raw).unwrap_or_else(|_| Value::String(raw.clone()))
+            }
+            ArgType::JSONMap(map) => Value::Object(
+                map.iter()
+                    .map(|(k, v)| (k.clone(), v.to_json_value()))
+                    .collect(),
+            ),
+        }
+    }
+}
+
 /// A tool argument/return definition — stores a JSON Schema document and a
 /// pre-built `ValidationOptions` so that callers can extract the schema for
 /// API requests and compile a `Validator` for runtime validation.
@@ -1561,10 +1603,19 @@ pub struct ExtractResult {
 const TOOL_CALL_OPEN: &str = "<ToolCall>";
 const TOOL_CALL_CLOSE: &str = "</ToolCall>";
 
-/// Convert a raw JSON value to `ArgType`.
+/// Convert a raw JSON value to `ArgType` — the one mapping every backend uses.
+///
 /// Needed because `ArgType` is externally tagged and can't be deserialized
-/// from plain JSON values.
-fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
+/// from plain JSON values. Strings become `Text`, integers `I64`, other numbers
+/// `Float64`; booleans, `null`, arrays and objects keep their JSON text in
+/// `JSON(..)` so a tool can parse them losslessly.
+///
+/// WHY one function: the cloud backends and the text-protocol parser used to
+/// carry their own copies that disagreed (a boolean was `JSON("true")` from
+/// OpenAI/Anthropic but `Text("true")` from a local model), so a tool written
+/// against one backend misread arguments from another.
+#[must_use]
+pub fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
     match v {
         serde_json::Value::String(s) => ArgType::Text(s.clone()),
         serde_json::Value::Number(n) => {
@@ -1573,24 +1624,10 @@ fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
             } else if let Some(f) = n.as_f64() {
                 ArgType::Float64(f)
             } else {
-                ArgType::Text(v.to_string())
+                ArgType::Text(n.to_string())
             }
         }
-        serde_json::Value::Bool(b) => ArgType::Text(if *b { "true" } else { "false" }.to_string()),
-        serde_json::Value::Null => ArgType::Text(String::new()),
-        serde_json::Value::Array(arr) => ArgType::Text(
-            arr.iter()
-                .map(std::string::ToString::to_string)
-                .collect::<Vec<_>>()
-                .join(", "),
-        ),
-        serde_json::Value::Object(map) => {
-            let nested: HashMap<String, ArgType> = map
-                .iter()
-                .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                .collect();
-            ArgType::JSONMap(nested)
-        }
+        other => ArgType::JSON(other.to_string()),
     }
 }
 
@@ -1665,17 +1702,25 @@ impl ToolFormatter for TextBasedFormatter {
             match parsed {
                 Ok(value) => {
                     if let Some(obj) = value.as_object() {
+                        // The prompt asks for `{"name": .., "arguments": {..}}`.
+                        // The tool receives the `arguments` object's entries —
+                        // not the envelope (which used to nest every parameter
+                        // under an `arguments` key the tool never looked at).
                         let arguments: HashMap<String, ArgType> = obj
-                            .iter()
-                            .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                            .collect();
-                        let name = arguments
-                            .get("name")
-                            .and_then(|v| match v {
-                                ArgType::Text(s) => Some(s.clone()),
-                                _ => None,
+                            .get("arguments")
+                            .or_else(|| obj.get("parameters"))
+                            .and_then(serde_json::Value::as_object)
+                            .map(|args| {
+                                args.iter()
+                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
+                                    .collect()
                             })
                             .unwrap_or_default();
+                        let name = obj
+                            .get("name")
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or_default()
+                            .to_string();
                         if !name.is_empty() {
                             calls.push(ModelOutput::ToolCall {
                                 id: format!("tool_{}", calls.len()),

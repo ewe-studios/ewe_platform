@@ -25,6 +25,7 @@ use serde::{Deserialize, Serialize};
 use foundation_errstacks::ErrorTrace;
 
 use crate::costing::{calculate_cost, CostAccumulator};
+use crate::types::base_types::json_value_to_arg_type;
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
     ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
@@ -1597,22 +1598,6 @@ pub fn empty_usage_report() -> UsageReport {
             total_tokens: 0.0,
             status: CostStatus::Actual,
         },
-    }
-}
-
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::base_types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::base_types::ArgType::Float64(f)
-            } else {
-                crate::types::base_types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::base_types::ArgType::JSON(other.to_string()),
     }
 }
 

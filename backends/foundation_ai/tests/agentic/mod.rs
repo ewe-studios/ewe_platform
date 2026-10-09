@@ -13,6 +13,7 @@ mod progress_tests;
 mod provider_router_tests;
 mod routable_provider_box_tests;
 mod session_mock_tests;
+mod session_wiring_tests;
 mod serialization_tests;
 mod session_tests;
 mod steering_tests;

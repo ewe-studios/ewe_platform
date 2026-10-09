@@ -380,16 +380,10 @@ Done."#;
             ..
         } => {
             assert_eq!(name, "search");
+            // The tool receives the `arguments` object's entries directly.
             let args = args.as_ref().unwrap();
-            // The "arguments" field in the JSON is a nested object
-            let inner_args = args
-                .get("arguments")
-                .and_then(|v| match v {
-                    ArgType::JSONMap(m) => Some(m),
-                    _ => None,
-                })
-                .unwrap();
-            assert_eq!(inner_args["query"], ArgType::Text("rust".to_string()));
+            assert_eq!(args["query"], ArgType::Text("rust".to_string()));
+            assert!(!args.contains_key("arguments"));
         }
         _ => panic!("expected ToolCall"),
     }

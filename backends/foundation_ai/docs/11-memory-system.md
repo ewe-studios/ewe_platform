@@ -25,7 +25,7 @@ Each tier keeps only its **latest** record; writing replaces the previous one.
 | Signal when a threshold is crossed | ✅ `AgentProgress::ProcessingMemory { kind }` |
 | Calling a memory model to write the observation / reflection | ❌ not implemented |
 | Working memory curated by the agent | ✅ via the `memory` tool |
-| Tiers included in the assembled context | ✅ — but see §6 |
+| Tiers included in the assembled context | ✅ |
 
 So with only defaults, the observation and reflection tiers stay empty. If
 you want them, watch for `ProcessingMemory`, generate the entries yourself
@@ -93,21 +93,13 @@ memory:{session_id} → SessionMemory { working, observation, reflection }
 audit `DocumentStore` and overwrites the latest copy in the `MemoryStore`.
 `MemoryHierarchy` writes through the coordinator.
 
-## 6. Known problem: two different stores
+## 6. One store for everything
 
-`AgentSession::build()` gives the hierarchy's coordinator a fresh
-`M::default()` and `D::default()`, while the `ContextProvider` reads the store
-you passed with `with_memory_store` (or its own default). With the in-memory
-stores those are separate maps, so:
-
-- facts added with the `memory` tool are stored, but never appear in the
-  assembled context;
-- `persist_observation` / `persist_reflection` through
-  `agent.memory_hierarchy()` have the same problem.
-
-A store whose `Default` reaches shared backing storage would not hit this, but
-no store in `foundation_db` does. The fix is tracked separately; until then,
-treat working memory as not reaching the model.
+`AgentSession::build()` gives the memory hierarchy the same memory store and
+document store the rest of the session uses, so facts added with the `memory`
+tool and tiers written with `persist_*` show up in the next request's context.
+(The hierarchy used to get its own default-constructed stores, and its writes
+never reached the context.)
 
 ## 7. How memory reaches the model
 
@@ -122,5 +114,6 @@ then the recent conversation (Doc 01 §4).
 
 ## 8. Resume
 
-`AgentSession::resume` starts from default-constructed stores, so memory
-survives only when those defaults reach the same data. See Doc 08 §5.
+Memory lives in the session's stores, keyed by `SessionId`. Building a
+session with the same id over the same stores (`builder_with_stores` or
+`resume_with_stores`) picks it up on the first turn. See Doc 08 §5.

@@ -18,6 +18,8 @@
 //!   never the sole record.
 
 use foundation_core::valtron::Stream;
+use std::sync::Arc;
+
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::StorageResult;
 
@@ -71,13 +73,21 @@ fn tier_ref(memory: &SessionMemory, tier: MemoryTier) -> Option<&SessionRecord> 
 /// `M` is any [`MemoryStore`]; `D` is any [`DocumentStore`] (the audit log). The
 /// audit log uses one collection per session, `session:{session_id}`.
 pub struct MemoryCoordinator<M, D> {
-    memory: M,
-    audit: D,
+    memory: Arc<M>,
+    audit: Arc<D>,
 }
 
 impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// Create a coordinator over a cache + an audit `DocumentStore`.
     pub fn new(memory: M, audit: D) -> Self {
+        Self::from_shared(Arc::new(memory), Arc::new(audit))
+    }
+
+    /// Create a coordinator over stores shared with other components.
+    ///
+    /// `AgentSession` uses this so the memory it writes lands in the same store
+    /// the `ContextProvider` reads from.
+    pub fn from_shared(memory: Arc<M>, audit: Arc<D>) -> Self {
         Self { memory, audit }
     }
 

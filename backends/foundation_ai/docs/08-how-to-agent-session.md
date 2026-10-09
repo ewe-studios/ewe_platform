@@ -83,8 +83,14 @@ empty name, which only resolves in a single-provider router.
 
 ## 2. The builder
 
-`AgentSession::<D, M>::builder(session_id, router)` → chain `with_*` →
-`build()`.
+Two entry points, then chain `with_*` → `build()`:
+
+- `AgentSession::<D, M>::builder(session_id, router)` — any store you don't
+  set with `with_doc_store` / `with_memory_store` is `Default`-constructed
+  (needs `D: Default`, `M: Default`).
+- `AgentSession::builder_with_stores(session_id, router, doc_store,
+  memory_store)` — no `Default` bound; use it for SQL, Turso, D1/R2, JSON-file
+  and other persistent stores.
 
 | Method | Default | Notes |
 |---|---|---|
@@ -99,13 +105,13 @@ empty name, which only resolves in a single-provider router.
 | `with_embedder(Arc<dyn EmbeddingProvider>, model)` | none | Semantic recall (Doc 07) |
 | `with_access(Arc<dyn SessionAccessProvider>)` | `AllowAllAccess` | §6 |
 | `with_user(UserId)` | `UserId("local")` | |
-| `with_doc_store(D)` | `D::default()` | Message history |
+| `with_doc_store(D)` | `D::default()` | Message history (and the memory audit log) |
 | `with_memory_store(M)` | `M::default()` | Memory tiers |
-| `with_toolshed(ToolShed)` | `ToolShed::default()` | Leave it alone — see §3 |
+| `with_tool(Arc<dyn ToolImpl>)`, `with_tools(..)` | none | Registered before preflight (§3) |
+| `with_toolshed(ToolShed)` | `ToolShed::default()` | Tools `build()` must find registered — rarely needed |
 
-`build()` requires `D: Default` and `M: Default`, even when you pass both
-stores. Only the in-memory stores implement `Default` today, so persistent
-backends can't be used with `build()` yet (Doc 00, "Known limitations").
+All components share the one document store and one memory store: the
+message log, context assembly and the memory hierarchy see the same data.
 
 `build()` runs preflight before returning: every tool in the toolshed must be
 registered with the session's `ToolCallManager`, and the access provider must
@@ -114,24 +120,23 @@ the ledger's budget.
 
 ## 3. Tools
 
-Register tools on the session's manager **after** `build()`:
+Give the builder tools, or register them on the session's manager later:
 
 ```rust
 use foundation_ai::harness::ToolPreset;
 
-let agent = AgentSession::<Doc, Mem>::builder(id, router).build()?;
+let agent = AgentSession::<Doc, Mem>::builder(id, router)
+    .with_tool(Arc::new(MyTool))
+    .with_tools((ToolPreset::files(Arc::clone(&fs)) + ToolPreset::shell()).as_child_tools())
+    .build()?;
 
-agent.tool_manager().register(Arc::new(MyTool));
-ToolPreset::files(Arc::clone(&fs))
-    .merge(ToolPreset::shell())
+// Later, e.g. tools that need the session itself:
+ToolPreset::memory(Arc::new(agent.memory_hierarchy().clone()))
     .register_all(agent.tool_manager());
 ```
 
 The loop rebuilds the `ToolShed` from the manager before every generation.
-
-Don't build a `ToolShed` from a separate manager and pass it to
-`with_toolshed`: the session's own manager is empty during preflight, so
-`build()` fails with "toolshed tool '…' not registered with ToolCallManager".
+`with_toolshed` only declares tools `build()` must find registered.
 
 Writing tools: Doc 10. Presets and sub-agents:
 `getting-started/03-tools-and-presets.md`.
@@ -208,17 +213,27 @@ let agent = AgentSession::<Doc, Mem>::resume(
 )?;
 ```
 
-`resume` builds a session over `D::default()` / `M::default()` with no system
-prompt, an empty tool registry, default context and memory configs and
-`AllowAllAccess`, and it skips preflight. History and memory are only there if
-the default-constructed stores point at the same data — which the in-memory
-stores do not. Treat `resume` as unusable for real persistence until it takes
-stores (Doc 15).
+A session's history and memory live in its stores, keyed by `SessionId`, and
+every turn's context is read from them. So resuming is just building again
+with the same id over the same stores:
+
+```rust
+let agent = AgentSession::builder_with_stores(session_id, router, doc_store, memory_store)
+    .with_model(model_id)
+    .with_system_prompt("…")       // not persisted — pass it again
+    .with_tool(Arc::new(MyTool))   // the tool registry starts empty
+    .build()?;
+```
+
+`AgentSession::resume_with_stores(id, router, config, policy, doc, mem)` is a
+shorthand for that. `AgentSession::resume(id, router, config, policy)` does
+the same over `D::default()` / `M::default()`, so it only finds earlier data
+when default-constructed stores reach the same storage.
 
 ### Extension handles
 
 `agent.session_id()`, `message_api()`, `ledger()`, `steering_queues()`,
-`router()`, `tool_manager()`, `memory_hierarchy()`.
+`router()`, `tool_manager()`, `memory_hierarchy()`, `context_provider()`.
 
 ## 6. Access control
 
@@ -227,7 +242,7 @@ pub trait SessionAccessProvider: Send + Sync {
     fn can_access_session(&self, user: &UserId, session: &SessionId) -> Result<bool, AuthError>;
     fn can_use_model(&self, user: &UserId, model: &str) -> Result<bool, AuthError>;
     fn token_budget(&self, user: &UserId) -> Result<TokenBudget, AuthError>;
-    // Defaulted, and not called by the loop today:
+    // Defaulted to "allow" / no-op:
     fn can_use_tool(&self, user: &UserId, tool: &str) -> Result<bool, AuthError> { Ok(true) }
     fn can_spend(&self, user: &UserId, tokens: u64) -> Result<bool, AuthError> { Ok(true) }
     fn record_usage(&self, user: &UserId, tokens: u64) -> Result<(), AuthError> { Ok(()) }
@@ -236,9 +251,16 @@ pub trait SessionAccessProvider: Send + Sync {
 
 At `build()` the session checks `can_access_session` and `can_use_model` (for
 the primary model only) and applies `token_budget(user).remaining()` as the
-ledger budget. A turn stops with `AgenticError::BudgetExhausted` once the
-budget is spent. `can_use_tool`, `can_spend` and `record_usage` are not
-enforced yet — don't rely on them for security.
+ledger budget. During a turn the loop:
+
+- asks `can_spend(user, max_tokens)` before each generation — a refusal ends
+  the turn with `AgenticError::Budget`;
+- asks `can_use_tool(user, name)` before each tool call — a refusal becomes an
+  error result the model sees, and the tool does not run;
+- reports each generation's `total_tokens` to `record_usage`.
+
+A turn also stops with `AgenticError::BudgetExhausted` once the ledger budget
+is spent.
 
 ## 7. Configuration reference
 

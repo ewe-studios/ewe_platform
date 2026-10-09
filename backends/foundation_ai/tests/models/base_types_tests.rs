@@ -184,24 +184,19 @@ fn text_formatter_parses_all_json_arg_types() {
         panic!("expected a tool call");
     };
     assert_eq!(name, "do_it");
-    let top = arguments.as_ref().expect("arguments present");
-
-    // The parser keeps `name` + `arguments` at the top level; the real params
-    // live in the nested `arguments` JSONMap.
-    let Some(ArgType::JSONMap(args)) = top.get("arguments") else {
-        panic!("nested arguments map: {top:?}");
-    };
+    // The tool receives the entries of the call's `arguments` object.
+    let args = arguments.as_ref().expect("arguments present");
+    assert!(!args.contains_key("arguments"), "no envelope nesting: {args:?}");
+    assert!(!args.contains_key("name"), "no envelope nesting: {args:?}");
 
     // integer → I64
     assert!(matches!(args.get("count"), Some(ArgType::I64(3))));
     // float → Float64
     assert!(matches!(args.get("ratio"), Some(ArgType::Float64(f)) if (*f - 1.5).abs() < 1e-9));
-    // bool → Text("true")
-    assert!(matches!(args.get("flag"), Some(ArgType::Text(t)) if t == "true"));
-    // null → Text("")
-    assert!(matches!(args.get("nothing"), Some(ArgType::Text(t)) if t.is_empty()));
-    // array → Text("1, 2, 3")
-    assert!(matches!(args.get("items"), Some(ArgType::Text(t)) if t == "1, 2, 3"));
+    // bool / null / array → their JSON text, same as the HTTP backends
+    assert!(matches!(args.get("flag"), Some(ArgType::JSON(t)) if t == "true"));
+    assert!(matches!(args.get("nothing"), Some(ArgType::JSON(t)) if t == "null"));
+    assert!(matches!(args.get("items"), Some(ArgType::JSON(t)) if t == "[1,2,3]"));
 }
 
 #[test]

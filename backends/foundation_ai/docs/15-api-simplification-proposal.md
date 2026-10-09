@@ -1,8 +1,8 @@
 # Proposal 15 — Simplifying the `foundation_ai` API surface
 
-**Status:** proposal for discussion. Nothing here is implemented. The bug fixes
-for the "Known limitations" in Doc 00 are handled separately; this doc is
-about making the everyday API smaller and harder to misuse.
+**Status:** proposal for discussion. The session-wiring fixes already landed
+some of the Tier 1 items in an additive form (marked ✅ below); the rest is
+open. This doc is about making the everyday API smaller and harder to misuse.
 
 ---
 
@@ -98,23 +98,27 @@ for event in agent.turn("Fix the failing test")?.events() {
 
 ### Tier 1 — remove the traps (small, mostly additive)
 
-1. **Builder-owned tools (F2).** Add `.tool(impl ToolImpl)` and
+1. ✅ *(as `with_tool` / `with_tools`)* **Builder-owned tools (F2).** Add `.tool(impl ToolImpl)` and
    `.tools(ToolPreset)` to `AgentSessionBuilder`; register them before
    preflight. Deprecate `with_toolshed`; the shed is derived from the
    registry anyway.
-2. **Typestate stores, no `Default` bound (F1).** Start the builder with the
+2. ✅ *(partly: `builder_with_stores` has no `Default` bound; the typestate
+   and default type parameters are still open)* **Typestate stores, no
+   `Default` bound (F1).** Start the builder with the
    in-memory stores as type defaults and let `doc_store(d)` /
    `memory_store(m)` change the type:
    `fn doc_store<D2: DocumentStore>(self, d: D2) -> AgentSessionBuilder<D2, M>`.
    Add default type parameters
    `AgentSession<D = MemoryDocumentStore, M = KvMemoryStore<MemoryStorage>>`
    so in-memory users never write generics.
-3. **One store graph (F1, plus the memory bug).** Keep the stores in `Arc`s
+3. ✅ **One store graph (F1, plus the memory bug).** Keep the stores in `Arc`s
    and give `MessageApi`, `ContextProvider` and `MemoryCoordinator` the same
    handles.
-4. **Resume is just build (F7).** `.session_id(existing)` on the builder
+4. ✅ *(as `builder_with_stores` / `resume_with_stores`; deprecating
+   `resume` is still open)* **Resume is just build (F7).** `.session_id(existing)` on the builder
    rehydrates from the supplied stores. Deprecate `AgentSession::resume`.
-5. **Expose recall (F12).** `ToolPreset::search_context(&agent)`, built from
+5. ✅ *(partly: `AgentSession::context_provider()`; the preset is open)*
+   **Expose recall (F12).** `ToolPreset::search_context(&agent)`, built from
    the session's own `ContextProvider`.
 
 ### Tier 2 — make the common path short (additive)
@@ -141,7 +145,8 @@ for event in agent.turn("Fix the failing test")?.events() {
 11. **API-key constructors (F6).** `AnthropicConfig::api_key(key)`,
     `OpenAIConfig::api_key(key)`, `ResponsesConfig::api_key(key)`, plus
     `from_env()` (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`).
-12. **Typed tool arguments (F9).** Normalise every backend through one
+12. ✅ *(partly: one mapping for every backend, plus `arg_bool` /
+    `arg_usize`)* **Typed tool arguments (F9).** Normalise every backend through one
     `json_value_to_arg_type`, and add a `ToolArgs` wrapper with
     `str(key)`, `i64(key)`, `f64(key)`, `bool(key)`, `parse::<T: Deserialize>()`
     so tools stop matching on `ArgType`. Longer term, collapse `ArgType` to

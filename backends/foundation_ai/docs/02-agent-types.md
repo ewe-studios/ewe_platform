@@ -53,8 +53,11 @@ pub enum Messages {
   instructions and loop redirects (`System`) and tool context (`Tool`). It
   serializes to the lowercase strings providers expect.
 - A streaming backend yields **one `Messages::Assistant` per chunk**, each
-  carrying a single `ModelOutput`. A complete answer is the concatenation of
-  the text outputs.
+  carrying a single `ModelOutput`. What a text chunk holds depends on the
+  backend: the HTTP backends (OpenAI, Responses, Anthropic) send the **whole
+  text so far**, so the last chunk is the answer; llama.cpp and Candle send
+  **only the new piece**, so the answer is the concatenation. The agent loop
+  handles both and persists one merged message per turn.
 - `Messages::is_context_overflow(context_window)` recognises overflow errors
   from ~15 providers' error strings, plus "silent" overflow where usage exceeds
   the window.
@@ -130,9 +133,11 @@ pub enum ArgType {
 }
 ```
 
-There is no `Bool`, `Array` or `Null` variant: those arrive as `JSON(String)`.
-Match on the variants you accept and return `ToolError::InvalidArguments` for
-the rest.
+Every backend maps model-supplied JSON the same way
+(`types::json_value_to_arg_type`): strings → `Text`, integers → `I64`, other
+numbers → `Float64`, and booleans, `null`, arrays and objects → `JSON(text)`.
+`ArgType::to_json_value()` goes back. The helpers
+`agentic::tool_impl::{arg_bool, arg_usize}` read the common cases.
 
 ## 6. `Args` — a JSON Schema plus its validator
 
