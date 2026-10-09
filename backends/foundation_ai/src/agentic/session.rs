@@ -670,25 +670,34 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         self.inner.queues.abort();
     }
 
-    /// Synchronous teardown (Decision 01): flush message buffer, drain queues,
-    /// persist remaining messages, reset cancel signal.
+    /// Synchronous teardown (Decision 01): drain the steering queues into the
+    /// message log, flush the log to the document store, reset the cancel
+    /// signal.
+    ///
+    /// Every step runs even when an earlier one fails, so a failed flush still
+    /// resets the cancel signal; the first error is returned. A record the
+    /// store refused stays buffered, so calling `end()` again retries it.
     /// # Errors
-    /// Returns [`ErrorTrace<AgenticError>`] if flushing fails.
+    /// [`AgenticError::MessageStore`] when the document store fails a write.
     pub fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
-        let _ = self.inner.message_api.flush();
-
         let priority_msgs = self.inner.queues.drain_priority();
         let follow_up_msgs = self.inner.queues.drain_follow_up();
-
         for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
-            let _ = self
+            // Buffers only; the id is not needed here.
+            let _id = self
                 .inner
                 .message_api
                 .append(SessionRecord::Conversation { message: msg });
         }
 
-        let _ = self.inner.message_api.flush();
+        let flushed = self.inner.message_api.flush().map_err(|e| {
+            ErrorTrace::new(AgenticError::MessageStore(format!(
+                "ending session {}: flushing the message log: {e}",
+                self.inner.session_id
+            )))
+        });
+
         self.inner.queues.reset_cancel();
-        Ok(())
+        flushed.map(|_| ())
     }
 }

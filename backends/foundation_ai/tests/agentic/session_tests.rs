@@ -485,3 +485,222 @@ fn an_application_needs_only_the_agentic_root() {
     // Types a caller matches on are nameable from the root.
     let _ = std::any::type_name::<(Answer, TurnEvent, TurnSummary)>();
 }
+
+// ---------------------------------------------------------------------------
+// end() reports store failures
+
+mod failing_store {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    use foundation_db::traits::{Document, DocumentStore, PromotableDocument};
+    use foundation_db::{MemoryDocumentStore, StorageError, StorageItemStream, StorageResult};
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
+
+    /// A `MemoryDocumentStore` whose writes fail while `failing` is set.
+    #[derive(Clone)]
+    pub struct FailingDocStore {
+        inner: Arc<MemoryDocumentStore>,
+        pub failing: Arc<AtomicBool>,
+    }
+
+    impl FailingDocStore {
+        pub fn new() -> Self {
+            Self {
+                inner: Arc::new(MemoryDocumentStore::new()),
+                failing: Arc::new(AtomicBool::new(false)),
+            }
+        }
+
+        fn check(&self) -> StorageResult<()> {
+            if self.failing.load(Ordering::SeqCst) {
+                Err(StorageError::Backend("disk full".into()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    impl DocumentStore for FailingDocStore {
+        fn append<V: Serialize + Send + 'static>(
+            &self,
+            key: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.check()?;
+            self.inner.append(key, content)
+        }
+        fn append_with_id<V: Serialize + Send + 'static>(
+            &self,
+            key: &str,
+            doc_id: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.check()?;
+            self.inner.append_with_id(key, doc_id, content)
+        }
+        fn scan<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+            limit: usize,
+        ) -> StorageResult<StorageItemStream<'_, V>> {
+            self.inner.scan(key, limit)
+        }
+        fn scan_all<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+        ) -> StorageResult<StorageItemStream<'_, V>> {
+            self.inner.scan_all(key)
+        }
+        fn scan_from<V: DeserializeOwned + Send + 'static>(
+            &self,
+            key: &str,
+            from_id: &str,
+            limit: usize,
+        ) -> StorageResult<StorageItemStream<'_, V>> {
+            self.inner.scan_from(key, from_id, limit)
+        }
+        fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+            &self,
+            key: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.check()?;
+            self.inner.append_promotable(key, content)
+        }
+        fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+            &self,
+            key: &str,
+            doc_id: &str,
+            content: V,
+        ) -> StorageResult<Document> {
+            self.check()?;
+            self.inner.append_promotable_with_id(key, doc_id, content)
+        }
+        fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+            self.inner.scan_documents(key, limit)
+        }
+        fn scan_documents_from(
+            &self,
+            key: &str,
+            from_id: &str,
+            limit: usize,
+        ) -> StorageResult<Vec<Document>> {
+            self.inner.scan_documents_from(key, from_id, limit)
+        }
+        fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+            self.inner.delete(key, doc_id)
+        }
+        fn delete_all(&self, key: &str) -> StorageResult<u64> {
+            self.inner.delete_all(key)
+        }
+        fn count(&self, key: &str) -> StorageResult<u64> {
+            self.inner.count(key)
+        }
+    }
+}
+
+use failing_store::FailingDocStore;
+
+fn session_over(store: &FailingDocStore) -> AgentSession<FailingDocStore, TestMemStore> {
+    builder()
+        .with_session_id(SessionId::from_name("end-failure"))
+        .with_doc_store(store.clone())
+        .build()
+        .expect("build succeeds while the store works")
+}
+
+#[test]
+fn end_returns_the_store_error_when_persisting_queued_messages_fails() {
+    let store = FailingDocStore::new();
+    let session = session_over(&store);
+
+    session.follow_up(user_msg("queued before end"));
+    store
+        .failing
+        .store(true, std::sync::atomic::Ordering::SeqCst);
+
+    let err = session
+        .end()
+        .expect_err("a failing append must surface from end()");
+    match err.current_context() {
+        AgenticError::MessageStore(msg) => {
+            assert!(msg.contains("flushing the message log"), "{msg}");
+            assert!(
+                msg.contains("disk full"),
+                "the store's cause is kept: {msg}"
+            );
+        }
+        other => panic!("expected MessageStore, got {other:?}"),
+    }
+    // Teardown still ran: the queue was drained and the cancel signal reset.
+    assert!(!session.steering_queues().has_follow_up());
+    assert!(!session.steering_queues().is_aborted());
+    // Nothing was lost: the refused record waits for the next flush.
+    assert_eq!(session.message_api().unflushed(), 1);
+}
+
+#[test]
+fn end_retries_a_refused_record_once_the_store_recovers() {
+    let store = FailingDocStore::new();
+    let session = session_over(&store);
+
+    session.steer(user_msg("first"));
+    session.follow_up(user_msg("second"));
+    store
+        .failing
+        .store(true, std::sync::atomic::Ordering::SeqCst);
+    assert!(
+        session.end().is_err(),
+        "the flush fails while the store does"
+    );
+
+    store
+        .failing
+        .store(false, std::sync::atomic::Ordering::SeqCst);
+    session.end().expect("end succeeds once the store recovers");
+    assert_eq!(session.message_api().unflushed(), 0);
+
+    // Both records reached the store, in order.
+    let texts: Vec<String> = session
+        .message_api()
+        .all()
+        .expect("read back")
+        .iter()
+        .map(|record| match record {
+            SessionRecord::Conversation {
+                message:
+                    Messages::User {
+                        content: UserModelContent::Text(t),
+                        ..
+                    },
+            } => t.content.clone(),
+            other => panic!("expected a user message, got {other:?}"),
+        })
+        .collect();
+    assert_eq!(texts, vec!["first".to_string(), "second".to_string()]);
+}
+
+#[test]
+fn reads_report_a_failed_flush_instead_of_returning_stale_records() {
+    let store = FailingDocStore::new();
+    let session = session_over(&store);
+
+    session.follow_up(user_msg("buffered"));
+    // Move the queued message into the log's buffer without flushing it.
+    let msg = session
+        .steering_queues()
+        .pop_follow_up()
+        .expect("queued message");
+    let _id = session
+        .message_api()
+        .append(SessionRecord::Conversation { message: msg });
+    store
+        .failing
+        .store(true, std::sync::atomic::Ordering::SeqCst);
+
+    assert!(session.message_api().recent(10).is_err());
+    assert!(session.message_api().all().is_err());
+    assert!(session.message_api().flush().is_err());
+}

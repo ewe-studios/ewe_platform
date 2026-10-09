@@ -80,9 +80,21 @@ fn main() {
     let cli = Cli::parse();
     let session = build_session();
 
-    match cli.command.unwrap_or(Command::Agent) {
+    let turn_ok = match cli.command.unwrap_or(Command::Agent) {
         Command::Ask { question } => run_ask(&session, question),
-        Command::Agent => run_repl(&session),
+        Command::Agent => {
+            run_repl(&session);
+            true
+        }
+    };
+
+    // Persist the session log before exiting — including after a failed turn.
+    let ended = session.end();
+    if let Err(e) = &ended {
+        tracing::error!("ending the session failed: {e}");
+    }
+    if !turn_ok || ended.is_err() {
+        std::process::exit(1);
     }
 }
 
@@ -122,12 +134,16 @@ fn build_session() -> Session {
         .expect("failed to build agent session")
 }
 
-/// One-shot: run a single turn and print the reply on stdout.
-fn run_ask(session: &Session, question: String) {
+/// One-shot: run a single turn and print the reply on stdout. Returns whether
+/// the turn completed.
+fn run_ask(session: &Session, question: String) -> bool {
     tracing::trace!("ask: sending question to model: {question}");
 
     match session.ask(question) {
-        Ok(Answer::Complete(text)) => println!("{}", or_no_response(&text)),
+        Ok(Answer::Complete(text)) => {
+            println!("{}", or_no_response(&text));
+            true
+        }
         // Partial output first, then the error that ended the turn.
         Ok(Answer::Failed {
             partial_text,
@@ -138,11 +154,11 @@ fn run_ask(session: &Session, question: String) {
                 println!("{partial_text}");
             }
             tracing::error!("ask turn failed: {error}");
-            std::process::exit(1);
+            false
         }
         Err(e) => {
             tracing::error!("ask turn could not start: {e}");
-            std::process::exit(1);
+            false
         }
     }
 }

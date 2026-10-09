@@ -205,6 +205,12 @@ agent.abort();          // end the running turn at the next boundary
 agent.end()?;           // flush the log, persist queued messages, reset the cancel signal
 ```
 
+`end()` persists the queued messages and flushes the log. When the document
+store refuses a write it returns `AgenticError::MessageStore` — after still
+draining the queues and resetting the cancel signal — and keeps the refused
+record buffered, so calling `end()` again once the store recovers writes it.
+`MessageApi::unflushed()` counts what has not reached the store yet.
+
 `AgentSession` clones are cheap (`Arc`), so steering from another thread is a
 clone away. Details: Doc 05.
 
