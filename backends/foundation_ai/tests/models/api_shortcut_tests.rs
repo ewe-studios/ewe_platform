@@ -148,3 +148,93 @@ fn agent_session_builder_takes_a_provider() {
         .resolve(&"claude-sonnet-4-6".into())
         .is_ok());
 }
+
+// ---------------------------------------------------------------------------
+// Item 11 — API-key constructors
+// ---------------------------------------------------------------------------
+
+fn secret(auth: Option<&foundation_auth::AuthCredential>) -> String {
+    match auth {
+        Some(foundation_auth::AuthCredential::SecretOnly(text)) => text.get(),
+        other => panic!("expected SecretOnly, got {other:?}"),
+    }
+}
+
+#[test]
+fn api_key_constructors_set_a_secret_only_credential() {
+    use foundation_ai::backends::anthropic_messages_provider::AnthropicConfig;
+    use foundation_ai::backends::openai_provider::{OpenAIConfig, OPENROUTER_BASE_URL};
+    use foundation_ai::backends::openai_responses_provider::ResponsesConfig;
+
+    assert_eq!(
+        secret(AnthropicConfig::api_key("a-key").auth.as_ref()),
+        "a-key"
+    );
+    assert_eq!(
+        secret(OpenAIConfig::api_key("o-key").auth.as_ref()),
+        "o-key"
+    );
+    assert_eq!(
+        secret(ResponsesConfig::api_key("r-key").auth.as_ref()),
+        "r-key"
+    );
+
+    let openrouter = OpenAIConfig::openrouter("or-key");
+    assert_eq!(secret(openrouter.auth.as_ref()), "or-key");
+    assert_eq!(openrouter.base_url, OPENROUTER_BASE_URL);
+}
+
+#[test]
+fn providers_build_from_an_api_key() {
+    use foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider;
+    use foundation_ai::backends::openai_provider::OpenAIProvider;
+    use foundation_ai::backends::openai_responses_provider::ResponsesProvider;
+    use foundation_ai::types::ModelProvider;
+
+    // Each provider still describes itself, so it can be routed.
+    assert!(AnthropicMessagesProvider::api_key("k").describe().is_ok());
+    assert!(OpenAIProvider::api_key("k").describe().is_ok());
+    assert!(ResponsesProvider::api_key("k").describe().is_ok());
+}
+
+#[test]
+#[serial_test::serial(api_key_env)]
+fn from_env_reads_the_provider_variable() {
+    use foundation_ai::backends::anthropic_messages_provider::AnthropicConfig;
+    use foundation_ai::backends::openai_provider::OpenAIConfig;
+    use foundation_ai::backends::openai_responses_provider::ResponsesConfig;
+
+    let saved: Vec<(&str, Option<String>)> =
+        ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY"]
+            .into_iter()
+            .map(|k| (k, std::env::var(k).ok()))
+            .collect();
+
+    // Tests that touch these variables are serialised on `api_key_env`.
+    std::env::set_var("ANTHROPIC_API_KEY", "env-a");
+    std::env::set_var("OPENAI_API_KEY", "env-o");
+    std::env::set_var("OPENROUTER_API_KEY", "env-or");
+    let anthropic = AnthropicConfig::from_env().expect("ANTHROPIC_API_KEY is set");
+    let openai = OpenAIConfig::from_env().expect("OPENAI_API_KEY is set");
+    let responses = ResponsesConfig::from_env().expect("OPENAI_API_KEY is set");
+    let openrouter = OpenAIConfig::openrouter_from_env().expect("OPENROUTER_API_KEY is set");
+
+    std::env::remove_var("ANTHROPIC_API_KEY");
+    let missing = AnthropicConfig::from_env();
+
+    for (key, value) in saved {
+        match value {
+            Some(v) => std::env::set_var(key, v),
+            None => std::env::remove_var(key),
+        }
+    }
+
+    assert_eq!(secret(anthropic.auth.as_ref()), "env-a");
+    assert_eq!(secret(openai.auth.as_ref()), "env-o");
+    assert_eq!(secret(responses.auth.as_ref()), "env-o");
+    assert_eq!(secret(openrouter.auth.as_ref()), "env-or");
+    assert!(
+        matches!(missing, Err(std::env::VarError::NotPresent)),
+        "an unset variable is an error, not an empty key"
+    );
+}

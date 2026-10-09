@@ -66,6 +66,22 @@ impl Default for ResponsesConfig {
 }
 
 impl ResponsesConfig {
+    /// A config authenticated with an API key (`AuthCredential::SecretOnly`).
+    #[must_use]
+    pub fn api_key(key: impl Into<String>) -> Self {
+        Self::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            key.into(),
+        )))
+    }
+
+    /// [`api_key`](Self::api_key) from the `OPENAI_API_KEY` environment variable.
+    ///
+    /// # Errors
+    /// [`std::env::VarError`] when `OPENAI_API_KEY` is unset or not unicode.
+    pub fn from_env() -> Result<Self, std::env::VarError> {
+        Ok(Self::api_key(std::env::var("OPENAI_API_KEY")?))
+    }
+
     #[must_use]
     pub fn new() -> Self {
         Self::default()
@@ -355,6 +371,13 @@ impl ResponsesProvider {
             http_client: None,
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
+    }
+
+    /// A provider authenticated with an API key: shorthand for
+    /// `with_config(ResponsesConfig::api_key(key))`.
+    #[must_use]
+    pub fn api_key(key: impl Into<String>) -> Self {
+        Self::with_config(ResponsesConfig::api_key(key))
     }
 
     #[must_use]

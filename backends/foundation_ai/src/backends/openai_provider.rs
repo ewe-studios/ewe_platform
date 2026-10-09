@@ -39,6 +39,9 @@ use crate::types::base_types::{
     ToolFormatter, UsageCosting, UsageReport,
 };
 
+/// OpenRouter's OpenAI-compatible API base URL.
+pub const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
+
 // ============================================================================
 // OpenAI Configuration
 // ============================================================================
@@ -70,6 +73,37 @@ impl Default for OpenAIConfig {
 }
 
 impl OpenAIConfig {
+    /// A config authenticated with an API key (`AuthCredential::SecretOnly`).
+    #[must_use]
+    pub fn api_key(key: impl Into<String>) -> Self {
+        Self::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            key.into(),
+        )))
+    }
+
+    /// [`api_key`](Self::api_key) from the `OPENAI_API_KEY` environment variable.
+    ///
+    /// # Errors
+    /// [`std::env::VarError`] when `OPENAI_API_KEY` is unset or not unicode.
+    pub fn from_env() -> Result<Self, std::env::VarError> {
+        Ok(Self::api_key(std::env::var("OPENAI_API_KEY")?))
+    }
+
+    /// A config for OpenRouter (OpenAI-compatible) with the given API key.
+    #[must_use]
+    pub fn openrouter(key: impl Into<String>) -> Self {
+        Self::api_key(key).with_base_url(OPENROUTER_BASE_URL)
+    }
+
+    /// [`openrouter`](Self::openrouter) from the `OPENROUTER_API_KEY`
+    /// environment variable.
+    ///
+    /// # Errors
+    /// [`std::env::VarError`] when `OPENROUTER_API_KEY` is unset or not unicode.
+    pub fn openrouter_from_env() -> Result<Self, std::env::VarError> {
+        Ok(Self::openrouter(std::env::var("OPENROUTER_API_KEY")?))
+    }
+
     #[must_use]
     pub fn new() -> Self {
         Self::default()
@@ -182,6 +216,13 @@ impl OpenAIProvider {
             http_client: None,
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
+    }
+
+    /// A provider authenticated with an API key: shorthand for
+    /// `with_config(OpenAIConfig::api_key(key))`.
+    #[must_use]
+    pub fn api_key(key: impl Into<String>) -> Self {
+        Self::with_config(OpenAIConfig::api_key(key))
     }
 
     #[must_use]

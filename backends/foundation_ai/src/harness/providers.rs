@@ -22,12 +22,11 @@
 
 use std::path::PathBuf;
 
-use crate::backends::anthropic_messages_provider::{AnthropicConfig, AnthropicMessagesProvider};
+use crate::backends::anthropic_messages_provider::AnthropicMessagesProvider;
 use crate::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
 use crate::backends::llamacpp::SpeculativeConfig;
-use crate::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
-use crate::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
-use foundation_auth::{AuthCredential, ConfidentialText};
+use crate::backends::openai_provider::OpenAIProvider;
+use crate::backends::openai_responses_provider::ResponsesProvider;
 
 // ===========================================================================
 // Quantization presets
@@ -272,37 +271,27 @@ pub struct CloudPresets;
 impl CloudPresets {
     /// Create an Anthropic Claude Opus provider.
     pub fn claude_opus(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
-        let config = AnthropicConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
-        Ok(AnthropicMessagesProvider::with_config(config))
+        Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an Anthropic Claude Sonnet provider.
     pub fn claude_sonnet(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
-        let config = AnthropicConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
-        Ok(AnthropicMessagesProvider::with_config(config))
+        Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4 provider (Chat Completions API).
     pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, String> {
-        let config = OpenAIConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
-        Ok(OpenAIProvider::with_config(config))
+        Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4o provider (Chat Completions API).
     pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, String> {
-        let config = OpenAIConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
-        Ok(OpenAIProvider::with_config(config))
+        Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI provider that speaks the **Responses API** (rather than
     /// Chat Completions). Use this for the newer `/v1/responses` surface.
     pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, String> {
-        let config = ResponsesConfig::new()
-            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
-        Ok(ResponsesProvider::with_config(config))
+        Ok(ResponsesProvider::api_key(api_key))
     }
 }
