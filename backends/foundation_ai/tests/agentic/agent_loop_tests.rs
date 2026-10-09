@@ -3,8 +3,8 @@ use std::sync::Arc;
 use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
     AgentConfig, AgentLoop, AgentProgress, ContextConfig, ContextProvider, ErrorPolicy,
-    KvMemoryStore, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues,
-    TokenLedger,
+    KvMemoryStore, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, ModelSelection,
+    SteeringQueues, TokenLedger,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
@@ -76,6 +76,7 @@ fn build_harness(config: AgentConfig) -> TestHarness {
         ErrorPolicy::new(),
         router,
         config,
+        ModelSelection::new("test-model"),
     );
 
     TestHarness {
@@ -88,10 +89,7 @@ fn build_harness(config: AgentConfig) -> TestHarness {
 }
 
 fn default_harness() -> TestHarness {
-    build_harness(AgentConfig {
-        primary_model: ModelId::Name("test-model".into(), None),
-        ..Default::default()
-    })
+    build_harness(AgentConfig::default())
 }
 
 fn make_user_msg(content: &str) -> Messages {
@@ -209,7 +207,6 @@ fn priority_preempts_follow_up() {
 #[test]
 fn max_outer_iterations_ends_session() {
     let mut h = build_harness(AgentConfig {
-        primary_model: ModelId::Name("test-model".into(), None),
         max_outer_iterations: 1,
         ..Default::default()
     });
@@ -341,7 +338,6 @@ fn push_user_message_feeds_pending_messages() {
 #[test]
 fn second_follow_up_triggers_second_outer_iteration() {
     let mut h = build_harness(AgentConfig {
-        primary_model: ModelId::Name("test-model".into(), None),
         max_outer_iterations: 5,
         ..Default::default()
     });

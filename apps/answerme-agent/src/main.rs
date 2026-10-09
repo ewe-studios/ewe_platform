@@ -10,9 +10,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use foundation_ai::agentic::{
-    AgentConfig, AgentSession, Answer, ContextConfig, ErrorPolicy, MemoryConfig,
-};
+use foundation_ai::agentic::{AgentSession, Answer, ContextConfig, ErrorPolicy, MemoryConfig};
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
@@ -116,11 +114,7 @@ fn build_session() -> Session {
     preset
         .into_agent_builder()
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
-        .with_model(model_id.clone())
-        .with_config(AgentConfig {
-            primary_model: model_id.clone(),
-            ..Default::default()
-        })
+        .with_model(model_id)
         .with_context_config(ContextConfig::default())
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())

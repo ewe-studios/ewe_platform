@@ -27,7 +27,7 @@ pub mod toolshed;
 pub mod turn;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
-pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
+pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState, ModelSelection};
 pub use context::{AgentContext, ContextConfig, ContextProvider, KnowledgeHit, SearchMode};
 pub use embedding::{
     CacheStats, CachedEmbeddingProvider, ColdCache, EmbeddingError, EmbeddingProvider,

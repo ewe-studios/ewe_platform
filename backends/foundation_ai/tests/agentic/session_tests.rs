@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, AgenticError, KvMemoryStore, SessionAccessProvider, TokenBudget,
+    AgentConfig, AgentSession, AgentSessionBuilder, AgenticError, KvMemoryStore, ModelSelection,
+    SessionAccessProvider, TokenBudget,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
@@ -38,13 +39,19 @@ fn empty_router() -> ProviderRouter {
     ProviderRouter::builder().build()
 }
 
+/// A builder over the in-memory stores with a primary model set — `build()`
+/// refuses a session without one.
+fn builder() -> AgentSessionBuilder {
+    AgentSession::builder(empty_router()).with_model("test-model")
+}
+
 // ---------------------------------------------------------------------------
 // Builder + preflight tests
 
 #[test]
 fn builder_creates_session_with_named_id() {
     let id = SessionId::from_name("test-defaults");
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(id.clone())
         .build()
         .expect("build should succeed");
@@ -55,7 +62,7 @@ fn builder_creates_session_with_named_id() {
 #[test]
 fn builder_accepts_custom_session_id() {
     let custom_id = SessionId::from_name("test-session");
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(custom_id.clone())
         .build()
         .expect("build should succeed");
@@ -65,7 +72,7 @@ fn builder_accepts_custom_session_id() {
 
 #[test]
 fn builder_accepts_system_prompt() {
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_system_prompt("You are a coding assistant.")
         .build()
@@ -74,7 +81,7 @@ fn builder_accepts_system_prompt() {
 
 #[test]
 fn builder_accepts_custom_model() {
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_model(ModelId::Name("gpt-4".into(), None))
         .build()
@@ -83,7 +90,7 @@ fn builder_accepts_custom_model() {
 
 #[test]
 fn builder_accepts_fallback_models() {
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_fallback_models(vec![
             ModelId::Name("gpt-4".into(), None),
@@ -95,7 +102,7 @@ fn builder_accepts_fallback_models() {
 
 #[test]
 fn session_is_clone() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
@@ -135,7 +142,7 @@ impl SessionAccessProvider for DenyModelAccess {
 
 #[test]
 fn preflight_denies_session_access() {
-    let result: Result<TestSession, _> = AgentSession::builder(empty_router())
+    let result: Result<TestSession, _> = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_access(Arc::new(DenySessionAccess))
         .build();
@@ -151,7 +158,7 @@ fn preflight_denies_session_access() {
 
 #[test]
 fn preflight_denies_model_access() {
-    let result: Result<TestSession, _> = AgentSession::builder(empty_router())
+    let result: Result<TestSession, _> = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_access(Arc::new(DenyModelAccess))
         .build();
@@ -170,7 +177,7 @@ fn preflight_denies_model_access() {
 
 #[test]
 fn steer_and_follow_up_inject_messages() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
@@ -184,7 +191,7 @@ fn steer_and_follow_up_inject_messages() {
 
 #[test]
 fn end_is_idempotent() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
@@ -200,7 +207,7 @@ fn end_is_idempotent() {
 fn with_session_id_starts_a_new_session_when_none_exists() {
     let id = SessionId::from_name("create-or-continue");
 
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(id.clone())
         .build()
         .expect("with_session_id builds even when the stores hold nothing for the id");
@@ -214,7 +221,7 @@ fn with_session_id_starts_a_new_session_when_none_exists() {
 fn resume_fails_with_session_not_found_for_an_unknown_id() {
     let id = SessionId::from_name("resume-missing");
 
-    let err = AgentSession::builder(empty_router())
+    let err = builder()
         .resume(id.clone())
         .build()
         .err()
@@ -237,7 +244,7 @@ fn resume_continues_a_session_the_stores_hold() {
     )
     .expect("seed the store");
 
-    let session = AgentSession::builder(empty_router())
+    let session = builder()
         .resume(id.clone())
         .with_doc_store(doc)
         .build()
@@ -266,7 +273,7 @@ fn resume_looks_only_at_the_named_session() {
     .expect("seed the store");
 
     let missing = SessionId::from_name("resume-other-missing");
-    let err = AgentSession::builder(empty_router())
+    let err = builder()
         .resume(missing.clone())
         .with_doc_store(doc)
         .build()
@@ -287,7 +294,7 @@ fn builder_wires_config_overrides() {
     config.max_outer_iterations = 3;
     config.max_inner_iterations = 5;
 
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .with_config(config)
         .with_user(UserId("custom-user".into()))
@@ -300,7 +307,7 @@ fn builder_wires_config_overrides() {
 
 #[test]
 fn extension_handles_are_accessible() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(SessionId::from_name("test"))
         .build()
         .expect("build should succeed");
@@ -314,7 +321,7 @@ fn extension_handles_are_accessible() {
 
 #[test]
 fn message_api_subscribe_receives_events() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = builder()
         .with_session_id(SessionId::from_name("test-subscribe"))
         .build()
         .expect("build should succeed");
@@ -357,7 +364,7 @@ fn builder_takes_model_names_as_strings() {
     let access = Arc::new(RecordingModelAccess {
         asked: std::sync::Mutex::new(Vec::new()),
     });
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_model("claude-sonnet-4-6")
         .with_fallback_models(["gpt-4o", "gpt-4o-mini"])
         .with_memory_model(String::from("claude-haiku"))
@@ -371,9 +378,72 @@ fn builder_takes_model_names_as_strings() {
     );
 
     // A Vec<ModelId> is still accepted.
-    let _session: TestSession = AgentSession::builder(empty_router())
+    let _session: TestSession = builder()
         .with_model(ModelId::Name("m".into(), None))
         .with_fallback_models(vec![ModelId::Name("f".into(), None)])
         .build()
         .expect("ModelId arguments still work");
+}
+
+// ---------------------------------------------------------------------------
+// Model selection (item 14)
+
+#[test]
+fn build_fails_when_no_model_was_set() {
+    let err = AgentSession::builder(empty_router())
+        .build()
+        .err()
+        .expect("a session with no model must not build");
+    assert_eq!(
+        *err.current_context(),
+        AgenticError::Session("no model set".into())
+    );
+}
+
+#[test]
+fn config_without_models_does_not_satisfy_build() {
+    // AgentConfig no longer carries a model, so passing one cannot stand in
+    // for `with_model`.
+    let err = AgentSession::builder(empty_router())
+        .with_config(AgentConfig::default())
+        .build()
+        .err()
+        .expect("with_config alone sets no model");
+    assert_eq!(
+        *err.current_context(),
+        AgenticError::Session("no model set".into())
+    );
+}
+
+#[test]
+fn builder_fills_the_model_selection() {
+    let session: TestSession = AgentSession::builder(empty_router())
+        .with_model("primary")
+        .with_fallback_models(["first-fallback", "second-fallback"])
+        .with_memory_model("memory")
+        .build()
+        .expect("build succeeds");
+
+    assert_eq!(
+        *session.models(),
+        ModelSelection::new("primary")
+            .with_fallbacks(["first-fallback", "second-fallback"])
+            .with_memory("memory")
+    );
+}
+
+#[test]
+fn memory_model_reaches_the_memory_hierarchy() {
+    let session: TestSession = builder()
+        .with_memory_model("memory")
+        .build()
+        .expect("build succeeds");
+    assert_eq!(
+        session.memory_hierarchy().memory_model(),
+        Some(&ModelId::from("memory"))
+    );
+
+    let session: TestSession = builder().build().expect("build succeeds");
+    assert_eq!(session.models().memory, None);
+    assert_eq!(session.memory_hierarchy().memory_model(), None);
 }

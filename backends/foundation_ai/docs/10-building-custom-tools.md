@@ -191,6 +191,7 @@ Tools go in the session's `ToolShed`:
 
 ```rust
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(WeatherTool { api_key }))
     .build()?;
 ```

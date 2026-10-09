@@ -226,12 +226,10 @@ where
         // Apply the runaway cap to the child's agent loop. `max_inner_iterations`
         // is the per-turn step ceiling the loop actually enforces.
         if let Some(cap) = max_iterations {
-            let mut cfg = crate::agentic::AgentConfig {
-                primary_model: model.clone(),
+            builder = builder.with_config(crate::agentic::AgentConfig {
+                max_inner_iterations: cap,
                 ..Default::default()
-            };
-            cfg.max_inner_iterations = cap;
-            builder = builder.with_config(cfg);
+            });
         }
 
         // Instruct the sub-agent where to write its result.

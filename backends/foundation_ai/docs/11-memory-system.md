@@ -77,6 +77,7 @@ use foundation_ai::harness::ToolPreset;
 
 // Over the session's own memory hierarchy, built inside build():
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::session_memory()))
     .build()?;
 ```

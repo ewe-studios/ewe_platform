@@ -82,6 +82,7 @@ messages.)
 
 ```rust
 let agent = AgentSession::builder(router.clone())
+    .with_model("my-model")
     .with_embedder(Arc::new(CachedEmbeddingProvider::with_defaults(router)), "text-embedding-3-small")
     // search_context, built inside build() from the session's own context
     // provider — so it uses the session's stores and embedder:

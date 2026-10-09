@@ -468,6 +468,7 @@ stores:
 
 ```rust
 let agent = AgentSession::builder(router)   // rebuild ProviderRouter the same way
+    .with_model("my-model")
     .resume(session_id)                     // same SessionId from before; must exist
     .with_doc_store(doc_store)
     .with_memory_store(mem_store)
@@ -491,6 +492,7 @@ use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(
         ToolShed::new()
             .tool(MyTool)                              // your own ToolImpl

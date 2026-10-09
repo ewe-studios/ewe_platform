@@ -407,6 +407,7 @@ same stores with the same id:
 
 ```rust
 let agent = AgentSession::builder(router)      // rebuild the same ProviderRouter
+    .with_model("my-model")
     .resume(session_id)                        // Err(SessionNotFound) if the stores don't hold it
     .with_doc_store(doc_store)
     .with_memory_store(mem_store)

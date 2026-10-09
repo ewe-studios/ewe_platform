@@ -27,6 +27,7 @@ Every tool is a `ToolImpl`. Three things connect it to an agent:
 use foundation_ai::agentic::{AgentSession, ToolShed};
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(my_tool))
     .build()?;
 
@@ -142,6 +143,7 @@ spawn sub-agents by accident.
 
 ```rust
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(Arc::clone(&fs))))
     .build()?;
 ```
@@ -202,6 +204,7 @@ let delegation = ToolPreset::agent::<Doc, Mem>(
 
 // Give the parent everything plus delegation.
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
     .build()?;
 ```

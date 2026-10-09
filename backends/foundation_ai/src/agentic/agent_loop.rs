@@ -42,6 +42,60 @@ use crate::types::{
 };
 
 // ---------------------------------------------------------------------------
+// ModelSelection
+
+/// The models a session runs on — the single place they are set.
+///
+/// WHY: models used to live both on the builder and in `AgentConfig`, and
+/// an `AgentConfig::default()` silently carried an empty model name. Keeping
+/// them in one value, filled by the builder, means a session either has a
+/// primary model or fails to build.
+///
+/// WHAT: the primary model, the circuit-breaker fallbacks (tried in order),
+/// and an optional model for memory generation.
+///
+/// HOW: `AgentSessionBuilder::build` assembles it from `with_model`,
+/// `with_fallback_models` and `with_memory_model`; `AgentLoop::new` takes it
+/// next to `AgentConfig`. Custom loops and tests build one with
+/// [`ModelSelection::new`].
+#[derive(Debug, Clone, PartialEq)]
+pub struct ModelSelection {
+    pub primary: ModelId,
+    pub fallbacks: Vec<ModelId>,
+    pub memory: Option<ModelId>,
+}
+
+impl ModelSelection {
+    /// A selection with only a primary model.
+    #[must_use]
+    pub fn new(primary: impl Into<ModelId>) -> Self {
+        Self {
+            primary: primary.into(),
+            fallbacks: Vec::new(),
+            memory: None,
+        }
+    }
+
+    /// Set the circuit-breaker fallbacks, in order.
+    #[must_use]
+    pub fn with_fallbacks<I>(mut self, models: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: Into<ModelId>,
+    {
+        self.fallbacks = models.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Set the model used for memory generation.
+    #[must_use]
+    pub fn with_memory(mut self, model: impl Into<ModelId>) -> Self {
+        self.memory = Some(model.into());
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
 // AgentConfig
 
 /// Tunable knobs for `AgentLoop` behaviour.
@@ -51,19 +105,18 @@ use crate::types::{
 /// Externalising them lets callers (CLI, server, tests) vary policy without
 /// touching orchestration logic.
 ///
-/// WHAT: Flat bag of limits and thresholds — primary/fallback models,
-/// inner/outer iteration caps, circuit-breaker threshold, context-pressure
-/// ratio, and base `ModelParams`. All fields have sensible defaults via
-/// `Default`.
+/// WHAT: Flat bag of limits and thresholds — inner/outer iteration caps,
+/// circuit-breaker threshold, context-pressure ratio, and base
+/// `ModelParams`. All fields have sensible defaults via `Default`. The
+/// models are not here: they live in [`ModelSelection`], which the session
+/// builder fills from `with_model` / `with_fallback_models` /
+/// `with_memory_model`.
 ///
 /// HOW: Passed to `AgentLoop::new`; the loop reads fields at each state
-/// transition. `fallback_models` feeds the `CircuitBreaker`; thresholds
-/// gate the context-pressure and preflight-compression layers.
+/// transition. Thresholds gate the context-pressure and
+/// preflight-compression layers.
 #[derive(Debug, Clone)]
 pub struct AgentConfig {
-    pub primary_model: ModelId,
-    pub fallback_models: Vec<ModelId>,
-    pub memory_model: Option<ModelId>,
     pub max_inner_iterations: usize,
     pub max_outer_iterations: usize,
     pub circuit_breaker_threshold: u32,
@@ -75,9 +128,6 @@ pub struct AgentConfig {
 impl Default for AgentConfig {
     fn default() -> Self {
         Self {
-            primary_model: ModelId::Name(String::new(), None),
-            fallback_models: Vec::new(),
-            memory_model: None,
             max_inner_iterations: 25,
             max_outer_iterations: 10,
             circuit_breaker_threshold: 3,
@@ -500,12 +550,14 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         policy: ErrorPolicy,
         router: crate::types::ProviderRouter,
         config: AgentConfig,
+        models: ModelSelection,
     ) -> Self {
-        let breaker = CircuitBreaker::new(
-            config.circuit_breaker_threshold,
-            config.fallback_models.clone(),
-        );
-        let current_model = config.primary_model.clone();
+        // The memory model is used by the memory hierarchy, not the loop.
+        let ModelSelection {
+            primary, fallbacks, ..
+        } = models;
+        let breaker = CircuitBreaker::new(config.circuit_breaker_threshold, fallbacks);
+        let current_model = primary;
         Self {
             session_id,
             context_provider,

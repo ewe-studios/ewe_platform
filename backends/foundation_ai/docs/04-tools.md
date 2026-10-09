@@ -93,6 +93,7 @@ let tools = ToolShed::new()
     }));
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(tools)
     .build()?;
 ```
@@ -333,6 +334,7 @@ let greet = FnTool::new(
 
 // Give it to a session:
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(GreetTool))
     .build()?;
 ```

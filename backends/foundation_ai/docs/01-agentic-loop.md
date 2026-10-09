@@ -207,7 +207,8 @@ to. A tool that panics is caught at the boundary and reported the same way.
 `CircuitBreaker::new(threshold, fallbacks)` counts consecutive failures. Once
 the count reaches `threshold` (`AgentConfig::circuit_breaker_threshold`,
 default 3), each further `on_failure()` returns the next model from
-`fallback_models`; `on_success()` resets the count.
+`ModelSelection::fallbacks` (`with_fallback_models`); `on_success()` resets
+the count.
 
 ## 7. Token accounting
 
@@ -228,14 +229,16 @@ CostStatus::…)` and `CostAccumulator`.
 
 | Field | Default | Meaning |
 |---|---|---|
-| `primary_model` | empty name — set it with `with_model` | Model for generation |
-| `fallback_models` | `[]` | Circuit-breaker fallbacks |
-| `memory_model` | `None` | Recorded, but nothing generates memory yet |
 | `max_inner_iterations` | 25 | Tool-call rounds per outer iteration |
 | `max_outer_iterations` | 10 | Queue-drain rounds per turn |
 | `circuit_breaker_threshold` | 3 | Failures before switching models |
 | `preflight_compression_threshold` | 0.85 | Fraction of the budget; `0.0` disables |
 | `context_pressure_threshold` | 0.70 | Fraction of the budget; `0.0` disables |
 | `model_params` | `ModelParams::default()` | Sampling parameters for every request |
+
+The models are not in `AgentConfig`: `AgentLoop::new` takes a
+`ModelSelection` (primary, fallbacks, memory) next to it, which the session
+builder fills from `with_model` / `with_fallback_models` /
+`with_memory_model`.
 
 Doc 09 covers tuning these.

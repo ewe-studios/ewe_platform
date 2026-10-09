@@ -25,7 +25,7 @@ use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
 
 use crate::agentic::access::{AllowAllAccess, SessionAccessProvider};
-use crate::agentic::agent_loop::{AgentConfig, AgentLoop};
+use crate::agentic::agent_loop::{AgentConfig, AgentLoop, ModelSelection};
 use crate::agentic::context::{ContextConfig, ContextProvider};
 use crate::agentic::errors::{AgenticError, UserId};
 use crate::agentic::memory::{MemoryConfig, MemoryHierarchy};
@@ -89,6 +89,7 @@ struct SessionInner<D, M> {
     access: Arc<dyn SessionAccessProvider>,
     user: UserId,
     config: AgentConfig,
+    models: ModelSelection,
 }
 
 // ---------------------------------------------------------------------------
@@ -376,8 +377,29 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// (2) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
     /// # Errors
-    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
+    /// Returns [`AgenticError::Session`] (`"no model set"`) if
+    /// [`with_model`](Self::with_model) was never called, and
+    /// [`ErrorTrace<AgenticError>`] if preflight checks fail.
     pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
+        // A session runs on a model the caller chose; there is no silent
+        // empty-name default.
+        let Some(primary) = self.model else {
+            return Err(ErrorTrace::new(AgenticError::Session(
+                "no model set".into(),
+            )));
+        };
+        let models = ModelSelection {
+            primary,
+            fallbacks: self.fallback_models,
+            memory: self.memory_model,
+        };
+        // The memory hierarchy reads its model from `MemoryConfig`;
+        // `with_memory_model` is the builder's way to set it.
+        let mut memory_config = self.memory_config;
+        if let Some(memory) = &models.memory {
+            memory_config.memory_model = Some(memory.clone());
+        }
+
         let session_id = self.session_id;
 
         let doc_store = Arc::new(self.doc_store);
@@ -422,7 +444,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             session_id.clone(),
             coordinator,
             ledger.clone(),
-            self.memory_config,
+            memory_config,
         ));
 
         // The shed's output is the session's tool manager.
@@ -437,20 +459,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             .build(&parts)
             .map_err(|e| ErrorTrace::new(AgenticError::from(e)))?;
 
-        // The dedicated builder methods override the matching `AgentConfig`
-        // fields only when they were called — otherwise values supplied through
-        // `with_config` (or `resume`) must survive.
-        let mut config = self.config;
-        if let Some(model) = self.model {
-            config.primary_model = model;
-        }
-        if !self.fallback_models.is_empty() {
-            config.fallback_models = self.fallback_models;
-        }
-        if self.memory_model.is_some() {
-            config.memory_model = self.memory_model;
-        }
-
         let inner = SessionInner {
             session_id,
             policy: self.policy.unwrap_or_default(),
@@ -463,7 +471,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             context_provider,
             access: self.access,
             user: self.user,
-            config,
+            config: self.config,
+            models,
         };
 
         inner.preflight()?;
@@ -489,7 +498,7 @@ impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
             )));
         }
 
-        let model_name = self.config.primary_model.name();
+        let model_name = self.models.primary.name();
         if !self
             .access
             .can_use_model(&self.user, model_name)
@@ -517,6 +526,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     #[must_use]
     pub fn session_id(&self) -> &SessionId {
         &self.inner.session_id
+    }
+
+    /// The models this session runs on, as set on the builder.
+    #[must_use]
+    pub fn models(&self) -> &ModelSelection {
+        &self.inner.models
     }
 
     /// Extension handle: subscribe to message events, read records (F14).
@@ -598,6 +613,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             self.inner.policy.clone(),
             self.inner.router.clone(),
             self.inner.config.clone(),
+            self.inner.models.clone(),
         )
         .with_access(Arc::clone(&self.inner.access), self.inner.user.clone());
 
@@ -674,77 +690,5 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         let _ = self.inner.message_api.flush();
         self.inner.queues.reset_cancel();
         Ok(())
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Resume
-
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
-    /// Rehydrate a session by `SessionId` from default-constructed stores.
-    ///
-    /// With most store types `D::default()` / `M::default()` open fresh, empty
-    /// stores, so this finds no history; and unlike the builder it can't take
-    /// a system prompt, tools or an embedder.
-    /// # Errors
-    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
-    #[deprecated(
-        note = "use AgentSession::builder(router).resume(id) (must exist) or .with_session_id(id) (create-or-continue), then .build()"
-    )]
-    pub fn resume(
-        session_id: SessionId,
-        router: ProviderRouter,
-        config: AgentConfig,
-        policy: Option<ErrorPolicy>,
-    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>>
-    where
-        D: Default,
-        M: Default,
-    {
-        Self::resume_from(
-            session_id,
-            router,
-            config,
-            policy,
-            D::default(),
-            M::default(),
-        )
-    }
-
-    /// Rehydrate a session by `SessionId` from the stores that hold it.
-    ///
-    /// Create-or-continue: the same as
-    /// `builder(router).with_session_id(id).with_doc_store(..).with_memory_store(..)`.
-    /// # Errors
-    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
-    #[deprecated(
-        note = "use AgentSession::builder(router).resume(id).with_doc_store(doc_store).with_memory_store(memory_store).build()"
-    )]
-    pub fn resume_with_stores(
-        session_id: SessionId,
-        router: ProviderRouter,
-        config: AgentConfig,
-        policy: Option<ErrorPolicy>,
-        doc_store: D,
-        memory_store: M,
-    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
-        Self::resume_from(session_id, router, config, policy, doc_store, memory_store)
-    }
-
-    fn resume_from(
-        session_id: SessionId,
-        router: ProviderRouter,
-        config: AgentConfig,
-        policy: Option<ErrorPolicy>,
-        doc_store: D,
-        memory_store: M,
-    ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
-        let mut builder = AgentSessionBuilder::new(router, doc_store, memory_store)
-            .with_session_id(session_id)
-            .with_config(config);
-        if let Some(policy) = policy {
-            builder = builder.with_error_policy(policy);
-        }
-        builder.build()
     }
 }

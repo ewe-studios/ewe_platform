@@ -52,8 +52,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 `ProviderRouter::builder().provider(a).provider(b).build()`; rules and
 resolution order: Doc 03 §3.
 
-Always set the model with `with_model(...)`. The default `primary_model` is an
-empty name, which only resolves in a single-provider router.
+Always set the model with `with_model(...)`: `build()` fails with
+`AgenticError::Session("no model set")` without one. The builder collects the
+primary, fallback and memory models into a `ModelSelection`
+(`agent.models()`); `AgentConfig` holds only limits and thresholds.
 
 ## 2. The builder
 
@@ -68,6 +70,7 @@ and in-memory sessions need no type parameters at all:
 fn handle(agent: &AgentSession) { /* … */ }   // AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_doc_store(SqlDocumentStore::new(turso.clone()))   // → AgentSessionBuilder<SqlDocumentStore<_>, _>
     .with_memory_store(KvMemoryStore::new(turso))
     .build()?;                                              // no Default bound
@@ -82,9 +85,9 @@ let agent = AgentSession::builder(router)
 | `with_toolshed(ToolShed)` | empty | The session's tools — the only tool entry point (§3) |
 | `with_model(impl Into<ModelId>)` | empty name | Primary model: `"claude-sonnet-4-6"` or a `ModelId` |
 | `with_fallback_models(impl IntoIterator<Item: Into<ModelId>>)` | `[]` | Circuit-breaker fallbacks: `["gpt-4o"]`, a `Vec<ModelId>`, … |
-| `with_memory_model(impl Into<ModelId>)` | `None` | Stored in `AgentConfig::memory_model`; nothing generates memory yet (Doc 11) |
+| `with_memory_model(impl Into<ModelId>)` | `None` | Sets `ModelSelection::memory` and `MemoryConfig::memory_model`; nothing generates memory yet (Doc 11) |
 | `with_system_prompt(..)` | none | |
-| `with_config(AgentConfig)` | `AgentConfig::default()` | `with_model` / `with_fallback_models` / `with_memory_model` override the matching fields at `build()` |
+| `with_config(AgentConfig)` | `AgentConfig::default()` | Iteration caps, thresholds, `ModelParams`; no models |
 | `with_context_config(ContextConfig)` | 20 recent messages | |
 | `with_memory_config(MemoryConfig)` | 30k / 40k token triggers | |
 | `with_error_policy(ErrorPolicy)` | `ErrorPolicy::new()` | Doc 01 §6 |
@@ -112,6 +115,7 @@ use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(
         ToolShed::new()
             .tool(MyTool)
@@ -226,18 +230,19 @@ let agent = AgentSession::builder(router)
 
 // Implicit: "this id" — continue if it exists, otherwise start it.
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_session_id(session_id)
     /* …same stores and settings… */
     .build()?;
 ```
 
-`AgentSession::resume(id, router, config, policy)` and
-`resume_with_stores(..)` are deprecated: they can't take a system prompt,
-tools or an embedder, and `resume` opens default-constructed stores.
+The old `AgentSession::resume(id, router, config, policy)` and
+`resume_with_stores(..)` are gone: they took the model from `AgentConfig`,
+which no longer carries one. Use the builder's `resume(id)`.
 
 ### Extension handles
 
-`agent.session_id()`, `message_api()`, `ledger()`, `steering_queues()`,
+`agent.session_id()`, `models()`, `message_api()`, `ledger()`, `steering_queues()`,
 `router()`, `tool_manager()`, `memory_hierarchy()`, `context_provider()`.
 
 ## 6. Access control
@@ -273,15 +278,22 @@ is spent.
 
 | Field | Default |
 |---|---|
-| `primary_model` | empty `ModelId::Name` |
-| `fallback_models` | `[]` |
-| `memory_model` | `None` |
 | `max_inner_iterations` | 25 |
 | `max_outer_iterations` | 10 |
 | `circuit_breaker_threshold` | 3 |
 | `preflight_compression_threshold` | 0.85 (of the token budget) |
 | `context_pressure_threshold` | 0.70 (of the token budget) |
 | `model_params` | `ModelParams::default()` |
+
+### `ModelSelection`
+
+Filled by the builder; read it back with `agent.models()`.
+
+| Field | Set by |
+|---|---|
+| `primary` | `with_model` (required) |
+| `fallbacks` | `with_fallback_models` (default `[]`) |
+| `memory` | `with_memory_model` (default `None`) |
 
 ### `ContextConfig`
 
