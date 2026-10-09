@@ -41,3 +41,13 @@ fn libsql_generic_instantiation_compiles() {
     // exists so the gated file has a runnable case under `--features libsql`.
     let _ = _generic_instantiates_for_libsql as fn(_, _) -> _;
 }
+
+/// Compile-time proof that the libsql-backed stores implement `Default`, so they
+/// satisfy `S: Default` bounds such as `AgentSession::build()`'s.
+#[allow(dead_code)]
+fn _libsql_stores_implement_default() {
+    fn assert_default<T: Default>() {}
+    assert_default::<LibsqlStore>();
+    assert_default::<SqlDocumentStore<LibsqlStore>>();
+    assert_default::<AsyncSqlDocumentStore<LibsqlStore>>();
+}

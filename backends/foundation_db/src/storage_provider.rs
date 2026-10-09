@@ -106,6 +106,13 @@ enum StorageProviderInner {
     KVWasm(KVWasmStorage),
 }
 
+/// The in-memory byte-buffer backend, same as [`StorageProvider::memory`].
+impl Default for StorageProvider {
+    fn default() -> Self {
+        Self::memory()
+    }
+}
+
 impl StorageProvider {
     /// Create a new storage provider with the specified backend.
     ///

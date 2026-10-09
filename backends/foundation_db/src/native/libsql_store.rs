@@ -182,6 +182,26 @@ pub struct LibsqlStore {
     mode: LibsqlMode,
 }
 
+/// An in-memory KV-mode database with the full schema migrated (`kv_store`,
+/// `documents`, …): nothing is persisted, so it suits tests and throwaway
+/// sessions. Use [`LibsqlStore::new_kv`] with a file path for a store that
+/// survives restarts.
+///
+/// # Panics
+///
+/// If the in-memory database can't be opened or migrated, which only happens
+/// when the executor isn't available or `SQLite` itself fails.
+impl Default for LibsqlStore {
+    fn default() -> Self {
+        let store = Self::new_kv(":memory:", None)
+            .expect("LibsqlStore::default: failed to open an in-memory database");
+        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
+            .run(&store)
+            .expect("LibsqlStore::default: failed to migrate the in-memory database");
+        store
+    }
+}
+
 impl LibsqlStore {
     // ========== KV-mode constructors ==========
 

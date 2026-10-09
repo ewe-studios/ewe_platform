@@ -31,6 +31,40 @@ pub struct JsonFileStorage {
 }
 
 impl JsonFileStorage {
+    /// Where [`JsonFileStorage::default`] keeps its data, relative to the
+    /// working directory.
+    pub const DEFAULT_PATH: &'static str = ".ewe/storage.json";
+}
+
+/// A store at [`JsonFileStorage::DEFAULT_PATH`] (`.ewe/storage.json` in the
+/// working directory), loading what is already there. Use
+/// [`JsonFileStorage::new`] to choose the file.
+///
+/// # Panics
+///
+/// If the `.ewe` directory can't be created, or the file exists but isn't a
+/// valid store.
+impl Default for JsonFileStorage {
+    fn default() -> Self {
+        let path = Path::new(Self::DEFAULT_PATH);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).unwrap_or_else(|e| {
+                panic!(
+                    "JsonFileStorage::default: can't create {}: {e}",
+                    parent.display()
+                )
+            });
+        }
+        Self::new(path).unwrap_or_else(|e| {
+            panic!(
+                "JsonFileStorage::default: can't open {}: {e}",
+                path.display()
+            )
+        })
+    }
+}
+
+impl JsonFileStorage {
     /// Create a new JSON file storage instance.
     ///
     /// # Arguments
