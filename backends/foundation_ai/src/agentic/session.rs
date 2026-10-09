@@ -565,9 +565,9 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// Returns [`ErrorTrace<AgenticError>`] if the loop cannot be scheduled.
     pub fn run_turn_stream(
         &self,
-        prompt: Messages,
+        prompt: impl Into<Messages>,
     ) -> Result<DrivenStreamIterator<AgentLoop<D, M>>, ErrorTrace<AgenticError>> {
-        self.inner.queues.push_follow_up(prompt);
+        self.inner.queues.push_follow_up(prompt.into());
         tracing::trace!(
             follow_up_len = self.inner.queues.follow_up.len(),
             "run_turn_stream: queued prompt for the loop"
@@ -606,7 +606,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// Returns [`ErrorTrace<AgenticError>`] if the loop fails.
     pub fn run_turn(
         &self,
-        prompt: Messages,
+        prompt: impl Into<Messages>,
     ) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>> {
         let stream = self.run_turn_stream(prompt)?;
         let mut records = Vec::new();
@@ -654,13 +654,13 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     }
 
     /// Inject a high-priority steering message — interrupts current work.
-    pub fn steer(&self, msg: Messages) {
-        self.inner.queues.push_priority(msg);
+    pub fn steer(&self, msg: impl Into<Messages>) {
+        self.inner.queues.push_priority(msg.into());
     }
 
     /// Inject a follow-up message — processed after current work completes.
-    pub fn follow_up(&self, msg: Messages) {
-        self.inner.queues.push_follow_up(msg);
+    pub fn follow_up(&self, msg: impl Into<Messages>) {
+        self.inner.queues.push_follow_up(msg.into());
     }
 
     /// Request a hard abort of the running turn.

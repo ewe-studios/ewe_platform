@@ -8,7 +8,7 @@
 //!
 //! Matrix rows: 3.1, 3.2, 6.5, 6.9, 7.1, 7.2, 7.3.
 
-use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
+use foundation_ai::agentic::testing::{last_user_contains, mock_text, MockModelProvider};
 use foundation_ai::agentic::{
     AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
@@ -257,4 +257,45 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
         assistant_texts(&records),
         vec!["hello from sqlite".to_string()]
     );
+}
+
+// ---------------------------------------------------------------------------
+// Proposal 15, item 6: turns and steering take anything Into<Messages>
+
+#[valtron_test]
+fn run_turn_accepts_a_plain_string() {
+    let mut mock = MockModelProvider::new();
+    mock.on(
+        last_user_contains("plain prompt"),
+        vec![mock_text("got it")],
+    );
+    mock.on_any(vec![mock_text("wrong prompt")]);
+    let session = session_with(mock);
+
+    let records = session
+        .run_turn("plain prompt")
+        .expect("turn should succeed");
+    assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
+
+    // An owned String works the same way.
+    let records = session
+        .run_turn(String::from("plain prompt again"))
+        .expect("turn should succeed");
+    assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
+}
+
+#[valtron_test]
+fn follow_up_accepts_a_plain_string() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("ok")]);
+    let session = session_with(mock);
+
+    session.follow_up("queued as a user message");
+    let queued = session.steering_queues().drain_follow_up();
+    assert_eq!(queued.len(), 1);
+    assert!(matches!(
+        &queued[0],
+        Messages::User { role: MessageRole::User, content: UserModelContent::Text(t), .. }
+            if t.content == "queued as a user message"
+    ));
 }

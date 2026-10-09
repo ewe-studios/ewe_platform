@@ -19,10 +19,9 @@ use foundation_core::valtron::Stream;
 
 use crate::errors::GenerationResult;
 use crate::types::{
-    BoxModel, CostStatus, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
-    StopReason, TextBasedFormatter, TextContent, ToolFormatter, UsageCosting, UsageReport,
-    UserModelContent,
+    BoxModel, CostStatus, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox, StopReason,
+    TextBasedFormatter, TextContent, ToolFormatter, UsageCosting, UsageReport, UserModelContent,
 };
 use crate::types::{ProviderRouter, RoutableProvider};
 
@@ -365,15 +364,7 @@ pub fn mock_tool_call(name: &str, args: HashMap<String, crate::types::ArgType>) 
 /// Build a `User` text message (convenience for test prompts).
 #[must_use]
 pub fn mock_user(s: &str) -> Messages {
-    Messages::User {
-        id: foundation_compact::ids::new_scru128(),
-        role: MessageRole::User,
-        content: UserModelContent::Text(TextContent {
-            content: s.into(),
-            signature: None,
-        }),
-        signature: None,
-    }
+    Messages::user(s)
 }
 
 /// Zeroed `UsageReport` for test messages.

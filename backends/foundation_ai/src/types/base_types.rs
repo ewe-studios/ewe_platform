@@ -1126,6 +1126,53 @@ fn fresh_message_id() -> foundation_compact::ids::Id {
 }
 
 impl Messages {
+    /// A user message with text content and a fresh id.
+    #[must_use]
+    pub fn user(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::User, text)
+    }
+
+    /// A system-role message (instructions, redirects) with text content.
+    #[must_use]
+    pub fn system(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::System, text)
+    }
+
+    /// An agent-role message (another agent steering this one) with text
+    /// content.
+    #[must_use]
+    pub fn agent(text: impl Into<String>) -> Self {
+        Self::text_with_role(MessageRole::Agent, text)
+    }
+
+    fn text_with_role(role: MessageRole, text: impl Into<String>) -> Self {
+        Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role,
+            content: UserModelContent::Text(TextContent {
+                content: text.into(),
+                signature: None,
+            }),
+            signature: None,
+        }
+    }
+}
+
+/// `"Hi"` is a user message.
+impl From<&str> for Messages {
+    fn from(text: &str) -> Self {
+        Messages::user(text)
+    }
+}
+
+/// A `String` is a user message.
+impl From<String> for Messages {
+    fn from(text: String) -> Self {
+        Messages::user(text)
+    }
+}
+
+impl Messages {
     /// The message's time-ordered scru128 id (uniform across all variants).
     #[must_use]
     pub fn id(&self) -> &foundation_compact::ids::Id {
