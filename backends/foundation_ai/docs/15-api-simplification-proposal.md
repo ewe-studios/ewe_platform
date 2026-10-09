@@ -136,21 +136,21 @@ agent.tool_manager().register(Arc::new(GreetTool));
 ToolPreset::files(fs).register_all(agent.tool_manager());
 ```
 
-Proposed (item 1) — keep `with_toolshed`, and add tool registration to the
-builder so both work before preflight:
+Proposed (item 1) — the `ToolShed` owns the tools, implementations included,
+and is built with its own builder. The session builder only takes the
+finished shed; `build()` registers everything in it before preflight, so the
+shed is the one explicit list of what the agent can call:
 
 ```rust
-let agent = AgentSession::builder(router)
-    .with_tool(GreetTool)                                   // one tool
-    .with_tools(ToolPreset::files(fs) + ToolPreset::shell()) // a preset…
-    .with_tools(vec![Arc::new(MyTool) as Arc<dyn ToolImpl>]) // …or a Vec<Arc<dyn ToolImpl>>
-    .build()?;                                              // shed populated, preflight passes
+let tools = ToolShed::builder()
+    .tool(GreetTool)                                  // one tool
+    .tools(ToolPreset::files(fs))                     // a preset
+    .tools(ToolPreset::shell())
+    .build();
 
-// Setting the shed directly still works and is still checked:
 let agent = AgentSession::builder(router)
-    .with_toolshed(ToolShed::default().with_tool(GreetTool.definition()))
-    .with_tool(GreetTool)
-    .build()?;
+    .with_toolshed(tools)
+    .build()?;                                        // registered from the shed, preflight passes
 ```
 
 ### F3 — building a message
@@ -300,7 +300,7 @@ let agent = AgentSession::builder(router)
     .with_doc_store(SqlDocumentStore::new(turso.clone()))
     .with_memory_store(KvMemoryStore::new(turso))
     .with_system_prompt("You are a coding assistant.")
-    .with_tools(ToolPreset::files(fs))
+    .with_toolshed(ToolShed::builder().tools(ToolPreset::files(fs)).build())
     .build()?;                                           // preflight runs as for a new session
 ```
 
@@ -499,12 +499,15 @@ let agent = AgentSession::builder(router)
     .with_model("claude-sonnet-4-6")
     .with_fallback_models(["gpt-4o"])
     .with_system_prompt("You are a coding assistant.")
-    .with_tools(ToolPreset::files(fs) + ToolPreset::shell())
-    .with_tool(MyTool)
+    .with_toolshed(
+        ToolShed::builder()
+            .tools(ToolPreset::files(fs))
+            .tools(ToolPreset::shell())
+            .tool(MyTool)
+            .session_tools(ToolPreset::search_context()) // built inside build(), over the session's stores
+            .build(),
+    )
     .build()?;
-
-// Tools that need the built session are registered afterwards, as today.
-ToolPreset::search_context(&agent).register_all(agent.tool_manager());
 
 for event in agent.run_turn_stream("Fix the failing test")?.events() {
     match event {
@@ -518,26 +521,28 @@ for event in agent.run_turn_stream("Fix the failing test")?.events() {
 ```
 
 The builder keeps the existing `with_*` method names; the changes are new
-methods (`with_session_id`, `with_tool`, `with_tools`), wider argument types
+methods (`with_session_id`, `resume`), wider argument types
 (`impl Into<ModelId>`, `impl Into<Messages>`, `impl Into<ProviderRouter>`) and
-store setters that change the builder's type. `with_toolshed` stays.
+store setters that change the builder's type. Tools are configured only
+through `with_toolshed`: the session builder has no per-tool methods.
 
 ## 3. Proposed changes
 
 ### Tier 1 — remove the traps (small, mostly additive)
 
-#### 1. Builder-owned tools (F2) — keep `with_toolshed`, add `with_tool` / `with_tools`
+#### 1. The toolshed owns the tools (F2)
 
-`with_toolshed(ToolShed)` stays exactly as it is: callers can still set the
-shed directly, and preflight still checks that every entry in it has an
-implementation. Two methods are added that take implementations, register
-them on the session's `ToolCallManager` inside `build()` (before preflight),
-and add each tool's `definition()` to the shed.
+The session builder keeps `with_toolshed(ToolShed)` and gets **no** per-tool
+methods. Instead a `ToolShed` is built with its own builder and holds the tool
+*implementations*, not just their definitions. `build()` registers the shed's
+tools on the session's `ToolCallManager`, then runs preflight. Everything the
+agent can call is in one explicit value; nothing is added on the side.
 
-Today:
+Today a `ToolShed` holds definitions only, and implementations go on the
+manager after `build()`:
 
 ```rust
-pub struct AgentSessionBuilder<D, M> { toolshed: ToolShed, /* … */ }
+pub struct ToolShed { pub shed: Option<Tool>, pub tools: Vec<Tool> } // definitions
 
 pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = toolshed; self }
 
@@ -548,42 +553,55 @@ let tool_manager = ToolCallManager::new(session_id.clone());
 Proposed:
 
 ```rust
-pub struct AgentSessionBuilder<D, M> {
-    toolshed: ToolShed,              // unchanged
-    tools: Vec<Arc<dyn ToolImpl>>,   // new
-    /* … */
+pub struct ToolShed {
+    shed: Option<Tool>,                      // the `shed` meta-tool, as today
+    tools: Vec<Arc<dyn ToolImpl>>,           // implementations
+    session_tools: Vec<SessionToolFactory>,  // tools that need the built session
 }
 
-/// Set the shed directly (unchanged). Entries must be backed by an
-/// implementation — from `with_tool`/`with_tools` — or preflight fails.
+impl ToolShed {
+    pub fn builder() -> ToolShedBuilder;
+    /// Definitions offered to the model, derived from the implementations.
+    pub fn definitions(&self) -> Vec<Tool>;
+}
+
+pub struct ToolShedBuilder { /* … */ }
+
+impl ToolShedBuilder {
+    /// Add one tool.
+    pub fn tool<T: ToolImpl + 'static>(self, tool: T) -> Self;
+    /// Add a list: a `Vec<Arc<dyn ToolImpl>>`, a `ToolPreset`, …
+    pub fn tools(self, tools: impl IntoIterator<Item = Arc<dyn ToolImpl>>) -> Self;
+    /// Tools built from the session once its stores exist (`search_context`, `memory`).
+    pub fn session_tools(self, factories: impl IntoIterator<Item = SessionToolFactory>) -> Self;
+    /// Offer the `shed` meta-tool instead of listing every tool up front.
+    pub fn with_shed_tool(self) -> Self;
+    /// Fails on two tools with the same name.
+    pub fn build(self) -> ToolShed;
+}
+
+/// Builds a tool from the session's internals inside `AgentSession::build()`.
+pub type SessionToolFactory = Box<dyn FnOnce(&SessionParts) -> Arc<dyn ToolImpl> + Send>;
+
+/// What a session tool can see: the session's context provider and memory.
+pub struct SessionParts<'a> { pub context: &'a ContextProvider, pub memory: &'a MemoryHierarchy, /* … */ }
+
+// AgentSessionBuilder — unchanged signature, the only tool entry point:
 pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self { self.toolshed = toolshed; self }
-
-/// Register one tool.
-pub fn with_tool<T: ToolImpl + 'static>(mut self, tool: T) -> Self {
-    self.tools.push(Arc::new(tool));
-    self
-}
-
-/// Register a list of tools: a `Vec<Arc<dyn ToolImpl>>`, a `ToolPreset`, …
-pub fn with_tools(mut self, tools: impl IntoIterator<Item = Arc<dyn ToolImpl>>) -> Self {
-    self.tools.extend(tools);
-    self
-}
 
 // build(), before preflight:
 let tool_manager = ToolCallManager::new(session_id.clone());
-let mut toolshed = self.toolshed;
-for tool in self.tools {
-    let def = tool.definition();
-    if !toolshed.tools.iter().any(|t| t.name() == def.name()) {
-        toolshed.tools.push(def);
-    }
-    tool_manager.register(tool);
+for tool in toolshed.tools.iter() {
+    tool_manager.register(Arc::clone(tool));
 }
-// preflight() is unchanged: every shed entry must be registered — now it is.
+for make in toolshed.session_tools.drain(..) {
+    tool_manager.register(make(&session_parts));
+}
+// preflight() is unchanged and now passes by construction: every definition
+// offered comes from a registered implementation.
 ```
 
-So `ToolPreset` can be passed straight in:
+So `ToolPreset` can be passed straight to `tools(..)`:
 
 ```rust
 impl IntoIterator for ToolPreset {
@@ -593,8 +611,8 @@ impl IntoIterator for ToolPreset {
 }
 ```
 
-`agent.tool_manager().register(..)` after `build()` keeps working for tools
-that need the session itself (memory, `search_context`).
+`agent.tool_manager().register(..)` after `build()` stays available for
+adding a tool to a running session, but it is no longer the normal path.
 
 #### 2. Typestate stores, no `Default` bound (F1)
 
@@ -746,16 +764,19 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 }
 
 impl ToolPreset {
-    /// `search_context` over the session's own stores and embedder.
-    pub fn search_context<D, M>(agent: &AgentSession<D, M>) -> Self
-    where D: DocumentStore + 'static, M: MemoryStore + 'static
-    {
-        Self::from_tools(vec![Arc::new(SearchContextTool::new(agent.context_provider().clone()))])
+    /// `search_context` over the session's own stores and embedder, built
+    /// inside `build()` (item 1's session tools).
+    pub fn search_context() -> Vec<SessionToolFactory> {
+        vec![Box::new(|parts: &SessionParts| {
+            Arc::new(SearchContextTool::new(parts.context.clone())) as Arc<dyn ToolImpl>
+        })]
     }
 }
 
 // call site
-ToolPreset::search_context(&agent).register_all(agent.tool_manager());
+let agent = AgentSession::builder(router)
+    .with_toolshed(ToolShed::builder().session_tools(ToolPreset::search_context()).build())
+    .build()?;
 ```
 
 ### Tier 2 — make the common path short (additive)
@@ -1159,7 +1180,7 @@ let greet = FnTool::new(
         async move { Ok(ToolCallResult::text(format!("Hello, {}!", name?))) }
     },
 );
-builder.with_tool(greet);   // FnTool: ToolImpl, category defaults to "custom"
+let tools = ToolShed::builder().tool(greet).build();   // FnTool: ToolImpl, category defaults to "custom"
 ```
 
 ### Tier 3 — consolidate (breaking; do once, with a migration note)
@@ -1349,7 +1370,7 @@ impl RouterPreset {
 
 let agent = RouterPreset::claude(&key)?
     .into_agent_builder()
-    .with_tools(ToolPreset::files(fs))
+    .with_toolshed(ToolShed::builder().tools(ToolPreset::files(fs)).build())
     .build()?;
 ```
 
@@ -1408,15 +1429,15 @@ model sent, with no conversion in between. Migration: tools that already use
 2. Tier 2 items 6–9 (biggest line-count win for users, all additive).
 3. Update the docs and examples to the new shape; keep the old calls
    (`resume`, the two-argument `builder` as `builder_for`) as `#[deprecated]`
-   for one release. `with_toolshed` is not deprecated.
+   for one release. `with_toolshed` stays as the one way to give a session
+   its tools.
 4. Tier 2 items 10–13.
 5. Tier 3 (items 14–20) in one breaking release.
 
 ## 5. Open questions
 
-- When `with_toolshed` and `with_tools` name the same tool, the shed's entry
-  is kept (item 1). Should a mismatch between the shed's definition and the
-  tool's own `definition()` be a preflight error?
+None right now: the questions raised in review are answered in their items
+(4: resume, 1: tools, 7: partial output, 20: `ArgType`).
 
 ## 6. Proposed names at a glance
 
@@ -1424,11 +1445,11 @@ model sent, with no conversion in between. Migration: tools that already use
 |---|---|---|
 | `AgentSession` | `builder(impl Into<ProviderRouter>)`, `ask`, `context_provider`, `#[deprecated] builder_for`, `#[deprecated] resume` | 2, 4, 5, 7 |
 | `AgentSession` | `run_turn(impl Into<Messages>) -> Turn`, `run_turn_stream(impl Into<Messages>) -> TurnStream` | 6, 7, 8 |
-| `AgentSessionBuilder` | `with_toolshed` (kept), `with_tool`, `with_tools`, `with_session_id`, `resume` | 1, 4 |
+| `AgentSessionBuilder` | `with_toolshed` (the only tool entry point), `with_session_id`, `resume` | 1, 4 |
 | `AgentSessionBuilder` | `with_doc_store` / `with_memory_store` (change the type), `with_model` / `with_fallback_models` / `with_memory_model` (take `Into<ModelId>`) | 2, 9 |
 | Turn results | `Turn`, `Answer`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
 | Messages / ids | `Messages::{user, system, agent}`, `From<&str>`/`From<String>` for `Messages` and `ModelId` | 6, 9 |
 | Providers | `From<P: ModelProvider> for ProviderRouter`, `ProviderRouterBuilder::provider`, `{Anthropic,OpenAI,Responses}Config::{api_key, from_env}`, `{AnthropicMessages,OpenAI,Responses}Provider::api_key` | 10, 11 |
-| Tools | `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
+| Tools | `ToolShed::builder`, `ToolShedBuilder::{tool, tools, session_tools, with_shed_tool}`, `SessionToolFactory`, `SessionParts`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
 | Stores | `MessageApi::from_shared`, `MemoryCoordinator::from_shared` | 3 |
 | Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}`, `ToolArguments` (replaces `ArgType`) | 14–20 |
