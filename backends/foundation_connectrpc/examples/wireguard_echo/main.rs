@@ -75,7 +75,7 @@ fn main() {
     let mut conn = conn.expect("overlay_connect → Connection::Overlay");
 
     let http = "GET / HTTP/1.1\r\nHost: overlay\r\nConnection: close\r\n\r\n";
-    conn.write(http.as_bytes()).expect("A write");
+    conn.write_all(http.as_bytes()).expect("A write");
 
     let mut buf = [0u8; 4096];
     let n = conn.read(&mut buf).expect("A read");
