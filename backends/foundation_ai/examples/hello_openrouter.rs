@@ -2,7 +2,7 @@
 //!
 //! OpenRouter proxies 200+ models through a single OpenAI-compatible API.
 //! This example demonstrates:
-//!   - Setting up OpenRouter with the OpenAI provider (`OpenAIConfig::openrouter`)
+//!   - Setting up `OpenRouter` with the `OpenAI` provider (`OpenAIConfig::openrouter`)
 //!   - Calling a model by its OpenRouter id (e.g. `google/gemma-4-26b-a4b-it:free`)
 //!   - Validating the response contains actual generated content
 //!

@@ -33,21 +33,22 @@ use crate::types::{ArgType, Messages, ModelOutput, SessionRecord, UserModelConte
 // Flattening the raw stream
 // ---------------------------------------------------------------------------
 
-/// One item of the raw stream, without valtron's scheduling states.
+/// One item of the raw stream, without valtron's scheduling states. The
+/// record is boxed: `SessionRecord` is much larger than `AgentProgress`.
 pub(crate) enum TurnItem {
-    Record(SessionRecord),
+    Record(Box<SessionRecord>),
     Progress(AgentProgress),
 }
 
 /// The records and progress a raw stream item carries, in order.
 pub(crate) fn flatten(item: Stream<SessionRecord, AgentProgress>) -> Vec<TurnItem> {
     match item {
-        Stream::Next(record) => vec![TurnItem::Record(record)],
+        Stream::Next(record) => vec![TurnItem::Record(Box::new(record))],
         Stream::Pending(progress) => vec![TurnItem::Progress(progress)],
         Stream::Spread(items) => items
             .into_iter()
             .map(|s| match s {
-                StreamSpread::Done(record) => TurnItem::Record(record),
+                StreamSpread::Done(record) => TurnItem::Record(Box::new(record)),
                 StreamSpread::Pending(progress) => TurnItem::Progress(progress),
             })
             .collect(),
@@ -108,7 +109,7 @@ impl Turn {
                 let TurnItem::Record(record) = flat else {
                     continue;
                 };
-                match record {
+                match *record {
                     SessionRecord::FailedAction { error, trace } => {
                         return Self {
                             records,
@@ -281,8 +282,11 @@ impl Answer {
         let mut text = String::new();
         for item in stream {
             for flat in flatten(item) {
-                match flat {
-                    TurnItem::Record(SessionRecord::FailedAction { error, trace }) => {
+                let TurnItem::Record(record) = flat else {
+                    continue;
+                };
+                match *record {
+                    SessionRecord::FailedAction { error, trace } => {
                         return Answer::Failed {
                             partial_text: text,
                             error,
@@ -290,9 +294,8 @@ impl Answer {
                         };
                     }
                     // Withdrawn output: the retry replaces it.
-                    TurnItem::Record(SessionRecord::Retracted { .. }) => text.clear(),
-                    TurnItem::Record(record) => text.push_str(&Turn::text_of(&record)),
-                    TurnItem::Progress(_) => {}
+                    SessionRecord::Retracted { .. } => text.clear(),
+                    record => text.push_str(&Turn::text_of(&record)),
                 }
             }
         }
@@ -460,6 +463,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
 
     /// The turn as [`TurnEvent`]s: text, tool calls and results, retractions
     /// and progress as they happen, then one terminal `Done` or `Failed`.
+    #[must_use]
     pub fn events(self) -> TurnEvents<D, M> {
         TurnEvents {
             stream: self,
@@ -507,7 +511,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnEven
             let item = self.stream.next()?;
             for flat in flatten(item) {
                 let event = match flat {
-                    TurnItem::Record(record) => TurnEvent::from_record(record),
+                    TurnItem::Record(record) => TurnEvent::from_record(*record),
                     TurnItem::Progress(progress) => Some(TurnEvent::Progress(progress)),
                 };
                 self.pending.extend(event);

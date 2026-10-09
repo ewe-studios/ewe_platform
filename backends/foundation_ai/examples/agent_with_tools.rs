@@ -1,9 +1,9 @@
-//! Example: Agent with custom tools via ToolShed.
+//! Example: Agent with custom tools via `ToolShed`.
 //!
 //! Demonstrates:
 //!   - A struct tool (`impl ToolImpl`) that reads its arguments with `ToolArgs`
 //!   - A closure tool (`FnTool`)
-//!   - Giving both to a session through a ToolShed
+//!   - Giving both to a session through a `ToolShed`
 //!   - What the model sees: the `shed` meta-tool, then the tools it activates
 //!
 //! Run with:

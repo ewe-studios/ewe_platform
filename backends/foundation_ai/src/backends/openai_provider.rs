@@ -39,7 +39,7 @@ use crate::types::base_types::{
     ToolFormatter, UsageCosting, UsageReport,
 };
 
-/// OpenRouter's OpenAI-compatible API base URL.
+/// `OpenRouter`'s OpenAI-compatible API base URL.
 pub const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
 
 // ============================================================================
@@ -89,7 +89,7 @@ impl OpenAIConfig {
         Ok(Self::api_key(std::env::var("OPENAI_API_KEY")?))
     }
 
-    /// A config for OpenRouter (OpenAI-compatible) with the given API key.
+    /// A config for `OpenRouter` (OpenAI-compatible) with the given API key.
     #[must_use]
     pub fn openrouter(key: impl Into<String>) -> Self {
         Self::api_key(key).with_base_url(OPENROUTER_BASE_URL)

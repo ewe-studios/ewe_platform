@@ -178,7 +178,7 @@ fn ask_returns_the_partial_text_and_the_error() {
             assert_eq!(partial_text, "Working on it. ");
             assert!(error.to_string().contains("mock failure"), "{error}");
         }
-        other => panic!("expected Answer::Failed, got {other:?}"),
+        other @ Answer::Complete(_) => panic!("expected Answer::Failed, got {other:?}"),
     }
     assert_eq!(answer.text(), "Working on it. ");
     assert!(!answer.is_complete());
