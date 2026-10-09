@@ -1,7 +1,7 @@
 # Proposal 15 — Simplifying the `foundation_ai` API surface
 
 **Status:** approved; being implemented tier by tier — each item below is
-marked when it lands (Tier 1: [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63)). The bug fixes
+marked when it lands (Tier 1: [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63), Tier 2: [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65)). The bug fixes
 for the "Known limitations" in Doc 00 are handled separately; this doc is
 about making the everyday API smaller and harder to misuse.
 
@@ -868,6 +868,8 @@ let agent = AgentSession::builder(router)
 
 #### 6. Message constructors (F3)
 
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
+
 Today: only the struct literal (F3), or `testing::mock_user` behind a feature.
 
 Proposed:
@@ -898,6 +900,8 @@ pub fn follow_up(&self, msg: impl Into<Messages>);
 ```
 
 #### 7. Turn results (F4)
+
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
 
 Today:
 
@@ -1020,6 +1024,8 @@ if let Some(error) = turn.failure() {
 
 #### 8. Streaming events (F4)
 
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
+
 Today `run_turn_stream` returns the raw valtron iterator, whose items are
 `Stream<SessionRecord, AgentProgress>` (see the F4 match).
 
@@ -1075,6 +1081,8 @@ Memory records (`WorkingMemory`, `Observation`, `Reflection`) are skipped by
 
 #### 9. String model ids (F5)
 
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
+
 Today:
 
 ```rust
@@ -1101,6 +1109,8 @@ pub fn with_memory_model(mut self, model: impl Into<ModelId>) -> Self;
 ```
 
 #### 10. Router conversions (F5)
+
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
 
 Today:
 
@@ -1135,6 +1145,8 @@ AgentSession::builder(ProviderRouter::builder().provider(anthropic).provider(ope
 
 #### 11. API-key constructors (F6)
 
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
+
 Today: `XConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)))`
 for `AnthropicConfig`, `OpenAIConfig` and `ResponsesConfig` (F6).
 
@@ -1165,6 +1177,8 @@ impl AnthropicMessagesProvider {
 ```
 
 #### 12. Typed tool arguments (F9)
+
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
 
 Today: three `json_value_to_arg_type` functions (F9) and per-module helpers:
 
@@ -1219,6 +1233,8 @@ let EditArgs { path, old_string, new_string, replace_all } = ToolArgs::new("edit
 compiling when `ArgType` is replaced by `serde_json::Value`.
 
 #### 13. Closure tools (F9)
+
+✅ Implemented in [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65).
 
 Today every tool is a struct with an `impl ToolImpl` (see `examples/agent_with_tools.rs`):
 
