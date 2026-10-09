@@ -763,7 +763,9 @@ Today:
 pub fn run_turn(&self, prompt: Messages) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>>;
 ```
 
-Proposed — a wrapper, so existing code that indexes or iterates keeps compiling:
+Proposed — a wrapper, so existing code that indexes or iterates keeps compiling.
+**Decided:** `Turn` wraps `Vec<SessionRecord>` (via `Deref` and `IntoIterator`)
+rather than replacing it, so nothing that uses today's return value breaks:
 
 ```rust
 pub struct Turn { records: Vec<SessionRecord> }
@@ -1240,8 +1242,6 @@ let agent = RouterPreset::claude(&key)?
 
 ## 5. Open questions
 
-- Should `Turn` replace `Vec<SessionRecord>` outright, or wrap it with
-  `Deref`? (Proposal: wrap — no breakage.)
 - Should resume be implicit (reusing an id rehydrates) or explicit
   (`.resume(id)`)? Implicit is simpler; explicit is clearer when an id is
   reused by mistake.
