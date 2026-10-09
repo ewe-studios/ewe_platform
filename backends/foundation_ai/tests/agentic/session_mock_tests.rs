@@ -8,8 +8,6 @@
 //!
 //! Matrix rows: 3.1, 3.2, 6.5, 6.9, 7.1, 7.2, 7.3.
 
-use std::collections::HashMap;
-
 use foundation_ai::agentic::testing::{
     last_user_contains, mock_text, mock_tool_call, MockModelProvider,
 };
@@ -18,7 +16,7 @@ use foundation_ai::agentic::{
     TurnOutcome,
 };
 use foundation_ai::types::{
-    ArgType, MessageRole, Messages, ModelOutput, SessionRecord, TextContent, UserModelContent,
+    MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
@@ -126,7 +124,10 @@ fn fails_after_partial_output() -> MockModelProvider {
             mock_text("Working on it. "),
             mock_tool_call(
                 "shed",
-                HashMap::from([("description".to_string(), ArgType::Text("anything".into()))]),
+                ToolArguments::from_iter([(
+                    "description".to_string(),
+                    serde_json::Value::String("anything".into()),
+                )]),
             ),
         ],
     );

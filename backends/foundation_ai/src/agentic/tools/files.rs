@@ -10,9 +10,9 @@
 //! remote FS — and keeps the tools usable on wasm.
 //!
 //! HOW: the tool is generic; registration monomorphizes it before boxing into
-//! `Arc<dyn ToolImpl>`. Args are parsed from the `ArgType` map; results are text.
+//! `Arc<dyn ToolImpl>`. Args are read from the JSON arguments with `ToolArgs`;
+//! results are text.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -20,8 +20,7 @@ use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
 use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::types::base_types::Args;
-use crate::types::ArgType;
-use crate::types::{Tool, ToolDefinition};
+use crate::types::{Tool, ToolArguments, ToolDefinition};
 
 fn exec_err(tool: &str, reason: impl Into<String>) -> ToolError {
     ToolError::Execution {
@@ -67,10 +66,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for ReadTool<F> {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("read", &arguments);
         let path = args.str("path")?.to_string();
         let offset = args.opt_usize("offset")?;
@@ -134,10 +130,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for WriteTool<F> {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("write", &arguments);
         let path = args.str("path")?.to_string();
         let content = args.str("content")?.to_string();
@@ -210,10 +203,7 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let EditArgs {
             path,
             old_string: old,
@@ -311,10 +301,7 @@ impl ToolImpl for BashTool {
     }
 
     #[cfg(not(target_family = "wasm"))]
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("bash", &arguments);
         let command = args.str("command")?.to_string();
         let cwd = args.opt_str("cwd")?.map(str::to_owned);
@@ -351,11 +338,11 @@ impl ToolImpl for BashTool {
     }
 
     #[cfg(target_family = "wasm")]
-    async fn execute(
-        &self,
-        _arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
-        Err(exec_err("bash", "shell execution is not supported on this target"))
+    async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
+        Err(exec_err(
+            "bash",
+            "shell execution is not supported on this target",
+        ))
     }
 }
 

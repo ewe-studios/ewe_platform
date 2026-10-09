@@ -13,7 +13,6 @@
 //! HOW: generic over the session's `M: MemoryStore` + `D: DocumentStore`,
 //! monomorphized at registration before boxing into `Arc<dyn ToolImpl>`.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -25,7 +24,7 @@ use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::MemoryAccess;
 use crate::types::base_types::Args;
-use crate::types::{ArgType, MemoryFact, SessionRecord, Tool, ToolDefinition};
+use crate::types::{MemoryFact, SessionRecord, Tool, ToolArguments, ToolDefinition};
 
 const TOOL: &str = "memory";
 
@@ -186,10 +185,7 @@ impl ToolImpl for MemoryTool {
         )
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new(TOOL, &arguments);
         let command = args.str("command")?;
         match command {

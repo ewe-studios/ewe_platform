@@ -6,7 +6,7 @@
 use foundation_ai::backends::anthropic_messages_provider::AnthropicFormatter;
 use foundation_ai::backends::openai_provider::OpenAIFormatter;
 use foundation_ai::types::{
-    ArgType, Args, Messages, ModelOutput, TextBasedFormatter, TextContent, ToolCallingError,
+    Args, Messages, ModelOutput, TextBasedFormatter, TextContent, ToolCallingError,
     UserModelContent,
 };
 
@@ -81,9 +81,19 @@ fn anthropic_extract_tool_calls_tool_use() {
 
     let call = &result.calls[0];
     match call {
-        ModelOutput::ToolCall { id, name, .. } => {
+        ModelOutput::ToolCall {
+            id,
+            name,
+            arguments,
+            ..
+        } => {
             assert_eq!(id, "tool_abc123");
             assert_eq!(name, "search");
+            // The tool receives the JSON object the provider sent.
+            assert_eq!(
+                arguments.clone().map(serde_json::Value::Object),
+                Some(serde_json::json!({"query": "rust"}))
+            );
         }
         _ => panic!("expected ToolCall"),
     }
@@ -260,9 +270,19 @@ fn openai_extract_tool_calls() {
 
     let call = &result.calls[0];
     match call {
-        ModelOutput::ToolCall { id, name, .. } => {
+        ModelOutput::ToolCall {
+            id,
+            name,
+            arguments,
+            ..
+        } => {
             assert_eq!(id, "call_xyz");
             assert_eq!(name, "search");
+            // The tool receives the JSON object the provider sent.
+            assert_eq!(
+                arguments.clone().map(serde_json::Value::Object),
+                Some(serde_json::json!({"query": "rust"}))
+            );
         }
         _ => panic!("expected ToolCall"),
     }
@@ -382,7 +402,7 @@ Done."#;
             assert_eq!(name, "search");
             // The tool receives the `arguments` object's entries directly.
             let args = args.as_ref().unwrap();
-            assert_eq!(args["query"], ArgType::Text("rust".to_string()));
+            assert_eq!(args["query"], serde_json::Value::String("rust".to_string()));
             assert!(!args.contains_key("arguments"));
         }
         _ => panic!("expected ToolCall"),

@@ -16,7 +16,7 @@
 //! first, then the error that ended the turn. `Err` from the session methods
 //! means the turn never started.
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamSpread};
 use foundation_db::traits::DocumentStore;
@@ -27,7 +27,7 @@ use crate::agentic::errors::AgenticError;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::progress::AgentProgress;
 use crate::agentic::token_ledger::TokenSnapshot;
-use crate::types::{ArgType, Messages, ModelOutput, SessionRecord, UserModelContent};
+use crate::types::{Messages, ModelOutput, SessionRecord, ToolArguments, UserModelContent};
 
 // ---------------------------------------------------------------------------
 // Flattening the raw stream
@@ -156,9 +156,7 @@ impl Turn {
     }
 
     /// Each `ModelOutput::ToolCall` the model made: `(id, name, arguments)`.
-    pub fn tool_calls(
-        &self,
-    ) -> impl Iterator<Item = (&str, &str, Option<&HashMap<String, ArgType>>)> {
+    pub fn tool_calls(&self) -> impl Iterator<Item = (&str, &str, Option<&ToolArguments>)> {
         self.records.iter().filter_map(|record| match record {
             SessionRecord::Conversation {
                 message:
@@ -355,7 +353,7 @@ pub enum TurnEvent {
     ToolCall {
         id: String,
         name: String,
-        arguments: Option<HashMap<String, ArgType>>,
+        arguments: Option<ToolArguments>,
     },
     /// A tool's result, as the model will see it.
     ToolResult {

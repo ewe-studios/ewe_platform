@@ -33,7 +33,7 @@ use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ToolShed;
 use crate::types::agentic::{SessionId, SessionRecord};
 use crate::types::base_types::{
-    ArgType, Args, MessageRole, Messages, ModelId, Tool, ToolDefinition,
+    Args, MessageRole, Messages, ModelId, Tool, ToolArguments, ToolDefinition,
 };
 use crate::types::routable_provider::ProviderRouter;
 use crate::types::{TextContent, UserModelContent};
@@ -160,7 +160,7 @@ where
     // ------------------------------------------------------------------
 
     /// `start` — schedule a sub-agent turn, return immediately.
-    fn start(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn start(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         if self.depth >= self.max_depth {
             return Err(ToolError::Execution {
                 tool: TOOL.into(),
@@ -296,7 +296,7 @@ where
     }
 
     /// `check` — non-blocking drain: report latest status.
-    fn check(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn check(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let mut runs = self.runs.lock().unwrap();
         let run = runs
@@ -323,7 +323,7 @@ where
 
     /// `result` — when done, return location + summary; clean up unless
     /// `keep_session`.
-    fn result(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn result(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
 
         // Drain and extract under one mutable borrow.
@@ -375,7 +375,7 @@ where
     }
 
     /// `pause` — set the suspend flag.
-    fn pause(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn pause(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
@@ -391,7 +391,7 @@ where
     }
 
     /// `resume` — clear the suspend flag.
-    fn resume(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn resume(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let runs = self.runs.lock().unwrap();
         let run = runs.get(&id).ok_or_else(|| unknown_id(&id))?;
@@ -407,7 +407,7 @@ where
     }
 
     /// `stop` — set the abort flag + abort the child session.
-    fn stop(&self, args: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn stop(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let mut runs = self.runs.lock().unwrap();
         let run = runs.get_mut(&id).ok_or_else(|| unknown_id(&id))?;
@@ -590,10 +590,7 @@ where
         )
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let command = ToolArgs::new(TOOL, &arguments).str("command")?;
         match command {
             "start" => self.start(&arguments),
@@ -693,7 +690,6 @@ pub fn register_agent_tool<D, M>(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -703,9 +699,7 @@ mod tests {
     use crate::agentic::tool_impl::{ToolCallManager, ToolError, ToolImpl};
     use crate::agentic::UserId;
     use crate::types::routable_provider::ProviderRouter;
-    use crate::types::{
-        ArgType, ModelId, SessionId, Tool, UserModelContent,
-    };
+    use crate::types::{ModelId, SessionId, Tool, UserModelContent};
 
     use super::*;
 
@@ -716,11 +710,17 @@ mod tests {
     // Helpers
     // ------------------------------------------------------------------
 
-    fn cmd(command: &str, pairs: &[(&str, &str)]) -> HashMap<String, ArgType> {
-        let mut m = HashMap::new();
-        m.insert("command".to_string(), ArgType::Text(command.to_string()));
+    fn cmd(command: &str, pairs: &[(&str, &str)]) -> ToolArguments {
+        let mut m = ToolArguments::new();
+        m.insert(
+            "command".to_string(),
+            serde_json::Value::String(command.to_string()),
+        );
         for (k, v) in pairs {
-            m.insert((*k).to_string(), ArgType::Text((*v).to_string()));
+            m.insert(
+                (*k).to_string(),
+                serde_json::Value::String((*v).to_string()),
+            );
         }
         m
     }
@@ -1255,10 +1255,16 @@ mod tests {
     // ------------------------------------------------------------------
 
     /// Build a `start` arg map with arbitrary extra typed args.
-    fn start_args(pairs: Vec<(&str, ArgType)>) -> HashMap<String, ArgType> {
-        let mut m = HashMap::new();
-        m.insert("command".to_string(), ArgType::Text("start".into()));
-        m.insert("task".to_string(), ArgType::Text("do stuff".into()));
+    fn start_args(pairs: Vec<(&str, serde_json::Value)>) -> ToolArguments {
+        let mut m = ToolArguments::new();
+        m.insert(
+            "command".to_string(),
+            serde_json::Value::String("start".into()),
+        );
+        m.insert(
+            "task".to_string(),
+            serde_json::Value::String("do stuff".into()),
+        );
         for (k, v) in pairs {
             m.insert(k.to_string(), v);
         }
@@ -1275,7 +1281,7 @@ mod tests {
         // falling back to the parent session's default.
         let out = futures_lite::future::block_on(t.execute(start_args(vec![(
             "model",
-            ArgType::Text("mock".into()),
+            serde_json::Value::String("mock".into()),
         )])))
         .expect("start with explicit model");
         assert_eq!(as_json(&out)["status"], "running");
@@ -1289,9 +1295,10 @@ mod tests {
 
         // An empty string must NOT become ModelId::Name("") — the guard falls
         // through to the parent model, which is known to resolve.
-        let out = futures_lite::future::block_on(
-            t.execute(start_args(vec![("model", ArgType::Text(String::new()))])),
-        )
+        let out = futures_lite::future::block_on(t.execute(start_args(vec![(
+            "model",
+            serde_json::Value::String(String::new()),
+        )])))
         .expect("empty model falls back to the default");
         assert_eq!(as_json(&out)["status"], "running");
     }
@@ -1304,7 +1311,7 @@ mod tests {
 
         let out = futures_lite::future::block_on(t.execute(start_args(vec![(
             "system",
-            ArgType::Text("be terse".into()),
+            serde_json::Value::String("be terse".into()),
         )])))
         .expect("start with system prompt");
         assert_eq!(as_json(&out)["status"], "running");
@@ -1315,9 +1322,9 @@ mod tests {
         // Models emit integers inconsistently (u64 / i64 / stringified), so all
         // three must parse rather than silently dropping the runaway guard.
         for arg in [
-            ArgType::U64(7),
-            ArgType::I64(7),
-            ArgType::Text("7".into()),
+            serde_json::json!(7),
+            serde_json::json!(7),
+            serde_json::Value::String("7".into()),
         ] {
             let mut mock = MockModelProvider::new();
             mock.on_any(vec![mock_text("ok")]);
@@ -1336,7 +1343,11 @@ mod tests {
         // A cap of 0 (or negative) would create a sub-agent that can never take
         // a step — reject it at the boundary instead of hanging at Started.
         futures_lite::future::block_on(async {
-            for bad in [ArgType::U64(0), ArgType::I64(0), ArgType::I64(-3)] {
+            for bad in [
+                serde_json::json!(0),
+                serde_json::json!(0),
+                serde_json::json!(-3),
+            ] {
                 let t = test_tool();
                 let result = t
                     .execute(start_args(vec![("max_iterations", bad.clone())]))
@@ -1367,7 +1378,7 @@ mod tests {
             let err = t
                 .execute(start_args(vec![(
                     "max_iterations",
-                    ArgType::Text("lots".into()),
+                    serde_json::Value::String("lots".into()),
                 )]))
                 .await
                 .unwrap_err();

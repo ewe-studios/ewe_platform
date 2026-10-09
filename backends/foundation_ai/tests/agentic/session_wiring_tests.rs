@@ -4,7 +4,6 @@
 //!
 //! Each test drives the public `AgentSession` API over a `MockModelProvider`.
 
-use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -19,8 +18,8 @@ use foundation_ai::agentic::{
 };
 use foundation_ai::harness::ToolPreset;
 use foundation_ai::types::{
-    ArgType, Args, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ProviderRouter,
-    SessionId, SessionRecord, TextContent, Tool, ToolDefinition, UsageCosting, UsageReport,
+    Args, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ProviderRouter, SessionId,
+    SessionRecord, TextContent, Tool, ToolArguments, ToolDefinition, UsageCosting, UsageReport,
     UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
@@ -31,7 +30,7 @@ use foundation_jsonschema::scheme;
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 type Session = AgentSession<Doc, Mem>;
-type SeenArgs = Arc<Mutex<Vec<HashMap<String, ArgType>>>>;
+type SeenArgs = Arc<Mutex<Vec<ToolArguments>>>;
 
 fn user_msg(text: &str) -> Messages {
     Messages::User {
@@ -95,7 +94,10 @@ fn record_offered(mock: &mut MockModelProvider) -> Offered {
 fn shed_call(description: &str) -> Messages {
     mock_tool_call(
         "shed",
-        HashMap::from([("description".to_string(), ArgType::Text(description.into()))]),
+        ToolArguments::from_iter([(
+            "description".to_string(),
+            serde_json::Value::String(description.into()),
+        )]),
     )
 }
 
@@ -132,10 +134,7 @@ impl ToolImpl for RecordingTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         self.seen.lock().unwrap().push(arguments);
         Ok(ToolCallResult {
             content: UserModelContent::Text(TextContent {
@@ -225,11 +224,14 @@ fn memory_tool_writes_reach_the_assembled_context() {
         0,
         vec![mock_tool_call(
             "memory",
-            HashMap::from([
-                ("command".to_string(), ArgType::Text("add".into())),
+            ToolArguments::from_iter([
+                (
+                    "command".to_string(),
+                    serde_json::Value::String("add".into()),
+                ),
                 (
                     "fact".to_string(),
-                    ArgType::Text("the user prefers tea".into()),
+                    serde_json::Value::String("the user prefers tea".into()),
                 ),
             ]),
         )],
@@ -439,7 +441,10 @@ fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
         1,
         vec![mock_tool_call(
             "greet",
-            HashMap::from([("name".to_string(), ArgType::Text("Ada".into()))]),
+            ToolArguments::from_iter([(
+                "name".to_string(),
+                serde_json::Value::String("Ada".into()),
+            )]),
         )],
     );
     mock.on_any(vec![mock_text("done")]);
@@ -476,7 +481,10 @@ fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
         0,
         vec![mock_tool_call(
             "greet",
-            HashMap::from([("name".to_string(), ArgType::Text("Ada".into()))]),
+            ToolArguments::from_iter([(
+                "name".to_string(),
+                serde_json::Value::String("Ada".into()),
+            )]),
         )],
     );
     mock.on_any(vec![mock_text("ok")]);
@@ -646,7 +654,7 @@ fn text_protocol_tool_calls_run_the_tool() {
     assert_eq!(calls.len(), 1, "the tool runs exactly once");
     assert_eq!(
         calls[0].get("name"),
-        Some(&ArgType::Text("Ada".into())),
+        Some(&serde_json::Value::String("Ada".into())),
         "the tool receives the call's arguments, not the envelope"
     );
     assert!(stored_assistant_texts(&session).contains(&"Let me greet them.".to_string()));
@@ -655,7 +663,7 @@ fn text_protocol_tool_calls_run_the_tool() {
 #[valtron_test]
 fn arguments_violating_the_schema_are_rejected_before_execution() {
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("greet", HashMap::new())]);
+    mock.on_nth_call(0, vec![mock_tool_call("greet", ToolArguments::new())]);
     mock.on_any(vec![mock_text("sorry")]);
 
     let (tool, seen) = RecordingTool::new();
@@ -723,7 +731,10 @@ fn denied_tools_do_not_run() {
         0,
         vec![mock_tool_call(
             "greet",
-            HashMap::from([("name".to_string(), ArgType::Text("Ada".into()))]),
+            ToolArguments::from_iter([(
+                "name".to_string(),
+                serde_json::Value::String("Ada".into()),
+            )]),
         )],
     );
     mock.on_any(vec![mock_text("ok")]);

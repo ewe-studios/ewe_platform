@@ -7,8 +7,8 @@ How session data is stored and exported. Source: `src/agentic/serialization.rs`,
 
 ## 1. JSON — the storage format
 
-Every core type (`Messages`, `ModelOutput`, `SessionRecord`, `ModelId`,
-`ArgType`, …) derives serde `Serialize` / `Deserialize`. `SessionRecord` is
+Every core type (`Messages`, `ModelOutput`, `SessionRecord`, `ModelId`, …)
+derives serde `Serialize` / `Deserialize`. `SessionRecord` is
 internally tagged on `message_type` (snake_case); the other enums use serde's
 default externally-tagged form:
 

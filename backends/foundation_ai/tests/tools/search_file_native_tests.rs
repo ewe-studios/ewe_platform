@@ -9,12 +9,12 @@
 
 #![cfg(not(target_family = "wasm"))]
 
-use std::collections::HashMap;
+use foundation_ai::types::ToolArguments;
 use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::ToolImpl;
 use foundation_ai::agentic::tools::search::SearchFileTool;
-use foundation_ai::types::ArgType;
+
 use foundation_nativeapis::MemoryFs;
 
 fn text_of(r: &foundation_ai::agentic::tool_impl::ToolCallResult) -> String {
@@ -32,9 +32,15 @@ fn native_search_file_finds_repo_content_via_cascade() {
         let tool = SearchFileTool::native(Arc::new(MemoryFs::new()), ".".to_string());
 
         // A token that exists in this crate's committed source (the F18 method).
-        let mut args = HashMap::new();
-        args.insert("query".to_string(), ArgType::Text("from_vfs_native".to_string()));
-        args.insert("kind".to_string(), ArgType::Text("Grep".to_string()));
+        let mut args = ToolArguments::new();
+        args.insert(
+            "query".to_string(),
+            serde_json::Value::String("from_vfs_native".to_string()),
+        );
+        args.insert(
+            "kind".to_string(),
+            serde_json::Value::String("Grep".to_string()),
+        );
 
         let out = tool.execute(args).await.expect("native search runs");
         let json = text_of(&out);

@@ -85,7 +85,7 @@ pub enum ModelOutput {
     ToolCall {
         id: String,                                   // correlation id
         name: String,
-        arguments: Option<HashMap<String, ArgType>>,
+        arguments: Option<ToolArguments>,          // the model's JSON object
         signature: Option<String>,
         depends_on: Vec<String>,                      // ids of calls this waits on
         execution_hint: ExecutionHint,                // Unspecified | Parallel | Sequential
@@ -119,25 +119,21 @@ One content item per message — there is no multi-part variant.
 | `Aborted` | Cancelled |
 | `Message(String)` | Any other provider value, preserved |
 
-## 5. `ArgType` — tool argument values
+## 5. `ToolArguments` — tool argument values
 
 ```rust
-pub enum ArgType {
-    Text(String),
-    Float32(f32), Float64(f64),
-    Usize(usize), U8(u8), U16(u16), U32(u32), U64(u64), U128(u128),
-    Isize(isize), I8(i8), I16(i16), I32(i32), I64(i64), I128(i128),
-    Duration(std::time::Duration),
-    JSON(String),                          // raw JSON (arrays, booleans, null, …)
-    JSONMap(HashMap<String, ArgType>),     // nested object
-}
+pub type ToolArguments = serde_json::Map<String, serde_json::Value>;
 ```
 
-Every backend maps model-supplied JSON the same way
-(`types::json_value_to_arg_type`): strings → `Text`, integers → `I64`, other
-numbers → `Float64`, and booleans, `null`, arrays and objects → `JSON(text)`.
-`ArgType::to_json_value()` goes back. The helpers
-`agentic::tool_impl::{arg_bool, arg_usize}` read the common cases.
+A tool call's arguments are the JSON object the model sent, unchanged from
+the backend to the tool: every backend already receives JSON, so there is no
+conversion to lose information in. Schema validation checks this object, and
+tools read it with `agentic::ToolArgs` (`str`, `i64`, `usize`, `f64`, `bool`,
+their `opt_*` forms, `opt_value`, and `parse::<T>()` for a whole struct).
+
+Arguments that are not a JSON object (or not JSON at all) are logged and the
+call carries no arguments, so validation reports the missing fields to the
+model.
 
 ## 6. `Args` — a JSON Schema plus its validator
 

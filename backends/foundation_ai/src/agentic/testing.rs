@@ -10,7 +10,6 @@
 //! implementing `ToolImpl` (F09) with `Returns/Fails/FailsThenSucceeds` behaviors.
 //! Message builder helpers for readable test setup.
 
-use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
@@ -339,8 +338,7 @@ pub fn mock_text_usage(s: &str, usage: UsageReport) -> Messages {
 
 /// Build an `Assistant` tool-call message.
 #[must_use]
-#[allow(clippy::implicit_hasher)]
-pub fn mock_tool_call(name: &str, args: HashMap<String, crate::types::ArgType>) -> Messages {
+pub fn mock_tool_call(name: &str, args: crate::types::ToolArguments) -> Messages {
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("mock".into(), None),
@@ -512,7 +510,7 @@ impl ToolImpl for MockTool {
 
     async fn execute(
         &self,
-        _arguments: HashMap<String, crate::types::ArgType>,
+        _arguments: crate::types::ToolArguments,
     ) -> Result<ToolCallResult, ToolError> {
         match &self.behavior {
             ToolBehavior::Returns(r) => Ok(r.clone()),

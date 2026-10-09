@@ -12,14 +12,12 @@
 //!   --example agent_with_tools
 //! ```
 
-use std::collections::HashMap;
-
 use async_trait::async_trait;
 use foundation_ai::agentic::{
     FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl, ToolShed, TurnEvent,
 };
 use foundation_ai::harness::RouterPreset;
-use foundation_ai::types::{ArgType, Args, Tool, ToolDefinition};
+use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
 use foundation_core::valtron::valtron;
 use foundation_jsonschema::scheme;
 
@@ -49,10 +47,7 @@ impl ToolImpl for GreetTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("greet", &arguments);
         let name = args.str("name")?;
         let greeting = format!("Hello, {name}!");

@@ -11,7 +11,7 @@ the reference for the tool runtime.
 #[async_trait]
 pub trait ToolImpl: Send + Sync {
     fn definition(&self) -> Tool;   // Tool::SingleCommand(..) or Tool::MultiCommands(..)
-    async fn execute(&self, arguments: HashMap<String, ArgType>)
+    async fn execute(&self, arguments: ToolArguments)   // the model's JSON object
         -> Result<ToolCallResult, ToolError>;
 }
 ```
@@ -22,10 +22,9 @@ pub trait ToolImpl: Send + Sync {
 ## 2. A single-command tool
 
 ```rust
-use std::collections::HashMap;
 use async_trait::async_trait;
 use foundation_ai::agentic::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
-use foundation_ai::types::{ArgType, Args, Tool, ToolDefinition};
+use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
 use foundation_jsonschema::scheme;
 
 struct WeatherTool { api_key: String }
@@ -46,7 +45,7 @@ impl ToolImpl for WeatherTool {
         })
     }
 
-    async fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let location = ToolArgs::new("get_weather", &arguments).str("location")?;
         let report = self.fetch(location).await.map_err(|e| ToolError::Execution {
             tool: "get_weather".into(),
@@ -99,7 +98,7 @@ fn definition(&self) -> Tool {
     ])
 }
 
-async fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
     let args = ToolArgs::new("todo", &arguments);
     match args.str("command")? {
         "add" => self.add(args.str("item")?),
@@ -122,8 +121,9 @@ violation goes back to the model as an `InvalidArguments` result and your tool
 is not called, so a `required` string is guaranteed present by the time you
 read it.
 
-Read arguments with `ToolArgs` rather than matching `ArgType` yourself — it
-accepts every spelling the backends produce:
+The arguments are the JSON object the model sent (`ToolArguments`, a
+`serde_json::Map`). Read them with `ToolArgs` — it also accepts the spellings
+some models use (a number or boolean as text):
 
 ```rust
 use foundation_ai::agentic::ToolArgs;
@@ -145,15 +145,9 @@ Every getter returns `ToolError::InvalidArguments` naming the tool and the
 key; the `opt_*` getters return `Ok(None)` only when the key is absent, and an
 error when it is present with the wrong type.
 
-For reference, every backend maps the model's JSON the same way:
-
-| JSON value | `ArgType` |
-|---|---|
-| string | `Text(s)` |
-| integer | `I64(n)` |
-| other number | `Float64(x)` |
-| object | `JSONMap(..)` (recursive) |
-| boolean, null, array | `JSON(text)` — e.g. `JSON("true")`, `JSON("[1,2]")` |
+Every backend hands the tool the same thing: the JSON object from the
+model's call, with no conversion in between. A call whose arguments are not a
+JSON object is logged and reaches validation with no arguments.
 
 ## 5. Errors
 
@@ -227,7 +221,7 @@ fn weather_tool_reads_location() {
     let Tool::SingleCommand(def) = tool.definition() else { panic!("expected single command") };
     assert_eq!(def.name, "get_weather");
 
-    let args = HashMap::from([("location".to_string(), ArgType::Text("London".into()))]);
+    let args = ToolArguments::from_iter([("location".to_string(), serde_json::json!("London"))]);
     let result = futures_lite::future::block_on(tool.execute(args)).expect("runs");
     assert!(matches!(result.content, UserModelContent::Text(_)));
 }

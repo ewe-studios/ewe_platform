@@ -2,17 +2,16 @@
 //! whichever backend produced them, and `ToolCallResult::text` builds a plain
 //! result.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use foundation_ai::agentic::tools::files::EditTool;
-use foundation_ai::types::{json_value_to_arg_type, ArgType, TextContent, UserModelContent};
+use foundation_ai::types::{TextContent, ToolArguments, UserModelContent};
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 use foundation_nativeapis::MemoryFs;
 use serde::Deserialize;
 
-fn args(pairs: &[(&str, ArgType)]) -> HashMap<String, ArgType> {
+fn args(pairs: &[(&str, serde_json::Value)]) -> ToolArguments {
     pairs
         .iter()
         .map(|(k, v)| ((*k).to_string(), v.clone()))
@@ -31,7 +30,10 @@ fn reason(err: ToolError) -> String {
 
 #[test]
 fn strings() {
-    let map = args(&[("s", ArgType::Text("hi".into())), ("n", ArgType::I64(1))]);
+    let map = args(&[
+        ("s", serde_json::Value::String("hi".into())),
+        ("n", serde_json::json!(1)),
+    ]);
     let a = ToolArgs::new("t", &map);
     assert_eq!(a.str("s").unwrap(), "hi");
     assert_eq!(a.opt_str("s").unwrap(), Some("hi"));
@@ -43,20 +45,20 @@ fn strings() {
 #[test]
 fn integers_in_every_spelling() {
     let map = args(&[
-        ("i64", ArgType::I64(-4)),
-        ("u64", ArgType::U64(7)),
-        ("usize", ArgType::Usize(3)),
-        ("text", ArgType::Text(" 12 ".into())),
-        ("json", ArgType::JSON("5".into())),
-        ("bad", ArgType::Text("lots".into())),
-        ("huge", ArgType::U64(u64::MAX)),
+        ("i64", serde_json::json!(-4)),
+        ("u64", serde_json::json!(7)),
+        ("usize", serde_json::json!(3)),
+        ("text", serde_json::Value::String(" 12 ".into())),
+        ("fraction", serde_json::json!(2.5)),
+        ("bad", serde_json::Value::String("lots".into())),
+        ("huge", serde_json::json!(u64::MAX)),
     ]);
     let a = ToolArgs::new("t", &map);
     assert_eq!(a.i64("i64").unwrap(), -4);
     assert_eq!(a.i64("u64").unwrap(), 7);
     assert_eq!(a.i64("usize").unwrap(), 3);
     assert_eq!(a.i64("text").unwrap(), 12);
-    assert_eq!(a.opt_i64("json").unwrap(), Some(5));
+    assert!(reason(a.opt_i64("fraction").unwrap_err()).contains("must be an integer"));
     assert_eq!(a.opt_i64("absent").unwrap(), None);
     assert!(reason(a.i64("bad").unwrap_err()).contains("must be an integer"));
     assert!(reason(a.i64("huge").unwrap_err()).contains("must be an integer"));
@@ -69,10 +71,10 @@ fn integers_in_every_spelling() {
 #[test]
 fn floats() {
     let map = args(&[
-        ("f", ArgType::Float64(2.5)),
-        ("i", ArgType::I64(2)),
-        ("text", ArgType::Text("0.25".into())),
-        ("bad", ArgType::Text("x".into())),
+        ("f", serde_json::json!(2.5)),
+        ("i", serde_json::json!(2)),
+        ("text", serde_json::Value::String("0.25".into())),
+        ("bad", serde_json::Value::String("x".into())),
     ]);
     let a = ToolArgs::new("t", &map);
     assert!((a.f64("f").unwrap() - 2.5).abs() < f64::EPSILON);
@@ -84,10 +86,10 @@ fn floats() {
 #[test]
 fn booleans_from_json_or_text() {
     let map = args(&[
-        ("json", ArgType::JSON("true".into())),
-        ("text", ArgType::Text("false".into())),
-        ("bad", ArgType::Text("yes".into())),
-        ("num", ArgType::I64(1)),
+        ("json", serde_json::json!(true)),
+        ("text", serde_json::Value::String("false".into())),
+        ("bad", serde_json::Value::String("yes".into())),
+        ("num", serde_json::json!(1)),
     ]);
     let a = ToolArgs::new("t", &map);
     assert!(a.bool("json").unwrap());
@@ -121,13 +123,11 @@ fn values_and_whole_struct_parsing() {
         "tags": ["x", "y"],
         "nested": {"depth": 2}
     });
-    let map: HashMap<String, ArgType> = raw
-        .as_object()
-        .unwrap()
-        .iter()
-        .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-        .collect();
-    assert!(matches!(map.get("nested"), Some(ArgType::JSONMap(_))));
+    let map: ToolArguments = raw.as_object().unwrap().clone();
+    assert!(matches!(
+        map.get("nested"),
+        Some(serde_json::Value::Object(_))
+    ));
 
     let a = ToolArgs::new("t", &map);
     assert_eq!(a.opt_value("tags"), Some(serde_json::json!(["x", "y"])));
@@ -142,7 +142,7 @@ fn values_and_whole_struct_parsing() {
         }
     );
 
-    let missing = args(&[("path", ArgType::Text("a".into()))]);
+    let missing = args(&[("path", serde_json::Value::String("a".into()))]);
     let err = ToolArgs::new("t", &missing).parse::<Call>().unwrap_err();
     assert!(reason(err).contains("missing field"));
 }
@@ -162,7 +162,10 @@ fn tool_call_result_text() {
 #[test]
 fn edit_accepts_replace_all_in_either_spelling() {
     futures_lite::future::block_on(async {
-        for flag in [ArgType::JSON("true".into()), ArgType::Text("true".into())] {
+        for flag in [
+            serde_json::json!(true),
+            serde_json::Value::String("true".into()),
+        ] {
             let fs = Arc::new(MemoryFs::new());
             fs.write_file_async("f.txt".into(), b"a a a".to_vec())
                 .await
@@ -170,9 +173,9 @@ fn edit_accepts_replace_all_in_either_spelling() {
             let tool = EditTool::new(Arc::clone(&fs));
             let result = tool
                 .execute(args(&[
-                    ("path", ArgType::Text("f.txt".into())),
-                    ("old_string", ArgType::Text("a".into())),
-                    ("new_string", ArgType::Text("b".into())),
+                    ("path", serde_json::Value::String("f.txt".into())),
+                    ("old_string", serde_json::Value::String("a".into())),
+                    ("new_string", serde_json::Value::String("b".into())),
                     ("replace_all", flag.clone()),
                 ]))
                 .await
@@ -220,7 +223,7 @@ fn fn_tool_declares_itself_and_runs_the_closure() {
     );
 
     let out = futures_lite::future::block_on(
-        tool.execute(args(&[("name", ArgType::Text("Ada".into()))])),
+        tool.execute(args(&[("name", serde_json::Value::String("Ada".into()))])),
     )
     .expect("greets");
     assert!(matches!(
@@ -229,7 +232,7 @@ fn fn_tool_declares_itself_and_runs_the_closure() {
     ));
 
     // Argument errors from the closure surface as tool errors.
-    let err = futures_lite::future::block_on(tool.execute(HashMap::new())).unwrap_err();
+    let err = futures_lite::future::block_on(tool.execute(ToolArguments::new())).unwrap_err();
     assert!(matches!(
         err,
         ToolError::InvalidArguments { ref tool, ref reason }
@@ -261,9 +264,10 @@ fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
         depends_on: Vec::new(),
         execution_hint: ExecutionHint::default(),
     };
-    let ok = futures_lite::future::block_on(
-        manager.execute_one(&request(args(&[("name", ArgType::Text("Bo".into()))]))),
-    )
+    let ok = futures_lite::future::block_on(manager.execute_one(&request(args(&[(
+        "name",
+        serde_json::Value::String("Bo".into()),
+    )]))))
     .expect("runs");
     assert!(matches!(
         ok.content,
@@ -271,7 +275,7 @@ fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
     ));
     // The schema is enforced before the closure runs.
     let err = futures_lite::future::block_on(
-        manager.execute_one(&request(args(&[("name", ArgType::I64(3))]))),
+        manager.execute_one(&request(args(&[("name", serde_json::json!(3))]))),
     )
     .unwrap_err();
     assert!(matches!(err, ToolError::InvalidArguments { .. }), "{err:?}");

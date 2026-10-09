@@ -6,7 +6,6 @@
 //! `search_file` wraps a `FileSearch` backend delegating to
 //! `foundation_nativeapis::VfsSearcher` for the actual filesystem walk.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -16,7 +15,7 @@ use crate::agentic::context::{ContextProvider, SearchMode};
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
-use crate::types::{ArgType, Args, Tool, ToolDefinition};
+use crate::types::{Args, Tool, ToolArguments, ToolDefinition};
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
@@ -194,10 +193,7 @@ impl ToolImpl for SearchContextTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("search_context", &arguments);
         let query = args.str("query")?.to_string();
         let mode = match args.opt_str("mode")? {
@@ -306,10 +302,7 @@ impl ToolImpl for SearchFileTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let args = ToolArgs::new("search_file", &arguments);
         let query = args.str("query")?.to_string();
         let kind = match args.opt_str("kind")? {

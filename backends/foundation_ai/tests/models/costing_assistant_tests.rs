@@ -97,11 +97,10 @@ fn assistant_thinking_content_is_estimated() {
 
 #[test]
 fn assistant_tool_call_arguments_are_estimated() {
-    use foundation_ai::types::{ArgType, ExecutionHint};
-    use std::collections::HashMap;
+    use foundation_ai::types::{ExecutionHint, ToolArguments};
 
-    let mut args: HashMap<String, ArgType> = HashMap::new();
-    args.insert("query".into(), ArgType::Text("x".repeat(400)));
+    let mut args = ToolArguments::new();
+    args.insert("query".into(), serde_json::Value::String("x".repeat(400)));
 
     let est = estimate_tokens(&[assistant(ModelOutput::ToolCall {
         id: "call_1".into(),
@@ -202,11 +201,10 @@ fn empty_message_list_estimates_zero() {
 fn mixed_output_arms_all_contribute() {
     // A realistic turn: the model thinks, answers, then calls a tool. Every
     // part is billable, so the combined estimate must exceed any single part.
-    use foundation_ai::types::{ArgType, ExecutionHint};
-    use std::collections::HashMap;
+    use foundation_ai::types::{ExecutionHint, ToolArguments};
 
-    let mut args: HashMap<String, ArgType> = HashMap::new();
-    args.insert("q".into(), ArgType::Text("y".repeat(200)));
+    let mut args = ToolArguments::new();
+    args.insert("q".into(), serde_json::Value::String("y".repeat(200)));
 
     let combined = estimate_tokens(&[
         assistant(ModelOutput::ThinkingContent {

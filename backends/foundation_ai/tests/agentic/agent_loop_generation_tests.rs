@@ -14,7 +14,6 @@
 //! provider seam is covered separately in `integrations/session_turn.rs` — see
 //! `specifications/60-agentic-reliability/test-matrix.md` for the split.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::internals::{
@@ -27,8 +26,8 @@ use foundation_ai::agentic::{
     AgentConfig, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig, ModelSelection,
 };
 use foundation_ai::types::{
-    ArgType, MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
-    TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
+    TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -281,7 +280,7 @@ fn tool_call_output_drives_the_tool_path() {
     let mut mock = MockModelProvider::new();
     // First call asks for a tool; any later call answers in text, so the loop
     // can terminate rather than looping on the tool forever.
-    mock.on_nth_call(1, vec![mock_tool_call("search", HashMap::new())]);
+    mock.on_nth_call(1, vec![mock_tool_call("search", ToolArguments::new())]);
     mock.on_any(vec![mock_text("done after tool")]);
 
     let mut h = harness_with(mock.into_router(), AgentConfig::default());
@@ -385,7 +384,7 @@ fn registered_tool_executes_and_emits_its_result() {
     use foundation_ai::agentic::testing::MockTool;
 
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("echo", HashMap::new())]);
+    mock.on_nth_call(0, vec![mock_tool_call("echo", ToolArguments::new())]);
     mock.on_any(vec![mock_text("finished")]);
 
     let tool = Arc::new(MockTool::returning("echo", "tool output here"));
@@ -414,7 +413,7 @@ fn failing_tool_does_not_kill_the_turn() {
     use foundation_ai::agentic::testing::MockTool;
 
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("broken", HashMap::new())]);
+    mock.on_nth_call(0, vec![mock_tool_call("broken", ToolArguments::new())]);
     mock.on_any(vec![mock_text("recovered")]);
 
     let tool = Arc::new(MockTool::failing("broken", "tool exploded"));
@@ -433,7 +432,10 @@ fn failing_tool_does_not_kill_the_turn() {
 #[test]
 fn unknown_tool_name_errors_without_panic() {
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("does_not_exist", HashMap::new())]);
+    mock.on_nth_call(
+        0,
+        vec![mock_tool_call("does_not_exist", ToolArguments::new())],
+    );
     mock.on_any(vec![mock_text("moved on")]);
 
     // No tools registered at all.
@@ -456,8 +458,8 @@ fn multiple_tool_calls_all_execute() {
     mock.on_nth_call(
         0,
         vec![
-            mock_tool_call("alpha", HashMap::new()),
-            mock_tool_call("beta", HashMap::new()),
+            mock_tool_call("alpha", ToolArguments::new()),
+            mock_tool_call("beta", ToolArguments::new()),
         ],
     );
     mock.on_any(vec![mock_text("both done")]);
@@ -576,7 +578,7 @@ fn max_inner_iterations_bounds_a_non_converging_tool_loop() {
 
     let mut mock = MockModelProvider::new();
     // Always ask for the tool — never answer in text.
-    mock.on_any(vec![mock_tool_call("loop_forever", HashMap::new())]);
+    mock.on_any(vec![mock_tool_call("loop_forever", ToolArguments::new())]);
 
     let config = AgentConfig {
         max_inner_iterations: 3,
@@ -661,11 +663,14 @@ fn tool_result_is_fed_back_into_next_assemble() {
         0,
         vec![mock_tool_call(
             "shed",
-            HashMap::from([("description".to_string(), ArgType::Text("lookup".into()))]),
+            ToolArguments::from_iter([(
+                "description".to_string(),
+                serde_json::Value::String("lookup".into()),
+            )]),
         )],
     );
     // Call 1: request the tool `shed` returned.
-    mock.on_nth_call(1, vec![mock_tool_call("lookup", HashMap::new())]);
+    mock.on_nth_call(1, vec![mock_tool_call("lookup", ToolArguments::new())]);
     // Any later call: check the tool's result reached the interaction, then answer.
     mock.on(
         move |mi| {
@@ -825,7 +830,7 @@ fn tool_call_with_deps(
         content: ModelOutput::ToolCall {
             id: call_id.to_string(),
             name: name.to_string(),
-            arguments: Some(HashMap::new()),
+            arguments: Some(ToolArguments::new()),
             signature: None,
             depends_on,
             execution_hint: foundation_ai::types::ExecutionHint::Unspecified,
