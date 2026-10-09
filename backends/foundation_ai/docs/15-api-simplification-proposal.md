@@ -42,7 +42,7 @@ Roughly 25 lines and 15 imported types, and several of the steps are traps:
 
 | # | Friction | Why it hurts |
 |---|---|---|
-| F1 | `AgentSession<D, M>` generics with turbofish everywhere, plus a `D: Default, M: Default` bound on `build()` | Persistent stores can't be used at all; every signature carries two type parameters |
+| F1 | `AgentSession<D, M>` generics with turbofish everywhere, plus a `D: Default, M: Default` bound on `build()` | Stores without a `Default` (Cloudflare D1 / R2) can't be used; every signature carries two type parameters |
 | F2 | `with_toolshed(ToolShed)` exists, but tools must be registered on `tool_manager()` after `build()` | The obvious path fails preflight |
 | F3 | Building a user message takes 4 fields and a nested struct | Every example repeats the same 8 lines |
 | F4 | Getting the answer text means matching three nested enums, and streaming consumers must handle `Retracted` | Easy to get wrong; the common case has no helper |

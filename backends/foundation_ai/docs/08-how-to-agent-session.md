@@ -104,8 +104,10 @@ empty name, which only resolves in a single-provider router.
 | `with_toolshed(ToolShed)` | `ToolShed::default()` | Leave it alone — see §3 |
 
 `build()` requires `D: Default` and `M: Default`, even when you pass both
-stores. Only the in-memory stores implement `Default` today, so persistent
-backends can't be used with `build()` yet (Doc 00, "Known limitations").
+stores. The in-memory, Turso, libsql, JSON-file and Fjall stores all
+implement `Default`, so `SqlDocumentStore<TursoStorage>` with
+`KvMemoryStore<TursoStorage>` works. The Cloudflare D1 / R2 stores don't (Doc
+00, "Known limitations").
 
 `build()` runs preflight before returning: every tool in the toolshed must be
 registered with the session's `ToolCallManager`, and the access provider must

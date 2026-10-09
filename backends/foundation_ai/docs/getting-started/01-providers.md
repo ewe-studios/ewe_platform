@@ -473,9 +473,9 @@ let mem_store = KvMemoryStore::new(kv);
 // type Mem = KvMemoryStore<TursoStorage>;            // Turso memory cache
 // type Mem = KvMemoryStore<JsonFileStorage>;         // JSON file cache
 
-// NOTE: build() currently requires Doc: Default + Mem: Default, which only the
-// in-memory stores implement — the persistent types above don't compile with
-// build() yet (Doc 00, "Known limitations").
+// NOTE: build() requires Doc: Default + Mem: Default. The Turso and JSON-file
+// types above implement it; D1R2DocumentStore doesn't, because D1 and R2 need
+// credentials (Doc 00, "Known limitations").
 let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
     .with_doc_store(doc_store)         // your concrete DocumentStore
     .with_memory_store(mem_store)      // KvMemoryStore wrapping a KeyValueStore

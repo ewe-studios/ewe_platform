@@ -367,10 +367,9 @@ let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
     .build()?;
 ```
 
-> **Limitation:** `build()` currently requires `Doc: Default` and
-> `Mem: Default`, which only `MemoryDocumentStore` and
-> `KvMemoryStore<MemoryStorage>` satisfy. The persistent combinations above
-> don't compile with `build()` yet; see Doc 00, "Known limitations".
+> **Note:** `build()` requires `Doc: Default` and `Mem: Default`. The Turso
+> and JSON-file combinations above satisfy it; `D1R2DocumentStore` doesn't,
+> because D1 and R2 need credentials. See Doc 00, "Known limitations".
 
 ---
 

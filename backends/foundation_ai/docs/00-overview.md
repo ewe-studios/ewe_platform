@@ -73,10 +73,12 @@ fresh `AgentLoop` that shares them and schedules it on the Valtron executor.
 These are true of the code today and are worth knowing before you build on it.
 Each one is also called out in the doc that covers the area.
 
-1. **Persistent stores can't be used with `AgentSession::build()` or
-   `resume()` yet.** Both require `D: Default` and `M: Default`, and only the
-   in-memory stores (`MemoryDocumentStore`, `MemoryStorage`) implement
-   `Default`. SQL / Turso / D1+R2 / JSON-file stores don't.
+1. **Cloudflare D1 / R2 stores can't be used with `AgentSession::build()` or
+   `resume()`.** Both require `D: Default` and `M: Default`. The in-memory,
+   Turso, libsql, JSON-file and Fjall stores implement `Default` (Turso and
+   libsql default to an in-memory database, `JsonFileStorage` to
+   `.ewe/storage.json`), but `D1Store` and `R2Store` need credentials and
+   don't.
 2. **The memory hierarchy writes to a different store than context reads
    from.** `build()` gives `MemoryHierarchy` a fresh `M::default()` /
    `D::default()` pair, while `ContextProvider` reads the store you passed to
