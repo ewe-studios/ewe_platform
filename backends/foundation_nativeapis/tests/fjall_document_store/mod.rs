@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_nativeapis::shared::vfs::fjall_fs::InodeFs;
-use foundation_nativeapis::{DurabilityWriteConfig, FjallDocumentStore, VfsFileSystem};
+use foundation_nativeapis::{DurabilityWriteConfig, FjallDocumentStore, MemoryFs, VfsFileSystem};
 
 use foundation_core::valtron::Stream;
 use serde::{Deserialize, Serialize};
@@ -373,4 +373,21 @@ fn ordering_is_chronological_by_scru128() {
     for (i, doc) in newest.iter().enumerate() {
         assert_eq!(doc.id, ids[4 - i]);
     }
+}
+
+// --- Default ---
+
+#[test]
+fn default_store_is_usable_and_starts_empty() {
+    let store = FjallDocumentStore::<MemoryFs>::default();
+    store
+        .append("col", TestRecord { name: "first".into(), value: 1 })
+        .unwrap();
+    let docs = collect_stream(store.scan_all::<TestRecord>("col").unwrap());
+    assert_eq!(docs, vec![TestRecord { name: "first".into(), value: 1 }]);
+
+    // A second default store gets its own index, so it doesn't see the first's data.
+    let other = FjallDocumentStore::<MemoryFs>::default();
+    let other_docs = collect_stream(other.scan_all::<TestRecord>("col").unwrap());
+    assert_eq!(other_docs, Vec::<TestRecord>::new());
 }

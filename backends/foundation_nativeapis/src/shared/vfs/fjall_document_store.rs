@@ -83,6 +83,42 @@ pub struct FjallDocumentStore<V: VfsFileSystem> {
     durability: Arc<DurabilityWriteConfig>,
 }
 
+/// A store over `V::default()` with its fjall index in a fresh directory under
+/// the system temp dir, so every default store starts empty and doesn't share
+/// an index with another. With an in-memory `V` (e.g. `MemoryFs`) nothing
+/// outlives the process except that index directory. Use
+/// [`FjallDocumentStore::open`] to choose where the data and index live.
+///
+/// # Panics
+///
+/// If the index directory can't be created or opened.
+impl<V: VfsFileSystem + Default> Default for FjallDocumentStore<V> {
+    fn default() -> Self {
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let unique = format!(
+            "ewe-fjall-{}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_nanos()),
+            NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+        );
+        let index_path = std::env::temp_dir().join(unique);
+        Self::open(
+            V::default(),
+            "/documents".to_string(),
+            &index_path,
+            Arc::new(DurabilityWriteConfig::default()),
+        )
+        .unwrap_or_else(|e| {
+            panic!(
+                "FjallDocumentStore::default: can't open an index at {}: {e}",
+                index_path.display()
+            )
+        })
+    }
+}
+
 impl<V: VfsFileSystem> FjallDocumentStore<V> {
     /// # Errors
     /// Returns an error if the fjall keyspace or VFS root cannot be opened.

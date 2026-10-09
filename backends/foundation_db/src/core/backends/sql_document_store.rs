@@ -142,6 +142,15 @@ pub struct SqlDocumentStore<Q> {
     table: String,
 }
 
+/// A store over `Q::default()`, using the `documents` table. The backend must
+/// already have that table: the `Default` impls of `TursoStorage` and
+/// `LibsqlStore` migrate it for you.
+impl<Q: Default> Default for SqlDocumentStore<Q> {
+    fn default() -> Self {
+        Self::new(Q::default())
+    }
+}
+
 impl<Q> SqlDocumentStore<Q> {
     /// Create a new `SqlDocumentStore` backed by the given `QueryStore`.
     pub fn new(query_store: Q) -> Self {
