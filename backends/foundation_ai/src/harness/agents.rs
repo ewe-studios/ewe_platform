@@ -8,6 +8,9 @@
 //!
 //! WHAT: one constructor on [`RouterPreset`] per combination, each returning
 //! the router plus the model ids that drive the agent:
+//! The local GGUF combinations (1–3) need the `llamacpp` feature and
+//! `candle_llama` the `candle` feature; the cloud ones are always available.
+//!
 //! 1. [`RouterPreset::glm52_gemma`] — GLM 5.2 main + Gemma 4 E2B memory.
 //! 2. [`RouterPreset::qwen36_gemma`] — Qwen 3.6 main + Gemma 4 E2B memory.
 //! 3. [`RouterPreset::gemma`] — Gemma 4 26B main + Gemma 4 E2B memory
@@ -37,19 +40,19 @@
 use foundation_errstacks::ErrorTrace;
 
 use crate::agentic::AgenticError;
-#[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 use crate::backends::candle::CandleArchitecture;
-#[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 use crate::backends::huggingface_candle_provider::{
     HuggingFaceCandleConfig, HuggingFaceCandleProvider,
 };
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use crate::types::ModelId;
 
-use super::providers::{
-    CloudPresets, Gemma4E2b, Gemma4_26b, Glm52, Qwen36, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O,
-    OPENAI_GPT4O_MINI,
-};
+use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+use super::providers::{Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
 use super::router::{RouterMix, RouterPreset};
 
 /// `ModelId::Name` from a model id string, default quantization.
@@ -69,6 +72,7 @@ impl RouterPreset {
     /// # Errors
     /// Returns [`AgenticError::Provider`] if either GGUF provider cannot be
     /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
     pub fn glm52_gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
@@ -87,6 +91,7 @@ impl RouterPreset {
     /// # Errors
     /// Returns [`AgenticError::Provider`] if either GGUF provider cannot be
     /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
     pub fn qwen36_gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
@@ -105,6 +110,7 @@ impl RouterPreset {
     /// # Errors
     /// Returns [`AgenticError::Provider`] if either GGUF provider cannot be
     /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
     pub fn gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
@@ -179,7 +185,7 @@ impl RouterPreset {
     /// # Errors
     /// Returns [`AgenticError::Provider`] if the Candle provider cannot be
     /// constructed.
-    #[cfg(feature = "candle")]
+    #[cfg(all(feature = "candle", not(target_family = "wasm")))]
     pub fn candle_llama(
         repo_id: &str,
         config: Option<HuggingFaceCandleConfig>,

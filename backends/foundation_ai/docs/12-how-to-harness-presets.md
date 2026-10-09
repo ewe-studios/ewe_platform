@@ -106,7 +106,9 @@ assert_eq!(Glm52::MODEL_ID, "unsloth/GLM-5.2-GGUF");
 ```
 
 Local presets: `Glm52`, `Qwen36`, `Ornith10`, `Gemma4E4b`, `Gemma4_26b`,
-`Gemma4E2b`. (Quantization string consts `Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0` are
+`Gemma4E2b` (with `with_mtp` and the GGUF `RouterPreset` constructors, these
+need the `llamacpp` feature; `CloudPresets` and the cloud constructors build
+with `--no-default-features`). (Quantization string consts `Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0` are
 also exported.)
 
 > `Gemma4E2b` points at `unsloth/gemma-4-E2B-it-GGUF` (not the `ggml-org`

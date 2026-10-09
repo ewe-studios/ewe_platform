@@ -1,5 +1,8 @@
 //! Provider presets - provides pre-configured model presets for various models.
 //!
+//! The local GGUF presets (`Glm52`, `Gemma4E2b`, …, `with_mtp`) need the
+//! `llamacpp` feature; `CloudPresets` and the cloud model ids are always there.
+//!
 //! Each model is represented by a zero-sized unit struct with methods to create
 //! providers with different quantizations. Pass `None` to use default config,
 //! or provide your own `HuggingFaceGGUFConfig` for full control.
@@ -20,6 +23,7 @@
 //! let provider = Glm52::q4_k_m(Some(config))?;
 //! ```
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use std::path::PathBuf;
 
 use foundation_errstacks::ErrorTrace;
@@ -27,7 +31,9 @@ use foundation_errstacks::ErrorTrace;
 use crate::agentic::AgenticError;
 
 use crate::backends::anthropic_messages_provider::AnthropicMessagesProvider;
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::llamacpp::SpeculativeConfig;
 use crate::backends::openai_provider::OpenAIProvider;
 use crate::backends::openai_responses_provider::ResponsesProvider;
@@ -45,6 +51,7 @@ pub const Q8_0: &str = "Q8_0";
 // Helper function to create a provider
 // ===========================================================================
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 fn create_provider(
     quantization: &str,
     config: Option<HuggingFaceGGUFConfig>,
@@ -78,6 +85,7 @@ fn create_provider(
 ///
 /// Pass the result as the *main-model* config to a combo router, e.g.
 /// `RouterPreset::glm52_gemma(Some(with_mtp(None, 4, None)), None)`.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 #[must_use]
 pub fn with_mtp(
     base: Option<HuggingFaceGGUFConfig>,
@@ -94,8 +102,10 @@ pub fn with_mtp(
 // ===========================================================================
 
 /// GLM 5.2 - Zhipu AI's flagship model, excellent for long-horizon tasks.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Glm52;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Glm52 {
     pub const MODEL_ID: &str = "unsloth/GLM-5.2-GGUF";
     /// GLM 5.2 ships an MTP head — MTP speculative decoding is supported.
@@ -127,8 +137,10 @@ impl Glm52 {
 }
 
 /// Qwen 3.6 35B-A3B - Alibaba's MoE model with excellent reasoning.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Qwen36;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Qwen36 {
     pub const MODEL_ID: &str = "unsloth/Qwen3.6-35B-A3B-GGUF";
     /// Qwen 3.6 ships an MTP head — MTP speculative decoding is supported.
@@ -160,8 +172,10 @@ impl Qwen36 {
 }
 
 /// Ornith 1.0 35B - Fine-tuned model with excellent instruction following.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Ornith10;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Ornith10 {
     pub const MODEL_ID: &str = "LordNeel/Ornith-1.0-35B-GGUF-llamacpp-tp1";
     /// Ornith 1.0 does not ship an MTP head.
@@ -193,8 +207,10 @@ impl Ornith10 {
 }
 
 /// Gemma 4 E4B - Google's small expert model, efficient for memory tasks.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4E4b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4E4b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E4B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
@@ -226,8 +242,10 @@ impl Gemma4E4b {
 }
 
 /// Gemma 4 26B-A4B - Google's MoE model.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4_26b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4_26b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-26B-A4B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
@@ -266,8 +284,10 @@ impl Gemma4_26b {
 /// (`Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0`); the `ggml-org` mirror only carries
 /// `Q8_0` and `bf16`, so the mid-range quant methods below would fail to
 /// resolve a file there.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4E2b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4E2b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E2B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.

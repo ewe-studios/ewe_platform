@@ -56,9 +56,11 @@ pub mod providers;
 pub mod router;
 pub mod tools;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+pub use providers::{with_mtp, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, Qwen36};
 pub use providers::{
-    with_mtp, CloudPresets, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, CLAUDE_OPUS,
-    CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI, Q3_K_M, Q4_K_M, Q5_K_M, Q8_0, Qwen36,
+    CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI, Q3_K_M, Q4_K_M,
+    Q5_K_M, Q8_0,
 };
 
 pub use router::{RouterMix, RouterPreset};
