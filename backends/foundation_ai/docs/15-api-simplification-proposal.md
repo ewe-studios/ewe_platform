@@ -295,7 +295,7 @@ Proposed (item 4):
 
 ```rust
 let agent = AgentSession::builder(router)
-    .with_session_id(id)                                 // existing id → history read from these stores
+    .resume(id)                                          // must exist; or .with_session_id(id) to create-or-continue
     .with_doc_store(SqlDocumentStore::new(turso.clone()))
     .with_memory_store(KvMemoryStore::new(turso))
     .with_system_prompt("You are a coding assistant.")
@@ -679,20 +679,55 @@ let coordinator = MemoryCoordinator::from_shared(memory_store, doc_store);
 Today: `AgentSession::<D, M>::resume(session_id, router, config, policy)` (see
 F7) and `AgentSession::<D, M>::builder(session_id, router)`.
 
-Proposed:
+Proposed — **both** an implicit and an explicit form, so a caller can name
+the exact session they want resumed:
+
+- `with_session_id(id)` (implicit): use this id. If the stores already hold
+  records for it, the session continues from them; if not, it starts fresh
+  under that id.
+- `resume(id)` (explicit): resume this specific session. `build()` fails with
+  `AgenticError::SessionNotFound(id)` when the stores hold no records for it,
+  so a typo or a wrong store can't silently start an empty session.
 
 ```rust
+// AgentSessionBuilder
 pub fn with_session_id(mut self, id: SessionId) -> Self; // default: SessionId::new()
+pub fn resume(mut self, id: SessionId) -> Self;           // same id, plus "must exist"
 
 // build(): context assembly already reads the session's records from the doc
-// store each turn, so an existing id over persistent stores resumes.
+// store each turn, so an existing id over persistent stores continues. For
+// `resume(id)`, build() first checks the doc store has records under the id:
+if self.require_existing && message_api.recent(1)?.is_empty() {
+    return Err(AgenticError::SessionNotFound(session_id).into());
+}
 
-#[deprecated(note = "use AgentSession::builder(router).with_session_id(id)…build()")]
+// AgenticError
+SessionNotFound(SessionId), // new variant
+
+#[deprecated(note = "use AgentSession::builder(router).resume(id)…build()")]
 pub fn resume(session_id: SessionId, router: ProviderRouter, config: AgentConfig,
               policy: Option<ErrorPolicy>) -> Result<AgentSession, ErrorTrace<AgenticError>>;
 
 #[deprecated(note = "use AgentSession::builder(router).with_session_id(id)")]
 pub fn builder_for(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder; // old 2-arg builder
+```
+
+Usage:
+
+```rust
+// Implicit: "this id" — continue if it exists, otherwise start it.
+let agent = AgentSession::builder(router.clone())
+    .with_session_id(id.clone())
+    .with_doc_store(SqlDocumentStore::new(turso.clone()))
+    .with_memory_store(KvMemoryStore::new(turso.clone()))
+    .build()?;
+
+// Explicit: "resume exactly this session" — errors if there is nothing to resume.
+let agent = AgentSession::builder(router)
+    .resume(id)
+    .with_doc_store(SqlDocumentStore::new(turso.clone()))
+    .with_memory_store(KvMemoryStore::new(turso))
+    .build()?; // Err(SessionNotFound(id)) on an unknown id
 ```
 
 Changing `builder`'s arguments is the one breaking edit in Tier 1;
@@ -1242,9 +1277,6 @@ let agent = RouterPreset::claude(&key)?
 
 ## 5. Open questions
 
-- Should resume be implicit (reusing an id rehydrates) or explicit
-  (`.resume(id)`)? Implicit is simpler; explicit is clearer when an id is
-  reused by mistake.
 - Is the `ArgType` → `serde_json::Value` move worth the breakage, or is the
   `ToolArgs` wrapper enough?
 - Do we want `agent.ask` to error on a turn that ends in a `FailedAction`
@@ -1260,7 +1292,7 @@ let agent = RouterPreset::claude(&key)?
 |---|---|---|
 | `AgentSession` | `builder(impl Into<ProviderRouter>)`, `ask`, `context_provider`, `#[deprecated] builder_for`, `#[deprecated] resume` | 2, 4, 5, 7 |
 | `AgentSession` | `run_turn(impl Into<Messages>) -> Turn`, `run_turn_stream(impl Into<Messages>) -> TurnStream` | 6, 7, 8 |
-| `AgentSessionBuilder` | `with_toolshed` (kept), `with_tool`, `with_tools`, `with_session_id` | 1, 4 |
+| `AgentSessionBuilder` | `with_toolshed` (kept), `with_tool`, `with_tools`, `with_session_id`, `resume` | 1, 4 |
 | `AgentSessionBuilder` | `with_doc_store` / `with_memory_store` (change the type), `with_model` / `with_fallback_models` / `with_memory_model` (take `Into<ModelId>`) | 2, 9 |
 | Turn results | `Turn`, `TurnStream`, `TurnEvent`, `TurnSummary` | 7, 8 |
 | Messages / ids | `Messages::{user, system, agent}`, `From<&str>`/`From<String>` for `Messages` and `ModelId` | 6, 9 |
