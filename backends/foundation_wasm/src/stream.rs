@@ -162,13 +162,36 @@ pub mod wasm_exports {
     }
 
     /// Push a chunk to a stream by ID. Returns 1 on success, 0 on failure.
+    ///
+    /// The chunk bytes are copied out of linear memory before this returns,
+    /// so the caller may free or reuse the region afterwards.
+    ///
+    /// # Safety
+    ///
+    /// Called by the JS host. When `data_len` is non-zero, `data_ptr` must
+    /// point to `data_len` initialized bytes in this module's linear memory
+    /// that stay valid and unmodified for the duration of the call. When
+    /// `data_len` is zero, `data_ptr` is ignored (it may be null).
     #[no_mangle]
-    pub extern "C" fn stream_send(stream_id: u64, data_ptr: *const u8, data_len: u32, seq: u64) -> u32 {
-        let data = unsafe { core::slice::from_raw_parts(data_ptr, data_len as usize) };
-        u32::from(REGISTRY
-            .lock()
-            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .send(StreamId(stream_id), StreamChunk::new(data.to_vec(), seq)))
+    pub unsafe extern "C" fn stream_send(
+        stream_id: u64,
+        data_ptr: *const u8,
+        data_len: u32,
+        seq: u64,
+    ) -> u32 {
+        let data: &[u8] = if data_len == 0 {
+            &[]
+        } else {
+            // SAFETY: the caller guarantees `data_ptr` points to `data_len`
+            // readable, initialized bytes for the duration of this call.
+            unsafe { core::slice::from_raw_parts(data_ptr, data_len as usize) }
+        };
+        u32::from(
+            REGISTRY
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .send(StreamId(stream_id), StreamChunk::new(data.to_vec(), seq)),
+        )
     }
 
     /// Close a stream by ID. Returns 1 on success, 0 if already closed.
